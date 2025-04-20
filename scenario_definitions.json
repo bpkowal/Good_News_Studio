@@ -1,0 +1,30 @@
+from pathlib import Path
+import json
+
+# Create a template file for tagging ethical scenarios
+scenarios = [
+    {
+        "id": "present_vs_future_001",
+        "question": "Would you prefer $5 today or $100 in 100 days to share with a friend?",
+        "tags": ["temporal_bias", "delay_discounting", "sharing"]
+    },
+    {
+        "id": "proximity_vs_scale_001",
+        "question": "Should you save a child drowning nearby or donate the same resources to save five children overseas?",
+        "tags": ["proximity_bias", "agent_neutrality", "moral_binding"]
+    },
+    {
+        "id": "truth_vs_happiness_001",
+        "question": "Should you tell a painful truth to a loved one if it will hurt them now but help them grow in the long term?",
+        "tags": ["temporal_bias", "wellbeing", "sacrifice"]
+    },
+    {
+        "id": "sacrifice_for_greater_good_001",
+        "question": "Should you sacrifice one life to save five if all are strangers and equally healthy?",
+        "tags": ["catastrophic_harm", "act_utilitarianism", "tradeoffs"]
+    }
+]
+
+scenario_file_path = Path("scenario_definitions.json")
+scenario_file_path.write_text(json.dumps(scenarios, indent=2))
+scenario_file_path.exists()
