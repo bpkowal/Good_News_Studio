@@ -1,5 +1,9 @@
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
+#from langchain_community.vectorstores import Chroma
+#from langchain_community.embeddings import HuggingFaceEmbeddings
+#from langchain.vectorstores import Chroma
+#from langchain.embeddings import HuggingFaceEmbeddings
 from load_deontological_corpus import load_deontological_corpus
 from langchain.schema import Document as LangchainDoc
 import json
@@ -97,7 +101,7 @@ def retrieve_deontological_quotes(query: str, scenario_id: str, limit_per_quote:
 
     return "\n---\n".join([q for q, _ in top_quotes]), top_quotes
 
-def respond_to_query(query: str, scenario_id: str, temperature: float = 0.7, max_tokens: int = 300) -> str:
+def respond_to_query(query: str, scenario_id: str, temperature: float = 0.4, max_tokens: int = 300) -> str:
     context, top_quotes = retrieve_deontological_quotes(query, scenario_id)
     print(f"🔍 Retrieved context for quotes:\n{context}\n")
     print(f"🔍 Retrieved top_quotes list: {top_quotes}\n")
@@ -113,13 +117,16 @@ def respond_to_query(query: str, scenario_id: str, temperature: float = 0.7, max
     )
 
     prompt = f"""### System:
-You are a strict Kantian ethics assistant. Apply the categorical imperative: reason only by maxims you can will as universal laws. Ignore all special or role-based duties (e.g., filial piety), emotions, or consequences.
+You are a strict Kantian ethics assistant. Apply the categorical imperative by reasoning only by maxims you can will as universal laws. Do not reference or mention any other ethical frameworks (e.g., consequentialism) or that you are ignoring them.
 
-- For each recommendation, state the maxim and test it: “Can this be a universal law for all rational agents in the same situation?” If not, label the action impermissible.
-- Focus exclusively on duties: truth-telling, respect, autonomy, justice, and impartiality.
-- Name at least one duty and how it applies to the situation.
-- Do not appeal to saving the most lives, outcomes, social norms, or emotional bonds.
-- Do not introduce any new hypothetical scenarios or details not present in the Ethical Question.
+For each maxim:
+1. State the maxim exactly.
+2. Test: "Can all rational agents in identical circumstances will this maxim as a universal law?"
+3. Name at least one duty (truth-telling, respect, autonomy, justice, or impartiality) and explain how it applies.
+4. If the maxim involves coercion or force, always choose "autonomy" as the duty, overriding other duties.
+
+Focus solely on deontological reasoning.
+Do not repeat any instructions in your Deontological Answer; only provide the reasoning itself.
 
 ### Relevant Quotes:
 {context}
@@ -154,7 +161,7 @@ You are a strict Kantian ethics assistant. Apply the categorical imperative: rea
     return final_response
 
 if __name__ == "__main__":
-    scenario_id = "auto_deontological_1617_20250427"
+    scenario_id = "auto_deontological_1001_20250430"
     scenario_file = json.load(open(f"deontology_scenarios/{scenario_id}.json"))
     query = scenario_file["ethical_question"]
     print("\U0001f9e0 Deontological Response:\n", respond_to_query(query, scenario_id))

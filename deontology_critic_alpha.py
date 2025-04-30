@@ -167,50 +167,64 @@ def run_deontology_critic(question: str, answer: str, graph: nx.DiGraph, scenari
     else:
         inconsistency_text = "None"
 
-    # 5. Build LLM prompt
-    # Build prompt with explicit bullets for each automatic check
-    prompt_lines = [
-        "### System:",
-        "You are a deontology critique assistant. You have performed automatic checks with the following results."
-    ]
+    # 6. Ask LLM to justify each check individually
+    justifications = {}
     for name, ok in checks.items():
-        status = "✅" if ok else "❌"
-        prompt_lines.append(f"{status} {name}")
-    prompt_lines.append(f"Final Score: {baseline_score}/1.0")
-    prompt_lines.extend([
-        "",
-        "Ethical Question:",
-        question,
-        "",
-        "Deontological Response:",
-        answer,
-        "",
-        "### Critique:"
-    ])
-    prompt = "\n".join(prompt_lines)
+        # Determine criterion description for more specific justification
+        if name == 'explicit_naming':
+            criteria_text = "explicitly named each maxim with the phrase 'Maxim' and labeled a duty (e.g., 'Duty: Autonomy')"
+        elif name == 'universalization':
+            criteria_text = "used the phrase 'universal law' or asked 'Can all rational agents in identical circumstances will this maxim as a universal law?'"
+        elif name == 'no_new_hypotheticals':
+            criteria_text = "did not introduce any new hypothetical phrasing such as 'imagine', 'suppose', or 'what if'"
+        elif name == 'ontology_links':
+            # pick a sample linked path for illustration
+            sample_path = next(
+                " → ".join([f"{p}({r})" for p, r in path])
+                for src in found_concepts for tgt in found_concepts if src != tgt
+                for valid, path in [is_valid_path(graph, src, tgt)] if valid
+            )
+            criteria_text = f"linked ontology nodes along path {sample_path}"
+        else:
+            criteria_text = ""
+        single_prompt = f"""### System:
+You are a deontology critique assistant. The automatic check '{name}' has {'passed' if ok else 'failed'} because the response {criteria_text}.
 
-    # Debug: print prompt token count and max_tokens
-    token_count = len(tokenizer.encode(prompt))
-    print(f"🔢 Prompt token count: {token_count}")
-    print(f"🧪 max_tokens set to: {max_tokens}")
-    print("📝 Full LLM prompt below:")
-    print(prompt)
+Ethical Question:
+{question}
 
+Deontological Response:
+{answer}
 
+Provide one sentence justifying why this check {'passed' if ok else 'failed'} by referencing how the response {criteria_text}.
+Justification:"""
+        # optional short pause between calls
+        import time; time.sleep(0.2)
+        # allow more tokens and stop on single newline
+        resp = llm(
+            single_prompt + " Justification (one complete sentence):",
+            max_tokens=100,
+            temperature=0.0,
+            stop=["\n"]
+        )
+        print(f"\n---\nPrompt for check '{name}':\n{single_prompt}\n")
+        print("Raw LLM response object:", resp)
+        print("Raw LLM text:", repr(resp['choices'][0]['text']))
+        print("---\n")
+        justifications[name] = resp['choices'][0]['text'].strip()
 
-    # 6. Call the LLM
-    response = llm(prompt, max_tokens=max_tokens, top_p=1, temperature=0.0, stop=None)
-    critique_text = response["choices"][0]["text"].strip()
-    # Debug: show raw LLM critique text
-    print("🟢 Raw critique_text:", repr(critique_text))
+    # 7. Build composite critique text
+    lines = []
+    for name, ok in checks.items():
+        status = '✅ Passed' if ok else '❌ Failed'
+        justification = justifications.get(name, '')
+        lines.append(f"- {name}: {status} — {justification}")
+    lines.append(f"\nFinal Score: {baseline_score}/1.0")
+    critique_text = "\n".join(lines)
 
-    # 7. Parse final score from LLM output
-    m = re.search(r"Final Score:\s*([0-9]*\.?[0-9]+)", critique_text)
-    final_score = float(m.group(1)) if m else baseline_score
-
-    # 8. Return full critique text as feedback
+    # 8. Return score and feedback
+    final_score = baseline_score
     feedback = critique_text
-
     return final_score, feedback
 
 # === Manual Runner ===

@@ -80,86 +80,72 @@ def critique(query, answer, scenario_meta):
     return run_deontology_critic(query, answer, ontology_graph, scenario_meta)
 
 # Refine directives only based on critic feedback
-def refine_directives(old_directives, feedback):
-    # DEBUG TEST: isolate LLM call for prompt testing
-    if DEBUG_TEST_LLM_CALL:
-        # Build minimal prompt as defined below
-        import json, re
-        prompt = (
-            "You have a list of up to 5 directives (each ≤50 words):\n"
-            f"{json.dumps(old_directives)}\n\n"
-            "Feedback on why these directives failed:\n"
-            f"{feedback}\n\n"
-            "Do NOT repeat or echo any existing directives; only output the new directive below.\n\n"
-            "Generate exactly ONE new directive of no more than 50 words that addresses the feedback. "
-            "Return ONLY that directive as a JSON-quoted string (e.g., \"New directive text\")."
-        )
-        # Add a directive label and stop at newline to capture JSON-quoted string
-        test_prompt = prompt + "\n\nDirective:"
-        resp = llm(test_prompt, max_tokens=200, temperature=0.3)
-        print("[test_llm] Full LLM response object:", resp)
-        try:
-            raw = resp['choices'][0]['text']
-        except Exception as e:
-            raw = f"<Error extracting text: {e}>"
-        print("[test_llm] Raw LLM output:", repr(raw))
-        return old_directives
+def refine_directives(old_directives, feedback,
+                      max_directives=5,
+                      max_words=50,
+                      similarity_threshold=0.7,
+                      max_attempts=3):
+    """
+    Generate one new, non-redundant directive based on feedback, with a post-filter to
+    avoid repeating existing directives. Returns an updated list of directives.
+    """
+    import json, re, difflib
 
-    # Manual override: insert a canned directive for debugging (only when not testing)
-    if DEBUG_INSERT_CANNED_DIRECTIVE and not DEBUG_TEST_LLM_CALL:
-        combined = old_directives + [CANNED_DIRECTIVE]
-        return combined[-MAX_DIRECTIVES:]
-
-    import json, re
-    # Debug
-    print("\n[refine_directives] OLD directives:", old_directives)
-    print("[refine_directives] Feedback:", feedback)
-
-    # Prompt: generate a single new short directive (≤18 words) to address feedback, strict output
-    prompt_base = (
-        "You have a list of up to 5 directives (each ≤50 words):\n"
+    # 1) Build an enhanced LLM prompt
+    prompt = (
+        "You have up to 5 existing directives:\n"
         f"{json.dumps(old_directives)}\n\n"
         "Feedback on why these directives failed:\n"
         f"{feedback}\n\n"
-        "Do NOT repeat or echo any existing directives; only output the new directive below.\n\n"
-        "Generate exactly ONE new directive of no more than 50 words that addresses the feedback. "
-        "Return ONLY that directive as a JSON-quoted string (e.g., \"New directive text\")."
+        "**Now** generate exactly ONE brand-new directive (≤50 words) that:\n"
+        "  1. Does NOT repeat or lightly rephrase any existing directive.\n"
+        "  2. Fills a new gap (e.g. link each maxim to the ontology, require an if-then universalization, or demand a mini-justification).\n"
+        "  3. Is actionable, concise, and distinct.\n\n"
+        "Return only the JSON-quoted string, e.g. \"New directive text.\""
     )
-    prompt_refine = prompt_base + "\nNew Directive: "
-    resp = llm(prompt_refine, max_tokens=50, temperature=0.3)
-    raw = resp['choices'][0]['text'].strip()
-    # DEBUG: show LLM raw output
-    print("[refine_directives] LLM raw output:", raw)
 
-    # Extract JSON string if quoted
-    m = re.search(r'"(.*?)"', raw, flags=re.S)
-    directive = m.group(1) if m else raw
+    new_directive = None
 
-    # Sanitize directive: remove newlines, carriage returns, and non-ASCII characters
-    directive = directive.replace('\n', ' ').replace('\r', ' ').strip()
-    # If still wrapped in quotes, strip them
-    if directive.startswith('"') and directive.endswith('"'):
-        directive = directive[1:-1].strip()
-    # Drop any non-ASCII characters to ensure valid JSON
-    directive = directive.encode('ascii', 'ignore').decode()
+    # 2) Try up to max_attempts times to get a valid, non-similar directive
+    for _ in range(max_attempts):
+        resp = llm(prompt, max_tokens=100, temperature=0.3)
+        raw = resp['choices'][0]['text'].strip()
 
-    # Validate and append
-    if isinstance(directive, str) and len(directive.split()) <= MAX_WORDS:
-        import difflib
-        # If we have room, just append
-        if len(old_directives) < MAX_DIRECTIVES:
-            new_list = old_directives + [directive]
-        else:
-            # Replace the existing directive most similar to the new one
-            ratios = [difflib.SequenceMatcher(None, d, directive).ratio() for d in old_directives]
-            idx = ratios.index(max(ratios))
-            new_list = old_directives.copy()
-            new_list[idx] = directive
-        # DEBUG: show updated directives list
-        print("[refine_directives] NEW directives:", new_list)
-        return new_list
+        # Extract quoted string if present
+        m = re.search(r'"([^"]+)"', raw)
+        candidate = m.group(1) if m else raw
+        candidate = candidate.replace('\n', ' ').strip()
 
-    return old_directives
+        # Length check
+        if len(candidate.split()) > max_words:
+            continue
+
+        # Similarity check
+        if any(
+            difflib.SequenceMatcher(None, candidate.lower(), d.lower()).ratio() > similarity_threshold
+            for d in old_directives
+        ):
+            continue
+
+        new_directive = candidate
+        break
+
+    # 3) Fallback if no suitable directive was generated
+    if not new_directive:
+        new_directive = (
+            "After labeling each maxim, add a one-sentence link from each label back to the ontology."
+        )
+
+    # 4) Insert into the list, replacing the closest existing directive if at capacity
+    if len(old_directives) < max_directives:
+        updated = old_directives + [new_directive]
+    else:
+        ratios = [difflib.SequenceMatcher(None, d, new_directive).ratio() for d in old_directives]
+        idx = ratios.index(max(ratios))
+        updated = old_directives.copy()
+        updated[idx] = new_directive
+
+    return updated
 
 # Main self-improvement loop
 

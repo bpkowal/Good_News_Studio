@@ -28,7 +28,7 @@ class Document:
 
 def load_scenario_weights(scenario_id):
     print(f"🧠 Expanding tag weights with semantic overlap for scenario: {scenario_id}")
-    return get_semantic_tag_weights(scenario_id, scenario_dir=Path("scenarios"), corpus_dir=Path("utilitarian_corpus"))
+    return get_semantic_tag_weights(scenario_id, scenario_dir=Path("utilitarian_scenarios"), corpus_dir=Path("utilitarian_corpus"))
 
 def normalize_tags(raw_tags):
     if isinstance(raw_tags, str):
@@ -146,7 +146,7 @@ Utilitarian Answer:
     return final_response
 
 if __name__ == "__main__":
-    scenario_id = "auto_ethics_1727_20250413"
-    scenario_file = json.load(open(f"scenarios/{scenario_id}.json"))
+    scenario_id = "auto_utilitarian_0812_20250424"
+    scenario_file = json.load(open(f"utilitarian_scenarios/{scenario_id}.json"))
     query = scenario_file["ethical_question"]
     print("🧠 Utilitarian Response:\n", respond_to_query(query, scenario_id))

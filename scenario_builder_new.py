@@ -31,21 +31,58 @@ AGENTS = {
 }
 
 BASE_DIR = Path(".")
+# Ensure each agent folder exists and is a directory
 for agent in AGENTS.values():
-    (BASE_DIR / agent["folder"]).mkdir(parents=True, exist_ok=True)
+    folder = BASE_DIR / agent["folder"]
+    if folder.exists():
+        if not folder.is_dir():
+            print(f"Error: '{folder}' exists but is not a directory.")
+            exit(1)
+    else:
+        folder.mkdir(parents=True, exist_ok=True)
 
 # === Tag extraction helper ===
 def extract_tags(raw_output):
+    # First, try parsing a JSON array
     try:
         return json.loads(raw_output)
     except json.JSONDecodeError:
-        matches = re.findall(r'\d+\.\s*([\w\s\-]+)', raw_output)
-        if not matches:
-            matches = re.findall(r'-\s*([\w\s\-]+)', raw_output)
-        if matches and len(matches) >= 3:
-            tags = [m.strip().lower() for m in matches[:5]]
-            return tags
-        raise ValueError("Could not extract valid tag list.")
+        pass
+
+    # Fallback: parse numbered lists, bullets, or plain lines
+    tags = []
+    for line in raw_output.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        # Skip pure numeric lines
+        if re.fullmatch(r'\d+', line):
+            continue
+        tag = None
+        # Numbered list: "1. tag"
+        m_num = re.match(r'\d+\.\s*(.*)', line)
+        if m_num:
+            tag = m_num.group(1)
+        else:
+            # Bulleted list: "- tag" or "* tag"
+            m_bul = re.match(r'[-*]\s*(.*)', line)
+            if m_bul:
+                tag = m_bul.group(1)
+            else:
+                # Remove any trailing digits (e.g., "tag2")
+                tag = re.sub(r'\s*\d+$', '', line)
+        tag_clean = tag.strip().lower()
+        # remove emojis and punctuation, keep only letters, numbers, spaces, and hyphens
+        tag_clean = re.sub(r'[^\w\s-]', '', tag_clean)
+        if tag_clean:
+            tags.append(tag_clean)
+        if len(tags) >= 5:
+            break
+
+    if tags:
+        return tags
+    # If no tags found, raise for debugging
+    raise ValueError(f"Could not extract valid tag list from raw output: {raw_output!r}")
 
 # === Description generator ===
 def describe_tag(prefix, tag):
