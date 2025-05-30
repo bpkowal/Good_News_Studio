@@ -30,3 +30,5 @@ RAGAIMODEL/
 └── requirements.txt
 
 This is the model so far. get_semantic_tag.py is a work in progress and may need to be fixed into the care care_ethics_agent
+It turns out the tags for the scenarios matter a lot for finding the correct quotes for each agent . You probably want to match each a seperate 
+set of tags for each agent.

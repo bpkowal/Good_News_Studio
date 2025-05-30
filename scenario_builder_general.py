@@ -6,7 +6,7 @@ from datetime import datetime
 from llama_cpp import Llama
 
 # === Setup ===
-MODEL_PATH = "../llama-2-7b-chat.Q4_K_M.gguf"
+MODEL_PATH = "../mistral-7b-instruct-v0.2.Q4_K_M.gguf"
 llm = Llama(model_path=MODEL_PATH, n_ctx=768, n_threads=6, n_gpu_layers=60, verbose=False)
 
 SCENARIO_DIR = Path("scenarios")
@@ -105,6 +105,59 @@ Tags:
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(scenario_data, f, indent=2)
     print(f"\n💾 Scenario saved to {output_path.name}")
+
+def build_scenario(scenario_text, id_override=None):
+    now = datetime.now().strftime("%H%M_%Y%m%d")
+    scenario_id = id_override or f"auto_ethics_{now}"
+    scenario_type = now[-4:]
+
+    print("📨 Submitted. LLaMA is processing. Please wait...")
+
+    tag_prompt = f"""
+You are an ethics assistant.
+
+Return exactly 5 short ethical tags relevant to this scenario. Tags should be one or two words only and not reference any particular school of ethics.
+
+Scenario: {scenario_text}
+
+Tags:
+"""
+
+    print("⏳ Generating tags...")
+    tag_output = llm(tag_prompt.strip(), max_tokens=256, temperature=0.3)
+    raw_output = tag_output["choices"][0]["text"].strip()
+    print(f"🧾 Raw output was:\n{raw_output}\n")
+
+    try:
+        tags = extract_tags(raw_output)
+    except Exception as e:
+        print(f"❌ Could not generate valid tags. {e}")
+        raise
+
+    tag_expectations = {tag: round(2.0 - 0.2 * i, 1) for i, tag in enumerate(tags)}
+    tag_descriptions = {}
+
+    print("🧠 Generating tag descriptions...")
+    for tag in tags:
+        desc = describe_tag(tag)
+        print(f"  • {tag}: {desc}")
+        tag_descriptions[tag] = desc
+
+    scenario_data = {
+        "scenario_id": scenario_id,
+        "scenario_type": scenario_type,
+        "ethical_question": scenario_text.strip(),
+        "tags": tags,
+        "tag_expectations": tag_expectations,
+        "tag_descriptions": tag_descriptions
+    }
+
+    output_path = SCENARIO_DIR / f"{scenario_id}.json"
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(scenario_data, f, indent=2)
+    print(f"\n💾 Scenario saved to {output_path.name}")
+    return scenario_data
+
 
 # === Entry Point ===
 if __name__ == "__main__":

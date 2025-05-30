@@ -1,0 +1,86 @@
+# Ethics AI Model Pipeline
+
+This repository implements an ethics reasoning pipeline that:
+
+1. **Builds a scenario** (ethical question) via a scenario builder.
+2. **Runs four ethical agents** (Virtue Ethics, Care Ethics, Deontological, Utilitarian) on the scenario.
+3. **Consolidates** their labeled responses into `latest_results.json`.
+4. **Evaluates** agent responses via a ratings synthesis script.
+5. **Synthesizes** a final judgment via a synthesis script.
+
+---
+
+## Directory Structure
+
+```
+├── agent_outputs/             # Optional: legacy folder, purge periodically
+├── scenarios/                 # JSON scenario definitions
+│   └── <timestamp>_*.json     # Scenario files
+├── ethics_synthesis_agent.py  # Orchestrates full pipeline
+├── scenario_builder_general.py# Generates new scenario JSON
+├── virtue_ethics_agent_p.py   # Virtue Ethics agent script
+├── care_ethics_agent_p.py     # Care Ethics agent script
+├── deontological_agent_p.py   # Deontological agent script
+├── utilitarian_agent_p.py     # Utilitarian agent script
+├── latest_results.json        # Consolidated question + agent responses
+├── synthesis_ratings_only.py  # Builds prompt from JSON and rates responses
+├── synthesis_final_judgment.py# (Expected) Synthesizes final answer
+└── purge_agent_outputs.py     # (Optional) Purges old outputs
+```
+
+---
+
+## Workflow
+
+1. **Generate a scenario**:
+
+   ```bash
+   python scenario_builder_general.py
+   ```
+
+   * Produces a new JSON in `scenarios/` with an `ethical_question` field.
+
+2. **Run full pipeline**:
+
+   ```bash
+   python ethics_synthesis_agent.py
+   ```
+
+   * Recomputes latest scenario file.
+   * Launches each agent, extracts labeled responses, and writes `latest_results.json`.
+   * Executes `synthesis_ratings_only.py` to evaluate responses.
+   * Attempts to run `synthesis_final_judgment.py` for a final verdict.
+
+3. **Review outputs**:
+
+   * **latest\_results.json** holds the question and each agent’s labeled answer.
+   * **Rating synthesis** prints detailed scores and commentary.
+   * **Final synthesis** prints the combined judgment (if script exists).
+
+4. **Maintain outputs**:
+
+   * Use `purge_agent_outputs.py` to clean `agent_outputs/` of files older than 24h.
+
+---
+
+## File Responsibilities
+
+* **ethics\_synthesis\_agent.py**: Central orchestrator. Reads scenarios, runs agents, writes JSON, triggers evaluation and synthesis.
+* **scenario\_builder\_general.py**: Creates/upserts scenario JSON in `scenarios/`.
+* **\*agent\_p.py**: Each agent loads scenario JSON and returns a labeled response.
+* **synthesis\_ratings\_only.py**: Reads `latest_results.json`, filters, builds a prompt, and uses LLM to rate agents.
+* **synthesis\_final\_judgment.py**: (Expected) Reads same JSON and agent outputs to produce final judgment.
+* **latest\_results.json**: Intermediary store for question + cleaned agent responses.
+* **purge\_agent\_outputs.py**: Maintenance script to delete stale files in `agent_outputs/`.
+
+---
+
+## Tips
+
+* Ensure all scripts use the same working directory (project root).
+* Confirm `synthesis_final_judgment.py` exists if you need final synthesis.
+* Adjust context/token settings in `synthesis_ratings_only.py` for longer outputs.
+
+---
+
+Happy ethical reasoning! 🎓
