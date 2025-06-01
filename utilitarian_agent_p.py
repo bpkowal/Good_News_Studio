@@ -155,7 +155,6 @@ Ethical Question:
 
 Utilitarian Answer:
 [/INST]
-</s>
 """
 
     completion = llm(prompt, max_tokens=max_tokens, temperature=temperature, stream=False)

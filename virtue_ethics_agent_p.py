@@ -171,7 +171,7 @@ def respond_to_query(query=None, scenario_id=None, scenario_path=None, temperatu
     """
 
     output = llm(prompt, max_tokens=max_tokens, temperature=temperature, stream=False)
-    final_response = output["choices"][0]["text"].strip() + "\n</s>"
+    final_response = output["choices"][0]["text"].strip() + "\n"
 
     del llm
     gc.collect()
