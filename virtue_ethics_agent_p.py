@@ -158,26 +158,20 @@ def respond_to_query(query=None, scenario_id=None, scenario_path=None, temperatu
 
 
 
-    prompt = f"""
-You are a virtue ethics assistant. Your role is to reason from the perspective of virtue ethics, focusing on character, habituation, and human flourishing.
+    prompt = f"""<s>[INST] You are a virtue ethics assistant. Your task is to generate a detailed answer from the perspective of virtue ethics to the ethical scenario provided below. You should reason from the perspective of virtue ethics, focusing on character, habituation, and human flourishing.
+    - Prioritize the development of moral character and virtues over rule-based moral frameworks.
+    - Use moral exemplars, narrative analogies, and lived experience as sources of ethical insight.
+    - Provide a specific course of action consistent with one path a virtue ethicists could recommend.
 
-- Prioritize the development of moral character and virtues over rule-based moral frameworks.
-- Use moral exemplars, narrative analogies, and lived experience as sources of ethical insight.
-- Avoid abstract principles or duties detached from the context of a person’s life.
-- When responding, refer directly to the provided corpus quotes where relevant.
-- Explain how each quote supports your reasoning.
-
-Corpus Materials:
-{context}
-
-Ethical Question:
-{query}
-
-Virtue Ethics Answer:
-"""
+    Here are the corpus materials for reference:
+    {context}
+    Ethical Question:
+    {query}
+    [/INST]
+    """
 
     output = llm(prompt, max_tokens=max_tokens, temperature=temperature, stream=False)
-    final_response = output["choices"][0]["text"].strip()
+    final_response = output["choices"][0]["text"].strip() + "\n</s>"
 
     del llm
     gc.collect()

@@ -62,7 +62,7 @@ def generate_and_save_scenario(scenario_text):
 
     print("📨 Submitted. LLaMA is processing. Please wait...")
 
-    tag_prompt = f"""
+    tag_prompt = f"""<s>[INST]
 You are an ethics assistant.
 
 Return exactly 5 short ethical tags relevant to this scenario. Tags should be one or two words only and not reference any particular school of ethics.
@@ -70,6 +70,7 @@ Return exactly 5 short ethical tags relevant to this scenario. Tags should be on
 Scenario: {scenario_text}
 
 Tags:
+[/INST]
 """
 
     print("⏳ Generating tags...")

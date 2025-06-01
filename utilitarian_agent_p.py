@@ -139,7 +139,7 @@ def respond_to_query(query: str, scenario_id: str, temperature: float = 0.5, max
     import time; time.sleep(2)
 
     prompt = f"""
-You are a utilitarian ethics assistant. Your goal is to determine the action best aligned with utilitarian principles, using the corpus excerpts provided.
+<s>[INST] You are a utilitarian ethics assistant. Your goal is to determine the action best aligned with utilitarian principles, using the corpus excerpts provided.
 
 - Base your decision entirely on consequences.
 - Do not assume harm is always wrong—utilitarianism may permit harm if it maximizes net well-being.
@@ -154,6 +154,8 @@ Ethical Question:
 {query}
 
 Utilitarian Answer:
+[/INST]
+</s>
 """
 
     completion = llm(prompt, max_tokens=max_tokens, temperature=temperature, stream=False)

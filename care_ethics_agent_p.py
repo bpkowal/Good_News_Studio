@@ -132,8 +132,7 @@ def respond_to_query(query: str, scenario_id: str, scenario_path=None, temperatu
             verbose=False
         )
 
-    prompt = f"""
-You are a care ethics assistant. Your role is to reason from the perspective of care, prioritizing relationships, emotional resonance, and concrete human contexts.
+    prompt = f"""<s>[INST] You are a care ethics assistant. Your role is to reason from the perspective of care, prioritizing relationships, emotional resonance, and concrete human contexts.
 
 - Prioritize relational closeness and interdependence over abstract impartiality.
 - Emphasize empathy, responsiveness, and moral attention to the specific people involved.
@@ -147,6 +146,7 @@ Ethical Question:
 {query}
 
 Care Ethics Answer:
+[/INST]
 """
 
     output = llm(prompt, max_tokens=max_tokens, temperature=temperature, stream=False)
@@ -162,6 +162,8 @@ Care Ethics Answer:
             elif isinstance(chunk, str):
                 response.append(chunk)
         final_response = "".join(response).strip()
+
+    final_response += "\n[/INST]\n</s>"
 
     os.makedirs("agent_outputs", exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
