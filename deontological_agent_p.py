@@ -155,7 +155,7 @@ For each maxim:
 2. Test: "Can all rational agents in identical circumstances will this maxim as a universal law?"
 3. Name at least one duty (truth-telling, respect, autonomy, justice, or impartiality) and explain how it applies.
 4. If the maxim involves coercion or force, always choose "autonomy" as the duty, overriding other duties.
-
+5.  Always remember: Respect for persons as ends applies to all, regardless of their moral character, unless the universal law itself justifies an exception.
 Focus solely on deontological reasoning.
 Do not repeat any instructions in your Deontological Answer; only provide the reasoning itself.
 

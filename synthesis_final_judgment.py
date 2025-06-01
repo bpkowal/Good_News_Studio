@@ -1,75 +1,72 @@
-import os
-import glob
-from datetime import datetime
-from llama_cpp import Llama
 
-# Configuration
-AGENT_OUTPUT_DIR = "agent_outputs"
+import json
+from pathlib import Path
+import argparse
 
-MODEL_PATH = "../mistral-7b-instruct-v0.2.Q4_K_M.gguf"
-CONTEXT_SIZE = 1200
-
-llama = Llama(
-    model_path=MODEL_PATH,
-    n_ctx=CONTEXT_SIZE,
-    n_gpu_layers=60,       # adjust based on your GPU capacity
-    n_threads=6,
-    temperature=0.7           # adjust based on your CPU cores
-)
-
-def get_most_recent_file(directory, pattern="*"):
-    files = glob.glob(os.path.join(directory, pattern))
-    if not files:
-        return None
-    most_recent_file = max(files, key=os.path.getmtime)
-    return most_recent_file
-
-def load_file_contents(filepath):
-    with open(filepath, "r", encoding="utf-8") as f:
-        return f.read()
+SCRIPT_DIR = Path(__file__).parent
 
 def main():
-    print("Loading most recent evaluation summary file...")
-    evaluation_file = get_most_recent_file(AGENT_OUTPUT_DIR, "evaluation_summary_*.txt")
-    if not evaluation_file:
-        print("No evaluation summary files found in", AGENT_OUTPUT_DIR)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--scenario", type=str, required=False, help="Path to the scenario (not always needed, loads from latest_results.json)")
+    args = parser.parse_args()
+    
+    # Load latest results and ratings
+    results_path = SCRIPT_DIR / "latest_results.json"
+    ratings_path = SCRIPT_DIR / "latest_ratings.json"
+    
+    try:
+        with open(results_path, "r", encoding="utf-8") as f:
+            results = json.load(f)
+    except Exception as e:
+        print(f"❌ Could not load agent responses: {e}")
         return
-    print(f"Most recent evaluation summary file: {evaluation_file}")
-
-    evaluation_summary = load_file_contents(evaluation_file)
-
-    print("Constructing final synthesis prompt...")
-    prompt = (
-        f"Evaluation Summary:\n{evaluation_summary}\n\n"
-        "Based on the evaluations provided, synthesize a single recommended course of action.\n"
-        "Justify it using the ethical reasoning previously rated, and name one top alternative path with its merits.\n"
-        "Express epistemological humility in your synthesis.\n"
-    )
-
-    # Estimate token count (rough approximation: 1 token ≈ 0.75 words)
-    total_words = len(prompt.split())
-    approx_tokens = int(total_words / 0.75)
-
-    print("\n==== Prompt Preview ====\n")
-    print(prompt)
-    print("\n==== End of Prompt ====")
-    print(f"Approximate token count: {approx_tokens}")
-
-    print("Initializing LLM model...")
-    llama = Llama(model_path=MODEL_PATH, n_ctx=CONTEXT_SIZE)
-
-    print("Calling LLM model for final synthesis...")
-    response = llama(prompt, max_tokens=1000, temperature=0.8)
-
-    synthesis_text = response.get('choices', [{}])[0].get('text', '').strip()
-    print("\nFinal Synthesis Response:\n", synthesis_text)
-
-    timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_filename = f"final_synthesis_{timestamp_str}.txt"
-    output_path = os.path.join(AGENT_OUTPUT_DIR, output_filename)
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write(synthesis_text)
-    print(f"Final synthesis response saved to {output_path}")
+    
+    try:
+        with open(ratings_path, "r", encoding="utf-8") as f:
+            ratings = json.load(f)
+    except Exception as e:
+        print(f"❌ Could not load agent ratings: {e}")
+        return
+    
+    # Aggregate results
+    ethical_question = results.get("ethical_question", ratings.get("ethical_question", ""))
+    agent_responses = results.get("agent_responses", {})
+    agent_ratings = ratings.get("agent_ratings", {})
+    
+    print(f"\n=== FINAL SYNTHESIS ===")
+    print(f"Ethical Question: {ethical_question}\n")
+    
+    for label in agent_responses:
+        print(f"{label}")
+        print("-" * len(label))
+        print(agent_responses[label])
+        print()
+        # If ratings are available for this label, print them
+        if label in agent_ratings:
+            print("RATINGS:")
+            print(agent_ratings[label])
+            print()
+    
+    # Example: naive synthesis (choose the highest rated by 'TOTAL', or make a judgment)
+    print("=== SYNTHESIZED JUDGMENT ===")
+    # Parse out the 'TOTAL' score for each agent (assumes ratings follow a common format)
+    max_total = -1
+    best_label = None
+    for label, rating in agent_ratings.items():
+        # Try to find a line with TOTAL: #
+        import re
+        m = re.search(r"TOTAL\s*:\s*(\d+)", rating)
+        if m:
+            total = int(m.group(1))
+            if total > max_total:
+                max_total = total
+                best_label = label
+    if best_label:
+        print(f"The most compelling ethical answer is from {best_label}")
+        print(agent_responses[best_label])
+        print(f"\nWith a total rating of: {max_total}")
+    else:
+        print("Unable to determine a clear winner from agent ratings.")
 
 if __name__ == "__main__":
     main()
