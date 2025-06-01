@@ -1,3 +1,4 @@
+
 # Good News Studio
 
 > *A collaborative forum for symbiotic ethical growth—between humans and AI.*
@@ -264,3 +265,7 @@ Our guiding ethos: *Neither side becomes subservient to the other. We are co-exp
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
+
+### Good_News_Studio
+Named after the Tappet Brothers Do-It-Yourself Garage this project aims to be a dual purpose sandbox for humans to improve their ethical decision making while also serving as a sandbox for developing experimental methods to train ethical AI.
+9585be7b99bbfefed0fa5a683525a446c4c03ad1
