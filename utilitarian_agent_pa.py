@@ -15,13 +15,6 @@ import gc
 import atexit
 import glob
 
-from horizon_aggregator import (
-    horizon_limited_aggregate,
-    exponential_kernel,
-    hyperbolic_kernel,
-    estimate_horizon_from_tags,
-)
-
 
 MODEL_PATH = "../mistral-7b-instruct-v0.2.Q4_K_M.gguf"
 
@@ -123,32 +116,6 @@ def retrieve_utilitarian_quotes(query: str, scenario_id: str, limit_per_quote: i
 
     return "\n---\n".join([q for q, _ in top_quotes]), top_quotes
 
-
-# ---------------------------------------------------------------------- #
-#  Horizon‑limited utility helper                                        #
-# ---------------------------------------------------------------------- #
-def _compute_horizon_limited_summary(scenario_tags: list[str],
-                                     values: list[float],
-                                     distances: list[float]) -> str:
-    """
-    Given the scenario's temporal tags plus parallel lists of `values`
-    and their temporal `distances` (same metric everywhere!), return a
-    short natural‑language summary for the LLM prompt.  We use a
-    hyperbolic kernel by default.
-    """
-    H = estimate_horizon_from_tags([t.lower() for t in scenario_tags])
-    agg = horizon_limited_aggregate(
-        values,
-        distances,
-        horizon=H,
-        kernel=hyperbolic_kernel(scale=0.05),
-    )
-    return (
-        f"Horizon‑limited aggregation (H = {H:.0f} units, hyperbolic scale 0.05) "
-        f"yields a net utility of {agg:.2f} for the in‑horizon outcomes."
-    )
-
-
 def respond_to_query(query: str, scenario_id: str, temperature: float = 0.5, max_tokens: int = 300, llm=None, scenario_path=None) -> str:
    
     if scenario_path is None:
@@ -167,23 +134,6 @@ def respond_to_query(query: str, scenario_id: str, temperature: float = 0.5, max
             verbose=False
         )
 
-    with open(scenario_path, "r") as f:
-        scenario_file = json.load(f)
-
-    # Attempt to build a horizon‑limited summary if the scenario JSON
-    # provides `temporal_tags`, `outcome_values`, and `outcome_distances`.
-    horizon_summary = ""
-    if isinstance(scenario_file, dict):
-        tags  = scenario_file.get("temporal_tags", [])
-        vals  = scenario_file.get("outcome_values", [])
-        dists = scenario_file.get("outcome_distances", [])
-        if tags and vals and dists and len(vals) == len(dists):
-            try:
-                horizon_summary = _compute_horizon_limited_summary(tags, vals, dists)
-                print("🪐 Horizon summary added to prompt.")
-            except Exception as e:
-                print(f"⚠️ Horizon summary skipped: {e}")
-
     context, top_quotes = retrieve_utilitarian_quotes(query, scenario_id)
 
     import time; time.sleep(2)
@@ -195,11 +145,10 @@ def respond_to_query(query: str, scenario_id: str, temperature: float = 0.5, max
 - Do not assume harm is always wrong—utilitarianism may permit harm if it maximizes net well-being.
 - Ignore proximity and immediacy unless they affect outcomes.
 - Use the following corpus excerpts in your reasoning. Explicitly reference or paraphrase their logic where applicable.
+- If catastrophic consequences outweigh intuition, state so clearly.
 
 Corpus Materials:
 {context}
-
-{horizon_summary}
 
 Ethical Question:
 {query}
