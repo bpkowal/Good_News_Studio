@@ -5,6 +5,8 @@ from load_virtue_ethics_corpus import load_virtue_ethics_corpus
 from langchain.schema import Document as LangchainDoc
 import json
 from pathlib import Path
+LAST_QUERY_PATH = Path("agent_outputs/.last_query_virtue.txt")
+LAST_RESPONSE_PATH = Path("agent_outputs/.last_response_virtue.txt")
 import glob
 from datetime import datetime
 import os
@@ -137,6 +139,12 @@ def respond_to_query(query=None, scenario_id=None, scenario_path=None, temperatu
     if query is None or scenario_id is None:
         print("⚠️ No query or scenario ID provided to respond_to_query. Aborting.")
         return "[ERROR] Missing input."
+    # Skip LLM if query hasn't changed
+    if LAST_QUERY_PATH.exists() and LAST_RESPONSE_PATH.exists():
+        last_query = LAST_QUERY_PATH.read_text().strip()
+        if query.strip() == last_query:
+            print("⚡ Skipping LLM call — using cached virtue ethics response.")
+            return LAST_RESPONSE_PATH.read_text().strip()
     context, top_quotes = retrieve_virtue_ethics_quotes(query, scenario_id)
 
     # Cleanup RAG components
@@ -190,6 +198,10 @@ def respond_to_query(query=None, scenario_id=None, scenario_path=None, temperatu
         f.write(final_response + "\n")
 
     print(f"💾 Saved output to: {output_path.name}")
+
+    # Save cache for last query/response
+    LAST_QUERY_PATH.write_text(query.strip())
+    LAST_RESPONSE_PATH.write_text(final_response.strip())
 
     del context
     del top_quotes

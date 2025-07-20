@@ -1,3 +1,8 @@
+
+
+from pathlib import Path
+LAST_QUERY_PATH = Path("agent_outputs/.last_query.txt")
+LAST_RESPONSE_PATH = Path("agent_outputs/.last_response.txt")
 import atexit
 import gc
 import glob
@@ -11,7 +16,6 @@ from langchain_huggingface import HuggingFaceEmbeddings
 # from load_deontological_corpus import load_deontological_corpus
 from langchain.schema import Document as LangchainDoc
 import json
-from pathlib import Path
 from datetime import datetime
 import os
 import numpy as np
@@ -125,12 +129,18 @@ def retrieve_deontological_quotes(query: str, scenario_id: str, limit_per_quote:
     return "\n---\n".join([q for q, _ in top_quotes]), top_quotes
 
 def respond_to_query(query: str, scenario_id: str, temperature: float = 0.4, max_tokens: int = 300, llm=None, scenario_path=None) -> str:
-   
     if scenario_path is None:
         scenario_path = Path(f"scenarios/{scenario_id}.json")
-        
+
     if not query or not scenario_id:
         raise ValueError("Both 'query' and 'scenario_id' must be provided.")
+
+    # Check if query matches last processed query
+    if LAST_QUERY_PATH.exists() and LAST_RESPONSE_PATH.exists():
+        last_query = LAST_QUERY_PATH.read_text().strip()
+        if query.strip() == last_query:
+            print("⚡ Skipping LLM call — using cached response.")
+            return LAST_RESPONSE_PATH.read_text().strip()
 
     context, top_quotes = retrieve_deontological_quotes(query, scenario_id)
     print(f"🔍 Retrieved context for quotes:\n{context}\n")
@@ -191,6 +201,10 @@ Provide your answer as a Deontological Answer.
             f.write(f"- {quote} (score: {score:.2f})\n")
         f.write("\nDeontological Response:\n")
         f.write(final_response + "\n")
+
+    # Save the current query and response for caching
+    LAST_QUERY_PATH.write_text(query.strip())
+    LAST_RESPONSE_PATH.write_text(final_response.strip())
 
     print(f"\U0001f4be Saved output to: {output_path.name}")
     return final_response

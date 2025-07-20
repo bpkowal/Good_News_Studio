@@ -6,6 +6,9 @@ import gc
 import os
 import time
 
+LAST_REBUT_QUERY_PATH = Path("agent_outputs/.last_virtue_rebut_query.txt")
+LAST_REBUT_RESPONSE_PATH = Path("agent_outputs/.last_virtue_rebut_response.txt")
+
 
 MODEL_PATH = "../mistral-7b-instruct-v0.2.Q4_K_M.gguf"
 RESULTS_FILE = Path("latest_results.json")
@@ -23,6 +26,14 @@ def rebut_utilitarian_response():
 
     if not util_response:
         raise ValueError("❌ No utilitarian response found in latest_results.json.")
+
+    # Skip if the query and response haven't changed
+    if LAST_REBUT_QUERY_PATH.exists() and LAST_REBUT_RESPONSE_PATH.exists():
+        last_input = LAST_REBUT_QUERY_PATH.read_text().strip()
+        current_input = f"{query.strip()}\n{util_response.strip()}"
+        if current_input == last_input:
+            print("⚡ Skipping LLM call — using cached virtue ethics rebuttal.")
+            return LAST_REBUT_RESPONSE_PATH.read_text().strip()
 
     # Create temporary scenario file
     temp_scenario_path = Path(f"scenarios/{scenario_id}.json")
@@ -98,6 +109,9 @@ Virtue Ethics Rebuttal:
 
     print(f"✅ Rebuttal saved to: {outpath.name}")
 
+    # Cache the inputs and rebuttal
+    LAST_REBUT_QUERY_PATH.write_text(f"{query.strip()}\n{util_response.strip()}")
+    LAST_REBUT_RESPONSE_PATH.write_text(rebuttal.strip())
 
     return rebuttal
 

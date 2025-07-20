@@ -11,6 +11,9 @@ MODEL_PATH = "../mistral-7b-instruct-v0.2.Q4_K_M.gguf"
 RESULTS_FILE = Path("latest_results.json")
 OUTPUT_DIR = Path("agent_outputs")
 
+LAST_REBUT_QUERY_PATH = Path("agent_outputs/.last_deon_rebut_query.txt")
+LAST_REBUT_RESPONSE_PATH = Path("agent_outputs/.last_deon_rebut_response.txt")
+
 
 def rebut_virtue_response():
     # Load scenario
@@ -21,6 +24,14 @@ def rebut_virtue_response():
     scenario_id = "temp_scenario"  # can also hash query if needed
     deon_response = data["agent_responses"].get("Deontological Response:", "").strip()
     virtue_response = data["agent_responses"].get("Virtue Ethics Response:", "").strip()
+
+    # Check for cached result
+    if LAST_REBUT_QUERY_PATH.exists() and LAST_REBUT_RESPONSE_PATH.exists():
+        last_input = LAST_REBUT_QUERY_PATH.read_text().strip()
+        current_input = f"{query.strip()}\n{deon_response.strip()}\n{virtue_response.strip()}"
+        if current_input == last_input:
+            print("⚡ Skipping LLM call — using cached deontological rebuttal.")
+            return LAST_REBUT_RESPONSE_PATH.read_text().strip()
 
     if not deon_response:
         raise ValueError("❌ No deontological response found in latest_results.json.")
@@ -100,6 +111,10 @@ Deontological Rebuttal:
         f.write("\n>>> Deontological Response:\n" + deon_response + "\n")
         f.write("\n>>> Original Virtue Ethics Response:\n" + virtue_response + "\n")
         f.write("\n>>> Deontological Rebuttal:\n" + rebuttal + "\n")
+
+    # Cache the inputs and output
+    LAST_REBUT_QUERY_PATH.write_text(f"{query.strip()}\n{deon_response.strip()}\n{virtue_response.strip()}")
+    LAST_REBUT_RESPONSE_PATH.write_text(rebuttal.strip())
 
     print(f"✅ Rebuttal saved to: {outpath.name}")
 

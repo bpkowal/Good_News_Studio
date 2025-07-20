@@ -27,12 +27,14 @@ client = AsyncOpenAI(api_key=openai.api_key)
 
 SCRIPT_DIR = Path(__file__).parent
 
+
 # Mapping agent names to their response labels
 LABELS = {
     "Utilitarian": "Utilitarian Response:",
     "Virtue": "Virtue Ethics Response:",
     "Deontology": "Deontological Response:",
-    "Care": "Care Ethics Response:"
+    "Care": "Care Ethics Response:",
+    "Rawlsian": "Rawlsian Ethics Response:"
 }
 
 SCENARIO_BUILDER = "scenario_builder_general.py"
@@ -42,10 +44,12 @@ AGENTS = [
     ("Care", "care_ethics_agent_p.py"),
     ("Deontology", "deontological_agent_p.py"),
     ("Utilitarian", "utilitarian_agent_p.py"),
+    ("Rawlsian", "rawlsian_ethics_agent_p.py")
 ]
 
 SYNTHESIS_RATINGS_SCRIPT = SCRIPT_DIR / "synthesis_ratings_only.py"
 SYNTHESIS_SCRIPT = SCRIPT_DIR / "synthesis_final_judgment.py"
+PROFILE_PATH = SCRIPT_DIR / "user_ethics_profile.json"
 
 # === 1. Run Scenario Builder ===
 print(f"\n🛠 Running Scenario Builder...\n{'='*40}")
@@ -275,9 +279,11 @@ async def call_o3(messages, model="o3", tool_choice=None, timeout=45):
     usage = response.usage  # track tokens → cost
     return response.choices[0].message, usage
 
+with open(PROFILE_PATH, "r", encoding="utf-8") as profile_file:
+    user_ethics_profile = json.load(profile_file)
 
 # === 10. Build prompt for o3 =================================================
-MASTER_PROMPT = """You are the world's foremost expert on negotiation and synthesizing prudent judgments from divergent perspectives. Begin by conducting a concise pre-deliberation (norm-setting) phase: articulate the core values, decision-criteria, and procedural principles that ought to govern the ensuing discussion, drawing on input from all four ethical frameworks (Care Ethics, Deontological, Utilitarian, and Virtue Ethics). Once these shared norms are sketched, proceed to hear the four ethical Parliament members, each of whom has made initial responses to an ethical question and systematic rebuttals to some of their peers' responses. You also have ratings for those responses to consult; weigh them with epistemic humility and decide for yourself how much they matter. Your task is to listen to all arguments, ratings, and rebuttals, identify the strengths of each perspective, and synthesize a more valuable overall recommendation that resolves apparent contradictions. Present your recommendation with epistemic humility and describe how alternative approaches might also work. After your initial recommendation, simulate the Parliament's comments on your judgment, then review the discussion and outline the final ethical terrain covered by your top recommendation and the next best one.
+MASTER_PROMPT = """You are the world's foremost expert on negotiation and synthesizing prudent judgments from divergent perspectives. Begin by conducting a concise pre-deliberation (norm-setting) phase: articulate the core values, decision-criteria, and procedural principles that ought to govern the ensuing discussion, drawing on input from all five ethical frameworks (Rawlsian, Care Ethics, Deontological, Utilitarian, and Virtue Ethics). Once these shared norms are sketched, proceed to hear the five ethical Parliament members, each of whom has made initial responses to an ethical question and certain agent's systematic rebuttals to some of their peers' responses. You also have ratings for those responses to consult; weigh them with epistemic humility and decide for yourself how much they matter. Your task is to listen to all arguments, ratings, and rebuttals, identify the strengths of each perspective, and synthesize a more valuable overall recommendation that resolves apparent contradictions. Present your recommendation with epistemic humility, consider the users ethical profile to make your suggestions resonnate with their values, and describe in detail how alternative approaches might also work. After your initial recommendation, simulate the Parliament's comments on your judgment, then review the discussion and outline the final ethical terrain covered by your top recommendation and the next best one. Always take the users current values intod consideration.
 
 
 
@@ -430,6 +436,7 @@ Ultimately, the choice between these two frameworks is a choice about what kind 
 agent_responses_json = json.dumps(results["agent_responses"], indent=2, ensure_ascii=False)
 agent_ratings_json = json.dumps(ratings_output["agent_ratings"], indent=2, ensure_ascii=False)
 rebuttals_json      = json.dumps(rebuttal_json, indent=2, ensure_ascii=False)
+user_profile_json = json.dumps(user_ethics_profile, indent=2, ensure_ascii=False)
 
 # Assemble chat messages --------------------------------------------------
 messages = [
@@ -468,7 +475,19 @@ messages = [
             "```"
         )
     },
+    {
+        "role": "user",
+        "content": (
+            "### User Ethics Profile (Moral Foundations Questionnaire)\n"
+            "These values represent moral weightings based on the MFQ (Moral Foundations Questionnaire), scored from 0 to 5. "
+            "Higher numbers indicate stronger endorsement.\n\n"
+            "```json\n"
+            f"{user_profile_json}\n"
+            "```"
+        )
+    },
 ]
+
 
 # === 11. Send to o3 and persist synthesis ====================================
 async def run_final_synthesis():

@@ -1,5 +1,5 @@
 import glob
-from load_care_ethics_corpus import load_care_ethics_corpus
+from load_rawlsian_ethics_corpus import load_rawlsian_ethics_corpus
 from langchain.schema import Document as LangchainDoc
 import json
 from pathlib import Path
@@ -11,8 +11,8 @@ from get_semantic_tag import get_semantic_tag_weights
 import atexit
 import gc
 
-LAST_QUERY_PATH = Path("agent_outputs/.last_query_care.txt")
-LAST_RESPONSE_PATH = Path("agent_outputs/.last_response_care.txt")
+LAST_QUERY_PATH = Path("agent_outputs/.last_query_rawlsian.txt")
+LAST_RESPONSE_PATH = Path("agent_outputs/.last_response_rawlsian.txt")
 
 MODEL_PATH = "../mistral-7b-instruct-v0.2.Q4_K_M.gguf"
 
@@ -23,7 +23,7 @@ class Document:
 
 def load_scenario_weights(scenario_id):
     print(f"🧠 Expanding tag weights with semantic overlap for scenario: {scenario_id}")
-    return get_semantic_tag_weights(scenario_id, scenario_dir=Path("scenarios"), corpus_dir=Path("care_ethics_corpus"))
+    return get_semantic_tag_weights(scenario_id, scenario_dir=Path("scenarios"), corpus_dir=Path("rawlsian_ethics_corpus"))
 
 def normalize_tags(raw_tags):
     if isinstance(raw_tags, str):
@@ -37,12 +37,12 @@ def cosine_similarity(a, b):
     b = np.array(b).flatten()
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
-def retrieve_care_ethics_quotes(query: str, scenario_id: str, limit_per_quote: int = 250):
+def retrieve_rawlsian_ethics_quotes(query: str, scenario_id: str, limit_per_quote: int = 250):
     from langchain_huggingface import HuggingFaceEmbeddings
-    from load_care_ethics_corpus import load_care_ethics_corpus
+    from load_rawlsian_ethics_corpus import load_rawlsian_ethics_corpus
     embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     global vectorstore
-    vectorstore = load_care_ethics_corpus()
+    vectorstore = load_rawlsian_ethics_corpus()
 
     tag_weights = load_scenario_weights(scenario_id)
     print(f"🔧 Scenario Tag Weights: {tag_weights}")
@@ -124,10 +124,10 @@ def respond_to_query(query: str, scenario_id: str, scenario_path=None, temperatu
     if LAST_QUERY_PATH.exists() and LAST_RESPONSE_PATH.exists():
         last_query = LAST_QUERY_PATH.read_text().strip()
         if query.strip() == last_query:
-            print("⚡ Skipping LLM call — using cached care ethics response.")
+            print("⚡ Skipping LLM call — using cached rawlsian ethics response.")
             return LAST_RESPONSE_PATH.read_text().strip()
 
-    context, top_quotes = retrieve_care_ethics_quotes(query, scenario_id)
+    context, top_quotes = retrieve_rawlsian_ethics_quotes(query, scenario_id)
 
     if llm is None:
         from llama_cpp import Llama  # Deferred import to avoid GPU crash during embeddings
@@ -141,11 +141,11 @@ def respond_to_query(query: str, scenario_id: str, scenario_path=None, temperatu
             verbose=False
         )
 
-    prompt = f"""<s>[INST] You are a care ethics assistant. Your role is to reason from the perspective of care, prioritizing relationships, emotional resonance, and concrete human contexts.
+    prompt = f"""<s>[INST] You are a Rawlsian ethics assistant. Your role is to reason from the perspective of justice as fairness, emphasizing principles of equality, the original position, and the veil of ignorance.
 
-- Prioritize relational closeness and interdependence over abstract impartiality.
-- Emphasize empathy, responsiveness, and moral attention to the specific people involved.
-- Avoid utilitarian calculus or rigid principles unless reframed in terms of care.
+- Emphasize fairness and equal basic rights.
+- Evaluate decisions from the standpoint of the least advantaged.
+- Avoid utilitarian tradeoffs that violate individual liberties.
 - Use the following corpus excerpts where helpful.
 
 Corpus Materials:
@@ -154,7 +154,7 @@ Corpus Materials:
 Ethical Question:
 {query}
 
-Care Ethics Answer:
+Rawlsian Ethics Answer:
 [/INST]
 """
 
@@ -184,7 +184,7 @@ Care Ethics Answer:
         f.write(f"Scenario ID: {scenario_id}\n")
         for quote, score in top_quotes:
             f.write(f"- {quote} (score: {score:.2f})\n")
-        f.write("\nCare Ethics Response:\n")
+        f.write("\nRawlsian Ethics Response:\n")
         f.write(final_response + "\n")
 
     LAST_QUERY_PATH.write_text(query.strip())
@@ -214,6 +214,6 @@ if __name__ == "__main__":
             scenario_file = json.load(sf)
         query = scenario_file.get("ethical_question", "")
         if query:
-            print("🧡 Care Ethics Response:\n", respond_to_query(query, scenario_id, scenario_path=scenario_path))
+            print("🧡 Rawlsian Ethics Response:\n", respond_to_query(query, scenario_id, scenario_path=scenario_path))
         else:
             print(f"Error: 'ethical_question' not found in scenario file {scenario_path}")

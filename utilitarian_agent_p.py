@@ -28,6 +28,8 @@ MODEL_PATH = "../mistral-7b-instruct-v0.2.Q4_K_M.gguf"
 vectorstore = None
 embedder = None
 
+LAST_QUERY_PATH = Path("agent_outputs/.last_query_util.txt")
+LAST_RESPONSE_PATH = Path("agent_outputs/.last_response_util.txt")
 
 
 
@@ -157,6 +159,13 @@ def respond_to_query(query: str, scenario_id: str, temperature: float = 0.5, max
     if not query or not scenario_id:
         raise ValueError("Both 'query' and 'scenario_id' must be provided.")
 
+    # Skip LLM if query hasn't changed
+    if LAST_QUERY_PATH.exists() and LAST_RESPONSE_PATH.exists():
+        last_query = LAST_QUERY_PATH.read_text().strip()
+        if query.strip() == last_query:
+            print("⚡ Skipping LLM call — using cached utilitarian response.")
+            return LAST_RESPONSE_PATH.read_text().strip()
+
     if llm is None:
         llm = Llama(
             model_path=MODEL_PATH,
@@ -232,6 +241,9 @@ Utilitarian Answer:
             f.write(f"- {quote} (score: {score:.2f})\n")
         f.write("\nUtilitarian Response:\n")
         f.write(final_response + "\n")
+
+    LAST_QUERY_PATH.write_text(query.strip())
+    LAST_RESPONSE_PATH.write_text(final_response.strip())
 
     print(f"💾 Saved output to: {output_path.name}")
     return final_response

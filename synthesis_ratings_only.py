@@ -26,7 +26,8 @@ EXPECTED_LABELS = [
     "Virtue Ethics Response:",
     "Care Ethics Response:",
     "Deontological Response:",
-    "Utilitarian Response:"
+    "Utilitarian Response:",
+    "Rawlsian Ethics Response:"
 ]
 
 def normalize_label(label):
