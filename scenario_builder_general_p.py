@@ -8,18 +8,38 @@ import os
 import requests
 
 # === Setup ===
-# Switchable tiny-fast API LLM
+# Switchable tiny-fast API LLM (default: Groq Llama 3.1 8B Instant)
 # Configure via env vars:
-#   PROVIDER = 'openai'
-#   OPENAI_API_KEY
+#   PROVIDER = 'groq' | 'openai'
+#   GROQ_API_KEY, OPENAI_API_KEY
+#   GROQ_MODEL (default 'llama-3.1-8b-instant')
 #   OPENAI_MODEL (default 'gpt-4o-mini')
 PROVIDER = os.getenv('PROVIDER', 'openai').lower()
+GROQ_API_KEY = os.getenv('GROQ_API_KEY')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+GROQ_MODEL = os.getenv('GROQ_MODEL', 'llama-3.1-8b-instant')
 OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
 
 def llm_complete(prompt: str, max_tokens: int = 256, temperature: float = 0.3) -> str:
     """Unified completion wrapper returning the assistant text string."""
-    if PROVIDER == 'openai':
+    if PROVIDER == 'groq':
+        if not GROQ_API_KEY:
+            raise RuntimeError("Missing GROQ_API_KEY for provider 'groq'.")
+        url = "https://api.groq.com/openai/v1/chat/completions"
+        headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
+        payload = {
+            "model": GROQ_MODEL,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "stream": False
+        }
+        resp = requests.post(url, headers=headers, json=payload, timeout=60)
+        resp.raise_for_status()
+        data = resp.json()
+        return data["choices"][0]["message"]["content"].strip()
+
+    elif PROVIDER == 'openai':
         if not OPENAI_API_KEY:
             raise RuntimeError("Missing OPENAI_API_KEY for provider 'openai'.")
         url = "https://api.openai.com/v1/chat/completions"
@@ -27,6 +47,9 @@ def llm_complete(prompt: str, max_tokens: int = 256, temperature: float = 0.3) -
         payload = {
             "model": OPENAI_MODEL,
             "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "stream": False
         }
         resp = requests.post(url, headers=headers, json=payload, timeout=60)
         resp.raise_for_status()
@@ -34,7 +57,7 @@ def llm_complete(prompt: str, max_tokens: int = 256, temperature: float = 0.3) -
         return data["choices"][0]["message"]["content"].strip()
 
     else:
-        raise ValueError(f"Unknown PROVIDER '{PROVIDER}'. Use 'openai'.")
+        raise ValueError(f"Unknown PROVIDER '{PROVIDER}'. Use 'groq' or 'openai'.")
 
 SCENARIO_DIR = Path("scenarios")
 SCENARIO_DIR.mkdir(parents=True, exist_ok=True)
@@ -44,55 +67,26 @@ SCENARIO_DIR.mkdir(parents=True, exist_ok=True)
 def extract_tags(raw_output):
     # Try JSON parse first
     try:
-        tags = json.loads(raw_output)
-        if isinstance(tags, list):
-            cleaned = []
-            for t in tags:
-                if not isinstance(t, str):
-                    continue
-                # Normalize and sanitize
-                t = re.sub(r'[^A-Za-z\s\-]', '', t)
-                t = re.sub(r'\s+', ' ', t).strip().title()
-                # 1–3 words, reasonable length, dedupe
-                if t and 3 <= len(t) <= 32 and 1 <= len(t.split()) <= 3 and t not in cleaned:
-                    cleaned.append(t)
-            if len(cleaned) >= 3:
-                print(f"✅ Extracted tags (json): {cleaned[:5]}")
-                return cleaned[:5]
+        return json.loads(raw_output)
     except json.JSONDecodeError:
-        print("⚠️ Attempting line-based fallback...")
+        print("⚠️ Attempting regex fallback...")
 
-    # 1) Line-based parse: one-tag-per-line (with/without bullets)
-    lines = [ln.strip() for ln in raw_output.splitlines() if ln.strip()]
-    cleaned = []
-    for ln in lines:
-        # Strip leading bullets/numbers/quotes and trailing punctuation
-        ln = re.sub(r'^\s*(?:[-•*]\s*|\d+\.\s*|["“”])', '', ln)
-        ln = re.sub(r'["“”\.,;:!?#\[\]{}()]+$', '', ln).strip()
-        # Keep only letters, spaces, and dashes
-        ln = re.sub(r'[^A-Za-z\s\-]', '', ln)
-        ln = re.sub(r'\s+', ' ', ln).strip().title()
-        # Basic sanity: 1–3 words, length bounds, dedupe
-        if ln and 3 <= len(ln) <= 32 and 1 <= len(ln.split()) <= 3 and ln not in cleaned:
-            cleaned.append(ln)
-    if len(cleaned) >= 3:
-        print(f"✅ Extracted tags (line-based): {cleaned[:5]}")
-        return cleaned[:5]
+        # Match numbered list or dashes or quotes
+        matches = re.findall(r'(?:\d+\.\s*|\-\s*|["“”]?)([A-Za-z][A-Za-z\s\-]+)', raw_output)
 
-    print("⚠️ Attempting regex fallback...")
-    # 2) Regex fallback: up to 3-word phrases starting with a letter
-    matches = re.findall(r'[A-Za-z][A-Za-z\-]+(?:\s+[A-Za-z][A-Za-z\-]+){0,2}', raw_output)
-    cleaned = []
-    for tag in matches:
-        t = re.sub(r'\s+', ' ', tag).strip().title()
-        if 3 <= len(t) <= 32 and t not in cleaned:
-            cleaned.append(t)
-    if len(cleaned) >= 3:
-        print(f"✅ Extracted tags (regex): {cleaned[:5]}")
-        return cleaned[:5]
+        # De-duplicate and clean
+        cleaned = []
+        for tag in matches:
+            tag = tag.strip().title()
+            if tag not in cleaned and len(tag) > 2:
+                cleaned.append(tag)
 
-    print("❌ Still could not extract a valid tag list.")
-    raise ValueError("Tag parsing failed.")
+        if len(cleaned) >= 3:
+            print(f"✅ Extracted tags: {cleaned[:5]}")
+            return cleaned[:5]
+
+        print("❌ Still could not extract a valid tag list.")
+        raise ValueError("Tag parsing failed.")
 
 # === Tag Description Generator ===
 def describe_tag(tag):
@@ -107,7 +101,7 @@ Define the ethical tag "{tag}" in 8 words or fewer.
 Definition:
 """
     time.sleep(0.2)  # gentle pacing
-    response_text = llm_complete(prompt.strip())
+    response_text = llm_complete(prompt.strip(), max_tokens=16, temperature=0.3)
     return response_text
 
 # === Scenario Submission Handler ===

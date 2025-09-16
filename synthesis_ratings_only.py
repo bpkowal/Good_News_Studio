@@ -3,7 +3,7 @@ import re
 import json
 import argparse
 from pathlib import Path
-from llama_cpp import Llama
+from openai import OpenAI
 from datetime import datetime
 
 # --- Configuration ---
@@ -14,13 +14,7 @@ SCENARIO_DIR = "scenarios"
 AGENT_OUTPUT_DIR = "agent_outputs"
 
 # LLM setup
-llama = Llama(
-    model_path=MODEL_PATH,
-    n_ctx=CONTEXT_SIZE,
-    n_gpu_layers=60,
-    n_threads=6,
-    temperature=0.7
-)
+client = OpenAI()
 
 EXPECTED_LABELS = [
     "Virtue Ethics Response:",
@@ -99,8 +93,12 @@ def main():
 
     # --- Run the LLM ---
     gen_max_tokens = 1200
-    result = llama(prompt, max_tokens=gen_max_tokens)
-    evaluation_text = result["choices"][0]["text"].strip()
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}],
+        max_completion_tokens=gen_max_tokens
+    )
+    evaluation_text = response.choices[0].message.content.strip()
 
     # --- Save the raw output for audit trail ---
     os.makedirs(AGENT_OUTPUT_DIR, exist_ok=True)

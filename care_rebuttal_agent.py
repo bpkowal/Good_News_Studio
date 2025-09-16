@@ -1,13 +1,11 @@
-from llama_cpp import Llama
 from pathlib import Path
 from datetime import datetime
 import json
-import gc
 import os
-import time
+
+from openai import OpenAI
 
 
-MODEL_PATH = "../mistral-7b-instruct-v0.2.Q4_K_M.gguf"
 RESULTS_FILE = Path("latest_results.json")
 OUTPUT_DIR = Path("agent_outputs")
 
@@ -39,15 +37,7 @@ def rebut_util_response():
     with open(temp_scenario_path, "w") as f:
         json.dump(temp_data, f, indent=2)
 
-    # Load LLM
-    llm = Llama(
-        model_path=MODEL_PATH,
-        n_ctx=3000,
-        n_threads=6,
-        n_gpu_layers=60,
-        n_batch=64,
-        verbose=False
-    )
+    client = OpenAI()
 
     prompt = f"""
 <s>[INST] You are a care ethics rebuttal agent. Your goal is to critique a utilitarian response to a specific moral question by comparing it with the ethical reasoning of care ethics. Use relational, emotional, and contextual insights as your guiding framework.
@@ -70,19 +60,15 @@ Care Ethics Rebuttal:
 """
 
     print("🧠 Running care ethics rebuttal LLM...")
-    completion = llm(prompt, max_tokens=500, temperature=0.5, stream=False)
+    completion = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=500,
+        temperature=0.5,
+        stream=False
+    )
 
-    if isinstance(completion, str):
-        rebuttal = completion.strip()
-    elif isinstance(completion, dict) and "choices" in completion:
-        rebuttal = "".join(choice["text"] for choice in completion["choices"]).strip()
-    else:
-        rebuttal = "[ERROR] Unexpected LLM output."
-
-    # Clean up
-    del llm
-    gc.collect()
-    time.sleep(1)
+    rebuttal = completion.choices[0].message.content.strip()
 
     # Save output
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
