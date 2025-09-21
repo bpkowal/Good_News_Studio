@@ -50,8 +50,12 @@ app = Flask(__name__)
 PROJECT_ROOT = pathlib.Path(__file__).resolve().parent
 SCENARIOS_DIR = PROJECT_ROOT / "scenarios"
 SCENARIOS_DIR.mkdir(parents=True, exist_ok=True)
+
 USER_PROFILE_PATH = PROJECT_ROOT / "user_ethics_profile.json"
 LATEST_SYNTHESIS_PATH = PROJECT_ROOT / "latest_synthesis.txt"
+SECRET_TOKEN = os.environ.get("SECRET_TOKEN")
+if not SECRET_TOKEN:
+    logger.warning("SECRET_TOKEN not set; /start will reject requests without a valid token.")
 
 
 # -----------------------------------------------------------------------------
@@ -220,6 +224,9 @@ def _count_sentences_naive(text: str) -> int:
 @app.post("/start")
 def start() -> Any:
     payload: Dict[str, Any] = request.get_json(force=True, silent=False) or {}
+    token = request.headers.get("X-EP-Token") or (payload.get("token") if isinstance(payload, dict) else None)
+    if not token or not SECRET_TOKEN or token != SECRET_TOKEN:
+        return jsonify({"error": "Unauthorized."}), 401
     scenario = sanitize_scenario(payload.get("scenario") or "")
     worldview = (payload.get("worldview") or DEFAULT_WORLDVIEW).strip()
     override_profile = payload.get("mfq_profile") if isinstance(payload.get("mfq_profile"), dict) else None
@@ -320,7 +327,7 @@ TEMPLATE = r"""
       .col { flex: 1 1 320px; }
 
       .label { color: var(--muted); font-size: 0.9rem; margin-bottom: 8px; }
-      select, textarea, button {
+      select, textarea, input, button {
         background: #0d0d0d; color: var(--fg); border: 1px solid #222;
         border-radius: 8px; padding: 10px 12px; font-size: 1rem; width: 100%;
         outline: none;
@@ -421,6 +428,13 @@ TEMPLATE = r"""
       <section id="confirmPanel" class="panel collapsed">
         <div class="confirm-box">
           <p>Are you sure these settings are correct and you're ready to see the first response?</p>
+
+          <div style="margin-bottom: 12px; max-width: 360px; margin-left: auto; margin-right: auto;">
+            <div class="label">Access token</div>
+            <input id="tokenInput" type="password" placeholder="Enter access token" autocomplete="off" />
+            <div id="tokenError" class="error" style="display:none"></div>
+          </div>
+
           <div class="confirm-actions">
             <button id="backBtn">Back</button>
             <button id="startBtn" class="primary">Start</button>
@@ -587,6 +601,8 @@ TEMPLATE = r"""
       const confirmPanel = document.getElementById('confirmPanel');
       const backBtn = document.getElementById('backBtn');
       const startBtn = document.getElementById('startBtn');
+      const tokenInput = document.getElementById('tokenInput');
+      const tokenError = document.getElementById('tokenError');
 
       submitEntry.addEventListener('click', () => {
         entryPanel.classList.add('collapsed');
@@ -721,6 +737,20 @@ TEMPLATE = r"""
         // Freeze config and kick off back end
         confirmPanel.classList.add('collapsed');
 
+        const token = (tokenInput && tokenInput.value || '').trim();
+        if (!token) {
+          if (tokenError) {
+            tokenError.style.display = 'block';
+            tokenError.textContent = 'Access token required.';
+          }
+          confirmPanel.classList.remove('collapsed');
+          return;
+        }
+        if (tokenError) {
+          tokenError.style.display = 'none';
+          tokenError.textContent = '';
+        }
+
         const currentData = chart.data.datasets[0].data;
         const profileObj = {};
         MFQ_DIMENSIONS.forEach((k, i) => { profileObj[k] = Number(currentData[i] ?? 0); });
@@ -732,7 +762,11 @@ TEMPLATE = r"""
         };
 
         const res = await fetch('/start', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-EP-Token': token
+          },
           body: JSON.stringify(body)
         });
 
