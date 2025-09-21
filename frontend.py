@@ -56,6 +56,7 @@ SCENARIOS_DIR.mkdir(parents=True, exist_ok=True)
 
 USER_PROFILE_PATH = PROJECT_ROOT / "user_ethics_profile.json"
 LATEST_SYNTHESIS_PATH = PROJECT_ROOT / "latest_synthesis.txt"
+LATEST_RESULTS_PATH = PROJECT_ROOT / "latest_results.json"
 SECRET_TOKEN = os.environ.get("SECRET_TOKEN")
 if not SECRET_TOKEN:
     logger.warning("SECRET_TOKEN not set; /start will reject requests without a valid token.")
@@ -173,12 +174,30 @@ def _start_background_job(job_id: str, prompt: str, profile: Dict[str, float]) -
             )
 
             # 4) Read the final synthesis and publish it to the job store
+            synthesized = ""
             if LATEST_SYNTHESIS_PATH.exists():
-                synthesized = LATEST_SYNTHESIS_PATH.read_text(encoding="utf-8").strip()
-            else:
+                synthesized = (LATEST_SYNTHESIS_PATH.read_text(encoding="utf-8").strip() or "")
+
+            # Fallback: if no synthesis file or it's empty, try to assemble a minimal
+            # markdown summary from latest_results.json so the UI still shows something.
+            if not synthesized and LATEST_RESULTS_PATH.exists():
+                try:
+                    data = json.loads(LATEST_RESULTS_PATH.read_text(encoding="utf-8"))
+                    eq = data.get("ethical_question") or prompt
+                    ratings = data.get("agent_ratings") or {}
+                    parts = [f"**Ethical Question**\n\n{eq}"]
+                    if ratings:
+                        parts.append("**Agent Ratings**")
+                        for agent, rating in ratings.items():
+                            parts.append(f"- **{agent}**: {rating}")
+                    synthesized = "\n\n".join(parts).strip()
+                except Exception:
+                    synthesized = ""
+
+            if not synthesized:
                 synthesized = (
                     "**Pipeline error**\n\n"
-                    "The backend did not produce `latest_synthesis.txt`. Please check logs."
+                    "The backend did not produce a synthesis. Please check logs for agent errors."
                 )
         except subprocess.CalledProcessError as e:
             synthesized = (
