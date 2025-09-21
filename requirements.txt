@@ -1,32 +1,35 @@
 # RAGAIMODEL project dependencies
-llama-cpp-python>=0.1.129
-python-dateutil>=2.8.2
-openai>=0.27.4
-networkx
-PyYAML
-torch
-numpy
-scikit-learn
-langchain==0.3.24
-chromadb==1.0.7
-sentence-transformers==4.1.0
-langchain-chroma>=0.1.0
-langchain-huggingface>=0.1.0
-accelerate>=1.6.0 
-bitsandbytes>=0.42.0 
-psutil>=7.0.0
-sentencepiece>=0.2.0
+#llama-cpp-python>=0.1.129
+#python-dateutil>=2.8.2
+#openai>=0.27.4
+#networkx
+#PyYAML
+#torch
+#numpy
+#scikit-learn
+#langchain==0.3.24
+#chromadb==1.0.7
+#sentence-transformers==4.1.0
+#langchain-chroma>=0.1.0
+#langchain-huggingface>=0.1.0
+#accelerate>=1.6.0 
+#bitsandbytes>=0.42.0 
+#psutil>=7.0.0
+#sentencepiece>=0.2.0
 #HF login and token for "read"
-hf_xet>=1.1.0
-langchain>=0.1.0
+#hf_xet>=1.1.0
+#langchain>=0.1.0
 
 # Optional: to enable Metal (GPU) acceleration on Apple Silicon (M1/M2) Macs
 # Run the following in your terminal before installing llama-cpp-python:
-# CMAKE_ARGS='-DLLAMA_METAL=on' FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python
-
-# Web / frontend server
+# CMAKE_ARGS='-DLLAMA_METAL=on' FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python# Local-only convenience (loads .env; optional but handy)
+# Minimal, Render-safe requirements for the public test deployment
+# Keep heavy ML deps (torch, bitsandbytes, accelerate, llama-cpp, sentence-transformers, chromadb, etc.)
+# on your local dev branch only.
 Flask>=3.0,<4
-gunicorn>=21,<22
-
-# Local-only convenience (loads .env; optional but handy)
+gunicorn==21.2.0
 python-dotenv>=1.0,<2
+openai>=0.27.4
+python-dateutil>=2.8.2
+PyYAML
+networkx
