@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import os
@@ -9,14 +8,6 @@ from typing import Dict, Any, Optional, Iterable, Tuple
 import yaml
 from langchain_chroma import Chroma
 from chromadb.config import Settings
-
-client_settings = Settings(anonymized_telemetry=False)
-vs = Chroma(
-    collection_name=collection_name,
-    embedding_function=embedder,
-    persist_directory=persist_dir,
-    client_settings=client_settings,
-)
 
 
 # ---------- Embeddings backend (switchable via env) ----------
@@ -106,10 +97,13 @@ def load_corpus(
     Path(persist_dir).mkdir(parents=True, exist_ok=True)
 
     embedder = _get_embedder()
+    # Use explicit client settings compatible with Chroma 1.x (avoid legacy env config)
+    client_settings = Settings(anonymized_telemetry=False)
     vs = Chroma(
         collection_name=collection_name,
         embedding_function=embedder,
         persist_directory=persist_dir,
+        client_settings=client_settings,
     )
 
     build = os.getenv("EP_BUILD_INDEX_ON_BOOT", "0") == "1"
