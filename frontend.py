@@ -36,7 +36,10 @@ import re
 
 from flask import Flask, jsonify, render_template_string, request
 
+from generic_loader import load_default_corpora
 
+# Preload vectorstores once at startup
+STORES = load_default_corpora()
 # -----------------------------------------------------------------------------
 # App setup & logging
 # -----------------------------------------------------------------------------

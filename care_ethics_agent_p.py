@@ -1,18 +1,14 @@
-import glob
-from load_care_ethics_corpus import load_care_ethics_corpus
-from langchain.schema import Document as LangchainDoc
-import json
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+import json
 import os
 import sys
 import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
-from get_semantic_tag import get_semantic_tag_weights
 import atexit
 import gc
 from openai import OpenAI
 from dotenv import load_dotenv
+from generic_loader import load_corpus
 
 
 # Move log function here before first use
@@ -43,6 +39,17 @@ log(f"📂 OUTPUT_DIR: {OUTPUT_DIR}")
 log(f"📂 SCENARIOS_DIR: {SCENARIOS_DIR}")
 
 AGENT_MODEL = os.getenv("OPENAI_AGENT_MODEL", "gpt-5-mini")
+
+def _make_embedder():
+    provider = os.getenv("EP_EMBEDDINGS", "openai").lower()
+    if provider == "openai":
+        from langchain_openai import OpenAIEmbeddings
+        model = os.getenv("EP_EMBED_MODEL", "text-embedding-3-small")
+        return OpenAIEmbeddings(model=model)
+    else:
+        from langchain_huggingface import HuggingFaceEmbeddings
+        model = os.getenv("EP_HF_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+        return HuggingFaceEmbeddings(model_name=model)
 
 class Document:
     def __init__(self, content, metadata):
@@ -112,11 +119,11 @@ def cosine_sim(a, b):
     return float(np.dot(a, b) / denom)
 
 def retrieve_care_ethics_quotes(query: str, scenario_id: str, limit_per_quote: int = 250):
-    from langchain_huggingface import HuggingFaceEmbeddings
-    from load_care_ethics_corpus import load_care_ethics_corpus
-    embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     global vectorstore
-    vectorstore = load_care_ethics_corpus()
+    global embedder
+    embedder = _make_embedder()
+    # Persisted, Render-friendly collection; dir name == collection name
+    vectorstore = load_corpus("care_ethics_corpus", "care_ethics_corpus")
 
     tag_weights = load_scenario_weights(scenario_id)
     log(f"🔧 Scenario Tag Weights: {tag_weights}")
@@ -146,8 +153,14 @@ def retrieve_care_ethics_quotes(query: str, scenario_id: str, limit_per_quote: i
                     quotes.append((quote, doc_scores[id(doc)]))
 
     if not quotes:
-        del vectorstore
-        del embedder
+        try:
+            del vectorstore
+        except Exception:
+            pass
+        try:
+            del embedder
+        except Exception:
+            pass
         import gc; gc.collect()
         return "", []
 

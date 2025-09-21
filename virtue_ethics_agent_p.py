@@ -1,8 +1,6 @@
 MODEL_PATH = "../mistral-7b-instruct-v0.2.Q4_K_M.gguf"
 from langchain_chroma import Chroma
-from langchain_huggingface import HuggingFaceEmbeddings
-from load_virtue_ethics_corpus import load_virtue_ethics_corpus
-from langchain.schema import Document as LangchainDoc
+from generic_loader import load_corpus
 from sklearn.metrics.pairwise import cosine_similarity
 import json
 from pathlib import Path
@@ -100,6 +98,18 @@ def cleanup_vectorstore():
 
 atexit.register(cleanup_vectorstore)
 
+def _make_embedder():
+    provider = os.getenv("EP_EMBEDDINGS", "openai").lower()
+    if provider == "openai":
+        from langchain_openai import OpenAIEmbeddings
+        model = os.getenv("EP_EMBED_MODEL", "text-embedding-3-small")
+        return OpenAIEmbeddings(model=model)
+    else:
+        # Falls back to HuggingFace locally if requested
+        from langchain_huggingface import HuggingFaceEmbeddings
+        model = os.getenv("EP_HF_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+        return HuggingFaceEmbeddings(model_name=model)
+
 class Document:
     def __init__(self, content, metadata):
         self.content = content
@@ -186,13 +196,11 @@ def retrieve_virtue_ethics_quotes(query: str, scenario_id: str, limit_per_quote:
 
 def respond_to_query(query=None, scenario_id=None, scenario_path=None, temperature: float = 0.7, max_tokens: int = 300, llm=None) -> str:
     # Load vectorstore and embedder only when needed
-    from langchain_huggingface import HuggingFaceEmbeddings
-    from load_virtue_ethics_corpus import load_virtue_ethics_corpus
-
     global embedder
     global vectorstore
-    embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    vectorstore = load_virtue_ethics_corpus()
+    embedder = _make_embedder()
+    # Persisted, Render-friendly collection; dir name == collection name
+    vectorstore = load_corpus("virtue_ethics_corpus", "virtue_ethics_corpus")
 
     if scenario_path:
         try:

@@ -1,7 +1,5 @@
 from langchain_chroma import Chroma
-from langchain_huggingface import HuggingFaceEmbeddings
-from load_utilitarian_corpus import load_utilitarian_corpus
-from langchain.schema import Document as LangchainDoc
+from generic_loader import load_corpus
 import json
 from pathlib import Path
 from datetime import datetime
@@ -41,6 +39,17 @@ AGENT_MODEL = os.getenv("OPENAI_AGENT_MODEL", "gpt-5-mini")
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 FALLBACK_MODEL = os.getenv("OPENAI_AGENT_FALLBACK_MODEL", "gpt-4o-mini")
+
+def _make_embedder():
+    provider = os.getenv("EP_EMBEDDINGS", "openai").lower()
+    if provider == "openai":
+        from langchain_openai import OpenAIEmbeddings
+        model = os.getenv("EP_EMBED_MODEL", "text-embedding-3-small")
+        return OpenAIEmbeddings(model=model)
+    else:
+        from langchain_huggingface import HuggingFaceEmbeddings
+        model = os.getenv("EP_HF_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+        return HuggingFaceEmbeddings(model_name=model)
 
 def _to_responses_input(messages):
     blocks = []
@@ -119,13 +128,10 @@ def cosine_similarity(a, b):
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
 def retrieve_utilitarian_quotes(query: str, scenario_id: str, limit_per_quote: int = 250):
-    from langchain_chroma import Chroma
-    from langchain_huggingface import HuggingFaceEmbeddings
-    from load_utilitarian_corpus import load_utilitarian_corpus
-
     global vectorstore, embedder
-    embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    vectorstore = load_utilitarian_corpus()
+    embedder = _make_embedder()
+    # Persisted, Render-friendly collection; dir name == collection name
+    vectorstore = load_corpus("utilitarian_corpus", "utilitarian_corpus")
 
     tag_weights = load_scenario_weights(scenario_id)
     print(f"\U0001f527 Scenario Tag Weights: {tag_weights}")

@@ -3,6 +3,7 @@ os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 from pathlib import Path
 from openai import OpenAI
 from dotenv import load_dotenv
+from generic_loader import load_corpus
 
 LAST_QUERY_PATH = Path("agent_outputs/.last_query.txt")
 LAST_RESPONSE_PATH = Path("agent_outputs/.last_response.txt")
@@ -16,6 +17,17 @@ AGENT_MODEL = os.getenv("OPENAI_AGENT_MODEL", "gpt-5-mini")
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 FALLBACK_MODEL = os.getenv("OPENAI_AGENT_FALLBACK_MODEL", "gpt-4o-mini")
+
+def _make_embedder():
+    provider = os.getenv("EP_EMBEDDINGS", "openai").lower()
+    if provider == "openai":
+        from langchain_openai import OpenAIEmbeddings
+        model = os.getenv("EP_EMBED_MODEL", "text-embedding-3-small")
+        return OpenAIEmbeddings(model=model)
+    else:
+        from langchain_huggingface import HuggingFaceEmbeddings
+        model = os.getenv("EP_HF_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+        return HuggingFaceEmbeddings(model_name=model)
 
 def _to_responses_input(messages):
     blocks = []
@@ -110,20 +122,16 @@ def _call_openai_model(model_name: str, messages: list, max_tokens: int = 400) -
 
 import atexit
 import gc
-import glob
 from langchain_chroma import Chroma
-from langchain_huggingface import HuggingFaceEmbeddings
 #from langchain_community.vectorstores import Chroma
 #from langchain_community.embeddings import HuggingFaceEmbeddings
 #from langchain.vectorstores import Chroma
 #from langchain.embeddings import HuggingFaceEmbeddings
 # from load_deontological_corpus import load_deontological_corpus
-from langchain.schema import Document as LangchainDoc
 import json
 from datetime import datetime
 import os
 import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
 from get_semantic_tag import get_semantic_tag_weights
 
 
@@ -162,13 +170,11 @@ def cosine_similarity(a, b):
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
 def retrieve_deontological_quotes(query: str, scenario_id: str, limit_per_quote: int = 250):
-    from langchain_chroma import Chroma
-    from langchain_huggingface import HuggingFaceEmbeddings
-    from load_deontological_corpus import load_deontological_corpus
     # Let cleanup_vectorstore handle resource cleanup at exit
     global vectorstore, embedder
-    embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    vectorstore = load_deontological_corpus()
+    embedder = _make_embedder()
+    # Persisted, Render-friendly collection; dir name == collection name
+    vectorstore = load_corpus("deontological_corpus", "deontological_corpus")
 
     tag_weights = load_scenario_weights(scenario_id)
     print(f"\U0001f527 Scenario Tag Weights: {tag_weights}")

@@ -1,4 +1,3 @@
-import glob
 from pathlib import Path
 from datetime import datetime
 import json
@@ -8,6 +7,7 @@ import numpy as np
 from dotenv import load_dotenv
 from openai import OpenAI
 import atexit, gc
+from generic_loader import load_corpus
 
 # ---- Caching paths (mirrors Rawls agent) ----
 LAST_QUERY_PATH = Path("agent_outputs/.last_query_nozick.txt")
@@ -21,19 +21,23 @@ if not OPENAI_API_KEY:
 
 AGENT_MODEL = os.getenv("OPENAI_AGENT_MODEL", "gpt-5-mini")
 FALLBACK_MODEL = os.getenv("OPENAI_AGENT_FALLBACK_MODEL", "gpt-4o-mini")
+
+def _make_embedder():
+    provider = os.getenv("EP_EMBEDDINGS", "openai").lower()
+    if provider == "openai":
+        from langchain_openai import OpenAIEmbeddings
+        model = os.getenv("EP_EMBED_MODEL", "text-embedding-3-small")
+        return OpenAIEmbeddings(model=model)
+    else:
+        # Falls back to HuggingFace locally if requested
+        from langchain_huggingface import HuggingFaceEmbeddings
+        model = os.getenv("EP_HF_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+        return HuggingFaceEmbeddings(model_name=model)
+
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 # ---- Optional: semantic tag expansion (reuse your helper) ----
 from get_semantic_tag import get_semantic_tag_weights
-
-# ---- Optional corpus: load a liberty/Nozick corpus if you have one ----
-# Expected to expose `load_nozick_ethics_corpus()` returning a vectorstore like the Rawlsian loader.
-def _try_load_nozick_corpus():
-    try:
-        from load_nozick_ethics_corpus import load_nozick_ethics_corpus
-        return load_nozick_ethics_corpus()
-    except Exception:
-        return None
 
 def _cosine_similarity(a, b):
     a = np.array(a).flatten()
@@ -56,24 +60,18 @@ class Document:
 def load_scenario_weights(scenario_id):
     print(f"🧠 Expanding tag weights with semantic overlap for scenario: {scenario_id}")
     # Point to a liberty/nozick corpus dir if you keep per-agent tags there; fallback to generic.
-    corpus_dir = Path("nozick_ethics_corpus") if Path("nozick_ethics_corpus").exists() else Path("corpus")
+    corpus_dir = Path("nozick_corpus") if Path("nozick_corpus").exists() else Path("corpus")
     return get_semantic_tag_weights(scenario_id, scenario_dir=Path("scenarios"), corpus_dir=corpus_dir)
 
 def retrieve_nozick_quotes(query: str, scenario_id: str, limit_per_quote: int = 250):
     """
-    If a Nozick/liberty vectorstore exists, use it; otherwise, gracefully return empty context.
+    Load (or open) the persisted Nozick vectorstore and an embedder selected by env.
+    Collection name == dir name to keep persistence isolated.
     """
-    vectorstore = _try_load_nozick_corpus()
-    if vectorstore is None:
-        print("ℹ️ No Nozick corpus found. Proceeding without quotes context.")
-        return "", []
-
-    try:
-        from langchain_huggingface import HuggingFaceEmbeddings
-        embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    except Exception as e:
-        print(f"⚠️ Embedding backend unavailable ({e}); proceeding corpus-only.")
-        embedder = None
+    global vectorstore
+    global embedder
+    embedder = _make_embedder()
+    vectorstore = load_corpus("nozick_corpus", "nozick_corpus")
 
     tag_weights = load_scenario_weights(scenario_id)
     print(f"🔧 Scenario Tag Weights: {tag_weights}")
@@ -101,15 +99,13 @@ def retrieve_nozick_quotes(query: str, scenario_id: str, limit_per_quote: int = 
                 if quote:
                     quotes.append((quote, doc_scores[id(doc)]))
 
-    if not quotes or embedder is None:
+    if not quotes:
         # Cleanup
-        try: del vectorstore
-        except: pass
-        if not quotes:
-            return "", []
-        # else we have quotes but no embedder; just return top by tag score
-        quotes = sorted(quotes, key=lambda x: x[1], reverse=True)[:3]
-        return "\n---\n".join([q for q,_ in quotes]), quotes
+        try:
+            del vectorstore
+        except:
+            pass
+        return "", []
 
     # Rank by tags + semantic similarity
     query_emb = embedder.embed_query(query)

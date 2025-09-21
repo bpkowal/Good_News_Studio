@@ -1,9 +1,7 @@
-import glob
-from load_rawlsian_ethics_corpus import load_rawlsian_ethics_corpus
-from langchain.schema import Document as LangchainDoc
+from datetime import datetime
+from generic_loader import load_corpus
 import json
 from pathlib import Path
-from datetime import datetime
 import os
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 import numpy as np
@@ -25,6 +23,18 @@ AGENT_MODEL = os.getenv("OPENAI_AGENT_MODEL", "gpt-5-mini")
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 FALLBACK_MODEL = os.getenv("OPENAI_AGENT_FALLBACK_MODEL", "gpt-4o-mini")
+
+def _make_embedder():
+    provider = os.getenv("EP_EMBEDDINGS", "openai").lower()
+    if provider == "openai":
+        from langchain_openai import OpenAIEmbeddings
+        model = os.getenv("EP_EMBED_MODEL", "text-embedding-3-small")
+        return OpenAIEmbeddings(model=model)
+    else:
+        # Falls back to HuggingFace locally if requested
+        from langchain_huggingface import HuggingFaceEmbeddings
+        model = os.getenv("EP_HF_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+        return HuggingFaceEmbeddings(model_name=model)
 
 def _to_responses_input(messages):
     """Convert chat-completions style messages to Responses API input blocks."""
@@ -111,11 +121,11 @@ def cosine_similarity(a, b):
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
 def retrieve_rawlsian_ethics_quotes(query: str, scenario_id: str, limit_per_quote: int = 250):
-    from langchain_huggingface import HuggingFaceEmbeddings
-    from load_rawlsian_ethics_corpus import load_rawlsian_ethics_corpus
-    embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     global vectorstore
-    vectorstore = load_rawlsian_ethics_corpus()
+    global embedder
+    embedder = _make_embedder()
+    # Persisted, Render-friendly collection; dir name == collection name
+    vectorstore = load_corpus("rawlsian_ethics_corpus", "rawlsian_ethics_corpus")
 
     tag_weights = load_scenario_weights(scenario_id)
     print(f"🔧 Scenario Tag Weights: {tag_weights}")
