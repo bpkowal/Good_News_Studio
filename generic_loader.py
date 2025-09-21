@@ -117,7 +117,16 @@ def load_corpus(
         vs.add_texts([text], metadatas=[meta])
         count += 1
 
-    vs.persist()
+    # Chroma 1.x with PersistentClient writes to disk automatically.
+    # Older langchain-chroma exposed `persist()`. Guard for either behavior.
+    try:
+        persist_fn = getattr(vs, "persist", None)
+        if callable(persist_fn):
+            persist_fn()
+    except Exception:
+        # Best-effort; not critical on 1.x
+        pass
+
     print(f"✅ [{collection_name}] Loaded {count} file(s) into Chroma → {persist_dir}")
     return vs
 
