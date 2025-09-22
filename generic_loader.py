@@ -10,6 +10,19 @@ from langchain_chroma import Chroma
 from chromadb.config import Settings
 
 
+# In-process cache of Chroma vectorstores to avoid repeated client creation
+_STORE_CACHE: Dict[str, Chroma] = {}
+
+def _get_cached_store(name: str) -> Optional[Chroma]:
+    store = _STORE_CACHE.get(name)
+    if store is not None:
+        try:
+            print(f"🔁 Reusing cached Chroma store: {name}")
+        except Exception:
+            pass
+    return store
+
+
 # ---------- Embeddings backend (switchable via env) ----------
 def _get_embedder():
     provider = os.getenv("EP_EMBEDDINGS", "openai").lower()
@@ -92,6 +105,11 @@ def load_corpus(
       - EP_HF_MODEL (default: "sentence-transformers/all-MiniLM-L6-v2")
       - EP_BUILD_INDEX_ON_BOOT ("1" to (re)index; default: "0")
     """
+    # Fast path: reuse already-opened store in this process
+    cached = _get_cached_store(collection_name)
+    if cached is not None:
+        return cached
+
     base = os.getenv("PERSIST_DIR_BASE", "chroma")
     persist_dir = str(Path(base) / collection_name)
     Path(persist_dir).mkdir(parents=True, exist_ok=True)
@@ -109,6 +127,7 @@ def load_corpus(
     build = os.getenv("EP_BUILD_INDEX_ON_BOOT", "0") == "1"
     if not build:
         # Just open persisted store
+        _STORE_CACHE[collection_name] = vs
         return vs
 
     # (Re)index from markdown
@@ -128,6 +147,7 @@ def load_corpus(
         pass
 
     print(f"✅ [{collection_name}] Loaded {count} file(s) into Chroma → {persist_dir}")
+    _STORE_CACHE[collection_name] = vs
     return vs
 
 
