@@ -54,6 +54,10 @@ PROJECT_ROOT = pathlib.Path(__file__).resolve().parent
 SCENARIOS_DIR = PROJECT_ROOT / "scenarios"
 SCENARIOS_DIR.mkdir(parents=True, exist_ok=True)
 
+# Job results directory for persistence across transient restarts
+JOBS_DIR = PROJECT_ROOT / "jobs"
+JOBS_DIR.mkdir(parents=True, exist_ok=True)
+
 USER_PROFILE_PATH = PROJECT_ROOT / "user_ethics_profile.json"
 LATEST_SYNTHESIS_PATH = PROJECT_ROOT / "latest_synthesis.txt"
 LATEST_RESULTS_PATH = PROJECT_ROOT / "latest_results.json"
@@ -207,6 +211,19 @@ def _start_background_job(job_id: str, prompt: str, profile: Dict[str, float]) -
         except Exception as e:  # any other failure
             synthesized = f"**Unexpected error**\n\n{e}"
         finally:
+            # Persist a job-specific result so /result works even after transient restarts
+            try:
+                job_file = JOBS_DIR / f"{job_id}.json"
+                job_payload = {
+                    "status": "complete",
+                    "result_markdown": synthesized,
+                    "original_prompt": prompt,
+                }
+                job_file.write_text(json.dumps(job_payload, ensure_ascii=False), encoding="utf-8")
+            except Exception as write_err:
+                logger.warning("Failed to write job file %s: %s", job_id, write_err)
+
+            # Update in-memory registry last
             _JOBS[job_id] = (ready_at, synthesized, prompt)
             logger.info("Job %s completed.", job_id)
 
@@ -286,12 +303,28 @@ def status(job_id: str) -> Any:
     remaining = max(0, int(round(ready_at - now))) if result is None else 0
     return jsonify({
         "status": "complete" if result is not None else "pending",
+        "done": bool(result is not None),
         "eta_seconds": remaining,
     })
 
 
 @app.get("/result/<job_id>")
 def result(job_id: str) -> Any:
+    # Prefer file-backed result so it survives transient restarts within a boot session
+    job_file = JOBS_DIR / f"{job_id}.json"
+    if job_file.exists():
+        try:
+            data = json.loads(job_file.read_text(encoding="utf-8"))
+            # Ensure required keys for the UI
+            return jsonify({
+                "status": data.get("status", "complete"),
+                "result_markdown": data.get("result_markdown", ""),
+                "original_prompt": data.get("original_prompt", ""),
+            })
+        except Exception as e:
+            logger.warning("Failed to read job file %s: %s", job_id, e)
+
+    # Fallback to in-memory registry
     if job_id not in _JOBS:
         return jsonify({"error": "Unknown job id."}), 404
     _, result_text, original_prompt = _JOBS[job_id]
