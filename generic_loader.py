@@ -8,6 +8,7 @@ from typing import Dict, Any, Optional, Iterable, Tuple
 import yaml
 from langchain_chroma import Chroma
 from chromadb.config import Settings
+from openai import OpenAI
 
 
 # In-process cache of Chroma vectorstores to avoid repeated client creation
@@ -27,10 +28,24 @@ def _get_cached_store(name: str) -> Optional[Chroma]:
 def _get_embedder():
     provider = os.getenv("EP_EMBEDDINGS", "openai").lower()
     if provider == "openai":
-        # Requires: langchain-openai and OPENAI_API_KEY in env
+        # Requires: langchain-openai, openai
+        # Env required: OPENAI_API_KEY; recommended: OPENAI_PROJECT, optional: OPENAI_ORGANIZATION
         from langchain_openai import OpenAIEmbeddings
+
         model = os.getenv("EP_EMBED_MODEL", "text-embedding-3-small")
-        return OpenAIEmbeddings(model=model)
+
+        # Build a project-aware OpenAI client. This ensures requests include the
+        # proper project context (and associated residency settings) and avoids
+        # residency enforcement errors at runtime.
+        client = OpenAI(
+            project=os.getenv("OPENAI_PROJECT"),
+            organization=os.getenv("OPENAI_ORGANIZATION") or None,
+        )
+
+        return OpenAIEmbeddings(
+            model=model,
+            client=client,
+        )
     elif provider in {"hf", "huggingface"}:
         # Local-only convenience; pulls in sentence-transformers/torch
         from langchain_huggingface import HuggingFaceEmbeddings

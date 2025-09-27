@@ -36,10 +36,27 @@ import re
 
 from flask import Flask, jsonify, render_template_string, request
 
-from generic_loader import load_default_corpora
+# Lazy vectorstore handle (loaded on first real request)
+STORES = None  # type: ignore[var-annotated]
 
-# Preload vectorstores once at startup
-STORES = load_default_corpora()
+def _lazy_warm_vectorstores() -> None:
+    """Load vectorstores in the background to avoid blocking Gunicorn boot."""
+    global STORES
+    if STORES is not None:
+        return
+    try:
+        logger.info("Warming vectorstores…")
+        # Import here to avoid side effects during module import
+        from generic_loader import load_default_corpora
+        STORES = load_default_corpora()
+        logger.info("Vectorstores ready")
+    except Exception as e:
+        logger.exception("Vectorstore warmup failed: %s", e)
+
+@app.before_first_request
+def _on_first_request() -> None:
+    # Kick off warmup in a daemon thread so the first request returns fast
+    threading.Thread(target=_lazy_warm_vectorstores, daemon=True).start()
 # -----------------------------------------------------------------------------
 # App setup & logging
 # -----------------------------------------------------------------------------
