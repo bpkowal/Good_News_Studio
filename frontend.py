@@ -36,6 +36,16 @@ import re
 
 from flask import Flask, jsonify, render_template_string, request
 
+# -----------------------------------------------------------------------------
+# App setup & logging
+# -----------------------------------------------------------------------------
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s %(levelname)s [%(name)s] %(message)s"
+)
+logger = logging.getLogger("ethical-parliament.frontend")
+
+app = Flask(__name__)
+
 # Lazy vectorstore handle (loaded on first real request)
 STORES = None  # type: ignore[var-annotated]
 
@@ -57,15 +67,6 @@ def _lazy_warm_vectorstores() -> None:
 def _on_first_request() -> None:
     # Kick off warmup in a daemon thread so the first request returns fast
     threading.Thread(target=_lazy_warm_vectorstores, daemon=True).start()
-# -----------------------------------------------------------------------------
-# App setup & logging
-# -----------------------------------------------------------------------------
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s %(levelname)s [%(name)s] %(message)s"
-)
-logger = logging.getLogger("ethical-parliament.frontend")
-
-app = Flask(__name__)
 
 PROJECT_ROOT = pathlib.Path(__file__).resolve().parent
 SCENARIOS_DIR = PROJECT_ROOT / "scenarios"
