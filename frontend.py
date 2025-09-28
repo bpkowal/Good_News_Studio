@@ -83,6 +83,39 @@ SCENARIOS_DIR.mkdir(parents=True, exist_ok=True)
 JOBS_DIR = PROJECT_ROOT / "jobs"
 JOBS_DIR.mkdir(parents=True, exist_ok=True)
 
+# -----------------------------------------------------------------------------
+# Job status persistence & abandoned job handling
+# -----------------------------------------------------------------------------
+def _job_path(job_id: str) -> pathlib.Path:
+    return JOBS_DIR / f"{job_id}.json"
+
+def write_status(job_id: str, **fields: Any) -> None:
+    """Persist a minimal status record for this job id."""
+    try:
+        payload = {"job_id": job_id, "last_update": time.time(), **fields}
+        _job_path(job_id).write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    except Exception as e:
+        logger.warning("Failed to write status for %s: %s", job_id, e)
+
+def _mark_abandoned_jobs_on_boot() -> None:
+    """Flip any lingering running jobs to aborted (service restarted)."""
+    try:
+        for p in JOBS_DIR.glob("*.json"):
+            try:
+                data = json.loads(p.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            if data.get("status") == "running":
+                data["status"] = "aborted"
+                data["reason"] = "server restarted"
+                data["last_update"] = time.time()
+                p.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    except Exception as e:
+        logger.warning("Failed to mark abandoned jobs: %s", e)
+
+# Mark any half-finished jobs as aborted on boot so the UI doesn't spin forever
+_mark_abandoned_jobs_on_boot()
+
 USER_PROFILE_PATH = PROJECT_ROOT / "user_ethics_profile.json"
 LATEST_SYNTHESIS_PATH = PROJECT_ROOT / "latest_synthesis.txt"
 LATEST_RESULTS_PATH = PROJECT_ROOT / "latest_results.json"
@@ -177,6 +210,16 @@ def _start_background_job(job_id: str, prompt: str, profile: Dict[str, float]) -
     ready_at = time.time() + SIMULATED_DURATION_SEC
     _JOBS[job_id] = (ready_at, None, prompt)
 
+    # Persist initial running status
+    write_status(
+        job_id,
+        status="running",
+        progress=0,
+        step="start",
+        eta_seconds=SIMULATED_DURATION_SEC,
+        original_prompt=prompt,
+    )
+
     def _worker() -> None:
         try:
             # 1) Persist scenario through the builder (non-interactive mode)
@@ -190,14 +233,17 @@ def _start_background_job(job_id: str, prompt: str, profile: Dict[str, float]) -
                 cwd=str(PROJECT_ROOT),
                 check=True,
             )
+            write_status(job_id, status="running", progress=25, step="scenario_built")
 
             # 2) Persist active MFQ to user_ethics_profile.json (single-job only)
             # TODO: later, make this per-job to avoid global overwrite when adding concurrency.
             USER_PROFILE_PATH.write_text(
                 json.dumps(profile, ensure_ascii=False, indent=2), encoding="utf-8"
             )
+            write_status(job_id, status="running", progress=50, step="profile_saved")
 
             # 3) Run the full synthesis pipeline end-to-end
+            write_status(job_id, status="running", progress=60, step="synthesis_running")
             subprocess.run(
                 ["python", "ethics_synthesis_agent.py"], cwd=str(PROJECT_ROOT), check=True
             )
@@ -233,10 +279,13 @@ def _start_background_job(job_id: str, prompt: str, profile: Dict[str, float]) -
                 "**Pipeline failed**\n\n"
                 f"Exit code: {e.returncode}"
             )
+            write_status(job_id, status="error", progress=100, step="failed", error=str(e))
         except Exception as e:  # any other failure
             synthesized = f"**Unexpected error**\n\n{e}"
+            write_status(job_id, status="error", progress=100, step="error", error=str(e))
         finally:
             # Persist a job-specific result so /result works even after transient restarts
+            write_status(job_id, status="complete", progress=100, step="done")
             try:
                 job_file = JOBS_DIR / f"{job_id}.json"
                 job_payload = {
@@ -323,6 +372,23 @@ def start() -> Any:
 
 @app.get("/status/<job_id>")
 def status(job_id: str) -> Any:
+    # Prefer file-backed status so it survives transient restarts
+    job_file = _job_path(job_id)
+    if job_file.exists():
+        try:
+            data = json.loads(job_file.read_text(encoding="utf-8"))
+            resp = {
+                "status": data.get("status", "pending"),
+                "done": data.get("status") == "complete",
+                "eta_seconds": data.get("eta_seconds", 0),
+                "progress": data.get("progress"),
+                "step": data.get("step"),
+            }
+            # If running and we previously returned an ETA, keep returning it; UI will tick down.
+            return jsonify(resp)
+        except Exception as e:
+            logger.warning("Failed to read status file %s: %s", job_id, e)
+    # Fallback to in-memory registry (best-effort)
     if job_id not in _JOBS:
         return jsonify({"error": "Unknown job id."}), 404
     ready_at, result, _ = _JOBS[job_id]
@@ -342,9 +408,11 @@ def result(job_id: str) -> Any:
     if job_file.exists():
         try:
             data = json.loads(job_file.read_text(encoding="utf-8"))
-            # Ensure required keys for the UI
+            status_val = data.get("status", "complete")
+            if status_val != "complete":
+                return jsonify({"status": status_val}), 202
             return jsonify({
-                "status": data.get("status", "complete"),
+                "status": "complete",
                 "result_markdown": data.get("result_markdown", ""),
                 "original_prompt": data.get("original_prompt", ""),
             })
@@ -363,6 +431,45 @@ def result(job_id: str) -> Any:
         "original_prompt": original_prompt,
     })
 
+
+@app.get("/jobs")
+def list_jobs() -> Any:
+    """Debug: list all known jobs from the file-backed store.
+    Returns an array of {job_id, status, last_update, step, progress}.
+    """
+    items = []
+    try:
+        for p in JOBS_DIR.glob("*.json"):
+            try:
+                data = json.loads(p.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            items.append({
+                "job_id": p.stem,
+                "status": data.get("status", "unknown"),
+                "last_update": data.get("last_update"),
+                "step": data.get("step"),
+                "progress": data.get("progress"),
+            })
+        # sort newest first if timestamps exist
+        items.sort(key=lambda x: (x.get("last_update") or 0), reverse=True)
+    except Exception as e:
+        logger.warning("Failed to list jobs: %s", e)
+    return jsonify(items)
+
+
+@app.get("/jobs/<job_id>")
+def get_job(job_id: str) -> Any:
+    """Debug: return the raw JSON status/result for a single job id."""
+    p = _job_path(job_id)
+    if not p.exists():
+        return jsonify({"error": "Unknown job id."}), 404
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+        return jsonify(data)
+    except Exception as e:
+        logger.warning("Failed to read job %s: %s", job_id, e)
+        return jsonify({"error": "Corrupt job file."}), 500
 
 # -----------------------------------------------------------------------------
 # Template (HTML/CSS/JS)
