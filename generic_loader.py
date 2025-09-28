@@ -108,7 +108,7 @@ def load_corpus(
     Render-friendly loader for ANY corpus with persistent Chroma.
 
     Env controls:
-      - PERSIST_DIR_BASE (default: "chroma")  -> data saved under {base}/{collection}
+      - CHROMA_PERSIST_DIR (default: "/opt/render/data/chroma")  -> data saved under {base}/{collection}
       - EP_EMBEDDINGS ("openai" | "hf"; default: "openai")
       - EP_EMBED_MODEL (default: "text-embedding-3-small")
       - EP_HF_MODEL (default: "sentence-transformers/all-MiniLM-L6-v2")
@@ -119,9 +119,14 @@ def load_corpus(
     if cached is not None:
         return cached
 
-    base = os.getenv("PERSIST_DIR_BASE", "chroma")
+    # Persist under the Render disk if present; default to /opt/render/data/chroma
+    base = os.getenv("CHROMA_PERSIST_DIR", "/opt/render/data/chroma")
     persist_dir = str(Path(base) / collection_name)
     Path(persist_dir).mkdir(parents=True, exist_ok=True)
+    try:
+        print(f"[generic_loader] Persist dir for {collection_name}: {persist_dir}")
+    except Exception:
+        pass
 
     embedder = _get_embedder()
     # Use explicit client settings compatible with Chroma 1.x (avoid legacy env config)
