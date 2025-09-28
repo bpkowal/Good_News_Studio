@@ -5,8 +5,10 @@ import json
 from pathlib import Path
 from typing import Dict, Any, Optional, Iterable, Tuple
 
-# Default to Hugging Face embeddings unless explicitly overridden
-os.environ.setdefault("EP_EMBEDDINGS", "hf")
+# Force Hugging Face embeddings on server to avoid OpenAI residency issues.
+# If you ever want to switch back, change this assignment to respect env.
+os.environ["EP_EMBEDDINGS"] = "hf"
+print("[generic_loader] EP_EMBEDDINGS=hf (forced)")
 
 import yaml
 from langchain_chroma import Chroma
@@ -29,6 +31,10 @@ def _get_cached_store(name: str) -> Optional[Chroma]:
 # ---------- Embeddings backend (switchable via env) ----------
 def _get_embedder():
     provider = os.getenv("EP_EMBEDDINGS", "hf").lower()
+    try:
+        print(f"[generic_loader] Using embeddings provider: {provider}")
+    except Exception:
+        pass
     if provider == "openai":
         # Requires: langchain-openai, openai. Let the integration manage the SDK client.
         from langchain_openai import OpenAIEmbeddings
