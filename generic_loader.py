@@ -5,6 +5,25 @@ import json
 from pathlib import Path
 from typing import Dict, Any, Optional, Iterable, Tuple
 
+# ---- low-memory defaults (Render 512–1024 MB friendly) ----------------------
+# Single-thread everything to keep RSS down
+os.environ.setdefault("OMP_NUM_THREADS", "1")
+os.environ.setdefault("MKL_NUM_THREADS", "1")
+os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
+# Keep HF caches on the persistent disk (and avoid filling /tmp)
+os.environ.setdefault("TRANSFORMERS_CACHE", "/opt/render/data/hf_cache")
+os.environ.setdefault("HF_HOME", "/opt/render/data/hf_cache")
+os.environ.setdefault("SENTENCE_TRANSFORMERS_HOME", "/opt/render/data/hf_cache")
+
+# If torch is present, clamp intra-op threads too
+try:
+    import torch  # noqa: E402
+    if hasattr(torch, "set_num_threads"):
+        torch.set_num_threads(1)
+except Exception:
+    pass
+# -----------------------------------------------------------------------------
+
 # Force Hugging Face embeddings on server to avoid OpenAI residency issues.
 # If you ever want to switch back, change this assignment to respect env.
 os.environ["EP_EMBEDDINGS"] = "hf"
@@ -41,10 +60,16 @@ def _get_embedder():
         model = os.getenv("EP_EMBED_MODEL", "text-embedding-3-small")
         return OpenAIEmbeddings(model=model)
     elif provider in {"hf", "huggingface"}:
-        # Local-only convenience; pulls in sentence-transformers/torch
+        # Use a smaller, RAM-friendly sentence encoder by default
         from langchain_huggingface import HuggingFaceEmbeddings
-        model = os.getenv("EP_HF_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
-        return HuggingFaceEmbeddings(model_name=model)
+        model = os.getenv("EP_HF_MODEL", "sentence-transformers/paraphrase-MiniLM-L3-v2")
+        return HuggingFaceEmbeddings(
+            model_name=model,
+            # ensure CPU on small instances; avoids accidental CUDA init
+            model_kwargs={"device": "cpu"},
+            # tiny batches + normalized vectors = lower peak memory & stable sims
+            encode_kwargs={"batch_size": 8, "normalize_embeddings": True, "show_progress_bar": False},
+        )
     else:
         raise RuntimeError(f"Unknown EP_EMBEDDINGS provider: {provider}")
 
@@ -145,10 +170,18 @@ def load_corpus(
         return vs
 
     # (Re)index from markdown
+    texts, metas = [], []
     count = 0
     for text, meta in _iter_markdown_docs(Path(corpus_dir), required_tag):
-        vs.add_texts([text], metadatas=[meta])
-        count += 1
+        texts.append(text)
+        metas.append(meta)
+        if len(texts) >= 16:  # micro-batch to bound memory
+            vs.add_texts(texts, metadatas=metas)
+            count += len(texts)
+            texts, metas = [], []
+    if texts:
+        vs.add_texts(texts, metadatas=metas)
+        count += len(texts)
 
     # Chroma 1.x with PersistentClient writes to disk automatically.
     # Older langchain-chroma exposed `persist()`. Guard for either behavior.

@@ -28,6 +28,12 @@ import time
 import uuid
 from typing import Any, Dict, Optional, Tuple
 
+# Hard-cap parallelism to keep memory stable on small instances
+os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")  # HF tokenizers
+os.environ.setdefault("OMP_NUM_THREADS", "1")
+os.environ.setdefault("MKL_NUM_THREADS", "1")
+os.environ.setdefault("NUMEXPR_MAX_THREADS", "1")
+
 import json
 import pathlib
 import subprocess
@@ -45,6 +51,8 @@ logging.basicConfig(
 logger = logging.getLogger("ethical-parliament.frontend")
 
 app = Flask(__name__)
+# Limit incoming request size to avoid RAM spikes
+app.config["MAX_CONTENT_LENGTH"] = 64 * 1024  # 64 KB
 
 # Lazy vectorstore warmup (Flask 3.x safe: no before_first_request)
 STORES = None  # type: ignore[var-annotated]
@@ -62,6 +70,7 @@ def _lazy_warm_vectorstores() -> None:
         from generic_loader import load_default_corpora
         STORES = load_default_corpora()
         logger.info("Vectorstores ready")
+        _log_mem("warmup")
     except Exception as e:
         logger.exception("Vectorstore warmup failed: %s", e)
 
@@ -297,13 +306,23 @@ def _start_background_job(job_id: str, prompt: str, profile: Dict[str, float]) -
             except Exception as write_err:
                 logger.warning("Failed to write job file %s: %s", job_id, write_err)
 
-            # Update in-memory registry last
-            _JOBS[job_id] = (ready_at, synthesized, prompt)
+            # Keep only ETA in memory; rely on file-backed result for content
+            _log_mem(f"job_done:{job_id}")
+            _JOBS[job_id] = (ready_at, None, "")
             logger.info("Job %s completed.", job_id)
 
     t = threading.Thread(target=_worker, daemon=True)
     t.start()
 
+
+def _log_mem(tag: str) -> None:
+    """Best-effort memory log (Unix only)."""
+    try:
+        import resource  # type: ignore
+        rss_kb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        logger.info("[%s] RSS ~ %.1f MB", tag, rss_kb / 1024.0)
+    except Exception:
+        pass
 
 # -----------------------------------------------------------------------------
 # Routes
