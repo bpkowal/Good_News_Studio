@@ -5,10 +5,12 @@ import json
 from pathlib import Path
 from typing import Dict, Any, Optional, Iterable, Tuple
 
+# Default to Hugging Face embeddings unless explicitly overridden
+os.environ.setdefault("EP_EMBEDDINGS", "hf")
+
 import yaml
 from langchain_chroma import Chroma
 from chromadb.config import Settings
-from openai import OpenAI
 
 
 # In-process cache of Chroma vectorstores to avoid repeated client creation
@@ -26,26 +28,12 @@ def _get_cached_store(name: str) -> Optional[Chroma]:
 
 # ---------- Embeddings backend (switchable via env) ----------
 def _get_embedder():
-    provider = os.getenv("EP_EMBEDDINGS", "openai").lower()
+    provider = os.getenv("EP_EMBEDDINGS", "hf").lower()
     if provider == "openai":
-        # Requires: langchain-openai, openai
-        # Env required: OPENAI_API_KEY; recommended: OPENAI_PROJECT, optional: OPENAI_ORGANIZATION
+        # Requires: langchain-openai, openai. Let the integration manage the SDK client.
         from langchain_openai import OpenAIEmbeddings
-
         model = os.getenv("EP_EMBED_MODEL", "text-embedding-3-small")
-
-        # Build a project-aware OpenAI client. This ensures requests include the
-        # proper project context (and associated residency settings) and avoids
-        # residency enforcement errors at runtime.
-        client = OpenAI(
-            project=os.getenv("OPENAI_PROJECT"),
-            organization=os.getenv("OPENAI_ORGANIZATION") or None,
-        )
-
-        return OpenAIEmbeddings(
-            model=model,
-            client=client,
-        )
+        return OpenAIEmbeddings(model=model)
     elif provider in {"hf", "huggingface"}:
         # Local-only convenience; pulls in sentence-transformers/torch
         from langchain_huggingface import HuggingFaceEmbeddings
