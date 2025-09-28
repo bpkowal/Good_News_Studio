@@ -46,8 +46,10 @@ logger = logging.getLogger("ethical-parliament.frontend")
 
 app = Flask(__name__)
 
-# Lazy vectorstore handle (loaded on first real request)
+# Lazy vectorstore warmup (Flask 3.x safe: no before_first_request)
 STORES = None  # type: ignore[var-annotated]
+_WARM_STARTED = False
+_WARM_LOCK = threading.Lock()
 
 def _lazy_warm_vectorstores() -> None:
     """Load vectorstores in the background to avoid blocking Gunicorn boot."""
@@ -63,10 +65,15 @@ def _lazy_warm_vectorstores() -> None:
     except Exception as e:
         logger.exception("Vectorstore warmup failed: %s", e)
 
-@app.before_first_request
-def _on_first_request() -> None:
-    # Kick off warmup in a daemon thread so the first request returns fast
-    threading.Thread(target=_lazy_warm_vectorstores, daemon=True).start()
+def ensure_warm() -> None:
+    """Start the warmup thread exactly once (idempotent)."""
+    global _WARM_STARTED
+    if STORES is not None or _WARM_STARTED:
+        return
+    with _WARM_LOCK:
+        if STORES is None and not _WARM_STARTED:
+            _WARM_STARTED = True
+            threading.Thread(target=_lazy_warm_vectorstores, daemon=True).start()
 
 PROJECT_ROOT = pathlib.Path(__file__).resolve().parent
 SCENARIOS_DIR = PROJECT_ROOT / "scenarios"
@@ -255,6 +262,7 @@ def _start_background_job(job_id: str, prompt: str, profile: Dict[str, float]) -
 @app.get("/")
 def index() -> str:
     """Serve the main page with embedded HTML/CSS/JS."""
+    ensure_warm()
     # Render all in one template for now; later we can split into static files.
     return render_template_string(
         TEMPLATE,
@@ -281,6 +289,7 @@ def _count_sentences_naive(text: str) -> int:
 @app.post("/start")
 def start() -> Any:
     payload: Dict[str, Any] = request.get_json(force=True, silent=False) or {}
+    ensure_warm()
     token = request.headers.get("X-EP-Token") or (payload.get("token") if isinstance(payload, dict) else None)
     if not token or not SECRET_TOKEN or token != SECRET_TOKEN:
         return jsonify({"error": "Unauthorized."}), 401
