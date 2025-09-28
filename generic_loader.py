@@ -10,10 +10,14 @@ from typing import Dict, Any, Optional, Iterable, Tuple
 os.environ.setdefault("OMP_NUM_THREADS", "1")
 os.environ.setdefault("MKL_NUM_THREADS", "1")
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
+os.environ.setdefault("HF_HOME", "/opt/render/data/hf")
+os.environ.setdefault("SENTENCE_TRANSFORMERS_HOME", "/opt/render/data/hf")
+os.environ.setdefault("TQDM_DISABLE", "1")
+os.environ.setdefault("TRANSFORMERS_VERBOSITY", "error")
+# TRANSFORMERS_CACHE is deprecated in Transformers v5; keep only if already set
+if "TRANSFORMERS_CACHE" not in os.environ:
+    os.environ["TRANSFORMERS_CACHE"] = os.environ["HF_HOME"]
 # Keep HF caches on the persistent disk (and avoid filling /tmp)
-os.environ.setdefault("TRANSFORMERS_CACHE", "/opt/render/data/hf_cache")
-os.environ.setdefault("HF_HOME", "/opt/render/data/hf_cache")
-os.environ.setdefault("SENTENCE_TRANSFORMERS_HOME", "/opt/render/data/hf_cache")
 
 # If torch is present, clamp intra-op threads too
 try:
@@ -60,16 +64,29 @@ def _get_embedder():
         model = os.getenv("EP_EMBED_MODEL", "text-embedding-3-small")
         return OpenAIEmbeddings(model=model)
     elif provider in {"hf", "huggingface"}:
-        # Use a smaller, RAM-friendly sentence encoder by default
         from langchain_huggingface import HuggingFaceEmbeddings
         model = os.getenv("EP_HF_MODEL", "sentence-transformers/paraphrase-MiniLM-L3-v2")
-        return HuggingFaceEmbeddings(
+
+        # ⛔ Do NOT pass encode_kwargs or query_encode_kwargs here.
+        # langchain_huggingface's _embed() already forwards show_progress_bar,
+        # so duplicating that kwarg triggers a TypeError.
+        embedder = HuggingFaceEmbeddings(
             model_name=model,
-            # ensure CPU on small instances; avoids accidental CUDA init
             model_kwargs={"device": "cpu"},
-            # tiny batches + normalized vectors = lower peak memory & stable sims
-            encode_kwargs={"batch_size": 8, "normalize_embeddings": True, "show_progress_bar": False},
         )
+
+        # 🚫 Hard-disable all progress knobs to avoid duplicate kwargs and any UI bars
+        try:
+            if hasattr(embedder, "show_progress"):
+                embedder.show_progress = False
+            if hasattr(embedder, "encode_kwargs"):
+                embedder.encode_kwargs = {}
+            if hasattr(embedder, "query_encode_kwargs"):
+                embedder.query_encode_kwargs = {}
+        except Exception:
+            pass
+
+        return embedder
     else:
         raise RuntimeError(f"Unknown EP_EMBEDDINGS provider: {provider}")
 
@@ -134,9 +151,10 @@ def load_corpus(
 
     Env controls:
       - CHROMA_PERSIST_DIR (default: "/opt/render/data/chroma")  -> data saved under {base}/{collection}
-      - EP_EMBEDDINGS ("openai" | "hf"; default: "openai")
-      - EP_EMBED_MODEL (default: "text-embedding-3-small")
-      - EP_HF_MODEL (default: "sentence-transformers/all-MiniLM-L6-v2")
+      - EP_EMBEDDINGS ("openai" | "hf"; default: "hf" on server)
+      - EP_EMBED_MODEL (default: "text-embedding-3-small" when EP_EMBEDDINGS=openai)
+      - EP_HF_MODEL (default: "sentence-transformers/paraphrase-MiniLM-L3-v2")
+      - EP_EMBED_BATCH (default: "8")
       - EP_BUILD_INDEX_ON_BOOT ("1" to (re)index; default: "0")
     """
     # Fast path: reuse already-opened store in this process
