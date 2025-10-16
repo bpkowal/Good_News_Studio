@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Front-end server for Ethical Parliament (Flask single-file demo).
 
 This file intentionally contains both the Flask routes and the HTML/CSS/JS
@@ -27,7 +28,6 @@ or agent-level quote selector logic.
 
 """Front-end server for Ethical Parliament (Flask single-file with UI)."""
 
-from __future__ import annotations
 
 import logging
 import os
