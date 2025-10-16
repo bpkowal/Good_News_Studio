@@ -7,7 +7,8 @@ import numpy as np
 from dotenv import load_dotenv
 from openai import OpenAI
 import atexit, gc
-from generic_loader import load_corpus
+
+from quote_selector import select_quotes_for_agent
 
 # ---- Caching paths (mirrors Rawls agent) ----
 LAST_QUERY_PATH = Path("agent_outputs/.last_query_nozick.txt")
@@ -21,20 +22,6 @@ if not OPENAI_API_KEY:
 
 AGENT_MODEL = os.getenv("OPENAI_AGENT_MODEL", "gpt-5-mini")
 FALLBACK_MODEL = os.getenv("OPENAI_AGENT_FALLBACK_MODEL", "gpt-4o-mini")
-
-def _make_embedder():
-    provider = os.getenv("EP_EMBEDDINGS", "openai").lower()
-    if provider == "openai":
-        from langchain_openai import OpenAIEmbeddings
-        model = os.getenv("EP_EMBED_MODEL", "text-embedding-3-small")
-        return OpenAIEmbeddings(model=model)
-    else:
-        # Falls back to HuggingFace locally if requested
-        from langchain_huggingface import HuggingFaceEmbeddings
-        model = os.getenv("EP_HF_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
-        return HuggingFaceEmbeddings(model_name=model)
-
-client = OpenAI(api_key=OPENAI_API_KEY)
 
 # ---- Optional: semantic tag expansion (reuse your helper) ----
 from get_semantic_tag import get_semantic_tag_weights
@@ -62,71 +49,6 @@ def load_scenario_weights(scenario_id):
     # Point to a liberty/nozick corpus dir if you keep per-agent tags there; fallback to generic.
     corpus_dir = Path("nozick_corpus") if Path("nozick_corpus").exists() else Path("corpus")
     return get_semantic_tag_weights(scenario_id, scenario_dir=Path("scenarios"), corpus_dir=corpus_dir)
-
-def retrieve_nozick_quotes(query: str, scenario_id: str, limit_per_quote: int = 250):
-    """
-    Load (or open) the persisted Nozick vectorstore and an embedder selected by env.
-    Collection name == dir name to keep persistence isolated.
-    """
-    global vectorstore
-    global embedder
-    embedder = _make_embedder()
-    vectorstore = load_corpus("nozick_corpus", "nozick_corpus")
-
-    tag_weights = load_scenario_weights(scenario_id)
-    print(f"🔧 Scenario Tag Weights: {tag_weights}")
-    raw_docs = vectorstore.similarity_search(query, k=10)
-    wrapped_docs = [Document(d.page_content, d.metadata) for d in raw_docs]
-
-    def doc_score(doc):
-        tags = _normalize_tags(doc.metadata.get("tags", []))
-        score = 0.0
-        for tag in tags:
-            w = tag_weights.get(tag, 0.0)
-            if w > 0:
-                print(f"🔍 Tag '{tag}' has semantic weight {w}")
-            score += w
-        print(f"🧪 Tags: {tags} → Score: {score:.2f}")
-        return score
-
-    doc_scores = {id(doc): doc_score(doc) for doc in wrapped_docs}
-
-    quotes = []
-    for doc in wrapped_docs:
-        for line in doc.content.split("\n"):
-            if line.strip().startswith(">"):
-                quote = line.strip()[1:].strip()[:limit_per_quote]
-                if quote:
-                    quotes.append((quote, doc_scores[id(doc)]))
-
-    if not quotes:
-        # Cleanup
-        try:
-            del vectorstore
-        except:
-            pass
-        return "", []
-
-    # Rank by tags + semantic similarity
-    query_emb = embedder.embed_query(query)
-    quote_texts = [q for q,_ in quotes]
-    quote_embs = embedder.embed_documents(quote_texts)
-    ranked = []
-    for i, (qt, _) in enumerate(quotes):
-        sim = max(0.0, _cosine_similarity(query_emb, quote_embs[i]))
-        tag_score = quotes[i][1]
-        combined = tag_score * 2 + 0.2 * sim
-        ranked.append((qt, combined))
-    ranked.sort(key=lambda x: x[1], reverse=True)
-    top = ranked[:3]
-
-    # Cleanup
-    del quote_embs, quote_texts, query_emb, wrapped_docs, raw_docs, doc_scores
-    try: del vectorstore
-    except: pass
-    gc.collect()
-
-    return "\n---\n".join([q for q,_ in top]), top
 
 # ---- LLM call with fallback (mirrors your Rawls agent) ----
 def _to_responses_input(messages):
@@ -194,7 +116,10 @@ def respond_to_query(query: str, scenario_id: str, scenario_path=None,
             print("⚡ Skipping LLM call — using cached Nozick response.")
             return LAST_RESPONSE_PATH.read_text().strip()
 
-    context, top_quotes = retrieve_nozick_quotes(query, scenario_id)
+    school = "Nozick_corpus"
+    selected = select_quotes_for_agent(school, query, k_local=20)
+    context = "\n".join(f"> {q['quote']}" for q in selected)
+    top_quotes = [(q["quote"], None) for q in selected]
 
     # Prompt: Nozick’s entitlement theory + side-constraints
     prompt = (
@@ -208,8 +133,8 @@ def respond_to_query(query: str, scenario_id: str, scenario_path=None,
         "- Ask: Are current holdings the result of just acquisition/transfer? If not, specify rectification.\n"
         "- Warn against policies that treat people as means or that re-pattern holdings without rectification.\n"
         "- Prefer voluntary, contractual solutions; justify any coercion strictly as rights-protection.\n"
-        "- Where helpful, cite and weave in the corpus excerpts below.\n\n"
-        f"Corpus excerpts (may be partial):\n{context}\n\n"
+        "- Where helpful, cite and weave in the selected quotes below.\n\n"
+        f"Selected quotes (may be partial):\n{context}\n\n"
         f"Ethical Question:\n{query}\n\n"
         "Nozickian (Liberty) Answer:\n"
     )
@@ -248,7 +173,7 @@ def respond_to_query(query: str, scenario_id: str, scenario_path=None,
         f.write("Top Quotes Used:\n")
         f.write(f"Scenario ID: {scenario_id}\n")
         for quote, score in top_quotes:
-            f.write(f"- {quote} (score: {score:.2f})\n")
+            f.write(f"- {quote} (score: {score})\n")
         f.write("\nNozickian (Liberty) Response:\n")
         f.write(final_response + "\n")
         f.write(f"\n(Model used: {model_used})\n")
@@ -259,10 +184,6 @@ def respond_to_query(query: str, scenario_id: str, scenario_path=None,
     return final_response
 
 def cleanup_vectorstore():
-    try:
-        del vectorstore  # if existed
-    except NameError:
-        pass
     gc.collect()
 
 atexit.register(cleanup_vectorstore)
