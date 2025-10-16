@@ -1,33 +1,15 @@
 from __future__ import annotations
-"""Front-end server for Ethical Parliament (Flask single-file demo).
 
-This file intentionally contains both the Flask routes and the HTML/CSS/JS
-via render_template_string so it can run as a single file while we iterate.
+"""Front-end server for Ethical Parliament (Flask single-file with UI).
 
-Notes
------
-- Black background, neon-accent UI.
-- MFQ profile bar chart with worldview toggle + MFQ credit link.
-- Scenario entry with guidance (≤5 sentences) and a hard 80-word cap.
-- After submit, entry collapses into a confirmation step.
-- Circular countdown timer (defaults to 15s for demo; set env var to 300 for 5 min).
-- When background job completes, timer is replaced by the faint original prompt and
-  the synthesized response.
-
-Safety & Style: matches user's Python house rules where feasible in a single file:
-- Uses logging (no print).
-- Typed function signatures for public routes.
-- Ready for black line-length = 100.
+This version supports:
+- Black background, neon-accent UI
+- MFQ profile toggle + credit link
+- Scenario entry constraints (≤5 sentences, 80 words)
+- Countdown timer display
+- Collapsing prompt and showing result + original prompt
+- Minimal dependencies, all in one file
 """
-"""Front-end server for Ethical Parliament (Flask single-file demo).
-
-This version omits vectorstore warmup on the frontend, assuming
-all semantic / embedding work will be done in scenario builder
-or agent-level quote selector logic.
-"""
-
-"""Front-end server for Ethical Parliament (Flask single-file with UI)."""
-
 
 import logging
 import os
@@ -56,7 +38,7 @@ logger = logging.getLogger("ethical-parliament.frontend")
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 64 * 1024  # limit request size
 
-# Frontend no longer warms vectorstores
+# Frontend does not warm vectorstores
 STORES = None
 
 def _lazy_warm_vectorstores() -> None:
@@ -237,10 +219,11 @@ def _log_mem(tag: str) -> None:
 def index() -> str:
     return render_template_string(
         TEMPLATE,
+        secret_token=SECRET_TOKEN,
+        simulated_duration_sec=SIMULATED_DURATION_SEC,
         norm_profiles=NORM_PROFILES,
         mfq_dimensions=MFQ_DIMENSIONS,
         default_worldview=DEFAULT_WORLDVIEW,
-        simulated_duration_sec=SIMULATED_DURATION_SEC,
     )
 
 @app.post("/start")
@@ -319,7 +302,7 @@ def list_jobs():
     for p in JOBS_DIR.glob("*.json"):
         try:
             d = json.loads(p.read_text(encoding="utf-8"))
-        except:
+        except Exception:
             continue
         items.append({
             "job_id": p.stem,
@@ -352,88 +335,119 @@ TEMPLATE = r"""
   <title>Ethical Parliament</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      margin: 0;
-      padding: 0;
-      background-color: #0e0f11;
-      color: #e0e0e0;
+      background-color: #0a0a0a; color: #e0e0e0;
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+      padding: 1rem;
     }
     .container {
-      max-width: 800px;
-      margin: 2rem auto;
-      padding: 1.5rem;
-      background: #1c1d21;
-      border-radius: 8px;
-      border: 1px solid #333;
+      width: 100%; max-width: 800px;
+      background: #1c1d22; border: 1px solid #333; border-radius: 10px;
+      padding: 1.5rem; margin-bottom: 2rem;
     }
-    h1 {
-      text-align: center;
-      color: #f8f9fa;
-    }
+    h1 { text-align: center; margin-bottom: 1rem; color: #f8f9fa; }
+    .scenario-entry { margin-bottom: 1rem; }
     textarea.scenario-input {
-      width: 100%;
-      padding: 0.75rem;
-      background: #2b2c31;
-      border: 1px solid #444;
-      border-radius: 4px;
-      color: #f1f1f1;
-      font-size: 1rem;
+      width: 100%; padding: 0.6rem; font-size: 1rem;
+      background: #2b2d31; border: 1px solid #444; border-radius: 4px;
+      color: #f1f1f1; resize: vertical;
     }
+    .hint { font-size: 0.875rem; color: #888; margin-top: 0.25rem; }
     .btn {
-      margin-top: 1rem;
-      background: #5a9efc;
-      color: #fff;
-      border: none;
-      padding: 0.7rem 1.5rem;
-      border-radius: 4px;
-      cursor: pointer;
+      margin-top: 0.75rem; background: #39f; color: #fff;
+      border: none; padding: 0.75rem 1.5rem; border-radius: 5px;
+      cursor: pointer; font-size: 1rem; transition: background 0.2s;
     }
-    .btn:hover {
-      background: #4891e5;
-    }
+    .btn:hover { background: #28c; }
+    .response-area { margin-top: 1.5rem; }
     .response-box {
-      margin-top: 2rem;
-      background: #232629;
-      padding: 1rem;
-      border-radius: 6px;
-      border: 1px solid #444;
-      white-space: pre-wrap;
+      background: #23262a; border: 1px solid #444; border-radius: 8px;
+      padding: 1rem; white-space: pre-line;
+    }
+    .original-prompt {
+      opacity: 0.5; font-style: italic; margin-bottom: 1rem;
     }
     .quote-block {
-      margin: 1rem 0;
-      padding-left: 1rem;
-      border-left: 3px solid #5a9efc;
-      font-style: italic;
+      border-left: 3px solid #39f;
+      padding-left: 1rem; margin: 0.75rem 0; font-style: italic; color: #dcdcdc;
     }
     .hidden { display: none; }
+    .timer-circle {
+      width: 80px; height: 80px; border: 4px solid #39f;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      color: #e0e0e0; font-size: 1.2rem; margin: 1rem auto;
+    }
+    .mfq-section { margin-bottom: 1.5rem; text-align: center; }
+    .mfq-toggle { margin-bottom: 0.5rem; }
+    a.mfq-credit { color: #7af; text-decoration: none; font-size: 0.875rem; }
+    a.mfq-credit:hover { text-decoration: underline; }
+    @media (max-width: 600px) {
+      .container { padding: 1rem; }
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Ethical Parliament</h1>
-    <textarea id="scenario" class="scenario-input" rows="4"
-      placeholder="Enter scenario (≤ 5 sentences, ≤ 80 words)"></textarea>
-    <br>
+
+    <div class="mfq-section">
+      <div class="mfq-toggle">
+        <label><input type="radio" name="worldview" value="Moderates (US)" checked> Moderates</label>
+        <label style="margin-left:1rem;"><input type="radio" name="worldview" value="Liberals (US)"> Liberals</label>
+        <label style="margin-left:1rem;"><input type="radio" name="worldview" value="Conservatives (US)"> Conservatives</label>
+      </div>
+      <a href="https://moralfoundations.org/" class="mfq-credit" target="_blank">MFQ credit link</a>
+    </div>
+
+    <div class="scenario-entry">
+      <textarea id="scenario" class="scenario-input" rows="4"
+        placeholder="Enter moral scenario (≤ 5 sentences, ≤ 80 words)"></textarea>
+      <div class="hint">Use ≤ 5 sentences / 80 words</div>
+    </div>
     <button id="submit-btn" class="btn">Submit</button>
-    <div id="loading" class="response-box hidden">Processing…</div>
-    <div id="result" class="response-box hidden"></div>
+
+    <div id="timer" class="timer-circle hidden">15</div>
+
+    <div class="response-area">
+      <div id="response-content" class="response-box hidden"></div>
+    </div>
   </div>
+
   <script>
     const submitBtn = document.getElementById("submit-btn");
     const scenarioInput = document.getElementById("scenario");
-    const loadingDiv = document.getElementById("loading");
-    const resultDiv = document.getElementById("result");
+    const timerDiv = document.getElementById("timer");
+    const responseContent = document.getElementById("response-content");
+    const worldviewRadios = document.getElementsByName("worldview");
 
-    function showLoading() {
-      resultDiv.classList.add("hidden");
-      loadingDiv.classList.remove("hidden");
-      loadingDiv.textContent = "Processing…";
+    const SECRET_TOKEN = "{{ secret_token }}";
+
+    function getSelectedWorldview() {
+      for (const r of worldviewRadios) {
+        if (r.checked) return r.value;
+      }
+      return null;
     }
-    function showResult(md) {
-      loadingDiv.classList.add("hidden");
-      resultDiv.classList.remove("hidden");
-      resultDiv.innerHTML = md;
+
+    function showTimer(seconds) {
+      timerDiv.textContent = seconds;
+      timerDiv.classList.remove("hidden");
+    }
+    function hideTimer() {
+      timerDiv.classList.add("hidden");
+    }
+
+    function showResponse(md, originalPrompt) {
+      hideTimer();
+      responseContent.classList.remove("hidden");
+      let html = "";
+      if (originalPrompt) {
+        html += `<div class="original-prompt">${originalPrompt}</div>`;
+      }
+      html += md;
+      responseContent.innerHTML = html;
     }
 
     submitBtn.addEventListener("click", async () => {
@@ -442,35 +456,52 @@ TEMPLATE = r"""
         alert("Please enter a scenario.");
         return;
       }
-      showLoading();
+      responseContent.classList.add("hidden");
+
+      let countdown = {{ simulated_duration_sec }};
+      showTimer(countdown);
+      const timerInterval = setInterval(() => {
+        countdown -= 1;
+        if (countdown <= 0) {
+          clearInterval(timerInterval);
+        }
+        timerDiv.textContent = countdown;
+      }, 1000);
+
+      const worldview = getSelectedWorldview();
+      let resp;
       try {
-        const resp = await fetch("/start", {
+        resp = await fetch("/start", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-EP-Token": "{{ secret_token }}"
+            "X-EP-Token": SECRET_TOKEN
           },
-          body: JSON.stringify({ scenario })
+          body: JSON.stringify({ scenario, worldview })
         });
-        const j = await resp.json();
-        if (j.error) {
-          showResult("Error: " + j.error);
-          return;
-        }
-        const jobId = j.job_id;
-        let done = false;
-        while (!done) {
-          await new Promise(r => setTimeout(r, 1000));
-          const st = await fetch(`/status/${jobId}`);
-          const sj = await st.json();
-          done = sj.done;
-        }
-        const rf = await fetch(`/result/${jobId}`);
-        const rj = await rf.json();
-        showResult(rj.result_markdown || "(no output)");
       } catch (err) {
-        showResult("Error: " + err.toString());
+        showResponse("Error sending request: " + err.toString());
+        return;
       }
+      const js = await resp.json();
+      if (js.error) {
+        showResponse("Error: " + js.error);
+        return;
+      }
+      const jobId = js.job_id;
+
+      let done = false;
+      while (!done) {
+        await new Promise(r => setTimeout(r, 1000));
+        const st = await fetch(`/status/${jobId}`);
+        const sj = await st.json();
+        done = sj.done;
+      }
+      const rf = await fetch(`/result/${jobId}`);
+      const rj = await rf.json();
+
+      clearInterval(timerInterval);
+      showResponse(rj.result_markdown || "(no output)", rj.original_prompt || scenario);
     });
   </script>
 </body>
