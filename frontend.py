@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-"""Front-end server for Ethical Parliament — full UI with chart, timer, prompt collapse, etc."""
+"""Front-end server for Ethical Parliament — with token/password prompt UI."""
 
 import logging
 import os
@@ -11,7 +11,6 @@ import json
 import pathlib
 import subprocess
 import re
-
 from flask import Flask, jsonify, render_template_string, request
 
 # Cap parallelism for stability
@@ -302,9 +301,7 @@ def get_job(job_id: str):
         logger.warning("Failed read job %s: %s", job_id, e)
         return jsonify({"error": "Corrupt job file"}), 500
 
-# ------------------------------------------------------------------
-# Your new template
-# ------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 TEMPLATE = r"""
 <!doctype html>
 <html lang="en">
@@ -349,9 +346,14 @@ TEMPLATE = r"""
       .col { flex: 1 1 320px; }
 
       .label { color: var(--muted); font-size: 0.9rem; margin-bottom: 8px; }
-      select, textarea, button {
-        background: #0d0d0d; color: var(--fg); border: 1px solid #222;
-        border-radius: 8px; padding: 10px 12px; font-size: 1rem; width: 100%;
+      select, textarea, button, input {
+        background: #0d0d0d;
+        color: var(--fg);
+        border: 1px solid #222;
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 1rem;
+        width: 100%;
         outline: none;
       }
       textarea { min-height: 120px; resize: vertical; }
@@ -432,9 +434,8 @@ TEMPLATE = r"""
       <section class="panel">
         <div class="row">
           <div class="col">
-            <div class="label">Worldview</div>
-            <select id="worldview"></select>
-            <div class="hint">Select a normative profile to visualize moral weights. Values shown are illustrative; replace with official norms when ready.</div>
+            <div class="label">Worldview</div> <select id="worldview"></select>
+            <div class="hint">Select a normative profile to visualize moral weights.</div>
           </div>
           <div class="col chart-wrap">
             <canvas id="mfqChart"></canvas>
@@ -456,9 +457,14 @@ TEMPLATE = r"""
           </div>
           <div class="col">
             <div class="label">Your scenario (≤ 80 words, ≤ 5 sentences)</div>
-            <textarea id="scenario" placeholder="Describe the dilemma. Keep it brief and focused.\n\nContext limits: five sentences or fewer; 80 words max. This helps agents stay on-task."></textarea>
+            <textarea id="scenario" placeholder="Describe the dilemma. Keep it brief and focused."></textarea>
             <div class="hint"><span id="wordCount">0</span>/80 words</div>
             <div id="entryError" class="error" style="display:none"></div>
++            <div style="margin-top:12px;">
++              <div class="label">Access token / password</div>
++              <input type="password" id="accessToken" placeholder="Enter password/token" />
++              <div id="tokenError" class="error" style="display:none"></div>
++            </div>
           </div>
         </div>
         <div style="margin-top: 12px; text-align: right;">
@@ -480,8 +486,10 @@ TEMPLATE = r"""
         <div class="timer-wrap">
           <svg viewBox="0 0 120 120">
             <circle cx="60" cy="60" r="54" stroke="#222" stroke-width="8" fill="none"/>
-            <circle id="progressCircle" cx="60" cy="60" r="54" stroke="url(#grad)" stroke-width="8"
-              stroke-linecap="round" fill="none" stroke-dasharray="339.292" stroke-dashoffset="0"/>
+            <circle id="progressCircle" cx="60" cy="60" r="54"
+              stroke="url(#grad)" stroke-width="8"
+              stroke-linecap="round" fill="none"
+              stroke-dasharray="339.292" stroke-dashoffset="0" />
             <defs>
               <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
                 <stop offset="0%" stop-color="var(--accent)" />
@@ -506,13 +514,11 @@ TEMPLATE = r"""
     </div>
 
     <script>
-      // Bootstrapped data from Flask
       const MFQ_DIMENSIONS = {{ mfq_dimensions | tojson }};
       const NORM_PROFILES = {{ norm_profiles | tojson }};
       const DEFAULT_WORLDVIEW = {{ default_worldview | tojson }};
       const SIM_DURATION = {{ simulated_duration_sec | tojson }};
 
-      // Build worldview select + chart
       const worldviewSelect = document.getElementById('worldview');
       const ctx = document.getElementById('mfqChart');
 
@@ -566,12 +572,13 @@ TEMPLATE = r"""
         chart.update();
       });
 
-      // Scenario input, validation, counting
       const preset = document.getElementById('preset');
       const scenarioEl = document.getElementById('scenario');
       const submitEntry = document.getElementById('submitEntry');
+      const accessTokenEl = document.getElementById('accessToken');
       const wordCount = document.getElementById('wordCount');
       const entryError = document.getElementById('entryError');
+      const tokenError = document.getElementById('tokenError');
 
       const PRESETS = {
         trolley: "A runaway trolley will kill five workers unless I divert it onto a sidetrack where one worker will die instead. I can pull a lever to divert it.",
@@ -613,13 +620,17 @@ TEMPLATE = r"""
           entryError.style.display = 'none';
           entryError.textContent = '';
         }
-        submitEntry.disabled = !scenarioEl.value.trim() || tooManyWords || tooManySentences;
+        submitEntry.disabled =
+          !scenarioEl.value.trim() ||
+          tooManyWords ||
+          tooManySentences ||
+          !accessTokenEl.value.trim();
       }
 
       scenarioEl.addEventListener('input', updateCounts);
+      accessTokenEl.addEventListener('input', updateCounts);
       updateCounts();
 
-      // Confirmation step logic
       const entryPanel = document.getElementById('entryPanel');
       const confirmPanel = document.getElementById('confirmPanel');
       const backBtn = document.getElementById('backBtn');
@@ -635,7 +646,6 @@ TEMPLATE = r"""
         entryPanel.classList.remove('collapsed');
       });
 
-      // Timer + polling logic
       const timerPanel = document.getElementById('timerPanel');
       const progressCircle = document.getElementById('progressCircle');
       const timeText = document.getElementById('timeText');
@@ -649,7 +659,6 @@ TEMPLATE = r"""
         const offset = CIRCUMFERENCE * (1 - ratio);
         progressCircle.setAttribute('stroke-dasharray', String(CIRCUMFERENCE));
         progressCircle.setAttribute('stroke-dashoffset', String(offset));
-
         const mm = Math.floor(remaining / 60);
         const ss = remaining % 60;
         timeText.textContent = `${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
@@ -681,7 +690,6 @@ TEMPLATE = r"""
         }, 2000);
       }
 
-      // Result display logic
       const resultPanel = document.getElementById('resultPanel');
       const faintPrompt = document.getElementById('faintPrompt');
       const response = document.getElementById('response');
@@ -742,7 +750,7 @@ TEMPLATE = r"""
           faintPrompt.textContent = data.original_prompt || '';
 
           const md = (data.result_markdown || '')
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1<\/strong>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/\n/g, '<br/>');
           response.innerHTML = md;
         })();
@@ -751,9 +759,19 @@ TEMPLATE = r"""
       startBtn.addEventListener('click', async () => {
         confirmPanel.classList.add('collapsed');
 
+        const token = accessTokenEl.value.trim();
+        if (!token) {
+          tokenError.style.display = 'block';
+          tokenError.textContent = 'Token/password is required.';
+          entryPanel.classList.remove('collapsed');
+          return;
+        }
+        tokenError.style.display = 'none';
+
         const body = {
           scenario: scenarioEl.value.trim(),
           worldview: worldviewSelect.value,
+          token: token,
         };
 
         const res = await fetch('/start', {
@@ -763,7 +781,7 @@ TEMPLATE = r"""
         });
 
         if (!res.ok) {
-          const err = await res.json().catch(() => ({error:'Unknown error'}));
+          const err = await res.json().catch(() => ({ error: 'Unknown error' }));
           entryError.style.display = 'block';
           entryError.textContent = err.error || 'Unable to start. Please try again.';
           entryPanel.classList.remove('collapsed');
