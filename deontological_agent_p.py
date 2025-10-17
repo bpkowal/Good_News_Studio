@@ -1,4 +1,5 @@
 import os
+import gc
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 
 from pathlib import Path
@@ -148,6 +149,7 @@ Deontological Answer:
     return final_response
 
 if __name__ == "__main__":
+    import json
     from pathlib import Path as _P
     import glob
     scenario_files = sorted(_P("scenarios").glob("*.json"), key=os.path.getmtime, reverse=True)
