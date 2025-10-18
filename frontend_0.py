@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-"""Front-end server for Ethical Parliament — with token/password prompt UI (confirm step)."""
+"""Front-end server for Ethical Parliament — with token/password prompt UI."""
 
 import logging
 import os
@@ -302,7 +302,6 @@ def get_job(job_id: str):
         return jsonify({"error": "Corrupt job file"}), 500
 
 # ----------------------------------------------------------------------------
-
 TEMPLATE = r"""
 <!doctype html>
 <html lang="en">
@@ -461,6 +460,11 @@ TEMPLATE = r"""
             <textarea id="scenario" placeholder="Describe the dilemma. Keep it brief and focused."></textarea>
             <div class="hint"><span id="wordCount">0</span>/80 words</div>
             <div id="entryError" class="error" style="display:none"></div>
++            <div style="margin-top:12px;">
++              <div class="label">Access token / password</div>
++              <input type="password" id="accessToken" placeholder="Enter password/token" />
++              <div id="tokenError" class="error" style="display:none"></div>
++            </div>
           </div>
         </div>
         <div style="margin-top: 12px; text-align: right;">
@@ -471,11 +475,6 @@ TEMPLATE = r"""
       <section id="confirmPanel" class="panel collapsed">
         <div class="confirm-box">
           <p>Are you sure these settings are correct and you're ready to see the first response?</p>
-          <div style="margin-top:12px;">
-            <div class="label">Access token / password</div>
-            <input type="password" id="accessToken" placeholder="Enter password/token" />
-            <div id="tokenError" class="error" style="display:none"></div>
-          </div>
           <div class="confirm-actions">
             <button id="backBtn">Back</button>
             <button id="startBtn" class="primary">Start</button>
@@ -624,10 +623,12 @@ TEMPLATE = r"""
         submitEntry.disabled =
           !scenarioEl.value.trim() ||
           tooManyWords ||
-          tooManySentences;
+          tooManySentences ||
+          !accessTokenEl.value.trim();
       }
 
       scenarioEl.addEventListener('input', updateCounts);
+      accessTokenEl.addEventListener('input', updateCounts);
       updateCounts();
 
       const entryPanel = document.getElementById('entryPanel');
@@ -638,7 +639,6 @@ TEMPLATE = r"""
       submitEntry.addEventListener('click', () => {
         entryPanel.classList.add('collapsed');
         confirmPanel.classList.remove('collapsed');
-        accessTokenEl.focus();
       });
 
       backBtn.addEventListener('click', () => {
@@ -757,16 +757,16 @@ TEMPLATE = r"""
       }
 
       startBtn.addEventListener('click', async () => {
+        confirmPanel.classList.add('collapsed');
+
         const token = accessTokenEl.value.trim();
         if (!token) {
           tokenError.style.display = 'block';
           tokenError.textContent = 'Token/password is required.';
+          entryPanel.classList.remove('collapsed');
           return;
         }
         tokenError.style.display = 'none';
-
-        accessTokenEl.disabled = true;
-        startBtn.disabled = true;
 
         const body = {
           scenario: scenarioEl.value.trim(),
@@ -784,10 +784,7 @@ TEMPLATE = r"""
           const err = await res.json().catch(() => ({ error: 'Unknown error' }));
           entryError.style.display = 'block';
           entryError.textContent = err.error || 'Unable to start. Please try again.';
-          confirmPanel.classList.add('collapsed');
           entryPanel.classList.remove('collapsed');
-          accessTokenEl.disabled = false;
-          startBtn.disabled = false;
           return;
         }
 
@@ -795,7 +792,6 @@ TEMPLATE = r"""
         startCountdown(job_id, typeof eta_seconds === 'number' ? eta_seconds : SIM_DURATION);
       });
     </script>
-
   </body>
 </html>
 """
