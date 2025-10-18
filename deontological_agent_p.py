@@ -5,7 +5,7 @@ os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 from pathlib import Path
 from openai import OpenAI
 from dotenv import load_dotenv
-
+from datetime import datetime
 from quote_selector import select_quotes_for_agent
 from get_semantic_tag import get_semantic_tag_weights
 
