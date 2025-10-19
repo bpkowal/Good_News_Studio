@@ -174,15 +174,17 @@ def _normalize_mfq_scales(p: dict) -> dict:
 
 user_ethics_profile = _normalize_mfq_scales(user_ethics_profile)
 
+
+
 # Determine libertarian profile from label & adjust profile
 libertarian_selected = False
-lbl = str(user_ethics_profile.get("profile_label", "")).strip()
-if lbl.lower() == "libertarians (us)":
+profile_label = str(mfq.get("profile_label", "")).strip().lower()
+
+if profile_label == "libertarians (us)":
     libertarian_selected = True
-    user_ethics_profile["Liberty/Oppression"] = 4.0
-    print(f"[liberty] Detected profile_label == '{lbl}'. Setting libertarian_selected = True")
+    print(f"[liberty] Detected profile_label == '{profile_label}'. Setting libertarian_selected = True")
 else:
-    print(f"[liberty] profile_label='{lbl}'. libertarian_selected remains False.")
+    print(f"[liberty] profile_label='{profile_label}'. libertarian_selected remains False.")
     user_ethics_profile.pop("Liberty/Oppression", None)
     user_ethics_profile.pop("liberty_oppression", None)
 
