@@ -692,28 +692,27 @@ TEMPLATE = r"""
         }, 1000);
 
         // Poll job status every 2 seconds
-        statusInterval = setInterval(async () => {
-          try {
-            const res = await fetch(`/status/${jobId}`);
-            const data = await res.json();
-            console.log('Status poll →', jobId, 'data:', data, 'remaining before update:', remaining);
+statusInterval = setInterval(async () => {
+  const res = await fetch(`/status/${jobId}`);
+  const data = await res.json();
+  console.log('Status poll →', jobId, 'data:', data, 'remaining before update:', remaining);
 
-          if (data.status === 'complete') {
-            console.log('Status indicates complete → clearing intervals & showing result');
-            clearInterval(statusInterval);
-            clearInterval(countdownInterval);
-            showResult(jobId);
-          } else if (typeof data.eta_seconds === 'number' && data.eta_seconds < remaining - 1) {
-            console.log('Adjusting remaining to new ETA:', data.eta_seconds);
-            remaining = data.eta_seconds;
-            setProgress(remaining, total);
-          }
-        } catch(err) {
-          console.error('Status fetch error:', err);
-          clearInterval(statusInterval);
-          clearInterval(countdownInterval);
-        }
-      }, 2000);
+  if (data.status === 'complete') {
+    console.log('Status indicates complete → clearing intervals & showing result');
+    clearInterval(statusInterval);
+    clearInterval(countdownInterval);
+    showResult(jobId);
+  }
+  else if (typeof data.eta_seconds === 'number' /* && maybe additional checks */ ) {
+    // Only adjust remaining if new eta is significantly less than current remaining:
+    if (data.eta_seconds > 0 && data.eta_seconds < remaining - 1) {
+      console.log('Adjusting remaining to new ETA:', data.eta_seconds);
+      remaining = data.eta_seconds;
+      setProgress(remaining, total);
+    }
+    // Could ignore data.eta_seconds = 0 (i.e., treat it as “unknown”)
+  }
+}, 2000);
     }
 
       const resultPanel = document.getElementById('resultPanel');
