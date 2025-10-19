@@ -100,6 +100,15 @@ def compute_steering_from_mfq(mfq: dict, include_liberty: bool = False, libertar
         w_virt  *= 0.9
         w_rawls *= 0.9
 
+    libertarian_selected = False
+    
+    if profile_label == "libertarians (us)":
+        libertarian_selected = True
+        print(f"[liberty] Detected profile_label == '{profile_label}'. Setting libertarian_selected = True")
+    else:
+        print(f"[liberty] profile_label='{profile_label}'. libertarian_selected remains False.")
+        user_ethics_profile.pop("Liberty/Oppression", None)
+        user_ethics_profile.pop("liberty_oppression", None)
 
     weights = {
         "Utilitarian":   w_util,
@@ -173,20 +182,6 @@ def _normalize_mfq_scales(p: dict) -> dict:
     return q
 
 user_ethics_profile = _normalize_mfq_scales(user_ethics_profile)
-
-
-
-# Determine libertarian profile from label & adjust profile
-libertarian_selected = False
-profile_label = str(mfq.get("profile_label", "")).strip().lower()
-
-if profile_label == "libertarians (us)":
-    libertarian_selected = True
-    print(f"[liberty] Detected profile_label == '{profile_label}'. Setting libertarian_selected = True")
-else:
-    print(f"[liberty] profile_label='{profile_label}'. libertarian_selected remains False.")
-    user_ethics_profile.pop("Liberty/Oppression", None)
-    user_ethics_profile.pop("liberty_oppression", None)
 
 # Compute steering weights (with liberty logic)
 steering_weights = compute_steering_from_mfq(
