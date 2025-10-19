@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 
 # --- Securely load environment variables ---
-load_dotenv()
+load_dotenv()  # reads variables from a .env file if present, otherwise falls back to shell env
 openai.api_key = os.getenv("OPENAI_API_KEY")
 if not openai.api_key:
     raise EnvironmentError(
@@ -25,89 +25,99 @@ if not openai.api_key:
 # Instantiate v1 Async client
 client = AsyncOpenAI(api_key=openai.api_key)
 
+
 # === Ethics Parliament Synthesis Pipeline ===
 # Runs scenario builder, collects agent responses, rates each, and synthesizes final judgment.
 
 SCRIPT_DIR = Path(__file__).parent
 
+
+# Mapping agent names to their response labels
 LABELS = {
-    "Utilitarian":          "Utilitarian Response:",
-    "Virtue":               "Virtue Ethics Response:",
-    "Deontology":           "Deontological Response:",
-    "Care":                 "Care Ethics Response:",
-    "Rawlsian":             "Rawlsian Ethics Response:",
-    "Nozick":               "Nozckian (Liberty) Response:",
-    "Libertarian":          "Nozckian (Liberty) Response:",
+    "Utilitarian": "Utilitarian Response:",
+    "Virtue": "Virtue Ethics Response:",
+    "Deontology": "Deontological Response:",
+    "Care": "Care Ethics Response:",
+    "Rawlsian": "Rawlsian Ethics Response:",
+    "Nozick": "Nozickian (Liberty) Response:",
+    "Libertarian": "Nozickian (Liberty) Response:",
 }
 
 SCENARIO_BUILDER = "scenario_builder_general.py"
 
 AGENTS = [
-    ("Virtue",      "virtue_ethics_agent_p.py"),
-    ("Care",        "care_ethics_agent_p.py"),
-    ("Deontology",  "deontological_agent_p.py"),
+    ("Virtue", "virtue_ethics_agent_p.py"),
+    ("Care", "care_ethics_agent_p.py"),
+    ("Deontology", "deontological_agent_p.py"),
     ("Utilitarian", "utilitarian_agent_p.py"),
-    ("Rawlsian",    "rawlsian_ethics_agent_p.py"),
+    ("Rawlsian", "rawlsian_ethics_agent_p.py")
 ]
 
 # Build a mutable list so we can conditionally add Nozick
 AGENT_LIST = list(AGENTS)
 
+# --- Debug flags (single-agent stdout echo) ---
 parser = argparse.ArgumentParser()
 parser.add_argument("--debug-agent", default=os.getenv("DEBUG_AGENT", "").strip(),
                     help="Agent name to echo raw stdout for (Virtue, Care, Deontology, Utilitarian, Rawlsian). Case-insensitive.")
 parser.add_argument("--debug-stdout-to-file", action="store_true",
-                    help="If set, also write raw stdout to agent_outputs/debug_raw_<agent>_<timestamp>.log")
+                    help="If set, also write the full raw stdout to agent_outputs/debug_raw_<agent>_<timestamp>.log")
 parser.add_argument("--debug-sample", type=int, default=1200,
-                    help="When echoing, print a trimmed preview of the cleaned extraction.")
+                    help="When echoing, additionally print a trimmed preview of the cleaned extraction (first N chars).")
 args = parser.parse_args()
 
+
+
+
 SYNTHESIS_RATINGS_SCRIPT = SCRIPT_DIR / "synthesis_ratings_only.py"
-SYNTHESIS_SCRIPT         = SCRIPT_DIR / "synthesis_final_judgment.py"
-PROFILE_PATH            = SCRIPT_DIR / "user_ethics_profile.json"
+SYNTHESIS_SCRIPT = SCRIPT_DIR / "synthesis_final_judgment.py"
+PROFILE_PATH = SCRIPT_DIR / "user_ethics_profile.json"
+
 
 # Defensive scenario sanitizer
 def sanitize_scenario(text: str) -> str:
+    """
+    Remove control characters (ASCII 0-31 except common whitespace) and DEL, then trim.
+    Keeps visible punctuation/quotes intact. Defensive against weird unicode/control chars.
+    """
     return re.sub(r'[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]', '', text or '').strip()
 
 # --- MFQ Steering Helper ---
 def compute_steering_from_mfq(mfq: dict, include_liberty: bool = False, libertarian_boost: bool = False) -> dict:
+    """
+    Map MFQ (Care, Fairness, Loyalty, Authority, Purity, [Liberty]) to weights over frameworks:
+    Utilitarian, Deontological, Virtue, Care, Rawlsian, and optionally Nozick (Liberty).
+    """
     try:
         care      = float(mfq.get("Care/Harm",            mfq.get("care_harm", 0.0)))
         fairness  = float(mfq.get("Fairness/Cheating",    mfq.get("fairness_cheating", 0.0)))
         loyalty   = float(mfq.get("Loyalty/Betrayal",     mfq.get("loyalty_betrayal", 0.0)))
         authority = float(mfq.get("Authority/Subversion", mfq.get("authority_subversion", 0.0)))
-        purity    = float(mfq.get("Sanctity/Degradation", mfq.get("purity_degradation", 0.0)))
+        purity    = float(mfq.get("Sanctity/Degradation", mfq.get("sanctity_degradation", 0.0)))
         liberty   = float(mfq.get("Liberty/Oppression",   mfq.get("liberty_oppression", 0.0))) if include_liberty else 0.0
     except Exception:
         care = fairness = loyalty = authority = purity = liberty = 0.0
 
+    # base weights
     w_util  = max(0.0, 0.4 * care + 0.4 * fairness)
     w_deon  = 0.4 * fairness + 0.3 * loyalty + 0.7 * authority + (0.3 * liberty if include_liberty else 0.0)
     w_virt  = 0.75 * loyalty + 1.1 * purity + 0.2 * authority
     w_care  = 1.0 * care
     w_rawls = 0.6 * fairness + 0.3 * authority
     w_nozk  = 1.0 * liberty if include_liberty else 0.0
-   
-    if profile_label.strip().lower() == "conservatives (us)":
-        w_deon  *= 1.2
-        w_util  *= 0.9
-        w_care  *= 0.9
-        w_virt  *= 0.9
-        w_rawls *= 0.9
-
 
     weights = {
-        "Utilitarian":   w_util,
+        "Utilitarian": w_util,
         "Deontological": w_deon,
-        "Virtue":        w_virt,
-        "Care":          w_care,
-        "Rawlsian":      w_rawls,
+        "Virtue": w_virt,
+        "Care": w_care,
+        "Rawlsian": w_rawls,
     }
     if include_liberty:
         weights["Nozick"] = w_nozk
 
     if libertarian_boost and include_liberty:
+        # give Liberty a stronger hand and compress others a bit
         weights["Nozick"] *= 1.6
         for k in ("Utilitarian", "Rawlsian", "Care", "Virtue", "Deontological"):
             weights[k] *= 0.9
@@ -117,13 +127,14 @@ def compute_steering_from_mfq(mfq: dict, include_liberty: bool = False, libertar
         weights[k] = round(weights[k] / total, 3)
     return weights
 
-# === 1. Locate latest scenario file ===
+# === 1. Locate latest scenario (skip interactive builder if present) ===
 SCENARIO_DIR = Path("scenarios")
 SCENARIO_DIR.mkdir(parents=True, exist_ok=True)
 scenario_files = sorted(SCENARIO_DIR.glob("*.json"), key=os.path.getmtime, reverse=True)
 SCENARIO_PATH = str(scenario_files[0]) if scenario_files else ""
 
 if not SCENARIO_PATH:
+    # No scenario present yet — fall back to interactive builder (original behavior)
     print(f"\n🛠 Running Scenario Builder...\n{'='*40}")
     try:
         sb_result = subprocess.run(
@@ -136,6 +147,7 @@ if not SCENARIO_PATH:
     except subprocess.CalledProcessError as e:
         print(f"❌ Scenario Builder Error:\n{e.stderr}")
 
+    # Try discovery again after builder
     scenario_files = sorted(SCENARIO_DIR.glob("*.json"), key=os.path.getmtime, reverse=True)
     SCENARIO_PATH = str(scenario_files[0]) if scenario_files else ""
 
@@ -147,64 +159,11 @@ with open(SCENARIO_PATH, "r", encoding="utf-8") as f:
     scenario_data = json.load(f)
 
 results = {
-    "ethical_question":     scenario_data.get("ethical_question", ""),
-    "agent_responses":       {}
+    "ethical_question": scenario_data.get("ethical_question", ""),
+    "agent_responses": {}
 }
+# Defensive sanitize of the user-provided scenario text
 results["ethical_question"] = sanitize_scenario(results["ethical_question"])
-
-# === 2. Prepare user profile & steering ===
-with open(PROFILE_PATH, "r", encoding="utf-8") as pf:
-    user_ethics_profile = json.load(pf)
-
-def _normalize_mfq_scales(p: dict) -> dict:
-    vals = [v for v in p.values() if isinstance(v, (int, float))]
-    if vals and max(vals) <= 5.0 and min(vals) >= 0.0:
-        p = {k: (float(v) + 1.0 if isinstance(v, (int, float)) else v) for k, v in p.items()}
-    q = {}
-    for k, v in p.items():
-        if isinstance(v, (int, float)):
-            q[k] = max(1.0, min(6.0, float(v)))
-        else:
-            q[k] = v
-    return q
-
-user_ethics_profile = _normalize_mfq_scales(user_ethics_profile)
-
-# Determine libertarian profile from label & adjust profile
-libertarian_selected = False
-lbl = str(user_ethics_profile.get("profile_label", "")).strip()
-if lbl.lower() == "libertarians (us)":
-    libertarian_selected = True
-    user_ethics_profile["Liberty/Oppression"] = 4.0
-    print(f"[liberty] Detected profile_label == '{lbl}'. Setting libertarian_selected = True")
-else:
-    print(f"[liberty] profile_label='{lbl}'. libertarian_selected remains False.")
-    user_ethics_profile.pop("Liberty/Oppression", None)
-    user_ethics_profile.pop("liberty_oppression", None)
-
-# Compute steering weights (with liberty logic)
-steering_weights = compute_steering_from_mfq(
-    user_ethics_profile,
-    include_liberty=libertarian_selected,
-    libertarian_boost=libertarian_selected
-)
-
-# Decide whether to include the Nozick agent **before** running agent loop
-nozick_candidates = ["nozick_ethics_agent_p.py", "Nozick_ethics_agent_p.py"]
-nozick_script = next((p for p in nozick_candidates if Path(p).exists()), nozick_candidates[0])
-exists = Path(nozick_script).exists()
-print(f"[liberty] Candidate Nozick script: {nozick_script} (exists={exists})")
-
-if libertarian_selected:
-    if exists:
-        if ("Nozick", nozick_script) not in AGENT_LIST:
-            AGENT_LIST.insert(0, ("Nozick", nozick_script))
-            print("🧩 Included Nozck (Liberty) agent in AGENT_LIST due to libertarian profile.")
-        else:
-            print("[liberty] Nozck agent already present in AGENT_LIST.")
-    else:
-        print(f"⚠️ Nozck agent script not found: {nozick_script}. Agent will not be included.")
-print(f"[pipeline] Final AGENT_LIST order: {[name for name, _ in AGENT_LIST]}")
 
 # === 3. Run Each Agent ===
 for name, script in AGENT_LIST:
