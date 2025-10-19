@@ -515,6 +515,7 @@ TEMPLATE = r"""
     </div>
 
     <script>
+      
       const MFQ_DIMENSIONS = {{ mfq_dimensions | tojson }};
       const NORM_PROFILES = {{ norm_profiles | tojson }};
       const DEFAULT_WORLDVIEW = {{ default_worldview | tojson }};
@@ -664,41 +665,56 @@ TEMPLATE = r"""
         timeText.textContent = `${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
       }
 
-function startCountdown(jobId, total) {
-  let remaining = total;
-  timerPanel.classList.add('visible');
-  setProgress(remaining, total);
+      console.log('Frontend: SIM_DURATION =', SIM_DURATION);
+    function startCountdown(jobId, total) {
+          console.log('startCountdown → jobId:', jobId, 'initial total:', total);
+          let remaining = total;
+          timerPanel.classList.add('visible');
+          setProgress(remaining, total);
 
-  // Countdown timer — update once every second
-  countdownInterval = setInterval(() => {
-    remaining = Math.max(0, remaining - 1);
-    setProgress(remaining, total);
-    if (remaining <= 0) {
-      clearInterval(countdownInterval);
-      // continue polling until done
-    }
-  }, 1000);
+        // Clear any old intervals just in case
+          if (countdownInterval) clearInterval(countdownInterval);
+          if (statusInterval)   clearInterval(statusInterval);
 
-  // Poll job status every 2 seconds
-  statusInterval = setInterval(async () => {
-    try {
-      const res = await fetch(`/status/${jobId}`);
-      const data = await res.json();
-      if (data.status === 'complete') {
-        clearInterval(statusInterval);
-        clearInterval(countdownInterval);
-        showResult(jobId);
-      } else if (typeof data.eta_seconds === 'number' && data.eta_seconds < remaining) {
-        remaining = data.eta_seconds;
-        setProgress(remaining, total);
-      }
-    } catch(err) {
-      console.error('Status fetch error:', err);
-      clearInterval(statusInterval);
-      clearInterval(countdownInterval);
+        // Countdown timer — update once every second
+          countdownInterval = setInterval(() => {
+            remaining = Math.max(0, remaining - 1);
+            setProgress(remaining, total);
+        // Debug log
+          if (remaining % 10 === 0) {
+            console.log('Countdown timer tick (every 10s) → remaining:', remaining);
+          }
+          if (remaining <= 0) {
+            console.log('Countdown reached 0 — clearing countdownInterval');
+            clearInterval(countdownInterval);
+            // Note: do not hide timerPanel here; wait for status complete
+          }
+        }, 1000);
+
+        // Poll job status every 2 seconds
+        statusInterval = setInterval(async () => {
+          try {
+            const res = await fetch(`/status/${jobId}`);
+            const data = await res.json();
+            console.log('Status poll →', jobId, 'data:', data, 'remaining before update:', remaining);
+
+          if (data.status === 'complete') {
+            console.log('Status indicates complete → clearing intervals & showing result');
+            clearInterval(statusInterval);
+            clearInterval(countdownInterval);
+            showResult(jobId);
+          } else if (typeof data.eta_seconds === 'number' && data.eta_seconds < remaining - 1) {
+            console.log('Adjusting remaining to new ETA:', data.eta_seconds);
+            remaining = data.eta_seconds;
+            setProgress(remaining, total);
+          }
+        } catch(err) {
+          console.error('Status fetch error:', err);
+          clearInterval(statusInterval);
+          clearInterval(countdownInterval);
+        }
+      }, 2000);
     }
-  }, 2000);
-}
 
       const resultPanel = document.getElementById('resultPanel');
       const faintPrompt = document.getElementById('faintPrompt');

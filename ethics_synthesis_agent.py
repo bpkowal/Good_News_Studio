@@ -89,13 +89,16 @@ def compute_steering_from_mfq(mfq: dict, include_liberty: bool = False, libertar
     w_rawls = 0.6 * fairness + 0.3 * authority
     w_nozk  = 1.0 * liberty if include_liberty else 0.0
    
-    if profile_label.strip().lower() == "conservatives (us)":
+    # Conservative tilt toward Deontology — read label from the profile dict
+    profile_label = str(mfq.get("profile_label", "")).strip().lower()
+    if profile_label == "conservatives (us)":
+        # Boost deontology modestly, dampen others slightly.
         w_deon  *= 1.2
-        w_util  *= 0.9
+        w_util  *= 0.6
         w_care  *= 0.9
         w_virt  *= 0.9
-        w_rawls *= 0.9
-
+        w_rawls *= 1.0
+        # (Nozick unchanged unless a libertarian run enables liberty explicitly.)
 
     weights = {
         "Utilitarian":   w_util,
