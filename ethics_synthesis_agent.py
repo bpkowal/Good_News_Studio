@@ -66,28 +66,7 @@ parser.add_argument("--debug-sample", type=int, default=1200,
                     help="When echoing, additionally print a trimmed preview of the cleaned extraction (first N chars).")
 args = parser.parse_args()
 
-# After reading user_ethics_profile:
-user_ethics_profile = _normalize_mfq_scales(user_ethics_profile)
 
-# Determine if libertarian profile flag has been set (e.g., from front-end or by inference)
-libertarian_selected = False
-if user_ethics_profile.get("profile_label") == "Libertarians (US)":
-    libertarian_selected = True
-    # force Liberty/Oppression value to 4.0
-    user_ethics_profile["Liberty/Oppression"] = 4.0
-else:
-    # Ensure no Liberty value is used / present
-    if "Liberty/Oppression" in user_ethics_profile:
-        del user_ethics_profile["Liberty/Oppression"]
-    if "liberty_oppression" in user_ethics_profile:
-        del user_ethics_profile["liberty_oppression"]
-
-# Then pass include_liberty = libertarian_selected into compute_steering_from_mfq
-steering_weights = compute_steering_from_mfq(
-    user_ethics_profile,
-    include_liberty=libertarian_selected,
-    libertarian_boost=libertarian_selected
-)
 
 
 SYNTHESIS_RATINGS_SCRIPT = SCRIPT_DIR / "synthesis_ratings_only.py"
@@ -506,7 +485,29 @@ def _normalize_mfq_scales(p: dict) -> dict:
             q[k] = v
     return q
 
+# After reading user_ethics_profile:
 user_ethics_profile = _normalize_mfq_scales(user_ethics_profile)
+
+# Determine if libertarian profile flag has been set (e.g., from front-end or by inference)
+libertarian_selected = False
+if user_ethics_profile.get("profile_label") == "Libertarians (US)":
+    libertarian_selected = True
+    # force Liberty/Oppression value to 4.0
+    user_ethics_profile["Liberty/Oppression"] = 4.0
+else:
+    # Ensure no Liberty value is used / present
+    if "Liberty/Oppression" in user_ethics_profile:
+        del user_ethics_profile["Liberty/Oppression"]
+    if "liberty_oppression" in user_ethics_profile:
+        del user_ethics_profile["liberty_oppression"]
+
+# Then pass include_liberty = libertarian_selected into compute_steering_from_mfq
+steering_weights = compute_steering_from_mfq(
+    user_ethics_profile,
+    include_liberty=libertarian_selected,
+    libertarian_boost=libertarian_selected
+)
+
 
 # Infer libertarian selection directly from MFQ values
 libertarian_selected = _infer_libertarian_from_mfq(user_ethics_profile)
