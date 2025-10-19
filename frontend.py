@@ -67,7 +67,7 @@ if not SECRET_TOKEN:
 def sanitize_scenario(text: str) -> str:
     return re.sub(r'[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]', '', text or "").strip()
 
-SIMULATED_DURATION_SEC = int(os.getenv("SIMULATED_DURATION_SEC", "300"))
+SIMULATED_DURATION_SEC = int(os.getenv("SIMULATED_DURATION_SEC", "150"))
 
 MFQ_DIMENSIONS = [
     "care_harm",
