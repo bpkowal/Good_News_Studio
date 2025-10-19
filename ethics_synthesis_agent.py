@@ -488,62 +488,41 @@ def _normalize_mfq_scales(p: dict) -> dict:
 # After reading user_ethics_profile:
 user_ethics_profile = _normalize_mfq_scales(user_ethics_profile)
 
-# Determine if libertarian profile flag has been set (e.g., from front-end or by inference)
+# Determine if libertarian profile flag has been set
 libertarian_selected = False
-if user_ethics_profile.get("profile_label") == "Libertarians (US)":
+lbl = str(user_ethics_profile.get("profile_label", "")).strip()
+if lbl.lower() == "libertarians (us)":
     libertarian_selected = True
-    # force Liberty/Oppression value to 4.0
     user_ethics_profile["Liberty/Oppression"] = 4.0
+    print(f"[liberty] Detected profile_label == '{lbl}'. Setting libertarian_selected = True")
 else:
-    # Ensure no Liberty value is used / present
-    if "Liberty/Oppression" in user_ethics_profile:
-        del user_ethics_profile["Liberty/Oppression"]
-    if "liberty_oppression" in user_ethics_profile:
-        del user_ethics_profile["liberty_oppression"]
+    print(f"[liberty] profile_label='{lbl}'. libertarian_selected remains False.")
+    user_ethics_profile.pop("Liberty/Oppression", None)
+    user_ethics_profile.pop("liberty_oppression", None)
 
-# Then pass include_liberty = libertarian_selected into compute_steering_from_mfq
+# Compute steering weights
 steering_weights = compute_steering_from_mfq(
     user_ethics_profile,
     include_liberty=libertarian_selected,
     libertarian_boost=libertarian_selected
 )
 
-# (Optional) If Liberty/Oppression is absent but the profile looks libertarian,
-# synthesize a proxy Liberty value to help steering
-if libertarian_selected and ("Liberty/Oppression" not in user_ethics_profile and "liberty_oppression" not in user_ethics_profile):
-    care = float(user_ethics_profile.get("Care/Harm", user_ethics_profile.get("care_harm", 0.0)))
-    fairness = float(user_ethics_profile.get("Fairness/Cheating", user_ethics_profile.get("fairness_cheating", 0.0)))
-    loyalty = float(user_ethics_profile.get("Loyalty/Betrayal", user_ethics_profile.get("loyalty_betrayal", 0.0)))
-    authority = float(user_ethics_profile.get("Authority/Subversion", user_ethics_profile.get("authority_subversion", 0.0)))
-    purity = float(user_ethics_profile.get("Sanctity/Degradation", user_ethics_profile.get("sanctity_degradation", 0.0)))
-    mean5 = (care + fairness + loyalty + authority + purity) / 5.0 if all(v > 0.0 for v in [care,fairness,loyalty,authority,purity]) else 3.0
-    liberty_proxy = max(1.0, min(6.0, 6.0 - (mean5 - 1.0)))  # lower mean -> higher proxy liberty
-    user_ethics_profile["Liberty/Oppression"] = round(liberty_proxy, 2)
-
-# Decide and log whether to include Nozick/Liberty agent
-print(f"[liberty] MFQ inference → libertarian_selected={libertarian_selected}")
-liberty_present = user_ethics_profile.get("Liberty/Oppression", user_ethics_profile.get("liberty_oppression"))
-print(f"[liberty] Liberty axis in profile: {liberty_present}")
-
-# Try both common filename casings to avoid OS/case mismatches
-nozick_candidates = [
-    "nozick_ethics_agent_p.py",
-    "Nozick_ethics_agent_p.py",
-]
+# Decide whether to include the Nozick agent
+nozick_candidates = ["nozick_ethics_agent_p.py", "Nozick_ethics_agent_p.py"]
 nozick_script = next((p for p in nozick_candidates if Path(p).exists()), nozick_candidates[0])
-print(f"[liberty] Candidate Nozick script: {nozick_script} (exists={Path(nozick_script).exists()})")
+exists = Path(nozick_script).exists()
+print(f"[liberty] Candidate Nozick script: {nozick_script} (exists={exists})")
 
 if libertarian_selected:
-    if Path(nozick_script).exists():
+    if exists:
         if ("Nozick", nozick_script) not in AGENT_LIST:
             AGENT_LIST.insert(0, ("Nozick", nozick_script))
-            print("🧩 Included Nozick (Liberty) agent due to MFQ inference.")
+            print("🧩 Included Nozick (Liberty) agent due to libertarian profile.")
         else:
-            print("[liberty] Nozick agent already present in AGENT_LIST; not duplicating.")
+            print("[liberty] Nozick agent already present in AGENT_LIST.")
     else:
-        print("ℹ️ Nozick agent script not found; skipping inclusion.")
-else:
-    print("[liberty] MFQ did not infer libertarian; Nozick agent not included.")
+        # optional fallback: log warning
+        print(f"⚠️ Nozick agent script not found: {nozick_script}. Agent will not be included.")
 
 print(f"[pipeline] AGENT_LIST order: {[name for name, _ in AGENT_LIST]}")
 
