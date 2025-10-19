@@ -508,10 +508,6 @@ steering_weights = compute_steering_from_mfq(
     libertarian_boost=libertarian_selected
 )
 
-
-# Infer libertarian selection directly from MFQ values
-libertarian_selected = _infer_libertarian_from_mfq(user_ethics_profile)
-
 # (Optional) If Liberty/Oppression is absent but the profile looks libertarian,
 # synthesize a proxy Liberty value to help steering
 if libertarian_selected and ("Liberty/Oppression" not in user_ethics_profile and "liberty_oppression" not in user_ethics_profile):
