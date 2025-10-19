@@ -65,29 +65,45 @@ parser.add_argument("--debug-stdout-to-file", action="store_true",
 parser.add_argument("--debug-sample", type=int, default=1200,
                     help="When echoing, additionally print a trimmed preview of the cleaned extraction (first N chars).")
 args = parser.parse_args()
+def _infer_libertarian_from_mfq(mfq: dict) -> bool:
+    """
+    Heuristic: infer a libertarian emphasis from MFQ.
+    This version is tolerant to your 0-5 → 1-6 normalization (+1 shift) by using
+    slightly higher thresholds on the 1-6 scale.
 
-# After reading user_ethics_profile:
-user_ethics_profile = _normalize_mfq_scales(user_ethics_profile)
+    We infer 'libertarian' if either:
+      (A) Liberty/Oppression >= 4.0, OR
+      (B) Purity_degredation <= 1.25
+    """
+    def g(k_long, k_short):
+        v = mfq.get(k_long, mfq.get(k_short, None))
+        try:
+            return float(v) if v is not None else None
+        except Exception:
+            return None
 
-# Determine if libertarian profile flag has been set (e.g., from front-end or by inference)
-libertarian_selected = False
-if user_ethics_profile.get("profile_label") == "Libertarians (US)":
-    libertarian_selected = True
-    # force Liberty/Oppression value to 4.0
-    user_ethics_profile["Liberty/Oppression"] = 4.0
-else:
-    # Ensure no Liberty value is used / present
-    if "Liberty/Oppression" in user_ethics_profile:
-        del user_ethics_profile["Liberty/Oppression"]
-    if "liberty_oppression" in user_ethics_profile:
-        del user_ethics_profile["liberty_oppression"]
+    care      = g("Care/Harm",            "care_harm")            or 0.0
+    fairness  = g("Fairness/Cheating",    "fairness_cheating")    or 0.0
+    loyalty   = g("Loyalty/Betrayal",     "loyalty_betrayal")     or 0.0
+    authority = g("Authority/Subversion", "authority_subversion") or 0.0
+    purity    = g("Sanctity/Degradation", "sanctity_degradation") or 0.0
+    liberty   = g("Liberty/Oppression",   "liberty_oppression")
 
-# Then pass include_liberty = libertarian_selected into compute_steering_from_mfq
-steering_weights = compute_steering_from_mfq(
-    user_ethics_profile,
-    include_liberty=libertarian_selected,
-    libertarian_boost=libertarian_selected
-)
+    vals5 = [care, fairness, loyalty, authority, purity]
+    mean5 = sum(vals5)/5.0 if vals5 else 0.0
+
+    # Conditions (tolerant of +1 shift)
+    cond_liberty = (liberty is not None) and (liberty >= 4.0)
+    cond_low5    = (mean5 <= 3.75) and (authority <= 3.5) and (purity <= 3.2)
+
+    # Debug trace
+    print(
+        f"[liberty] MFQ five-foundations: care={care:.2f}, fairness={fairness:.2f}, "
+        f"loyalty={loyalty:.2f}, authority={authority:.2f}, purity={purity:.2f}; "
+        f"mean5={mean5:.2f}; liberty={liberty} → cond_liberty={cond_liberty}, cond_low5={cond_low5}"
+    )
+
+    return bool(cond_liberty or cond_low5)
 
 
 SYNTHESIS_RATINGS_SCRIPT = SCRIPT_DIR / "synthesis_ratings_only.py"
