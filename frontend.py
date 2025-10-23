@@ -121,7 +121,7 @@ def _active_profile_from(worldview: str, override: dict[str, float] | None = Non
                 base[k] = float(v)
     return base
 
-def _start_background_job(job_id: str, prompt: str, profile: dict[str, float]) -> None:
+def _start_background_job(job_id: str, prompt: str, profile: dict[str, float], worldview: str) -> None:
     ready_at = time.time() + SIMULATED_DURATION_SEC
     _JOBS[job_id] = (ready_at, None, prompt)
     write_status(job_id,
@@ -136,7 +136,13 @@ def _start_background_job(job_id: str, prompt: str, profile: dict[str, float]) -
                            cwd=str(PROJECT_ROOT), check=True)
             write_status(job_id, status="running", progress=25, step="scenario_built")
 
-            USER_PROFILE_PATH.write_text(json.dumps(profile, ensure_ascii=False, indent=2),
+            # Include explicit frontend-selected profile markers so the pipeline can detect Libertarian
+            profile_with_marker = dict(profile)
+            profile_with_marker["norm_profile"] = worldview
+            profile_with_marker["mfq_norm_profile"] = worldview
+            profile_with_marker["selected_profile"] = worldview
+
+            USER_PROFILE_PATH.write_text(json.dumps(profile_with_marker, ensure_ascii=False, indent=2),
                                          encoding="utf-8")
             write_status(job_id, status="running", progress=50, step="profile_saved")
 
@@ -225,7 +231,7 @@ def start():
         return jsonify({"error": "Please use ≤5 sentences."}), 400
 
     job_id = uuid.uuid4().hex
-    _start_background_job(job_id, scenario, profile)
+    _start_background_job(job_id, scenario, profile, worldview)
     logger.info("Started job %s (worldview=%s)", job_id, worldview)
     return jsonify({"job_id": job_id, "eta_seconds": SIMULATED_DURATION_SEC})
 

@@ -251,9 +251,8 @@ def compute_steering_from_mfq(mfq: dict, include_liberty: bool = False, libertar
 # Normalize MFQ to 1–6 item-mean scale if needed (accept legacy 0–5 and clamp to [1,6])
 def _normalize_mfq_scales(p: dict) -> dict:
     vals = [v for v in p.values() if isinstance(v, (int, float))]
-    # Shift legacy 0–5 to 1–6 only if we detect values below 1.0
-    # (avoids mistakenly shifting already‑normalized 1–6 item means like 1.23–3.74)
-    if vals and max(vals) <= 6.0 and min(vals) < 1.0:
+    # If all numeric values look like 0–5 (legacy), shift to 1–6
+    if vals and max(vals) <= 5.0 and min(vals) >= 0.0:
         p = {k: (float(v) + 1.0 if isinstance(v, (int, float)) else v) for k, v in p.items()}
     # Clamp to [1, 6]
     q = {}
@@ -398,15 +397,6 @@ def main():
     numeric_lib = (nearest_label == "Libertarians (US)")
     libertarian_selected = bool(explicit_lib or numeric_lib)
     print(f"[liberty] Profile match → nearest='{nearest_label}' (mse={nearest_mse:.4f}); explicit={explicit_lib} ⇒ libertarian_selected={libertarian_selected}")
-
-    # If Libertarian is selected but the profile lacks an explicit Liberty/Oppression axis,
-    # infer a proxy value from the 5 foundation means so Liberty can be weighted in steering.
-    if libertarian_selected and ("Liberty/Oppression" not in user_ethics_profile and "liberty_oppression" not in user_ethics_profile):
-        vec5 = _coerce_mfq_vector(user_ethics_profile)
-        mean5 = (sum(vec5) / 5.0) if vec5 else 3.0
-        liberty_proxy = max(1.0, min(6.0, 7.0 - mean5))  # lower mean5 → higher proxy liberty
-        user_ethics_profile["Liberty/Oppression"] = round(liberty_proxy, 2)
-        print(f"[liberty] Liberty axis missing; injecting proxy value {user_ethics_profile['Liberty/Oppression']} based on mean5={mean5:.2f}")
 
     # Try both common filename casings to avoid OS/case mismatches
     nozick_candidates = [
