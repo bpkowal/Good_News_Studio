@@ -26,6 +26,23 @@ if not openai.api_key:
 client = AsyncOpenAI(api_key=openai.api_key)
 
 
+# Async OpenAI chat completion helper (o3)
+async def call_o3(messages, model="o3", tool_choice=None, timeout=45):
+    """
+    Make an async chat completion call using the OpenAI >=1.0.0 interface.
+    Returns (message, usage).
+    """
+    response = await client.chat.completions.create(
+        model=model,
+        messages=messages,
+        tool_choice=tool_choice,
+        max_completion_tokens=20048,
+        timeout=timeout,
+    )
+    usage = response.usage
+    return response.choices[0].message, usage
+
+
 # === Ethics Parliament Synthesis Pipeline ===
 # Runs scenario builder, collects agent responses, rates each, and synthesizes final judgment.
 
