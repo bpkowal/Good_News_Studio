@@ -98,6 +98,22 @@ def respond_to_query(query=None, scenario_id=None, scenario_path=None, temperatu
 - Prioritize the development of moral character and virtues over rule-based moral frameworks.
 - Use moral exemplars, narrative analogies, and lived experience as sources of ethical insight.
 - Provide a specific course of action consistent with one path a virtue ethicist could recommend.
+- Keep your resposne to no less than five and no more than seven paragraphs 
+- Use the following quotes and checklist for formulating your response
+    Virtue Ethics Content Checklist
+	    1.	Name the key virtues and vices in tension
+            Example: courage vs. recklessness; justice vs. favoritism.
+	    2.	Describe concrete habits (hexeis) to practice this week
+            These habits should cultivate the relevant virtues through repeated, observable actions.
+	    3.	Offer one moral exemplar (historical or local)
+            Explain what that exemplar would do in this specific scenario and why.
+	    4.	Anticipate tradeoffs and risks
+            Show how to remain virtuous under pressure or uncertainty.
+	    5.	List likely failure modes and how to course-correct without cynicism
+            Identify pitfalls and describe ways to recover moral direction constructively.
+	    6.	Give one measurable signal of progress for each action-plan step
+            Each signal should indicate whether virtue is being developed or maintained.
+
 
 Here are the selected quotes for reference:
 {context}
