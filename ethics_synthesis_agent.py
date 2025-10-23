@@ -522,27 +522,50 @@ def _normalize_mfq_scales(p: dict) -> dict:
             q[k] = v
     return q
 
+def _is_frontend_libertarian_profile(p: dict) -> bool:
+    """
+    Return True only if the FRONTEND explicitly chose a Libertarian profile.
+    We look for common marker fields set by the UI. No heuristics.
+
+    Accepted string fields (case-insensitive):
+      - "norm_profile", "profile_name", "selected_profile",
+        "mfq_profile", "mfq_norm_profile", "group", "cohort"
+
+    Environment override:
+      - FORCE_LIBERTARIAN_AGENT in {"1","true","yes"} → True
+
+    If none of the above are present, we return False.
+    """
+    # Env override for testing
+    if str(os.getenv("FORCE_LIBERTARIAN_AGENT", "")).strip().lower() in {"1", "true", "yes"}:
+        print("[liberty] FORCE_LIBERTARIAN_AGENT override → True")
+        return True
+
+    # String markers from the frontend
+    for key in (
+        "norm_profile",
+        "profile_name",
+        "selected_profile",
+        "mfq_profile",
+        "mfq_norm_profile",
+        "group",
+        "cohort",
+    ):
+        val = p.get(key)
+        if isinstance(val, str) and "libertarian" in val.lower():
+            print(f"[liberty] Frontend profile marker: {key}={val!r} → Libertarian=True")
+            return True
+
+    print("[liberty] No explicit frontend Libertarian profile marker found.")
+    return False
+
 user_ethics_profile = _normalize_mfq_scales(user_ethics_profile)
 
-# Infer libertarian selection directly from MFQ values
-libertarian_selected = _infer_libertarian_from_mfq(user_ethics_profile)
+# Simple rule: only include Nozick/Liberty agent if the FRONTEND explicitly chose Libertarian
+libertarian_selected = _is_frontend_libertarian_profile(user_ethics_profile)
 
-# (Optional) If Liberty/Oppression is absent but the profile looks libertarian,
-# synthesize a proxy Liberty value to help steering
-if libertarian_selected and ("Liberty/Oppression" not in user_ethics_profile and "liberty_oppression" not in user_ethics_profile):
-    care = float(user_ethics_profile.get("Care/Harm", user_ethics_profile.get("care_harm", 0.0)))
-    fairness = float(user_ethics_profile.get("Fairness/Cheating", user_ethics_profile.get("fairness_cheating", 0.0)))
-    loyalty = float(user_ethics_profile.get("Loyalty/Betrayal", user_ethics_profile.get("loyalty_betrayal", 0.0)))
-    authority = float(user_ethics_profile.get("Authority/Subversion", user_ethics_profile.get("authority_subversion", 0.0)))
-    purity = float(user_ethics_profile.get("Sanctity/Degradation", user_ethics_profile.get("sanctity_degradation", 0.0)))
-    mean5 = (care + fairness + loyalty + authority + purity) / 5.0 if all(v > 0.0 for v in [care,fairness,loyalty,authority,purity]) else 3.0
-    liberty_proxy = max(1.0, min(6.0, 6.0 - (mean5 - 1.0)))  # lower mean -> higher proxy liberty
-    user_ethics_profile["Liberty/Oppression"] = round(liberty_proxy, 2)
-
-# Decide and log whether to include Nozick/Liberty agent
-print(f"[liberty] MFQ inference → libertarian_selected={libertarian_selected}")
-liberty_present = user_ethics_profile.get("Liberty/Oppression", user_ethics_profile.get("liberty_oppression"))
-print(f"[liberty] Liberty axis in profile: {liberty_present}")
+# If explicitly selected and Liberty axis is missing, do NOT synthesize a proxy.
+# We keep the profile as-is to reflect the frontend choice exactly.
 
 # Try both common filename casings to avoid OS/case mismatches
 nozick_candidates = [
