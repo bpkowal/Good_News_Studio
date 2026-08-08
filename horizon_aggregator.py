@@ -118,6 +118,10 @@ def estimate_horizon(temporal_tags: Sequence[str]) -> float:
     return max(horizons) if horizons else max(_TAG_TO_HOURS.values())
 
 
+# Backward-compatible name imported by the original utilitarian agent.
+estimate_horizon_from_tags = estimate_horizon
+
+
 # ---------------------------------------------------------------------------
 # 2. Diminishing‑value kernels
 # ---------------------------------------------------------------------------

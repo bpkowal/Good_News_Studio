@@ -51,6 +51,107 @@ Our guiding ethos: *Neither side becomes subservient to the other. We are co-exp
 
 5. **Contemplate Inferences:**
 
+## Recurrent Global Workspace (experimental)
+
+The legacy `ethics_synthesis_agent.py` pipeline remains available unchanged. The
+`global-workspace/parliament-V2` branch also provides a bandwidth-limited,
+recurrent path whose specialists share one local GGUF model. Selection,
+salience, policy aggregation, dissent preservation, entropy, and halting are
+computed in Python rather than delegated to an LLM.
+
+In workspace mode, the five original agents are first run in isolated
+subprocesses. They retain their existing corpus retrieval, semantic weighting,
+and framework prompts. Each original response becomes that framework's
+grounding testimony. Lightweight delegates then reconsider a shared action set
+over recurrent workspace broadcasts without repeating the expensive RAG pass
+on every cycle. The trace records both the original testimony and any agent
+that failed. Deliberation refuses to proceed when fewer than two original
+agents succeed.
+
+The unified interactive entry point is:
+
+```bash
+python parliament.py
+```
+
+Choose `workspace` (the default) or `legacy`, then enter the ethical problem
+once. Workspace mode creates the scenario and runs recurrent deliberation.
+Legacy mode passes the question to the original scenario builder and synthesis
+pipeline.
+
+The same interface can be used non-interactively:
+
+```bash
+python parliament.py \
+  --mode workspace \
+  --question "Should the scientist disclose the dangerous program?" \
+  --urgency 0.8 \
+  --danger 0.9
+```
+
+Run a scenario with automatic action planning:
+
+```bash
+python global_workspace_pipeline.py scenarios/example.json \
+  --urgency 0.8 \
+  --danger 0.9
+```
+
+Or provide a small common action set (quote actions containing spaces):
+
+```bash
+python global_workspace_pipeline.py scenarios/example.json \
+  --actions "protect the person" "refuse to answer" "seek more information"
+```
+
+Each specialist returns fewer than 128 tokens of structured JSON. A broadcast
+contains only the active constraint, intent, urgency, danger probability, and
+one unresolved question. High urgency restricts deliberation to two cycles;
+other cases default to three. Results are written to `workspace_outputs/` as a
+full JSON trace, a readable text judgment, and append-only episodic memory.
+
+The shared recurrent model defaults to `n_ctx=768`, 8 GPU layers, batch 32,
+and 128 delegate output tokens. These can be tuned for the machine with
+`--n-ctx`, `--n-gpu-layers`, `--n-batch`, and `--delegate-tokens`. The terminal
+prints progress and elapsed time for every agent and recurrent delegate call.
+The deliberation budget defaults to 600 seconds (ten minutes).
+
+Delegate scores have one fixed meaning: `1.0` strongly recommends an action
+and `0.0` strongly rejects it. Constraints and unresolved questions use fixed
+vocabularies. Structurally or semantically invalid delegates receive zero
+salience and do not affect policy or dissent. A round with fewer than two valid
+delegates is reported as `INCONCLUSIVE` and cannot produce a compressed rule.
+The action planner also marks whether each action is explicitly supported and
+feasible before the stated harm; unsupported escape actions are filtered out.
+Explicit “either/or” dilemmas bypass model-based planning and preserve the two
+stated choices directly. Other action plans and delegate responses use
+llama.cpp JSON grammars when available. Planning failures produce a concise
+recovery message instead of a traceback.
+
+Simple scarce-resource questions such as “who should receive the antidote?”
+produce one neutral action per named recipient without model planning. Before
+delegation, interactive runs show the complete action set and allow acceptance,
+rejection, or editing. Use `--accept-actions` only when that confirmation should
+be skipped.
+
+Recurrent delegate actions use stable IDs (`A0`, `A1`, …), and every response
+identifies both its source-testimony baseline and current recommendation.
+The recommendation must have the highest score. Initial recommendations cannot
+invert a known testimony baseline and every response includes a short reason.
+Python derives `SUPPORTS`, `RECONSIDERS`, or `UNCLEAR` alignment plus confidence,
+surprise, and friction from the baseline and score gap instead of asking the
+small model to emit those redundant fields. Constraint vocabularies are framework-specific.
+Dissent and moral residue accumulate across cycles, and a time-budget overrun
+takes precedence over convergence and prevents rule compilation.
+Each original testimony's baseline action is extracted in a separate constrained
+call and then frozen for recurrence. A compact scenario fact table currently
+captures named survival probabilities; delegate reasons that assign the higher
+survival chance to the wrong recipient are rejected.
+
+This path does not call the OpenAI API. It does require the local model at the
+default path (`../mistral-7b-instruct-v0.2.Q4_K_M.gguf`) or an explicit
+`--model /path/to/model.gguf` argument.
+
 ## Getting Started
 
 ├── ethics_synthesis_agent.py     # Main pipeline script
