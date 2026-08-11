@@ -136,7 +136,7 @@ def respond_to_query(query: str, scenario_id: str, temperature: float = 0.4, max
         raise ValueError("Both 'query' and 'scenario_id' must be provided.")
 
     # Check if query matches last processed query
-    if LAST_QUERY_PATH.exists() and LAST_RESPONSE_PATH.exists():
+    if os.getenv("ETHICS_LLM_BACKEND", "local") == "local" and LAST_QUERY_PATH.exists() and LAST_RESPONSE_PATH.exists():
         last_query = LAST_QUERY_PATH.read_text().strip()
         if query.strip() == last_query:
             print("⚡ Skipping LLM call — using cached response.")

@@ -22,12 +22,19 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--max-cycles", type=int, default=3)
     parser.add_argument("--time-budget", type=float, default=600.0)
     parser.add_argument("--model", type=Path)
+    parser.add_argument("--backend", choices=("local", "openai"))
+    parser.add_argument("--openai-model", default="o3")
     parser.add_argument("--agent-timeout", type=float, default=600.0)
     parser.add_argument("--n-ctx", type=int, default=768)
     parser.add_argument("--n-gpu-layers", type=int, default=8)
     parser.add_argument("--n-batch", type=int, default=32)
     parser.add_argument("--delegate-tokens", type=int, default=128)
     parser.add_argument("--accept-actions", action="store_true")
+    parser.add_argument("--no-synthesis", action="store_true")
+    parser.add_argument("--extension-cycles", type=int, default=2)
+    parser.add_argument("--max-cycle-extensions", type=int, default=1)
+    parser.add_argument("--no-cycle-extension", action="store_true")
+    parser.add_argument("--no-visibility-audit", action="store_true")
     return parser.parse_args(argv)
 
 
@@ -45,6 +52,15 @@ def prompt_question() -> str:
     if len(question) < 10:
         raise ValueError("The ethical problem must contain at least 10 characters")
     return question
+
+
+def prompt_backend() -> str:
+    answer = input("Workspace backend [local/openai] (local): ").strip().lower()
+    if not answer:
+        return "local"
+    if answer not in {"local", "openai"}:
+        raise ValueError("Backend must be 'local' or 'openai'")
+    return answer
 
 
 def create_workspace_scenario(question: str, scenario_dir: Path = ROOT / "scenarios") -> Path:
@@ -78,6 +94,10 @@ def workspace_command(args: argparse.Namespace, scenario_path: Path) -> list[str
         "--n-gpu-layers", str(max(0, args.n_gpu_layers)),
         "--n-batch", str(max(8, args.n_batch)),
         "--delegate-tokens", str(max(48, args.delegate_tokens)),
+        "--backend", args.backend or "local",
+        "--openai-model", args.openai_model,
+        "--extension-cycles", str(max(1, args.extension_cycles)),
+        "--max-cycle-extensions", str(max(0, args.max_cycle_extensions)),
     ]
     if args.model:
         command.extend(["--model", str(args.model)])
@@ -86,6 +106,12 @@ def workspace_command(args: argparse.Namespace, scenario_path: Path) -> list[str
         command.extend(args.actions)
     if args.accept_actions:
         command.append("--accept-actions")
+    if args.no_synthesis:
+        command.append("--no-synthesis")
+    if args.no_cycle_extension:
+        command.append("--no-cycle-extension")
+    if args.no_visibility_audit:
+        command.append("--no-visibility-audit")
     return command
 
 
@@ -128,6 +154,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         raise ValueError("The ethical problem must contain at least 10 characters")
     if mode == "legacy":
         return run_legacy(question)
+    if args.backend is None and args.question is None:
+        args.backend = prompt_backend()
+    else:
+        args.backend = args.backend or "local"
     return run_workspace(args, question)
 
 

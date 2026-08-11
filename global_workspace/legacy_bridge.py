@@ -27,7 +27,13 @@ class LegacyConsultation:
     errors: dict[str, str]
 
 
-def _child_consult(agent: str, scenario_path: Path, max_tokens: int) -> int:
+def _child_consult(
+    agent: str,
+    scenario_path: Path,
+    max_tokens: int,
+    backend: str = "local",
+    openai_model: str = "o3",
+) -> int:
     if agent not in AGENT_MODULES:
         raise ValueError(f"Unknown original agent: {agent}")
     data = json.loads(scenario_path.read_text(encoding="utf-8"))
@@ -35,11 +41,26 @@ def _child_consult(agent: str, scenario_path: Path, max_tokens: int) -> int:
     if not question:
         raise ValueError("Scenario has no ethical_question")
     module = importlib.import_module(AGENT_MODULES[agent])
+    llm = None
+    if backend == "openai":
+        from .openai_backend import OpenAIWorkspaceLLM
+
+        llm = OpenAIWorkspaceLLM(openai_model)
+        # Keep hosted answers from overwriting caches used by local-model runs.
+        for cache_name in ("LAST_QUERY_PATH", "LAST_RESPONSE_PATH"):
+            cache_path = getattr(module, cache_name, None)
+            if isinstance(cache_path, Path):
+                setattr(
+                    module,
+                    cache_name,
+                    cache_path.with_name(f"{cache_path.stem}_openai{cache_path.suffix}"),
+                )
     response = module.respond_to_query(
         query=question,
         scenario_id=scenario_path.stem,
         scenario_path=scenario_path,
         max_tokens=max_tokens,
+        llm=llm,
     )
     encoded = base64.b64encode(str(response).encode("utf-8")).decode("ascii")
     print(f"{RESPONSE_MARKER}{encoded}")
@@ -60,6 +81,8 @@ def consult_original_agents(
     agents: tuple[str, ...] = tuple(AGENT_MODULES),
     max_tokens: int = 180,
     timeout_seconds: float = 600.0,
+    backend: str = "local",
+    openai_model: str = "o3",
 ) -> LegacyConsultation:
     testimonies: dict[str, str] = {}
     errors: dict[str, str] = {}
@@ -75,6 +98,10 @@ def consult_original_agents(
             str(scenario_path),
             "--max-tokens",
             str(max_tokens),
+            "--backend",
+            backend,
+            "--openai-model",
+            openai_model,
         ]
         try:
             child_env = os.environ.copy()
@@ -82,6 +109,7 @@ def consult_original_agents(
             child_env.setdefault("HF_HUB_OFFLINE", "1")
             child_env.setdefault("TRANSFORMERS_OFFLINE", "1")
             child_env.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
+            child_env["ETHICS_LLM_BACKEND"] = backend
             completed = subprocess.run(
                 command,
                 cwd=Path(__file__).resolve().parent.parent,
@@ -110,9 +138,17 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--agent", required=True, choices=tuple(AGENT_MODULES))
     parser.add_argument("--scenario", required=True, type=Path)
     parser.add_argument("--max-tokens", type=int, default=180)
+    parser.add_argument("--backend", choices=("local", "openai"), default="local")
+    parser.add_argument("--openai-model", default="o3")
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     child_args = _parse_args()
-    raise SystemExit(_child_consult(child_args.agent, child_args.scenario.resolve(), child_args.max_tokens))
+    raise SystemExit(_child_consult(
+        child_args.agent,
+        child_args.scenario.resolve(),
+        child_args.max_tokens,
+        child_args.backend,
+        child_args.openai_model,
+    ))

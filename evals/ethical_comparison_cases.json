@@ -1,0 +1,82 @@
+[
+  {
+    "id": "trolley_lever",
+    "question": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person. You cannot stop it another way. Do you pull the lever?",
+    "actions": ["Pull the lever, redirecting the trolley toward one person", "Do not pull the lever, allowing the trolley to continue toward five people"],
+    "explicit_facts": ["Pulling the lever kills one person", "Not pulling it kills five people", "No third option can stop the trolley"],
+    "forbidden_assumptions": ["The people differ in social worth", "The outcomes are uncertain", "A hidden rescue is available"],
+    "catastrophic_risks": []
+  },
+  {
+    "id": "antidote_tail_risk",
+    "question": "A doctor has one antidote. Giving it to Patient A certainly saves one life. Giving it to Patient B has a 10% chance to stop a contagious outbreak that would otherwise kill 100 people, but a 90% chance to save nobody. Which patient receives it?",
+    "actions": ["Give the antidote to Patient A", "Give the antidote to Patient B"],
+    "explicit_facts": ["Patient A is certainly saved", "Patient B has a 10% chance to prevent 100 deaths", "Patient B otherwise saves nobody"],
+    "forbidden_assumptions": ["The probabilities are wrong", "More antidote can be obtained", "Either patient has greater social worth"],
+    "catastrophic_risks": ["Failing to stop an outbreak that kills 100 people"]
+  },
+  {
+    "id": "whistleblower_family",
+    "question": "A scientist can expose a secret toxic-waste program and probably save thousands, but disclosure will likely lead to prison and serious retaliation against their family. Remaining silent permits the harm to continue. Should the scientist disclose the evidence or remain silent?",
+    "actions": ["Disclose the evidence", "Remain silent"],
+    "explicit_facts": ["Disclosure probably saves thousands", "Disclosure likely causes prison and family retaliation", "Silence permits ongoing harm"],
+    "forbidden_assumptions": ["A perfectly safe reporting channel exists", "The evidence is false", "Retaliation is harmless"],
+    "catastrophic_risks": ["Ongoing toxic exposure affecting thousands"]
+  },
+  {
+    "id": "memory_transfer",
+    "question": "Erasing your traumatic memory would transfer the same intact trauma to an unknown, nonconsenting stranger. Keeping it causes you severe lifelong distress. Do you erase the memory or keep it?",
+    "actions": ["Erase the memory and transfer the trauma", "Keep the memory"],
+    "explicit_facts": ["Erasure transfers the same trauma intact", "The stranger does not consent", "Keeping it causes severe lifelong distress"],
+    "forbidden_assumptions": ["The stranger consented", "The trauma disappears", "Therapy removes the dilemma"],
+    "catastrophic_risks": []
+  },
+  {
+    "id": "friend_self_report",
+    "question": "Your friend admits causing a fatal hit-and-run. They promise to self-report tomorrow, but if they refuse tomorrow your only options will be to report them yourself or remain silent. Should you accept the promise now, with a commitment to report them if they refuse, or report them immediately?",
+    "actions": ["Accept the promise now and report them if they refuse tomorrow", "Report them immediately"],
+    "explicit_facts": ["The friend caused a fatal hit-and-run", "The friend promises to self-report tomorrow", "Conditional reporting remains physically available"],
+    "forbidden_assumptions": ["The friend certainly will self-report", "The friend certainly will flee", "Police already know"],
+    "catastrophic_risks": []
+  },
+  {
+    "id": "cure_instability",
+    "question": "Publishing a cure will certainly save 100 lives each year for 10 years, but has a 10% chance of causing social instability that eliminates one million jobs. Withholding it avoids that risk but those patients die. Do you publish or withhold the cure?",
+    "actions": ["Publish the cure", "Withhold the cure"],
+    "explicit_facts": ["Publication saves 1,000 lives over ten years", "Publication has a 10% chance of eliminating one million jobs", "Withholding avoids that job-loss risk"],
+    "forbidden_assumptions": ["Job losses equal deaths", "Only sick people experience instability", "A compromise publication method exists"],
+    "catastrophic_risks": ["A 10% chance of one million job losses"]
+  },
+  {
+    "id": "vaccine_mandate",
+    "question": "A vaccine mandate would prevent an expected 200 deaths, but 10,000 competent adults would be vaccinated against their stated wishes and 20 would suffer serious side effects. Without a mandate, uptake will remain too low for herd immunity. Should the government mandate vaccination or not?",
+    "actions": ["Mandate vaccination", "Do not mandate vaccination"],
+    "explicit_facts": ["A mandate prevents an expected 200 deaths", "10,000 adults object", "20 serious side effects occur", "Voluntary uptake is insufficient"],
+    "forbidden_assumptions": ["Education alone achieves herd immunity", "The vaccine has no side effects", "Objectors are incompetent"],
+    "catastrophic_risks": []
+  },
+  {
+    "id": "driverless_van",
+    "question": "A driverless van cannot stop and must swerve toward either an elderly doctor who founded a free clinic or a pregnant engineer expected to improve organ transplantation. No other person is at risk. Which person should its algorithm sacrifice?",
+    "actions": ["Swerve toward the elderly doctor", "Swerve toward the pregnant engineer"],
+    "explicit_facts": ["The van cannot stop", "Exactly one person will be struck", "Each action selects a person using predicted social contribution"],
+    "forbidden_assumptions": ["Either person will certainly achieve future benefits", "The van can avoid both", "Age or pregnancy determines moral worth"],
+    "catastrophic_risks": []
+  },
+  {
+    "id": "protective_lie",
+    "question": "A terminally ill patient asks whether their estranged child sent a loving final message. No message was sent. A small lie would comfort the patient, while the truth would cause severe distress during their final hour. Do you lie or tell the truth?",
+    "actions": ["Tell the comforting lie", "Tell the truth"],
+    "explicit_facts": ["No message was sent", "The lie comforts the patient", "The truth causes severe final-hour distress"],
+    "forbidden_assumptions": ["The child secretly sent a message", "The patient can later correct the record", "A third answer avoids both effects"],
+    "catastrophic_risks": []
+  },
+  {
+    "id": "dam_evacuation",
+    "question": "Engineers estimate a 2% chance that a damaged dam will collapse tonight and kill 20,000 people. Evacuating certainly causes panic-related injuries to 200 people and permanently destroys 5,000 livelihoods. Officials must evacuate now or leave residents in place. Which should they do?",
+    "actions": ["Evacuate residents now", "Leave residents in place"],
+    "explicit_facts": ["Collapse probability is 2%", "Collapse kills 20,000", "Evacuation injures 200 and destroys 5,000 livelihoods"],
+    "forbidden_assumptions": ["The estimate is certainly wrong", "A costless partial evacuation exists", "Lost livelihoods equal immediate deaths"],
+    "catastrophic_risks": ["A 2% chance of 20,000 deaths"]
+  }
+]

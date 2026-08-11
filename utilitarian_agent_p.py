@@ -1,4 +1,3 @@
-from llama_cpp import Llama
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 from load_utilitarian_corpus import load_utilitarian_corpus
@@ -160,13 +159,14 @@ def respond_to_query(query: str, scenario_id: str, temperature: float = 0.5, max
         raise ValueError("Both 'query' and 'scenario_id' must be provided.")
 
     # Skip LLM if query hasn't changed
-    if LAST_QUERY_PATH.exists() and LAST_RESPONSE_PATH.exists():
+    if os.getenv("ETHICS_LLM_BACKEND", "local") == "local" and LAST_QUERY_PATH.exists() and LAST_RESPONSE_PATH.exists():
         last_query = LAST_QUERY_PATH.read_text().strip()
         if query.strip() == last_query:
             print("⚡ Skipping LLM call — using cached utilitarian response.")
             return LAST_RESPONSE_PATH.read_text().strip()
 
     if llm is None:
+        from llama_cpp import Llama
         llm = Llama(
             model_path=MODEL_PATH,
             n_ctx=768,
@@ -204,6 +204,19 @@ def respond_to_query(query: str, scenario_id: str, temperature: float = 0.5, max
 - Do not assume harm is always wrong—utilitarianism may permit harm if it maximizes net well-being.
 - Ignore proximity and immediacy unless they affect outcomes.
 - Use the following corpus excerpts in your reasoning. Explicitly reference or paraphrase their logic where applicable.
+- First compare the concrete consequences of this particular act for every directly
+  affected person. Distinguish facts stated in the scenario from assumptions, and
+  identify missing information that could reverse the recommendation.
+- Rank consequences by expected impact: probability multiplied by magnitude.
+  Concrete and probable effects should normally outweigh guilt, gratitude, rewards,
+  stigma, broad social trust, or other speculative effects unless the scenario gives
+  evidence that those effects are likely and material.
+- Do not multiply one person's act across millions of hypothetical similar acts.
+  Discuss a rule-utilitarian effect only when this act plausibly changes, enforces,
+  or publicly instantiates a practice, and explain that causal link. Universalizing
+  a choice is not itself a consequence of making the choice once.
+- If the result depends on unknown consequences, give a conditional judgment rather
+  than using speculative effects to create false certainty.
 
 Corpus Materials:
 {context}

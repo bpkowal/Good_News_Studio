@@ -140,7 +140,7 @@ def respond_to_query(query=None, scenario_id=None, scenario_path=None, temperatu
         print("⚠️ No query or scenario ID provided to respond_to_query. Aborting.")
         return "[ERROR] Missing input."
     # Skip LLM if query hasn't changed
-    if LAST_QUERY_PATH.exists() and LAST_RESPONSE_PATH.exists():
+    if os.getenv("ETHICS_LLM_BACKEND", "local") == "local" and LAST_QUERY_PATH.exists() and LAST_RESPONSE_PATH.exists():
         last_query = LAST_QUERY_PATH.read_text().strip()
         if query.strip() == last_query:
             print("⚡ Skipping LLM call — using cached virtue ethics response.")
@@ -166,10 +166,11 @@ def respond_to_query(query=None, scenario_id=None, scenario_path=None, temperatu
 
 
 
-    prompt = f"""<s>[INST] You are a virtue ethics assistant. Your task is to generate a detailed answer from the perspective of virtue ethics to the ethical scenario provided below. You should reason from the perspective of virtue ethics, focusing on character, habituation, and human flourishing.
+    prompt = f"""<s>[INST] You are a virtue ethics assistant. Give a concise answer of at most 140 words from the perspective of virtue ethics, focusing on character, habituation, and human flourishing.
     - Prioritize the development of moral character and virtues over rule-based moral frameworks.
     - Use moral exemplars, narrative analogies, and lived experience as sources of ethical insight.
     - Provide a specific course of action consistent with one path a virtue ethicists could recommend.
+    - State the central virtue conflict, the practical-wisdom judgment, and the action directly. Do not repeat the scenario or instructions.
 
     Here are the corpus materials for reference:
     {context}
