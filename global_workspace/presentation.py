@@ -94,6 +94,27 @@ def _original_actions(data: dict[str, Any]) -> list[str]:
     return original or list(data.get("actions", []))
 
 
+def _action_text_by_id(data: dict[str, Any]) -> dict[str, str]:
+    """Resolve run-local canonical IDs without exposing presentation order as identity."""
+    return {
+        f"A{index}": action
+        for index, action in enumerate(data.get("actions") or [])
+        if str(action).strip()
+    }
+
+
+def _graph_node_label(data: dict[str, Any], node_id: str, fallback: str) -> str:
+    return next(
+        (
+            str(node.get("label", ""))
+            for graph in data.get("semantic_graphs") or []
+            for node in graph.get("nodes", [])
+            if node.get("id") == node_id and str(node.get("label", "")).strip()
+        ),
+        fallback,
+    )
+
+
 def _best_action_case(candidates: list[dict[str, Any]], action: str) -> str:
     options = []
     for candidate in candidates:
@@ -113,6 +134,11 @@ def _baseline_reason(
 ) -> str:
     baseline = (data.get("source_baselines") or {}).get(specialist, {})
     action_id = str(baseline.get("action_id", ""))
+    status = str(baseline.get(
+        "status", "DIRECT" if re.fullmatch(r"A\d+", action_id) else "UNAVAILABLE"
+    )).upper()
+    if status != "DIRECT":
+        return ""
     if not re.fullmatch(r"A\d+", action_id):
         return ""
     index = int(action_id[1:])
@@ -235,6 +261,19 @@ def render_public_judgment(result: Any) -> str:
         f"Epistemic confidence: {float(data.get('epistemic_confidence', 0)):.2f} "
         "(likelihood the judgment survives further factual inquiry and scrutiny)"
     )
+    termination = data.get("termination_assessment") or {}
+    if termination:
+        if termination.get("resource_censored"):
+            lines.append(
+                "Deliberation status: resource-censored—the recommendation records "
+                "the position when observation stopped, not natural convergence."
+            )
+        else:
+            lines.append(
+                "Deliberation status: "
+                + str(termination.get("termination_type", "unknown")).lower().replace("_", " ")
+                + "."
+            )
     visibility = next(
         (
             assessment for assessment in data.get("visibility_assessments", [])
@@ -255,6 +294,24 @@ def render_public_judgment(result: Any) -> str:
             f"- Epistemic-exclusion mechanism: {_sentence(visibility.get('mechanism', ''))}",
             f"- Confidence adjustment: {', '.join(penalties)}.",
         ])
+        visibility_responses = [
+            candidate
+            for cycle in cycles
+            if (cycle.get("received_broadcast") or cycle.get("broadcast") or {}).get("constraint")
+            == "VISIBILITY_AUDIT"
+            for candidate in cycle.get("candidates", [])
+            if candidate.get("visibility_response") not in {None, "", "NOT_TESTED"}
+        ]
+        if visibility_responses:
+            lines.append("- Specialist reconsideration:")
+            for candidate in visibility_responses:
+                lines.append(
+                    f"  - {candidate.get('specialist', 'specialist')}: "
+                    f"{candidate.get('visibility_response')} proposition; harm estimate "
+                    f"{str(candidate.get('visibility_harm_revision', 'UNCHANGED')).lower()}; "
+                    f"magnitude {str(candidate.get('visibility_magnitude_status', 'UNKNOWN')).lower()} — "
+                    f"{_sentence(candidate.get('visibility_justification', ''))}"
+                )
 
     policy = final.get("policy") or {}
     alternatives = [action for action in original_actions if action != recommendation]
@@ -266,6 +323,110 @@ def render_public_judgment(result: Any) -> str:
         for action, case in comparisons:
             description = _sentence(_clean_fragment(case)) or "No reliable consequence summary was produced."
             lines.append(f"- {action}: {description}")
+
+    # Framework-specific prose is rendered only from committed graph state.
+    # Raw delegate claims that failed or never reached the transaction boundary
+    # remain available in the trace but cannot be promoted into this summary.
+    semantic_state = data.get("authoritative_semantic_state") or {}
+    rawls_positions = semantic_state.get("rawlsian_positions") or []
+    util_consequences = semantic_state.get("utilitarian_consequences") or []
+    deon_assessments = semantic_state.get("deontological_assessments") or []
+    virtue_assessments = semantic_state.get("virtue_assessments") or []
+    if rawls_positions or util_consequences or deon_assessments or virtue_assessments:
+        action_text = _action_text_by_id(data)
+        selected_id = next(
+            (action_id for action_id, text in action_text.items() if text == recommendation),
+            "",
+        )
+        lines.extend(["", "Committed framework checks:"])
+    if rawls_positions:
+        ordered_positions = sorted(
+            rawls_positions,
+            key=lambda item: item.get("canonical_action_id") != selected_id,
+        )
+        for position in ordered_positions[:2]:
+            action_id = str(position.get("canonical_action_id", ""))
+            rival_id = str(position.get("compared_to_action_id", ""))
+            action = action_text.get(action_id, action_id or "the action")
+            rival = action_text.get(rival_id, rival_id or "the alternative")
+            effect = str(position.get("effect", "UNCERTAIN")).lower()
+            group = str(position.get("group_node_id", "the least advantaged"))
+            group_label = _graph_node_label(
+                data, group, "the least-advantaged group"
+            )
+            possessive_group = (
+                f"{group_label}'" if group_label.casefold().endswith("s")
+                else f"{group_label}'s"
+            )
+            dimension = str(position.get("dimension_node_id", "UNKNOWN")).split(":")[-1]
+            status_note = (
+                "grounded"
+                if position.get("epistemic_status") == "GROUNDED"
+                else "direction unresolved"
+            )
+            lines.append(
+                f"- Rawlsian — {action}: {effect} {possessive_group} "
+                f"{dimension.lower().replace('_', ' ')} relative to {rival} "
+                f"({status_note})."
+            )
+    if util_consequences:
+        ordered_consequences = sorted(
+            util_consequences,
+            key=lambda item: item.get("canonical_action_id") != selected_id,
+        )
+        for consequence in ordered_consequences[:2]:
+            action_id = str(consequence.get("canonical_action_id", ""))
+            action = action_text.get(action_id, action_id or "the action")
+            direction = str(consequence.get("direction", "UNKNOWN")).lower()
+            scope = _graph_node_label(
+                data,
+                str(consequence.get("scope_node_id", "")),
+                "the affected population",
+            )
+            status_note = str(
+                consequence.get("epistemic_status", "UNKNOWN")
+            ).lower().replace("_", " ")
+            lines.append(
+                f"- Utilitarian — {action}: {direction} to {scope}: "
+                f"{_clean_fragment(str(consequence.get('outcome', '')))} "
+                f"({status_note})."
+            )
+    if deon_assessments:
+        ordered_assessments = sorted(
+            deon_assessments,
+            key=lambda item: item.get("canonical_action_id") != selected_id,
+        )
+        for assessment in ordered_assessments[:2]:
+            action_id = str(assessment.get("canonical_action_id", ""))
+            action = action_text.get(action_id, action_id or "the action")
+            norm = _graph_node_label(
+                data, str(assessment.get("norm_node_id", "")), "the relevant norm"
+            )
+            party = _graph_node_label(
+                data, str(assessment.get("party_node_id", "")), "the protected party"
+            )
+            verdict = str(assessment.get("verdict", "UNCERTAIN")).lower()
+            relation = str(assessment.get("relation", "UNCERTAIN")).lower()
+            lines.append(
+                f"- Deontological — {action}: {verdict}; {relation} {norm} "
+                f"for {party}."
+            )
+    if virtue_assessments:
+        ordered_virtue = sorted(
+            virtue_assessments,
+            key=lambda item: item.get("canonical_action_id") != selected_id,
+        )
+        for assessment in ordered_virtue[:2]:
+            action_id = str(assessment.get("canonical_action_id", ""))
+            action = action_text.get(action_id, action_id or "the action")
+            verdict = str(assessment.get("verdict", "UNCERTAIN")).lower()
+            role = str(assessment.get("actor_role", "the actor"))
+            virtues = str(assessment.get("virtues", "unspecified virtues"))
+            vice = str(assessment.get("vice_risk", "an unspecified excess"))
+            lines.append(
+                f"- Virtue — {action}: {verdict} for {role}; expresses {virtues}; "
+                f"risks {vice}."
+            )
 
     if supporters:
         heading = "Reasons supporting the judgment:" if actionable else "Leading considerations:"
@@ -279,13 +440,29 @@ def render_public_judgment(result: Any) -> str:
             lines.append(f"- {supporter.get('specialist', 'supporting perspective')}: {reason}")
             if len(seen) == 3:
                 break
-        rules = [
-            _sentence(supporter.get("decision_rule", ""))
-            for supporter in supporters
-            if supporter.get("decision_rule")
-        ]
-        if rules:
-            lines.extend(["", f"Decision rule: {rules[0]}"])
+        winner = final.get("winner") or {}
+        governing_rule = (
+            _sentence(winner.get("decision_rule", ""))
+            if winner.get("schema_valid")
+            and _candidate_recommendation(winner) == recommendation
+            else ""
+        )
+        if not governing_rule:
+            governing_rule = next(
+                (
+                    _sentence(supporter.get("decision_rule", ""))
+                    for supporter in supporters
+                    if supporter.get("decision_rule")
+                ),
+                "",
+            )
+        if governing_rule:
+            governing_constraint = str(winner.get("constraint", "")).strip().upper()
+            label = (
+                f"Governing decision rule ({governing_constraint})"
+                if governing_constraint else "Governing decision rule"
+            )
+            lines.extend(["", f"{label}: {governing_rule}"])
 
     if dissent and dissent.get("rationale"):
         opposing_action = _candidate_recommendation(dissent)
@@ -311,23 +488,49 @@ def render_public_judgment(result: Any) -> str:
     residue = data.get("moral_residue") or []
     if residue:
         lines.append("Unresolved moral considerations: " + ", ".join(residue) + ".")
+    typed_residue = data.get("moral_residue_records") or []
+    if typed_residue:
+        lines.extend(["", "Preserved moral claims:"])
+        for record in typed_residue[:4]:
+            sources = ", ".join(record.get("source_specialists") or []) or "unspecified"
+            lines.append(
+                f"- {record.get('constraint', 'constraint')} remains relevant to "
+                f"{record.get('affected_action', 'the alternative')} "
+                f"(raised by {sources}); it is compatible with retaining the recommendation."
+            )
 
     assumptions: list[str] = []
     reversals: list[str] = []
     factual_reversals: list[str] = []
     normative_reversals: list[str] = []
     reversal_reviews: list[str] = []
-    # Counterfactual candidates may contribute conditional thresholds and
-    # review verdicts, but never reasons, votes, or policy support for the base
-    # scenario.
+    semantic_state = data.get("authoritative_semantic_state") or {}
+    has_authoritative_state = int(semantic_state.get("version") or 0) >= 1
+    if has_authoritative_state:
+        for boundary in semantic_state.get("factual_reversal_boundaries") or []:
+            predicate = _readable_condition(boundary.get("predicate", ""))
+            target = _clean_fragment(boundary.get("target_action", ""))
+            if predicate and target:
+                rendered = f"Switch to {target} if {predicate}"
+                if rendered not in factual_reversals:
+                    factual_reversals.append(rendered)
+
+    # Counterfactual candidates may contribute assumptions, normative thresholds,
+    # and review verdicts. Factual thresholds come only from the authoritative
+    # committed-graph projection when that projection is available.
     for candidate in [*all_candidates, *counterfactual_candidates]:
         assumption = _readable_condition(candidate.get("unsupported_assumption", ""))
         reversal = _readable_condition(candidate.get("reversal_condition", ""))
-        if assumption and candidate.get("assumption_status") in {"CONDITIONAL", "UNDERDETERMINED"} and assumption not in assumptions:
+        if assumption and candidate.get("assumption_status") in {
+            "CONDITIONAL", "UNDERDETERMINED", "NORMATIVELY_CONTESTED",
+        } and assumption not in assumptions:
             assumptions.append(assumption)
         if reversal and reversal not in reversals:
             reversals.append(reversal)
-        factual = _readable_condition(candidate.get("factual_reversal_threshold", ""))
+        factual = (
+            "" if has_authoritative_state
+            else _readable_condition(candidate.get("factual_reversal_threshold", ""))
+        )
         normative = _readable_condition(candidate.get("normative_reversal_threshold", ""))
         revised = _readable_condition(candidate.get("revised_reversal_condition", ""))
         if factual and factual not in factual_reversals:
@@ -338,7 +541,11 @@ def render_public_judgment(result: Any) -> str:
         justification = _readable_condition(
             candidate.get("reversal_review_justification", "")
         )
-        if response in {"ACCEPT", "REVISE", "REJECT"} and justification:
+        if (
+            candidate.get("reversal_review_valid", True)
+            and response in {"ACCEPT", "REVISE", "REJECT"}
+            and justification
+        ):
             verb = {"ACCEPT": "accepted", "REVISE": "revised", "REJECT": "rejected"}[response]
             reviewed = f"{candidate.get('specialist', 'specialist')} {verb} the challenge: {justification}"
             if revised:
@@ -361,6 +568,22 @@ def render_public_judgment(result: Any) -> str:
     if reversal_reviews:
         lines.extend(["", "Adversarial reversal review:"])
         lines.extend(f"- {_sentence(review)}" for review in reversal_reviews[:3])
+    contingency_reviews = [
+        candidate
+        for cycle in data.get("cycles", [])
+        if (cycle.get("received_broadcast") or cycle.get("broadcast") or {}).get("constraint")
+        == "CONTINGENCY_REVIEW"
+        for candidate in cycle.get("candidates", [])
+        if candidate.get("schema_valid") and candidate.get("contingency_choice")
+    ]
+    if contingency_reviews:
+        lines.extend(["", "If the admitted synthesis fails:"])
+        lines.extend(
+            f"- {candidate.get('specialist', 'specialist')} would choose "
+            f"{candidate['contingency_choice']}: "
+            f"{_sentence(candidate.get('contingency_justification', ''))}"
+            for candidate in contingency_reviews[:5]
+        )
     residual_reversals = [
         condition for condition in reversals
         if condition not in factual_reversals and condition not in normative_reversals
@@ -370,6 +593,18 @@ def render_public_judgment(result: Any) -> str:
         for condition in residual_reversals[:5]:
             clause = re.sub(r"^if\s+", "", condition, flags=re.I)
             lines.append(f"- {_sentence(clause)}")
+
+    further = data.get("further_deliberation_estimate") or {}
+    if further:
+        lines.extend([
+            "",
+            "Further deliberation (uncalibrated trace signals):",
+            "- Action-change signal: "
+            f"{float(further.get('action_change_signal', 0)):.2f}.",
+            "- New-material-constraint signal: "
+            f"{float(further.get('new_material_constraint_signal', 0)):.2f}.",
+            "- These are not probabilities or measures of moral correctness and did not control stopping.",
+        ])
 
     tensions = [
         _sentence(_clean_fragment(proposal.get("residual_tension", "")))

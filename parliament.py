@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from difflib import SequenceMatcher
 import json
 import subprocess
 import sys
@@ -35,6 +36,10 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--max-cycle-extensions", type=int, default=1)
     parser.add_argument("--no-cycle-extension", action="store_true")
     parser.add_argument("--no-visibility-audit", action="store_true")
+    parser.add_argument("--no-autonomy-audit", action="store_true")
+    parser.add_argument("--drop-vote-on-graph-rejection", action="store_true")
+    parser.add_argument("--no-ev-dominance-breaker", action="store_true")
+    parser.add_argument("--ev-dominance-ratio", type=float, default=5.0)
     return parser.parse_args(argv)
 
 
@@ -61,6 +66,19 @@ def prompt_backend() -> str:
     if answer not in {"local", "openai"}:
         raise ValueError("Backend must be 'local' or 'openai'")
     return answer
+
+
+def correct_mode_typo(value: str) -> str:
+    """Recognize close mode-name typos without consuming real questions."""
+    normalized = value.strip().lower()
+    for mode, prefix in (("workspace", "works"), ("legacy", "lega")):
+        if (
+            normalized.startswith(prefix)
+            and abs(len(normalized) - len(mode)) <= 2
+            and SequenceMatcher(None, normalized, mode).ratio() >= 0.80
+        ):
+            return mode
+    return ""
 
 
 def create_workspace_scenario(question: str, scenario_dir: Path = ROOT / "scenarios") -> Path:
@@ -98,6 +116,7 @@ def workspace_command(args: argparse.Namespace, scenario_path: Path) -> list[str
         "--openai-model", args.openai_model,
         "--extension-cycles", str(max(1, args.extension_cycles)),
         "--max-cycle-extensions", str(max(0, args.max_cycle_extensions)),
+        "--ev-dominance-ratio", str(max(1.0, args.ev_dominance_ratio)),
     ]
     if args.model:
         command.extend(["--model", str(args.model)])
@@ -112,6 +131,12 @@ def workspace_command(args: argparse.Namespace, scenario_path: Path) -> list[str
         command.append("--no-cycle-extension")
     if args.no_visibility_audit:
         command.append("--no-visibility-audit")
+    if args.no_autonomy_audit:
+        command.append("--no-autonomy-audit")
+    if args.drop_vote_on_graph_rejection:
+        command.append("--drop-vote-on-graph-rejection")
+    if args.no_ev_dominance_breaker:
+        command.append("--no-ev-dominance-breaker")
     return command
 
 
@@ -145,6 +170,20 @@ def main(argv: Sequence[str] | None = None) -> int:
         normalized = first_answer.lower()
         if normalized in {"", "workspace", "legacy"}:
             mode = normalized or "workspace"
+            question = prompt_question()
+        elif corrected_mode := correct_mode_typo(normalized):
+            mode = corrected_mode
+            print(
+                f"Interpreting '{first_answer}' as mode '{corrected_mode}'."
+            )
+            question = prompt_question()
+        elif normalized in {"local", "openai"}:
+            # A common interactive slip is answering the backend question one
+            # prompt early. Preserve that intent instead of treating a backend
+            # name as a seven-character ethical problem.
+            mode = "workspace"
+            args.backend = normalized
+            print(f"Using {normalized} as the workspace backend.")
             question = prompt_question()
         else:
             mode = "workspace"

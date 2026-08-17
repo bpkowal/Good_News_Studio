@@ -3,6 +3,7 @@ title: The Trolley Problem and Moral Absolutes
 author: Philippa Foot  
 source: The Problem of Abortion and the Doctrine of the Double Effect  
 status: approved  
+framework_role: adjacent_deontology
 tags: [double_effect, trolley_problem, killing_vs_letting_die, moral_absolutes, side_effects]  
 impact_score: 7.9  
 retracted: false  

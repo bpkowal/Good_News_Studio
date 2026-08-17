@@ -53,6 +53,9 @@ Our guiding ethos: *Neither side becomes subservient to the other. We are co-exp
 
 ## Recurrent Global Workspace (experimental)
 
+See the [architecture and extension guide](docs/ARCHITECTURE.md) for the runtime
+lifecycle, module boundaries, and behavioral invariants.
+
 The legacy `ethics_synthesis_agent.py` pipeline remains available unchanged. The
 `global-workspace/parliament-V2` branch also provides a bandwidth-limited,
 recurrent path whose specialists share one local GGUF model. Selection,
@@ -67,6 +70,12 @@ over recurrent workspace broadcasts without repeating the expensive RAG pass
 on every cycle. The trace records both the original testimony and any agent
 that failed. Deliberation refuses to proceed when fewer than two original
 agents succeed.
+
+Corpus ingestion is shared and provenance-preserving. Migrated retrievers label
+passages as `CORE` or `ADJACENT`: adjacent material may provide interpretive
+context, but may not determine a specialist's recommendation or override its
+framework identity. Material below the configured relevance floor is omitted
+and recorded as rejected retrieval evidence.
 
 The unified interactive entry point is:
 
@@ -148,9 +157,10 @@ call and then frozen for recurrence. A compact scenario fact table currently
 captures named survival probabilities; delegate reasons that assign the higher
 survival chance to the wrong recipient are rejected.
 
-This path does not call the OpenAI API. It does require the local model at the
-default path (`../mistral-7b-instruct-v0.2.Q4_K_M.gguf`) or an explicit
-`--model /path/to/model.gguf` argument.
+Workspace mode supports either a local llama.cpp model or an OpenAI backend. The
+interactive launcher asks which backend to use; non-interactive runs can select one
+with `--backend local` or `--backend openai`. Local mode uses the model at the default
+path (`../mistral-7b-instruct-v0.2.Q4_K_M.gguf`) unless `--model` is supplied.
 
 ## Getting Started
 

@@ -3,6 +3,7 @@ title: Moral Law is Rooted in Reason
 author: Thomas Aquinas  
 source: Summa Contra Gentiles  
 status: approved  
+framework_role: adjacent_deontology
 tags: [reason, natural_law, eternal_law, human_nature, obligation]  
 impact_score: 8.7  
 retracted: false  

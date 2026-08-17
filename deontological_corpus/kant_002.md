@@ -3,6 +3,7 @@ title: "Duty and the Temptation of Immediate Gratification"
 author: "Immanuel Kant"
 source: "Groundwork of the Metaphysics of Morals"
 status: approved
+framework_role: kantian_core
 tags: [deontology, impulsivity, time_preference, duty, moral_law]
 impact_score: 8.0
 retracted: false

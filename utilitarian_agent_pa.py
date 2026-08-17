@@ -52,7 +52,7 @@ def retrieve_utilitarian_quotes(query: str, scenario_id: str, limit_per_quote: i
 
     global vectorstore, embedder
     embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    vectorstore = load_utilitarian_corpus()
+    vectorstore = load_utilitarian_corpus(embedder=embedder)
 
     tag_weights = load_scenario_weights(scenario_id)
     print(f"\U0001f527 Scenario Tag Weights: {tag_weights}")

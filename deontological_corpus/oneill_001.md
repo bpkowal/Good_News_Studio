@@ -3,6 +3,7 @@ title: Duties and Respect for Persons
 author: Onora O’Neill  
 source: "Constructing Authorities: Reason, Politics and Interpretation in Kant's Philosophy" 
 status: approved  
+framework_role: kantian_core
 tags: [moral_duty, human_dignity, respect_for_persons, kantian_ethics, obligation, ends_in_themselves]  
 impact_score: 8.2  
 retracted: false  

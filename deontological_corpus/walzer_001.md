@@ -3,6 +3,7 @@ title: "Noncombatant Immunity in War"
 author: "Michael Walzer"
 source: "Just and Unjust Wars"
 status: approved
+framework_role: adjacent_deontology
 tags: [jus_in_bello, noncombatant_immunity, war_ethics, deontology]
 impact_score: 9.0
 retracted: false

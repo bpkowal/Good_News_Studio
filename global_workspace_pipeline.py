@@ -7,15 +7,19 @@ from datetime import datetime
 from pathlib import Path
 
 from global_workspace.engine import WorkspaceConfig, WorkspaceEngine
+from global_workspace.autonomy_audit import assess_autonomy_and_coercion
+from global_workspace.evidence_calibration import calibrate_speculative_claim
+from global_workspace.contingency_feasibility import verify_contingency_feasibility
 from global_workspace.legacy_bridge import AGENT_MODULES, consult_original_agents
+from global_workspace.landscape_validation import verify_landscape_alignment
 from global_workspace.local_specialists import (
     CompactLocalSpecialist,
     FRAMEWORK_ROLES,
     analyze_action_plan,
-    assess_visibility,
+    extract_labeled_action_legend,
     extract_scenario_facts,
     generate_failure_condition,
-    infer_testimony_baseline,
+    infer_testimony_stance,
     propose_actions,
     propose_problem_reformulation,
     propose_synthesis,
@@ -24,6 +28,12 @@ from global_workspace.memory import EpisodicMemory, summarize_specialist_contrib
 from global_workspace.models import WorkspaceBroadcast
 from global_workspace.openai_backend import OpenAIWorkspaceLLM
 from global_workspace.presentation import render_public_judgment
+from global_workspace.scenario_semantics import (
+    canonicalize_action_order,
+    canonicalize_deliberation_scenario,
+)
+from global_workspace.structured_io import reset_model_call_budget, start_model_call_budget
+from global_workspace.visibility import assess_visibility
 from dotenv import load_dotenv
 
 
@@ -32,7 +42,17 @@ DEFAULT_MODEL = (ROOT / "../mistral-7b-instruct-v0.2.Q4_K_M.gguf").resolve()
 
 
 def render_summary(result) -> str:
-    final = next(cycle for cycle in reversed(result.cycles) if not cycle.is_hypothetical)
+    final = next(
+        (cycle for cycle in reversed(result.cycles) if not cycle.is_hypothetical), None
+    )
+    if final is None:
+        return "\n".join([
+            "Ethical Global Workspace Judgment",
+            f"Judgment status: {result.judgment_status}",
+            "Decision: INCONCLUSIVE",
+            f"Halting condition: {result.halted_by}",
+            f"Compressed rule: {result.compressed_rule}",
+        ]) + "\n"
     dissent = final.dissent
     valid_count = sum(candidate.schema_valid for candidate in final.candidates)
     lines = [
@@ -47,8 +67,33 @@ def render_summary(result) -> str:
         f"Dominant constraint: {(final.received_broadcast or final.broadcast).constraint}",
         f"Original agents consulted: {', '.join(result.source_testimonies) or 'none'}",
     ]
+    if result.termination_assessment is not None:
+        termination = result.termination_assessment
+        lines.append(
+            f"Termination semantics: {termination.termination_type}; "
+            f"resource-censored={str(termination.resource_censored).lower()}; "
+            f"convergence evidence={termination.convergence_evidence:.2f}"
+        )
+    if result.further_deliberation_estimate is not None:
+        estimate = result.further_deliberation_estimate
+        lines.append(
+            "Further-deliberation estimate (observational only): "
+            f"action-change signal={estimate.action_change_signal:.2f}; "
+            f"new-constraint signal={estimate.new_material_constraint_signal:.2f}"
+        )
     if result.source_errors:
         lines.append(f"Unavailable original agents: {', '.join(result.source_errors)}")
+    activated_ev = next(
+        (item for item in reversed(result.ev_dominance_assessments) if item.get("activated")),
+        None,
+    )
+    if activated_ev:
+        lines.append(
+            "EV dominance circuit breaker: "
+            f"{activated_ev['ratio']:.2f}×; majority="
+            f"{activated_ev['majority_count']}/{activated_ev['valid_delegate_count']}; "
+            f"unit={activated_ev['unit']}; direction={activated_ev['direction']}"
+        )
     for visibility in result.visibility_assessments:
         if visibility.valid and visibility.activated:
             penalties = ", ".join(
@@ -60,6 +105,35 @@ def render_summary(result) -> str:
                 f"Non-voting visibility audit: {visibility.mechanism}; "
                 f"confidence adjustment={penalties}"
             )
+            responses = [
+                candidate
+                for cycle in result.cycles
+                if (cycle.received_broadcast or cycle.broadcast).constraint == "VISIBILITY_AUDIT"
+                for candidate in cycle.candidates
+                if candidate.visibility_response != "NOT_TESTED"
+            ]
+            if responses:
+                lines.append(
+                    "Visibility deliberation: "
+                    + "; ".join(
+                        f"{candidate.specialist}={candidate.visibility_response}/"
+                        f"harm {candidate.visibility_harm_revision.lower()}/"
+                        f"magnitude {candidate.visibility_magnitude_status.lower()} "
+                        f"({candidate.visibility_justification})"
+                        for candidate in responses
+                    )
+                )
+    for autonomy in result.autonomy_assessments:
+        if autonomy.valid and autonomy.activated:
+            tagged = ", ".join(
+                f"{action}={tag}"
+                for action, tag in autonomy.action_tags.items() if tag != "NONE"
+            )
+            lines.append(f"Non-voting autonomy audit: {tagged}")
+            if autonomy.voluntary_alternative.casefold() != "none":
+                lines.append(
+                    "Voluntary-exhaustion probe: " + autonomy.voluntary_alternative
+                )
     if dissent:
         lines.append(
             f"Preserved dissent: {dissent.specialist} raised {dissent.constraint}"
@@ -67,6 +141,15 @@ def render_summary(result) -> str:
         )
     if result.moral_residue:
         lines.append(f"Moral residue: {', '.join(result.moral_residue)}")
+    if result.moral_residue_records:
+        lines.append(
+            "Typed residue: "
+            + "; ".join(
+                f"{record.constraint} affecting {record.affected_action} "
+                f"[{', '.join(record.source_specialists)}]"
+                for record in result.moral_residue_records
+            )
+        )
     if result.reopen_conditions:
         lines.append("Explicit reversal conditions: " + "; ".join(result.reopen_conditions))
     speculative = [
@@ -80,7 +163,9 @@ def render_summary(result) -> str:
         lines.append(
             "Damped speculative claims: "
             + "; ".join(
-                f"{candidate.specialist}: {candidate.speculative_claim}"
+                f"{candidate.specialist}: {candidate.speculative_claim} "
+                f"[{candidate.evidence_calibration_tier}, "
+                f"retention={candidate.evidence_direction_retention:.2f}]"
                 for candidate in speculative
             )
         )
@@ -111,11 +196,52 @@ def render_summary(result) -> str:
     for proposal in result.synthesis_proposals:
         status = "admitted" if proposal.accepted else f"rejected ({proposal.rejection_reason})"
         lines.append(f"Synthesis candidate: {proposal.action or 'none'} — {status}")
+    for assessment in result.synthesis_viability_assessments:
+        status = "viable for contingency analysis" if assessment.viable else "not branch-worthy"
+        lines.append(
+            f"Post-review synthesis viability: {assessment.synthesis_action} — {status}; "
+            f"recommended={assessment.recommendation_count}/{assessment.valid_delegates}; "
+            f"admissible={assessment.admissible_count}/{assessment.valid_delegates}; "
+            f"mean score={assessment.mean_score:.2f}"
+        )
     for condition in result.failure_conditions:
         if condition.valid:
             lines.append(f"Synthesis dependency: {condition.necessary_condition}")
             lines.append(f"Failure condition: {condition.failure_condition}")
+            lines.append(
+                "Fallback availability after failure: "
+                + ", ".join(
+                    f"{action_id}={status}"
+                    for action_id, status in condition.fallback_availability.items()
+                )
+            )
             lines.append(f"Contingency question: {condition.contingency_question}")
+    for assessment in result.contingency_feasibility_assessments:
+        status = "approved" if assessment.approved else "blocked"
+        lines.append(
+            f"Independent contingency feasibility: {status}; "
+            + ", ".join(
+                f"{action_id}={value}"
+                for action_id, value in assessment.fallback_statuses.items()
+            )
+            + (f"; {assessment.error}" if assessment.error else "")
+        )
+    contingency_reviews = [
+        (cycle, candidate)
+        for cycle in result.cycles
+        if (cycle.received_broadcast or cycle.broadcast).constraint == "CONTINGENCY_REVIEW"
+        for candidate in cycle.candidates
+        if candidate.schema_valid and candidate.contingency_choice
+    ]
+    if contingency_reviews:
+        lines.append(
+            "Contingency fallback responses: "
+            + "; ".join(
+                f"{candidate.specialist} chose {candidate.contingency_choice} "
+                f"({candidate.contingency_justification})"
+                for _, candidate in contingency_reviews
+            )
+        )
     for assessment in result.planning_assessments:
         if assessment.valid:
             visibility = "broadcast" if assessment.broadcast_worthy else "private"
@@ -219,6 +345,25 @@ def render_summary(result) -> str:
                 f"switch={candidate.boundary_switch_condition}"
             )
     lines.append(f"Compressed rule: {result.compressed_rule}")
+    failed_invariants = [record for record in result.semantic_invariants if not record.valid]
+    if failed_invariants:
+        lines.append(
+            "Semantic invariant holds: "
+            + "; ".join(
+                f"{record.boundary} ({' | '.join(record.errors)})"
+                for record in failed_invariants
+            )
+        )
+    if result.trace_health:
+        lines.append(
+            "Trace health: "
+            + "; ".join(
+                f"{finding.severity}/{finding.code}"
+                + (f"@cycle{finding.cycle}" if finding.cycle else "")
+                + f" ({finding.detail})"
+                for finding in result.trace_health
+            )
+        )
     return "\n".join(lines) + "\n"
 
 
@@ -240,6 +385,14 @@ def parse_args() -> argparse.Namespace:
         help="Use ungrounded compact specialists (diagnostic/prototype mode only)",
     )
     parser.add_argument("--agent-timeout", type=float, default=600.0)
+    parser.add_argument("--call-reserve-seconds", type=float, default=20.0)
+    parser.add_argument("--max-auxiliary-calls-per-cycle", type=int, default=5)
+    parser.add_argument(
+        "--drop-vote-on-graph-rejection", action="store_true",
+        help="Exclude a delegate vote when its decision-critical graph update is rejected",
+    )
+    parser.add_argument("--no-ev-dominance-breaker", action="store_true")
+    parser.add_argument("--ev-dominance-ratio", type=float, default=5.0)
     parser.add_argument("--n-ctx", type=int, default=768)
     parser.add_argument("--n-gpu-layers", type=int, default=8)
     parser.add_argument("--n-batch", type=int, default=32)
@@ -250,6 +403,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--no-consensus-audit", action="store_true", help="Disable suspicious-consensus access gate")
     parser.add_argument("--no-reformulation", action="store_true", help="Disable hypothetical switch-point reformulation")
     parser.add_argument("--no-visibility-audit", action="store_true", help="Disable the non-voting epistemic-exclusion audit")
+    parser.add_argument("--no-autonomy-audit", action="store_true", help="Disable the non-voting autonomy and coercion audit")
     parser.add_argument("--extension-cycles", type=int, default=2)
     parser.add_argument("--max-cycle-extensions", type=int, default=1)
     parser.add_argument("--no-cycle-extension", action="store_true")
@@ -313,26 +467,6 @@ def main() -> int:
     if args.backend == "local" and not args.model.exists():
         raise FileNotFoundError(f"Local GGUF model not found: {args.model}")
 
-    if args.skip_original_agents:
-        testimonies: dict[str, str] = {}
-        source_errors = {name: "skipped by request" for name in AGENT_MODULES}
-    else:
-        consultation = consult_original_agents(
-            scenario_path,
-            timeout_seconds=max(1.0, args.agent_timeout),
-            backend=args.backend,
-            openai_model=args.openai_model,
-        )
-        testimonies = consultation.testimonies
-        source_errors = consultation.errors
-        for name, error in source_errors.items():
-            print(f"Original {name} agent unavailable: {error}")
-        if len(testimonies) < 2:
-            raise RuntimeError(
-                "Fewer than two original ethical agents produced testimony; "
-                "cannot run meaningful recurrent orchestration."
-            )
-
     if args.backend == "openai":
         print(f"Using OpenAI workspace model: {args.openai_model}", flush=True)
         llm = OpenAIWorkspaceLLM(args.openai_model, timeout=max(1.0, args.agent_timeout))
@@ -352,7 +486,15 @@ def main() -> int:
             n_batch=max(8, args.n_batch),
             verbose=False,
         )
+    # Cover planning, baseline extraction, audits, and deliberation with one wall-clock
+    # allowance. A single slow stage must not silently grant later stages a fresh budget.
+    budget_token = start_model_call_budget(
+        max(1.0, args.time_budget),
+        reserve_seconds=max(0.0, args.call_reserve_seconds),
+        max_auxiliary_calls_per_cycle=max(0, args.max_auxiliary_calls_per_cycle),
+    )
     print("Planning a shared action set...", flush=True)
+    source_action_legend = extract_labeled_action_legend(scenario)
     try:
         actions = args.actions or propose_actions(llm, scenario)
     except ValueError as exc:
@@ -368,6 +510,55 @@ def main() -> int:
         actions = confirmed_actions
         print("Confirmed actions:", ", ".join(actions), flush=True)
 
+    # Preserve the author's/user's order solely as presentation provenance.
+    # Delegates receive a stable hash-ordered internal mapping so swapping the
+    # displayed alternatives cannot by itself swap the meanings of A0 and A1.
+    presentation_actions = list(actions)
+    if not source_action_legend:
+        source_action_legend = {
+            f"A{index}": action for index, action in enumerate(presentation_actions)
+        }
+    presentation_action_legend = dict(source_action_legend)
+    actions = canonicalize_action_order(presentation_actions)
+    scenario = canonicalize_deliberation_scenario(
+        scenario, presentation_action_legend, actions,
+    )
+    # Original agents now receive the canonical mapping, so any A0/A1 labels in
+    # their testimony refer to this legend—not to the user's display order.
+    source_action_legend = {
+        f"A{index}": action for index, action in enumerate(actions)
+    }
+    print(
+        "Canonical deliberation IDs: "
+        + "; ".join(f"A{index}={action}" for index, action in enumerate(actions)),
+        flush=True,
+    )
+
+    # The original RAG agents are part of the same experimental treatment. Give
+    # them the canonical mapping too; otherwise order bias can enter through the
+    # frozen testimony before workspace safeguards ever run.
+    if args.skip_original_agents:
+        testimonies: dict[str, str] = {}
+        source_errors = {name: "skipped by request" for name in AGENT_MODULES}
+    else:
+        consultation = consult_original_agents(
+            scenario_path,
+            timeout_seconds=max(1.0, args.agent_timeout),
+            backend=args.backend,
+            openai_model=args.openai_model,
+            canonical_actions=tuple(actions),
+            canonical_scenario=scenario,
+        )
+        testimonies = consultation.testimonies
+        source_errors = consultation.errors
+        for name, error in source_errors.items():
+            print(f"Original {name} agent unavailable: {error}")
+        if len(testimonies) < 2:
+            raise RuntimeError(
+                "Fewer than two original ethical agents produced testimony; "
+                "cannot run meaningful recurrent orchestration."
+            )
+
     scenario_facts = extract_scenario_facts(scenario)
     if scenario_facts:
         print("Scenario facts:", json.dumps(scenario_facts, sort_keys=True), flush=True)
@@ -381,27 +572,70 @@ def main() -> int:
             flush=True,
         )
 
-    baselines: dict[str, dict[str, str]] = {}
+    baselines: dict[str, dict[str, object]] = {}
     for name in (list(testimonies) if testimonies else list(FRAMEWORK_ROLES)):
         if not testimonies.get(name):
-            baselines[name] = {"action_id": "NONE", "reason": "no original testimony"}
+            baselines[name] = {
+                "status": "UNAVAILABLE",
+                "action_id": "NONE",
+                "provisional_action_id": "NONE",
+                "condition": "",
+                "reason": "no original testimony",
+                "rejected_action_ids": [],
+            }
             continue
         print(f"Freezing {name} testimony baseline...", flush=True)
-        baseline_id, baseline_reason = infer_testimony_baseline(
-            llm, name, testimonies[name], actions
+        stance = infer_testimony_stance(
+            llm,
+            name,
+            testimonies[name],
+            actions,
+            source_action_legend=source_action_legend,
         )
-        baselines[name] = {"action_id": baseline_id, "reason": baseline_reason}
-        print(f"  {name} baseline: {baseline_id} ({baseline_reason})", flush=True)
+        baselines[name] = stance.as_dict()
+        stance_target = stance.action_id if stance.status == "DIRECT" else stance.provisional_action_id
+        print(
+            f"  {name} baseline: {stance.status} {stance_target} "
+            f"({stance.reason or stance.condition})",
+            flush=True,
+        )
     specialist_names = list(testimonies) if testimonies else list(FRAMEWORK_ROLES)
     specialists = [
         CompactLocalSpecialist(
             name,
             llm,
             testimony=testimonies.get(name, ""),
-            baseline_action_id=baselines.get(name, {}).get("action_id", "NONE"),
+            baseline_action_id=str(baselines.get(name, {}).get("action_id", "NONE")),
+            baseline_status=str(baselines.get(name, {}).get("status", "UNAVAILABLE")),
+            baseline_provisional_action_id=str(
+                baselines.get(name, {}).get("provisional_action_id", "NONE")
+            ),
+            baseline_condition=str(baselines.get(name, {}).get("condition", "")),
+            baseline_framework_commitments=dict(
+                baselines.get(name, {}).get("framework_commitments", {}) or {}
+            ),
+            baseline_numerical_role=str(
+                baselines.get(name, {}).get("numerical_role", "UNASSESSED")
+            ),
+            source_action_legend=source_action_legend,
             scenario_facts=scenario_facts,
             max_tokens=max(48, args.delegate_tokens),
             memory_profile=specialist_profiles.get(name, {}),
+            evidence_calibrator=calibrate_speculative_claim,
+            landscape_verifier=verify_landscape_alignment,
+            assumption_status=(
+                str(baselines.get(name, {}).get("status"))
+                if baselines.get(name, {}).get("status") in {
+                    "CONDITIONAL", "UNDERDETERMINED", "NORMATIVELY_CONTESTED",
+                }
+                else "NOT_AUDITED"
+            ),
+            unsupported_assumption=str(
+                baselines.get(name, {}).get("condition", "")
+            ),
+            reversal_condition=str(
+                baselines.get(name, {}).get("condition", "")
+            ),
         )
         for name in specialist_names
     ]
@@ -413,9 +647,25 @@ def main() -> int:
             enable_synthesis=not args.no_synthesis,
             enable_consensus_audit=not args.no_consensus_audit,
             max_cycle_extensions=max(0, args.max_cycle_extensions),
+            graph_rejection_policy=(
+                "DROP_VOTE" if args.drop_vote_on_graph_rejection else "RETAIN_VOTE"
+            ),
+            enable_ev_dominance_breaker=not args.no_ev_dominance_breaker,
+            ev_dominance_ratio=max(1.0, args.ev_dominance_ratio),
         ),
     )
-    result = engine.run(
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_path = args.output_dir / f"workspace_{scenario_path.stem}_{stamp}.json"
+    checkpoint_path = args.output_dir / f"checkpoint_{scenario_path.stem}_{stamp}.json"
+
+    def save_checkpoint(current_result) -> None:
+        checkpoint_path.write_text(
+            json.dumps(current_result.to_dict(), indent=2), encoding="utf-8"
+        )
+
+    try:
+        result = engine.run(
         scenario,
         actions,
         WorkspaceBroadcast(
@@ -453,6 +703,14 @@ def main() -> int:
                 max_tokens=max(96, args.delegate_tokens),
             )
         ) if not args.no_cycle_extension else None,
+        verify_contingency_feasibility=(
+            lambda condition: verify_contingency_feasibility(
+                llm,
+                scenario,
+                condition,
+                max_tokens=min(96, max(72, args.delegate_tokens)),
+            )
+        ) if not args.no_cycle_extension else None,
         analyze_plan=(
             lambda current_scenario, current_actions, selected_action, current_broadcast,
             candidates, activation_reason: analyze_action_plan(
@@ -467,6 +725,8 @@ def main() -> int:
             )
         ) if not args.no_planning else None,
         scenario_facts=scenario_facts,
+        source_action_legend=source_action_legend,
+        presentation_actions=presentation_actions,
         source_testimonies=testimonies,
         reformulate_problem=(
             lambda current_scenario, current_actions, candidates: propose_problem_reformulation(
@@ -485,15 +745,24 @@ def main() -> int:
                 max_tokens=max(160, args.delegate_tokens),
             )
         ) if not args.no_visibility_audit else None,
-    )
+        assess_autonomy=(
+            lambda current_scenario, current_actions: assess_autonomy_and_coercion(
+                llm,
+                current_scenario,
+                current_actions,
+                max_tokens=max(180, args.delegate_tokens),
+            )
+        ) if not args.no_autonomy_audit else None,
+        checkpoint=save_checkpoint,
+        )
+    finally:
+        reset_model_call_budget(budget_token)
     result.source_testimonies = testimonies
     result.source_errors = source_errors
+    result.source_action_legend = source_action_legend
     result.source_baselines = baselines
     result.scenario_facts = scenario_facts
 
-    args.output_dir.mkdir(parents=True, exist_ok=True)
-    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_path = args.output_dir / f"workspace_{scenario_path.stem}_{stamp}.json"
     summary_path = output_path.with_suffix(".txt")
     answer_path = output_path.with_name(output_path.stem + "_answer.txt")
     result_data = result.to_dict()

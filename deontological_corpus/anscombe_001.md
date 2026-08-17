@@ -3,6 +3,7 @@ title: The Limits of Consequentialism
 author: G.E.M. Anscombe  
 source: Modern Moral Philosophy  
 status: approved  
+framework_role: adjacent_deontology
 tags: [consequentialism, moral_limits, prohibition, intention, integrity]  
 impact_score: 8.0  
 retracted: false  

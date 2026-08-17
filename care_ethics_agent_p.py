@@ -15,6 +15,7 @@ LAST_QUERY_PATH = Path("agent_outputs/.last_query_care.txt")
 LAST_RESPONSE_PATH = Path("agent_outputs/.last_response_care.txt")
 
 MODEL_PATH = "../mistral-7b-instruct-v0.2.Q4_K_M.gguf"
+CARE_PROMPT_VERSION = "care-relational-comparison-v2"
 
 class Document:
     def __init__(self, content, metadata):
@@ -42,7 +43,7 @@ def retrieve_care_ethics_quotes(query: str, scenario_id: str, limit_per_quote: i
     from load_care_ethics_corpus import load_care_ethics_corpus
     embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     global vectorstore
-    vectorstore = load_care_ethics_corpus()
+    vectorstore = load_care_ethics_corpus(embedder=embedder)
 
     tag_weights = load_scenario_weights(scenario_id)
     print(f"🔧 Scenario Tag Weights: {tag_weights}")
@@ -121,9 +122,14 @@ def respond_to_query(query: str, scenario_id: str, scenario_path=None, temperatu
     if not query or not scenario_id:
         raise ValueError("Both 'query' and 'scenario_id' must be provided.")
 
-    if os.getenv("ETHICS_LLM_BACKEND", "local") == "local" and LAST_QUERY_PATH.exists() and LAST_RESPONSE_PATH.exists():
+    cache_key = f"{CARE_PROMPT_VERSION}\n{query.strip()}"
+    reuse_source = (
+        os.getenv("ETHICS_LLM_BACKEND", "local") == "local"
+        or os.getenv("ETHICS_REUSE_SOURCE_TESTIMONY", "1") != "0"
+    )
+    if reuse_source and LAST_QUERY_PATH.exists() and LAST_RESPONSE_PATH.exists():
         last_query = LAST_QUERY_PATH.read_text().strip()
-        if query.strip() == last_query:
+        if cache_key == last_query:
             print("⚡ Skipping LLM call — using cached care ethics response.")
             return LAST_RESPONSE_PATH.read_text().strip()
 
@@ -146,6 +152,18 @@ def respond_to_query(query: str, scenario_id: str, scenario_path=None, temperatu
 - Prioritize relational closeness and interdependence over abstract impartiality.
 - Emphasize empathy, responsiveness, and moral attention to the specific people involved.
 - Avoid utilitarian calculus or rigid principles unless reframed in terms of care.
+- Compare every listed action through the same relational dimensions: direct
+  entrustment, dependency, trust, agent-created vulnerability, responsibility,
+  and responsiveness. Do not attach one care concept to whichever action first
+  feels salient without testing how it applies to the rival action.
+- Explicitly state the role of numerical magnitude as exactly one of DECISIVE,
+  SECONDARY, or IRRELEVANT. Counts may inform competent and responsive care, but
+  they are DECISIVE only when you explain why the competing relational claims are
+  otherwise comparable. Never use "more lives" as a complete care-ethical reason.
+- If independent care commitments favor different actions and care ethics does
+  not clearly rank those commitments, say "Care-Ethics Status:
+  NORMATIVELY_CONTESTED". You may give a provisional recommendation, but do not
+  disguise the unresolved relational priority as a settled framework commitment.
 - Use the following corpus excerpts where helpful.
 
 Corpus Materials:
@@ -187,7 +205,7 @@ Care Ethics Answer:
         f.write("\nCare Ethics Response:\n")
         f.write(final_response + "\n")
 
-    LAST_QUERY_PATH.write_text(query.strip())
+    LAST_QUERY_PATH.write_text(cache_key)
     LAST_RESPONSE_PATH.write_text(final_response.strip())
 
     print(f"💾 Saved output to: {output_path.name}")

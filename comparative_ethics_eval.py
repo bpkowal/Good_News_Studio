@@ -20,6 +20,7 @@ from dotenv import load_dotenv
 
 from global_workspace.openai_backend import OpenAIWorkspaceLLM
 from global_workspace.presentation import render_public_judgment
+from solo_ethics import build_prompt as build_plain_solo_prompt
 
 
 ROOT = Path(__file__).resolve().parent
@@ -148,15 +149,32 @@ def run_parliament(case: dict[str, Any], case_dir: Path, args: argparse.Namespac
         "--actions", *case["actions"], "--accept-actions",
         "--max-cycles", str(args.max_cycles),
         "--time-budget", str(args.time_budget),
-        "--agent-timeout", str(args.agent_timeout),
+        "--agent-timeout", str(min(args.agent_timeout, args.workspace_call_timeout)),
         "--delegate-tokens", str(args.delegate_tokens),
         "--output-dir", str(output_dir), "--no-cycle-extension",
     ]
     env = os.environ.copy()
     env["ETHICS_USAGE_LOG"] = str(usage_path)
-    completed = subprocess.run(command, cwd=ROOT, env=env, capture_output=True, text=True, check=False)
-    (case_dir / "parliament_stdout.txt").write_text(completed.stdout, encoding="utf-8")
-    (case_dir / "parliament_stderr.txt").write_text(completed.stderr, encoding="utf-8")
+    stdout_path = case_dir / "parliament_stdout.txt"
+    stderr_path = case_dir / "parliament_stderr.txt"
+    process_timeout = args.parliament_process_timeout or (args.time_budget + 60.0)
+    try:
+        with stdout_path.open("w", encoding="utf-8") as stdout_file, stderr_path.open(
+            "w", encoding="utf-8"
+        ) as stderr_file:
+            completed = subprocess.run(
+                command, cwd=ROOT, env=env, stdout=stdout_file, stderr=stderr_file,
+                text=True, check=False, timeout=max(1.0, process_timeout),
+            )
+    except subprocess.TimeoutExpired as exc:
+        checkpoints = sorted(
+            output_dir.glob("checkpoint_*.json"), key=lambda path: path.stat().st_mtime
+        )
+        detail = f"; checkpoint preserved at {checkpoints[-1]}" if checkpoints else ""
+        raise RuntimeError(
+            f"Parliament exceeded its {process_timeout:.0f}s process limit for "
+            f"{case['id']}{detail}"
+        ) from exc
     if completed.returncode:
         raise RuntimeError(f"Parliament failed for {case['id']} (exit {completed.returncode}); see {case_dir}")
     traces = sorted(output_dir.glob("workspace_*.json"), key=lambda path: path.stat().st_mtime)
@@ -167,45 +185,8 @@ def run_parliament(case: dict[str, Any], case_dir: Path, args: argparse.Namespac
     return result, usage_totals(usage_path)
 
 
-SOLO_SCHEMA: dict[str, Any] = {
-    "type": "object",
-    "properties": {
-        "judgment_status": {"type": "string", "enum": ["ACTION_RECOMMENDATION", "CONDITIONAL", "UNDERDETERMINED"]},
-        "selected_action": {"type": "string"},
-        "preference_strength": {"type": "number", "minimum": 0, "maximum": 1},
-        "epistemic_confidence": {"type": "number", "minimum": 0, "maximum": 1},
-        "strongest_case_for_each_action": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 2},
-        "action_consequence_map": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 2},
-        "catastrophic_risk_analysis": {"type": "string"},
-        "decisive_assumptions": {"type": "array", "items": {"type": "string"}},
-        "reversal_conditions": {"type": "array", "items": {"type": "string"}},
-        "rationale": {"type": "string"}
-    },
-    "required": ["judgment_status", "selected_action", "preference_strength", "epistemic_confidence", "strongest_case_for_each_action", "action_consequence_map", "catastrophic_risk_analysis", "decisive_assumptions", "reversal_conditions", "rationale"],
-    "additionalProperties": False
-}
-
-
-def solo_schema(case: dict[str, Any]) -> dict[str, Any]:
-    schema = json.loads(json.dumps(SOLO_SCHEMA))
-    schema["properties"]["selected_action"] = {
-        "type": "string", "enum": [*case["actions"], "NONE"]
-    }
-    return schema
-
-
 def solo_prompt(case: dict[str, Any]) -> str:
-    return f"""You are the sole ethical decision-maker. Analyze the stated case, not a modified case.
-Search seriously for the strongest ethical case for BOTH actions before deciding. Preserve uncertainty when facts underdetermine a value tradeoff, but do not abstain merely because reasonable disagreement exists. Track action-to-consequence mappings exactly. Analyze explicitly stated low-probability catastrophic risks by probability and magnitude without inventing probabilities. Do not invent compromises or hidden rescue options.
-
-QUESTION: {case['question']}
-ACTION 1: {case['actions'][0]}
-ACTION 2: {case['actions'][1]}
-EXPLICIT FACTS: {json.dumps(case['explicit_facts'])}
-
-Report preference_strength as how decisively you rank the selected action over the alternative. Report epistemic_confidence separately as how likely that ranking is to survive further factual inquiry and critical scrutiny. A decisive preference may have low epistemic confidence. Do not use either number as a substitute for the other.
-
-selected_action must exactly equal the complete text of ACTION 1, the complete text of ACTION 2, or NONE. Give the actual judgment, not advice about how another panel should deliberate."""
+    return build_plain_solo_prompt(case["question"])
 
 
 def run_solo(case: dict[str, Any], case_dir: Path, args: argparse.Namespace, parliament_usage: dict[str, int]) -> tuple[dict[str, Any], dict[str, int], int]:
@@ -220,22 +201,37 @@ def run_solo(case: dict[str, Any], case_dir: Path, args: argparse.Namespace, par
         old = read_json(budget_path)
         if (
             old.get("max_completion_tokens") == budget
-            and old.get("response_protocol") == "separate_preference_epistemic_v3"
+            and old.get("response_protocol") == "plain_text_single_call_v1"
+            and old.get("reasoning_effort") == args.solo_reasoning_effort
         ):
             return read_json(result_path), usage_totals(usage_path), budget
     if usage_path.exists():
         usage_path.unlink()
     llm = OpenAIWorkspaceLLM(args.model, timeout=args.agent_timeout)
     with usage_log(usage_path):
-        raw = llm.complete_json(solo_prompt(case), schema=solo_schema(case), max_tokens=budget, temperature=0.0)
-    result = json.loads(raw["choices"][0]["text"])
+        raw = llm(
+            solo_prompt(case),
+            max_tokens=budget,
+            temperature=0.0,
+            reasoning_effort=args.solo_reasoning_effort,
+            retry_on_empty=False,
+        )
+    result = {
+        "ethical_question": case["question"],
+        "model": args.model,
+        "answer": str(raw["choices"][0]["text"]).strip(),
+        "max_completion_tokens": budget,
+        "reasoning_effort": args.solo_reasoning_effort,
+        "response_protocol": "plain_text_single_call_v1",
+    }
     write_json(result_path, result)
     write_json(budget_path, {
         "matching_basis": "Parliament actual completion tokens, including reasoning tokens",
         "parliament_completion_tokens": measured,
         "max_completion_tokens": budget,
         "capped": budget < measured,
-        "response_protocol": "separate_preference_epistemic_v3",
+        "reasoning_effort": args.solo_reasoning_effort,
+        "response_protocol": "plain_text_single_call_v1",
     })
     return result, usage_totals(usage_path), budget
 
@@ -290,6 +286,12 @@ def parliament_packet(result: dict[str, Any]) -> dict[str, Any]:
         "compressed_rule": result.get("compressed_rule"),
         "reopen_conditions": result.get("reopen_conditions", []),
         "synthesis_proposals": result.get("synthesis_proposals", []),
+        "synthesis_viability_assessments": result.get(
+            "synthesis_viability_assessments", []
+        ),
+        "contingency_feasibility_assessments": result.get(
+            "contingency_feasibility_assessments", []
+        ),
         "planning_assessments": result.get("planning_assessments", []),
         "planning_branches": result.get("planning_branches", []),
         "cycles": [{
@@ -307,6 +309,10 @@ def parliament_packet(result: dict[str, Any]) -> dict[str, Any]:
 
 
 def render_solo_answer(result: dict[str, Any]) -> str:
+    if "answer" in result:
+        answer = str(result.get("answer", "")).strip()
+        return answer + ("\n" if answer else "")
+    # Backward-compatible rendering for prior structured solo artifacts.
     lines = ["Ethical judgment", ""]
     selected = result.get("selected_action", "NONE")
     status = result.get("judgment_status", "UNDERDETERMINED")
@@ -333,7 +339,11 @@ def render_solo_answer(result: dict[str, Any]) -> str:
         lines.extend(["", f"Catastrophic-risk check: {risk}"])
     reversals = result.get("reversal_conditions") or []
     if reversals:
-        lines.extend(["", "Reconsider if: " + "; ".join(reversals[:4]) + "."])
+        lines.extend([
+            "", "Reconsider if: "
+            + "; ".join(str(value) for value in reversals[:4])
+            + ".",
+        ])
     return "\n".join(lines) + "\n"
 
 
@@ -391,7 +401,7 @@ def run_judge(case: dict[str, Any], case_dir: Path, args: argparse.Namespace, pa
     (case_dir / "solo_final_answer.txt").write_text(solo_answer, encoding="utf-8")
     if result_path.exists() and not args.force and not args.rejudge:
         existing = read_json(result_path)
-        if existing.get("evaluation_protocol") == "final_answer_v2":
+        if existing.get("evaluation_protocol") == "plain_solo_final_answer_v3":
             return existing, usage_totals(usage_path)
     if usage_path.exists():
         usage_path.unlink()
@@ -402,7 +412,7 @@ def run_judge(case: dict[str, Any], case_dir: Path, args: argparse.Namespace, pa
     with usage_log(usage_path):
         raw = llm.complete_json(judge_prompt(case, rubric, a, b), schema=JUDGE_SCHEMA, max_tokens=args.judge_tokens, temperature=0.0)
     judged = json.loads(raw["choices"][0]["text"])
-    judged["evaluation_protocol"] = "final_answer_v2"
+    judged["evaluation_protocol"] = "plain_solo_final_answer_v3"
     judged["blind_key"] = {"A": "parliament" if parliament_is_a else "solo", "B": "solo" if parliament_is_a else "parliament"}
     write_json(result_path, judged)
     return judged, usage_totals(usage_path)
@@ -468,10 +478,22 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, default=ROOT / "eval_outputs")
     parser.add_argument("--run-id", help="Stable name for resuming; defaults to timestamp")
     parser.add_argument("--model", default="o3")
+    parser.add_argument(
+        "--solo-reasoning-effort", choices=("low", "medium", "high"), default="high",
+        help="Reasoning effort for the unassisted solo call",
+    )
     parser.add_argument("--judge-model", default="o3")
     parser.add_argument("--max-cycles", type=int, default=3)
     parser.add_argument("--time-budget", type=float, default=600.0)
     parser.add_argument("--agent-timeout", type=float, default=600.0)
+    parser.add_argument(
+        "--workspace-call-timeout", type=float, default=90.0,
+        help="Maximum duration of any one workspace API call (capped below the run budget)",
+    )
+    parser.add_argument(
+        "--parliament-process-timeout", type=float, default=0.0,
+        help="Hard subprocess limit; 0 uses the workspace time budget plus 60 seconds",
+    )
     parser.add_argument("--delegate-tokens", type=int, default=128)
     parser.add_argument("--max-solo-completion-tokens", type=int, default=O3_MAX_COMPLETION_TOKENS)
     parser.add_argument("--judge-tokens", type=int, default=4096)

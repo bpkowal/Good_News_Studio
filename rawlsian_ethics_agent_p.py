@@ -15,6 +15,7 @@ LAST_QUERY_PATH = Path("agent_outputs/.last_query_rawlsian.txt")
 LAST_RESPONSE_PATH = Path("agent_outputs/.last_response_rawlsian.txt")
 
 MODEL_PATH = "../mistral-7b-instruct-v0.2.Q4_K_M.gguf"
+RAWLS_PROMPT_VERSION = "rawls-comparative-position-v2"
 
 class Document:
     def __init__(self, content, metadata):
@@ -42,7 +43,7 @@ def retrieve_rawlsian_ethics_quotes(query: str, scenario_id: str, limit_per_quot
     from load_rawlsian_ethics_corpus import load_rawlsian_ethics_corpus
     embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     global vectorstore
-    vectorstore = load_rawlsian_ethics_corpus()
+    vectorstore = load_rawlsian_ethics_corpus(embedder=embedder)
 
     tag_weights = load_scenario_weights(scenario_id)
     print(f"🔧 Scenario Tag Weights: {tag_weights}")
@@ -121,9 +122,14 @@ def respond_to_query(query: str, scenario_id: str, scenario_path=None, temperatu
     if not query or not scenario_id:
         raise ValueError("Both 'query' and 'scenario_id' must be provided.")
 
-    if os.getenv("ETHICS_LLM_BACKEND", "local") == "local" and LAST_QUERY_PATH.exists() and LAST_RESPONSE_PATH.exists():
+    cache_key = f"{RAWLS_PROMPT_VERSION}\n{query.strip()}"
+    reuse_source = (
+        os.getenv("ETHICS_LLM_BACKEND", "local") == "local"
+        or os.getenv("ETHICS_REUSE_SOURCE_TESTIMONY", "1") != "0"
+    )
+    if reuse_source and LAST_QUERY_PATH.exists() and LAST_RESPONSE_PATH.exists():
         last_query = LAST_QUERY_PATH.read_text().strip()
-        if query.strip() == last_query:
+        if cache_key == last_query:
             print("⚡ Skipping LLM call — using cached rawlsian ethics response.")
             return LAST_RESPONSE_PATH.read_text().strip()
 
@@ -143,9 +149,22 @@ def respond_to_query(query: str, scenario_id: str, scenario_path=None, temperatu
 
     prompt = f"""<s>[INST] You are a Rawlsian ethics assistant. Your role is to reason from the perspective of justice as fairness, emphasizing principles of equality, the original position, and the veil of ignorance.
 
-- Emphasize fairness and equal basic rights.
-- Evaluate decisions from the standpoint of the least advantaged.
-- Avoid utilitarian tradeoffs that violate individual liberties.
+- Compare EVERY listed action using its exact action label.
+- For each action, identify the least-advantaged affected group, its position
+  relative to the rival action, and the relevant basic liberty or primary good.
+- Distinguish equal basic liberties, fair equality of opportunity, and the
+  difference principle instead of treating every benefit as interchangeable.
+- Do not claim that an action protects the least advantaged unless a stated fact
+  makes that group better off, prevents it becoming worse off, or preserves a
+  basic liberty that the rival action impairs.
+- State whether numerical magnitude is DECISIVE, SECONDARY, or IRRELEVANT.
+  Numbers are decisive only when they compare the position of the least
+  advantaged under otherwise compatible basic liberties and institutions; they
+  are not a license for aggregate welfare maximization.
+- If Rawlsian principles favor different actions and their priority is unresolved,
+  say "Rawlsian Status: NORMATIVELY_CONTESTED" and identify the conflict. A
+  provisional recommendation is allowed, but it is not a frozen commitment.
+- Keep the full comparison compact enough to fit within 180 words.
 - Use the following corpus excerpts where helpful.
 
 Corpus Materials:
@@ -187,7 +206,7 @@ Rawlsian Ethics Answer:
         f.write("\nRawlsian Ethics Response:\n")
         f.write(final_response + "\n")
 
-    LAST_QUERY_PATH.write_text(query.strip())
+    LAST_QUERY_PATH.write_text(cache_key)
     LAST_RESPONSE_PATH.write_text(final_response.strip())
 
     print(f"💾 Saved output to: {output_path.name}")

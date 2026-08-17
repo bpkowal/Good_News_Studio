@@ -2,17 +2,32 @@ from __future__ import annotations
 
 import json
 import re
-from dataclasses import dataclass
-from functools import lru_cache
-from typing import Any, Sequence
+from dataclasses import dataclass, field
+from typing import Any, Callable, Sequence
 
-from .models import CalibrationOutcome, CandidateChunk, CategoricalAxis, FailureCondition, NumericComparison, PlanningAssessment, ProblemReformulation, SynthesisProposal, VisibilityAssessment, WorkspaceBroadcast
+from .action_identity import compile_action_identity
+from .evidence_calibration import EvidenceCalibration
+from .contingency_graph import compile_contingency_graph
+from .middleware.claim_damping import (
+    SPECULATIVE_EPISTEMIC_CAP,
+    apply_symmetric_claim_damping,
+)
+from .models import CalibrationOutcome, CandidateChunk, CategoricalAxis, FailureCondition, NumericComparison, PlanningAssessment, ProblemReformulation, SynthesisProposal, TestimonyBaseline, WorkspaceBroadcast
+from .structured_io import (
+    call_json_llm as _call_json_llm,
+    extract_json as _extract_json,
+    number as _number,
+    strict_number as _strict_number,
+    structured_text_error,
+)
+from .visibility import assess_visibility
+from .scenario_semantics import normalize_action_labels
 
 
 FRAMEWORK_ROLES = {
-    "utilitarian": "Score expected harms, benefits, urgency, and reversibility.",
+    "utilitarian": "Compare typed consequences, expected harms, benefits, urgency, and reversibility.",
     "deontological": "Score duties, rights, entitlement, coercion, and universal rules.",
-    "virtue": "Score practical wisdom, character, honesty, courage, and habituation.",
+    "virtue": "Compare role, practical wisdom, character, virtues, vices, and habituation.",
     "care": "Score vulnerability, dependency, trust, relationship, and responsiveness.",
     "rawlsian": "Score fairness, equal liberty, public rules, and the least advantaged.",
 }
@@ -37,82 +52,225 @@ FRAMEWORK_CONSTRAINTS = {
     "rawlsian": {"FAIRNESS", "RIGHTS", "PUBLIC_RULE", "UNCERTAINTY"},
 }
 
+_FRAMEWORK_CONSTRUCT_MARKERS = {
+    "care": re.compile(
+        r"\b(?:entrust\w*|depend\w*|trust\w*|vulnerab\w*|responsib\w*|"
+        r"attent\w*|responsive\w*|relationship\w*|obligation\w*|"
+        r"abandon\w*|caregiv\w*|interdepend\w*|need\w*)\b",
+        re.IGNORECASE,
+    ),
+    "deontological": re.compile(
+        r"\b(?:duty|duties|right\w*|autonom\w*|coerc\w*|universa\w*|"
+        r"maxim\w*|categorical|person\w*\s+as\s+ends?|instrumentali[sz]\w*|"
+        r"respect\w*|prohibit\w*|permissib\w*|required)\b",
+        re.IGNORECASE,
+    ),
+    "rawlsian": re.compile(
+        r"\b(?:least[- ]advantaged|worse[- ]off|worst[- ]off|basic\s+libert\w*|primary\s+goods?|"
+        r"difference\s+principle|fair\s+equality|original\s+position|"
+        r"veil\s+of\s+ignorance|justice\s+as\s+fairness|disadvantaged)\b",
+        re.IGNORECASE,
+    ),
+    "virtue": re.compile(
+        r"\b(?:virtue\w*|vice\w*|character\w*|practical\s+wisdom|phronesis|"
+        r"flourish\w*|courage\w*|honest\w*|just\w*|temperan\w*|compassion\w*|"
+        r"integrity|habitu\w*|exemplar\w*|role\w*|pruden\w*|humil\w*|"
+        r"solidarit\w*|friendship|benevolen\w*|generos\w*|loyal\w*|"
+        r"foresight|steward\w*|callous\w*|reckless\w*|hubris)\b",
+        re.IGNORECASE,
+    ),
+}
+
+
+def _framework_grounded_action_sections(
+    testimony: str, action_ids: Sequence[str], marker: re.Pattern[str],
+) -> set[str]:
+    """Find action sections whose source testimony contains framework constructs.
+
+    This checks the corpus-grounded testimony rather than requiring the baseline
+    classifier to repeat an exact preferred synonym in its compact map.
+    """
+    normalized = normalize_action_labels(testimony)
+    headings = list(re.finditer(
+        r"(?im)^\s*(?:action|option)\s+(A\d+)\b[^\n]*",
+        normalized,
+    ))
+    grounded: set[str] = set()
+    allowed = set(action_ids)
+    for index, heading in enumerate(headings):
+        action_id = heading.group(1).upper()
+        if action_id not in allowed:
+            continue
+        end = headings[index + 1].start() if index + 1 < len(headings) else len(normalized)
+        if marker.search(normalized[heading.start():end]):
+            grounded.add(action_id)
+    return grounded
+
+
+def _construct_map_errors(
+    specialist: str,
+    actions: Sequence[str],
+    action_map: dict[str, str],
+    numerical_role: str,
+    numerical_justification: str,
+    *,
+    recommended_action: str = "",
+    rationale: str = "",
+) -> list[str]:
+    """Validate framework identity without deciding the substantive outcome."""
+    marker = _FRAMEWORK_CONSTRUCT_MARKERS.get(specialist)
+    errors: list[str] = []
+    if marker is None:
+        return errors
+    if set(action_map) != set(actions):
+        errors.append("framework map must assess every action")
+    else:
+        for action, assessment in action_map.items():
+            if not marker.search(assessment):
+                errors.append(f"framework map for {action} lacks framework-specific grounds")
+    if numerical_role not in {"DECISIVE", "SECONDARY", "IRRELEVANT"}:
+        errors.append("numerical role is missing")
+    if _semantic_word_count(numerical_justification) < 3:
+        errors.append("numerical role lacks justification")
+
+    if specialist == "deontological":
+        allowed_prefixes = ("REQUIRED:", "PERMISSIBLE:", "PROHIBITED:", "CONFLICTED:")
+        if any(not value.upper().startswith(allowed_prefixes) for value in action_map.values()):
+            errors.append("deontological map lacks an action-level duty verdict")
+        if (
+            recommended_action in action_map
+            and action_map[recommended_action].upper().startswith("PROHIBITED:")
+        ):
+            errors.append("deontological recommendation selects its own prohibited action")
+        if numerical_role == "DECISIVE" and not re.search(
+            r"\b(?:scope|right\w*|duty|duties|universal\w*|person\w*|"
+            r"violation\w*|imminent)\b",
+            numerical_justification,
+            re.IGNORECASE,
+        ):
+            errors.append("decisive numbers are not connected to a duty or right")
+    elif specialist == "rawlsian":
+        allowed_prefixes = ("IMPROVES:", "PRESERVES:", "WORSENS:", "UNCERTAIN:")
+        if any(not value.upper().startswith(allowed_prefixes) for value in action_map.values()):
+            errors.append("Rawlsian map lacks a comparative position verdict")
+        rawls_numerical_ground = re.search(
+            r"\b(?:least[- ]advantaged|worse[- ]off|worst[- ]off|position|primary\s+good|"
+            r"basic\s+libert|comparab\w*|same\s+libert)\b",
+            numerical_justification,
+            re.IGNORECASE,
+        )
+        if numerical_role == "DECISIVE" and not rawls_numerical_ground:
+            errors.append("decisive numbers are not tied to the least-advantaged position")
+        if recommended_action in action_map and len(action_map) > 1:
+            effect_rank = {
+                "IMPROVES": 3, "PRESERVES": 2, "UNCERTAIN": 1, "WORSENS": 0,
+            }
+            effects = {
+                action: assessment.partition(":")[0].strip().upper()
+                for action, assessment in action_map.items()
+            }
+            selected_rank = effect_rank.get(effects.get(recommended_action, ""), -1)
+            rival_ranks = [
+                effect_rank.get(effect, -1)
+                for action, effect in effects.items()
+                if action != recommended_action
+            ]
+            discriminating_priority = re.search(
+                r"\b(?:lexical\s+priorit\w*|basic\s+libert\w*\s+(?:over|before)|"
+                r"fair\s+equality|difference\s+principle|more\s+sever\w*|"
+                r"greater\s+impair\w*|primary\s+good\w*\s+(?:over|before))\b",
+                rationale,
+                re.IGNORECASE,
+            )
+            numerically_discriminating = bool(
+                numerical_role == "DECISIVE" and rawls_numerical_ground
+            )
+            if rival_ranks and (
+                selected_rank < max(rival_ranks)
+                or selected_rank == max(rival_ranks)
+            ) and not discriminating_priority and not numerically_discriminating:
+                errors.append(
+                    "Rawlsian preference lacks a stated difference in position or principle priority"
+                )
+    elif specialist == "care" and numerical_role == "DECISIVE" and not re.search(
+        r"\b(?:comparab\w*|equivalent|equally|same relational|"
+        r"similar depend\w*|no stronger relational)\b",
+        numerical_justification,
+        re.IGNORECASE,
+    ):
+        errors.append("decisive counts lack relational comparability")
+    elif specialist == "virtue":
+        allowed_prefixes = ("EXEMPLIFIES:", "MIXED:", "UNDERMINES:", "UNCERTAIN:")
+        if any(not value.upper().startswith(allowed_prefixes) for value in action_map.values()):
+            errors.append("virtue map lacks an action-level character verdict")
+        if numerical_role == "DECISIVE" and not re.search(
+            r"\b(?:practical\s+wisdom|phronesis|stakes|circumstance\w*|"
+            r"flourish\w*|virtue\w*|vice\w*)\b",
+            numerical_justification,
+            re.IGNORECASE,
+        ):
+            errors.append("decisive numbers are not connected to practical wisdom")
+    return list(dict.fromkeys(errors))
+
+
+def _utilitarian_table_errors(
+    actions: Sequence[str],
+    table: dict[str, list[dict[str, Any]]],
+    depends_on_unknown: bool,
+    missing_comparison: str,
+) -> list[str]:
+    """Check consequence-accounting structure without inventing utilities."""
+    errors: list[str] = []
+    if set(table) != set(actions):
+        errors.append("consequence table must assess every action")
+    for action in actions:
+        rows = table.get(action, [])
+        identity = compile_action_identity(action)
+        stated_polarities = {
+            "BENEFIT" if consequence.polarity == "BENEFICIAL" else "HARM"
+            for consequence in identity.consequences
+        }
+        if not rows:
+            errors.append(f"consequence table for {action} is empty")
+            continue
+        for row in rows:
+            if _semantic_word_count(row.get("outcome", "")) < 2:
+                errors.append(f"consequence for {action} lacks an outcome")
+            if _semantic_word_count(row.get("scope", "")) < 1:
+                errors.append(f"consequence for {action} lacks affected scope")
+            if row.get("direction") not in {"BENEFIT", "HARM"}:
+                errors.append(f"consequence for {action} lacks benefit/harm direction")
+            if row.get("support") not in {"STATED", "INFERRED", "UNKNOWN"}:
+                errors.append(f"consequence for {action} lacks evidence status")
+            elif (
+                row.get("support") == "STATED"
+                and stated_polarities
+                and row.get("direction") not in stated_polarities
+            ):
+                errors.append(
+                    f"stated consequence for {action} reverses its committed polarity"
+                )
+            if row.get("reversibility") not in {
+                "REVERSIBLE", "IRREVERSIBLE", "UNKNOWN",
+            }:
+                errors.append(f"consequence for {action} lacks reversibility status")
+            if not str(row.get("probability", "")).strip():
+                errors.append(f"consequence for {action} lacks probability status")
+            if not str(row.get("magnitude", "")).strip():
+                errors.append(f"consequence for {action} lacks magnitude")
+            if not str(row.get("duration", "")).strip():
+                errors.append(f"consequence for {action} lacks duration")
+    if depends_on_unknown and _semantic_word_count(missing_comparison) < 3:
+        errors.append("underdetermined utility ranking omits the missing comparison")
+    return list(dict.fromkeys(errors))
+
 ALLOWED_UNRESOLVED = {
     "NONE",
     "VERIFY_FACTS",
     "CHECK_FEASIBILITY",
     "CLARIFY_SCENARIO",
+    "RESOLVE_NORMATIVE_TENSION",
 }
-
-# Explicitly disclosed speculation is useful for discovering contingencies. It
-# remains discounted, but not so heavily that a productive hypothesis becomes
-# indistinguishable from an uninformative tie.
-SPECULATIVE_DIRECTION_RETENTION = 0.55
-SPECULATIVE_EPISTEMIC_CAP = 0.50
-
-
-@lru_cache(maxsize=8)
-def _json_grammar(schema_text: str) -> Any | None:
-    """Build a llama.cpp grammar when supported; tests and older builds may omit it."""
-    try:
-        from llama_cpp import LlamaGrammar
-
-        return LlamaGrammar.from_json_schema(schema_text)
-    except (ImportError, AttributeError, ValueError):
-        return None
-
-
-def _call_json_llm(llm: Any, prompt: str, *, max_tokens: int, temperature: float, schema: dict[str, Any]):
-    if hasattr(llm, "complete_json"):
-        return llm.complete_json(
-            prompt,
-            schema=schema,
-            max_tokens=max_tokens,
-            temperature=temperature,
-        )
-    kwargs = {
-        "max_tokens": max_tokens,
-        "temperature": temperature,
-        "stream": False,
-    }
-    grammar = _json_grammar(json.dumps(schema, sort_keys=True))
-    if grammar is not None:
-        kwargs["grammar"] = grammar
-    return llm(prompt, **kwargs)
-
-
-def _extract_json(text: str) -> dict[str, Any]:
-    text = text.strip()
-    try:
-        value = json.loads(text)
-        if isinstance(value, dict):
-            return value
-    except json.JSONDecodeError:
-        pass
-    match = re.search(r"\{.*\}", text, flags=re.DOTALL)
-    if not match:
-        raise ValueError(f"Local model returned no JSON object: {text[:160]!r}")
-    value = json.loads(match.group(0))
-    if not isinstance(value, dict):
-        raise ValueError("Local model response must be a JSON object")
-    return value
-
-
-def _number(value: Any, default: float = 0.5) -> float:
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return default
-
-
-def _strict_number(value: Any, field: str) -> float:
-    if isinstance(value, bool) or not isinstance(value, (int, float)):
-        raise ValueError(f"{field} must be numeric")
-    number = float(value)
-    if not 0.0 <= number <= 1.0:
-        raise ValueError(f"{field} must be between 0 and 1")
-    return number
-
 
 def _semantic_word_count(text: str) -> int:
     """Count identifier-style labels as ordinary multiword phrases."""
@@ -164,7 +322,10 @@ def _landscape_semantic_errors(
                 if token.endswith(suffix) and len(token) - len(suffix) >= 4:
                     token = token[:-len(suffix)]
                     break
-            values.add(token[:8])
+            # A short lexical root makes common derivations comparable without
+            # a heavyweight NLP dependency: containment/contains, mutation/
+            # mutating, and expropriation/expropriating should share anchors.
+            values.add(token[:6])
         return values
 
     token_sets = [
@@ -211,7 +372,9 @@ def _landscape_semantic_errors(
 
     unresolved_judgment = (
         unresolved != "NONE"
-        or assumption_status in {"CONDITIONAL", "UNDERDETERMINED"}
+        or assumption_status in {
+            "CONDITIONAL", "UNDERDETERMINED", "NORMATIVELY_CONTESTED",
+        }
     )
     if unresolved_judgment and tiebreaker_failure.casefold() == "none":
         errors.append("unresolved judgment claims its tiebreaker fully succeeded")
@@ -230,12 +393,24 @@ _CLOSED_CHOICE_PATTERNS = (
     re.compile(r"\bcannot\s+(?:do|act|choose)\s+otherwise\b", re.I),
     re.compile(r"\bcannot\b[^.!?]{0,80}\b(?:another|any\s+other)\s+way\b", re.I),
     re.compile(r"\bno\s+(?:compromise|middle|additional)\s+(?:option|choice|action)\b", re.I),
+    re.compile(
+        r"(?:\bfirst\s+action\s*\(\s*A0\s*\)|\b(?:action|option)\s+A0\b)"
+        r".+?\bor\b.+?"
+        r"(?:second\s+action\s*\(\s*A1\s*\)|(?:action|option)\s+A1)",
+        re.I,
+    ),
+    re.compile(
+        r"\b(?:action|option)\s+A0\b.+?\b(?:action|option)\s+A1\b",
+        re.I,
+    ),
 )
 
 
 def _scenario_closes_action_set(scenario: str) -> bool:
     """Recognize explicit closed-world dilemmas without relying on topic words."""
-    normalized = " ".join(scenario.split())
+    from .scenario_semantics import normalize_action_labels
+
+    normalized = " ".join(normalize_action_labels(scenario).split())
     return any(pattern.search(normalized) for pattern in _CLOSED_CHOICE_PATTERNS)
 
 
@@ -248,9 +423,16 @@ def _candidate_from_data(
     scenario_facts: dict[str, Any],
     previous_recommendation_id: str = "",
     previous_confidence: float | None = None,
+    previous_context: str = "",
     prior_assumption_status: str = "NOT_AUDITED",
     prior_unsupported_assumption: str = "",
     prior_reversal_condition: str = "",
+    evidence_calibration: EvidenceCalibration | None = None,
+    landscape_verifier: Callable[[str, Sequence[str], dict[str, str], Sequence[str]], list[str]] | None = None,
+    baseline_status: str = "UNAVAILABLE",
+    baseline_provisional_id: str = "NONE",
+    baseline_condition: str = "",
+    scenario_text: str = "",
 ) -> CandidateChunk:
     action_ids = [f"A{index}" for index in range(len(actions))]
     raw_scores = data.get("scores")
@@ -260,6 +442,16 @@ def _candidate_from_data(
         action_id: _strict_number(raw_scores[action_id], f"scores.{action_id}")
         for action_id in action_ids
     }
+    reported_ordered_scores = sorted(id_scores.values(), reverse=True)
+    reported_preference_strength = max(
+        0.0,
+        min(
+            1.0,
+            reported_ordered_scores[0] - reported_ordered_scores[1]
+            if len(reported_ordered_scores) > 1
+            else reported_ordered_scores[0],
+        ),
+    )
     scores = {
         action: id_scores[action_id]
         for action_id, action in zip(action_ids, actions)
@@ -273,18 +465,431 @@ def _candidate_from_data(
 
     if baseline_id not in {*action_ids, "NONE"}:
         raise ValueError("baseline must be a valid action ID or NONE")
-    if baseline_id == "NONE":
+    allowed_baseline_statuses = {
+        "DIRECT", "CONDITIONAL", "UNDERDETERMINED", "NORMATIVELY_CONTESTED",
+        "OUTSIDE_ACTION_SET", "UNAVAILABLE",
+    }
+    baseline_status = str(baseline_status).strip().upper()
+    if baseline_status not in allowed_baseline_statuses:
+        baseline_status = "DIRECT" if baseline_id != "NONE" else "UNAVAILABLE"
+    if baseline_status == "UNAVAILABLE" and baseline_id != "NONE":
+        # Backward compatibility for callers created before typed baselines.
+        baseline_status = "DIRECT"
+    if baseline_provisional_id not in {*action_ids, "NONE"}:
+        baseline_provisional_id = "NONE"
+    baseline_reference_id = (
+        baseline_id if baseline_status == "DIRECT" else baseline_provisional_id
+    )
+    if baseline_status == "NORMATIVELY_CONTESTED":
+        alignment = (
+            "CONTESTED_SUPPORTS_PROVISIONAL"
+            if baseline_reference_id != "NONE" and recommended_id == baseline_reference_id
+            else "CONTESTED_RECONSIDERS_PROVISIONAL"
+            if baseline_reference_id != "NONE"
+            else "NORMATIVELY_CONTESTED"
+        )
+    elif baseline_status == "UNDERDETERMINED":
+        alignment = "UNRESOLVED"
+    elif baseline_status == "CONDITIONAL" and baseline_reference_id == "NONE":
+        alignment = "UNRESOLVED"
+    elif baseline_status == "CONDITIONAL":
+        alignment = (
+            "CONDITIONAL_SUPPORTS"
+            if recommended_id == baseline_reference_id
+            else "CONDITIONAL_RECONSIDERS"
+        )
+    elif baseline_id == "NONE":
         alignment = "UNCLEAR"
     elif recommended_id == baseline_id:
         alignment = "SUPPORTS"
     else:
         alignment = "RECONSIDERS"
-    if broadcast.constraint == "OPEN_DELIBERATION" and baseline_id != "NONE" and recommended_id != baseline_id:
+    if (
+        broadcast.constraint == "OPEN_DELIBERATION"
+        and baseline_status == "DIRECT"
+        and baseline_id != "NONE"
+        and recommended_id != baseline_id
+    ):
         raise ValueError("the initial recommendation must match the source-testimony baseline")
+
+    contingency_choice = ""
+    contingency_justification = ""
+    contingency_valid = True
+    contingency_error = ""
+    if broadcast.constraint == "CONTINGENCY_REVIEW":
+        fallback_actions = list(broadcast.contingency_fallback_actions)
+        fallback_ids = [
+            action_ids[actions.index(action)]
+            for action in fallback_actions
+            if action in actions
+        ]
+        choice_id = str(data.get("cr", "")).strip().upper()
+        contingency_justification = " ".join(str(data.get("cj", "")).split())
+        if len(fallback_actions) != 2 or len(fallback_ids) != 2:
+            contingency_error = "contingency broadcast lacks two canonical fallback actions"
+        elif choice_id not in fallback_ids:
+            contingency_error = "contingency response did not choose a fallback action"
+        elif recommended_id != choice_id:
+            contingency_error = "recommendation does not match the contingency choice"
+        elif len(contingency_justification.split()) < 3:
+            contingency_error = "contingency response did not explain the conditional choice"
+        if contingency_error:
+            raise ValueError(contingency_error)
+        contingency_choice = actions[action_ids.index(choice_id)]
 
     rationale = " ".join(str(data.get("w", data.get("why", ""))).split())
     if len(rationale.split()) < 2:
         raise ValueError("why must contain at least two words")
+    framework_action_map: dict[str, str] = {}
+    framework_numerical_role = "NOT_APPLICABLE"
+    framework_numerical_justification = ""
+    framework_grounding_penalty = 0.0
+    framework_validation_errors: list[str] = []
+    utilitarian_consequence_table: dict[str, list[dict[str, Any]]] = {}
+    utilitarian_depends_on_unknown = False
+    utilitarian_missing_comparison = ""
+    utilitarian_ledger_proposal: dict[str, Any] = {}
+    deontological_ledger_proposal: dict[str, Any] = {}
+    utilitarian_fields_present = specialist == "utilitarian" and any(
+        key in data for key in ("ct", "cd", "cm")
+    )
+    if utilitarian_fields_present:
+        raw_table = data.get("ct", {})
+        if isinstance(raw_table, dict):
+            for action_id, action in zip(action_ids, actions):
+                raw_rows = raw_table.get(action_id, [])
+                rows: list[dict[str, Any]] = []
+                if isinstance(raw_rows, list):
+                    for raw_row in raw_rows[:4]:
+                        if not isinstance(raw_row, dict):
+                            continue
+                        rows.append({
+                            "outcome": " ".join(str(raw_row.get("o", "")).split())[:120],
+                            "scope": " ".join(str(raw_row.get("s", "")).split())[:80],
+                            "direction": str(raw_row.get("d", "")).strip().upper(),
+                            "probability": " ".join(str(raw_row.get("p", "UNKNOWN")).split())[:24],
+                            "magnitude": " ".join(str(raw_row.get("m", "UNKNOWN")).split())[:60],
+                            "duration": " ".join(str(raw_row.get("h", "UNKNOWN")).split())[:40],
+                            "reversibility": str(raw_row.get("rv", "UNKNOWN")).strip().upper(),
+                            "support": str(raw_row.get("g", "UNKNOWN")).strip().upper(),
+                        })
+                utilitarian_consequence_table[action] = rows
+        utilitarian_depends_on_unknown = data.get("cd") is True
+        utilitarian_missing_comparison = " ".join(str(data.get("cm", "")).split())[:180]
+        table_errors = _utilitarian_table_errors(
+            actions,
+            utilitarian_consequence_table,
+            utilitarian_depends_on_unknown,
+            utilitarian_missing_comparison,
+        )
+        framework_validation_errors.extend(table_errors)
+        if table_errors:
+            framework_grounding_penalty = 0.35
+        else:
+            utilitarian_ledger_proposal = {
+                "actions": [
+                    {
+                        "action_id": action_id,
+                        "consequences": [dict(row) for row in utilitarian_consequence_table[action]],
+                    }
+                    for action_id, action in zip(action_ids, actions)
+                ]
+            }
+
+    construct_key = "rm" if specialist == "care" else "fm"
+    construct_fields_present = specialist in _FRAMEWORK_CONSTRUCT_MARKERS and any(
+        key in data for key in (construct_key, "nr", "np")
+    )
+    if construct_fields_present:
+        raw_action_map = data.get(construct_key, {})
+        if isinstance(raw_action_map, dict):
+            framework_action_map = {
+                action: " ".join(str(raw_action_map.get(action_id, "")).split())[:180]
+                for action_id, action in zip(action_ids, actions)
+            }
+        framework_numerical_role = str(data.get("nr", "")).strip().upper()
+        framework_numerical_justification = " ".join(
+            str(data.get("np", "")).split()
+        )[:180]
+        construct_errors = _construct_map_errors(
+            specialist,
+            actions,
+            framework_action_map,
+            framework_numerical_role,
+            framework_numerical_justification,
+            recommended_action=actions[action_ids.index(recommended_id)],
+            rationale=rationale,
+        )
+        framework_validation_errors.extend(construct_errors)
+        if construct_errors:
+            framework_grounding_penalty = 0.35
+
+        framework_marker = _FRAMEWORK_CONSTRUCT_MARKERS[specialist]
+        aggregate_shorthand = re.search(
+            r"\b(?:more lives|fewer deaths|greatest number|most people|aggregate|"
+            r"larger total|higher total)\b",
+            rationale,
+            re.IGNORECASE,
+        )
+        if aggregate_shorthand and not framework_marker.search(rationale):
+            replacement = framework_action_map.get(
+                actions[action_ids.index(recommended_id)], ""
+            )
+            if replacement:
+                rationale = replacement
+            if specialist in {"deontological", "rawlsian", "virtue"}:
+                framework_grounding_penalty = max(framework_grounding_penalty, 0.35)
+
+    # Preserve the old Care-specific trace fields while exposing the common
+    # construct state for all framework delegates.
+    care_relational_map = framework_action_map if specialist == "care" else {}
+    care_numerical_role = (
+        framework_numerical_role if specialist == "care" else "NOT_APPLICABLE"
+    )
+    care_numerical_justification = (
+        framework_numerical_justification if specialist == "care" else ""
+    )
+    care_grounding_penalty = (
+        framework_grounding_penalty if specialist == "care" else 0.0
+    )
+    rawls_position_proposal: dict[str, Any] = {}
+    virtue_character_proposal: dict[str, Any] = {}
+    if specialist == "rawlsian" and "rp" in data:
+        raw_positions = data.get("rp", {})
+        ranking_basis = str(data.get("rb", "")).strip().upper()
+        raw_liberty_status = data.get("lc", {})
+        position_errors: list[str] = []
+        positions: list[dict[str, Any]] = []
+        if ranking_basis not in {
+            "LEXICAL_BASIC_LIBERTY", "FAIR_EQUALITY_OPPORTUNITY",
+            "MAXIMIN_PRIMARY_GOODS", "DIFFERENCE_PRINCIPLE",
+            "ORIGINAL_POSITION_PUBLIC_RULE", "UNRESOLVED",
+        }:
+            position_errors.append("Rawlsian ledger lacks a valid principle-ranking basis")
+        liberty_status = {
+            action_id: str(raw_liberty_status.get(action_id, "")).strip().upper()
+            for action_id in action_ids
+        } if isinstance(raw_liberty_status, dict) else {}
+        if (
+            not isinstance(raw_liberty_status, dict)
+            or set(raw_liberty_status) != set(action_ids)
+        ):
+            position_errors.append("Rawlsian liberty comparison must cover every action")
+        elif any(status not in {
+            "SATISFIED", "INFRINGED", "CONFLICTED", "UNKNOWN",
+        } for status in liberty_status.values()):
+            position_errors.append("Rawlsian liberty comparison has an invalid status")
+        selected_liberty = liberty_status.get(recommended_id, "UNKNOWN")
+        rival_liberties = [
+            status for action_id, status in liberty_status.items()
+            if action_id != recommended_id
+        ]
+        if (
+            selected_liberty == "INFRINGED"
+            and "SATISFIED" in rival_liberties
+        ):
+            position_errors.append(
+                "Rawlsian recommendation crosses lexical liberty priority without a conflict"
+            )
+        if (
+            ranking_basis in {
+                "FAIR_EQUALITY_OPPORTUNITY", "MAXIMIN_PRIMARY_GOODS",
+                "DIFFERENCE_PRINCIPLE",
+            }
+            and any(status in {"INFRINGED", "CONFLICTED", "UNKNOWN"}
+                    for status in liberty_status.values())
+        ):
+            position_errors.append(
+                "Rawlsian lower-order ranking was applied before basic-liberty status was resolved"
+            )
+        if ranking_basis == "UNRESOLVED" and (
+            str(data.get("ss", "SELECTED")).strip().upper() != "PROVISIONAL"
+            or data.get("cc") is not False
+            or data.get("esa") is not False
+        ):
+            position_errors.append(
+                "unresolved Rawlsian principle ranking must remain provisional"
+            )
+        if not isinstance(raw_positions, dict) or set(raw_positions) != set(action_ids):
+            position_errors.append("Rawlsian position ledger must cover every action")
+        else:
+            for action_id, action in zip(action_ids, actions):
+                raw_position = raw_positions.get(action_id, {})
+                if not isinstance(raw_position, dict):
+                    position_errors.append(f"Rawlsian position for {action_id} is not an object")
+                    continue
+                effect = str(raw_position.get("e", "")).strip().upper()
+                compared_to = str(raw_position.get("ca", "")).strip().upper()
+                dimension = str(raw_position.get("d", "")).strip().upper()
+                basis = str(raw_position.get("b", "")).strip().upper()
+                group = " ".join(str(raw_position.get("g", "")).split())[:100]
+                reason = " ".join(str(raw_position.get("rs", "")).split())[:180]
+                allowed_dimensions = {
+                    "BASIC_LIBERTY", "OPPORTUNITY", "INCOME_WEALTH",
+                    "POWERS_OFFICES", "SELF_RESPECT", "BASIC_INTEREST_SECURITY",
+                    "OTHER_PRIMARY_GOOD", "UNKNOWN",
+                }
+                if effect not in {"IMPROVES", "PRESERVES", "WORSENS", "UNCERTAIN"}:
+                    position_errors.append(f"Rawlsian position for {action_id} has invalid effect")
+                if compared_to not in set(action_ids) - {action_id}:
+                    position_errors.append(f"Rawlsian position for {action_id} lacks its rival")
+                if dimension not in allowed_dimensions:
+                    position_errors.append(f"Rawlsian position for {action_id} has invalid dimension")
+                if basis not in {"ACTION_GRAPH", "SCENARIO", "FRAMEWORK_ONLY", "UNKNOWN"}:
+                    position_errors.append(f"Rawlsian position for {action_id} has invalid evidence basis")
+                if _semantic_word_count(group) < 1 or _semantic_word_count(reason) < 2:
+                    position_errors.append(f"Rawlsian position for {action_id} lacks group or reason")
+                map_effect = framework_action_map.get(action, "").partition(":")[0].upper()
+                if map_effect and effect and map_effect != effect:
+                    position_errors.append(
+                        f"Rawlsian position for {action_id} conflicts with its framework map"
+                    )
+                positions.append({
+                    "action_id": action_id,
+                    "group": group,
+                    "dimension": dimension,
+                    "effect": effect,
+                    "compared_to_action_id": compared_to,
+                    "evidence_basis": basis,
+                    "reason": reason,
+                })
+        if ranking_basis == "DIFFERENCE_PRINCIPLE":
+            selected_position = next(
+                (item for item in positions if item.get("action_id") == recommended_id),
+                {},
+            )
+            if selected_position.get("dimension") not in {
+                "INCOME_WEALTH", "POWERS_OFFICES",
+            }:
+                position_errors.append(
+                    "difference principle was applied outside social or economic inequality"
+                )
+        framework_validation_errors.extend(position_errors)
+        if position_errors:
+            framework_grounding_penalty = max(framework_grounding_penalty, 0.35)
+        else:
+            rawls_position_proposal = {
+                "ranking_basis": ranking_basis,
+                "liberty_status": liberty_status,
+                "positions": positions,
+            }
+
+    if specialist == "virtue" and "vl" in data:
+        raw_assessments = data.get("vl", {})
+        ranking_basis = str(data.get("vb", "")).strip().upper()
+        virtue_errors: list[str] = []
+        assessments: list[dict[str, Any]] = []
+        if ranking_basis not in {
+            "PRACTICAL_WISDOM", "ROLE_FIDELITY", "FLOURISHING",
+            "EXEMPLAR_REASONING", "UNRESOLVED",
+        }:
+            virtue_errors.append("virtue ledger lacks a valid practical ranking basis")
+        if not isinstance(raw_assessments, dict) or set(raw_assessments) != set(action_ids):
+            virtue_errors.append("virtue ledger must cover every action")
+        else:
+            for action_id, action in zip(action_ids, actions):
+                raw_assessment = raw_assessments.get(action_id, {})
+                if not isinstance(raw_assessment, dict):
+                    virtue_errors.append(f"virtue assessment for {action_id} is not an object")
+                    continue
+                verdict = str(raw_assessment.get("v", "")).strip().upper()
+                role = " ".join(str(raw_assessment.get("r", "")).split())[:100]
+                virtues = " ".join(str(raw_assessment.get("vs", "")).split())[:120]
+                vice = " ".join(str(raw_assessment.get("x", "")).split())[:120]
+                circumstance = " ".join(str(raw_assessment.get("c", "")).split())[:140]
+                basis = str(raw_assessment.get("g", "")).strip().upper()
+                reason = " ".join(str(raw_assessment.get("rs", "")).split())[:180]
+                if verdict not in {"EXEMPLIFIES", "MIXED", "UNDERMINES", "UNCERTAIN"}:
+                    virtue_errors.append(f"virtue assessment for {action_id} has invalid verdict")
+                if basis not in {"ACTION_GRAPH", "SCENARIO", "FRAMEWORK_ONLY", "UNKNOWN"}:
+                    virtue_errors.append(f"virtue assessment for {action_id} has invalid evidence basis")
+                if min(map(_semantic_word_count, (role, virtues, vice, circumstance, reason))) < 1:
+                    virtue_errors.append(f"virtue assessment for {action_id} is incomplete")
+                map_verdict = framework_action_map.get(action, "").partition(":")[0].upper()
+                if map_verdict and verdict and map_verdict != verdict:
+                    virtue_errors.append(
+                        f"virtue assessment for {action_id} conflicts with its framework map"
+                    )
+                assessments.append({
+                    "action_id": action_id,
+                    "verdict": verdict,
+                    "actor_role": role,
+                    "virtues": virtues,
+                    "vice_risk": vice,
+                    "circumstance": circumstance,
+                    "evidence_basis": basis,
+                    "reason": reason,
+                })
+        if ranking_basis == "UNRESOLVED" and (
+            str(data.get("ss", "SELECTED")).strip().upper() != "PROVISIONAL"
+            or data.get("cc") is not False
+        ):
+            virtue_errors.append("unresolved virtue ranking must remain provisional")
+        framework_validation_errors.extend(virtue_errors)
+        if virtue_errors:
+            framework_grounding_penalty = max(framework_grounding_penalty, 0.35)
+        else:
+            virtue_character_proposal = {
+                "ranking_basis": ranking_basis,
+                "assessments": assessments,
+            }
+
+    if specialist == "deontological" and "dp" in data:
+        raw_assessments = data.get("dp", {})
+        duty_errors: list[str] = []
+        assessments: list[dict[str, Any]] = []
+        if not isinstance(raw_assessments, dict) or set(raw_assessments) != set(action_ids):
+            duty_errors.append("Deontological duty ledger must cover every action")
+        else:
+            for action_id, action in zip(action_ids, actions):
+                raw_assessment = raw_assessments.get(action_id, {})
+                if not isinstance(raw_assessment, dict):
+                    duty_errors.append(f"Deontological assessment for {action_id} is not an object")
+                    continue
+                verdict = str(raw_assessment.get("v", "")).strip().upper()
+                relation = str(raw_assessment.get("rel", "")).strip().upper()
+                norm_kind = str(raw_assessment.get("k", "")).strip().upper()
+                basis = str(raw_assessment.get("g", "")).strip().upper()
+                norm = " ".join(str(raw_assessment.get("n", "")).split())[:100]
+                bearer = " ".join(str(raw_assessment.get("b", "")).split())[:80]
+                party = " ".join(str(raw_assessment.get("p", "")).split())[:100]
+                competing = " ".join(str(raw_assessment.get("cn", "NONE")).split())[:100]
+                reason = " ".join(str(raw_assessment.get("rs", "")).split())[:180]
+                if verdict not in {"REQUIRED", "PERMISSIBLE", "PROHIBITED", "CONFLICTED"}:
+                    duty_errors.append(f"Deontological assessment for {action_id} has invalid verdict")
+                if relation not in {"SATISFIES", "CONSISTENT", "VIOLATES", "CONFLICTS", "UNCERTAIN"}:
+                    duty_errors.append(f"Deontological assessment for {action_id} has invalid relation")
+                if norm_kind not in {
+                    "DUTY", "RIGHT", "AUTONOMY", "UNIVERSAL_LAW",
+                    "RESPECT_PERSONS", "OTHER", "UNKNOWN",
+                }:
+                    duty_errors.append(f"Deontological assessment for {action_id} has invalid norm kind")
+                if basis not in {"ACTION_GRAPH", "SCENARIO", "FRAMEWORK_ONLY", "UNKNOWN"}:
+                    duty_errors.append(f"Deontological assessment for {action_id} has invalid evidence basis")
+                if any(_semantic_word_count(value) < 1 for value in (norm, bearer, party, reason)):
+                    duty_errors.append(f"Deontological assessment for {action_id} lacks required terms")
+                map_verdict = framework_action_map.get(action, "").partition(":")[0].upper()
+                if map_verdict and verdict and map_verdict != verdict:
+                    duty_errors.append(
+                        f"Deontological assessment for {action_id} conflicts with its framework map"
+                    )
+                assessments.append({
+                    "action_id": action_id,
+                    "verdict": verdict,
+                    "norm_kind": norm_kind,
+                    "norm": norm,
+                    "relation": relation,
+                    "duty_bearer": bearer,
+                    "protected_party": party,
+                    "competing_norm": competing or "NONE",
+                    "evidence_basis": basis,
+                    "reason": reason,
+                })
+        framework_validation_errors.extend(duty_errors)
+        if duty_errors:
+            framework_grounding_penalty = max(framework_grounding_penalty, 0.35)
+        else:
+            deontological_ledger_proposal = {"assessments": assessments}
 
     recipient_facts = scenario_facts.get("survival_chance", {})
     if isinstance(recipient_facts, dict) and recipient_facts:
@@ -310,18 +915,38 @@ def _candidate_from_data(
     if evidence_basis not in {"STATED_FACTS", "FRAMEWORK_ONLY", "UNSTATED_FACTS"}:
         raise ValueError("evidence basis must be STATED_FACTS, FRAMEWORK_ONLY, or UNSTATED_FACTS")
     speculative_claim = " ".join(str(data.get("x", "")).split())
+    claim_direction_damped = False
+    calibration_tier = "NOT_APPLICABLE"
+    calibration_reason = ""
+    calibration_retention = 1.0
+    calibration_epistemic_cap = SPECULATIVE_EPISTEMIC_CAP
     if evidence_basis == "UNSTATED_FACTS":
         if len(speculative_claim.split()) < 3:
             raise ValueError("unstated factual reasoning must identify the speculative claim")
-        if unresolved == "NONE":
-            unresolved = "VERIFY_FACTS"
-        # Speculation may identify a useful branch, but cannot manufacture a
-        # confident base-case vote. Preserve more of its direction than before
-        # while still pulling it toward a tie and requiring factual review.
-        id_scores = {
-            action_id: 0.5 + (score - 0.5) * SPECULATIVE_DIRECTION_RETENTION
-            for action_id, score in id_scores.items()
-        }
+        if evidence_calibration is not None:
+            calibration_tier = evidence_calibration.tier
+            calibration_reason = evidence_calibration.reason
+            calibration_retention = evidence_calibration.direction_retention
+            calibration_epistemic_cap = evidence_calibration.epistemic_cap
+        else:
+            calibration_tier = "DECISION_CRITICAL"
+            calibration_retention = 0.55
+        if calibration_tier == "ENTAILED":
+            # The separate audit found that the purported speculation is part
+            # of the stated causal setup. Do not retain a verification marker
+            # that arose solely from that misclassification.
+            evidence_basis = "STATED_FACTS"
+            if unresolved == "VERIFY_FACTS":
+                unresolved = "NONE"
+        damping = apply_symmetric_claim_damping(
+            id_scores,
+            evidence_basis,
+            unresolved,
+            retention=calibration_retention,
+        )
+        id_scores = damping.scores
+        unresolved = damping.unresolved
+        claim_direction_damped = damping.applied
         scores = {
             action: id_scores[action_id]
             for action_id, action in zip(action_ids, actions)
@@ -347,6 +972,38 @@ def _candidate_from_data(
     )
     factual_threshold = " ".join(str(data.get("ft", "NONE")).split()) or "NONE"
     normative_threshold = " ".join(str(data.get("nt", "NONE")).split()) or "NONE"
+    raw_graph_update = data.get(
+        "gu", {"operation": "NONE", "from_action": "NONE", "to_action": "NONE", "clauses": []}
+    )
+    graph_update: dict[str, Any] = (
+        dict(raw_graph_update) if isinstance(raw_graph_update, dict)
+        else {"operation": "INVALID", "clauses": []}
+    )
+    # Keep graph references as run-local canonical IDs until the transaction
+    # layer commits them. Human-readable labels are presentation metadata and
+    # must not become graph identity or contaminate permutation tests.
+    for field_name in ("from_action", "to_action"):
+        graph_update[field_name] = str(
+            graph_update.get(field_name, "NONE")
+        ).strip().upper()
+    graph_clauses = graph_update.get("clauses", [])
+    if isinstance(graph_clauses, list):
+        for clause in graph_clauses:
+            if isinstance(clause, dict):
+                clause["affected_action"] = str(
+                    clause.get("affected_action", "NONE")
+                ).strip().upper()
+    raw_ev = data.get("ev", {})
+    expected_values = {
+        actions[action_ids.index(action_id)]: {
+            "value": float(value.get("value", 0.0)),
+            "unit": str(value.get("unit", "")).upper(),
+            "direction": str(value.get("direction", "")).upper(),
+            "grounded": bool(value.get("grounded", False)),
+        }
+        for action_id, value in raw_ev.items()
+        if action_id in action_ids and isinstance(value, dict)
+    } if isinstance(raw_ev, dict) else {}
     if _semantic_word_count(decision_rule) < 2:
         raise ValueError("decision rule must state how the actions are ranked")
     if factual_threshold.casefold() != "none" and _semantic_word_count(factual_threshold) < 3:
@@ -359,16 +1016,59 @@ def _candidate_from_data(
     review_response = "NOT_TESTED"
     review_justification = ""
     revised_reversal = ""
+    review_valid = True
+    review_error = ""
     if broadcast.constraint == "REVERSAL_AUDIT":
         review_response = str(data.get("rr", "")).strip().upper()
         review_justification = " ".join(str(data.get("rj", "")).split())
         revised_reversal = " ".join(str(data.get("rv", "")).split())
         if review_response not in {"ACCEPT", "REVISE", "REJECT"}:
-            raise ValueError("reversal review must ACCEPT, REVISE, or REJECT the challenge")
-        if len(review_justification.split()) < 3:
-            raise ValueError("reversal review must justify its response")
-        if review_response == "REVISE" and len(revised_reversal.split()) < 3:
-            raise ValueError("a revised reversal condition is required when revising")
+            review_error = "reversal review did not classify the challenge"
+        elif text_error := structured_text_error(review_justification):
+            review_error = f"reversal review justification {text_error}"
+        elif review_response == "REVISE" and (
+            text_error := structured_text_error(revised_reversal)
+        ):
+            review_error = f"revised reversal condition {text_error}"
+        if review_error:
+            # A malformed audit sub-answer must not erase an otherwise valid
+            # ethical evaluation. Preserve the vote, but exclude this delegate
+            # from the audit tally and expose the bounded failure in the trace.
+            review_valid = False
+            review_response = "NOT_TESTED"
+            revised_reversal = ""
+    visibility_response = "NOT_TESTED"
+    visibility_justification = ""
+    visibility_harm_revision = "NONE"
+    visibility_magnitude_status = "NOT_APPLICABLE"
+    visibility_magnitude_overreach = False
+    if broadcast.constraint == "VISIBILITY_AUDIT":
+        visibility_response = str(data.get("vp", "")).strip().upper()
+        visibility_justification = " ".join(str(data.get("vj", "")).split())
+        visibility_harm_revision = str(data.get("vh", "")).strip().upper()
+        visibility_magnitude_status = str(data.get("vm", "UNKNOWN")).strip().upper()
+        if visibility_response not in {"ACCEPT", "QUALIFY", "REJECT"}:
+            raise ValueError("visibility response must ACCEPT, QUALIFY, or REJECT")
+        if len(visibility_justification.split()) < 3:
+            raise ValueError("visibility response must explain its reasoning")
+        if visibility_harm_revision not in {"UPWARD", "DOWNWARD", "UNCHANGED"}:
+            raise ValueError("visibility response must state the harm revision direction")
+        if visibility_magnitude_status not in {"UNKNOWN", "GROUNDED_BOUNDED"}:
+            visibility_magnitude_status = "UNKNOWN"
+        magnitude_language = re.search(
+            r"\b(?:far below|unlikely to|cannot (?:reach|approach|exceed)|"
+            r"at most|no more than|plausible (?:range|maximum)|orders? of magnitude)\b",
+            visibility_justification,
+            re.IGNORECASE,
+        )
+        visibility_magnitude_overreach = bool(
+            visibility_magnitude_status == "UNKNOWN" and magnitude_language
+        )
+        if visibility_magnitude_overreach:
+            visibility_justification = (
+                "The stated observability gap revises harm direction "
+                f"{visibility_harm_revision.casefold()}; its magnitude remains unknown."
+            )
     landscape_search_complete = bool(
         len(landscape_cases) == len(actions)
         and all(_semantic_word_count(reason) >= 2 for reason in landscape_cases.values())
@@ -383,6 +1083,27 @@ def _candidate_from_data(
     assumption_status = prior_assumption_status
     unsupported_assumption = prior_unsupported_assumption
     reversal_condition = prior_reversal_condition
+    if (
+        broadcast.constraint != "CONSENSUS_AUDIT"
+        and assumption_status == "NOT_AUDITED"
+        and baseline_status in {
+            "CONDITIONAL", "UNDERDETERMINED", "NORMATIVELY_CONTESTED",
+        }
+    ):
+        # Source testimony uncertainty is part of the specialist's initial
+        # semantic state. It cannot disappear merely because the compact
+        # delegate schema requires a provisional ranking.
+        assumption_status = baseline_status
+        unsupported_assumption = baseline_condition or "source testimony left a decisive comparison unresolved"
+        reversal_condition = baseline_condition
+    if (
+        specialist == "utilitarian"
+        and utilitarian_depends_on_unknown
+        and broadcast.constraint != "CONSENSUS_AUDIT"
+    ):
+        assumption_status = "UNDERDETERMINED"
+        unsupported_assumption = utilitarian_missing_comparison
+        reversal_condition = utilitarian_missing_comparison
     if broadcast.constraint == "CONSENSUS_AUDIT":
         assumption_status = str(data.get("d", "")).strip().upper()
         unsupported_assumption = " ".join(str(data.get("a", "")).split())
@@ -395,10 +1116,16 @@ def _candidate_from_data(
             raise ValueError("audit must identify a plausible reversal condition")
         if assumption_status != "SUPPORTED" and unresolved == "NONE":
             raise ValueError("conditional or underdetermined audits must preserve uncertainty")
-    elif assumption_status in {"CONDITIONAL", "UNDERDETERMINED"} and unresolved == "NONE":
+    elif assumption_status in {
+        "CONDITIONAL", "UNDERDETERMINED", "NORMATIVELY_CONTESTED",
+    } and unresolved == "NONE":
         # A later ordinary or hypothetical cycle cannot erase missing real-world
         # facts merely by omitting the marker.
-        unresolved = "VERIFY_FACTS"
+        unresolved = (
+            "RESOLVE_NORMATIVE_TENSION"
+            if assumption_status == "NORMATIVELY_CONTESTED"
+            else "VERIFY_FACTS"
+        )
 
     boundary_position = "NOT_TESTED"
     decisive_axis = ""
@@ -435,6 +1162,48 @@ def _candidate_from_data(
         landscape_validation_errors.append(
             "decision rule supplies no factual or normative reversal threshold"
         )
+    if landscape_verifier is not None and landscape_search_complete:
+        grounding_cases = dict(landscape_cases)
+        grounding_action = actions[action_ids.index(recommended_id)]
+        if grounding_action:
+            grounding_cases[grounding_action] = " ".join(
+                part for part in (
+                    grounding_cases.get(grounding_action, ""),
+                    f"Rationale: {rationale}",
+                ) if part
+            )
+        landscape_validation_errors = landscape_verifier(
+            scenario_text, actions, grounding_cases, landscape_validation_errors
+        )
+    comparative_grounding_errors = [
+        error for error in landscape_validation_errors
+        if "unverified comparative beneficiary claim" in error
+    ]
+    if comparative_grounding_errors and evidence_basis != "UNSTATED_FACTS":
+        # Preserve the normative vote while removing confidence supplied by an
+        # unsupported action-to-beneficiary edge. This is the same symmetric
+        # uncertainty treatment used for delegate-disclosed speculation.
+        evidence_basis = "UNSTATED_FACTS"
+        speculative_claim = comparative_grounding_errors[0][:180]
+        calibration_tier = "DECISION_CRITICAL"
+        calibration_reason = (
+            "No committed scenario edge establishes the claimed comparative treatment."
+        )
+        calibration_retention = 0.55
+        calibration_epistemic_cap = SPECULATIVE_EPISTEMIC_CAP
+        damping = apply_symmetric_claim_damping(
+            id_scores,
+            evidence_basis,
+            unresolved,
+            retention=calibration_retention,
+        )
+        id_scores = damping.scores
+        unresolved = damping.unresolved
+        claim_direction_damped = damping.applied
+        scores = {
+            action: id_scores[action_id]
+            for action_id, action in zip(action_ids, actions)
+        }
     landscape_semantic_valid = not landscape_validation_errors
 
     audit_certainty = {
@@ -442,8 +1211,9 @@ def _candidate_from_data(
         "SUPPORTED": 1.0,
         "CONDITIONAL": 0.60,
         "UNDERDETERMINED": 0.35,
+        "NORMATIVELY_CONTESTED": 0.65,
     }[assumption_status]
-    if audit_certainty < 1.0:
+    if audit_certainty < 1.0 and not claim_direction_damped:
         id_scores = {
             action_id: 0.5 + (score - 0.5) * audit_certainty
             for action_id, score in id_scores.items()
@@ -452,6 +1222,19 @@ def _candidate_from_data(
             action: id_scores[action_id]
             for action_id, action in zip(action_ids, actions)
         }
+    if framework_grounding_penalty > 0.0:
+        retention = 1.0 - framework_grounding_penalty
+        id_scores = {
+            action_id: 0.5 + (score - 0.5) * retention
+            for action_id, score in id_scores.items()
+        }
+        scores = {
+            action: id_scores[action_id]
+            for action_id, action in zip(action_ids, actions)
+        }
+    # Claim damping and consensus-audit damping are alternative calibrations of
+    # the same missing evidential support. Multiplying them would charge the
+    # same uncertainty twice and can erase a delegate's substantive ranking.
 
     ordered_scores = sorted(id_scores.values(), reverse=True)
     score_gap = ordered_scores[0] - ordered_scores[1] if len(ordered_scores) > 1 else ordered_scores[0]
@@ -466,15 +1249,19 @@ def _candidate_from_data(
         data.get("z", default_epistemic), "epistemic confidence"
     )
     if evidence_basis == "UNSTATED_FACTS":
-        epistemic_confidence = min(epistemic_confidence, SPECULATIVE_EPISTEMIC_CAP)
+        epistemic_confidence = min(epistemic_confidence, calibration_epistemic_cap)
     if unresolved != "NONE":
         epistemic_confidence = min(epistemic_confidence, 0.55)
     if assumption_status == "CONDITIONAL":
         epistemic_confidence = min(epistemic_confidence, 0.60)
     elif assumption_status == "UNDERDETERMINED":
         epistemic_confidence = min(epistemic_confidence, 0.35)
+    elif assumption_status == "NORMATIVELY_CONTESTED":
+        epistemic_confidence = min(epistemic_confidence, 0.60)
     if landscape_search_attempted and not landscape_semantic_valid:
         epistemic_confidence = min(epistemic_confidence, 0.60)
+    if framework_grounding_penalty > 0.0:
+        epistemic_confidence = min(epistemic_confidence, 0.55)
     surprise = 0.7 if alignment == "RECONSIDERS" else (0.3 if alignment == "UNCLEAR" else 0.0)
     previous_id = (
         previous_recommendation_id
@@ -497,15 +1284,32 @@ def _candidate_from_data(
     conformity_penalty = 0.0
     review_constraints = {
         "SYNTHESIS_REVIEW", "CONTINGENCY_REVIEW", "PLANNING_REVIEW",
-        "CONSENSUS_AUDIT", "PROBLEM_REFORMULATION",
+        "CONSENSUS_AUDIT", "PROBLEM_REFORMULATION", "VISIBILITY_AUDIT",
     }
     if moved_to_favored and broadcast.constraint not in review_constraints:
         conformity_penalty = 0.65
         epistemic_confidence *= 1.0 - conformity_penalty
         surprise = max(surprise, 0.8)
+    # Compare delegate-authored score gaps, not policy-effective gaps after
+    # claim damping or an uncertainty audit. Otherwise lifting a temporary
+    # system contraction looks like an unexplained change of conviction.
+    current_context = (
+        "BASE"
+        if broadcast.constraint not in {
+            "VISIBILITY_AUDIT", "CONSENSUS_AUDIT", "REVERSAL_AUDIT",
+            "PROBLEM_REFORMULATION", "PLANNING_REVIEW", "CONTINGENCY_REVIEW",
+            "SYNTHESIS_REVIEW",
+        }
+        else broadcast.constraint
+    )
+    comparable_context = bool(
+        not previous_context
+        or previous_context == current_context
+        or (previous_context == "BASE" and current_context == "BASE")
+    )
     confidence_drift = (
-        preference_strength - previous_confidence
-        if previous_confidence is not None and not position_changed
+        reported_preference_strength - previous_confidence
+        if previous_confidence is not None and not position_changed and comparable_context
         else 0.0
     )
     recommended_is_favored = bool(
@@ -514,6 +1318,7 @@ def _candidate_from_data(
     drift_favors_salient_action = bool(
         previous_confidence is not None
         and not position_changed
+        and comparable_context
         and (
             (recommended_is_favored and confidence_drift > 0.10)
             or (not recommended_is_favored and confidence_drift < -0.10)
@@ -535,6 +1340,68 @@ def _candidate_from_data(
         # shift is trusted in aggregation.
         epistemic_confidence *= 1.0 - confidence_drift_penalty
 
+    # Passive measurement layer: malformed or omitted measurements fall back to
+    # transparent derivations and never invalidate the delegate's ethical vote.
+    selection_status = str(data.get("ss", "SELECTED")).strip().upper()
+    if selection_status not in {"SELECTED", "PROVISIONAL", "UNSELECTED"}:
+        selection_status = "SELECTED"
+    raw_admissibility = data.get("am", {})
+    action_admissibility = {}
+    for action_id, action in zip(action_ids, actions):
+        emitted = (
+            str(raw_admissibility.get(action_id, "")).strip().upper()
+            if isinstance(raw_admissibility, dict) else ""
+        )
+        if emitted not in {"REQUIRED", "PERMISSIBLE", "REJECTED", "UNASSESSED"}:
+            emitted = "PERMISSIBLE" if id_scores[action_id] >= 0.5 else "REJECTED"
+        action_admissibility[action] = emitted
+    comparison_complete = bool(data.get("cc", True))
+    evidence_sufficient = bool(data.get("esa", unresolved == "NONE"))
+    if (
+        broadcast.constraint == "OPEN_DELIBERATION"
+        and baseline_status in {
+            "CONDITIONAL", "UNDERDETERMINED", "NORMATIVELY_CONTESTED",
+        }
+    ):
+        selection_status = "PROVISIONAL"
+        if baseline_status != "NORMATIVELY_CONTESTED":
+            evidence_sufficient = False
+        comparison_complete = False
+    if (
+        broadcast.constraint == "OPEN_DELIBERATION"
+        and specialist == "utilitarian"
+        and utilitarian_depends_on_unknown
+    ):
+        selection_status = "PROVISIONAL"
+        evidence_sufficient = False
+        comparison_complete = False
+    interim_id = str(data.get("ia", recommended_id)).strip().upper()
+    interim_action = actions[action_ids.index(interim_id)] if interim_id in action_ids else ""
+    proposition_response = str(data.get("wp", "NOT_APPLICABLE")).strip().upper()
+    if proposition_response not in {"NOT_APPLICABLE", "ACCEPT", "QUALIFY", "REJECT"}:
+        proposition_response = "NOT_APPLICABLE"
+    reasoning_effect = str(data.get("we", "NONE")).strip().upper()
+    if reasoning_effect not in {"NONE", "FACTUAL", "NORMATIVE", "BOTH"}:
+        reasoning_effect = "NONE"
+    framework_application = " ".join(str(data.get("fa", "")).split())
+    framework_retained = bool(data.get("fr", True))
+    if framework_grounding_penalty > 0.0:
+        framework_retained = False
+    broadcast_dependence = str(data.get("bd", "NONE")).strip().upper()
+    if broadcast_dependence not in {"NONE", "LOW", "MEDIUM", "HIGH"}:
+        broadcast_dependence = "NONE"
+    proposition_present = broadcast.constraint != "OPEN_DELIBERATION"
+    if framework_grounding_penalty > 0.0:
+        retention_status = "LOST"
+    elif not proposition_present:
+        retention_status = "NOT_MEASURED"
+    elif not framework_retained:
+        retention_status = "LOST"
+    elif _semantic_word_count(framework_application) >= 2:
+        retention_status = "PRESERVED"
+    else:
+        retention_status = "UNCLEAR"
+
     return CandidateChunk(
         specialist=specialist,
         constraint=constraint,
@@ -545,7 +1412,12 @@ def _candidate_from_data(
         unresolved=unresolved,
         rationale=rationale,
         recommended_action=recommended_action,
-        baseline_action=(actions[action_ids.index(baseline_id)] if baseline_id != "NONE" else ""),
+        baseline_action=(
+            actions[action_ids.index(baseline_reference_id)]
+            if baseline_reference_id != "NONE" else ""
+        ),
+        baseline_status=baseline_status,
+        baseline_condition=baseline_condition,
         testimony_alignment=alignment,
         previous_action=(actions[action_ids.index(previous_id)] if previous_id else ""),
         position_changed=position_changed,
@@ -562,6 +1434,9 @@ def _candidate_from_data(
         boundary_switch_condition=boundary_switch_condition,
         evidence_basis=evidence_basis,
         speculative_claim=speculative_claim,
+        evidence_calibration_tier=calibration_tier,
+        evidence_calibration_reason=calibration_reason,
+        evidence_direction_retention=calibration_retention,
         landscape_cases=landscape_cases,
         landscape_decisive_axis=landscape_axis,
         landscape_tiebreaker=landscape_tiebreaker,
@@ -571,6 +1446,7 @@ def _candidate_from_data(
         landscape_semantic_valid=landscape_semantic_valid,
         landscape_validation_errors=landscape_validation_errors,
         preference_strength=preference_strength,
+        reported_preference_strength=reported_preference_strength,
         epistemic_confidence=epistemic_confidence,
         previous_preference_strength=(previous_confidence or 0.0),
         preference_drift=confidence_drift,
@@ -581,6 +1457,46 @@ def _candidate_from_data(
         reversal_review_response=review_response,
         reversal_review_justification=review_justification,
         revised_reversal_condition=revised_reversal,
+        reversal_review_valid=review_valid,
+        reversal_review_error=review_error,
+        contingency_choice=contingency_choice,
+        contingency_justification=contingency_justification,
+        contingency_response_valid=contingency_valid,
+        contingency_response_error=contingency_error,
+        graph_update_proposal=graph_update,
+        expected_value_estimates=expected_values,
+        visibility_response=visibility_response,
+        visibility_justification=visibility_justification,
+        visibility_harm_revision=visibility_harm_revision,
+        visibility_magnitude_status=visibility_magnitude_status,
+        visibility_magnitude_overreach=visibility_magnitude_overreach,
+        selection_status=selection_status,
+        action_admissibility=action_admissibility,
+        comparison_complete=comparison_complete,
+        evidence_sufficient_for_action=evidence_sufficient,
+        interim_action=interim_action,
+        workspace_proposition_response=proposition_response,
+        workspace_reasoning_effect=reasoning_effect,
+        framework_application=framework_application,
+        framework_constraint_retained=framework_retained,
+        self_reported_broadcast_dependence=broadcast_dependence,
+        framework_retention_status=retention_status,
+        framework_action_map=framework_action_map,
+        framework_numerical_role=framework_numerical_role,
+        framework_numerical_justification=framework_numerical_justification,
+        framework_grounding_penalty=framework_grounding_penalty,
+        framework_validation_errors=framework_validation_errors,
+        utilitarian_consequence_table=utilitarian_consequence_table,
+        utilitarian_decision_depends_on_unknown=utilitarian_depends_on_unknown,
+        utilitarian_missing_comparison=utilitarian_missing_comparison,
+        utilitarian_ledger_proposal=utilitarian_ledger_proposal,
+        rawls_position_proposal=rawls_position_proposal,
+        deontological_ledger_proposal=deontological_ledger_proposal,
+        virtue_character_proposal=virtue_character_proposal,
+        care_relational_map=care_relational_map,
+        care_numerical_role=care_numerical_role,
+        care_numerical_justification=care_numerical_justification,
+        care_grounding_penalty=care_grounding_penalty,
     )
 
 
@@ -605,14 +1521,341 @@ class CompactLocalSpecialist:
     llm: Any
     testimony: str = ""
     baseline_action_id: str = "NONE"
+    baseline_status: str = "UNAVAILABLE"
+    baseline_provisional_action_id: str = "NONE"
+    baseline_condition: str = ""
+    baseline_framework_commitments: dict[str, str] = field(default_factory=dict)
+    baseline_numerical_role: str = "UNASSESSED"
+    source_action_legend: dict[str, str] | None = None
     scenario_facts: dict[str, Any] | None = None
     max_tokens: int = 128
     previous_recommendation_id: str = ""
     previous_confidence: float | None = None
+    previous_context: str = ""
     assumption_status: str = "NOT_AUDITED"
     unsupported_assumption: str = ""
     reversal_condition: str = ""
     memory_profile: dict[str, Any] | None = None
+    evidence_calibrator: Any | None = None
+    landscape_verifier: Any | None = None
+    epistemic_commitments: list[str] = field(default_factory=list)
+    # Populated only after a Rawls ledger transaction commits. Generated prose
+    # never becomes the delegate's recurrent principle state by itself.
+    previous_framework_state: dict[str, Any] = field(default_factory=dict)
+
+    def _audit_framework_state_change(
+        self, candidate: CandidateChunk, broadcast: WorkspaceBroadcast,
+    ) -> None:
+        """Keep recurrent framework state stable unless a typed review warrants change."""
+        if (
+            self.name not in {"rawlsian", "virtue"}
+            or not self.previous_framework_state
+        ):
+            return
+        previous = self.previous_framework_state
+        current = (
+            candidate.rawls_position_proposal
+            if self.name == "rawlsian" else candidate.virtue_character_proposal
+        )
+        if not current:
+            return
+        if self.name == "rawlsian":
+            previous_positions = {
+                str(item.get("canonical_action_id", item.get("action_id", ""))): (
+                    str(item.get("proposed_effect", item.get("effect", ""))),
+                    str(item.get("dimension", "")),
+                )
+                for item in previous.get("positions", [])
+                if isinstance(item, dict)
+            }
+            current_positions = {
+                str(item.get("action_id", "")): (
+                    str(item.get("effect", "")), str(item.get("dimension", "")),
+                )
+                for item in current.get("positions", [])
+                if isinstance(item, dict)
+            }
+            auxiliary_changed = (
+                dict(previous.get("liberty_status", {}))
+                != dict(current.get("liberty_status", {}))
+            )
+        else:
+            previous_positions = {
+                str(item.get("action_id", "")): (
+                    str(item.get("verdict", "")), str(item.get("actor_role", "")),
+                )
+                for item in previous.get("assessments", [])
+                if isinstance(item, dict)
+            }
+            current_positions = {
+                str(item.get("action_id", "")): (
+                    str(item.get("verdict", "")), str(item.get("actor_role", "")),
+                )
+                for item in current.get("assessments", [])
+                if isinstance(item, dict)
+            }
+            auxiliary_changed = False
+        same_action_set = bool(
+            previous_positions and set(previous_positions) == set(current_positions)
+        )
+        changed = same_action_set and (
+            str(previous.get("ranking_basis", ""))
+            != str(current.get("ranking_basis", ""))
+            or auxiliary_changed
+            or previous_positions != current_positions
+        )
+        if not changed:
+            return
+
+        change_details: list[str] = []
+        previous_basis = str(previous.get("ranking_basis", ""))
+        current_basis = str(current.get("ranking_basis", ""))
+        if previous_basis != current_basis:
+            change_details.append(
+                f"ranking basis {previous_basis or 'NONE'} -> {current_basis or 'NONE'}"
+            )
+        for action_id in sorted(set(previous_positions) & set(current_positions)):
+            if previous_positions[action_id] != current_positions[action_id]:
+                old = "/".join(previous_positions[action_id])
+                new = "/".join(current_positions[action_id])
+                change_details.append(f"{action_id} {old} -> {new}")
+        if self.name == "rawlsian" and auxiliary_changed:
+            change_details.append("basic-liberty comparison changed")
+        change_summary = "; ".join(change_details[:3]) or "typed principle state changed"
+
+        explanation = " ".join(
+            (candidate.change_justification, candidate.framework_application)
+        ).strip()
+        review_supplied_reason = bool(
+            broadcast.constraint != "OPEN_DELIBERATION"
+            and candidate.workspace_reasoning_effect in {"FACTUAL", "NORMATIVE", "BOTH"}
+            and _semantic_word_count(explanation) >= 4
+            and _FRAMEWORK_CONSTRUCT_MARKERS[self.name].search(
+                " ".join((explanation, candidate.rationale))
+            )
+        )
+        if review_supplied_reason:
+            return
+
+        framework_name = "Rawlsian" if self.name == "rawlsian" else "Virtue"
+        error = (
+            f"{framework_name} principle state changed without a framework-relevant "
+            f"workspace reason ({change_summary}); previous committed ledger preserved"
+        )
+        if error not in candidate.framework_validation_errors:
+            candidate.framework_validation_errors.append(error)
+        if candidate.framework_grounding_penalty < 0.35:
+            candidate.action_scores = {
+                action: 0.5 + (score - 0.5) * 0.65
+                for action, score in candidate.action_scores.items()
+            }
+            ordered = sorted(candidate.action_scores.values(), reverse=True)
+            candidate.preference_strength = (
+                ordered[0] - ordered[1] if len(ordered) > 1 else 0.0
+            )
+            candidate.friction = candidate.preference_strength
+        candidate.framework_grounding_penalty = max(
+            candidate.framework_grounding_penalty, 0.35
+        )
+        candidate.epistemic_confidence = min(candidate.epistemic_confidence, 0.55)
+        candidate.confidence = candidate.epistemic_confidence
+        # The proposed update failed, but the prior committed constraint remains
+        # authoritative. Keep those two facts separate so trace health does not
+        # mistake a successful transactional rejection for framework loss.
+        candidate.framework_constraint_retained = True
+        candidate.framework_retention_status = "UPDATE_REJECTED"
+        # Do not let an unexplained principle transition overwrite authoritative
+        # graph state. The vote remains visible but is epistemically damped.
+        if self.name == "rawlsian":
+            candidate.rawls_position_proposal = {}
+        else:
+            candidate.virtue_character_proposal = {}
+
+    def _evaluate_contingency(
+        self,
+        scenario: str,
+        actions: Sequence[str],
+        broadcast: WorkspaceBroadcast,
+    ) -> CandidateChunk:
+        """Answer a synthesis-failure branch with a deliberately small schema."""
+        action_ids = [f"A{index}" for index in range(len(actions))]
+        if len(actions) != 2 or tuple(actions) != broadcast.contingency_fallback_actions:
+            return _invalid_candidate(
+                self.name, actions,
+                "contingency evaluator requires exactly the two typed fallback actions",
+            )
+        allowed_constraints = sorted(FRAMEWORK_CONSTRAINTS[self.name])
+        schema = {
+            "type": "object",
+            "properties": {
+                "scores": {
+                    "type": "object",
+                    "properties": {
+                        action_id: {"type": "number", "minimum": 0, "maximum": 1}
+                        for action_id in action_ids
+                    },
+                    "required": action_ids,
+                    "additionalProperties": False,
+                },
+                "cr": {"type": "string", "enum": action_ids},
+                "c": {"type": "string", "enum": allowed_constraints},
+                "u": {"type": "string", "enum": sorted(ALLOWED_UNRESOLVED)},
+                "cj": {"type": "string", "minLength": 12, "maxLength": 160},
+                "z": {"type": "number", "minimum": 0, "maximum": 1},
+                "fr": {"type": "boolean"},
+            },
+            "required": ["scores", "cr", "c", "u", "cj", "z", "fr"],
+            "additionalProperties": False,
+        }
+        legend = {action_id: action for action_id, action in zip(action_ids, actions)}
+        prompt = f"""[INST]
+You are the {self.name} ethical specialist. Framework: {FRAMEWORK_ROLES[self.name]}
+Original testimony: {_compact_testimony(self.testimony, 400) or 'NONE'}
+Scenario: {' '.join(scenario.split())[:600]}
+Failed synthesis: {broadcast.contingency_synthesis_action}
+Required predicate: {broadcast.contingency_predicate}
+Assume the required predicate is FALSE: {broadcast.contingency_failure_condition}
+Fallbacks: {json.dumps(legend)}
+The synthesis is unavailable. Compare ONLY the two fallbacks under your framework.
+Return compact JSON: scores for both IDs; cr=the higher-scored fallback; c=your
+framework constraint; u=remaining uncertainty or NONE; cj=one short reason that
+explicitly applies the assumed failure; z=epistemic confidence; fr=true only if your
+framework remains operative. Do not restate the base case without applying failure.
+[/INST]"""
+
+        def parse(raw_text: str) -> CandidateChunk:
+            data = _extract_json(raw_text)
+            raw_scores = data.get("scores")
+            if not isinstance(raw_scores, dict) or set(raw_scores) != set(action_ids):
+                raise ValueError("fallback scores must contain exactly A0 and A1")
+            id_scores = {
+                action_id: _strict_number(raw_scores[action_id], f"scores.{action_id}")
+                for action_id in action_ids
+            }
+            choice_id = str(data.get("cr", "")).strip().upper()
+            if choice_id not in action_ids:
+                raise ValueError("contingency choice must be a fallback ID")
+            if id_scores[choice_id] != max(id_scores.values()):
+                raise ValueError("contingency choice must have the highest fallback score")
+            constraint = str(data.get("c", "")).strip().upper().replace(" ", "_")
+            if constraint not in FRAMEWORK_CONSTRAINTS[self.name]:
+                raise ValueError("contingency constraint is outside the assigned framework")
+            unresolved = str(data.get("u", "NONE")).strip().upper().replace(" ", "_")
+            if unresolved not in ALLOWED_UNRESOLVED:
+                raise ValueError("contingency unresolved state is invalid")
+            justification = " ".join(str(data.get("cj", "")).split())
+            if len(justification.split()) < 3:
+                raise ValueError("contingency response did not explain the conditional choice")
+            epistemic = _strict_number(data.get("z"), "contingency epistemic confidence")
+            framework_retained = data.get("fr") is True
+            scores = {
+                action: id_scores[action_id]
+                for action_id, action in zip(action_ids, actions)
+            }
+            ordered = sorted(id_scores.values(), reverse=True)
+            preference = ordered[0] - ordered[1]
+            choice = actions[action_ids.index(choice_id)]
+            baseline_id = self.baseline_action_id if self.baseline_action_id in action_ids else "NONE"
+            baseline_status = str(self.baseline_status).strip().upper()
+            if baseline_status == "UNAVAILABLE" and baseline_id != "NONE":
+                baseline_status = "DIRECT"
+            provisional_id = (
+                self.baseline_provisional_action_id
+                if self.baseline_provisional_action_id in action_ids else "NONE"
+            )
+            baseline_reference_id = (
+                baseline_id if baseline_status == "DIRECT" else provisional_id
+            )
+            previous_id = (
+                self.previous_recommendation_id
+                if self.previous_recommendation_id in action_ids else ""
+            )
+            alignment = (
+                "UNRESOLVED" if baseline_status in {
+                    "UNDERDETERMINED", "NORMATIVELY_CONTESTED",
+                }
+                else "UNCLEAR" if baseline_reference_id == "NONE"
+                else "SUPPORTS" if choice_id == baseline_reference_id else "RECONSIDERS"
+            )
+            admissibility = {
+                action: (
+                    "PERMISSIBLE"
+                    if action_id == choice_id or id_scores[action_id] >= 0.5
+                    else "REJECTED"
+                )
+                for action_id, action in zip(action_ids, actions)
+            }
+            return CandidateChunk(
+                specialist=self.name,
+                constraint=constraint,
+                action_scores=scores,
+                surprise=0.7 if alignment == "RECONSIDERS" else 0.0,
+                friction=preference,
+                confidence=epistemic,
+                unresolved=unresolved,
+                rationale=justification,
+                recommended_action=choice,
+                baseline_action=(
+                    actions[action_ids.index(baseline_reference_id)]
+                    if baseline_reference_id != "NONE" else ""
+                ),
+                baseline_status=baseline_status,
+                baseline_condition=self.baseline_condition,
+                testimony_alignment=alignment,
+                previous_action=(actions[action_ids.index(previous_id)] if previous_id else ""),
+                position_changed=bool(previous_id and previous_id != choice_id),
+                change_justification=justification,
+                preference_strength=preference,
+                reported_preference_strength=preference,
+                epistemic_confidence=epistemic,
+                decision_rule=(
+                    f"If {broadcast.contingency_failure_condition}, prefer {choice}"
+                ),
+                contingency_choice=choice,
+                contingency_justification=justification,
+                contingency_response_valid=True,
+                selection_status="PROVISIONAL" if unresolved != "NONE" else "SELECTED",
+                action_admissibility=admissibility,
+                comparison_complete=True,
+                evidence_sufficient_for_action=(unresolved == "NONE"),
+                interim_action=choice,
+                workspace_proposition_response="ACCEPT",
+                workspace_reasoning_effect="FACTUAL",
+                framework_application=justification,
+                framework_constraint_retained=framework_retained,
+                framework_retention_status=("PRESERVED" if framework_retained else "LOST"),
+            )
+
+        try:
+            output = _call_json_llm(
+                self.llm, prompt, max_tokens=max(80, min(self.max_tokens, 112)),
+                temperature=0.0, schema=schema,
+            )
+            raw = output["choices"][0]["text"] if isinstance(output, dict) else str(output)
+            return parse(raw)
+        except (ValueError, json.JSONDecodeError) as first_error:
+            repair_prompt = f"""[INST]
+Repair this contingency answer as JSON only: {raw[:300] if 'raw' in locals() else ''}
+Use only fallback IDs A0 and A1. cr must have the higher score. cj must explain
+the choice assuming this failure is true: {broadcast.contingency_failure_condition}
+Required: scores, cr, c, u, cj, z, fr. No other fields.
+[/INST]"""
+            try:
+                repaired = _call_json_llm(
+                    self.llm, repair_prompt,
+                    max_tokens=max(80, min(self.max_tokens, 112)),
+                    temperature=0.0, schema=schema,
+                )
+                repaired_raw = (
+                    repaired["choices"][0]["text"]
+                    if isinstance(repaired, dict) else str(repaired)
+                )
+                return parse(repaired_raw)
+            except (ValueError, json.JSONDecodeError) as repair_error:
+                return _invalid_candidate(
+                    self.name, actions,
+                    f"contingency initial={first_error}; repair={repair_error}",
+                )
 
     def evaluate(
         self,
@@ -620,12 +1863,37 @@ class CompactLocalSpecialist:
         actions: Sequence[str],
         broadcast: WorkspaceBroadcast,
     ) -> CandidateChunk:
+        if broadcast.constraint == "CONTINGENCY_REVIEW":
+            return self._evaluate_contingency(scenario, actions, broadcast)
         role = FRAMEWORK_ROLES[self.name]
-        testimony = " ".join(self.testimony.split())[:900]
+        testimony = _compact_testimony(self.testimony, 900)
         action_ids = [f"A{index}" for index in range(len(actions))]
         action_legend = {action_id: action for action_id, action in zip(action_ids, actions)}
         allowed_constraints = sorted(FRAMEWORK_CONSTRAINTS[self.name])
         fixed_baseline = self.baseline_action_id if self.baseline_action_id in {*action_ids, "NONE"} else "NONE"
+        baseline_status = str(self.baseline_status).strip().upper()
+        if baseline_status == "UNAVAILABLE" and fixed_baseline != "NONE":
+            baseline_status = "DIRECT"
+        if baseline_status not in {
+            "DIRECT", "CONDITIONAL", "UNDERDETERMINED", "NORMATIVELY_CONTESTED",
+            "OUTSIDE_ACTION_SET", "UNAVAILABLE",
+        }:
+            baseline_status = "DIRECT" if fixed_baseline != "NONE" else "UNAVAILABLE"
+        baseline_provisional = (
+            self.baseline_provisional_action_id
+            if self.baseline_provisional_action_id in {*action_ids, "NONE"}
+            else "NONE"
+        )
+        if baseline_status == "DIRECT":
+            baseline_provisional = fixed_baseline
+        baseline_state = {
+            "status": baseline_status,
+            "committed_action": fixed_baseline,
+            "provisional_action": baseline_provisional,
+            "condition": self.baseline_condition or "NONE",
+            "framework_commitments": dict(self.baseline_framework_commitments or {}),
+            "numerical_role": self.baseline_numerical_role,
+        }
         schema = {
             "type": "object",
             "properties": {
@@ -664,13 +1932,279 @@ class CompactLocalSpecialist:
                 "ft": {"type": "string", "maxLength": 120},
                 "nt": {"type": "string", "maxLength": 120},
                 "z": {"type": "number", "minimum": 0, "maximum": 1},
+                "gu": {
+                    "type": "object",
+                    "properties": {
+                        "operation": {"type": "string", "enum": ["NONE", "BOUNDARY", "AND", "OR"]},
+                        "from_action": {"type": "string", "enum": [*action_ids, "NONE"]},
+                        "to_action": {"type": "string", "enum": [*action_ids, "NONE"]},
+                        "clauses": {
+                            "type": "array", "minItems": 0, "maxItems": 3,
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "affected_action": {"type": "string", "enum": action_ids},
+                                    "metric": {"type": "string", "maxLength": 60},
+                                    "metric_valence": {"type": "string", "enum": ["ADVERSE", "BENEFICIAL"]},
+                                    "comparator": {"type": "string", "enum": ["LT", "LE", "GT", "GE"]},
+                                    "threshold": {"type": "number"},
+                                    "unit": {"type": "string", "maxLength": 20},
+                                    "source_text": {"type": "string", "maxLength": 100},
+                                },
+                                "required": ["affected_action", "metric", "metric_valence", "comparator", "threshold", "unit", "source_text"],
+                                "additionalProperties": False,
+                            },
+                        },
+                    },
+                    "required": ["operation", "from_action", "to_action", "clauses"],
+                    "additionalProperties": False,
+                },
+                "ev": {
+                    "type": "object",
+                    "properties": {
+                        action_id: {
+                            "type": "object",
+                            "properties": {
+                                "value": {"type": "number", "minimum": 0},
+                                "unit": {"type": "string", "maxLength": 24},
+                                "direction": {"type": "string", "enum": ["BENEFIT", "HARM"]},
+                                "grounded": {"type": "boolean"},
+                            },
+                            "required": ["value", "unit", "direction", "grounded"],
+                            "additionalProperties": False,
+                        } for action_id in action_ids
+                    },
+                    "required": action_ids,
+                    "additionalProperties": False,
+                },
+                "ss": {"type": "string", "enum": ["SELECTED", "PROVISIONAL", "UNSELECTED"]},
+                "am": {
+                    "type": "object",
+                    "properties": {
+                        action_id: {
+                            "type": "string",
+                            "enum": ["REQUIRED", "PERMISSIBLE", "REJECTED", "UNASSESSED"],
+                        } for action_id in action_ids
+                    },
+                    "required": action_ids,
+                    "additionalProperties": False,
+                },
+                "cc": {"type": "boolean"},
+                "esa": {"type": "boolean"},
+                "ia": {"type": "string", "enum": [*action_ids, "NONE"]},
+                "wp": {
+                    "type": "string",
+                    "enum": ["NOT_APPLICABLE", "ACCEPT", "QUALIFY", "REJECT"],
+                },
+                "we": {"type": "string", "enum": ["NONE", "FACTUAL", "NORMATIVE", "BOTH"]},
+                "fa": {"type": "string", "maxLength": 140},
+                "fr": {"type": "boolean"},
+                "bd": {"type": "string", "enum": ["NONE", "LOW", "MEDIUM", "HIGH"]},
             },
             "required": [
                 "scores", "r", "c", "u", "w", "j", "e", "x", "l", "da", "t", "tf",
-                "dr", "ft", "nt", "z",
+                "dr", "ft", "nt", "z", "gu", "ev",
+                "ss", "am", "cc", "esa", "ia", "wp", "we", "fa", "fr", "bd",
             ],
             "additionalProperties": False,
         }
+        is_care = self.name == "care"
+        is_construct_specialist = self.name in _FRAMEWORK_CONSTRUCT_MARKERS
+        construct_map_key = "rm" if is_care else "fm"
+        if is_construct_specialist:
+            schema["properties"].update({
+                construct_map_key: {
+                    "type": "object",
+                    "properties": {
+                        action_id: {"type": "string", "minLength": 8, "maxLength": 180}
+                        for action_id in action_ids
+                    },
+                    "required": action_ids,
+                    "additionalProperties": False,
+                },
+                "nr": {
+                    "type": "string",
+                    "enum": ["DECISIVE", "SECONDARY", "IRRELEVANT"],
+                },
+                "np": {"type": "string", "minLength": 8, "maxLength": 140},
+            })
+            schema["required"].extend([construct_map_key, "nr", "np"])
+        if self.name == "utilitarian":
+            consequence_row_schema = {
+                "type": "object",
+                "properties": {
+                    "o": {"type": "string", "minLength": 4, "maxLength": 120},
+                    "s": {"type": "string", "minLength": 1, "maxLength": 80},
+                    "d": {"type": "string", "enum": ["BENEFIT", "HARM"]},
+                    "p": {"type": "string", "minLength": 1, "maxLength": 24},
+                    "m": {"type": "string", "minLength": 1, "maxLength": 60},
+                    "h": {"type": "string", "minLength": 1, "maxLength": 40},
+                    "rv": {
+                        "type": "string",
+                        "enum": ["REVERSIBLE", "IRREVERSIBLE", "UNKNOWN"],
+                    },
+                    "g": {
+                        "type": "string",
+                        "enum": ["STATED", "INFERRED", "UNKNOWN"],
+                    },
+                },
+                "required": ["o", "s", "d", "p", "m", "h", "rv", "g"],
+                "additionalProperties": False,
+            }
+            schema["properties"].update({
+                "ct": {
+                    "type": "object",
+                    "properties": {
+                        action_id: {
+                            "type": "array", "minItems": 1, "maxItems": 3,
+                            "items": consequence_row_schema,
+                        }
+                        for action_id in action_ids
+                    },
+                    "required": action_ids,
+                    "additionalProperties": False,
+                },
+                "cd": {"type": "boolean"},
+                "cm": {"type": "string", "maxLength": 160},
+            })
+            schema["required"].extend(["ct", "cd", "cm"])
+        if self.name == "deontological":
+            duty_assessment_schema = {
+                "type": "object",
+                "properties": {
+                    "v": {
+                        "type": "string",
+                        "enum": ["REQUIRED", "PERMISSIBLE", "PROHIBITED", "CONFLICTED"],
+                    },
+                    "k": {
+                        "type": "string",
+                        "enum": [
+                            "DUTY", "RIGHT", "AUTONOMY", "UNIVERSAL_LAW",
+                            "RESPECT_PERSONS", "OTHER", "UNKNOWN",
+                        ],
+                    },
+                    "n": {"type": "string", "minLength": 3, "maxLength": 100},
+                    "rel": {
+                        "type": "string",
+                        "enum": ["SATISFIES", "CONSISTENT", "VIOLATES", "CONFLICTS", "UNCERTAIN"],
+                    },
+                    "b": {"type": "string", "minLength": 1, "maxLength": 80},
+                    "p": {"type": "string", "minLength": 1, "maxLength": 100},
+                    "cn": {"type": "string", "minLength": 1, "maxLength": 100},
+                    "g": {
+                        "type": "string",
+                        "enum": ["ACTION_GRAPH", "SCENARIO", "FRAMEWORK_ONLY", "UNKNOWN"],
+                    },
+                    "rs": {"type": "string", "minLength": 4, "maxLength": 180},
+                },
+                "required": ["v", "k", "n", "rel", "b", "p", "cn", "g", "rs"],
+                "additionalProperties": False,
+            }
+            schema["properties"]["dp"] = {
+                "type": "object",
+                "properties": {
+                    action_id: duty_assessment_schema for action_id in action_ids
+                },
+                "required": action_ids,
+                "additionalProperties": False,
+            }
+            schema["required"].append("dp")
+        if self.name == "virtue":
+            virtue_assessment_schema = {
+                "type": "object",
+                "properties": {
+                    "v": {
+                        "type": "string",
+                        "enum": ["EXEMPLIFIES", "MIXED", "UNDERMINES", "UNCERTAIN"],
+                    },
+                    "r": {"type": "string", "minLength": 2, "maxLength": 100},
+                    "vs": {"type": "string", "minLength": 2, "maxLength": 120},
+                    "x": {"type": "string", "minLength": 2, "maxLength": 120},
+                    "c": {"type": "string", "minLength": 2, "maxLength": 140},
+                    "g": {
+                        "type": "string",
+                        "enum": ["ACTION_GRAPH", "SCENARIO", "FRAMEWORK_ONLY", "UNKNOWN"],
+                    },
+                    "rs": {"type": "string", "minLength": 4, "maxLength": 180},
+                },
+                "required": ["v", "r", "vs", "x", "c", "g", "rs"],
+                "additionalProperties": False,
+            }
+            schema["properties"]["vl"] = {
+                "type": "object",
+                "properties": {
+                    action_id: virtue_assessment_schema for action_id in action_ids
+                },
+                "required": action_ids,
+                "additionalProperties": False,
+            }
+            schema["properties"]["vb"] = {
+                "type": "string",
+                "enum": [
+                    "PRACTICAL_WISDOM", "ROLE_FIDELITY", "FLOURISHING",
+                    "EXEMPLAR_REASONING", "UNRESOLVED",
+                ],
+            }
+            schema["required"].extend(["vl", "vb"])
+        if self.name == "rawlsian":
+            rawls_position_schema = {
+                "type": "object",
+                "properties": {
+                    "g": {"type": "string", "minLength": 2, "maxLength": 100},
+                    "d": {
+                        "type": "string",
+                        "enum": [
+                            "BASIC_LIBERTY", "OPPORTUNITY", "INCOME_WEALTH",
+                            "POWERS_OFFICES", "SELF_RESPECT", "BASIC_INTEREST_SECURITY",
+                            "OTHER_PRIMARY_GOOD", "UNKNOWN",
+                        ],
+                    },
+                    "e": {
+                        "type": "string",
+                        "enum": ["IMPROVES", "PRESERVES", "WORSENS", "UNCERTAIN"],
+                    },
+                    "ca": {"type": "string", "enum": action_ids},
+                    "b": {
+                        "type": "string",
+                        "enum": ["ACTION_GRAPH", "SCENARIO", "FRAMEWORK_ONLY", "UNKNOWN"],
+                    },
+                    "rs": {"type": "string", "minLength": 4, "maxLength": 180},
+                },
+                "required": ["g", "d", "e", "ca", "b", "rs"],
+                "additionalProperties": False,
+            }
+            schema["properties"]["rp"] = {
+                "type": "object",
+                "properties": {
+                    action_id: rawls_position_schema for action_id in action_ids
+                },
+                "required": action_ids,
+                "additionalProperties": False,
+            }
+            schema["properties"]["rb"] = {
+                "type": "string",
+                "enum": [
+                    "LEXICAL_BASIC_LIBERTY", "FAIR_EQUALITY_OPPORTUNITY",
+                    "MAXIMIN_PRIMARY_GOODS", "DIFFERENCE_PRINCIPLE",
+                    "ORIGINAL_POSITION_PUBLIC_RULE", "UNRESOLVED",
+                ],
+            }
+            schema["properties"]["lc"] = {
+                "type": "object",
+                "properties": {
+                    action_id: {
+                        "type": "string",
+                        "enum": ["SATISFIED", "INFRINGED", "CONFLICTED", "UNKNOWN"],
+                    }
+                    for action_id in action_ids
+                },
+                "required": action_ids,
+                "additionalProperties": False,
+            }
+            schema["properties"]["fa"] = {
+                "type": "string", "minLength": 8, "maxLength": 140,
+            }
+            schema["required"].extend(["rp", "rb", "lc"])
         if broadcast.constraint == "CONSENSUS_AUDIT":
             schema["properties"].update({
                 "d": {
@@ -691,34 +2225,242 @@ class CompactLocalSpecialist:
         if broadcast.constraint == "REVERSAL_AUDIT":
             schema["properties"].update({
                 "rr": {"type": "string", "enum": ["ACCEPT", "REVISE", "REJECT"]},
-                "rj": {"type": "string", "maxLength": 120},
+                "rj": {"type": "string", "minLength": 12, "maxLength": 120},
                 "rv": {"type": "string", "maxLength": 120},
             })
             schema["required"].extend(["rr", "rj", "rv"])
+        if broadcast.constraint == "VISIBILITY_AUDIT":
+            schema["properties"].update({
+                "vp": {"type": "string", "enum": ["ACCEPT", "QUALIFY", "REJECT"]},
+                "vj": {"type": "string", "maxLength": 160},
+                "vh": {"type": "string", "enum": ["UPWARD", "DOWNWARD", "UNCHANGED"]},
+                "vm": {"type": "string", "enum": ["UNKNOWN", "GROUNDED_BOUNDED"]},
+            })
+            schema["required"].extend(["vp", "vj", "vh", "vm"])
+        if broadcast.constraint == "CONTINGENCY_REVIEW":
+            fallback_ids = [
+                action_ids[actions.index(action)]
+                for action in broadcast.contingency_fallback_actions
+                if action in actions
+            ]
+            schema["properties"].update({
+                "cr": {"type": "string", "enum": fallback_ids},
+                "cj": {"type": "string", "minLength": 12, "maxLength": 160},
+            })
+            # The ordinary recommendation is the branch decision in this
+            # context; make non-fallback positional voting unrepresentable.
+            schema["properties"]["r"] = {"type": "string", "enum": fallback_ids}
+            schema["required"].extend(["cr", "cj"])
+        framework_prompt = ""
+        framework_example = ""
+        if is_care:
+            framework_example = (
+                ',"rm":{"A0":"entrusted dependency under A0",'
+                '"A1":"agent-created vulnerability under A1"},'
+                '"nr":"SECONDARY","np":"counts inform responsiveness after relational comparison"'
+            )
+            framework_prompt = """
+CARE-SPECIFIC COMPARISON: rm must give the strongest relational basis for EVERY
+action using direct entrustment, dependency, trust, agent-created vulnerability,
+responsibility, attentiveness, or responsiveness. nr says whether numerical
+magnitude is DECISIVE, SECONDARY, or IRRELEVANT; np explains why. Counts may inform
+competence and responsiveness. They are DECISIVE only when the competing relational
+claims are otherwise comparable; "more lives" alone is not a care-ethical rule.
+When the frozen baseline is NORMATIVELY_CONTESTED, preserve its relational
+commitments rather than its provisional action: choose an interim r, but set
+ss=PROVISIONAL, cc=false, u=RESOLVE_NORMATIVE_TENSION, and name in tf/nt what
+priority between the care commitments would settle the judgment.
+"""
+        elif self.name == "deontological":
+            framework_example = (
+                ',"fm":{"A0":"PERMISSIBLE: respects autonomy; no conflicting duty",'
+                '"A1":"PROHIBITED: instrumentalizes a person; rescue duty conflicts"},'
+                '"nr":"SECONDARY","np":"numbers establish the scope of duties, not aggregate value",'
+                '"dp":{"A0":{"v":"PERMISSIBLE","k":"AUTONOMY",'
+                '"n":"respect competent choice","rel":"CONSISTENT","b":"decision maker",'
+                '"p":"affected person","cn":"NONE","g":"FRAMEWORK_ONLY",'
+                '"rs":"A0 remains consistent with respect for autonomy"},'
+                '"A1":{"v":"PROHIBITED","k":"RESPECT_PERSONS",'
+                '"n":"do not instrumentalize persons","rel":"VIOLATES","b":"decision maker",'
+                '"p":"affected person","cn":"duty to rescue","g":"FRAMEWORK_ONLY",'
+                '"rs":"A1 uses the affected person merely as a means"}}'
+            )
+            framework_prompt = """
+DEONTOLOGICAL COMPARISON: fm must assess EVERY action. Start each value with
+REQUIRED:, PERMISSIBLE:, PROHIBITED:, or CONFLICTED:, then name the universal-law,
+right, autonomy, respect-for-persons, or duty ground and any competing duty. nr
+states whether numerical magnitude is DECISIVE, SECONDARY, or IRRELEVANT; np must
+connect any decisive quantity to the scope or category of a duty or rights
+violation, never merely to aggregate welfare. If the frozen baseline is
+NORMATIVELY_CONTESTED, preserve the conflicting duties rather than its provisional
+action: use ss=PROVISIONAL, cc=false, u=RESOLVE_NORMATIVE_TENSION, and identify the
+non-consequential priority rule needed to settle the conflict in tf/nt.
+dp is the typed duty ledger for every action. v must match the fm prefix. k and n
+identify the norm; rel states whether the action SATISFIES, is CONSISTENT with,
+VIOLATES, or CONFLICTS with that norm; b is the duty bearer; p is the protected
+party; cn names a competing norm or NONE; g separates action/scenario grounding
+from framework interpretation; rs gives the shortest justification. A REQUIRED
+verdict normally SATISFIES, PERMISSIBLE is CONSISTENT, PROHIBITED VIOLATES, and
+CONFLICTED CONFLICTS. Use rel=UNCERTAIN rather than forcing an inconsistent pair.
+"""
+        elif self.name == "rawlsian":
+            framework_example = (
+                ',"fm":{"A0":"PRESERVES: least-advantaged group keeps equal liberty",'
+                '"A1":"IMPROVES: worse-off group gains the relevant primary good"},'
+                '"nr":"DECISIVE","np":"same basic liberties make the least-advantaged position comparable",'
+                '"rp":{"A0":{"g":"least-advantaged group","d":"BASIC_LIBERTY",'
+                '"e":"PRESERVES","ca":"A1","b":"ACTION_GRAPH",'
+                '"rs":"A0 preserves its stated basic liberty"},'
+                '"A1":{"g":"worse-off group","d":"INCOME_WEALTH",'
+                '"e":"IMPROVES","ca":"A0","b":"ACTION_GRAPH",'
+                '"rs":"A1 supplies the stated primary good"}},'
+                '"rb":"MAXIMIN_PRIMARY_GOODS",'
+                '"lc":{"A0":"SATISFIED","A1":"SATISFIED"}'
+            )
+            framework_prompt = """
+RAWLSIAN COMPARISON: fm must assess EVERY action. Start each value with IMPROVES:,
+PRESERVES:, WORSENS:, or UNCERTAIN:, then identify the least-advantaged affected
+group, its position relative to the rival action, and the relevant basic liberty,
+opportunity, or primary good. Do not say an action protects that group when no
+stated comparative fact supports it. nr states whether numerical magnitude is
+DECISIVE, SECONDARY, or IRRELEVANT; np must tie decisive quantities to the position
+of the least advantaged under compatible basic liberties, not aggregate welfare.
+If the frozen baseline is NORMATIVELY_CONTESTED, preserve the conflicting Rawlsian
+principles rather than its provisional action: use ss=PROVISIONAL, cc=false,
+u=RESOLVE_NORMATIVE_TENSION, and identify the priority question in tf/nt.
+rp is the proposed graph ledger. For each action, first identify who bears its
+gravest stated burden. Then identify a socially or institutionally least-advantaged
+group only when the scenario supports that relation. Do not equate “most harmed in
+this event” with Rawls's least advantaged, and do not choose the largest group, the
+action's beneficiaries, or the group favored by the current broadcast. When the
+scenario has no distributive structure, use ORIGINAL_POSITION_PUBLIC_RULE to test
+the public rule parties would accept under label uncertainty; do not fabricate a
+difference-principle beneficiary. d names the relevant basic liberty, opportunity,
+primary good, or basic interest in security; e must match the fm
+prefix; ca is the rival action ID; b says whether the relation comes from the action
+graph, the shared scenario, framework interpretation only, or remains unknown; rs
+states the shortest supporting reason. Use e=UNCERTAIN and b=UNKNOWN rather than
+inventing an action-to-group edge.
+rb identifies the governing Rawlsian stage. Equal basic liberties have lexical
+priority; use the difference principle or maximin primary goods only after recording
+each action's liberty status in lc. The difference principle is not a synonym for
+maximizing lives or total welfare, and applies specifically to social/economic
+inequality. Counts of lives may inform a public-rule choice behind the veil, but
+must not be relabeled as aggregate utility. If the relevant positions, liberty priority, or
+primary-good comparison cannot be established, use rb=UNRESOLVED, UNKNOWN/CONFLICTED
+in lc, ss=PROVISIONAL, cc=false, esa=false, and preserve that uncertainty. Never
+recommend an INFRINGED-liberty action over a SATISFIED-liberty rival by appealing
+to aggregate benefits. A later workspace proposition may change the factual burden
+assigned to a group; it does not change Rawls's ordering of principles. If rb, lc,
+or a position effect changes between cycles, j must identify the new fact or genuine
+Rawlsian priority conflict that warrants the revision. When Previous graph-committed
+framework state is nonempty and no such reason exists, copy its ranking basis,
+liberty statuses, and action effects exactly; do not silently resolve an UNCERTAIN
+effect or UNRESOLVED ranking merely because the current broadcast is salient.
+"""
+        elif self.name == "virtue":
+            framework_example = (
+                ',"fm":{"A0":"EXEMPLIFIES: responsible role expresses courage with prudence",'
+                '"A1":"MIXED: compassion risks imprudence in these circumstances"},'
+                '"nr":"SECONDARY","np":"stakes inform practical wisdom without defining virtue",'
+                '"vl":{"A0":{"v":"EXEMPLIFIES","r":"public steward",'
+                '"vs":"courage and practical wisdom","x":"callousness","c":"stated emergency",'
+                '"g":"FRAMEWORK_ONLY","rs":"A0 fits the role with proportionate judgment"},'
+                '"A1":{"v":"MIXED","r":"public steward","vs":"compassion",'
+                '"x":"imprudence","c":"stated emergency","g":"FRAMEWORK_ONLY",'
+                '"rs":"A1 expresses care but risks excess"}},"vb":"PRACTICAL_WISDOM"'
+            )
+            framework_prompt = """
+VIRTUE-ETHICS COMPARISON: fm must assess EVERY action. Start each value with
+EXEMPLIFIES:, MIXED:, UNDERMINES:, or UNCERTAIN:, then identify the actor's role,
+virtues expressed, vices risked, and circumstances relevant to practical wisdom.
+nr states whether numerical magnitude is DECISIVE, SECONDARY, or IRRELEVANT; np
+must explain how the stakes inform phronesis rather than substituting a numerical
+maximization rule for character. If the frozen baseline is NORMATIVELY_CONTESTED,
+preserve the conflicting virtues rather than its provisional action: use
+ss=PROVISIONAL, cc=false, u=RESOLVE_NORMATIVE_TENSION, and identify the practical-
+wisdom comparison needed to settle the conflict in tf/nt.
+vl is the proposed character ledger for every action. v must match the fm prefix;
+r names the actor's role; vs names the virtues expressed; x names the vice or
+excess risk; c names the circumstance that phronesis must interpret; g distinguishes
+scenario/action grounding from framework interpretation; rs gives the shortest
+integrated judgment. vb names the governing mode: PRACTICAL_WISDOM, ROLE_FIDELITY,
+FLOURISHING, EXEMPLAR_REASONING, or UNRESOLVED. If independent virtues favor
+different actions without a practical-wisdom resolution, use vb=UNRESOLVED,
+ss=PROVISIONAL, and cc=false rather than converting the conflict into aggregate
+welfare. In later cycles, changing vb, role, or verdict requires j to identify new
+framework-relevant information. When Previous graph-committed framework state is
+nonempty and no such information exists, copy its ranking basis, action verdicts,
+and actor roles exactly. Virtue-like prose does not justify changing a MIXED or
+UNRESOLVED committed assessment into a resolved ranking.
+"""
+        elif self.name == "utilitarian":
+            framework_example = (
+                ',"ct":{"A0":[{"o":"prevents immediate deaths","s":"residents",'
+                '"d":"BENEFIT","p":"99%","m":"large","h":"immediate",'
+                '"rv":"IRREVERSIBLE","g":"STATED"}],'
+                '"A1":[{"o":"risks system failure","s":"region",'
+                '"d":"HARM","p":"UNKNOWN","m":"unknown","h":"unknown",'
+                '"rv":"UNKNOWN","g":"UNKNOWN"}]},'
+                '"cd":true,"cm":"probability and magnitude of the regional failure"'
+            )
+            framework_prompt = """
+UTILITARIAN CONSEQUENCE ACCOUNTING: ct must contain 1-3 material consequence rows
+for EVERY action. o=outcome; s=affected scope; d=BENEFIT/HARM; p=stated probability
+or UNKNOWN; m=magnitude; h=duration; rv=reversibility; g=STATED, INFERRED, or
+UNKNOWN support. Do not place assumptions in STATED rows and do not omit the losing
+action. cd=true exactly when the ranking depends on an unknown consequence or
+comparison; then cm must name it, use ss=PROVISIONAL, cc=false, esa=false, and
+preserve uncertainty. A compact table is more important than listing remote effects.
+"""
         prompt = f"""[INST]
 You are the {self.name} specialist in a bandwidth-limited ethical workspace.
 Task: {role}
 Scenario: {' '.join(scenario.split())[:700]}
 Your original corpus-grounded testimony: {testimony}
-Frozen testimony baseline: {fixed_baseline}
+Frozen testimony baseline state: {json.dumps(baseline_state)}
 Previous cycle recommendation: {self.previous_recommendation_id or 'NONE'}
 Workspace: {broadcast.compact()}
 Scenario facts: {json.dumps(self.scenario_facts or {}, sort_keys=True)}
 Prior contribution profile: {json.dumps(self.memory_profile or {}, sort_keys=True)}
+Active audited propositions: {json.dumps(self.epistemic_commitments[-3:])}
+Previous graph-committed framework state: {json.dumps(self.previous_framework_state)}
 Action IDs: {json.dumps(action_legend)}
+Original testimony source labels: {json.dumps(self.source_action_legend or action_legend)}
+CRITICAL STATE MAPPING: the Action IDs above are immutable for this run. Every
+score, recommendation, admissibility judgment, rationale, and graph update must
+refer to the physical action attached to that exact ID. Do not reuse a label from
+the original testimony unless it denotes the same action in this mapping.
 
 Return ONLY compact JSON like:
-{{"scores":{{"A0":0.8,"A1":0.2}},"r":"A0","c":"{allowed_constraints[0]}","u":"NONE","w":"short reason","j":"NONE","e":"STATED_FACTS","x":"NONE","l":{{"A0":"best case A0","A1":"best case A1"}},"da":"decisive ethical axis","t":"attempted comparison rule","tf":"NONE","dr":"prefer A0 when its reason outweighs A1","ft":"NONE","nt":"prefer A1 if its value is overriding","z":0.8}}
+{{"scores":{{"A0":0.8,"A1":0.2}},"r":"A0","c":"{allowed_constraints[0]}","u":"NONE","w":"short reason","j":"NONE","e":"STATED_FACTS","x":"NONE","l":{{"A0":"best case A0","A1":"best case A1"}},"da":"decisive ethical axis","t":"attempted comparison rule","tf":"NONE","dr":"prefer A0 when its reason outweighs A1","ft":"NONE","nt":"prefer A1 if its value is overriding","z":0.8,"gu":{{"operation":"NONE","from_action":"NONE","to_action":"NONE","clauses":[]}},"ev":{{"A0":{{"value":0,"unit":"NONE","direction":"HARM","grounded":false}},"A1":{{"value":0,"unit":"NONE","direction":"HARM","grounded":false}}}},"ss":"SELECTED","am":{{"A0":"PERMISSIBLE","A1":"REJECTED"}},"cc":true,"esa":true,"ia":"A0","wp":"NOT_APPLICABLE","we":"NONE","fa":"NONE","fr":true,"bd":"NONE"{framework_example}}}
 Return scores for every action ID. recommended must have the highest score.
 r=recommended and must have the highest score. The frozen baseline was extracted
 separately from your testimony. Python derives whether the result supports or
-reconsiders it. During OPEN_DELIBERATION, recommended
-must equal a known baseline. Each score means recommendation strength:
+reconsiders it. During OPEN_DELIBERATION, a DIRECT committed baseline must be
+preserved. A CONDITIONAL baseline is not a settled commitment: preserve its missing
+comparison in u/tf, use ss=PROVISIONAL and esa=false, and rank either action only as
+an interim judgment. UNDERDETERMINED likewise requires explicit uncertainty rather
+than silently becoming a direct choice. Each score means recommendation strength:
 1 strongly recommends; 0 strongly rejects. w must be 2-8 words.
 z is epistemic confidence: how likely the ranking is to survive further factual
 inquiry and critical scrutiny. z is NOT preference strength. A strong preference
 may have low z when it depends on uncertain facts; a close moral tradeoff may have
 high z when its facts and framework interpretation are stable.
+Also emit passive measurement fields that MUST NOT change scores or r merely to make
+the measurements look consistent. ss is SELECTED, PROVISIONAL, or UNSELECTED. am
+classifies every action as REQUIRED, PERMISSIBLE, REJECTED, or UNASSESSED. cc says
+whether comparison of the listed actions is complete; esa says whether evidence is
+sufficient to act now; ia is the action to take while reasoning remains incomplete,
+or NONE. These are general decision-state dimensions, not named moral psychologies.
+{framework_prompt}
+For OPEN_DELIBERATION return wp=NOT_APPLICABLE, we=NONE, fa="NONE", fr=true,
+and bd=NONE. In later workspace cycles, wp states whether you accept the anonymous
+workspace proposition; we says whether it changed factual reasoning, normative
+reasoning, both, or neither. fa briefly states how YOUR assigned framework applies
+the proposition, fr says whether your prior framework constraint remains operative,
+and bd reports NONE/LOW/MEDIUM/HIGH dependence of this recommendation on the current
+broadcast. Do not infer authorship and do not reward or punish agreement.
 c must be one of: {', '.join(allowed_constraints)}.
 Choose u only from: {', '.join(sorted(ALLOWED_UNRESOLVED))}.
 The listed actions are exhaustive for this deliberation. Do not propose recording
@@ -745,10 +2487,30 @@ that would reverse it; use NONE when normative priority cannot reverse it. Never
 a moral priority in ft or an empirical prediction in nt. At least one threshold
 should expose how the recommendation could change unless reversal truly requires a
 different scenario.
+gu is a proposed semantic-graph update. When ft contains a measurable threshold,
+encode it directly instead of asking middleware to recover it from prose. Set
+operation=BOUNDARY for one clause, AND/OR for 2-3 clauses, from_action=r, and
+to_action to the action preferred when the predicate holds. Each clause names the
+affected action ID, metric, ADVERSE or BENEFICIAL valence, LT/LE/GT/GE comparator,
+numeric threshold, unit (PERCENT, COUNT, DAY, USD, etc.), and exact source_text.
+The predicate must cross away from from_action: increasing an ADVERSE property of
+from_action or decreasing its BENEFICIAL property may support a switch; increasing
+an ADVERSE property of to_action cannot support switching to it. If you cannot encode
+that direction confidently, return operation=NONE rather than a decorative boundary.
+Use operation=NONE with NONE action IDs and [] clauses when no measurable factual
+boundary exists. Do not encode moral priorities or vague axes as numeric clauses.
+ev reports expected value only when the scenario itself supplies enough quantities
+to compute comparable values for EVERY action. Use one shared unit and one shared
+direction (BENEFIT or HARM); grounded=true only for arithmetic from stated facts.
+Otherwise return value=0, unit=NONE, a shared direction, and grounded=false for all.
 Each case must describe what happens IF ITS OWN ACTION is chosen. Name the affected
 person or value from that action, and for harmful actions explicitly acknowledge the
 harm before giving the countervailing reason. Do not place the benefit of sparing a
-person under the action that kills or harms that same person. If u is not NONE, or
+person under the action that kills or harms that same person.
+Begin each case with that action's own mechanism or direct consequence, using a clear
+anchor from its action description; put comparisons with the rival action afterward.
+For symmetric trade-offs, it is valid for both cases to mention the same shared value,
+but each must first say how its own action affects that value. If u is not NONE, or
 the judgment remains conditional or underdetermined, tf cannot be NONE. A coin flip
 or randomizer is a procedural resolution, not evidence that one listed action is
 substantively better; say this limitation in tf.
@@ -790,6 +2552,22 @@ different condition does, or REJECT only if it changes the scenario or conflicts
 with your framework. Explain in rj. For REVISE, put the smallest corrected condition
 in rv; otherwise rv="NONE". Do not reject merely because the challenge favors the
 opposing action.
+During CONTINGENCY_REVIEW, reason only inside the stated hypothetical branch. Assume
+the failure condition is TRUE and the admitted synthesis is unavailable. Choose one
+of the two typed fallback actions: set cr to its action ID and set r=cr. In cj, state
+why that fallback follows under YOUR framework given the failure. A baseline argument
+that does not apply the failure condition is not an answer. Do not select or repair
+the failed synthesis, and do not invent a third fallback.
+During VISIBILITY_AUDIT, evaluate the explicit visibility proposition in the workspace.
+Return vp=ACCEPT when it is grounded and materially relevant, QUALIFY when its direction
+is plausible but magnitude or action relevance remains uncertain, or REJECT when the
+scenario does not support it. Return vh=UPWARD, DOWNWARD, or UNCHANGED for your estimate
+of the affected action's harm, and vj explaining why. Then rescore every action. You may
+keep the same recommendation, but say whether it survives the revised harm estimate;
+agreement with the proposition does not require changing actions.
+Return vm=GROUNDED_BOUNDED only when the scenario states a bound on the missing
+magnitude. Otherwise vm=UNKNOWN: revise direction without inventing a plausible ceiling,
+range, population size, or claim that the hidden harm cannot approach a threshold.
 [/INST]"""
         output = _call_json_llm(
             self.llm,
@@ -801,19 +2579,30 @@ opposing action.
         raw = output["choices"][0]["text"] if isinstance(output, dict) else str(output)
         try:
             data = _extract_json(raw)
+            calibration = self._calibrate_evidence(scenario, actions, data)
             candidate = _candidate_from_data(
                 self.name, actions, data, broadcast, fixed_baseline, self.scenario_facts or {},
                 self.previous_recommendation_id,
                 self.previous_confidence,
+                self.previous_context,
                 self.assumption_status,
                 self.unsupported_assumption,
                 self.reversal_condition,
+                calibration,
+                self._verify_landscape,
+                baseline_status,
+                baseline_provisional,
+                self.baseline_condition,
+                scenario,
             )
+            self._audit_framework_state_change(candidate, broadcast)
             self.previous_recommendation_id = action_ids[actions.index(candidate.recommended_action)]
-            self.previous_confidence = candidate.preference_strength
+            self.previous_confidence = candidate.reported_preference_strength
+            self.previous_context = self._context_class(broadcast)
             self.assumption_status = candidate.assumption_status
             self.unsupported_assumption = candidate.unsupported_assumption
             self.reversal_condition = candidate.reversal_condition
+            self._retain_audit_commitment(candidate, broadcast)
             return candidate
         except (ValueError, json.JSONDecodeError) as first_error:
             repair_prompt = f"""[INST]
@@ -821,12 +2610,21 @@ Repair this invalid answer as JSON only: {raw[:400]}
 Required fields: scores object for {', '.join(action_ids)}, r, c, u, w, j. Also return
 e=STATED_FACTS, FRAMEWORK_ONLY, or UNSTATED_FACTS and x naming any unstated claim.
 Return l with a case for every action ID, da, t, tf, explicit decision rule dr,
-separate factual/normative thresholds ft and nt, and epistemic confidence z.
-r must have the highest score and respect frozen baseline {fixed_baseline} initially.
+separate factual/normative thresholds ft and nt, epistemic confidence z, and gu.
+gu must be {{"operation":"NONE","from_action":"NONE","to_action":"NONE","clauses":[]}}
+unless ft supplies a measurable typed BOUNDARY/AND/OR graph update.
+Also return ev for every action ID with value, unit, BENEFIT/HARM direction, and
+grounded boolean; use zero/NONE/false consistently when stated facts cannot compute EV.
+Also return passive fields ss, am, cc, esa, ia, wp, we, fa, fr, and bd. They describe
+the response but must not be used to alter scores merely for consistency.
+r must have the highest score and respect frozen baseline state {json.dumps(baseline_state)} initially.
 c must be one of: {', '.join(allowed_constraints)}. No prose.
 {('Also include d, a, v for the CONSENSUS_AUDIT; if d is not SUPPORTED, u cannot be NONE.' if broadcast.constraint == 'CONSENSUS_AUDIT' else '')}
 {('Also include bp, dx, sv for the PROBLEM_REFORMULATION.' if broadcast.constraint == 'PROBLEM_REFORMULATION' else '')}
 {('Also include rr, rj, rv for REVERSAL_AUDIT.' if broadcast.constraint == 'REVERSAL_AUDIT' else '')}
+{('Also include vp, vj, vh, vm for VISIBILITY_AUDIT.' if broadcast.constraint == 'VISIBILITY_AUDIT' else '')}
+{('Also include cr and cj for CONTINGENCY_REVIEW; r must equal cr.' if broadcast.constraint == 'CONTINGENCY_REVIEW' else '')}
+{('Also include vl for every action and vb for the typed virtue ledger.' if self.name == 'virtue' else '')}
 [/INST]"""
             repaired = _call_json_llm(
                 self.llm,
@@ -838,19 +2636,30 @@ c must be one of: {', '.join(allowed_constraints)}. No prose.
             repaired_raw = repaired["choices"][0]["text"] if isinstance(repaired, dict) else str(repaired)
             try:
                 data = _extract_json(repaired_raw)
+                calibration = self._calibrate_evidence(scenario, actions, data)
                 candidate = _candidate_from_data(
                     self.name, actions, data, broadcast, fixed_baseline, self.scenario_facts or {},
                     self.previous_recommendation_id,
                     self.previous_confidence,
+                    self.previous_context,
                     self.assumption_status,
                     self.unsupported_assumption,
                     self.reversal_condition,
+                    calibration,
+                    self._verify_landscape,
+                    baseline_status,
+                    baseline_provisional,
+                    self.baseline_condition,
+                    scenario,
                 )
+                self._audit_framework_state_change(candidate, broadcast)
                 self.previous_recommendation_id = action_ids[actions.index(candidate.recommended_action)]
-                self.previous_confidence = candidate.preference_strength
+                self.previous_confidence = candidate.reported_preference_strength
+                self.previous_context = self._context_class(broadcast)
                 self.assumption_status = candidate.assumption_status
                 self.unsupported_assumption = candidate.unsupported_assumption
                 self.reversal_condition = candidate.reversal_condition
+                self._retain_audit_commitment(candidate, broadcast)
                 return candidate
             except (ValueError, json.JSONDecodeError) as repair_error:
                 return _invalid_candidate(
@@ -859,6 +2668,57 @@ c must be one of: {', '.join(allowed_constraints)}. No prose.
                     f"initial={first_error}; repair={repair_error}",
                 )
 
+    @staticmethod
+    def _context_class(broadcast: WorkspaceBroadcast) -> str:
+        review_contexts = {
+            "VISIBILITY_AUDIT", "CONSENSUS_AUDIT", "REVERSAL_AUDIT",
+            "PROBLEM_REFORMULATION", "PLANNING_REVIEW", "CONTINGENCY_REVIEW",
+            "SYNTHESIS_REVIEW",
+        }
+        return broadcast.constraint if broadcast.constraint in review_contexts else "BASE"
+
+    def _retain_audit_commitment(
+        self, candidate: CandidateChunk, broadcast: WorkspaceBroadcast
+    ) -> None:
+        if (
+            broadcast.constraint == "VISIBILITY_AUDIT"
+            and candidate.visibility_response in {"ACCEPT", "QUALIFY"}
+            and broadcast.contingency_question
+        ):
+            commitment = " ".join(broadcast.contingency_question.split())[:320]
+            if commitment not in self.epistemic_commitments:
+                self.epistemic_commitments.append(commitment)
+                self.epistemic_commitments[:] = self.epistemic_commitments[-3:]
+
+    def _calibrate_evidence(
+        self, scenario: str, actions: Sequence[str], data: dict[str, Any]
+    ) -> EvidenceCalibration | None:
+        if self.evidence_calibrator is None:
+            return None
+        if str(data.get("e", "")).strip().upper() != "UNSTATED_FACTS":
+            return None
+        return self.evidence_calibrator(
+            self.llm,
+            scenario,
+            actions,
+            " ".join(str(data.get("x", "")).split()),
+            " ".join(str(data.get("w", data.get("why", ""))).split()),
+        )
+
+    def _verify_landscape(
+        self,
+        scenario: str,
+        actions: Sequence[str],
+        landscape_cases: dict[str, str],
+        errors: Sequence[str],
+    ) -> list[str]:
+        if self.landscape_verifier is None:
+            return list(errors)
+        return self.landscape_verifier(
+            self.llm, actions, landscape_cases, errors, scenario=scenario,
+            max_tokens=max(96, self.max_tokens),
+        )
+
 
 def _truncate_words(value: Any, limit: int = 96) -> str:
     text = " ".join(str(value).split())
@@ -866,99 +2726,6 @@ def _truncate_words(value: Any, limit: int = 96) -> str:
         return text
     shortened = text[: limit + 1].rsplit(" ", 1)[0].rstrip(" ,;:-")
     return shortened or text[:limit]
-
-
-def assess_visibility(
-    llm: Any,
-    scenario: str,
-    actions: Sequence[str],
-    max_tokens: int = 160,
-) -> VisibilityAssessment:
-    """Audit endogenous missingness without adding another normative vote."""
-    action_ids = [f"A{index}" for index in range(len(actions))]
-    legend = dict(zip(action_ids, actions))
-    schema = {
-        "type": "object",
-        "properties": {
-            "lo": {"type": "boolean"},
-            "en": {"type": "boolean"},
-            "g": {"type": "string", "maxLength": 100},
-            "m": {"type": "string", "maxLength": 180},
-            "q": {"type": "string", "maxLength": 180},
-            "p": {
-                "type": "object",
-                "properties": {
-                    action_id: {"type": "number", "minimum": 0.65, "maximum": 1.0}
-                    for action_id in action_ids
-                },
-                "required": action_ids,
-                "additionalProperties": False,
-            },
-        },
-        "required": ["lo", "en", "g", "m", "q", "p"],
-        "additionalProperties": False,
-    }
-    prompt = f"""You are a non-voting visibility auditor in an ethical workspace.
-Scenario: {' '.join(scenario.split())[:900]}
-Actions: {json.dumps(legend)}
-
-Determine whether relevant people or harms have low observability, and whether that
-missingness is endogenous to structural exclusion: unequal infrastructure, access,
-measurement, representation, institutional attention, or ability to signal. Ordinary
-uncertainty, random sensor failure, and merely unspecified facts are not endogenous.
-
-Return JSON only. lo=low observability; en=endogenous structural cause; g=affected
-group; m=the causal visibility mechanism; q=an exact quote from the scenario proving
-that mechanism. p gives an epistemic-confidence multiplier for every action. Use 1.0
-unless that action's apparent advantage relies on treating missing observations as
-evidence of absent people, absent harm, or lower need. Use 0.65-0.95 only to weaken
-that unsupported evidential advantage. Do not express moral preference, redistribute
-votes, infer hidden casualties, or penalize an action merely because its evidence is
-quantitative. If either lo or en is false, every multiplier must be 1.0.
-"""
-    try:
-        output = _call_json_llm(
-            llm, prompt, max_tokens=max_tokens, temperature=0.0, schema=schema
-        )
-        raw = output["choices"][0]["text"] if isinstance(output, dict) else str(output)
-        data = _extract_json(raw)
-        low = bool(data.get("lo"))
-        endogenous = bool(data.get("en"))
-        group = " ".join(str(data.get("g", "")).split())
-        mechanism = " ".join(str(data.get("m", "")).split())
-        quote = " ".join(str(data.get("q", "")).split())
-        raw_multipliers = data.get("p")
-        if not isinstance(raw_multipliers, dict) or set(raw_multipliers) != set(action_ids):
-            raise ValueError("visibility multipliers must cover every action")
-        multipliers = {
-            action: _strict_number(raw_multipliers[action_id], f"p.{action_id}")
-            for action_id, action in zip(action_ids, actions)
-        }
-        if any(value < 0.65 for value in multipliers.values()):
-            raise ValueError("visibility confidence multiplier cannot be below 0.65")
-        scenario_normalized = " ".join(scenario.split()).casefold()
-        if low and endogenous:
-            if len(group.split()) < 1 or len(mechanism.split()) < 3:
-                raise ValueError("endogenous visibility finding needs a group and mechanism")
-            if len(quote.split()) < 3 or quote.casefold() not in scenario_normalized:
-                raise ValueError("visibility mechanism lacks an exact scenario quote")
-            if not any(value < 0.999 for value in multipliers.values()):
-                raise ValueError("activated visibility audit identifies no confidence penalty")
-            return VisibilityAssessment(
-                low, endogenous, group, mechanism, quote, multipliers, activated=True
-            )
-        if any(value < 0.999 for value in multipliers.values()):
-            raise ValueError("non-endogenous uncertainty cannot receive a visibility penalty")
-        return VisibilityAssessment(
-            low, endogenous, group, mechanism, quote,
-            {action: 1.0 for action in actions}, activated=False,
-        )
-    except (ValueError, json.JSONDecodeError, KeyError, TypeError) as error:
-        return VisibilityAssessment(
-            False, False, "", "", "",
-            {action: 1.0 for action in actions}, activated=False,
-            valid=False, error=str(error),
-        )
 
 
 def _action_similarity(first: str, second: str) -> float:
@@ -1025,9 +2792,79 @@ def _feasible_actions(data: dict[str, Any], scenario: str = "") -> list[str]:
     return actions
 
 
+def extract_labeled_action_legend(scenario: str) -> dict[str, str]:
+    """Extract the scenario author's A0/A1 mapping without renumbering it."""
+    from .scenario_semantics import normalize_action_labels
+
+    cleaned = " ".join(normalize_action_labels(scenario).split())
+    # Authors also commonly use alphabetic labels. Preserve their clauses
+    # verbatim and translate only the presentation label into internal A0/A1.
+    # This prevents an LLM planner from weakening "will kill" into "risks."
+    alphabetic = re.search(
+        r"\b(?:action|option)\s+A\s*:\s*(.+?)\s*(?:\.\s*)?"
+        r"\b(?:action|option)\s+B\s*:\s*(.+)$",
+        cleaned,
+        flags=re.IGNORECASE,
+    )
+    if alphabetic:
+        first, second = (value.strip(" ,;:.?") for value in alphabetic.groups())
+        second = second.split(".", 1)[0].strip(" ,;:.?")
+        actions = [first, second]
+        if all(len(action.split()) >= 2 for action in actions):
+            return {
+                f"A{index}": action[0].upper() + action[1:]
+                for index, action in enumerate(actions)
+            }
+    # Also accept labeled alternatives stated as adjacent sentences rather than
+    # joined by a literal "or". Labels provide the boundary; consequences stay
+    # attached to their own action. This is topic-independent.
+    sentence_labeled = re.search(
+        r"\b(?:action|option)\s+A0\s*[,;:]?\s*(.+?)\.\s*"
+        r"\b(?:action|option)\s+A1\s*[,;:]?\s*(.+?)(?=\.(?:\s|$)|$)",
+        cleaned,
+        flags=re.IGNORECASE,
+    )
+    if sentence_labeled:
+        actions = [value.strip(" ,;:.?") for value in sentence_labeled.groups()]
+        if all(len(action.split()) >= 2 for action in actions):
+            return {
+                f"A{index}": action[0].upper() + action[1:]
+                for index, action in enumerate(actions)
+            }
+    # Preserve explicitly labeled alternatives before applying the looser
+    # either/or recognizer. This form commonly carries long consequence clauses
+    # whose labels, rather than verb symmetry, define the action boundary.
+    labeled = re.search(
+        r"(?:\bfirst\s+action\s*\(\s*A0\s*\)|\b(?:action|option)\s+A0\b|\bA0\s*:?)"
+        r"\s*[,;:]?\s*(.+?)\s*(?:;|,)\s*or\s*"
+        r"(?:\bsecond\s+action\s*\(\s*A1\s*\)|\b(?:action|option)\s+A1\b|\bA1\s*:?)"
+        r"\s*[,;:]?\s*(.+)$",
+        cleaned,
+        flags=re.IGNORECASE,
+    )
+    if labeled:
+        first, second = (value.strip(" ,;:.") for value in labeled.groups())
+        # Labels define an action pair within one sentence. Later sentences are
+        # shared scenario evidence (for example observability conditions), not
+        # an asymmetric extension of the second action.
+        second = second.split(".", 1)[0].strip(" ,;:.?")
+        actions = [first, second]
+        if all(len(action.split()) >= 2 for action in actions):
+            return {
+                f"A{index}": action[0].upper() + action[1:]
+                for index, action in enumerate(actions)
+            }
+    return {}
+
+
 def extract_explicit_actions(scenario: str) -> list[str]:
     """Extract a closed natural-language either/or choice without model generation."""
-    cleaned = " ".join(scenario.split())
+    from .scenario_semantics import normalize_action_labels
+
+    labeled_legend = extract_labeled_action_legend(scenario)
+    if labeled_legend:
+        return list(labeled_legend.values())
+    cleaned = " ".join(normalize_action_labels(scenario).split())
     match = re.search(
         r"\beither\s+(.+?)\s+or\s+(.+?)(?=[?.]|$)",
         cleaned,
@@ -1125,57 +2962,550 @@ def extract_scenario_facts(scenario: str) -> dict[str, Any]:
     return {"survival_chance": survival} if survival else {}
 
 
-def infer_testimony_baseline(
+_NEGATIVE_DECISION_BEFORE = re.compile(
+    r"(?:\b(?:rejects?|rejected|refuses?|declines?|avoid(?:s|ed)?|opposes?|"
+    r"forbids?|prohibits?)\b|\b(?:do|does|should|must|would)\s+not\b)"
+    r"[^.!?;]{0,55}$",
+    re.IGNORECASE,
+)
+_NEGATIVE_DECISION_AFTER = re.compile(
+    r"^[^.!?;]{0,45}\b(?:impermissible|forbidden|rejected|unacceptable|"
+    r"not\s+(?:permissible|acceptable|recommended))\b",
+    re.IGNORECASE,
+)
+_POSITIVE_DECISION_BEFORE = re.compile(
+    r"\b(?:choose|chooses|chose|select|selects|selected|favor|favors|favours|"
+    r"prefer|prefers|recommend|recommends|endorse|endorses|adopt|adopts|"
+    r"take|takes|open|opens|throw|throws|activate|activates|pursue|pursues)\b"
+    r"[^.!?;]{0,70}$",
+    re.IGNORECASE,
+)
+_POSITIVE_DECISION_AFTER = re.compile(
+    r"^[^.!?;]{0,55}\b(?:preferred|favou?red|permissible|recommended|best|right|"
+    r"maximi[sz]es?|minimi[sz]es?|saves?|protects?)\b",
+    re.IGNORECASE,
+)
+
+
+def _terminal_action_polarities(
+    terminal: str, action_ids: Sequence[str],
+) -> tuple[set[str], set[str]]:
+    """Classify only high-precision affirmative and negative label mentions."""
+    positive: set[str] = set()
+    rejected: set[str] = set()
+    allowed = set(action_ids)
+    for match in re.finditer(r"\bA\d+\b", terminal, re.IGNORECASE):
+        action_id = match.group(0).upper()
+        if action_id not in allowed:
+            continue
+        before = terminal[max(0, match.start() - 100):match.start()]
+        after = terminal[match.end():match.end() + 100]
+        negative_before = _NEGATIVE_DECISION_BEFORE.search(before)
+        positive_before = _POSITIVE_DECISION_BEFORE.search(before)
+        negative_after = _NEGATIVE_DECISION_AFTER.search(after)
+        positive_after = _POSITIVE_DECISION_AFTER.search(after)
+        # A post-label predicate is local to the label. Otherwise use the
+        # closest preceding decision verb so "reject A0 and choose A1" does not
+        # smear A0's negative polarity across the conjunction onto A1.
+        if negative_after:
+            rejected.add(action_id)
+        elif positive_after:
+            positive.add(action_id)
+        elif negative_before and positive_before:
+            if negative_before.start() > positive_before.start():
+                rejected.add(action_id)
+            else:
+                positive.add(action_id)
+        elif negative_before:
+            rejected.add(action_id)
+        elif positive_before:
+            positive.add(action_id)
+    return positive, rejected
+
+
+def infer_testimony_stance(
     llm: Any,
     specialist: str,
     testimony: str,
     actions: Sequence[str],
-    max_tokens: int = 64,
-) -> tuple[str, str]:
+    max_tokens: int = 96,
+    *,
+    source_action_legend: dict[str, str] | None = None,
+) -> TestimonyBaseline:
+    from .scenario_semantics import normalize_action_labels
+
     action_ids = [f"A{index}" for index in range(len(actions))]
     legend = {action_id: action for action_id, action in zip(action_ids, actions)}
+    source_legend = dict(source_action_legend or {})
+    specialist_key = str(specialist).strip().casefold()
+    specialist_key = {
+        "care ethics": "care",
+        "deontology": "deontological",
+        "kantian": "deontological",
+        "rawls": "rawlsian",
+    }.get(specialist_key, specialist_key)
+    is_care = specialist_key == "care"
+    normalized_testimony = normalize_action_labels(testimony)
+    marker = _FRAMEWORK_CONSTRUCT_MARKERS.get(specialist_key)
+    construct_axes = {
+        match.group(1).casefold()
+        for match in re.finditer(
+            (
+                r"\b(entrust\w*|depend\w*|trust\w*|vulnerab\w*|responsib\w*|"
+                r"attent\w*|responsive\w*|relationship\w*|obligation\w*|"
+                r"abandon\w*|caregiv\w*|interdepend\w*|duty|duties|right\w*|"
+                r"autonom\w*|coerc\w*|universa\w*|maxim\w*|categorical|"
+                r"instrumentali[sz]\w*|least[- ]advantaged|worse[- ]off|worst[- ]off|"
+                r"basic\s+libert\w*|primary\s+goods?|difference\s+principle|"
+                r"fair\s+equality|original\s+position|veil\s+of\s+ignorance|"
+                r"virtue\w*|vice\w*|character\w*|practical\s+wisdom|phronesis|"
+                r"flourish\w*|courage\w*|honest\w*|temperan\w*|compassion\w*|"
+                r"integrity|habitu\w*|exemplar\w*)\b"
+            ),
+            normalized_testimony,
+            re.IGNORECASE,
+        )
+        if marker is not None and marker.search(match.group(1))
+    }
+    framework_construct_audit = bool(
+        marker is not None
+        and (
+            "NORMATIVELY_CONTESTED" in normalized_testimony.upper()
+            or (
+                len(construct_axes) >= 2
+                and all(re.search(rf"\b{action_id}\b", normalized_testimony, re.I)
+                        for action_id in action_ids)
+            )
+        )
+    )
+    terminal_direct_fallback: tuple[str, str] | None = None
+
+    def unavailable(reason: str) -> TestimonyBaseline:
+        return TestimonyBaseline(status="UNAVAILABLE", reason=reason)
+
+    def conclusion_is_conditional(text: str) -> bool:
+        """Detect decision qualifications, not arbitrary antecedents in analysis."""
+        explicit = re.search(
+            r"\b(?:conditional|underdetermined|unless|depends?\s+on|only\s+if|provided\s+that|"
+            r"assuming\s+that|given\s+(?:the\s+)?(?:ordinary\s+)?assumptions?|"
+            r"missing\s+(?:facts?|information)|cannot\s+(?:reach|determine)|"
+            r"not\s+(?:enough|sufficient)\s+(?:facts?|information))\b",
+            text,
+            re.IGNORECASE,
+        )
+        decision_if = re.search(
+            r"(?:\b(?:choose|prefer|select|recommend)\b[^.!?]{0,120}\bif\b|"
+            r"\bif\b[^.!?]{0,120}\b(?:choose|prefer|select|recommend)\b)",
+            text,
+            re.IGNORECASE,
+        )
+        return bool(explicit or decision_if)
+
+    def resolve_source_label(source_id: str) -> str:
+        """Resolve a testimony label through the scenario mapping, not position."""
+        source_action = source_legend.get(source_id)
+        if not source_action:
+            return source_id if source_id in action_ids else "NONE"
+        exact_matches = [
+            action_id for action_id, action in legend.items()
+            if " ".join(action.casefold().split())
+            == " ".join(source_action.casefold().split())
+        ]
+        if len(exact_matches) == 1:
+            return exact_matches[0]
+        ranked = sorted(
+            ((_action_similarity(source_action, action), action_id)
+             for action_id, action in legend.items()),
+            reverse=True,
+        )
+        if not ranked or ranked[0][0] < 0.55:
+            return "NONE"
+        if len(ranked) > 1 and ranked[0][0] - ranked[1][0] < 0.10:
+            return "NONE"
+        return ranked[0][1]
+
+    # Original agents often discuss each option before ending with a labeled
+    # answer. Read an unambiguous terminal action ID deterministically so a
+    # rejected early maxim cannot be mistaken for the final recommendation.
+    terminal_rejected_source_ids: set[str] = set()
+    recommended_labels = list(re.finditer(
+        r"\brecommended\s+action\s*\(\s*(A\d+)\s*\)",
+        normalized_testimony,
+        re.IGNORECASE,
+    ))
+    if recommended_labels:
+        source_id = recommended_labels[-1].group(1).upper()
+        baseline = resolve_source_label(source_id)
+        conclusion_window = normalized_testimony[max(
+            0, recommended_labels[-1].start() - 180
+        ):recommended_labels[-1].end() + 240]
+        if baseline != "NONE" and not conclusion_is_conditional(conclusion_window):
+            evidence = " ".join(
+                normalized_testimony[recommended_labels[-1].start():].split()
+            )[:130]
+            terminal_reason = (f"terminal labeled answer ({source_id}): {evidence}")[:240]
+            if not framework_construct_audit:
+                return TestimonyBaseline(
+                    status="DIRECT", action_id=baseline, reason=terminal_reason,
+                )
+            terminal_direct_fallback = (baseline, terminal_reason)
+    terminal_markers = list(re.finditer(
+        r"(?:final\s+answer|ethical\s+answer|deontological\s+answer|"
+        r"utilitarian\s+answer|virtue(?:\s+ethics)?\s+answer|"
+        r"care(?:\s+ethics)?\s+answer|rawlsian(?:\s+ethics)?\s+answer|"
+        r"rawlsian(?:\s+ethics)?\s+verdict|"
+        r"deontological\s+resolution|conclusion|recommendation)\s*:?",
+        normalized_testimony,
+        re.IGNORECASE,
+    ))
+    if terminal_markers:
+        terminal = normalized_testimony[terminal_markers[-1].end():]
+        positive, terminal_rejected_source_ids = _terminal_action_polarities(
+            terminal, action_ids
+        )
+        if len(positive) == 1:
+            source_id = next(iter(positive))
+            if source_id in terminal_rejected_source_ids:
+                source_id = ""
+        else:
+            source_id = ""
+        if source_id and not conclusion_is_conditional(terminal):
+            baseline = resolve_source_label(source_id)
+            if baseline == "NONE":
+                # The source label exists, but its action cannot safely be
+                # aligned to the current workspace set. Let semantic extraction
+                # classify the testimony instead of guessing by position.
+                terminal_markers = []
+            else:
+                evidence = " ".join(terminal.split())[:130]
+                terminal_reason = (
+                    f"terminal labeled answer ({source_id}): {evidence}"
+                )[:240]
+                if not framework_construct_audit:
+                    return TestimonyBaseline(
+                        status="DIRECT", action_id=baseline, reason=terminal_reason,
+                    )
+                terminal_direct_fallback = (baseline, terminal_reason)
     schema = {
         "type": "object",
         "properties": {
             "b": {"type": "string", "enum": [*action_ids, "NONE"]},
+            "p": {"type": "string", "enum": [*action_ids, "NONE"]},
             "w": {"type": "string"},
             "q": {
                 "type": "string",
-                "enum": ["DIRECT", "CONDITIONAL", "OUTSIDE_ACTION_SET"],
+                "enum": [
+                    "DIRECT", "CONDITIONAL", "UNDERDETERMINED",
+                    "NORMATIVELY_CONTESTED",
+                    "OUTSIDE_ACTION_SET",
+                ],
+            },
+            "c": {"type": "string", "maxLength": 240},
+            "x": {
+                "type": "array",
+                "items": {"type": "string", "enum": action_ids},
             },
         },
-        "required": ["b", "w", "q"],
+        "required": ["b", "p", "w", "q", "c", "x"],
         "additionalProperties": False,
     }
+    if framework_construct_audit:
+        schema["properties"].update({
+            "m": {
+                "type": "object",
+                "properties": {
+                    action_id: {"type": "string", "minLength": 8, "maxLength": 180}
+                    for action_id in action_ids
+                },
+                "required": action_ids,
+                "additionalProperties": False,
+            },
+            "nr": {
+                "type": "string",
+                "enum": ["DECISIVE", "SECONDARY", "IRRELEVANT"],
+            },
+        })
+        schema["required"].extend(["m", "nr"])
+    baseline_example_extra = ""
+    construct_instruction = ""
+    if framework_construct_audit:
+        if is_care:
+            map_example = {
+                "A0": "entrusted dependency supports A0",
+                "A1": "agent-created vulnerability supports A1",
+            }
+            detail = (
+                "Use entrustment, dependency, trust, agent-created vulnerability, "
+                "responsibility, attentiveness, or responsiveness. Counts can be "
+                "DECISIVE only when competing relational claims are comparable."
+            )
+            conflict_name = "relational priority"
+            construct_heading = "Care-specific construct check"
+        elif specialist_key == "deontological":
+            map_example = {
+                "A0": "PERMISSIBLE: respects autonomy; rescue duty conflicts",
+                "A1": "PROHIBITED: instrumentalizes a person as a means",
+            }
+            detail = (
+                "Start each value REQUIRED:, PERMISSIBLE:, PROHIBITED:, or "
+                "CONFLICTED:, then identify its universal-law, right, autonomy, "
+                "respect-for-persons, or duty grounds. Numbers can be DECISIVE "
+                "only when tied to the scope or category of a duty or right."
+            )
+            conflict_name = "non-consequential duty-priority rule"
+            construct_heading = "Deontological construct check"
+        elif specialist_key == "rawlsian":
+            map_example = {
+                "A0": "PRESERVES: least-advantaged group retains equal liberty",
+                "A1": "IMPROVES: worse-off group gains the primary good",
+            }
+            detail = (
+                "Start each value IMPROVES:, PRESERVES:, WORSENS:, or UNCERTAIN:, "
+                "then distinguish the gravest event burden from any socially "
+                "least-advantaged position actually stated, and name the relevant "
+                "basic liberty or primary good. In a non-distributive dilemma use "
+                "the public-rule/original-position test instead of inventing a "
+                "difference-principle beneficiary. Numbers can be DECISIVE only "
+                "for that position under compatible liberties."
+            )
+            conflict_name = "priority among Rawlsian principles"
+            construct_heading = "Rawlsian construct check"
+        else:
+            map_example = {
+                "A0": "EXEMPLIFIES: responsible role expresses courage with prudence",
+                "A1": "MIXED: compassion risks imprudence in these circumstances",
+            }
+            detail = (
+                "Start each value EXEMPLIFIES:, MIXED:, UNDERMINES:, or UNCERTAIN:, "
+                "then identify the actor's role, virtues, vices, and circumstances "
+                "relevant to practical wisdom. Numbers can be DECISIVE only when "
+                "their stakes are connected to phronesis or flourishing."
+            )
+            conflict_name = "practical-wisdom priority among virtues"
+            construct_heading = "Virtue-ethics construct check"
+        baseline_example_extra = ',"m":' + json.dumps(map_example) + ',"nr":"SECONDARY"'
+        construct_instruction = f"""
+{construct_heading}: m must assess EVERY action in {json.dumps(action_ids)}.
+{detail}
+nr states whether numerical magnitude is DECISIVE, SECONDARY, or IRRELEVANT in the
+testimony. Use q=NORMATIVELY_CONTESTED when independent commitments inside this
+framework favor different actions and the testimony has no rule resolving their
+priority—even if it ends with a provisional recommendation. Then b=NONE, p may
+preserve that provisional action, and c must name the unresolved {conflict_name}.
+Do not classify ordinary factual uncertainty or mere tragedy as normative conflict.
+"""
     prompt = f"""[INST]
 Framework: {specialist}
-Original testimony: {' '.join(testimony.split())[:1000]}
-Actions: {json.dumps(legend)}
+Original testimony: {_compact_testimony(testimony, 1400)}
+Canonical workspace actions: {json.dumps(legend)}
+Scenario source labels: {json.dumps(source_legend or legend)}
+System-detected rejected source labels: {json.dumps(sorted(terminal_rejected_source_ids))}
 Which listed action does the testimony directly recommend as the answer to the
 stated dilemma? q=DIRECT only when it clearly selects one listed action without
 requiring an unstated factual condition. q=CONDITIONAL when the selection depends
-on missing facts. q=OUTSIDE_ACTION_SET when it evades the dilemma by recommending
-a sequence, compromise, delay, different treatment, or third option. For either
-non-DIRECT label, b must be NONE. Do not force the nearest action onto an evasive
-or conditional conclusion.
-Return JSON only: {{"b":"A0","w":"short evidence","q":"DIRECT"}}
+on missing facts but the testimony gives a provisional direction. A statement like
+"choose A0 unless X" is CONDITIONAL, not DIRECT. q=UNDERDETERMINED when missing
+facts prevent even a provisional ranking. q=OUTSIDE_ACTION_SET when it evades the
+dilemma by recommending a sequence, compromise, delay, different treatment, or
+third option. For every non-DIRECT label, b must be NONE. Set p to the provisional
+canonical action for CONDITIONAL, and NONE otherwise. Set c to the missing factual
+comparison or switch condition for CONDITIONAL/UNDERDETERMINED, and NONE otherwise.
+Do not force the nearest action onto an evasive or unresolved conclusion. Source
+labels describe the scenario author's mapping; return the corresponding canonical
+workspace ID, not merely the same label text.
+x must list every canonical action the conclusion explicitly rejects. b may not
+also appear in x, and a provisional p may not be explicitly rejected.
+{construct_instruction}
+Return JSON only: {{"b":"NONE","p":"A0","w":"short evidence","q":"CONDITIONAL","c":"A0 unless the rival gain exceeds the other party loss","x":[]{baseline_example_extra}}}
 [/INST]"""
     output = _call_json_llm(llm, prompt, max_tokens=max_tokens, temperature=0.0, schema=schema)
     raw = output["choices"][0]["text"] if isinstance(output, dict) else str(output)
     try:
         data = _extract_json(raw)
         baseline = str(data.get("b", "NONE")).strip().upper()
-        reason = " ".join(str(data.get("w", "")).split())[:160]
+        provisional = str(data.get("p", baseline)).strip().upper()
+        reason = " ".join(str(data.get("w", "")).split())[:240]
         quality = str(data.get("q", "DIRECT")).strip().upper()
-        if quality not in {"DIRECT", "CONDITIONAL", "OUTSIDE_ACTION_SET"}:
-            return "NONE", "invalid baseline quality"
-        if quality != "DIRECT":
-            return "NONE", f"{quality.lower()}: {reason}"[:160]
+        condition = " ".join(str(data.get("c", "NONE")).split())[:240]
+        raw_commitments = data.get("m", {}) if framework_construct_audit else {}
+        commitments = {
+            str(action_id).strip().upper(): " ".join(str(value).split())[:180]
+            for action_id, value in raw_commitments.items()
+        } if isinstance(raw_commitments, dict) else {}
+        numerical_role = (
+            str(data.get("nr", "UNASSESSED")).strip().upper()
+            if framework_construct_audit else "UNASSESSED"
+        )
+        raw_rejected = data.get("x", [])
+        rejected = {
+            str(value).strip().upper() for value in raw_rejected
+        } if isinstance(raw_rejected, list) else set()
+        if isinstance(raw_rejected, list) and len(rejected) != len(raw_rejected):
+            return unavailable("baseline classifier repeated a rejected-action ID")
+        system_rejected = {
+            resolve_source_label(source_id)
+            for source_id in terminal_rejected_source_ids
+        } - {"NONE"}
+        if quality not in {
+            "DIRECT", "CONDITIONAL", "UNDERDETERMINED",
+            "NORMATIVELY_CONTESTED", "OUTSIDE_ACTION_SET"
+        }:
+            return unavailable("invalid baseline quality")
         if baseline not in {*action_ids, "NONE"}:
-            return "NONE", "invalid baseline ID"
-        return baseline, reason
+            return unavailable("invalid baseline ID")
+        if provisional not in {*action_ids, "NONE"}:
+            return unavailable("invalid provisional baseline ID")
+        if rejected - set(action_ids):
+            return unavailable("invalid rejected-action ID")
+        if framework_construct_audit and set(commitments) != set(action_ids):
+            if terminal_direct_fallback is not None:
+                return TestimonyBaseline(
+                    status="DIRECT",
+                    action_id=terminal_direct_fallback[0],
+                    reason=terminal_direct_fallback[1],
+                )
+            return unavailable("framework baseline omitted an action commitment")
+        if framework_construct_audit and numerical_role not in {"DECISIVE", "SECONDARY", "IRRELEVANT"}:
+            return unavailable("framework baseline omitted the role of numerical magnitude")
+        if framework_construct_audit:
+            mapped_commitments = {
+                legend[action_id]: assessment
+                for action_id, assessment in commitments.items()
+            }
+            construct_errors = _construct_map_errors(
+                specialist_key,
+                list(legend.values()),
+                mapped_commitments,
+                numerical_role,
+                reason or condition,
+            )
+            # Baseline extraction lacks a dedicated numerical explanation field;
+            # only structural map errors are fatal here. The recurrent delegate
+            # supplies and validates the fuller numerical justification.
+            structural_errors = [
+                error for error in construct_errors
+                if "numerical" not in error and "decisive" not in error
+            ]
+            source_grounded_ids = _framework_grounded_action_sections(
+                testimony, action_ids, marker,
+            )
+            if source_grounded_ids == set(action_ids):
+                # The original testimony is the authoritative framework source.
+                # A compact classifier paraphrase should not erase a baseline
+                # merely because it chose a synonym outside the marker lexicon.
+                structural_errors = [
+                    error for error in structural_errors
+                    if not error.startswith("framework map for ")
+                ]
+            if structural_errors:
+                if terminal_direct_fallback is not None:
+                    return TestimonyBaseline(
+                        status="DIRECT",
+                        action_id=terminal_direct_fallback[0],
+                        reason=terminal_direct_fallback[1],
+                        numerical_role=numerical_role,
+                    )
+                return unavailable(structural_errors[0])
+        if baseline != "NONE" and baseline in (rejected | system_rejected):
+            return unavailable("baseline classifier selected an explicitly rejected action")
+        if provisional != "NONE" and provisional in (rejected | system_rejected):
+            return unavailable("baseline classifier provisionally selected an explicitly rejected action")
+        all_rejected = sorted(rejected | system_rejected)
+        if quality == "DIRECT":
+            if baseline == "NONE":
+                return unavailable("direct baseline omitted its action ID")
+            if provisional not in {"NONE", baseline}:
+                return unavailable("direct and provisional baseline IDs disagree")
+            return TestimonyBaseline(
+                status="DIRECT",
+                action_id=baseline,
+                reason=reason,
+                rejected_action_ids=all_rejected,
+                framework_commitments=commitments,
+                numerical_role=numerical_role,
+            )
+        if baseline != "NONE":
+            return unavailable("non-direct baseline improperly froze an action")
+        if quality == "CONDITIONAL":
+            if provisional == "NONE":
+                return unavailable("conditional baseline omitted its provisional action")
+            if condition.casefold() == "none" or _semantic_word_count(condition) < 3:
+                return unavailable("conditional baseline omitted its switch condition")
+            return TestimonyBaseline(
+                status="CONDITIONAL",
+                provisional_action_id=provisional,
+                condition=condition,
+                reason=reason,
+                rejected_action_ids=all_rejected,
+                framework_commitments=commitments,
+                numerical_role=numerical_role,
+            )
+        if quality == "UNDERDETERMINED":
+            if condition.casefold() == "none" or _semantic_word_count(condition) < 3:
+                return unavailable("underdetermined baseline omitted the missing comparison")
+            return TestimonyBaseline(
+                status="UNDERDETERMINED",
+                condition=condition,
+                reason=reason,
+                rejected_action_ids=all_rejected,
+                framework_commitments=commitments,
+                numerical_role=numerical_role,
+            )
+        if quality == "NORMATIVELY_CONTESTED":
+            if condition.casefold() == "none" or _semantic_word_count(condition) < 3:
+                return unavailable("contested baseline omitted its framework-priority conflict")
+            return TestimonyBaseline(
+                status="NORMATIVELY_CONTESTED",
+                provisional_action_id=provisional,
+                condition=condition,
+                reason=reason,
+                rejected_action_ids=all_rejected,
+                framework_commitments=commitments,
+                numerical_role=numerical_role,
+            )
+        return TestimonyBaseline(
+            status="OUTSIDE_ACTION_SET",
+            reason=reason,
+            rejected_action_ids=all_rejected,
+            framework_commitments=commitments,
+            numerical_role=numerical_role,
+        )
     except (ValueError, json.JSONDecodeError) as exc:
-        return "NONE", f"baseline extraction failed: {exc}"[:160]
+        return unavailable(f"baseline extraction failed: {exc}"[:240])
+
+
+def infer_testimony_baseline(
+    llm: Any,
+    specialist: str,
+    testimony: str,
+    actions: Sequence[str],
+    max_tokens: int = 96,
+    *,
+    source_action_legend: dict[str, str] | None = None,
+) -> tuple[str, str]:
+    """Compatibility view for callers that only understand direct baselines."""
+    stance = infer_testimony_stance(
+        llm,
+        specialist,
+        testimony,
+        actions,
+        max_tokens=max_tokens,
+        source_action_legend=source_action_legend,
+    )
+    reason = stance.reason
+    if stance.status != "DIRECT":
+        reason = f"{stance.status.casefold()}: {reason or stance.condition}"
+    return stance.action_id, reason[:240]
+
+
+def _compact_testimony(testimony: str, limit: int) -> str:
+    """Preserve both opening rationale and terminal conclusion within a budget."""
+    compact = " ".join(str(testimony).split())
+    if len(compact) <= limit:
+        return compact
+    tail_size = max(1, limit // 2)
+    head_size = max(1, limit - tail_size - 5)
+    return f"{compact[:head_size]} ... {compact[-tail_size:]}"
 
 
 def propose_actions(llm: Any, scenario: str, max_tokens: int = 128) -> list[str]:
@@ -1429,9 +3759,46 @@ x means executable; n means non-evasive.
     unsupported_terms = sorted({term for term in resource_terms if term not in support_text})
     introduced_numbers = sorted(set(re.findall(r"\b\d+(?:\.\d+)?\b", normalized)))
     unsupported_numbers = [number for number in introduced_numbers if number not in support_text]
+    # A model can conceal an invented implementation requirement by returning
+    # q=[]. Check each added coordination clause against the evidence itself.
+    # This is deliberately concept-overlap validation, not exact quotation.
+    grounding_stopwords = {
+        "a", "an", "and", "as", "at", "by", "for", "from", "in", "into",
+        "of", "on", "or", "the", "to", "while", "with", "without", "immediately",
+    }
+    def concept_tokens(text: str) -> set[str]:
+        tokens = set()
+        for token in re.findall(r"[a-z][a-z'-]{2,}", text.casefold()):
+            if token in grounding_stopwords:
+                continue
+            # Light morphology handles deploy/deploying and monitor/monitoring
+            # without pretending to perform semantic entailment.
+            for suffix in ("ing", "ed", "es", "s"):
+                if token.endswith(suffix) and len(token) - len(suffix) >= 4:
+                    token = token[:-len(suffix)]
+                    break
+            tokens.add(token)
+        return tokens
+    evidence_tokens = concept_tokens(support_text + " " + " ".join(actions))
+    clauses = [
+        clause.strip(" ,.;:")
+        for clause in re.split(r"\b(?:while|and then|with|by)\b", normalized)
+        if clause.strip(" ,.;:")
+    ]
+    ungrounded_clauses = []
+    for clause in clauses[1:]:
+        clause_tokens = concept_tokens(clause)
+        novel = clause_tokens - evidence_tokens
+        if len(clause_tokens) >= 2 and len(novel) >= 2 and len(novel) / len(clause_tokens) > 0.5:
+            ungrounded_clauses.append(clause)
     if unsupported_requirements or unsupported_terms or unsupported_numbers:
         details = unsupported_requirements + unsupported_terms + unsupported_numbers
         reasons.append(f"introduces unsupported concrete requirements: {', '.join(details[:5])}")
+    if ungrounded_clauses:
+        reasons.append(
+            "contains an operational clause not grounded in scenario or testimony: "
+            + ", ".join(ungrounded_clauses[:2])
+        )
     proposal.accepted = not reasons
     proposal.rejection_reason = "; ".join(reasons)
     return proposal
@@ -1448,23 +3815,21 @@ def generate_failure_condition(
     schema = {
         "type": "object",
         "properties": {
-            "n": {"type": "string", "maxLength": 180},
-            "f": {"type": "string", "maxLength": 180},
-            "q": {"type": "string", "maxLength": 240},
+            "p": {"type": "string", "minLength": 8, "maxLength": 160},
+            "x": {"type": "string", "minLength": 8, "maxLength": 160},
         },
-        "required": ["n", "f", "q"],
+        "required": ["p", "x"],
         "additionalProperties": False,
     }
     prompt = f"""[INST]
 Scenario: {' '.join(scenario.split())[:1000]}
 Admitted synthesis: {synthesis_action}
 Original fallback actions: {json.dumps(list(original_actions[:2]))}
-Identify the single most important condition the synthesis needs in order to work.
-State its direct failure case, then ask one explicit ethical fallback question using
-the original actions. Stay at the scenario's abstraction level. Do not invent a
-deadline, probability, institution, resource, or new option.
-Return JSON only: {{"n":"necessary condition","f":"that condition fails",
-"q":"If the failure occurs, should the actor choose fallback A or fallback B?"}}
+Identify ONE affirmative condition p that the synthesis needs in order to work.
+x states the direct practical effect when p is FALSE. Do not assess either fallback;
+an independent verifier does that separately. Stay at the scenario's abstraction
+level. Do not invent a deadline, probability, institution, resource, or new option.
+Return JSON only: {{"p":"affirmative synthesis dependency", "x":"effect when false"}}
 [/INST]"""
     try:
         output = _call_json_llm(
@@ -1472,33 +3837,31 @@ Return JSON only: {{"n":"necessary condition","f":"that condition fails",
         )
         raw = output["choices"][0]["text"] if isinstance(output, dict) else str(output)
         data = _extract_json(raw)
-        necessary = " ".join(str(data.get("n", "")).split())
-        failure = " ".join(str(data.get("f", "")).split())
-        question = " ".join(str(data.get("q", "")).split())
-        errors = []
-        if len(necessary.split()) < 3:
-            errors.append("necessary condition is too vague")
-        if len(failure.split()) < 3 or failure.casefold() == necessary.casefold():
-            errors.append("failure condition is too vague")
-        if len(question.split()) < 6 or not question.endswith("?"):
-            errors.append("contingency question is not explicit")
-        mentioned_fallbacks = sum(
-            1 for action in original_actions[:2]
-            if any(word in question.casefold() for word in re.findall(r"[a-z]{4,}", action.casefold())[:3])
+        fallbacks = list(original_actions[:2])
+        graph_validation = compile_contingency_graph(data, synthesis_action, fallbacks)
+        predicate = " ".join(str(data.get("p", "")).split())
+        failure_effect = " ".join(str(data.get("x", "")).split())
+        failure = f"NOT({predicate}): {failure_effect}"
+        question = (
+            "If the required synthesis condition is false, should the actor "
+            "choose fallback A0 or fallback A1?"
         )
-        if mentioned_fallbacks < 2:
-            errors.append("question does not connect both original fallback actions")
         return FailureCondition(
             synthesis_action,
-            necessary,
+            predicate,
             failure,
             question,
-            valid=not errors,
-            error="; ".join(errors),
+            fallback_actions=fallbacks,
+            predicate_label=predicate,
+            required_truth=True,
+            failure_truth=False,
+            semantic_graph=graph_validation.graph.to_dict(),
+            valid=graph_validation.valid,
+            error="; ".join(graph_validation.errors),
         )
     except Exception as exc:
         return FailureCondition(
-            synthesis_action, "", "", "", valid=False,
+            synthesis_action, "", "", "", fallback_actions=list(original_actions[:2]), valid=False,
             error=f"contingency analysis unavailable: {exc}",
         )
 
@@ -1514,8 +3877,10 @@ def analyze_action_plan(
     max_tokens: int = 160,
 ) -> PlanningAssessment:
     """Assess execution without contributing a moral preference or policy score."""
-    action_ids = [f"A{index}" for index in range(len(actions))]
-    legend = {action_id: action for action_id, action in zip(action_ids, actions)}
+    from .scenario_semantics import action_legend
+
+    legend = action_legend(actions)
+    action_ids = list(legend)
     try:
         target_id = action_ids[list(actions).index(target_action)]
     except ValueError:
@@ -1560,7 +3925,7 @@ def analyze_action_plan(
 You are a non-normative planning system. Do NOT decide which action is ethical.
 Scenario: {' '.join(scenario.split())[:900]}
 Actions: {json.dumps(legend)}
-Current policy leader: {target_id}
+Target ActionNode.id: {target_id}
 Activation: {activation_reason}
 Workspace: {broadcast.compact()}
 Ethical constraints already raised: {json.dumps(evidence)}
@@ -1577,8 +3942,10 @@ n is the most important necessary condition; x is its direct failure condition.
 b is the best fallback among the EXISTING actions, not a new moral recommendation.
 a lists actor/power constraints; r lists resource/time constraints. m is true only
 when x is a material unresolved risk worth broadcasting to the ethical specialists.
-g must be an exact, contiguous quote from the scenario or Workspace text that states
-the implementation obstacle. If no such quote exists, m must be false. va states
+The target is assigned by the graph as {target_id}; do not infer it from wording.
+g is a concise provenance note explaining which stated fact or typed action property
+supports the obstacle. It is audit text, not an identity field and need not be an
+exact quotation. If no scenario or ActionNode property supports it, m must be false. va states
 whether fallback b remains physically executable after x has occurred; vr briefly
 explains why. va must be false when x removes a capability, actor, authority, control,
 or resource required by both the target and fallback. Ethical desirability is not
@@ -1608,11 +3975,8 @@ Return compact JSON only.
         grounded_evidence = " ".join(str(data.get("g", "")).split())
         fallback_available = data.get("va") is True
         fallback_availability_reason = " ".join(str(data.get("vr", "")).split())
-        grounding_context = " ".join(
-            (scenario, broadcast.contingency_question, broadcast.reformulation_context)
-        ).casefold()
-        if len(grounded_evidence.split()) < 2 or grounded_evidence.casefold() not in grounding_context:
-            raise ValueError("planning obstacle must quote the scenario or workspace exactly")
+        if material and len(grounded_evidence.split()) < 2:
+            raise ValueError("material planning obstacle needs a provenance note")
         if material and not fallback_available:
             raise ValueError("material planning branch leaves no physically available fallback")
         if len(fallback_availability_reason.split()) < 3:
@@ -1652,6 +4016,7 @@ Return compact JSON only.
             grounded_evidence=grounded_evidence,
             fallback_available=fallback_available,
             fallback_availability_reason=fallback_availability_reason,
+            target_action_node_id=target_id,
         )
     except Exception as exc:
         return PlanningAssessment(
@@ -1712,8 +4077,13 @@ def propose_problem_reformulation(
                         "m": {"type": "number", "exclusiveMinimum": 0},
                         "unit": {"type": "string"},
                         "h": {"type": "string"},
+                        "f": {"type": "string", "enum": [
+                            "MORTALITY", "HEALTH_DURATION", "ECONOMIC", "RESOURCE",
+                            "RIGHTS", "WELLBEING", "OTHER"
+                        ]},
+                        "b": {"type": "string"},
                     },
-                    "required": ["a", "k", "d", "x", "p", "m", "unit", "h"],
+                    "required": ["a", "k", "d", "x", "p", "m", "unit", "h", "f", "b"],
                     "additionalProperties": False,
                 },
             },
@@ -1768,7 +4138,13 @@ both A0 and A1. Probabilities must be explicit and may be 1.0 when the
 thought experiment specifies a deterministic outcome.
 For each outcome, k is a shared comparison dimension such as mortality,
 employment, fair access, bodily harm, or resource loss. Mirrored outcomes must use
-the same k and normalized unit for both actions; direction belongs only in d.
+the same k, measurement family f, normalized unit, population basis b, and time
+horizon h for both actions; direction belongs only in d. f must be MORTALITY,
+HEALTH_DURATION, ECONOMIC, RESOURCE, RIGHTS, WELLBEING, or OTHER. b identifies
+whose outcomes are counted (for example exposed residents or affected workers).
+Never convert between families. Use QALYs only if the scenario supplies health-state
+duration and quality weights; otherwise preserve mortality and health-duration as
+separate dimensions. A relative gap is within-dimension only, never an exchange rate.
 
 u=the missing variables; s=the condition at which consensus should switch or split;
 t=the normative tension that remains even with the hypothetical numbers specified;
@@ -1807,6 +4183,7 @@ Return compact JSON only.
                 legend[action_id], str(item.get("k", "")), direction,
                 str(item.get("x", "")), probability,
                 magnitude, str(item.get("unit", "")), str(item.get("h", "")),
+                str(item.get("f", "OTHER")), str(item.get("b", "UNSPECIFIED")),
             ))
         represented = {outcome.action for outcome in outcomes}
         if not set(actions).issubset(represented):
@@ -1848,17 +4225,31 @@ Return compact JSON only.
             changed_fixed_facts=changed_fixed,
             hypothetical=data.get("hyp") is True,
         )
-        dimension_units: dict[str, set[str]] = {}
+        dimension_bases: dict[str, set[tuple[str, str, str, str]]] = {}
         for outcome in outcomes:
-            dimension_units.setdefault(outcome.dimension.casefold(), set()).add(outcome.unit.casefold())
+            dimension_bases.setdefault(outcome.dimension.casefold(), set()).add((
+                outcome.measurement_family,
+                outcome.unit.casefold(),
+                outcome.population_basis.casefold(),
+                outcome.horizon.casefold(),
+            ))
         inconsistent_dimensions = [
-            dimension for dimension, units_for_dimension in dimension_units.items()
-            if len(units_for_dimension) > 1
+            dimension for dimension, bases in dimension_bases.items()
+            if len(bases) > 1
         ]
         numeric_comparisons = []
-        for dimension, units_for_dimension in dimension_units.items():
-            if len(units_for_dimension) != 1:
+        incomplete_dimensions = []
+        for dimension, bases in dimension_bases.items():
+            if len(bases) != 1:
                 continue
+            represented_actions = {
+                outcome.action for outcome in outcomes
+                if outcome.dimension.casefold() == dimension
+            }
+            if represented_actions != set(actions):
+                incomplete_dimensions.append(dimension)
+                continue
+            family, unit, population_basis, time_basis = next(iter(bases))
             action_values = {
                 action: sum(
                     (1.0 if outcome.direction == "BENEFIT" else -1.0)
@@ -1877,12 +4268,24 @@ Return compact JSON only.
             )
             numeric_comparisons.append(NumericComparison(
                 dimension=dimension,
-                unit=next(iter(units_for_dimension)),
+                unit=unit,
                 action_values=action_values,
                 absolute_gap=absolute_gap,
                 relative_gap=(absolute_gap / gross if gross else 0.0),
+                measurement_family=family,
+                population_basis=population_basis,
+                time_basis=time_basis,
             ))
         proposal.numeric_comparisons = numeric_comparisons
+        comparison_families = {
+            comparison.measurement_family for comparison in numeric_comparisons
+        }
+        if len(comparison_families) > 1:
+            proposal.unresolved_numeric_tradeoffs = [
+                "No numeric exchange rate is assumed between "
+                + " and ".join(sorted(comparison_families))
+                + "; their relative moral weight remains unresolved."
+            ]
         reasons = []
         if not proposal.hypothetical:
             reasons.append("calibration was not explicitly hypothetical")
@@ -1937,9 +4340,24 @@ Return compact JSON only.
             reasons.append("categorical axis is incomplete")
         if inconsistent_dimensions:
             reasons.append(
-                "shared dimensions use inconsistent units: " + ", ".join(inconsistent_dimensions)
+                "shared dimensions use inconsistent family, unit, population, or time bases: "
+                + ", ".join(inconsistent_dimensions)
             )
-        near_numeric_boundary = any(
+        if incomplete_dimensions:
+            reasons.append(
+                "numeric dimensions do not represent every action: "
+                + ", ".join(incomplete_dimensions)
+            )
+        qaly_outcomes = [
+            outcome for outcome in outcomes if "qaly" in outcome.unit.casefold()
+        ]
+        if qaly_outcomes and not re.search(
+            r"\bqaly\w*\b|\bquality(?:-adjusted)?\s+(?:weight|life[- ]year)\w*\b",
+            scenario,
+            flags=re.IGNORECASE,
+        ):
+            reasons.append("QALY conversion lacks scenario-supplied quality weights")
+        near_numeric_boundary = bool(numeric_comparisons) and any(
             comparison.relative_gap <= 0.25
             for comparison in proposal.numeric_comparisons
         )
@@ -1954,6 +4372,7 @@ Return compact JSON only.
             + f" (relative gap={comparison.relative_gap:.2f})"
             for comparison in proposal.numeric_comparisons
         )
+        tradeoff_text = " ".join(proposal.unresolved_numeric_tradeoffs)
         proposal.switch_condition = (
             f"Python-computed calibration: {comparison_text}. "
             + (
@@ -1961,6 +4380,7 @@ Return compact JSON only.
                 if near_numeric_boundary
                 else "No numeric dimension is near parity; any split must be explained by categorical axes."
             )
+            + (f" {tradeoff_text}" if tradeoff_text else "")
         )[:220]
         proposal.accepted = not reasons
         proposal.rejection_reason = "; ".join(reasons)

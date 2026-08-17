@@ -10,6 +10,68 @@ def clamp(value: float) -> float:
 
 
 @dataclass(slots=True)
+class TestimonyBaseline:
+    """Typed source stance preserved before workspace deliberation begins.
+
+    ``action_id`` is authoritative only for a DIRECT stance.  A conditional
+    testimony may retain a ``provisional_action_id`` without turning that
+    provisional ranking into a frozen commitment.
+    """
+
+    status: str = "UNAVAILABLE"
+    action_id: str = "NONE"
+    provisional_action_id: str = "NONE"
+    condition: str = ""
+    reason: str = ""
+    rejected_action_ids: list[str] = field(default_factory=list)
+    framework_commitments: dict[str, str] = field(default_factory=dict)
+    numerical_role: str = "UNASSESSED"
+
+    def __post_init__(self) -> None:
+        allowed = {
+            "DIRECT", "CONDITIONAL", "UNDERDETERMINED", "NORMATIVELY_CONTESTED",
+            "OUTSIDE_ACTION_SET", "UNAVAILABLE",
+        }
+        normalized = str(self.status).strip().upper()
+        self.status = normalized if normalized in allowed else "UNAVAILABLE"
+        self.action_id = str(self.action_id).strip().upper() or "NONE"
+        self.provisional_action_id = (
+            str(self.provisional_action_id).strip().upper() or "NONE"
+        )
+        self.condition = " ".join(str(self.condition).split())[:240]
+        self.reason = " ".join(str(self.reason).split())[:240]
+        self.rejected_action_ids = list(dict.fromkeys(
+            str(action_id).strip().upper()
+            for action_id in self.rejected_action_ids
+            if str(action_id).strip()
+        ))
+        self.framework_commitments = {
+            str(action_id).strip().upper(): " ".join(str(reason).split())[:180]
+            for action_id, reason in self.framework_commitments.items()
+            if str(action_id).strip() and " ".join(str(reason).split())
+        }
+        role = str(self.numerical_role).strip().upper()
+        self.numerical_role = (
+            role if role in {"DECISIVE", "SECONDARY", "IRRELEVANT", "UNASSESSED"}
+            else "UNASSESSED"
+        )
+        if self.status == "DIRECT":
+            self.provisional_action_id = self.action_id
+            self.condition = ""
+        else:
+            self.action_id = "NONE"
+        if self.status not in {
+            "CONDITIONAL", "UNDERDETERMINED", "NORMATIVELY_CONTESTED",
+        }:
+            self.condition = ""
+        if self.status in {"OUTSIDE_ACTION_SET", "UNAVAILABLE"}:
+            self.provisional_action_id = "NONE"
+
+    def as_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(slots=True)
 class WorkspaceBroadcast:
     constraint: str = "OPEN_DELIBERATION"
     intent: str = "identify_a_defensible_action"
@@ -17,6 +79,11 @@ class WorkspaceBroadcast:
     danger_probability: float = 0.5
     unresolved: str = "NONE"
     contingency_question: str = ""
+    contingency_synthesis_action: str = ""
+    contingency_failure_condition: str = ""
+    contingency_predicate: str = ""
+    contingency_failure_truth: bool = False
+    contingency_fallback_actions: tuple[str, ...] = ()
     reformulation_context: str = ""
     branch_kind: str = "BASE"
     branch_origin_action: str = ""
@@ -29,6 +96,20 @@ class WorkspaceBroadcast:
         self.intent = self.intent.strip().lower()[:80] or "identify_a_defensible_action"
         self.unresolved = self.unresolved.strip().upper()[:48] or "NONE"
         self.contingency_question = " ".join(self.contingency_question.split())[:240]
+        self.contingency_synthesis_action = " ".join(
+            self.contingency_synthesis_action.split()
+        )[:120]
+        self.contingency_failure_condition = " ".join(
+            self.contingency_failure_condition.split()
+        )[:180]
+        self.contingency_predicate = " ".join(
+            self.contingency_predicate.split()
+        )[:160]
+        self.contingency_fallback_actions = tuple(
+            " ".join(str(action).split())[:120]
+            for action in self.contingency_fallback_actions[:2]
+            if " ".join(str(action).split())
+        )
         self.reformulation_context = " ".join(self.reformulation_context.split())[:600]
         self.branch_kind = self.branch_kind.strip().upper()[:32] or "BASE"
         self.branch_origin_action = " ".join(self.branch_origin_action.split())[:120]
@@ -44,6 +125,10 @@ class WorkspaceBroadcast:
             f"urgency={self.urgency:.2f}; danger={self.danger_probability:.2f}; "
             f"unresolved={self.unresolved}; "
             f"contingency={self.contingency_question or 'NONE'}; "
+            f"failed_synthesis={self.contingency_synthesis_action or 'NONE'}; "
+            f"failure_condition={self.contingency_failure_condition or 'NONE'}; "
+            f"typed_failure=NOT({self.contingency_predicate or 'NONE'}); "
+            f"typed_fallbacks={list(self.contingency_fallback_actions) or 'NONE'}; "
             f"reformulation={self.reformulation_context or 'NONE'}; "
             f"branch={self.branch_kind}; origin={self.branch_origin_action or 'NONE'}; "
             f"condition={self.branch_condition or 'NONE'}; "
@@ -67,6 +152,8 @@ class CandidateChunk:
     validation_errors: list[str] = field(default_factory=list)
     recommended_action: str = ""
     baseline_action: str = ""
+    baseline_status: str = "UNAVAILABLE"
+    baseline_condition: str = ""
     testimony_alignment: str = "UNCLEAR"
     previous_action: str = ""
     position_changed: bool = False
@@ -83,6 +170,16 @@ class CandidateChunk:
     boundary_switch_condition: str = ""
     evidence_basis: str = "STATED_FACTS"
     speculative_claim: str = ""
+    evidence_calibration_tier: str = "NOT_APPLICABLE"
+    evidence_calibration_reason: str = ""
+    evidence_direction_retention: float = 1.0
+    coercion_tag: str = "NONE"
+    coercion_surcharge: float = 0.0
+    visibility_response: str = "NOT_TESTED"
+    visibility_justification: str = ""
+    visibility_harm_revision: str = "NONE"
+    visibility_magnitude_status: str = "NOT_APPLICABLE"
+    visibility_magnitude_overreach: bool = False
     landscape_cases: dict[str, str] = field(default_factory=dict)
     landscape_decisive_axis: str = ""
     landscape_tiebreaker: str = ""
@@ -96,6 +193,10 @@ class CandidateChunk:
     # confidence is how likely that ranking is to survive new facts/scrutiny.
     # `confidence` remains a compatibility alias for epistemic_confidence.
     preference_strength: float = -1.0
+    # The gap the delegate actually reported, before system-owned damping.
+    # Drift detection compares this value across cycles so recovery from an
+    # audit or claim-damping intervention is not mistaken for identity drift.
+    reported_preference_strength: float = -1.0
     epistemic_confidence: float = -1.0
     previous_preference_strength: float = 0.0
     preference_drift: float = 0.0
@@ -106,12 +207,65 @@ class CandidateChunk:
     reversal_review_response: str = "NOT_TESTED"
     reversal_review_justification: str = ""
     revised_reversal_condition: str = ""
+    reversal_review_valid: bool = True
+    reversal_review_error: str = ""
+    contingency_choice: str = ""
+    contingency_justification: str = ""
+    contingency_response_valid: bool = True
+    contingency_response_error: str = ""
+    graph_update_proposal: dict[str, Any] = field(default_factory=dict)
+    expected_value_estimates: dict[str, dict[str, Any]] = field(default_factory=dict)
+    # Passive construct-validity measurements. These fields are serialized for
+    # evaluation but are intentionally absent from policy, salience, drift, and
+    # stopping calculations.
+    selection_status: str = "SELECTED"
+    action_admissibility: dict[str, str] = field(default_factory=dict)
+    comparison_complete: bool = True
+    evidence_sufficient_for_action: bool = True
+    interim_action: str = ""
+    workspace_proposition_response: str = "NOT_APPLICABLE"
+    workspace_reasoning_effect: str = "NONE"
+    framework_application: str = ""
+    framework_constraint_retained: bool = True
+    self_reported_broadcast_dependence: str = "NONE"
+    framework_retention_status: str = "NOT_MEASURED"
+    # Framework-specific, action-indexed construct state.  Unlike the short
+    # rationale, this map records how the assigned framework evaluates every
+    # option and survives presentation-label changes.
+    framework_action_map: dict[str, str] = field(default_factory=dict)
+    framework_numerical_role: str = "NOT_APPLICABLE"
+    framework_numerical_justification: str = ""
+    framework_grounding_penalty: float = 0.0
+    framework_validation_errors: list[str] = field(default_factory=list)
+    utilitarian_consequence_table: dict[str, list[dict[str, Any]]] = field(
+        default_factory=dict
+    )
+    utilitarian_decision_depends_on_unknown: bool = False
+    utilitarian_missing_comparison: str = ""
+    utilitarian_ledger_proposal: dict[str, Any] = field(default_factory=dict)
+    rawls_position_proposal: dict[str, Any] = field(default_factory=dict)
+    deontological_ledger_proposal: dict[str, Any] = field(default_factory=dict)
+    virtue_character_proposal: dict[str, Any] = field(default_factory=dict)
+    care_relational_map: dict[str, str] = field(default_factory=dict)
+    care_numerical_role: str = "NOT_APPLICABLE"
+    care_numerical_justification: str = ""
+    care_grounding_penalty: float = 0.0
 
     def __post_init__(self) -> None:
         self.specialist = self.specialist.strip()[:32]
         self.constraint = self.constraint.strip().upper()[:48] or "UNSPECIFIED"
         self.unresolved = self.unresolved.strip().upper()[:48] or "NONE"
         self.rationale = " ".join(self.rationale.split())[:180]
+        baseline_status = self.baseline_status.strip().upper()
+        self.baseline_status = (
+            baseline_status
+            if baseline_status in {
+                "DIRECT", "CONDITIONAL", "UNDERDETERMINED", "NORMATIVELY_CONTESTED",
+                "OUTSIDE_ACTION_SET", "UNAVAILABLE",
+            }
+            else "UNAVAILABLE"
+        )
+        self.baseline_condition = " ".join(self.baseline_condition.split())[:240]
         self.surprise = clamp(self.surprise)
         self.friction = clamp(self.friction)
         if self.preference_strength < 0:
@@ -122,6 +276,9 @@ class CandidateChunk:
         if self.epistemic_confidence < 0:
             self.epistemic_confidence = self.confidence
         self.preference_strength = clamp(self.preference_strength)
+        if self.reported_preference_strength < 0:
+            self.reported_preference_strength = self.preference_strength
+        self.reported_preference_strength = clamp(self.reported_preference_strength)
         self.epistemic_confidence = clamp(self.epistemic_confidence)
         self.previous_preference_strength = clamp(self.previous_preference_strength)
         self.preference_drift = max(-1.0, min(1.0, float(self.preference_drift)))
@@ -140,6 +297,34 @@ class CandidateChunk:
         self.boundary_switch_condition = " ".join(self.boundary_switch_condition.split())[:180]
         self.evidence_basis = self.evidence_basis.strip().upper()[:24] or "STATED_FACTS"
         self.speculative_claim = " ".join(self.speculative_claim.split())[:180]
+        self.evidence_calibration_tier = (
+            self.evidence_calibration_tier.strip().upper()[:32] or "NOT_APPLICABLE"
+        )
+        self.evidence_calibration_reason = " ".join(
+            self.evidence_calibration_reason.split()
+        )[:180]
+        self.evidence_direction_retention = clamp(self.evidence_direction_retention)
+        self.coercion_tag = self.coercion_tag.strip().upper()[:32] or "NONE"
+        self.coercion_surcharge = clamp(self.coercion_surcharge)
+        response = self.visibility_response.strip().upper()
+        self.visibility_response = (
+            response if response in {"NOT_TESTED", "ACCEPT", "QUALIFY", "REJECT"}
+            else "NOT_TESTED"
+        )
+        self.visibility_justification = " ".join(
+            self.visibility_justification.split()
+        )[:180]
+        revision = self.visibility_harm_revision.strip().upper()
+        self.visibility_harm_revision = (
+            revision if revision in {"NONE", "UPWARD", "DOWNWARD", "UNCHANGED"}
+            else "NONE"
+        )
+        magnitude = self.visibility_magnitude_status.strip().upper()
+        self.visibility_magnitude_status = (
+            magnitude
+            if magnitude in {"NOT_APPLICABLE", "UNKNOWN", "GROUNDED_BOUNDED"}
+            else "NOT_APPLICABLE"
+        )
         self.landscape_cases = {
             str(action): " ".join(str(reason).split())[:180]
             for action, reason in self.landscape_cases.items()
@@ -183,6 +368,111 @@ class CandidateChunk:
         self.revised_reversal_condition = " ".join(
             self.revised_reversal_condition.split()
         )[:180]
+        self.reversal_review_error = " ".join(
+            self.reversal_review_error.split()
+        )[:180]
+        self.contingency_choice = " ".join(self.contingency_choice.split())[:120]
+        self.contingency_justification = " ".join(
+            self.contingency_justification.split()
+        )[:180]
+        self.contingency_response_error = " ".join(
+            self.contingency_response_error.split()
+        )[:180]
+        self.graph_update_proposal = dict(self.graph_update_proposal or {})
+        self.expected_value_estimates = dict(self.expected_value_estimates or {})
+        selection = self.selection_status.strip().upper()
+        self.selection_status = (
+            selection if selection in {"SELECTED", "PROVISIONAL", "UNSELECTED"}
+            else "SELECTED"
+        )
+        allowed_admissibility = {"REQUIRED", "PERMISSIBLE", "REJECTED", "UNASSESSED"}
+        self.action_admissibility = {
+            str(action): str(status).strip().upper()
+            for action, status in self.action_admissibility.items()
+            if str(status).strip().upper() in allowed_admissibility
+        }
+        self.interim_action = " ".join(self.interim_action.split())[:120]
+        response = self.workspace_proposition_response.strip().upper()
+        self.workspace_proposition_response = (
+            response if response in {"NOT_APPLICABLE", "ACCEPT", "QUALIFY", "REJECT"}
+            else "NOT_APPLICABLE"
+        )
+        effect = self.workspace_reasoning_effect.strip().upper()
+        self.workspace_reasoning_effect = (
+            effect if effect in {"NONE", "FACTUAL", "NORMATIVE", "BOTH"} else "NONE"
+        )
+        self.framework_application = " ".join(self.framework_application.split())[:180]
+        dependence = self.self_reported_broadcast_dependence.strip().upper()
+        self.self_reported_broadcast_dependence = (
+            dependence if dependence in {"NONE", "LOW", "MEDIUM", "HIGH"} else "NONE"
+        )
+        retention = self.framework_retention_status.strip().upper()
+        self.framework_retention_status = (
+            retention if retention in {
+                "NOT_MEASURED", "PRESERVED", "UNCLEAR", "LOST",
+                # The delegate proposed an unexplained change, but the
+                # transactional ledger kept the prior authoritative state.
+                "UPDATE_REJECTED",
+                # The graph accepted only the uncertainty-preserving form of
+                # the proposal. This is not equivalent to identity loss.
+                "COMMITTED_WITH_UNCERTAINTY",
+            }
+            else "NOT_MEASURED"
+        )
+        self.framework_action_map = {
+            str(action): " ".join(str(reason).split())[:180]
+            for action, reason in self.framework_action_map.items()
+            if str(action).strip() and " ".join(str(reason).split())
+        }
+        framework_role = str(self.framework_numerical_role).strip().upper()
+        self.framework_numerical_role = (
+            framework_role
+            if framework_role in {
+                "NOT_APPLICABLE", "DECISIVE", "SECONDARY", "IRRELEVANT",
+            }
+            else "NOT_APPLICABLE"
+        )
+        self.framework_numerical_justification = " ".join(
+            str(self.framework_numerical_justification).split()
+        )[:180]
+        self.framework_grounding_penalty = clamp(self.framework_grounding_penalty)
+        self.framework_validation_errors = [
+            " ".join(str(error).split())[:180]
+            for error in self.framework_validation_errors
+            if " ".join(str(error).split())
+        ][:8]
+        self.utilitarian_consequence_table = {
+            str(action): [dict(row) for row in rows if isinstance(row, dict)][:4]
+            for action, rows in self.utilitarian_consequence_table.items()
+            if str(action).strip() and isinstance(rows, list)
+        }
+        self.utilitarian_decision_depends_on_unknown = bool(
+            self.utilitarian_decision_depends_on_unknown
+        )
+        self.utilitarian_missing_comparison = " ".join(
+            str(self.utilitarian_missing_comparison).split()
+        )[:180]
+        self.utilitarian_ledger_proposal = dict(self.utilitarian_ledger_proposal or {})
+        self.rawls_position_proposal = dict(self.rawls_position_proposal or {})
+        self.deontological_ledger_proposal = dict(
+            self.deontological_ledger_proposal or {}
+        )
+        self.virtue_character_proposal = dict(self.virtue_character_proposal or {})
+        self.care_relational_map = {
+            str(action): " ".join(str(reason).split())[:160]
+            for action, reason in self.care_relational_map.items()
+            if str(action).strip() and " ".join(str(reason).split())
+        }
+        care_role = str(self.care_numerical_role).strip().upper()
+        self.care_numerical_role = (
+            care_role
+            if care_role in {"NOT_APPLICABLE", "DECISIVE", "SECONDARY", "IRRELEVANT"}
+            else "NOT_APPLICABLE"
+        )
+        self.care_numerical_justification = " ".join(
+            str(self.care_numerical_justification).split()
+        )[:180]
+        self.care_grounding_penalty = clamp(self.care_grounding_penalty)
         self.action_scores = {str(k): clamp(v) for k, v in self.action_scores.items()}
 
 
@@ -254,6 +544,13 @@ class FailureCondition:
     necessary_condition: str
     failure_condition: str
     contingency_question: str
+    fallback_actions: list[str] = field(default_factory=list)
+    predicate_label: str = ""
+    required_truth: bool = True
+    failure_truth: bool = False
+    fallback_availability: dict[str, str] = field(default_factory=dict)
+    fallback_availability_reasons: dict[str, str] = field(default_factory=dict)
+    semantic_graph: dict[str, Any] = field(default_factory=dict)
     valid: bool = True
     error: str = ""
 
@@ -262,7 +559,83 @@ class FailureCondition:
         self.necessary_condition = " ".join(self.necessary_condition.split())[:180]
         self.failure_condition = " ".join(self.failure_condition.split())[:180]
         self.contingency_question = " ".join(self.contingency_question.split())[:240]
+        self.fallback_actions = [
+            " ".join(str(action).split())[:120]
+            for action in self.fallback_actions[:2]
+            if " ".join(str(action).split())
+        ]
+        self.predicate_label = " ".join(self.predicate_label.split())[:160]
+        self.fallback_availability = {
+            str(action_id): str(status).strip().upper()
+            for action_id, status in self.fallback_availability.items()
+        }
+        self.fallback_availability_reasons = {
+            str(action_id): " ".join(str(reason).split())[:120]
+            for action_id, reason in self.fallback_availability_reasons.items()
+        }
+        self.semantic_graph = dict(self.semantic_graph or {})
         self.error = " ".join(self.error.split())[:200]
+
+
+@dataclass(slots=True)
+class SynthesisViabilityAssessment:
+    """Post-review evidence that a synthesis remains worth branching on."""
+
+    synthesis_action: str
+    review_cycle: int
+    valid_delegates: int
+    recommendation_count: int
+    admissible_count: int
+    rejection_count: int
+    mean_score: float
+    policy_support: float
+    leader_support: float
+    viable: bool
+    reason: str
+
+    def __post_init__(self) -> None:
+        self.synthesis_action = " ".join(self.synthesis_action.split())[:120]
+        self.review_cycle = max(0, int(self.review_cycle))
+        self.valid_delegates = max(0, int(self.valid_delegates))
+        self.recommendation_count = max(0, int(self.recommendation_count))
+        self.admissible_count = max(0, int(self.admissible_count))
+        self.rejection_count = max(0, int(self.rejection_count))
+        self.mean_score = clamp(self.mean_score)
+        self.policy_support = clamp(self.policy_support)
+        self.leader_support = clamp(self.leader_support)
+        self.reason = " ".join(self.reason.split())[:240]
+
+
+@dataclass(slots=True)
+class ContingencyFeasibilityAssessment:
+    """Independent, non-normative audit of branch fallback executability."""
+
+    synthesis_action: str
+    predicate_label: str
+    fallback_statuses: dict[str, str]
+    fallback_reasons: dict[str, str]
+    evidence_bases: dict[str, str]
+    shared_failure: bool
+    valid: bool
+    approved: bool
+    error: str = ""
+
+    def __post_init__(self) -> None:
+        self.synthesis_action = " ".join(self.synthesis_action.split())[:120]
+        self.predicate_label = " ".join(self.predicate_label.split())[:160]
+        self.fallback_statuses = {
+            str(key): str(value).strip().upper()
+            for key, value in self.fallback_statuses.items()
+        }
+        self.fallback_reasons = {
+            str(key): " ".join(str(value).split())[:120]
+            for key, value in self.fallback_reasons.items()
+        }
+        self.evidence_bases = {
+            str(key): str(value).strip().upper()
+            for key, value in self.evidence_bases.items()
+        }
+        self.error = " ".join(self.error.split())[:240]
 
 
 @dataclass(slots=True)
@@ -284,6 +657,7 @@ class PlanningAssessment:
     grounded_evidence: str = ""
     fallback_available: bool = False
     fallback_availability_reason: str = ""
+    target_action_node_id: str = ""
 
     def __post_init__(self) -> None:
         self.target_action = " ".join(self.target_action.split())[:120]
@@ -300,6 +674,7 @@ class PlanningAssessment:
         self.fallback_availability_reason = " ".join(
             self.fallback_availability_reason.split()
         )[:180]
+        self.target_action_node_id = self.target_action_node_id.strip().upper()[:20]
 
     @staticmethod
     def _clean_list(values: list[str]) -> list[str]:
@@ -346,6 +721,8 @@ class VisibilityAssessment:
     activated: bool = False
     valid: bool = True
     error: str = ""
+    proposition: str = ""
+    typed_facts: list[dict] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         self.affected_group = " ".join(self.affected_group.split())[:120]
@@ -357,6 +734,52 @@ class VisibilityAssessment:
             " ".join(str(action).split())[:120]: max(0.65, min(1.0, float(value)))
             for action, value in self.action_multipliers.items()
         }
+        self.error = " ".join(self.error.split())[:240]
+        if not self.proposition and self.activated:
+            penalized = [
+                action for action, value in self.action_multipliers.items() if value < 0.999
+            ]
+            target = penalized[0] if penalized else "the affected action"
+            self.proposition = (
+                f"The estimated harm of {target} is downward-biased because "
+                f"{self.affected_group or 'a disadvantaged population'} is less observable "
+                f"through {self.mechanism}."
+            )
+        self.proposition = " ".join(self.proposition.split())[:320]
+
+
+@dataclass(slots=True)
+class AutonomyAssessment:
+    """Non-voting audit of coercion and its required evidentiary basis."""
+
+    action_tags: dict[str, str]
+    catastrophic_harm_threshold: dict[str, bool]
+    evidence: dict[str, str]
+    voluntary_alternative: str = "NONE"
+    surcharge_multiplier: float = 0.70
+    activated: bool = True
+    valid: bool = True
+    error: str = ""
+
+    def __post_init__(self) -> None:
+        allowed = {"NONE", "COERCIVE", "RIGHTS_INTRUSION", "COVENANT_BREACH"}
+        self.action_tags = {
+            " ".join(str(action).split())[:120]: (
+                str(tag).strip().upper() if str(tag).strip().upper() in allowed else "NONE"
+            )
+            for action, tag in self.action_tags.items()
+        }
+        self.catastrophic_harm_threshold = {
+            " ".join(str(action).split())[:120]: bool(value)
+            for action, value in self.catastrophic_harm_threshold.items()
+        }
+        self.evidence = {
+            " ".join(str(action).split())[:120]: " ".join(str(value).split())[:220]
+            for action, value in self.evidence.items()
+        }
+        self.voluntary_alternative = " ".join(self.voluntary_alternative.split())[:220] or "NONE"
+        self.surcharge_multiplier = max(0.5, min(1.0, float(self.surcharge_multiplier)))
+        self.activated = self.valid and any(tag != "NONE" for tag in self.action_tags.values())
         self.error = " ".join(self.error.split())[:240]
 
 
@@ -370,6 +793,8 @@ class CalibrationOutcome:
     magnitude: float
     unit: str
     horizon: str
+    measurement_family: str = "OTHER"
+    population_basis: str = "UNSPECIFIED"
 
     def __post_init__(self) -> None:
         self.action = " ".join(self.action.split())[:120]
@@ -389,6 +814,15 @@ class CalibrationOutcome:
         )
         self.unit = unit[:48]
         self.horizon = " ".join(self.horizon.split())[:64]
+        allowed_families = {
+            "MORTALITY", "HEALTH_DURATION", "ECONOMIC", "RESOURCE",
+            "RIGHTS", "WELLBEING", "OTHER",
+        }
+        family = self.measurement_family.strip().upper()
+        self.measurement_family = family if family in allowed_families else "OTHER"
+        self.population_basis = (
+            " ".join(self.population_basis.split())[:80] or "UNSPECIFIED"
+        )
 
 
 @dataclass(slots=True)
@@ -415,6 +849,9 @@ class NumericComparison:
     action_values: dict[str, float]
     absolute_gap: float
     relative_gap: float
+    measurement_family: str = "OTHER"
+    population_basis: str = "UNSPECIFIED"
+    time_basis: str = "UNSPECIFIED"
 
     def __post_init__(self) -> None:
         self.dimension = " ".join(self.dimension.split())[:80]
@@ -425,6 +862,9 @@ class NumericComparison:
         }
         self.absolute_gap = max(0.0, float(self.absolute_gap))
         self.relative_gap = max(0.0, float(self.relative_gap))
+        self.measurement_family = self.measurement_family.strip().upper()[:32] or "OTHER"
+        self.population_basis = " ".join(self.population_basis.split())[:80] or "UNSPECIFIED"
+        self.time_basis = " ".join(self.time_basis.split())[:64] or "UNSPECIFIED"
 
 
 @dataclass(slots=True)
@@ -444,6 +884,7 @@ class ProblemReformulation:
     rejection_reason: str = ""
     probe_result: str = "UNTESTED"
     switch_claim_valid: bool = False
+    unresolved_numeric_tradeoffs: list[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         self.unknowns = list(dict.fromkeys(
@@ -466,6 +907,9 @@ class ProblemReformulation:
         self.numeric_comparisons = self.numeric_comparisons[:8]
         self.rejection_reason = " ".join(self.rejection_reason.split())[:240]
         self.probe_result = self.probe_result.strip().upper()[:32] or "UNTESTED"
+        self.unresolved_numeric_tradeoffs = self._clean(
+            self.unresolved_numeric_tradeoffs, 180, 8
+        )
 
     @staticmethod
     def _clean(values: list[str], limit: int, count: int) -> list[str]:
@@ -486,8 +930,10 @@ class ProblemReformulation:
             f"{axis.name}: " + " / ".join(axis.action_values.values())
             for axis in self.categorical_axes
         )
+        tradeoffs = "; ".join(self.unresolved_numeric_tradeoffs) or "none"
         return " ".join(
-            f"HYPOTHETICAL CALIBRATION — {stakes}. Categorical axes: {axes or 'none'}. Remaining tension: "
+            f"HYPOTHETICAL CALIBRATION — {stakes}. Categorical axes: {axes or 'none'}. "
+            f"Non-commensurable tradeoffs: {tradeoffs}. Remaining tension: "
             f"{self.residual_tension}. {self.question}".split()
         )[:600]
 
@@ -496,9 +942,11 @@ class ProblemReformulation:
 class WorkspaceResult:
     scenario: str
     actions: list[str]
+    presentation_actions: list[str] = field(default_factory=list)
+    source_action_legend: dict[str, str] = field(default_factory=dict)
     source_testimonies: dict[str, str] = field(default_factory=dict)
     source_errors: dict[str, str] = field(default_factory=dict)
-    source_baselines: dict[str, dict[str, str]] = field(default_factory=dict)
+    source_baselines: dict[str, dict[str, Any]] = field(default_factory=dict)
     scenario_facts: dict[str, Any] = field(default_factory=dict)
     cycles: list[CycleRecord] = field(default_factory=list)
     selected_action: str = ""
@@ -508,15 +956,36 @@ class WorkspaceResult:
     compressed_rule: str = ""
     reopen_conditions: list[str] = field(default_factory=list)
     synthesis_proposals: list[SynthesisProposal] = field(default_factory=list)
+    synthesis_viability_assessments: list[SynthesisViabilityAssessment] = field(
+        default_factory=list
+    )
+    contingency_feasibility_assessments: list[ContingencyFeasibilityAssessment] = field(
+        default_factory=list
+    )
     failure_conditions: list[FailureCondition] = field(default_factory=list)
     planning_assessments: list[PlanningAssessment] = field(default_factory=list)
     planning_branches: list[PlanningBranchEvaluation] = field(default_factory=list)
     access_decisions: list[WorkspaceAccessDecision] = field(default_factory=list)
     visibility_assessments: list[VisibilityAssessment] = field(default_factory=list)
+    autonomy_assessments: list[AutonomyAssessment] = field(default_factory=list)
     problem_reformulations: list[ProblemReformulation] = field(default_factory=list)
     judgment_status: str = "ACTION_RECOMMENDATION"
     current_plurality: str = ""
     epistemic_confidence: float = 0.0
+    semantic_invariants: list[Any] = field(default_factory=list)
+    semantic_graphs: list[dict[str, Any]] = field(default_factory=list)
+    graph_transactions: list[dict[str, Any]] = field(default_factory=list)
+    authoritative_semantic_state: dict[str, Any] = field(default_factory=dict)
+    rawlsian_position_ledger: list[dict[str, Any]] = field(default_factory=list)
+    utilitarian_consequence_ledger: list[dict[str, Any]] = field(default_factory=list)
+    deontological_duty_ledger: list[dict[str, Any]] = field(default_factory=list)
+    virtue_character_ledger: list[dict[str, Any]] = field(default_factory=list)
+    ev_dominance_assessments: list[dict[str, Any]] = field(default_factory=list)
+    termination_assessment: Any = None
+    moral_residue_records: list[Any] = field(default_factory=list)
+    access_construct_records: list[Any] = field(default_factory=list)
+    further_deliberation_estimate: Any = None
+    trace_health: list[Any] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

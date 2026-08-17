@@ -3,6 +3,7 @@ title: No Exceptions for Lying—even to a Murderer
 author: Immanuel Kant  
 source: On a Supposed Right to Lie Because of Philanthropic Concerns  
 status: approved  
+framework_role: kantian_core
 tags: [lying, moral_absolutism, duty, conflict_cases, radical_honesty]  
 impact_score: 9.0  
 retracted: false  

@@ -3,6 +3,7 @@ title: Justice as Fairness
 author: John Rawls  
 source: A Theory of Justice  
 status: approved  
+framework_role: adjacent_deontology
 tags: [justice, fairness, equal_liberty, original_position, moral_reasoning, deontological_principles]  
 impact_score: 9.5  
 retracted: false  

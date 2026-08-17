@@ -23,6 +23,7 @@ from horizon_aggregator import (
 
 
 MODEL_PATH = "../mistral-7b-instruct-v0.2.Q4_K_M.gguf"
+UTILITARIAN_PROMPT_VERSION = "utilitarian-action-consequence-table-v2"
 
 vectorstore = None
 embedder = None
@@ -60,7 +61,7 @@ def retrieve_utilitarian_quotes(query: str, scenario_id: str, limit_per_quote: i
 
     global vectorstore, embedder
     embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    vectorstore = load_utilitarian_corpus()
+    vectorstore = load_utilitarian_corpus(embedder=embedder)
 
     tag_weights = load_scenario_weights(scenario_id)
     print(f"\U0001f527 Scenario Tag Weights: {tag_weights}")
@@ -158,10 +159,14 @@ def respond_to_query(query: str, scenario_id: str, temperature: float = 0.5, max
     if not query or not scenario_id:
         raise ValueError("Both 'query' and 'scenario_id' must be provided.")
 
-    # Skip LLM if query hasn't changed
-    if os.getenv("ETHICS_LLM_BACKEND", "local") == "local" and LAST_QUERY_PATH.exists() and LAST_RESPONSE_PATH.exists():
+    cache_key = f"{UTILITARIAN_PROMPT_VERSION}\n{query.strip()}"
+    reuse_source = (
+        os.getenv("ETHICS_LLM_BACKEND", "local") == "local"
+        or os.getenv("ETHICS_REUSE_SOURCE_TESTIMONY", "1") != "0"
+    )
+    if reuse_source and LAST_QUERY_PATH.exists() and LAST_RESPONSE_PATH.exists():
         last_query = LAST_QUERY_PATH.read_text().strip()
-        if query.strip() == last_query:
+        if cache_key == last_query:
             print("⚡ Skipping LLM call — using cached utilitarian response.")
             return LAST_RESPONSE_PATH.read_text().strip()
 
@@ -195,8 +200,6 @@ def respond_to_query(query: str, scenario_id: str, temperature: float = 0.5, max
 
     context, top_quotes = retrieve_utilitarian_quotes(query, scenario_id)
 
-    import time; time.sleep(2)
-
     prompt = f"""
 <s>[INST] You are a utilitarian ethics assistant. Your goal is to determine the action best aligned with utilitarian principles, using the corpus excerpts provided.
 
@@ -207,6 +210,10 @@ def respond_to_query(query: str, scenario_id: str, temperature: float = 0.5, max
 - First compare the concrete consequences of this particular act for every directly
   affected person. Distinguish facts stated in the scenario from assumptions, and
   identify missing information that could reverse the recommendation.
+- Build a compact action-consequence table for EVERY listed action. For each
+  material consequence state: affected group or scope, benefit or harm,
+  probability or UNKNOWN, magnitude, duration, reversibility, and whether its
+  support is STATED, INFERRED, or UNKNOWN. Do not omit the losing action.
 - Rank consequences by expected impact: probability multiplied by magnitude.
   Concrete and probable effects should normally outweigh guilt, gratitude, rewards,
   stigma, broad social trust, or other speculative effects unless the scenario gives
@@ -217,6 +224,15 @@ def respond_to_query(query: str, scenario_id: str, temperature: float = 0.5, max
   a choice is not itself a consequence of making the choice once.
 - If the result depends on unknown consequences, give a conditional judgment rather
   than using speculative effects to create false certainty.
+- A statement that an action maximizes one actor's local payoff does not establish
+  that it maximizes aggregate welfare. Likewise, cooperation being mutually
+  beneficial does not by itself establish how its total compares with unilateral
+  gain plus the other party's loss. Do not import a familiar game matrix or assume
+  an unstated inequality between gains and losses.
+- When the decisive gain-versus-loss comparison is unspecified, classify the result
+  as "Utilitarian Status: UNDERDETERMINED". State the inequality that would select each action, but do not
+  turn a typical, ordinary, or textbook assumption into a default recommendation.
+- Keep the complete comparison within 180 words.
 
 Corpus Materials:
 {context}
@@ -240,7 +256,6 @@ Utilitarian Answer:
 
     del llm
     gc.collect()
-    import time; time.sleep(1)
 
     os.makedirs("agent_outputs", exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -255,7 +270,7 @@ Utilitarian Answer:
         f.write("\nUtilitarian Response:\n")
         f.write(final_response + "\n")
 
-    LAST_QUERY_PATH.write_text(query.strip())
+    LAST_QUERY_PATH.write_text(cache_key)
     LAST_RESPONSE_PATH.write_text(final_response.strip())
 
     print(f"💾 Saved output to: {output_path.name}")

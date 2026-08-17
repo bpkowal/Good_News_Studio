@@ -69,6 +69,30 @@ class ParliamentLauncherTests(unittest.TestCase):
         args, _question = run_workspace.call_args.args
         self.assertEqual(args.backend, "openai")
 
+    @patch("parliament.run_workspace", return_value=0)
+    @patch("builtins.input", side_effect=[
+        "workspadce", "A sufficiently long ethical question", "openai",
+    ])
+    def test_workspace_typo_still_prompts_for_question_and_backend(
+        self, _input, run_workspace,
+    ):
+        self.assertEqual(parliament.main([]), 0)
+        args, question = run_workspace.call_args.args
+        self.assertEqual(question, "A sufficiently long ethical question")
+        self.assertEqual(args.backend, "openai")
+
+    def test_real_question_is_not_mistaken_for_mode_typo(self):
+        self.assertEqual(parliament.correct_mode_typo("workspace safety dilemma"), "")
+        self.assertEqual(parliament.correct_mode_typo("Should workers report danger?"), "")
+
+    @patch("parliament.run_workspace", return_value=0)
+    @patch("builtins.input", side_effect=["openai", "A sufficiently long ethical question"])
+    def test_backend_entered_at_mode_prompt_is_recovered(self, _input, run_workspace):
+        self.assertEqual(parliament.main([]), 0)
+        args, question = run_workspace.call_args.args
+        self.assertEqual(args.backend, "openai")
+        self.assertEqual(question, "A sufficiently long ethical question")
+
     @patch("global_workspace_pipeline.sys.stdin.isatty", return_value=True)
     @patch("builtins.input", side_effect=["edit", "give to child | give to researcher"])
     def test_actions_can_be_reviewed_and_edited(self, _input, _isatty):

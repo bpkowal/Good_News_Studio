@@ -5,8 +5,10 @@ import base64
 import importlib
 import json
 import os
+import re
 import subprocess
 import sys
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -83,53 +85,90 @@ def consult_original_agents(
     timeout_seconds: float = 600.0,
     backend: str = "local",
     openai_model: str = "o3",
+    canonical_actions: tuple[str, ...] = (),
+    canonical_scenario: str = "",
 ) -> LegacyConsultation:
     testimonies: dict[str, str] = {}
     errors: dict[str, str] = {}
-    for agent in agents:
-        print(f"Consulting original {agent} agent...", flush=True)
-        command = [
-            sys.executable,
-            "-m",
-            "global_workspace.legacy_bridge",
-            "--agent",
-            agent,
-            "--scenario",
-            str(scenario_path),
-            "--max-tokens",
-            str(max_tokens),
-            "--backend",
-            backend,
-            "--openai-model",
-            openai_model,
-        ]
-        try:
-            child_env = os.environ.copy()
-            # Avoid remote HEAD requests when the embedding model is already cached.
-            child_env.setdefault("HF_HUB_OFFLINE", "1")
-            child_env.setdefault("TRANSFORMERS_OFFLINE", "1")
-            child_env.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
-            child_env["ETHICS_LLM_BACKEND"] = backend
-            completed = subprocess.run(
-                command,
-                cwd=Path(__file__).resolve().parent.parent,
-                env=child_env,
-                capture_output=True,
-                text=True,
-                timeout=timeout_seconds,
-                check=False,
-            )
-            if completed.returncode != 0:
-                detail = completed.stderr.strip().splitlines()
-                errors[agent] = detail[-1][:500] if detail else f"exit code {completed.returncode}"
-                continue
-            testimony = _decode_response(completed.stdout)
-            if testimony:
-                testimonies[agent] = testimony
-            else:
-                errors[agent] = "empty response"
-        except (subprocess.TimeoutExpired, ValueError, UnicodeError) as exc:
-            errors[agent] = str(exc)[:500]
+    temporary_directory: tempfile.TemporaryDirectory[str] | None = None
+    effective_scenario_path = scenario_path
+    if canonical_actions:
+        original = json.loads(scenario_path.read_text(encoding="utf-8"))
+        question = str(original.get("ethical_question", "")).strip()
+        # When the author supplied Option A/B, the canonical action descriptions
+        # already retain both branches and consequences. Remove the order-bearing
+        # option block from the background so source agents do not see two rival
+        # label systems. For other scenario forms, retain the full factual text.
+        option_start = re.search(
+            r"\b(?:action|option)\s+A\s*:", question, flags=re.IGNORECASE
+        )
+        background = question[:option_start.start()].strip() if option_start else question
+        canonical_question = canonical_scenario.strip() or "\n".join([
+            background,
+            "Presentation order has no ethical significance. Use this authoritative action mapping:",
+            *(
+                f"Action A{index}: {action}"
+                for index, action in enumerate(canonical_actions)
+            ),
+            "Evaluate these physical actions; do not reuse labels from any earlier presentation.",
+        ]).strip()
+        original["ethical_question"] = canonical_question
+        original["canonical_action_legend"] = {
+            f"A{index}": action for index, action in enumerate(canonical_actions)
+        }
+        temporary_directory = tempfile.TemporaryDirectory(prefix="ethics-canonical-")
+        effective_scenario_path = Path(temporary_directory.name) / scenario_path.name
+        effective_scenario_path.write_text(
+            json.dumps(original, indent=2), encoding="utf-8"
+        )
+    try:
+        for agent in agents:
+            print(f"Consulting original {agent} agent...", flush=True)
+            command = [
+                sys.executable,
+                "-m",
+                "global_workspace.legacy_bridge",
+                "--agent",
+                agent,
+                "--scenario",
+                str(effective_scenario_path),
+                "--max-tokens",
+                str(max_tokens),
+                "--backend",
+                backend,
+                "--openai-model",
+                openai_model,
+            ]
+            try:
+                child_env = os.environ.copy()
+                # Avoid remote HEAD requests when the embedding model is already cached.
+                child_env.setdefault("HF_HUB_OFFLINE", "1")
+                child_env.setdefault("TRANSFORMERS_OFFLINE", "1")
+                child_env.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
+                child_env["ETHICS_LLM_BACKEND"] = backend
+                completed = subprocess.run(
+                    command,
+                    cwd=Path(__file__).resolve().parent.parent,
+                    env=child_env,
+                    capture_output=True,
+                    text=True,
+                    timeout=timeout_seconds,
+                    check=False,
+                )
+                if completed.returncode != 0:
+                    detail = completed.stderr.strip().splitlines()
+                    errors[agent] = detail[-1][:500] if detail else f"exit code {completed.returncode}"
+                    continue
+                testimony = _decode_response(completed.stdout)
+                if testimony:
+                    testimonies[agent] = testimony
+                else:
+                    errors[agent] = "empty response"
+            except (subprocess.TimeoutExpired, ValueError, UnicodeError) as exc:
+                errors[agent] = str(exc)[:500]
+    finally:
+        if temporary_directory is not None:
+            temporary_directory.cleanup()
     return LegacyConsultation(testimonies=testimonies, errors=errors)
 
 
