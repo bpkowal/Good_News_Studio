@@ -1286,6 +1286,14 @@ def render_decision_brief(result: Any) -> str:
                 lines.append("")
             if proposal.get("accepted") and proposal.get("promotion_status") == "PROMOTED":
                 lines.append("**Status:** Reviewed and admitted as a live option.")
+            elif (
+                proposal.get("accepted")
+                and proposal.get("promotion_status") == "ADMISSIBLE"
+            ):
+                lines.append(
+                    "**Status:** Reviewed by specialists — retained as a candidate "
+                    "(not promoted into the live action set)."
+                )
             else:
                 lines.append(
                     "**Status:** Candidate only — not sufficiently reviewed during this run."

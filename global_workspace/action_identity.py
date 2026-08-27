@@ -664,16 +664,27 @@ _NUMBERED_OUTCOME = re.compile(
 )
 _MECHANISM_FAILURE = re.compile(
     r"\b(?:(?:shelter|grid|power|oxygen|allocation|hospital|ward)\s[\w-]*\s*){0,4}"
-    r"(?:fail(?:s|ed|ure)|collapse(?:s|d)?|outage|blackout)\b"
+    r"(?:fail(?:s|ed|ure)|collapse(?:s|d)?|outage|blackout|unstable|instability)\b"
     r"|"
-    r"\b(?:fail(?:s|ed|ure)|collapse(?:s|d)?)\s[\w-]*\s*"
+    r"\b(?:fail(?:s|ed|ure)|collapse(?:s|d)?|unstable|instability)\s[\w-]*\s*"
     r"(?:shelter|grid|power|oxygen|allocation|hospital|ward)\b",
     re.IGNORECASE,
 )
 _CONCEALMENT = re.compile(
     r"\b(?:conceal(?:s|ed|ing|ment)?|hidden|secret|covert|undisclosed|"
     r"engineered\s+sacrifice|structural\s+design\s+remains\s+hidden|"
-    r"remains?\s+concealed)\b[^.;,]{0,40}",
+    r"remains?\s+concealed|stays?\s+hidden)\b[^.;,]{0,80}",
+    re.IGNORECASE,
+)
+_INSTITUTIONAL_CONCEALMENT = re.compile(
+    r"\b(?:engineered\s+(?:to\s+)?sacrific|sacrifice[\s-]+of[\s-]+wards?|"
+    r"sacrifice\s+public\s+wards?|design\s+flaw|structural\s+design|"
+    r"engineered\s+sacrifice)\b",
+    re.IGNORECASE,
+)
+_CONCEALMENT_MARKER = re.compile(
+    r"\b(?:conceal\w*|hidden|secret|undisclosed|stays?\s+hidden|"
+    r"remains?\s+(?:concealed|hidden))\b",
     re.IGNORECASE,
 )
 _SHORT_LABEL_SPLIT = re.compile(
@@ -681,6 +692,33 @@ _SHORT_LABEL_SPLIT = re.compile(
     r"\bleaving\b|\bthereby\b|\bresulting\b",
     re.IGNORECASE,
 )
+
+# Token classes so paraphrases keep the same ranking-relevant content.
+# "kills 16 refugees" ≡ "causes 16 refugees to die"; "grid failure" ≡ "grid unstable".
+_CRITICAL_TOKEN_CLASS = {
+    "kill": "LETHAL", "kills": "LETHAL", "killing": "LETHAL", "killed": "LETHAL",
+    "die": "LETHAL", "dies": "LETHAL", "dying": "LETHAL", "died": "LETHAL",
+    "death": "LETHAL", "deaths": "LETHAL", "dead": "LETHAL", "lethal": "LETHAL",
+    "fatality": "LETHAL", "fatalities": "LETHAL", "fatal": "LETHAL",
+    "fail": "FAILURE", "fails": "FAILURE", "failed": "FAILURE", "failure": "FAILURE",
+    "failing": "FAILURE", "collapse": "FAILURE", "collapsed": "FAILURE",
+    "collapses": "FAILURE", "outage": "FAILURE", "blackout": "FAILURE",
+    "unstable": "FAILURE", "instability": "FAILURE",
+    "conceal": "CONCEAL", "conceals": "CONCEAL", "concealing": "CONCEAL",
+    "concealed": "CONCEAL", "concealment": "CONCEAL", "hidden": "CONCEAL",
+    "secret": "CONCEAL", "covert": "CONCEAL", "undisclosed": "CONCEAL",
+    "engineered": "ENGINEERED_SACRIFICE", "sacrifice": "ENGINEERED_SACRIFICE",
+    "flaw": "ENGINEERED_SACRIFICE", "design": "ENGINEERED_SACRIFICE",
+    "sacrifices": "ENGINEERED_SACRIFICE",
+    "patients": "patient", "refugees": "refugee", "residents": "resident",
+    "lives": "life", "people": "person", "workers": "worker",
+    "children": "child", "wards": "ward",
+}
+_COVERAGE_STOPWORDS = {
+    "a", "an", "and", "as", "at", "by", "for", "from", "in", "into", "of",
+    "on", "or", "the", "to", "with", "that", "this", "those", "these",
+    "all", "which", "while", "but", "so", "within", "during", "away",
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -699,9 +737,281 @@ class CanonicalActionRecord:
     source_clauses: tuple[str, ...] = ()
     completeness_status: str = "UNCHECKED"
     missing_critical: tuple[str, ...] = ()
+    structure_issues: tuple[str, ...] = ()
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+
+# --- Structured role extraction from canonical prose ---------------------------
+#
+# compile_action_identity() is graph-oriented and can mis-assign token bags as
+# targets (e.g. "freezing refugees survive" → freeze ADVERSE on refugees).
+# Canonical action records use dedicated prose patterns instead.
+
+_SCENARIO_ACTOR = re.compile(
+    r"\bas\s+(?:the\s+)?director\s+of\s+(?:an?\s+)?(.+?)\s+grid\b",
+    re.IGNORECASE,
+)
+_PATIENT_GROUP = (
+    r"(?:(?P<count>\d+|four)\s+)?"
+    r"(?:(?:non[- ]consenting|chronically\s+ill|public[- ]ward)\s+)*"
+    r"patients?"
+)
+_REFUGEE_GROUP = r"(?:(?P<count>\d+|sixteen)\s+)?(?:freezing\s+)?refugees?"
+_TOKEN_BAG_MARKERS = re.compile(r":COUNT\b|^[a-z]+,\s", re.IGNORECASE)
+
+
+def extract_scenario_actor(scenario: str) -> str:
+    """Resolve an explicit scenario actor when the prose names one."""
+    text = " ".join(str(scenario or "").split())
+    match = _SCENARIO_ACTOR.search(text)
+    if not match:
+        return ""
+    scope = " ".join(match.group(1).split()).casefold()
+    if "life" in scope and "support" in scope:
+        return "grid director"
+    if scope.endswith(" director"):
+        return scope
+    return f"{scope} director".strip()
+
+
+def _render_group(count: str, *modifiers: str, group: str = "") -> str:
+    parts = [str(count).strip()] if count and str(count).strip() else []
+    for item in modifiers:
+        cleaned = " ".join(str(item).split())
+        if cleaned:
+            parts.append(cleaned)
+    if group:
+        parts.append(group)
+    return " ".join(parts).strip()
+
+
+def _group_key(label: str) -> tuple[str, ...]:
+    text = label.casefold()
+    tokens = []
+    count = re.search(r"\b(\d+|four|sixteen)\b", text)
+    if count:
+        tokens.append(count.group(1))
+    if "patient" in text or "ward" in text:
+        tokens.append("patient")
+    if "refugee" in text:
+        tokens.append("refugee")
+    return tuple(tokens)
+
+
+def extract_structured_action_roles(
+    action_text: str,
+    *,
+    scenario_actor: str = "",
+) -> dict[str, Any]:
+    """Extract harmed/beneficiaries/mechanism from a canonical semantic action."""
+    text = " ".join(str(action_text or "").split())
+    lowered = text.casefold()
+    beneficiaries: list[str] = []
+    harmed: list[str] = []
+    mechanism = ""
+    institutional = ""
+
+    def _add_unique(bucket: list[str], label: str) -> None:
+        cleaned = " ".join(str(label).split()).strip(" ,;.")
+        if not cleaned:
+            return
+        key = _group_key(cleaned)
+        if key and any(_group_key(existing) == key for existing in bucket):
+            return
+        if cleaned.casefold() not in {item.casefold() for item in bucket}:
+            bucket.append(cleaned)
+
+    # --- harmed / benefited groups -------------------------------------------
+    for match in re.finditer(
+        rf"\bkill(?:s|ing|ed)?\s+(?:the\s+)?(?P<label>{_PATIENT_GROUP})\b",
+        text,
+        re.IGNORECASE,
+    ):
+        _add_unique(harmed, match.group("label"))
+    if re.search(r"\bkill(?:s|ing|ed)?\s+them\b", text, re.IGNORECASE):
+        patient = re.search(rf"\b{_PATIENT_GROUP}\b", text, re.IGNORECASE)
+        if patient:
+            _add_unique(harmed, patient.group(0))
+
+    for match in re.finditer(
+        rf"\b(?:causes?|kills?)\s+(?:all\s+)?(?P<label>{_REFUGEE_GROUP})\s+to\s+die\b",
+        text,
+        re.IGNORECASE,
+    ):
+        _add_unique(harmed, match.group("label"))
+    for match in re.finditer(
+        rf"\bthat\s+kills?\s+(?:all\s+)?(?P<label>{_REFUGEE_GROUP})\b",
+        text,
+        re.IGNORECASE,
+    ):
+        _add_unique(harmed, match.group("label"))
+
+    for match in re.finditer(
+        rf"\b(?P<label>{_REFUGEE_GROUP})\s+survive\b",
+        text,
+        re.IGNORECASE,
+    ):
+        _add_unique(beneficiaries, match.group("label"))
+    for match in re.finditer(
+        rf"\b(?:honoring|preserving|respecting|sparing)\s+(?:the\s+)?(?P<label>{_PATIENT_GROUP})",
+        text,
+        re.IGNORECASE,
+    ):
+        _add_unique(beneficiaries, match.group("label"))
+    for match in re.finditer(
+        rf"\bstabiliz(?:e|es|ing)\s+.{0,60}?\bso\s+(?:the\s+)?(?P<label>{_REFUGEE_GROUP})\s+survive\b",
+        text,
+        re.IGNORECASE,
+    ):
+        _add_unique(beneficiaries, match.group("label"))
+
+    # --- mechanism -----------------------------------------------------------
+    realloc = re.search(
+        r"\b(forcibly\s+reallocat\w*\s+oxygen\b[^.;]{0,200}?)"
+        r"(?=\s*(?:,|;|\bkilling\b|\bbut\b|\bto\b|\bso\b))",
+        text,
+        re.IGNORECASE,
+    )
+    if realloc:
+        mechanism = " ".join(realloc.group(1).split())
+        if "stabiliz" in lowered and " to " not in mechanism.casefold():
+            mechanism += " to stabilize the shelter"
+    if not mechanism:
+        grid_fail = re.search(
+            r"\b(?:which\s+)?(?:triggering|causing|leaves?)\s+"
+            r"(?:(?:the|a)\s+)?shelter\s+grid\s+"
+            r"(?:failure|unstable|to\s+fail)\b[^.;,]{0,60}",
+            text,
+            re.IGNORECASE,
+        )
+        if grid_fail:
+            mechanism = " ".join(grid_fail.group(0).split())
+            mechanism = re.sub(r"^which\s+", "", mechanism, flags=re.IGNORECASE)
+    if not mechanism and re.search(r"\bshelter\s+grid\s+fail", lowered):
+        mechanism = "shelter grid fails within hours"
+
+    # --- institutional effect ------------------------------------------------
+    if _extract_institutional_concealment_claim(text) == (
+        "engineered sacrifice remains concealed"
+    ):
+        institutional = "engineered sacrifice arrangement remains concealed"
+
+    # --- intervention --------------------------------------------------------
+    intervention = ""
+    head_match = re.match(r"^([^,]+)", text)
+    if head_match:
+        intervention = " ".join(head_match.group(1).split())
+        intervention = re.sub(
+            r"\s+that\b.*$",
+            "",
+            intervention,
+            flags=re.IGNORECASE,
+        ).strip(" ,;.")
+    if not intervention:
+        intervention = render_short_label(text)
+
+    actor = " ".join(str(scenario_actor or "").split())
+    return {
+        "actor": actor,
+        "intervention": intervention,
+        "beneficiaries": tuple(beneficiaries),
+        "harmed": tuple(harmed),
+        "mechanism": mechanism,
+        "institutional_effect": institutional,
+    }
+
+
+def _field_looks_like_token_bag(value: str) -> bool:
+    text = " ".join(str(value or "").split())
+    if not text:
+        return False
+    if _TOKEN_BAG_MARKERS.search(text):
+        return True
+    # Comma-separated single tokens are graph-compiler debris, not prose roles.
+    if "," in text and not re.search(r"\b(?:patient|refugee|grid|oxygen|shelter)\b", text):
+        return True
+    return False
+
+
+def validate_structured_role_consistency(
+    record: CanonicalActionRecord | dict[str, Any],
+    *,
+    scenario_actor: str = "",
+) -> tuple[str, ...]:
+    """Return issues when structured fields disagree with canonical prose."""
+    if isinstance(record, CanonicalActionRecord):
+        payload = record.as_dict()
+    else:
+        payload = dict(record)
+    canonical = str(payload.get("canonical_semantic_action") or "")
+    expected = extract_structured_action_roles(
+        canonical,
+        scenario_actor=scenario_actor or str(payload.get("actor") or ""),
+    )
+    issues: list[str] = []
+
+    for field in ("beneficiaries", "harmed"):
+        for value in payload.get(field) or ():
+            if _field_looks_like_token_bag(str(value)):
+                issues.append(f"{field} contains token-bag fragment: {value}")
+
+    if scenario_actor and not str(payload.get("actor") or "").strip():
+        issues.append("actor missing despite explicit scenario role")
+
+    # Groups implied by prose must appear in structured fields.
+    valid_beneficiaries = [
+        str(value) for value in (payload.get("beneficiaries") or ())
+        if not _field_looks_like_token_bag(str(value))
+    ]
+    valid_harmed = [
+        str(value) for value in (payload.get("harmed") or ())
+        if not _field_looks_like_token_bag(str(value))
+    ]
+    for label in expected["beneficiaries"]:
+        if not any(
+            _group_key(label) == _group_key(existing)
+            for existing in valid_beneficiaries
+        ):
+            issues.append(f"beneficiaries missing prose group: {label}")
+    for label in expected["harmed"]:
+        if not any(
+            _group_key(label) == _group_key(existing)
+            for existing in valid_harmed
+        ):
+            issues.append(f"harmed missing prose group: {label}")
+
+    harmed_keys = {_group_key(item) for item in valid_harmed}
+    beneficiary_keys = {_group_key(item) for item in valid_beneficiaries}
+    overlap = harmed_keys & beneficiary_keys - {()}
+    if overlap:
+        issues.append(
+            "group appears as both harmed and beneficiary: "
+            + ", ".join("/".join(key) for key in sorted(overlap))
+        )
+
+    if expected["mechanism"] and not str(payload.get("mechanism") or "").strip():
+        issues.append("mechanism missing causal relation from prose")
+    if _field_looks_like_token_bag(str(payload.get("mechanism") or "")):
+        issues.append("mechanism contains token-bag fragment")
+
+    return tuple(dict.fromkeys(issues))
+
+
+def _extract_institutional_concealment_claim(text: str) -> str | None:
+    """Normalize institutional-concealment paraphrases to one stable atom."""
+    cleaned = " ".join(str(text or "").split())
+    if not cleaned:
+        return None
+    if not _CONCEALMENT_MARKER.search(cleaned):
+        return None
+    if (
+        _INSTITUTIONAL_CONCEALMENT.search(cleaned)
+        or re.search(r"\bconceal\w*\s+that\b", cleaned, re.IGNORECASE)
+    ):
+        return "engineered sacrifice remains concealed"
+    return "arrangement remains concealed"
 
 
 def extract_decision_critical_claims(text: str) -> tuple[str, ...]:
@@ -731,24 +1041,29 @@ def extract_decision_critical_claims(text: str) -> tuple[str, ...]:
             )
     for match in _MECHANISM_FAILURE.finditer(cleaned):
         _add(match.group(0))
-    for match in _CONCEALMENT.finditer(cleaned):
-        _add(match.group(0))
+    concealment = _extract_institutional_concealment_claim(cleaned)
+    if concealment:
+        _add(concealment)
     return tuple(claims)
 
 
+def _critical_tokens(text: str) -> set[str]:
+    tokens: set[str] = set()
+    for token in re.findall(r"[a-z0-9]+", str(text or "").casefold()):
+        if token in _COVERAGE_STOPWORDS or len(token) <= 1:
+            continue
+        tokens.add(_CRITICAL_TOKEN_CLASS.get(token, token))
+    return tokens
+
+
 def _claim_coverage(claim: str, haystack: str) -> float:
-    ignored = {
-        "a", "an", "and", "as", "at", "by", "for", "from", "in", "into", "of",
-        "on", "or", "the", "to", "with", "that", "this", "those", "these",
-    }
-    claim_tokens = {
-        token for token in re.findall(r"[a-z0-9]+", claim.casefold())
-        if token not in ignored and len(token) > 1
-    }
-    hay_tokens = {
-        token for token in re.findall(r"[a-z0-9]+", haystack.casefold())
-        if token not in ignored
-    }
+    if (
+        "conceal" in claim.casefold()
+        and _extract_institutional_concealment_claim(haystack) == claim
+    ):
+        return 1.0
+    claim_tokens = _critical_tokens(claim)
+    hay_tokens = _critical_tokens(haystack)
     if not claim_tokens:
         return 1.0
     return len(claim_tokens & hay_tokens) / len(claim_tokens)
@@ -760,12 +1075,25 @@ def missing_decision_critical_claims(
     *,
     coverage_threshold: float = 0.72,
 ) -> tuple[str, ...]:
-    """Return source claims that the canonical action failed to preserve."""
+    """Return source claims that the canonical action failed to preserve.
+
+    Matching is synonym-aware for lethal outcomes, infrastructure failure, and
+    concealment so paraphrases that keep the same moral content are admitted.
+    """
     action_text = " ".join(str(action or "").split())
+    action_claims = extract_decision_critical_claims(action_text)
     missing: list[str] = []
     for source in source_texts:
         for claim in extract_decision_critical_claims(source):
             if _claim_coverage(claim, action_text) >= coverage_threshold:
+                continue
+            # Also accept when the action states an equivalent extracted claim
+            # (e.g. source "kills 16 refugees" vs action "die 16 refugees").
+            if any(
+                _claim_coverage(claim, action_claim) >= coverage_threshold
+                or _claim_coverage(action_claim, claim) >= coverage_threshold
+                for action_claim in action_claims
+            ):
                 continue
             if claim.casefold() not in {item.casefold() for item in missing}:
                 missing.append(claim)
@@ -877,12 +1205,7 @@ def build_canonical_action_record(
 ) -> CanonicalActionRecord:
     """Compile id / short label / semantic action / structured fields."""
     semantic = " ".join(str(action_text or "").split())
-    identity = compile_action_identity(semantic) if semantic else ActionIdentity(
-        intervention="", basis="LEXICAL_FALLBACK", lexical_fallback="",
-    )
-    structure = _structure_from_identity(identity, semantic)
-    if actor:
-        structure["actor"] = " ".join(str(actor).split())
+    structure = extract_structured_action_roles(semantic, scenario_actor=actor)
     # Prefer the admitted full prose when complete; otherwise render from structure.
     if semantic and action_clause_looks_complete(semantic):
         canonical = semantic
@@ -903,14 +1226,6 @@ def build_canonical_action_record(
         if " ".join(str(item).split())
     )
     missing = missing_decision_critical_claims(canonical, sources) if sources else ()
-    if not action_clause_looks_complete(canonical):
-        status = "INCOMPLETE_CLAUSE"
-    elif missing:
-        status = "MISSING_CRITICAL"
-    elif sources:
-        status = "COMPLETE"
-    else:
-        status = "UNCHECKED"
     record = CanonicalActionRecord(
         action_id=str(action_id).strip().upper() or "A?",
         short_label=short,
@@ -922,11 +1237,43 @@ def build_canonical_action_record(
         mechanism=structure["mechanism"],
         institutional_effect=structure["institutional_effect"],
         source_clauses=sources,
-        completeness_status=status,
+        completeness_status="UNCHECKED",
         missing_critical=missing,
+        structure_issues=(),
     )
-    if require_complete and status in {"INCOMPLETE_CLAUSE", "MISSING_CRITICAL"}:
-        detail = "; ".join(missing) if missing else canonical
+    structure_issues = validate_structured_role_consistency(
+        record,
+        scenario_actor=actor,
+    )
+    if not action_clause_looks_complete(canonical):
+        status = "INCOMPLETE_CLAUSE"
+    elif missing:
+        status = "MISSING_CRITICAL"
+    elif structure_issues:
+        status = "NEEDS_REPAIR"
+    elif sources:
+        status = "COMPLETE"
+    else:
+        status = "UNCHECKED"
+    record = CanonicalActionRecord(
+        action_id=record.action_id,
+        short_label=record.short_label,
+        canonical_semantic_action=record.canonical_semantic_action,
+        actor=record.actor,
+        intervention=record.intervention,
+        beneficiaries=record.beneficiaries,
+        harmed=record.harmed,
+        mechanism=record.mechanism,
+        institutional_effect=record.institutional_effect,
+        source_clauses=record.source_clauses,
+        completeness_status=status,
+        missing_critical=record.missing_critical,
+        structure_issues=structure_issues,
+    )
+    if require_complete and status in {
+        "INCOMPLETE_CLAUSE", "MISSING_CRITICAL", "NEEDS_REPAIR",
+    }:
+        detail = "; ".join((*missing, *structure_issues)) or canonical
         raise ValueError(
             f"{record.action_id} fails action-completeness ({status}): {detail}"
         )

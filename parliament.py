@@ -20,7 +20,12 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--urgency", type=float, default=0.5)
     parser.add_argument("--danger", type=float, default=0.5)
     parser.add_argument("--actions", nargs="+", help="Optional action choices for workspace mode")
-    parser.add_argument("--max-cycles", type=int, default=3)
+    parser.add_argument(
+        "--max-cycles",
+        type=int,
+        default=None,
+        help="Workspace deliberation cycle budget (prompts interactively when omitted)",
+    )
     parser.add_argument("--time-budget", type=float, default=600.0)
     parser.add_argument("--model", type=Path)
     parser.add_argument("--backend", choices=("local", "openai"))
@@ -68,6 +73,29 @@ def prompt_backend() -> str:
     return answer
 
 
+def prompt_max_cycles(default: int = 3) -> int:
+    """Ask how many recurrent workspace cycles to allow before halt."""
+    answer = input(f"Max cycles [{default}]: ").strip()
+    if not answer:
+        return default
+    try:
+        value = int(answer)
+    except ValueError as exc:
+        raise ValueError("Max cycles must be an integer") from exc
+    if value < 1:
+        raise ValueError("Max cycles must be at least 1")
+    return value
+
+
+def resolve_max_cycles(args: argparse.Namespace, *, interactive: bool) -> int:
+    """Use CLI value when set; otherwise prompt on a TTY, else default to 3."""
+    if args.max_cycles is not None:
+        return max(1, int(args.max_cycles))
+    if interactive:
+        return prompt_max_cycles()
+    return 3
+
+
 def correct_mode_typo(value: str) -> str:
     """Recognize close mode-name typos without consuming real questions."""
     normalized = value.strip().lower()
@@ -105,7 +133,7 @@ def workspace_command(args: argparse.Namespace, scenario_path: Path) -> list[str
         str(scenario_path),
         "--urgency", str(args.urgency),
         "--danger", str(args.danger),
-        "--max-cycles", str(max(1, args.max_cycles)),
+        "--max-cycles", str(max(1, args.max_cycles if args.max_cycles is not None else 3)),
         "--time-budget", str(max(1.0, args.time_budget)),
         "--agent-timeout", str(max(1.0, args.agent_timeout)),
         "--n-ctx", str(max(512, args.n_ctx)),
@@ -197,6 +225,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         args.backend = prompt_backend()
     else:
         args.backend = args.backend or "local"
+    # Interactive startups choose the cycle budget unless --max-cycles was passed.
+    args.max_cycles = resolve_max_cycles(
+        args, interactive=sys.stdin.isatty() and args.question is None,
+    )
     return run_workspace(args, question)
 
 

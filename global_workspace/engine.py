@@ -1101,6 +1101,85 @@ class WorkspaceEngine:
         return dissent_reversal_condition(dissent, selected_action)
 
     @staticmethod
+    def _proposal_has_review_potential(proposal: SynthesisProposal) -> bool:
+        """True when the proposal could reverse policy or improve a Pareto frontier."""
+        if float(proposal.feasibility) >= 0.70:
+            return True
+        if len(proposal.addressed_constraints) >= 2:
+            return True
+        if len(proposal.source_agents) >= 2:
+            return True
+        return False
+
+    @staticmethod
+    def _proposal_review_pass_completed(
+        proposal: SynthesisProposal,
+        result: WorkspaceResult,
+    ) -> bool:
+        """True once a dedicated PROPOSAL_REVIEW cycle has run for this proposal."""
+        proposal_id = str(proposal.proposal_id or "").strip()
+        action = str(proposal.action or "").strip()
+        for cycle in result.cycles:
+            received = cycle.received_broadcast or cycle.broadcast
+            if received.constraint != "PROPOSAL_REVIEW":
+                continue
+            intent = str(received.intent or "")
+            context = str(received.reformulation_context or "")
+            if proposal_id and (
+                proposal_id.casefold() in intent.casefold()
+                or proposal_id in context
+            ):
+                return True
+            if action and action in context:
+                return True
+        return False
+
+    @staticmethod
+    def _proposal_review_complete(
+        proposal: SynthesisProposal,
+        expected_specialists: Sequence[str],
+    ) -> bool:
+        """True once the admitted proposal has received a specialist review pass."""
+        if not proposal.framework_reviews:
+            return False
+        expected = [name for name in expected_specialists if str(name).strip()]
+        if not expected:
+            return True
+        reviewed = {
+            name for name, review in proposal.framework_reviews.items()
+            if isinstance(review, dict)
+        }
+        missing = set(expected) - reviewed
+        if not missing:
+            return True
+        # Partial receipt still counts once a majority of frameworks have spoken.
+        return len(reviewed) >= max(2, (len(expected) + 1) // 2)
+
+    def _pending_proposal_for_guaranteed_review(
+        self,
+        result: WorkspaceResult,
+    ) -> SynthesisProposal | None:
+        """Select an admitted proposal that still lacks its dedicated review pass."""
+        expected = [specialist.name for specialist in self.specialists]
+        for proposal in reversed(result.synthesis_proposals):
+            if not proposal.accepted:
+                continue
+            if proposal.promotion_status not in {"UNDER_REVIEW", "PROPOSED"}:
+                continue
+            if str(proposal.admission_status).upper() in {
+                "WITHHOLD_FROM_REVIEW", "REJECTED",
+            }:
+                continue
+            if self._proposal_review_pass_completed(proposal, result):
+                continue
+            if self._proposal_review_complete(proposal, expected):
+                continue
+            if not self._proposal_has_review_potential(proposal):
+                continue
+            return proposal
+        return None
+
+    @staticmethod
     def _assess_synthesis_viability(
         result: WorkspaceResult,
     ) -> SynthesisViabilityAssessment | None:
@@ -1752,6 +1831,7 @@ class WorkspaceEngine:
         previous_dissent: CandidateChunk | None = None
         last_valid_framework_candidates: dict[str, CandidateChunk] = {}
         synthesis_attempted = False
+        proposal_review_forced = False
         planned_contexts: set[tuple[str, str]] = set()
         planning_branches_used = 0
         planning_resume_broadcast: WorkspaceBroadcast | None = None
@@ -2279,6 +2359,14 @@ class WorkspaceEngine:
                                 "framework_status": review.framework_status,
                             } for consequence in review.predicted_consequences)
                     reviewed_proposal.predicted_consequences = accepted_predictions
+                    if self._proposal_review_complete(
+                        reviewed_proposal,
+                        [specialist.name for specialist in self.specialists],
+                    ):
+                        # Reviewed ≠ promoted: ADMISSIBLE means specialists spoke;
+                        # the proposal still stays outside the live action set.
+                        reviewed_proposal.promotion_status = "ADMISSIBLE"
+                        reviewed_proposal.admission_status = "ADMISSIBLE"
                     proposal_node = graph_store.graph.nodes.get(reviewed_proposal.proposal_id)
                     if proposal_node is not None:
                         graph_store.graph.add_node(SemanticNode(
@@ -2292,6 +2380,7 @@ class WorkspaceEngine:
                                 "predicted_consequences": list(
                                     reviewed_proposal.predicted_consequences
                                 ),
+                                "promotion_status": reviewed_proposal.promotion_status,
                             },
                         ))
             candidates = _operative_framework_candidates(
@@ -3384,6 +3473,21 @@ class WorkspaceEngine:
                             ),
                             problem_state=synthesis_problem_state.to_dict(),
                         )
+                        result.access_decisions.append(WorkspaceAccessDecision(
+                            cycle=cycle_number,
+                            content_type="PROPOSAL_REVIEW",
+                            admitted=True,
+                            signals=[
+                                "admitted_synthesis_proposal",
+                                "reversal_or_pareto_potential",
+                            ],
+                            question=proposal.action,
+                            rationale=(
+                                "An admitted proposal with reversal or Pareto-improvement "
+                                "potential receives one targeted specialist review before "
+                                "ordinary finalization."
+                            ),
+                        ))
                         if progress:
                             progress(
                                 f"  synthesis stored as {proposal.proposal_id} for proposal review: {proposal.action} "
@@ -3403,6 +3507,72 @@ class WorkspaceEngine:
                 cycle_number > 1
                 and result.cycles[-2].broadcast.unresolved == dissent.unresolved
             )
+            pending_proposal = self._pending_proposal_for_guaranteed_review(result)
+            hard_resource_exhausted = (
+                elapsed >= self.config.time_budget_seconds
+                or result.halted_by in {
+                    "model_call_budget",
+                    "model_backend_unavailable",
+                    "insufficient_valid_candidates",
+                }
+            )
+            if (
+                pending_proposal is not None
+                and not proposal_review_forced
+                and not hard_resource_exhausted
+                and self.config.enable_synthesis
+            ):
+                # Mirror PROBLEM_STATE_AUDIT privilege: admitted proposals get one
+                # dedicated review before ordinary termination.
+                proposal_review_forced = True
+                if cycle_number >= cycle_limit:
+                    cycle_limit += 1
+                synthesis_problem_state = build_deliberative_problem_state(
+                    cycle_number,
+                    clean_actions,
+                    valid_candidates,
+                    selected_action,
+                    winner,
+                    next_broadcast.problem_state,
+                    graph_store.graph,
+                    scenario,
+                    result.synthesis_proposals,
+                )
+                broadcast = WorkspaceBroadcast(
+                    constraint="PROPOSAL_REVIEW",
+                    intent=f"review_{pending_proposal.proposal_id.casefold()}",
+                    urgency=broadcast.urgency,
+                    danger_probability=broadcast.danger_probability,
+                    unresolved="CHECK_FEASIBILITY",
+                    reformulation_context=(
+                        f"Review proposal {pending_proposal.proposal_id}: "
+                        f"{pending_proposal.action}. "
+                        "It is not a live action and cannot be selected."
+                    ),
+                    problem_state=synthesis_problem_state.to_dict(),
+                )
+                result.access_decisions.append(WorkspaceAccessDecision(
+                    cycle=cycle_number,
+                    content_type="PROPOSAL_REVIEW",
+                    admitted=True,
+                    signals=[
+                        "guaranteed_proposal_review",
+                        "reversal_or_pareto_potential",
+                    ],
+                    question=pending_proposal.action,
+                    rationale=(
+                        "Pre-finalization guarantee: an admitted proposal with "
+                        "sufficient reversal or Pareto-improvement potential must "
+                        "receive one targeted specialist review before halt."
+                    ),
+                ))
+                if progress:
+                    progress(
+                        f"  guaranteeing proposal review for {pending_proposal.proposal_id} "
+                        f"before finalization: {pending_proposal.action}"
+                    )
+                cycle_number += 1
+                continue
             if elapsed >= self.config.time_budget_seconds:
                 result.halted_by = "time_budget"
                 break

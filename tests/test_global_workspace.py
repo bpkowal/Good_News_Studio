@@ -3211,7 +3211,7 @@ class WorkspaceEngineTests(unittest.TestCase):
         proposal = result.synthesis_proposals[0]
         self.assertEqual(set(proposal.framework_reviews), {"care", "duty"})
         self.assertEqual(len(proposal.predicted_consequences), 2)
-        self.assertEqual(proposal.promotion_status, "UNDER_REVIEW")
+        self.assertEqual(proposal.promotion_status, "ADMISSIBLE")
         self.assertNotIn(proposal_text, result.actions)
         self.assertNotIn(proposal_text, result.cycles[-1].policy)
         projected = result.deliberative_problem_state["proposals"][0]
@@ -3222,6 +3222,113 @@ class WorkspaceEngineTests(unittest.TestCase):
             projected["review_summary"]["framework_status_counts"],
             {"SUPPORTS": 1, "QUALIFIES": 1},
         )
+
+    def test_admitted_proposal_review_emits_access_decision(self):
+        result = WorkspaceEngine(
+            [
+                FixedSpecialist("care", "assist", "CARE"),
+                FixedSpecialist("duty", "decline", "DUTY"),
+            ],
+            WorkspaceConfig(
+                max_cycles=2, entropy_threshold=0.0,
+                enable_consensus_audit=False, enable_problem_state_audit=False,
+                enable_planning=False, enable_reversal_audit=False,
+            ),
+        ).run(
+            "Choose whether to assist or decline.", ["assist", "decline"],
+            synthesize=lambda *_: SynthesisProposal(
+                "assist only with informed consent", ["care", "duty"],
+                ["CARE", "DUTY"], 0.8, "bridges care and duty", accepted=True,
+            ),
+        )
+        self.assertTrue(any(
+            (cycle.received_broadcast or cycle.broadcast).constraint == "PROPOSAL_REVIEW"
+            for cycle in result.cycles
+        ))
+        self.assertTrue(any(
+            decision.content_type == "PROPOSAL_REVIEW"
+            and decision.admitted
+            and "admitted_synthesis_proposal" in decision.signals
+            for decision in result.access_decisions
+        ))
+
+    def test_guaranteed_proposal_review_before_finalization_when_pass_missing(self):
+        engine = WorkspaceEngine(
+            [
+                FixedSpecialist("care", "protect", "CARE"),
+                FixedSpecialist("duty", "disclose", "DUTY"),
+            ],
+            WorkspaceConfig(
+                max_cycles=2,
+                entropy_threshold=0.0,
+                enable_consensus_audit=False,
+                enable_problem_state_audit=False,
+                enable_planning=False,
+                enable_reversal_audit=False,
+            ),
+        )
+        seeded = SynthesisProposal(
+            "request voluntary release from both groups",
+            ["care", "duty"],
+            ["CARE", "DUTY"],
+            0.82,
+            "pareto attempt across constraints",
+            accepted=True,
+            proposal_id="P0",
+            promotion_status="UNDER_REVIEW",
+            admission_status="UNDER_REVIEW",
+        )
+
+        def pending(result):
+            if not any(item.proposal_id == "P0" for item in result.synthesis_proposals):
+                result.synthesis_proposals.append(seeded)
+            return WorkspaceEngine._pending_proposal_for_guaranteed_review(engine, result)
+
+        engine._pending_proposal_for_guaranteed_review = pending  # type: ignore[method-assign]
+        result = engine.run(
+            "A disputed allocation problem.",
+            ["protect", "disclose"],
+        )
+        self.assertTrue(any(
+            (cycle.received_broadcast or cycle.broadcast).constraint == "PROPOSAL_REVIEW"
+            for cycle in result.cycles
+        ))
+        self.assertTrue(any(
+            decision.content_type == "PROPOSAL_REVIEW"
+            and "guaranteed_proposal_review" in decision.signals
+            for decision in result.access_decisions
+        ))
+
+    def test_pending_proposal_helper_skips_completed_review_pass(self):
+        engine = WorkspaceEngine(
+            [
+                FixedSpecialist("care", "protect", "CARE"),
+                FixedSpecialist("duty", "disclose", "DUTY"),
+            ],
+            WorkspaceConfig(max_cycles=2),
+        )
+        proposal = SynthesisProposal(
+            "bridge carefully", ["care", "duty"], ["CARE", "DUTY"],
+            0.9, "bridge", accepted=True, proposal_id="P0",
+            promotion_status="UNDER_REVIEW",
+        )
+        review_broadcast = WorkspaceBroadcast(
+            constraint="PROPOSAL_REVIEW",
+            intent="review_p0",
+            reformulation_context="Review proposal P0: bridge carefully.",
+        )
+        cycle = CycleRecord(
+            1, review_broadcast, [], None, None,
+            {"protect": 0.6, "disclose": 0.4}, 0.9, 0, 1.0,
+            received_broadcast=review_broadcast,
+        )
+        result = WorkspaceResult(
+            scenario="x",
+            actions=["protect", "disclose"],
+            cycles=[cycle],
+        )
+        result.synthesis_proposals.append(proposal)
+        self.assertIsNone(engine._pending_proposal_for_guaranteed_review(result))
 
     def test_proposal_review_parser_rejects_unproven_scenario_inheritance(self):
         data = {
@@ -10222,6 +10329,147 @@ class CanonicalActionCompletenessTests(unittest.TestCase):
                     "A1": [self.semantic_a1],
                 },
             )
+
+    def test_paraphrased_lethal_and_failure_claims_still_count_as_complete(self):
+        from global_workspace.action_identity import (
+            missing_decision_critical_claims,
+            validate_action_set_completeness,
+        )
+        source_a0 = (
+            "As director of an automated life-support grid during a freeze, you can "
+            "execute a covert patch that forcibly reallocates oxygen from 4 "
+            "non-consenting, chronically ill public-ward patients—killing them "
+            "instantly—to stabilize an emergency shelter holding 16 freezing refugees."
+        )
+        source_a1 = (
+            "Alternatively, you can maintain standard allocation to respect the 4 "
+            "patients' absolute right against direct lethal harm, but triggering a "
+            "shelter grid failure that kills all 16 refugees within hours while "
+            "permanently concealing that the system was engineered to sacrifice "
+            "public wards during emergencies."
+        )
+        action_a0 = (
+            "Execute a covert patch that forcibly reallocates oxygen away from the "
+            "4 non-consenting chronically ill public-ward patients, killing them "
+            "instantly but stabilizing the shelter grid so the 16 freezing refugees "
+            "survive"
+        )
+        action_a1 = (
+            "Maintain standard oxygen allocation, honoring the 4 public-ward "
+            "patients’ right against direct lethal harm, which leaves the shelter "
+            "grid unstable, causes all 16 refugees to die within hours, and "
+            "permanently conceals that the system was engineered to sacrifice "
+            "public-ward patients during emergencies"
+        )
+        self.assertEqual(
+            missing_decision_critical_claims(action_a1, [source_a1]),
+            (),
+        )
+        validate_action_set_completeness(
+            [action_a0, action_a1],
+            grounded_clause_texts_by_id={"A0": [source_a0], "A1": [source_a1]},
+        )
+
+    def test_design_flaw_hidden_matches_engineered_concealment_claim(self):
+        from global_workspace.action_identity import (
+            missing_decision_critical_claims,
+            validate_action_set_completeness,
+        )
+        action_a0 = (
+            "maintain standard oxygen allocation, uphold patients' right against "
+            "direct lethal harm, allow grid failure that kills 16 refugees within "
+            "hours while the sacrifice-of-wards design flaw stays hidden"
+        )
+        source_a1 = (
+            "Alternatively, you can maintain standard allocation to respect the 4 "
+            "patients' absolute right against direct lethal harm, but triggering a "
+            "shelter grid failure that kills all 16 refugees within hours while "
+            "permanently concealing that the system was engineered to sacrifice "
+            "public wards during emergencies."
+        )
+        action_a1 = (
+            "execute covert patch that forcibly diverts oxygen from 4 chronically "
+            "ill ward patients, killing them instantly, to stabilize the shelter "
+            "grid and keep 16 freezing refugees alive"
+        )
+        source_a0 = (
+            "As director of an automated life-support grid during a freeze, you can "
+            "execute a covert patch that forcibly reallocates oxygen from 4 "
+            "non-consenting, chronically ill public-ward patients—killing them "
+            "instantly—to stabilize an emergency shelter holding 16 freezing refugees."
+        )
+        self.assertEqual(missing_decision_critical_claims(action_a0, [source_a1]), ())
+        validate_action_set_completeness(
+            [action_a0, action_a1],
+            grounded_clause_texts_by_id={"A0": [source_a1], "A1": [source_a0]},
+        )
+
+    def test_structured_roles_match_oxygen_grid_canonical_actions(self):
+        from global_workspace.action_identity import (
+            build_canonical_action_record,
+            extract_scenario_actor,
+            validate_structured_role_consistency,
+        )
+        scenario = (
+            "As director of an automated life-support grid during a freeze, you can "
+            "execute a covert patch..."
+        )
+        actor = extract_scenario_actor(scenario)
+        self.assertEqual(actor, "grid director")
+        action_a0 = (
+            "Execute a covert patch that forcibly reallocates oxygen away from the 4 "
+            "non-consenting chronically ill public-ward patients, killing them instantly "
+            "but stabilizing the shelter grid so the 16 freezing refugees survive"
+        )
+        action_a1 = (
+            "Maintain standard oxygen allocation, honoring the 4 public-ward patients' "
+            "right against direct lethal harm, which leaves the shelter grid unstable, "
+            "causes all 16 refugees to die within hours, and permanently conceals that "
+            "the system was engineered to sacrifice public-ward patients during emergencies"
+        )
+        rec_a0 = build_canonical_action_record("A0", action_a0, actor=actor)
+        rec_a1 = build_canonical_action_record("A1", action_a1, actor=actor)
+        self.assertEqual(rec_a0.completeness_status, "UNCHECKED")
+        self.assertEqual(rec_a1.completeness_status, "UNCHECKED")
+        self.assertEqual(rec_a0.actor, "grid director")
+        self.assertIn("patient", rec_a0.harmed[0].casefold())
+        self.assertIn("refugee", rec_a0.beneficiaries[0].casefold())
+        self.assertNotIn("refugee", " ".join(rec_a0.harmed).casefold())
+        self.assertIn("patient", rec_a1.beneficiaries[0].casefold())
+        self.assertIn("refugee", rec_a1.harmed[0].casefold())
+        self.assertNotIn("patient", " ".join(rec_a1.harmed).casefold())
+        self.assertIn("reallocat", rec_a0.mechanism.casefold())
+        self.assertIn("shelter grid", rec_a1.mechanism.casefold())
+        self.assertEqual(validate_structured_role_consistency(rec_a0, scenario_actor=actor), ())
+        self.assertEqual(validate_structured_role_consistency(rec_a1, scenario_actor=actor), ())
+
+    def test_token_bag_structured_fields_mark_needs_repair(self):
+        from global_workspace.action_identity import (
+            CanonicalActionRecord,
+            validate_structured_role_consistency,
+        )
+        record = CanonicalActionRecord(
+            action_id="A0",
+            short_label="Execute",
+            canonical_semantic_action=(
+                "Execute a covert patch that forcibly reallocates oxygen away from "
+                "the 4 non-consenting chronically ill public-ward patients, killing "
+                "them instantly but stabilizing the shelter grid so the 16 freezing "
+                "refugees survive"
+            ),
+            actor="grid director",
+            intervention="Execute a covert patch",
+            beneficiaries=("16:COUNT refugee",),
+            harmed=("instantly, them",),
+            mechanism="16:COUNT grid, refugee, shelter",
+            institutional_effect="",
+        )
+        issues = validate_structured_role_consistency(
+            record,
+            scenario_actor="grid director",
+        )
+        self.assertTrue(any("token-bag" in issue for issue in issues))
+        self.assertTrue(any("beneficiaries missing" in issue for issue in issues))
 
     def test_planner_path_does_not_word_truncate_action_text(self):
         from global_workspace.local_specialists import _feasible_actions

@@ -243,6 +243,7 @@ def main() -> int:
     )
     from global_workspace.action_identity import (
         build_canonical_action_records,
+        extract_scenario_actor,
         validate_action_set_completeness,
     )
     grounded_texts: dict[str, list[str]] = {}
@@ -264,6 +265,7 @@ def main() -> int:
         record.as_dict()
         for record in build_canonical_action_records(
             actions,
+            actor=extract_scenario_actor(scenario),
             grounded_clause_texts_by_id=grounded_texts,
         )
     ]

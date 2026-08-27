@@ -93,6 +93,49 @@ class ParliamentLauncherTests(unittest.TestCase):
         self.assertEqual(args.backend, "openai")
         self.assertEqual(question, "A sufficiently long ethical question")
 
+    @patch("parliament.run_workspace", return_value=0)
+    @patch("parliament.sys.stdin.isatty", return_value=True)
+    @patch("builtins.input", side_effect=[
+        "workspace",
+        "A sufficiently long ethical question for cycle selection",
+        "openai",
+        "7",
+    ])
+    def test_interactive_startup_prompts_for_max_cycles(self, _input, _isatty, run_workspace):
+        self.assertEqual(parliament.main([]), 0)
+        args, _question = run_workspace.call_args.args
+        self.assertEqual(args.max_cycles, 7)
+        self.assertEqual(args.backend, "openai")
+
+    @patch("parliament.run_workspace", return_value=0)
+    @patch("parliament.sys.stdin.isatty", return_value=True)
+    @patch("builtins.input", side_effect=[
+        "workspace",
+        "A sufficiently long ethical question for cycle default",
+        "local",
+        "",
+    ])
+    def test_interactive_max_cycles_default_is_three(self, _input, _isatty, run_workspace):
+        self.assertEqual(parliament.main([]), 0)
+        args, _question = run_workspace.call_args.args
+        self.assertEqual(args.max_cycles, 3)
+
+    def test_prompt_max_cycles_rejects_non_positive(self):
+        with patch("builtins.input", return_value="0"):
+            with self.assertRaises(ValueError):
+                parliament.prompt_max_cycles()
+
+    def test_cli_max_cycles_skips_interactive_prompt(self):
+        args = parliament.parse_args([
+            "--mode", "workspace",
+            "--question", "A sufficiently long ethical question",
+            "--max-cycles", "10",
+        ])
+        self.assertEqual(
+            parliament.resolve_max_cycles(args, interactive=True),
+            10,
+        )
+
     @patch("global_workspace_pipeline.sys.stdin.isatty", return_value=True)
     @patch("builtins.input", side_effect=["edit", "give to child | give to researcher"])
     def test_actions_can_be_reviewed_and_edited(self, _input, _isatty):
