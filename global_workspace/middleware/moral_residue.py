@@ -26,12 +26,13 @@ def collect_moral_residue(
 
 def collect_reopen_conditions(cycles: Sequence[CycleRecord]) -> list[str]:
     """Collect unresolved base-scenario conditions, excluding hypothetical cycles."""
+    from ..uncertainty_types import normalize_unresolved_marker
     return sorted({
-        candidate.unresolved
+        normalize_unresolved_marker(candidate.unresolved)
         for cycle in cycles
         if not cycle.is_hypothetical
         for candidate in cycle.candidates
         if candidate.schema_valid
         and candidate.delegate_status == "VALID"
-        and candidate.unresolved != "NONE"
+        and normalize_unresolved_marker(candidate.unresolved) != "NONE"
     })

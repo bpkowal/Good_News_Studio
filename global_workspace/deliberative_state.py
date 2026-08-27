@@ -951,27 +951,8 @@ def _question_grounding_ids(
 
 def _uncertainty_kind(category: str, question: str) -> str:
     """Classify the uncertainty independently of its requested next operation."""
-    category = str(category).strip().upper()
-    text = str(question).casefold()
-    empirical = bool(re.search(
-        r"\b(?:amount|duration|effect|feasib|frequency|likelihood|magnitude|number|"
-        r"probability|rate|severity|size|sufficient|uptake)\b", text,
-    ))
-    normative = bool(re.search(
-        r"\b(?:compar|justify|lexical|moral|outweigh|overrid|priority|relative value|"
-        r"versus|vs\.?|weight)\b", text,
-    ))
-    if category == "RESOLVE_NORMATIVE_TENSION":
-        normative = True
-    elif category in {"CHECK_FEASIBILITY", "CLARIFY_SCENARIO"}:
-        empirical = True
-    if empirical and normative:
-        return "MIXED_UNCERTAINTY"
-    if normative:
-        return "NORMATIVE_UNCERTAINTY"
-    if empirical or category == "VERIFY_FACTS":
-        return "EMPIRICAL_UNCERTAINTY"
-    return "UNCLASSIFIED_UNCERTAINTY"
+    from .uncertainty_types import uncertainty_kind_for
+    return uncertainty_kind_for(category, question)
 
 
 def opening_problem_state(
@@ -1332,13 +1313,15 @@ def build_deliberative_problem_state(
             candidate.landscape_tiebreaker_failure,
         ) if str(value).strip() and str(value).strip().upper() != "NONE"), candidate.unresolved)
         question_text = " ".join(str(question).split())[:240]
+        from .uncertainty_types import normalize_unresolved_marker
+        category = normalize_unresolved_marker(candidate.unresolved)
         unresolved.append({
             "question_key": _question_key(
-                candidate.specialist, candidate.unresolved, question_text,
+                candidate.specialist, category, question_text,
             ),
             "source_specialist": candidate.specialist,
-            "category": candidate.unresolved,
-            "uncertainty_kind": _uncertainty_kind(candidate.unresolved, question_text),
+            "category": category,
+            "uncertainty_kind": _uncertainty_kind(category, question_text),
             "question": question_text,
             "grounded_in": _question_grounding_ids(
                 question_text, graph, scenario_text,
@@ -1567,16 +1550,19 @@ def build_deliberative_problem_state(
     # the recommendation" is an answer about decision relevance, not a claim
     # that the underlying uncertainty is now known, so it must still be
     # reported as unresolved even though it no longer earns an audit.
+    from .uncertainty_types import normalize_uncertainty_category
     unresolved_categories = list(dict.fromkeys(
-        str(item.get("category", "")).upper()
+        normalize_uncertainty_category(str(item.get("category", "")).upper())
         for item in unresolved if str(item.get("category", "")).strip()
     ))
+    unresolved_categories = [c for c in unresolved_categories if c and c != "NONE"]
     if warnings:
         unresolved_categories.append("FRAMEWORK_GROUNDING_UNCERTAINTY")
     unresolved_categories = list(dict.fromkeys(unresolved_categories))
     unresolved_priority = (
-        "VERIFY_FACTS", "CHECK_FEASIBILITY", "RESOLVE_NORMATIVE_TENSION",
-        "ACTION_SET_ADEQUACY", "FRAMEWORK_GROUNDING_UNCERTAINTY",
+        "VERIFY_FACTS", "DECISION_BOUNDARY", "CHECK_FEASIBILITY",
+        "NORMATIVE_ADJUDICATION", "ACTION_SET_ADEQUACY",
+        "FRAMEWORK_GROUNDING_UNCERTAINTY",
     )
     primary_unresolved = next(
         (category for category in unresolved_priority if category in unresolved_categories),

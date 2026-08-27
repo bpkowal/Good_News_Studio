@@ -126,18 +126,23 @@ class WorkspaceBroadcast:
             else ""
         )
         adjudication = self.adjudication_status.strip().upper()
-        self.adjudication_status = (
-            adjudication if adjudication in {
-                "",
-                "NOT_APPLICABLE",
-                "ADJUDICATED_SUPPORTS",
-                "PROVISIONAL_LEANING",
-                "CONFLICTED_NO_LEANING",
-                "ADJUDICATION_INCOMPLETE",
-            }
-            else ""
-        )
-        self.unresolved = self.unresolved.strip().upper()[:48] or "NONE"
+        from .specialist_authority import normalize_specialist_status
+        if adjudication in {"", "NOT_APPLICABLE"}:
+            self.adjudication_status = ""
+        elif adjudication in {
+            "ADJUDICATED_SUPPORTS",
+            "PROVISIONAL_LEANING",
+            "CONFLICTED_NO_LEANING",
+            "CONTESTED_NO_LEANING",
+            "ADJUDICATION_INCOMPLETE",
+            "SUPPORTS",
+            "CONDITIONAL_SUPPORTS",
+        }:
+            self.adjudication_status = normalize_specialist_status(adjudication)
+        else:
+            self.adjudication_status = ""
+        from .uncertainty_types import normalize_unresolved_marker
+        self.unresolved = normalize_unresolved_marker(self.unresolved)[:48] or "NONE"
         self.contingency_question = " ".join(self.contingency_question.split())[:240]
         self.contingency_synthesis_action = " ".join(
             self.contingency_synthesis_action.split()
@@ -326,13 +331,17 @@ class CandidateChunk:
     preference_shift_reason_strength: float = 0.0
     decision_rule: str = ""
     # Authority typing: policy weight, investigative attention, and governing
-    # eligibility are independent. A provisional Kantian leaning may interrupt
-    # the workspace without supplying a final justificatory rule.
-    adjudication_status: str = "NOT_APPLICABLE"
+    # eligibility are independent. A provisional leaning may interrupt the
+    # workspace without supplying a final justificatory rule.
+    adjudication_status: str = "SUPPORTS"
     broadcast_authority: str = "GOVERNING_CANDIDATE"
     governing_eligible: bool = True
     policy_weight_factor: float = 1.0
     investigative_claim: str = ""
+    investigative_priority: float = 0.0
+    reopen_eligible: bool = False
+    reopen_reason: str = ""
+    reopen_question_key: str = ""
     factual_reversal_threshold: str = "NONE"
     normative_reversal_threshold: str = "NONE"
     reversal_review_response: str = "NOT_TESTED"
@@ -417,7 +426,8 @@ class CandidateChunk:
             str(key).strip()[:64] for key in self.tension_target_keys
             if str(key).strip()
         ))[:8]
-        self.unresolved = self.unresolved.strip().upper()[:48] or "NONE"
+        from .uncertainty_types import normalize_unresolved_marker
+        self.unresolved = normalize_unresolved_marker(self.unresolved)[:48] or "NONE"
         status = self.delegate_status.strip().upper()
         self.delegate_status = status if status in {
             "VALID", "MODEL_ERROR", "SCHEMA_ERROR", "SEMANTIC_VALIDATION_ERROR",
@@ -544,16 +554,26 @@ class CandidateChunk:
         self.independence_bonus = clamp(self.independence_bonus)
         self.decision_rule = " ".join(self.decision_rule.split())[:180]
         adjudication = self.adjudication_status.strip().upper()
-        self.adjudication_status = (
-            adjudication if adjudication in {
-                "NOT_APPLICABLE",
-                "ADJUDICATED_SUPPORTS",
-                "PROVISIONAL_LEANING",
-                "CONFLICTED_NO_LEANING",
-                "ADJUDICATION_INCOMPLETE",
-            }
-            else "NOT_APPLICABLE"
-        )
+        from .specialist_authority import normalize_specialist_status
+        if adjudication in {
+            "NOT_APPLICABLE",
+            "ADJUDICATED_SUPPORTS",
+            "PROVISIONAL_LEANING",
+            "CONFLICTED_NO_LEANING",
+            "CONTESTED_NO_LEANING",
+            "ADJUDICATION_INCOMPLETE",
+            "SUPPORTS",
+            "CONDITIONAL_SUPPORTS",
+            "",
+        }:
+            # Empty / NOT_APPLICABLE stay untyped until apply_specialist_authority.
+            self.adjudication_status = (
+                "SUPPORTS"
+                if adjudication in {"", "NOT_APPLICABLE"}
+                else normalize_specialist_status(adjudication)
+            )
+        else:
+            self.adjudication_status = "SUPPORTS"
         authority = self.broadcast_authority.strip().upper()
         self.broadcast_authority = (
             authority if authority in {
@@ -563,13 +583,17 @@ class CandidateChunk:
         )
         self.governing_eligible = bool(self.governing_eligible)
         if self.adjudication_status in {
-            "PROVISIONAL_LEANING", "CONFLICTED_NO_LEANING", "ADJUDICATION_INCOMPLETE",
+            "PROVISIONAL_LEANING", "CONTESTED_NO_LEANING",
         }:
             self.governing_eligible = False
             if self.broadcast_authority == "GOVERNING_CANDIDATE":
                 self.broadcast_authority = "INVESTIGATIVE"
         self.policy_weight_factor = clamp(float(self.policy_weight_factor))
         self.investigative_claim = " ".join(self.investigative_claim.split())[:240]
+        self.investigative_priority = clamp(float(self.investigative_priority))
+        self.reopen_eligible = bool(self.reopen_eligible)
+        self.reopen_reason = " ".join(str(self.reopen_reason).split())[:240]
+        self.reopen_question_key = " ".join(str(self.reopen_question_key).split())[:120]
         self.factual_reversal_threshold = (
             " ".join(self.factual_reversal_threshold.split())[:180] or "NONE"
         )
@@ -708,6 +732,7 @@ class CycleRecord:
     cycle: int
     broadcast: WorkspaceBroadcast
     candidates: list[CandidateChunk]
+    # Deprecated positional alias of broadcast_focus (migration cycle).
     winner: CandidateChunk | None
     dissent: CandidateChunk | None
     policy: dict[str, float]
@@ -718,6 +743,18 @@ class CycleRecord:
     is_hypothetical: bool = False
     execution_status: str = "VALID"
     system_error: str = "NONE"
+    # Explicit workspace roles — prefer these over winner.
+    policy_leader: str = ""
+    governing_claim: CandidateChunk | None = None
+    broadcast_focus: CandidateChunk | None = None
+
+    def __post_init__(self) -> None:
+        self.policy_leader = " ".join(str(self.policy_leader or "").split())[:240]
+        if self.broadcast_focus is None:
+            self.broadcast_focus = self.winner
+        else:
+            # New traces serialize broadcast_focus; keep winner as its alias.
+            self.winner = self.broadcast_focus
 
 
 @dataclass(slots=True)
@@ -1246,6 +1283,7 @@ class WorkspaceResult:
     presentation_actions: list[str] = field(default_factory=list)
     source_action_legend: dict[str, str] = field(default_factory=dict)
     action_source_grounding: dict[str, Any] = field(default_factory=dict)
+    canonical_action_records: list[dict[str, Any]] = field(default_factory=list)
     source_testimonies: dict[str, str] = field(default_factory=dict)
     source_errors: dict[str, str] = field(default_factory=dict)
     source_baselines: dict[str, dict[str, Any]] = field(default_factory=dict)
@@ -1271,9 +1309,11 @@ class WorkspaceResult:
     visibility_assessments: list[VisibilityAssessment] = field(default_factory=list)
     autonomy_assessments: list[AutonomyAssessment] = field(default_factory=list)
     problem_reformulations: list[ProblemReformulation] = field(default_factory=list)
-    judgment_status: str = "ACTION_RECOMMENDATION"
+    judgment_status: str = "GOVERNED_RECOMMENDATION"
     current_plurality: str = ""
     epistemic_confidence: float = 0.0
+    governing_justification_status: str = "NONE"
+    governing_attack_reason: str = ""
     semantic_invariants: list[Any] = field(default_factory=list)
     semantic_graphs: list[dict[str, Any]] = field(default_factory=list)
     graph_transactions: list[dict[str, Any]] = field(default_factory=list)

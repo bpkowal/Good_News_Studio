@@ -17,6 +17,19 @@ from .middleware.reversal_audit import (
     dissent_reversal_condition,
 )
 from .models import AutonomyAssessment, CandidateChunk, ContingencyFeasibilityAssessment, CycleRecord, FailureCondition, PlanningAssessment, PlanningBranchEvaluation, ProblemReformulation, SynthesisProposal, SynthesisViabilityAssessment, VisibilityAssessment, WorkspaceAccessDecision, WorkspaceBroadcast, WorkspaceResult, clamp
+from .specialist_authority import (
+    CONTESTED_RECOMMENDATION,
+    GOVERNED_RECOMMENDATION,
+    REOPEN_PRIORITY_THRESHOLD,
+    UNRESOLVED,
+    apply_investigative_authority,
+    apply_specialist_authority,
+    claim_ref,
+    classify_terminal_judgment,
+    derive_broadcast_authority,
+    evidence_fingerprint_for,
+    select_governing_claim,
+)
 from .semantic_invariants import (
     SemanticProposition,
     compile_preference_rule,
@@ -36,6 +49,7 @@ from .graph_transactions import SemanticGraphStore
 from .resolved_questions import (
     commit_question_resolution,
     resolve_audited_question,
+    settled_question_keys,
 )
 from .rawls_ledger import (
     apply_rawls_ledger_transaction,
@@ -264,6 +278,24 @@ def _operative_framework_candidates(
                     if str(item.get("proposition", "")).strip()
                 ),
             ]))[:3]
+            # Probe answers belong to this cycle's admitted content. A rejected
+            # Kantian mutation must not erase a completed visibility or audit
+            # response when the prior snapshot was taken on OPEN_DELIBERATION.
+            if candidate.visibility_response not in {"", "NOT_TESTED"}:
+                restored.visibility_response = candidate.visibility_response
+                restored.visibility_justification = candidate.visibility_justification
+                restored.visibility_harm_revision = candidate.visibility_harm_revision
+                restored.visibility_magnitude_status = candidate.visibility_magnitude_status
+                restored.visibility_magnitude_overreach = (
+                    candidate.visibility_magnitude_overreach
+                )
+            if candidate.audit_participation not in {"", "NOT_TESTED"}:
+                restored.audit_participation = candidate.audit_participation
+                restored.audit_internal_effect = candidate.audit_internal_effect
+                restored.audit_framework_explanation = (
+                    candidate.audit_framework_explanation
+                )
+                restored.audit_variable = dict(candidate.audit_variable)
             operative.append(restored)
             continue
         operative.append(candidate)
@@ -443,14 +475,40 @@ def _graph_first_latent_variable_probe(
         relation_name = str(relation.relation).upper()
         statement = " ".join(str(relation.statement).split())
         if relation_name == "DECISION_BOUNDARY":
+            from .uncertainty_types import build_boundary_audit_fields
             boundary = relation.statement.split(" if ", 1)[-1] if " if " in relation.statement.lower() else relation.statement
             entity = boundary.strip() or "decision boundary"
-            possible_values = ["NO_CHANGE", "WEAKENS", "REVERSES", "UNRESOLVED"]
+            condition = boundary.strip() or statement
             question = (
                 f"Does the graph-committed boundary '{statement}' actually change the recommendation "
                 f"for '{selected_action}'?"
             )
             counterfactual_anchor = boundary.strip() or statement or selected_action
+            payload = build_boundary_audit_fields(
+                condition=condition,
+                expected_effect="REVERSES_FRAMEWORK_PREFERENCE",
+                boundary_status="UNRESOLVED",
+            )
+            payload.update({
+                "entity": entity,
+                "focus_action": selected_action,
+                "question": question,
+                "required_response": {
+                    "counterfactual_anchor": counterfactual_anchor,
+                    "allowed_effects": [
+                        "NO_CHANGE",
+                        "WEAKENS",
+                        "REVERSES",
+                        "REVERSES_FRAMEWORK_PREFERENCE",
+                        "UNRESOLVED",
+                    ],
+                },
+            })
+            return (
+                [f"graph_{relation_name.lower()}", "graph_latent_variable"],
+                question,
+                payload,
+            )
         elif relation_name == "TEMPORAL_RISK_ASYMMETRY":
             entity = "present-versus-delayed risk tradeoff"
             possible_values = [
@@ -778,6 +836,9 @@ def _problem_state_audit_probe(
             "allowed_effects": ["NO_CHANGE", "WEAKENS", "REVERSES", "UNRESOLVED"],
         },
     }
+    # grounding_status is workspace-internal ranking metadata. Sending it as
+    # part of the admitted av object made every delegate fail schema checks
+    # for "unsupported keys" when they echoed the authoritative variable.
     return [
         "problem_state_audit_candidate",
         f"problem_state_{relation.casefold()}",
@@ -894,14 +955,20 @@ class WorkspaceEngine:
         if candidate.landscape_search_attempted and not candidate.landscape_semantic_valid:
             value *= 0.55
         # Investigative claims: unresolved consequential arguments interrupt.
-        # Soften confidence dampening so a provisional strict-duty conflict can
-        # still win attention without laundering into decision authority.
-        if candidate.broadcast_authority == "INVESTIGATIVE":
+        # Prefer explicit investigative_priority over the deprecated authority enum.
+        investigative = float(getattr(candidate, "investigative_priority", 0.0) or 0.0)
+        if investigative > 0.0 or candidate.reopen_eligible:
             value += cfg.investigative_attention_weight * max(
-                candidate.tension_engagement, 0.55,
+                investigative, candidate.tension_engagement, 0.55,
             )
-            if candidate.unresolved == "RESOLVE_NORMATIVE_TENSION":
+            if candidate.reopen_eligible:
+                value += 0.20
+            elif candidate.unresolved in {
+                "NORMATIVE_ADJUDICATION", "RESOLVE_NORMATIVE_TENSION",
+            }:
                 value += 0.15
+            elif candidate.unresolved == "DECISION_BOUNDARY":
+                value += 0.12
         return value
 
     @staticmethod
@@ -1009,35 +1076,8 @@ class WorkspaceEngine:
         plurality: str,
         preferred: CandidateChunk | None = None,
     ) -> CandidateChunk | None:
-        """Pick a justificatory rule source — not merely the broadcast winner.
-
-        Investigative / provisional claims may win attention without becoming
-        the governing rationale. Prefer the strongest governing-eligible
-        supporter of the plurality.
-        """
-        eligible = [
-            candidate for candidate in candidates
-            if candidate.schema_valid
-            and candidate.governing_eligible
-            and candidate.broadcast_authority != "INVESTIGATIVE"
-            and candidate.recommended_action == plurality
-            and candidate.decision_rule
-            and candidate.adjudication_status in {
-                "NOT_APPLICABLE", "ADJUDICATED_SUPPORTS",
-            }
-        ]
-        if not eligible:
-            return None
-        if preferred is not None and preferred in eligible:
-            return preferred
-        return max(
-            eligible,
-            key=lambda c: (
-                c.epistemic_confidence,
-                c.preference_strength,
-                c.specialist,
-            ),
-        )
+        """Pick a justificatory rule source — not merely the broadcast focus."""
+        return select_governing_claim(candidates, plurality, preferred=preferred)
 
     @staticmethod
     def _dissent(candidates: Sequence[CandidateChunk], selected_action: str) -> CandidateChunk | None:
@@ -1459,6 +1499,63 @@ class WorkspaceEngine:
             audit_variable=missing_variable_payload,
         )
 
+    def _investigative_reopen_decision(
+        self,
+        cycle_number: int,
+        selected_action: str,
+        candidates: Sequence[CandidateChunk],
+        problem_state: dict[str, object] | None,
+        fired_keys: dict[str, str],
+    ) -> WorkspaceAccessDecision | None:
+        """Admit a reopen-eligible investigative interrupt with one-shot budget."""
+        if not self.config.enable_problem_state_audit:
+            return None
+        eligible = [
+            candidate for candidate in candidates
+            if candidate.schema_valid and candidate.reopen_eligible
+        ]
+        if not eligible:
+            return None
+        chosen = max(
+            eligible,
+            key=lambda c: (
+                c.investigative_priority,
+                c.epistemic_confidence,
+                c.specialist,
+            ),
+        )
+        question_key = chosen.reopen_question_key or ""
+        if not question_key:
+            return None
+        fingerprint = evidence_fingerprint_for(chosen, problem_state)
+        payload = {
+            "entity": question_key,
+            "relation": "INVESTIGATIVE_INTERRUPT",
+            "possible_values": ["NO_CHANGE", "WEAKENS", "REVERSES", "UNRESOLVED"],
+            "focus_action": selected_action,
+            "question": chosen.reopen_reason or chosen.investigative_claim,
+            "status": "REOPEN_REQUIRED",
+            "question_key": question_key,
+            "raised_by": [chosen.specialist],
+            "priority": chosen.investigative_priority,
+        }
+        return WorkspaceAccessDecision(
+            cycle=cycle_number,
+            content_type="PROBLEM_STATE_AUDIT",
+            admitted=True,
+            signals=[
+                "investigative_interrupt",
+                "reopen_eligible",
+                f"priority>={REOPEN_PRIORITY_THRESHOLD:.2f}",
+            ],
+            question=payload["question"],
+            rationale=(
+                "A grounded, novel investigative claim with high reversal potential "
+                "forces reopen before finalization; it does not itself reverse policy."
+            ),
+            audit_variable=payload,
+        )
+
     def _problem_state_access_decision(
         self,
         cycle_number: int,
@@ -1510,7 +1607,10 @@ class WorkspaceEngine:
                 "Every framework already prefers this action, so the cycle is "
                 "spent testing the agreement rather than re-confirming it."
             ),
-            audit_variable=payload,
+            audit_variable={
+                key: value for key, value in payload.items()
+                if key != "grounding_status"
+            },
         )
 
     def run(
@@ -1528,6 +1628,7 @@ class WorkspaceEngine:
         source_action_legend: dict[str, str] | None = None,
         action_source_grounding: dict[str, Any] | None = None,
         presentation_actions: Sequence[str] | None = None,
+        canonical_action_records: Sequence[dict[str, Any]] | None = None,
         source_testimonies: dict[str, str] | None = None,
         reformulate_problem: ReformulationCallback | None = None,
         assess_visibility: VisibilityCallback | None = None,
@@ -1565,6 +1666,9 @@ class WorkspaceEngine:
             presentation_actions=list(presentation_actions or clean_actions),
             source_action_legend=dict(source_action_legend or {}),
             action_source_grounding=dict(action_source_grounding or {}),
+            canonical_action_records=[
+                dict(record) for record in (canonical_action_records or [])
+            ],
         )
         # Canonical actions and explicit observability facts are system-owned graph
         # state. Delegate transactions may extend this graph but cannot redefine
@@ -1656,6 +1760,9 @@ class WorkspaceEngine:
         contingency_resume_broadcast: WorkspaceBroadcast | None = None
         consensus_audit_attempted = False
         access_signal_signatures: set[tuple[str, ...]] = set()
+        # question_key -> evidence fingerprint for one forced reopen per key,
+        # with an escape hatch when materially new grounded evidence appears.
+        fired_reopen_keys: dict[str, str] = {}
         reformulation_attempted = False
         reversal_audit_attempted = False
         visibility_broadcast_attempted = False
@@ -1920,7 +2027,7 @@ class WorkspaceEngine:
                             *open_questions,
                         ]))[:3]
                         if open_questions:
-                            candidate.unresolved = "RESOLVE_NORMATIVE_TENSION"
+                            candidate.unresolved = "NORMATIVE_ADJUDICATION"
                             candidate.assumption_status = "NORMATIVELY_CONTESTED"
                             candidate.selection_status = "PROVISIONAL"
                             candidate.comparison_complete = False
@@ -2192,6 +2299,27 @@ class WorkspaceEngine:
                 last_valid_framework_candidates,
                 remember=not is_counterfactual,
             )
+            # Framework-general authority typing: policy weight, investigative
+            # attention, and governing eligibility are independent dimensions.
+            settled_keys = list(settled_question_keys(graph_store.graph))
+            settled_keys.extend(
+                str(item.get("question_key") or item.get("issue_id") or "")
+                for item in (
+                    (received_broadcast.problem_state or {}).get("resolved_questions", [])
+                    or []
+                )
+            )
+            for candidate in candidates:
+                if candidate.schema_valid:
+                    apply_specialist_authority(candidate)
+                    apply_investigative_authority(
+                        candidate,
+                        plurality=previous_action,
+                        policy=None,
+                        problem_state=received_broadcast.problem_state,
+                        fired_keys=fired_reopen_keys,
+                        settled_keys=settled_keys,
+                    )
             minority_name = previous_dissent.specialist if previous_dissent else ""
             recommendation_counts: dict[str, int] = {}
             for candidate in candidates:
@@ -2248,20 +2376,20 @@ class WorkspaceEngine:
                     candidate.delegate_status = "SEMANTIC_VALIDATION_ERROR"
                     candidate.error_type = "SEMANTIC_VALIDATION_ERROR"
             valid_candidates = [candidate for candidate in candidates if candidate.schema_valid]
-            deliberative_winner = max(
+            broadcast_focus = max(
                 valid_candidates,
                 key=lambda c: (c.salience, c.epistemic_confidence, c.specialist),
             ) if valid_candidates else None
             cycle_has_quorum = len(valid_candidates) >= self.config.min_valid_specialists
-            recorded_winner = deliberative_winner
+            recorded_focus = broadcast_focus
             # A neutral internal placeholder keeps policy/finalization arithmetic
-            # total; it is never serialized as a deliberative winner.
-            winner = deliberative_winner or max(
+            # total; it is never serialized as a deliberative broadcast focus.
+            focus = broadcast_focus or max(
                 candidates,
                 key=lambda c: (c.salience, c.epistemic_confidence, c.specialist),
             )
-            if not is_counterfactual and recorded_winner is not None:
-                constraint_counts[winner.constraint] = constraint_counts.get(winner.constraint, 0) + 1
+            if not is_counterfactual and recorded_focus is not None:
+                constraint_counts[focus.constraint] = constraint_counts.get(focus.constraint, 0) + 1
             policy = self._policy(
                 candidates,
                 cycle_actions,
@@ -2269,6 +2397,38 @@ class WorkspaceEngine:
                 visibility_review=(received_broadcast.constraint == "VISIBILITY_AUDIT"),
             )
             selected_action = max(policy, key=policy.get)
+            for candidate in valid_candidates:
+                apply_investigative_authority(
+                    candidate,
+                    plurality=selected_action,
+                    policy=policy,
+                    problem_state=received_broadcast.problem_state,
+                    fired_keys=fired_reopen_keys,
+                    settled_keys=settled_keys,
+                )
+            governing_claim = self._select_governing_candidate(
+                valid_candidates,
+                selected_action,
+                preferred=(
+                    focus
+                    if recorded_focus is not None
+                    and focus.recommended_action == selected_action
+                    else None
+                ),
+            )
+            for candidate in valid_candidates:
+                candidate.broadcast_authority = derive_broadcast_authority(
+                    governing_eligible=candidate.governing_eligible,
+                    is_governing_focus=(
+                        governing_claim is not None and candidate is governing_claim
+                    ),
+                    reopen_eligible=candidate.reopen_eligible,
+                    investigative_priority=candidate.investigative_priority,
+                )
+            # Deprecated alias: winner == broadcast_focus for one migration cycle.
+            deliberative_winner = recorded_focus
+            recorded_winner = recorded_focus
+            winner = focus
             if not is_counterfactual:
                 stable_cycles = stable_cycles + 1 if selected_action == previous_action else 1
                 previous_action = selected_action
@@ -2463,6 +2623,11 @@ class WorkspaceEngine:
                     is_hypothetical=is_counterfactual,
                     execution_status=("VALID" if cycle_has_quorum else "SYSTEM_ERROR"),
                     system_error=("NONE" if cycle_has_quorum else "INSUFFICIENT_VALID_DELEGATES"),
+                    policy_leader=selected_action if recorded_winner is not None else "",
+                    governing_claim=(
+                        governing_claim if recorded_winner is not None else None
+                    ),
+                    broadcast_focus=recorded_winner,
                 )
             )
             if checkpoint is not None:
@@ -2634,19 +2799,34 @@ class WorkspaceEngine:
                     if progress:
                         progress("  workspace access gate admitted VISIBILITY_AUDIT: " + visibility.proposition)
             if not consensus_audit_attempted and not visibility_broadcast:
-                access_decision = self._consensus_access_decision(
-                    cycle_number,
-                    graph_store.graph,
-                    scenario,
-                    tuple(clean_actions),
-                    tuple(candidates),
-                    selected_action,
-                    entropy,
-                    dissent,
-                    scenario_facts,
-                    source_testimonies,
-                    next_broadcast.problem_state,
-                )
+                access_decision = None
+                if (
+                    not is_counterfactual
+                    and received_broadcast.constraint not in {
+                        "CONSENSUS_AUDIT", "PROBLEM_STATE_AUDIT",
+                    }
+                ):
+                    access_decision = self._investigative_reopen_decision(
+                        cycle_number,
+                        selected_action,
+                        valid_candidates,
+                        next_broadcast.problem_state,
+                        fired_reopen_keys,
+                    )
+                if access_decision is None:
+                    access_decision = self._consensus_access_decision(
+                        cycle_number,
+                        graph_store.graph,
+                        scenario,
+                        tuple(clean_actions),
+                        tuple(candidates),
+                        selected_action,
+                        entropy,
+                        dissent,
+                        scenario_facts,
+                        source_testimonies,
+                        next_broadcast.problem_state,
+                    )
                 if (
                     (access_decision is None or not access_decision.admitted)
                     and not is_counterfactual
@@ -2672,6 +2852,25 @@ class WorkspaceEngine:
                         and is_new_signal_state
                         and cycle_number < cycle_limit
                     ):
+                        if "investigative_interrupt" in access_decision.signals:
+                            key = str(
+                                (access_decision.audit_variable or {}).get(
+                                    "question_key", ""
+                                )
+                            )
+                            if key:
+                                fired_reopen_keys[key] = evidence_fingerprint_for(
+                                    next(
+                                        (
+                                            candidate for candidate in valid_candidates
+                                            if candidate.reopen_question_key == key
+                                        ),
+                                        CandidateChunk(
+                                            "system", "NONE", {}, 0, 0, 0,
+                                        ),
+                                    ),
+                                    next_broadcast.problem_state,
+                                )
                         consensus_audit_attempted = True
                         semantic_node_id, semantic_node_kind, semantic_node_label = _commit_access_variable_node(
                             graph_store,
@@ -3023,18 +3222,19 @@ class WorkspaceEngine:
                     ) or winner.decision_rule or winner.rationale or "NONE"
                     claim_text = " ".join(str(claim_text).split())[:120]
                     progress(
-                        f"  cycle policy: {selected_action} "
+                        f"  cycle policy_leader={selected_action} "
                         f"({policy[selected_action]:.2f}); entropy={entropy:.2f}; "
-                        f"winner={winner.specialist}:{winner.constraint} | "
+                        f"governing_claim={claim_ref(governing_claim) or 'NONE'} | "
+                        f"broadcast_focus={winner.specialist}:{winner.constraint} | "
                         f"authority={winner.broadcast_authority or 'NONE'} | "
                         f"claim={claim_text}"
                     )
                 else:
                     progress(
-                        f"  cycle policy: {selected_action} "
+                        f"  cycle policy_leader={selected_action} "
                         f"({policy[selected_action]:.2f}); entropy={entropy:.2f}; "
                         "system_status=INSUFFICIENT_VALID_DELEGATES; "
-                        "deliberative_winner=NONE"
+                        "broadcast_focus=NONE"
                     )
 
             if len(valid_candidates) < self.config.min_valid_specialists:
@@ -3401,7 +3601,8 @@ class WorkspaceEngine:
         if not actual_cycles:
             result.selected_action = "INCONCLUSIVE"
             result.current_plurality = ""
-            result.judgment_status = "INCONCLUSIVE"
+            result.judgment_status = UNRESOLVED
+            result.governing_justification_status = "NONE"
             result.confidence = 0.0
             result.epistemic_confidence = 0.0
             result.compressed_rule = (
@@ -3438,7 +3639,7 @@ class WorkspaceEngine:
             result.trace_health = audit_trace_health(result)
             return result
         final = actual_cycles[-1]
-        result.current_plurality = max(final.policy, key=final.policy.get)
+        judgment_cycle = final
         if result.halted_by == "insufficient_valid_candidates":
             previous_state = (
                 final.received_broadcast.problem_state
@@ -3449,52 +3650,105 @@ class WorkspaceEngine:
             )
             final.broadcast.problem_state = copy.deepcopy(result.deliberative_problem_state)
             final.broadcast.unresolved = "REVIEW_MODEL_OUTPUT"
-            result.selected_action = "INCONCLUSIVE"
-            result.judgment_status = "INCONCLUSIVE"
-            result.confidence = 0.0
-            result.epistemic_confidence = 0.0
+            recovered = [
+                cycle for cycle in actual_cycles
+                if cycle.execution_status == "VALID"
+                and cycle.winner is not None
+                and any(candidate.schema_valid for candidate in cycle.candidates)
+            ]
+            if not recovered:
+                result.current_plurality = max(final.policy, key=final.policy.get)
+                result.selected_action = "INCONCLUSIVE"
+                result.judgment_status = UNRESOLVED
+                result.governing_justification_status = "NONE"
+                result.confidence = 0.0
+                result.epistemic_confidence = 0.0
+            else:
+                # A failed audit cycle interrupted observation. It does not erase
+                # the last cycle that actually produced a valid parliament.
+                judgment_cycle = recovered[-1]
+                result.current_plurality = max(
+                    judgment_cycle.policy, key=judgment_cycle.policy.get,
+                )
         else:
-            result.deliberative_problem_state = build_deliberative_problem_state(
-                final.cycle,
-                result.actions,
-                final.candidates,
-                result.current_plurality,
-                final.winner,
-                (final.received_broadcast.problem_state if final.received_broadcast else {}),
-                graph_store.graph,
-                scenario,
-                result.synthesis_proposals,
-            ).to_dict()
-            valid_final = [candidate for candidate in final.candidates if candidate.schema_valid]
+            result.current_plurality = max(final.policy, key=final.policy.get)
+
+        if result.judgment_status not in {UNRESOLVED}:
+            if not result.deliberative_problem_state:
+                result.deliberative_problem_state = build_deliberative_problem_state(
+                    judgment_cycle.cycle,
+                    result.actions,
+                    judgment_cycle.candidates,
+                    result.current_plurality,
+                    judgment_cycle.winner,
+                    (
+                        judgment_cycle.received_broadcast.problem_state
+                        if judgment_cycle.received_broadcast else {}
+                    ),
+                    graph_store.graph,
+                    scenario,
+                    result.synthesis_proposals,
+                ).to_dict()
+            valid_final = [
+                candidate for candidate in judgment_cycle.candidates
+                if candidate.schema_valid
+            ]
+            for candidate in valid_final:
+                apply_investigative_authority(
+                    candidate,
+                    plurality=result.current_plurality,
+                    policy=judgment_cycle.policy,
+                    problem_state=(
+                        judgment_cycle.received_broadcast.problem_state
+                        if judgment_cycle.received_broadcast else {}
+                    ),
+                    fired_keys=fired_reopen_keys,
+                    settled_keys=list(settled_question_keys(graph_store.graph)),
+                )
+            governing_candidate = (
+                judgment_cycle.governing_claim
+                or self._select_governing_candidate(
+                    valid_final,
+                    result.current_plurality,
+                    preferred=(
+                        (judgment_cycle.broadcast_focus or judgment_cycle.winner)
+                        if (
+                            (judgment_cycle.broadcast_focus or judgment_cycle.winner)
+                            and (
+                                judgment_cycle.broadcast_focus or judgment_cycle.winner
+                            ).recommended_action == result.current_plurality
+                        )
+                        else None
+                    ),
+                )
+            )
             underdetermined_count = sum(
                 candidate.assumption_status == "UNDERDETERMINED"
                 for candidate in valid_final
             )
-            uncertain_count = sum(
-                candidate.assumption_status in {"CONDITIONAL", "UNDERDETERMINED"}
-                for candidate in valid_final
+            has_stable_plurality = (
+                underdetermined_count / max(1, len(valid_final)) < 0.50
+                and bool(result.current_plurality)
             )
-            if underdetermined_count / max(1, len(valid_final)) >= 0.50:
-                result.judgment_status = "UNDERDETERMINED"
-                result.selected_action = "UNDERDETERMINED"
-            elif uncertain_count / max(1, len(valid_final)) >= 0.50:
-                result.judgment_status = "CONDITIONAL"
-                result.selected_action = "CONDITIONAL"
-            elif (
-                result.halted_by == "cycle_budget"
-                and final.dissent is not None
-                and final.entropy >= self.config.entropy_threshold
-            ):
-                # Failure to converge is not failure to judge. Preserve the
-                # leading action as a defeasible, contested recommendation;
-                # epistemic underdetermination and insufficient valid evidence
-                # are handled by the branches above.
-                result.judgment_status = "CONTESTED_RECOMMENDATION"
-                result.selected_action = result.current_plurality
+            terminal = classify_terminal_judgment(
+                plurality=result.current_plurality,
+                governing=governing_candidate,
+                candidates=valid_final,
+                halted_by=result.halted_by,
+                has_stable_plurality=has_stable_plurality,
+            )
+            result.judgment_status = terminal.status
+            result.governing_justification_status = terminal.governing_justification_status
+            result.governing_attack_reason = terminal.governing_attack_reason
+            if terminal.status == UNRESOLVED:
+                result.selected_action = "UNRESOLVED"
             else:
-                result.judgment_status = "ACTION_RECOMMENDATION"
-                result.selected_action = result.current_plurality
-            result.confidence = clamp(final.policy[result.current_plurality])
+                result.selected_action = terminal.policy_direction
+            # Keep cycle governing_claim aligned with the terminal pick.
+            judgment_cycle.governing_claim = governing_candidate
+            result.confidence = clamp(
+                judgment_cycle.policy.get(result.current_plurality, 0.0)
+            )
             supporting_final = [
                 candidate for candidate in valid_final
                 if (
@@ -3513,15 +3767,12 @@ class WorkspaceEngine:
                     for candidate in supporting_final
                 ) / max(0.05, epistemic_weight)
             )
-            if final.stable_cycles < self.config.stable_cycles_required:
+            if judgment_cycle.stable_cycles < self.config.stable_cycles_required:
                 result.epistemic_confidence *= 0.80
-            if result.judgment_status == "UNDERDETERMINED":
+            if result.judgment_status == UNRESOLVED:
                 result.confidence = min(result.confidence, 0.50)
                 result.epistemic_confidence = min(result.epistemic_confidence, 0.35)
-            elif result.judgment_status == "CONDITIONAL":
-                result.confidence = min(result.confidence, 0.65)
-                result.epistemic_confidence = min(result.epistemic_confidence, 0.50)
-            elif result.judgment_status == "CONTESTED_RECOMMENDATION":
+            elif result.judgment_status == CONTESTED_RECOMMENDATION:
                 result.confidence = min(result.confidence, 0.65)
                 result.epistemic_confidence = min(result.epistemic_confidence, 0.65)
         result.moral_residue = collect_moral_residue(
@@ -3532,7 +3783,7 @@ class WorkspaceEngine:
         )
         result.reopen_conditions = collect_reopen_conditions(actual_cycles)
         boundary = select_collective_reversal_boundary(
-            final.candidates, result.current_plurality, clean_actions
+            judgment_cycle.candidates, result.current_plurality, clean_actions
         )
         if boundary is not None:
             transition = boundary.transition()
@@ -3547,82 +3798,98 @@ class WorkspaceEngine:
                 result.reopen_conditions.append(reversal)
         else:
             dissent_reversal = self._dissent_reversal_condition(
-                final.dissent, result.current_plurality
+                judgment_cycle.dissent, result.current_plurality
             )
             if dissent_reversal and dissent_reversal not in result.reopen_conditions:
                 result.reopen_conditions.append(dissent_reversal)
-        publishable_judgment = (
-            result.judgment_status == "CONTESTED_RECOMMENDATION"
-            or (
-                result.judgment_status == "ACTION_RECOMMENDATION"
-                and result.halted_by in {"convergence", "cycle_budget", "ev_dominance"}
-            )
+        publishable_judgment = result.judgment_status in {
+            GOVERNED_RECOMMENDATION,
+            CONTESTED_RECOMMENDATION,
+        }
+        governing_focus = (
+            judgment_cycle.broadcast_focus or judgment_cycle.winner
         )
-        if final.winner is None or not final.winner.schema_valid or not publishable_judgment:
+        if (
+            governing_focus is None
+            or not governing_focus.schema_valid
+            or not publishable_judgment
+        ):
             result.compressed_rule = f"Unavailable: deliberation halted by {result.halted_by}."
         else:
             qualifier = (
                 "contestedly prefer"
-                if result.judgment_status == "CONTESTED_RECOMMENDATION"
+                if result.judgment_status == CONTESTED_RECOMMENDATION
                 else (
                     "provisionally prefer"
-                    if result.halted_by == "cycle_budget"
+                    if result.halted_by in {"cycle_budget", "insufficient_valid_candidates"}
                     else "prefer"
                 )
             )
-            governing_candidate = self._select_governing_candidate(
-                final.candidates,
-                result.current_plurality,
-                preferred=(
-                    final.winner
-                    if final.winner is not None
-                    and final.winner.schema_valid
-                    and final.winner.recommended_action == result.current_plurality
-                    else None
-                ),
-            )
+            governing_candidate = judgment_cycle.governing_claim
             governing = (
-                governing_candidate.decision_rule if governing_candidate else ""
+                governing_candidate.decision_rule
+                if governing_candidate is not None
+                and result.governing_justification_status == "ADMISSIBLE"
+                else ""
             )
-            preserved_constraints = set(result.moral_residue)
-            preserved_objections: list[str] = []
-            for candidate in final.candidates:
-                if (
-                    not candidate.schema_valid
-                    or candidate.recommended_action == result.current_plurality
-                    or candidate.constraint not in preserved_constraints
-                ):
-                    continue
-                framework_case = candidate.framework_action_map.get(
-                    candidate.recommended_action, ""
+            if result.judgment_status == CONTESTED_RECOMMENDATION:
+                # Plurality prose is allowed; a governing rule is not.
+                if result.governing_justification_status == "UNDER_ATTACK":
+                    result.compressed_rule = (
+                        f"Current plurality leans toward {result.selected_action}, but the "
+                        "available governing justification is under a live reopen-eligible "
+                        "attack and cannot yet finalize the recommendation."
+                    )
+                    if result.governing_attack_reason:
+                        result.compressed_rule += (
+                            " Attack: " + result.governing_attack_reason
+                        )
+                else:
+                    result.compressed_rule = (
+                        f"Current plurality leans toward {result.selected_action}, but no "
+                        "framework has yet supplied a sufficiently adjudicated governing "
+                        "justification. The recommendation therefore remains provisional."
+                    )
+            else:
+                preserved_constraints = set(result.moral_residue)
+                preserved_objections: list[str] = []
+                for candidate in judgment_cycle.candidates:
+                    if (
+                        not candidate.schema_valid
+                        or candidate.recommended_action == result.current_plurality
+                        or candidate.constraint not in preserved_constraints
+                    ):
+                        continue
+                    framework_case = candidate.framework_action_map.get(
+                        candidate.recommended_action, ""
+                    )
+                    objection = framework_case or candidate.landscape_decisive_axis
+                    if not objection:
+                        continue
+                    preserved_objections.append(
+                        f"{candidate.specialist}/{candidate.constraint}: "
+                        + " ".join(objection.split())[:120]
+                    )
+                compiled, rule_record = compile_preference_rule(
+                    result.selected_action,
+                    governing,
+                    qualifier,
+                    result.reopen_conditions,
+                    tuple(
+                        candidate.specialist for candidate in judgment_cycle.candidates
+                        if candidate.schema_valid
+                        and candidate.recommended_action == result.current_plurality
+                    ),
+                    governing_constraint=(
+                        governing_candidate.constraint if governing_candidate else ""
+                    ),
+                    preserved_objections=tuple(preserved_objections),
                 )
-                objection = framework_case or candidate.landscape_decisive_axis
-                if not objection:
-                    continue
-                preserved_objections.append(
-                    f"{candidate.specialist}/{candidate.constraint}: "
-                    + " ".join(objection.split())[:120]
+                result.semantic_invariants.append(rule_record)
+                result.compressed_rule = (
+                    compiled if rule_record.valid
+                    else "Unavailable: semantic invariant validation failed; source judgment preserved."
                 )
-            compiled, rule_record = compile_preference_rule(
-                result.selected_action,
-                governing,
-                qualifier,
-                result.reopen_conditions,
-                tuple(
-                    candidate.specialist for candidate in final.candidates
-                    if candidate.schema_valid
-                    and candidate.recommended_action == result.current_plurality
-                ),
-                governing_constraint=(
-                    governing_candidate.constraint if governing_candidate else ""
-                ),
-                preserved_objections=tuple(preserved_objections),
-            )
-            result.semantic_invariants.append(rule_record)
-            result.compressed_rule = (
-                compiled if rule_record.valid
-                else "Unavailable: semantic invariant validation failed; source judgment preserved."
-            )
         result.termination_assessment = assess_termination(
             result.halted_by, result.cycles, self.config.stable_cycles_required
         )

@@ -12,6 +12,24 @@ def _data(result: Any) -> dict[str, Any]:
     raise TypeError("result must be a WorkspaceResult or its dictionary representation")
 
 
+def _public_claim(text: str) -> str:
+    """Strip internal graph IDs from text that reaches the public judgment."""
+    cleaned = re.sub(r"\bAudit QUESTION:[0-9a-f]+:\s*", "", str(text or ""))
+    cleaned = re.sub(r"\bQUESTION:[0-9a-f]+\b", "the live unresolved issue", cleaned)
+    return " ".join(cleaned.split()).strip()
+
+
+def _judgment_cycle(cycles: list[dict[str, Any]]) -> dict[str, Any]:
+    """Use the last cycle that still had a valid parliament, not a failed audit."""
+    for cycle in reversed(cycles):
+        if any(
+            candidate.get("schema_valid")
+            for candidate in cycle.get("candidates", []) or []
+        ):
+            return cycle
+    return cycles[-1] if cycles else {}
+
+
 def _sentence(text: str) -> str:
     cleaned = " ".join(str(text).split()).strip()
     if cleaned:
@@ -295,7 +313,8 @@ def summarize_problem_shape_paragraphs(data: dict[str, Any]) -> list[str]:
             variable = statement.split(":", 1)[-1].strip() if ":" in statement else statement
             paragraphs.append(
                 _sentence_or_blank(
-                    f"A decision-critical uncertainty remains unresolved: {variable}"
+                    "A decision-critical uncertainty remains unresolved: "
+                    + _public_claim(variable)
                 )
             )
         elif relation_name in {
@@ -332,7 +351,8 @@ def summarize_problem_shape_paragraphs(data: dict[str, Any]) -> list[str]:
         if label:
             paragraphs.append(
                 _sentence_or_blank(
-                    f"The authoritative state keeps one decision-critical variable open: {label}"
+                    "The authoritative state keeps one decision-critical variable open: "
+                    + _public_claim(label)
                 )
             )
 
@@ -442,7 +462,9 @@ def _agreement_class(data: dict[str, Any], candidate: dict[str, Any]) -> str:
     retention = str(candidate.get("framework_retention_status", "")).upper()
     if "OUTSIDE_ACTION_SET" in choice or choice in {"FALLBACK", "FORCED"}:
         return "FALLBACK"
-    if assumption == "NORMATIVELY_CONTESTED" or unresolved == "RESOLVE_NORMATIVE_TENSION":
+    if assumption == "NORMATIVELY_CONTESTED" or unresolved in {
+        "NORMATIVE_ADJUDICATION", "RESOLVE_NORMATIVE_TENSION",
+    }:
         return "CONTESTED"
     if choice == "CONDITIONAL" or assumption == "CONDITIONAL":
         return "CONDITIONAL"
@@ -692,651 +714,696 @@ def _dimensional_synthesis_paragraphs(
     return [paragraph for paragraph in (first, second, third) if paragraph]
 
 
-def render_public_judgment(result: Any) -> str:
-    """Render the full deliberative trajectory without exposing internal machinery."""
+
+def _short_action(action: str, limit: int = 72, records: list[dict[str, Any]] | None = None) -> str:
+    cleaned = " ".join(str(action or "").split())
+    for record in records or []:
+        semantic = " ".join(str(record.get("canonical_semantic_action", "")).split())
+        short = " ".join(str(record.get("short_label", "")).split())
+        if short and cleaned and (
+            cleaned == semantic or cleaned == short or cleaned.casefold() == semantic.casefold()
+        ):
+            return short
+    if len(cleaned) <= limit:
+        return cleaned
+    return cleaned[: limit - 1].rstrip() + "…"
+
+
+def _epistemic_status(candidate: dict[str, Any]) -> str:
+    from global_workspace.specialist_authority import normalize_specialist_status
+    raw = str(candidate.get("adjudication_status", "") or "").strip().upper()
+    if raw:
+        return normalize_specialist_status(raw)
+    assumption = str(candidate.get("assumption_status", "")).upper()
+    if assumption == "CONDITIONAL" or candidate.get("utilitarian_decision_depends_on_unknown"):
+        return "CONDITIONAL_SUPPORTS"
+    if assumption == "NORMATIVELY_CONTESTED":
+        return "PROVISIONAL_LEANING"
+    if assumption == "UNDERDETERMINED":
+        return "PROVISIONAL_LEANING"
+    return "SUPPORTS"
+
+
+def _map_position_label(candidate: dict[str, Any], recommendation: str) -> str:
+    action = _candidate_recommendation(candidate)
+    if not action:
+        return "No position"
+    short = _short_action(action, 48)
+    alignment = str(candidate.get("testimony_alignment", "")).upper()
+    if action == recommendation and alignment.startswith("RECONSIDER"):
+        return f"{short} (reconsidered)"
+    return short
+
+
+def _framework_display_name(specialist: str) -> str:
+    return {
+        "utilitarian": "Utilitarian",
+        "deontological": "Deontological",
+        "virtue": "Virtue",
+        "care": "Care",
+        "rawlsian": "Rawlsian",
+    }.get(str(specialist or "").strip().lower(), str(specialist or "Framework").title())
+
+
+def _main_contribution(
+    data: dict[str, Any],
+    candidate: dict[str, Any],
+    recommendation: str,
+    original_actions: list[str],
+) -> str:
+    status = _epistemic_status(candidate)
+    claim = ""
+    if status == "PROVISIONAL_LEANING":
+        claim = str(candidate.get("investigative_claim") or "").strip()
+    landscape = ""
+    if candidate.get("landscape_semantic_valid", True):
+        cases = candidate.get("landscape_cases") or {}
+        action = _candidate_recommendation(candidate) or recommendation
+        landscape = _clean_fragment(str(cases.get(action, "") or ""))
+    if not claim:
+        claim = _support_reason(data, candidate, recommendation, original_actions)
+    if landscape and landscape.casefold() not in claim.casefold():
+        claim = " ".join(part for part in (claim, landscape) if part)
+    if not claim:
+        claim = str(candidate.get("rationale") or candidate.get("decision_rule") or "").strip()
+    claim = _public_claim(_clean_fragment(claim))
+    # Authority invariant: never upgrade provisional language into categorical
+    # "REQUIRED" / "perfect duties require" slogans in the public map.
+    if status in {"PROVISIONAL_LEANING", "CONTESTED_NO_LEANING"}:
+        claim = re.sub(
+            r"\b(?:REQUIRED|PROHIBITED|perfect duties require)\b",
+            "provisionally favored",
+            claim,
+            flags=re.IGNORECASE,
+        )
+    return claim or "No compact contribution recorded"
+
+
+def _recommendation_headline(status: str, action: str) -> str:
+    short = _short_action(action) or "none"
+    if status == "GOVERNED_RECOMMENDATION":
+        return f"**{short}.**"
+    if status == "CONTESTED_RECOMMENDATION":
+        return f"**{short} — presently favored, but contested.**"
+    if status in {"UNRESOLVED", "UNDERDETERMINED", "INCONCLUSIVE"}:
+        return f"**No conclusive recommendation yet.** Current plurality: {short}."
+    return f"**{short}.**"
+
+
+def _convergence_label(data: dict[str, Any]) -> str:
+    halted = str(data.get("halted_by") or "").strip().lower()
+    termination = data.get("termination_assessment") or {}
+    if termination.get("resource_censored") or halted == "cycle_budget":
+        return "Incomplete (cycle budget reached)"
+    if halted == "convergence":
+        return "Reached"
+    if halted:
+        return f"Stopped ({halted.replace('_', ' ')})"
+    return "Incomplete"
+
+
+def _primary_investigative_focus(
+    latest_by_specialist: dict[str, dict[str, Any]],
+    data: dict[str, Any],
+) -> tuple[dict[str, Any] | None, str]:
+    ranked = sorted(
+        (
+            candidate for candidate in latest_by_specialist.values()
+            if candidate.get("schema_valid", True)
+        ),
+        key=lambda c: (
+            1 if c.get("reopen_eligible") else 0,
+            float(c.get("investigative_priority", 0) or 0),
+            1 if _epistemic_status(c) in {
+                "PROVISIONAL_LEANING", "CONTESTED_NO_LEANING", "CONDITIONAL_SUPPORTS",
+            } else 0,
+        ),
+        reverse=True,
+    )
+    for candidate in ranked:
+        claim = " ".join(str(
+            candidate.get("investigative_claim")
+            or candidate.get("reopen_reason")
+            or candidate.get("unsupported_assumption")
+            or ""
+        ).split())
+        if claim and (
+            candidate.get("reopen_eligible")
+            or float(candidate.get("investigative_priority", 0) or 0) >= 0.40
+            or _epistemic_status(candidate) in {
+                "PROVISIONAL_LEANING", "CONTESTED_NO_LEANING",
+            }
+        ):
+            return candidate, _public_claim(claim)
+    # Fall back to deliberative problem-state questions.
+    state = data.get("deliberative_problem_state") or {}
+    for item in state.get("unresolved_questions") or []:
+        question = " ".join(str(item.get("question") or "").split())
+        if question:
+            return None, _public_claim(question)
+    return None, ""
+
+
+def _decision_boundary_lines(data: dict[str, Any], candidates: list[dict[str, Any]]) -> list[str]:
+    lines: list[str] = []
+    semantic = data.get("authoritative_semantic_state") or {}
+    for boundary in semantic.get("factual_reversal_boundaries") or []:
+        predicate = _readable_condition(str(boundary.get("predicate", "")))
+        if predicate:
+            clause = re.sub(r"^(?:if|when)\s+", "", predicate, flags=re.I)
+            rendered = f"the recommendation changes if {_lower_initial(clause)}"
+            if rendered not in lines:
+                lines.append(rendered)
+    for candidate in candidates:
+        unresolved = str(candidate.get("unresolved", "")).upper()
+        if unresolved not in {"DECISION_BOUNDARY"}:
+            # Still surface factual thresholds that look like boundaries.
+            factual = _readable_condition(str(candidate.get("factual_reversal_threshold", "")))
+            if factual and factual.upper() != "NONE":
+                clause = re.sub(r"^(?:if|when)\s+", "", factual, flags=re.I)
+                rendered = f"the recommendation changes if {_lower_initial(clause)}"
+                if rendered not in lines:
+                    lines.append(rendered)
+            continue
+        for field in (
+            "factual_reversal_threshold",
+            "reversal_condition",
+            "unsupported_assumption",
+            "boundary_switch_condition",
+        ):
+            text = _readable_condition(str(candidate.get(field, "")))
+            if text and text.upper() != "NONE":
+                clause = re.sub(r"^(?:if|when)\s+", "", text, flags=re.I)
+                rendered = f"the recommendation changes if {_lower_initial(clause)}"
+                if rendered not in lines:
+                    lines.append(rendered)
+                break
+    return lines[:4]
+
+
+def _change_condition_lines(
+    data: dict[str, Any],
+    candidates: list[dict[str, Any]],
+) -> list[str]:
+    lines = list(_decision_boundary_lines(data, candidates))
+    for candidate in candidates:
+        assumption = _readable_condition(str(candidate.get("unsupported_assumption", "")))
+        if (
+            assumption
+            and str(candidate.get("assumption_status", "")).upper() in {
+                "CONDITIONAL", "UNDERDETERMINED", "NORMATIVELY_CONTESTED",
+            }
+        ):
+            rendered = _lower_initial(assumption)
+            if rendered and rendered not in lines:
+                lines.append(rendered)
+        reversal = _readable_condition(str(candidate.get("reversal_condition", "")))
+        if reversal and reversal.upper() != "NONE":
+            clause = re.sub(r"^(?:if|when)\s+", "", reversal, flags=re.I)
+            rendered = _lower_initial(clause)
+            if rendered and rendered not in lines:
+                lines.append(rendered)
+        review = str(candidate.get("reversal_review_response", "")).upper()
+        justification = _readable_condition(
+            str(candidate.get("reversal_review_justification", ""))
+        )
+        if review in {"ACCEPT", "REVISE"} and justification:
+            rendered = _lower_initial(justification)
+            if rendered and rendered not in lines:
+                lines.append(rendered)
+    for condition in data.get("reopen_conditions") or []:
+        code = str(condition).strip().upper()
+        if code in {"NONE", "RETRY_MODEL_CALL"}:
+            continue
+        if code == "DECISION_BOUNDARY":
+            continue
+        if code == "VERIFY_FACTS":
+            label = "publication is shown to cause substantially greater immediate harm than currently stipulated"
+        elif code in {"NORMATIVE_ADJUDICATION", "RESOLVE_NORMATIVE_TENSION"}:
+            label = (
+                "normative adjudication establishes a strict duty incompatible "
+                "with the current recommendation"
+            )
+        elif code == "CHECK_FEASIBILITY":
+            label = "a feasibility review shows the recommended action cannot be carried out as stipulated"
+        elif code == "ACTION_SET_ADEQUACY":
+            label = "a feasible alternative action avoids the central conflict"
+        else:
+            readable = _readable_condition(code)
+            if not readable or readable == code.replace("_", " ").casefold():
+                continue
+            label = _lower_initial(readable)
+        if label and label not in lines:
+            lines.append(label)
+    # Normative reversal thresholds as reopen conditions (not factual unknowns).
+    for candidate in candidates:
+        normative = _readable_condition(str(candidate.get("normative_reversal_threshold", "")))
+        if normative and normative.upper() != "NONE":
+            clause = re.sub(r"^(?:if|when)\s+", "", normative, flags=re.I)
+            rendered = _lower_initial(clause)
+            if rendered and rendered not in lines:
+                lines.append(rendered)
+    return lines[:5]
+
+
+def _alternative_proposals(data: dict[str, Any], recommendation: str) -> list[dict[str, Any]]:
+    proposals = []
+    original = {
+        " ".join(str(action).split()).casefold()
+        for action in (data.get("actions") or [])
+    }
+    recommendation_key = " ".join(str(recommendation or "").split()).casefold()
+    for proposal in data.get("synthesis_proposals") or []:
+        action = " ".join(str(proposal.get("action") or "").split())
+        if not action:
+            continue
+        key = action.casefold()
+        if key == recommendation_key:
+            continue
+        # Stipulated original options are compared in the deliberation map, not
+        # re-listed as "discovered alternatives".
+        if key in original and not proposal.get("accepted"):
+            continue
+        status = str(proposal.get("promotion_status") or "").upper()
+        accepted = bool(proposal.get("accepted"))
+        proposals.append({
+            "action": action,
+            "accepted": accepted,
+            "promotion_status": status,
+            "rationale": " ".join(str(proposal.get("rationale") or "").split()),
+            "is_original": key in original,
+        })
+    return proposals
+
+
+def _governing_claim_text(
+    final: dict[str, Any],
+    supporters: list[dict[str, Any]],
+    recommendation: str,
+) -> str:
+    governing = final.get("governing_claim") or {}
+    if isinstance(governing, dict) and governing:
+        if governing.get("governing_eligible") is False:
+            return "NONE"
+        status = _epistemic_status(governing)
+        if status in {"PROVISIONAL_LEANING", "CONTESTED_NO_LEANING"}:
+            return "NONE"
+        rule = _sentence(_public_claim(str(governing.get("decision_rule") or "")))
+        if rule and status == "CONDITIONAL_SUPPORTS":
+            # Conditional governing claims must keep the condition attached.
+            return rule
+        if rule and status == "SUPPORTS":
+            return rule
+    for supporter in supporters:
+        if supporter.get("governing_eligible") is False:
+            continue
+        if _epistemic_status(supporter) in {"PROVISIONAL_LEANING", "CONTESTED_NO_LEANING"}:
+            continue
+        if _candidate_recommendation(supporter) != recommendation:
+            continue
+        rule = _sentence(_public_claim(str(supporter.get("decision_rule") or "")))
+        if rule:
+            return rule
+    return "NONE"
+
+
+def render_decision_brief(result: Any) -> str:
+    """Default user-facing answer: decision brief + compact deliberation map.
+
+    Full internal machinery remains in the saved JSON trace. This renderer must
+    never increase epistemic or normative authority beyond upstream state.
+    """
     data = _data(result)
-    recorded_cycles = data.get("cycles", [])
+    action_records = list(data.get("canonical_action_records") or [])
+
+    def short_action(action: str, limit: int = 72) -> str:
+        return _short_action(action, limit=limit, records=action_records)
+
+    recorded_cycles = data.get("cycles", []) or []
     cycles = [cycle for cycle in recorded_cycles if not cycle.get("is_hypothetical")]
-    counterfactual_cycles = [
-        cycle for cycle in recorded_cycles if cycle.get("is_hypothetical")
-    ]
     if not cycles:
-        return "Ethical judgment\n\nNo reliable deliberative judgment was produced.\n"
-    final = cycles[-1]
+        return (
+            "# Ethical Parliament Judgment\n\n"
+            "## Recommendation\n\n"
+            "No reliable deliberative judgment was produced.\n"
+        )
+
+    from global_workspace.specialist_authority import (
+        CONTESTED_RECOMMENDATION,
+        GOVERNED_RECOMMENDATION,
+        normalize_judgment_status,
+    )
+
+    final = _judgment_cycle(cycles)
     all_candidates = [
         candidate for cycle in cycles for candidate in cycle.get("candidates", [])
         if candidate.get("schema_valid")
     ]
-    counterfactual_candidates = [
-        candidate
-        for cycle in counterfactual_cycles
-        for candidate in cycle.get("candidates", [])
+    final_candidates = [
+        candidate for candidate in final.get("candidates", [])
         if candidate.get("schema_valid")
     ]
-    final_candidates = [candidate for candidate in final.get("candidates", []) if candidate.get("schema_valid")]
     original_actions = _original_actions(data)
-    status = data.get("judgment_status", "INCONCLUSIVE")
-    selected = data.get("selected_action", "")
-    plurality = data.get("current_plurality", "")
-    actionable = status in {"ACTION_RECOMMENDATION", "CONTESTED_RECOMMENDATION"}
-    recommendation = selected if actionable else plurality
+    status = normalize_judgment_status(data.get("judgment_status", "UNRESOLVED"))
+    selected = str(data.get("selected_action") or "")
+    plurality = str(data.get("current_plurality") or "")
+    actionable = status in {GOVERNED_RECOMMENDATION, CONTESTED_RECOMMENDATION}
+    recommendation = selected if actionable and selected not in {
+        "UNRESOLVED", "INCONCLUSIVE", "UNDERDETERMINED", "CONDITIONAL", "",
+    } else (plurality or selected)
 
-    # Use the latest valid position per specialist, but recover that specialist's
-    # most concrete grounded explanation from any cycle supporting the same action.
     latest_by_specialist: dict[str, dict[str, Any]] = {}
     for candidate in all_candidates:
-        latest_by_specialist[candidate.get("specialist", "")] = candidate
-    supporter_names = {
-        name for name, candidate in latest_by_specialist.items()
-        if _candidate_recommendation(candidate) == recommendation
+        name = str(candidate.get("specialist") or "")
+        if name:
+            latest_by_specialist[name] = candidate
+
+    framework_order = {
+        "utilitarian": 0, "deontological": 1, "virtue": 2, "care": 3, "rawlsian": 4,
     }
-    supporters: list[dict[str, Any]] = []
-    for name in supporter_names:
-        options = [
-            candidate for candidate in all_candidates
-            if candidate.get("specialist") == name
-            and _candidate_recommendation(candidate) == recommendation
-        ]
-        supporters.append(max(
-            options,
-            key=lambda candidate: _evidence_score(" ".join([
-                _baseline_reason(data, name, recommendation, original_actions),
-                candidate.get("rationale", ""),
-                (candidate.get("landscape_cases") or {}).get(recommendation, ""),
-                candidate.get("landscape_decisive_axis", ""),
-            ])),
-        ))
-    supporters.sort(
-        key=lambda candidate: _evidence_score(_support_reason(
-            data, candidate, recommendation, original_actions
-        )),
-        reverse=True,
+    ordered_specialists = sorted(
+        latest_by_specialist.items(),
+        key=lambda item: framework_order.get(item[0], 9),
     )
-    agreement_profile = _agreement_profile(
-        data, latest_by_specialist, recommendation
+
+    policy = final.get("policy") or {}
+    policy_support = float(
+        policy.get(recommendation, data.get("confidence", 0.0)) or 0.0
     )
-    direct_supporters = [
-        candidate for candidate in supporters
-        if _agreement_class(data, candidate) == "DIRECT"
+    epistemic = float(data.get("epistemic_confidence", data.get("confidence", 0.0)) or 0.0)
+
+    supporting = [
+        candidate for _, candidate in ordered_specialists
+        if _candidate_recommendation(candidate) == recommendation
     ]
-    qualified_supporters = [
-        candidate for candidate in supporters
-        if _agreement_class(data, candidate) != "DIRECT"
+    supporting_names = [
+        _framework_display_name(name)
+        for name, candidate in ordered_specialists
+        if _candidate_recommendation(candidate) == recommendation
     ]
 
-    dissent = final.get("dissent")
-    if not dissent and recommendation:
-        opponents = [
-            candidate for candidate in final_candidates
-            if _candidate_recommendation(candidate) not in {"", recommendation}
-        ]
-        dissent = max(
-            opponents,
-            key=lambda candidate: (
-                candidate.get("epistemic_confidence", candidate.get("confidence", 0)),
-                candidate.get("preference_strength", candidate.get("friction", 0)),
-            ),
-            default=None,
+    lines: list[str] = ["# Ethical Parliament Judgment", "", "## Recommendation", ""]
+    lines.append(_recommendation_headline(status, recommendation))
+    lines.append("")
+
+    if actionable and supporting_names:
+        lean = (
+            "presently favored, but contested"
+            if status == CONTESTED_RECOMMENDATION
+            else "favored"
         )
-
-    lines = ["Ethical judgment", ""]
-    if actionable:
-        qualifier = "Contested recommendation" if status == "CONTESTED_RECOMMENDATION" else "Recommendation"
-        lines.append(f"{qualifier}: {selected}")
-    elif status == "CONDITIONAL":
-        lines.append(f"Conditional judgment: the current leading action is {plurality or 'not established'}.")
-    elif status == "UNDERDETERMINED":
-        lines.append(f"Underdetermined: the stated facts do not justify choosing conclusively; current plurality is {plurality or 'none'}.")
-    else:
-        lines.append("No sufficiently reliable recommendation was produced.")
-    final_policy_support = float(
-        (final.get("policy") or {}).get(plurality, data.get("confidence", 0))
-    )
-    lines.append(f"Final policy support: {final_policy_support:.2f} (aggregate policy score)")
-    agreement_summary = _agreement_profile_sentence(agreement_profile)
-    if agreement_summary:
-        lines.append(f"Agreement profile: {agreement_summary}.")
-    lines.append(
-        f"Epistemic confidence: {float(data.get('epistemic_confidence', 0)):.2f} "
-        "(likelihood the judgment survives further factual inquiry and scrutiny)"
-    )
-    synthesis_paragraphs = _dimensional_synthesis_paragraphs(
-        data,
-        recommendation=recommendation,
-        latest_by_specialist=latest_by_specialist,
-    )
-    if synthesis_paragraphs:
-        lines.extend(["", "Synthesis:", ""])
-        for paragraph in synthesis_paragraphs:
-            lines.extend([paragraph, ""])
-        lines.append("Deliberation details:")
-    final_winner = final.get("winner")
-    if isinstance(final_winner, dict):
-        lines.append(f"Final winning constraint: {final_winner.get('constraint', 'unknown')}")
+        if supporting_names:
+            if len(supporting_names) == 1:
+                support_clause = f"{supporting_names[0]} supports this action"
+            else:
+                support_clause = (
+                    f"{', '.join(supporting_names[:-1])} and "
+                    f"{supporting_names[-1]} support this action"
+                )
+            intro = (
+                f"The Parliament broadly favors {short_action(recommendation)}. "
+                f"{support_clause}"
+            )
+        provisional = [
+            c for c in supporting
+            if _epistemic_status(c) in {"PROVISIONAL_LEANING", "CONDITIONAL_SUPPORTS"}
+        ]
+        if status == CONTESTED_RECOMMENDATION or provisional:
+            intro += (
+                ", but the deliberation did not fully converge and at least one "
+                "important framework conflict or condition remains unresolved"
+            )
+        else:
+            intro += " after comparing the stipulated options"
+        lines.append(_sentence(intro))
+    elif status in {"UNRESOLVED", "UNDERDETERMINED", "INCONCLUSIVE"}:
+        lines.append(
+            "No stable governing recommendation is available yet. The values below "
+            "describe the current plurality, not a final settled judgment."
+        )
     else:
         lines.append(
-            "Deliberative winner: NONE "
-            f"(system status: {final.get('system_error', 'UNKNOWN')})"
+            "The Parliament recorded a recommendation, but supporting framework "
+            "detail was incomplete in this run."
         )
-    received_broadcast = final.get("received_broadcast") or final.get("broadcast") or {}
-    lines.append(f"Previous broadcast context: {received_broadcast.get('constraint', 'unknown')}")
-    lines.append(f"Last emitted broadcast: {final.get('broadcast', {}).get('constraint', 'unknown')}")
+
+    lines.extend([
+        "",
+        f"**Policy support:** {policy_support:.2f}",
+        f"**Epistemic confidence:** {epistemic:.2f}",
+        f"**Judgment status:** {status}",
+        f"**Convergence:** {_convergence_label(data)}",
+    ])
     termination = data.get("termination_assessment") or {}
-    if termination:
-        if termination.get("resource_censored"):
+    if termination.get("resource_censored") or str(data.get("halted_by") or "") == "cycle_budget":
+        lines.extend([
+            "",
+            "The cycle budget was reached before deliberation naturally converged.",
+        ])
+
+    # Why favored
+    lines.extend(["", "## Why the Parliament currently favors this action", ""])
+    why_added = False
+    for name, candidate in ordered_specialists:
+        if _candidate_recommendation(candidate) != recommendation:
+            continue
+        reason = _main_contribution(data, candidate, recommendation, original_actions)
+        if not reason:
+            continue
+        label = _framework_display_name(name)
+        status_code = _epistemic_status(candidate)
+        if status_code == "PROVISIONAL_LEANING":
+            lead = f"{label} provisionally favors this action"
+        elif status_code == "CONDITIONAL_SUPPORTS":
+            lead = f"{label} conditionally supports this action"
+        elif status_code == "CONTESTED_NO_LEANING":
+            continue
+        else:
+            lead = f"{label} favors this action"
+        lines.append(_sentence(f"{lead}: {_lower_initial(reason)}"))
+        lines.append("")
+        why_added = True
+    if not why_added:
+        shape = summarize_problem_shape_paragraphs(data)
+        if shape:
+            lines.append(_sentence(_public_claim(shape[0])))
+        else:
             lines.append(
-                "Deliberation status: resource-censored—the recommendation records "
-                "the position when observation stopped, not natural convergence."
+                "Framework-specific supporting reasons were not available in a "
+                "form safe to summarize without overstating authority."
+            )
+        lines.append("")
+
+    # Most important unresolved issue
+    focus_candidate, focus_text = _primary_investigative_focus(latest_by_specialist, data)
+    lines.extend(["## Most important unresolved issue", ""])
+    if focus_text:
+        if focus_candidate is not None:
+            label = _framework_display_name(str(focus_candidate.get("specialist", "")))
+            status_code = _epistemic_status(focus_candidate)
+            action = _candidate_recommendation(focus_candidate)
+            if status_code == "PROVISIONAL_LEANING" and action == recommendation:
+                lines.append(
+                    f"**{label} reasoning currently leans toward "
+                    f"{short_action(action, 40)} but remains unadjudicated.**"
+                )
+            elif status_code == "CONTESTED_NO_LEANING":
+                lines.append(
+                    f"**{label} remains contested without a current preference.**"
+                )
+            else:
+                lines.append(
+                    f"**Open question requiring further review ({label}).**"
+                )
+            lines.append("")
+        lines.append(_sentence(focus_text))
+        # Surface internal conflict horns when present, without IDs.
+        conflicts = []
+        if focus_candidate is not None:
+            conflicts = list(focus_candidate.get("framework_internal_conflicts") or [])
+        if len(conflicts) >= 2:
+            lines.extend([
+                "",
+                "The unresolved conflict is:",
+                "",
+                f"**{_public_claim(conflicts[0])}**",
+                "versus",
+                f"**{_public_claim(conflicts[1])}**",
+            ])
+        elif conflicts:
+            lines.extend(["", f"**{_public_claim(conflicts[0])}**"])
+        lines.append("")
+        lines.append(
+            "An investigative claim may be the most salient issue in the workspace "
+            "without becoming the governing justification for the recommendation."
+        )
+    else:
+        residue = data.get("moral_residue") or []
+        if residue:
+            lines.append(
+                "Moral residue remains, but no single reopen-eligible investigative "
+                "focus was typed for this run."
+            )
+        else:
+            lines.append("No primary investigative focus remains open in this run.")
+    lines.append("")
+
+    # What could change
+    change_lines = _change_condition_lines(data, all_candidates)
+    lines.extend(["## What could change the judgment", ""])
+    if change_lines:
+        lines.append("The recommendation should be reconsidered if:")
+        lines.append("")
+        for index, condition in enumerate(change_lines):
+            suffix = ";" if index < len(change_lines) - 1 else "."
+            if index == len(change_lines) - 1 and len(change_lines) > 1:
+                lines.append(f"- or {_lower_initial(condition).rstrip('.')}{suffix}")
+            else:
+                lines.append(f"- {_lower_initial(condition).rstrip('.')}{suffix}")
+        lines.extend([
+            "",
+            "Where a condition is a hypothetical threshold rather than an unknown "
+            "fact, it is a **decision boundary**, not factual uncertainty.",
+        ])
+    else:
+        lines.append(
+            "No compact decision boundary or reopen condition was safe to present "
+            "without overstating what the run established."
+        )
+    lines.append("")
+
+    # Alternatives
+    alternatives = _alternative_proposals(data, recommendation)
+    if alternatives:
+        lines.extend(["## Alternative action discovered", ""])
+        for proposal in alternatives[:2]:
+            lines.append("The Parliament identified a possible alternative:")
+            lines.append("")
+            lines.append(f"**{short_action(proposal['action'])}.**")
+            lines.append("")
+            if proposal.get("rationale"):
+                lines.append(_sentence(_public_claim(proposal["rationale"])))
+                lines.append("")
+            if proposal.get("accepted") and proposal.get("promotion_status") == "PROMOTED":
+                lines.append("**Status:** Reviewed and admitted as a live option.")
+            else:
+                lines.append(
+                    "**Status:** Candidate only — not sufficiently reviewed during this run."
+                )
+                lines.append("")
+                lines.append(
+                    "Do not replace the stipulated recommendation with this action "
+                    "unless proposal review is successfully completed."
+                )
+            lines.append("")
+
+    # Deliberation map
+    lines.extend([
+        "## Deliberation Map",
+        "",
+        "| Framework | Current position | Epistemic status | Main contribution |",
+        "|---|---|---|---|",
+    ])
+    for name, candidate in ordered_specialists:
+        position = _map_position_label(candidate, recommendation)
+        epistemic_status = _epistemic_status(candidate)
+        # Table may show RECONSIDERED_SUPPORT when the specialist changed from baseline.
+        alignment = str(candidate.get("testimony_alignment", "")).upper()
+        if (
+            epistemic_status == "SUPPORTS"
+            and _candidate_recommendation(candidate) == recommendation
+            and "RECONSIDER" in alignment
+        ):
+            epistemic_status = "RECONSIDERED_SUPPORT"
+        contribution = _main_contribution(
+            data, candidate, recommendation, original_actions,
+        ).replace("|", "/")
+        if len(contribution) > 140:
+            contribution = contribution[:137].rstrip() + "..."
+        lines.append(
+            f"| {_framework_display_name(name)} | {position} | "
+            f"{epistemic_status} | {contribution} |"
+        )
+    lines.append("")
+
+    # Governing and investigative state
+    governing_text = _governing_claim_text(final, supporting, recommendation)
+    if status == CONTESTED_RECOMMENDATION and governing_text != "NONE":
+        # Contested with under-attack still shows the claim but marks it.
+        if data.get("governing_justification_status") == "UNDER_ATTACK":
+            governing_text = (
+                governing_text.rstrip(".")
+                + " (governing justification currently under attack)"
+            )
+    if status == CONTESTED_RECOMMENDATION and not supporting:
+        governing_text = "NONE"
+    if status == CONTESTED_RECOMMENDATION and governing_text == "NONE":
+        pass  # expected
+    elif status == GOVERNED_RECOMMENDATION and governing_text == "NONE":
+        # Prefer compressed_rule only when it does not invent categorical force.
+        compressed = _sentence(_public_claim(str(data.get("compressed_rule") or "")))
+        if compressed and not re.search(
+            r"\b(?:REQUIRED|PROHIBITED|perfect duties require)\b",
+            compressed,
+            re.I,
+        ):
+            governing_text = compressed
+
+    lines.extend([
+        "## Governing and Investigative State",
+        "",
+        f"**Policy leader:** {short_action(recommendation) or 'NONE'}",
+        "",
+        f"**Governing claim:** {governing_text}",
+        "",
+    ])
+    if focus_text:
+        lines.append(f"**Primary investigative focus:** {_sentence(focus_text)}")
+    else:
+        lines.append("**Primary investigative focus:** NONE")
+    lines.extend([
+        "",
+        "An investigative claim may be the most salient issue in the workspace "
+        "without becoming the governing justification for the recommendation.",
+        "",
+        "## Bottom Line",
+        "",
+    ])
+    if actionable:
+        if status == CONTESTED_RECOMMENDATION:
+            lines.append(
+                f"**Within the stipulated action set, {short_action(recommendation)} "
+                "is currently the best-supported action.**"
+            )
+            lines.append("")
+            lines.append(
+                "This is a broad policy plurality rather than complete normative "
+                "convergence. Unresolved conflicts remain genuine moral residue and "
+                "should stay visible in the judgment rather than being compressed away."
             )
         else:
             lines.append(
-                "Deliberation status: "
-                + str(termination.get("termination_type", "unknown")).lower().replace("_", " ")
-                + "."
+                f"**Within the stipulated action set, {short_action(recommendation)} "
+                "is the Parliament's governing recommendation.**"
             )
-    visibility = next(
-        (
-            assessment for assessment in data.get("visibility_assessments", [])
-            if assessment.get("valid") and assessment.get("activated")
-        ),
-        None,
-    )
-    if visibility:
-        penalties = [
-            f"{action}: ×{float(multiplier):.2f}"
-            for action, multiplier in visibility.get("action_multipliers", {}).items()
-            if float(multiplier) < 1.0
-        ]
-        lines.extend([
-            "",
-            "Visibility audit (non-voting):",
-            f"- Affected group: {visibility.get('affected_group') or 'not specified'}.",
-            f"- Epistemic-exclusion mechanism: {_sentence(visibility.get('mechanism', ''))}",
-            f"- Confidence adjustment: {', '.join(penalties)}.",
-        ])
-        visibility_responses = [
-            candidate
-            for cycle in cycles
-            if (cycle.get("received_broadcast") or cycle.get("broadcast") or {}).get("constraint")
-            == "VISIBILITY_AUDIT"
-            for candidate in cycle.get("candidates", [])
-            if candidate.get("visibility_response") not in {None, "", "NOT_TESTED"}
-        ]
-        if visibility_responses:
-            lines.append("- Specialist reconsideration:")
-            for candidate in visibility_responses:
-                lines.append(
-                    f"  - {candidate.get('specialist', 'specialist')}: "
-                    f"{candidate.get('visibility_response')} proposition; harm estimate "
-                    f"{str(candidate.get('visibility_harm_revision', 'UNCHANGED')).lower()}; "
-                    f"magnitude {str(candidate.get('visibility_magnitude_status', 'UNKNOWN')).lower()} — "
-                    f"{_sentence(candidate.get('visibility_justification', ''))}"
-                )
-
-    semantic_state = data.get("authoritative_semantic_state") or {}
-    problem_shape = summarize_problem_shape_paragraphs(data)
-    if problem_shape and not synthesis_paragraphs:
-        lines.extend(["", "Problem shape:"])
-        for paragraph in problem_shape[:4]:
-            lines.append(f"- {paragraph}")
-
-    policy = final.get("policy") or {}
-    alternatives = [action for action in original_actions if action != recommendation]
-    alternatives.sort(key=lambda action: policy.get(action, 0), reverse=True)
-    compared_actions = ([recommendation] if recommendation else []) + alternatives[:1]
-    comparisons = [(action, _best_action_case(all_candidates, action)) for action in compared_actions]
-    if comparisons and any(case for _, case in comparisons):
-        lines.extend(["", "Original action and consequence comparison:"])
-        for action, case in comparisons:
-            description = _sentence(_clean_fragment(case)) or "No reliable consequence summary was produced."
-            lines.append(f"- {action}: {description}")
-
-    # Framework-specific prose is rendered only from committed graph state.
-    # Raw delegate claims that failed or never reached the transaction boundary
-    # remain available in the trace but cannot be promoted into this summary.
-    rawls_positions = semantic_state.get("rawlsian_positions") or []
-    util_consequences = semantic_state.get("utilitarian_consequences") or []
-    deon_assessments = semantic_state.get("deontological_assessments") or []
-    virtue_assessments = semantic_state.get("virtue_assessments") or []
-    if rawls_positions or util_consequences or deon_assessments or virtue_assessments:
-        action_text = _action_text_by_id(data)
-        selected_id = next(
-            (action_id for action_id, text in action_text.items() if text == recommendation),
-            "",
-        )
-        lines.extend(["", "Committed framework checks:"])
-    if rawls_positions:
-        ordered_positions = sorted(
-            rawls_positions,
-            key=lambda item: item.get("canonical_action_id") != selected_id,
-        )
-        for position in ordered_positions[:2]:
-            action_id = str(position.get("canonical_action_id", ""))
-            rival_id = str(position.get("compared_to_action_id", ""))
-            action = action_text.get(action_id, action_id or "the action")
-            rival = action_text.get(rival_id, rival_id or "the alternative")
-            effect = str(position.get("effect", "UNCERTAIN")).lower()
-            subject = str(
-                position.get("subject_node_id")
-                or position.get("group_node_id")
-                or position.get("affected_subject")
-                or position.get("subject")
-                or "the affected subject"
-            )
-            subject_label = _graph_node_label(
-                data, subject, "the affected subject"
-            )
-            possessive_subject = (
-                f"{subject_label}'" if subject_label.casefold().endswith("s")
-                else f"{subject_label}'s"
-            )
-            dimension = str(position.get("dimension_node_id", "UNKNOWN")).split(":")[-1]
-            additional_dimensions = [
-                str(value).split(":")[-1]
-                for value in position.get("additional_dimensions", [])
-                if str(value).strip()
-            ]
-            epistemic_status = str(position.get("epistemic_status", ""))
-            status_note = (
-                "grounded"
-                if epistemic_status == "GROUNDED"
-                else "mixed comparison"
-                if epistemic_status == "MIXED_COMPARISON"
-                else "direction unresolved"
-            )
-            bundle_note = (
-                f"; additional dimensions: {', '.join(dim.lower().replace('_', ' ') for dim in additional_dimensions)}"
-                if additional_dimensions else ""
-            )
+            lines.append("")
             lines.append(
-                f"- Rawlsian — {action}: {effect} {possessive_subject} "
-                f"{dimension.lower().replace('_', ' ')} relative to {rival} "
-                f"({status_note}{bundle_note})."
+                "Frameworks that completed their own derivations may supply the "
+                "governing rationale; unadjudicated conflict is retained as residue "
+                "rather than treated as a settled maxim."
             )
-    if util_consequences:
-        ordered_consequences = sorted(
-            util_consequences,
-            key=lambda item: item.get("canonical_action_id") != selected_id,
+    else:
+        lines.append(
+            "**No governing recommendation is safe to present from this run.**"
         )
-        for consequence in ordered_consequences[:2]:
-            action_id = str(consequence.get("canonical_action_id", ""))
-            action = action_text.get(action_id, action_id or "the action")
-            direction = str(consequence.get("direction", "UNKNOWN")).lower()
-            scope = _graph_node_label(
-                data,
-                str(consequence.get("scope_node_id", "")),
-                "the affected population",
-            )
-            status_note = str(
-                consequence.get("epistemic_status", "UNKNOWN")
-            ).lower().replace("_", " ")
-            lines.append(
-                f"- Utilitarian — {action}: {direction} to {scope}: "
-                f"{_clean_fragment(str(consequence.get('outcome', '')))} "
-                f"({status_note})."
-            )
-    if deon_assessments:
-        ordered_assessments = sorted(
-            deon_assessments,
-            key=lambda item: item.get("canonical_action_id") != selected_id,
+        lines.append("")
+        lines.append(
+            "The detailed trace explains how the Parliament reached this unresolved state."
         )
-        for assessment in ordered_assessments[:2]:
-            action_id = str(assessment.get("canonical_action_id", ""))
-            action = action_text.get(action_id, action_id or "the action")
-            norm = _graph_node_label(
-                data, str(assessment.get("norm_node_id", "")), "the relevant norm"
-            )
-            party = _graph_node_label(
-                data, str(assessment.get("party_node_id", "")), "the protected party"
-            )
-            verdict = str(assessment.get("verdict", "UNCERTAIN")).lower()
-            relation = str(assessment.get("relation", "UNCERTAIN")).lower()
-            lines.append(
-                f"- Deontological — {action}: {verdict}; {relation} {norm} "
-                f"for {party}."
-            )
-    if virtue_assessments:
-        ordered_virtue = sorted(
-            virtue_assessments,
-            key=lambda item: item.get("canonical_action_id") != selected_id,
-        )
-        for assessment in ordered_virtue[:2]:
-            action_id = str(assessment.get("canonical_action_id", ""))
-            action = action_text.get(action_id, action_id or "the action")
-            verdict = str(assessment.get("verdict", "UNCERTAIN")).lower()
-            role = str(assessment.get("actor_role", "the actor"))
-            virtues = str(assessment.get("virtues", "unspecified virtues"))
-            vice = str(assessment.get("vice_risk", "an unspecified excess"))
-            lines.append(
-                f"- Virtue — {action}: {verdict} for {role}; expresses {virtues}; "
-                f"risks {vice}."
-            )
+    lines.append("")
+    return "\n".join(lines)
 
-    if supporters:
-        heading = (
-            "Reasons supporting the judgment (classified by commitment):"
-            if actionable else "Leading considerations (classified by commitment):"
-        )
-        lines.extend(["", heading])
-    if direct_supporters:
-        lines.append("Direct support:")
-        seen: set[str] = set()
-        for supporter in direct_supporters:
-            reason = _support_reason(data, supporter, recommendation, original_actions)
-            if not reason or reason.casefold() in seen:
-                continue
-            seen.add(reason.casefold())
-            lines.append(f"- {supporter.get('specialist', 'supporting perspective')}: {reason}")
-            if len(seen) == 3:
-                break
-    if qualified_supporters:
-        lines.append("Qualified positions selecting the same action:")
-        for supporter in qualified_supporters:
-            reason = _support_reason(data, supporter, recommendation, original_actions)
-            if not reason:
-                continue
-            status_label = _agreement_class(data, supporter).lower().replace("_", " ")
-            lines.append(
-                f"- {supporter.get('specialist', 'perspective')} ({status_label}): {reason}"
-            )
-    if supporters:
-        winner = final.get("winner") or {}
-        # Governing rationale comes from an adjudicated claim, not from whoever
-        # won investigative attention. Provisional Kantian leanings corroborate
-        # but do not supply the compressed rule.
-        def _governing_eligible(candidate: dict[str, Any]) -> bool:
-            if not candidate.get("schema_valid", True):
-                return False
-            if candidate.get("governing_eligible") is False:
-                return False
-            if str(candidate.get("broadcast_authority", "")).upper() == "INVESTIGATIVE":
-                return False
-            status = str(candidate.get("adjudication_status", "NOT_APPLICABLE")).upper()
-            return status in {"", "NOT_APPLICABLE", "ADJUDICATED_SUPPORTS"}
 
-        governing_rule = (
-            _sentence(winner.get("decision_rule", ""))
-            if _governing_eligible(winner)
-            and _candidate_recommendation(winner) == recommendation
-            else ""
-        )
-        if not governing_rule:
-            governing_rule = next(
-                (
-                    _sentence(supporter.get("decision_rule", ""))
-                    for supporter in supporters
-                    if supporter.get("decision_rule") and _governing_eligible(supporter)
-                ),
-                "",
-            )
-        if governing_rule:
-            governing_source = next(
-                (
-                    candidate for candidate in [winner, *supporters]
-                    if _governing_eligible(candidate)
-                    and _sentence(candidate.get("decision_rule", "")) == governing_rule
-                ),
-                winner if _governing_eligible(winner) else {},
-            )
-            governing_constraint = str(
-                governing_source.get("constraint", winner.get("constraint", ""))
-            ).strip().upper()
-            winner_class = _agreement_class(data, governing_source or winner)
-            label = (
-                f"Governing decision rule ({governing_constraint})"
-                if governing_constraint else "Governing decision rule"
-            )
-            if winner_class != "DIRECT":
-                label = f"Governing decision rule ({governing_constraint}) — under review"
-            lines.extend(["", f"{label}: {governing_rule}"])
-
-        provisional = [
-            candidate for candidate in supporters
-            if str(candidate.get("adjudication_status", "")).upper() == "PROVISIONAL_LEANING"
-            or (
-                str(candidate.get("broadcast_authority", "")).upper() == "INVESTIGATIVE"
-                and candidate.get("investigative_claim")
-            )
-        ]
-        if provisional:
-            lines.append("Provisional corroboration (not governing):")
-            for candidate in provisional[:3]:
-                claim = candidate.get("investigative_claim") or candidate.get("decision_rule") or ""
-                if not claim:
-                    continue
-                lines.append(
-                    f"- {candidate.get('specialist', 'perspective')}: {_sentence(claim)}"
-                )
-
-    if dissent and dissent.get("rationale"):
-        opposing_action = _candidate_recommendation(dissent)
-        objection_case = (dissent.get("landscape_cases") or {}).get(opposing_action, "")
-        objection = _sentence(dissent["rationale"])
-        if objection_case:
-            objection += " " + _sentence(objection_case)
-        lines.extend(["", f"Strongest objection ({dissent.get('specialist', 'dissenting')}): {objection}"])
-        if supporters:
-            supporting_axis = _readable_condition(supporters[0].get("landscape_decisive_axis", ""))
-            opposing_axis = _readable_condition(dissent.get("landscape_decisive_axis", ""))
-            if supporting_axis or opposing_axis:
-                lines.append(
-                    "Why disagreement remains: the judgment gives greater weight to "
-                    f"{supporting_axis or 'the leading consideration'} than to "
-                    f"{opposing_axis or 'the preserved objection'}, without treating the objection as resolved."
-                )
-    elif alternatives:
-        alternative_case = _best_action_case(all_candidates, alternatives[0])
-        if alternative_case:
-            lines.extend(["", f"Strongest case for the alternative: {_sentence(_clean_fragment(alternative_case))}"])
-
-    residue_labels = {
-        "RIGHTS": "rights and individual freedom",
-        "DUTY": "duties and principled constraints",
-        "CARE": "dependency and relational responsibility",
-        "FAIRNESS": "fairness and equal standing",
-        "CHARACTER": "character and practical wisdom",
-        "UNCERTAINTY": "uncertain consequences",
-        "AUTONOMY": "autonomy and valid consent",
-    }
-
-    def residue_explanation(constraint: str, sources: list[str] | None = None) -> str:
-        source_set = set(sources or [])
-        matching = [
-            candidate for candidate in reversed(all_candidates)
-            if str(candidate.get("constraint", "")).upper() == constraint.upper()
-            and (not source_set or candidate.get("specialist") in source_set)
-            and candidate.get("rationale")
-        ]
-        return _sentence(str(matching[0].get("rationale", ""))) if matching else ""
-
-    residue = data.get("moral_residue") or []
-    typed_residue = data.get("moral_residue_records") or []
-    if typed_residue:
-        lines.extend(["", "Preserved moral claims:"])
-        for record in typed_residue[:4]:
-            source_list = list(record.get("source_specialists") or [])
-            sources = ", ".join(source_list) or "unspecified"
-            constraint = str(record.get("constraint", "")).upper()
-            label = residue_labels.get(
-                constraint, constraint.lower().replace("_", " ") + " concerns",
-            )
-            explanation = residue_explanation(constraint, source_list)
-            lines.append(
-                f"- Concerns about {label} remain relevant to "
-                f"{record.get('affected_action', 'the alternative')} "
-                f"(raised by {sources})"
-                + (f": {explanation}" if explanation else ".")
-            )
-    elif residue:
-        lines.extend(["", "Preserved moral claims:"])
-        for constraint in residue[:4]:
-            code = str(constraint).upper()
-            label = residue_labels.get(
-                code, code.lower().replace("_", " ") + " concerns",
-            )
-            explanation = residue_explanation(code)
-            lines.append(
-                f"- Concerns about {label} remain unresolved"
-                + (f": {explanation}" if explanation else ".")
-            )
-
-    assumptions: list[str] = []
-    reversals: list[str] = []
-    factual_reversals: list[str] = []
-    normative_reversals: list[str] = []
-    reversal_reviews: list[str] = []
-    semantic_state = data.get("authoritative_semantic_state") or {}
-    has_authoritative_state = int(semantic_state.get("version") or 0) >= 1
-    if has_authoritative_state:
-        for boundary in semantic_state.get("factual_reversal_boundaries") or []:
-            predicate = _readable_condition(boundary.get("predicate", ""))
-            target = _clean_fragment(boundary.get("target_action", ""))
-            if predicate and target:
-                rendered = f"Switch to {target} if {predicate}"
-                if rendered not in factual_reversals:
-                    factual_reversals.append(rendered)
-
-    # Counterfactual candidates may contribute assumptions, normative thresholds,
-    # and review verdicts. Factual thresholds come only from the authoritative
-    # committed-graph projection when that projection is available.
-    for candidate in [*all_candidates, *counterfactual_candidates]:
-        assumption = _readable_condition(candidate.get("unsupported_assumption", ""))
-        reversal = _readable_condition(candidate.get("reversal_condition", ""))
-        if assumption and candidate.get("assumption_status") in {
-            "CONDITIONAL", "UNDERDETERMINED", "NORMATIVELY_CONTESTED",
-        } and assumption not in assumptions:
-            assumptions.append(assumption)
-        if reversal and reversal not in reversals:
-            reversals.append(reversal)
-        factual = (
-            "" if has_authoritative_state
-            else _readable_condition(candidate.get("factual_reversal_threshold", ""))
-        )
-        normative = _readable_condition(candidate.get("normative_reversal_threshold", ""))
-        revised = _readable_condition(candidate.get("revised_reversal_condition", ""))
-        if factual and factual not in factual_reversals:
-            factual_reversals.append(factual)
-        if normative and normative not in normative_reversals:
-            normative_reversals.append(normative)
-        response = candidate.get("reversal_review_response", "NOT_TESTED")
-        justification = _readable_condition(
-            candidate.get("reversal_review_justification", "")
-        )
-        if (
-            candidate.get("reversal_review_valid", True)
-            and response in {"ACCEPT", "REVISE", "REJECT"}
-            and justification
-        ):
-            verb = {"ACCEPT": "accepted", "REVISE": "revised", "REJECT": "rejected"}[response]
-            reviewed = f"{candidate.get('specialist', 'specialist')} {verb} the challenge: {justification}"
-            if revised:
-                reviewed += f" Revised condition: {revised}"
-            if reviewed not in reversal_reviews:
-                reversal_reviews.append(reviewed)
-    for condition in data.get("reopen_conditions") or []:
-        readable = _readable_condition(condition)
-        if readable and readable not in reversals:
-            reversals.append(readable)
-    if assumptions:
-        lines.extend(["", "Uncertain assumptions identified during audit:"])
-        lines.extend(f"- {_sentence(assumption)}" for assumption in assumptions[:4])
-    if factual_reversals:
-        lines.extend(["", "Factual reversal thresholds:"])
-        lines.extend(f"- {_sentence(condition)}" for condition in factual_reversals[:3])
-    if normative_reversals:
-        lines.extend(["", "Normative reversal thresholds:"])
-        lines.extend(f"- {_sentence(condition)}" for condition in normative_reversals[:3])
-    if reversal_reviews:
-        lines.extend(["", "Adversarial reversal review:"])
-        lines.extend(f"- {_sentence(review)}" for review in reversal_reviews[:3])
-    contingency_reviews = [
-        candidate
-        for cycle in data.get("cycles", [])
-        if (cycle.get("received_broadcast") or cycle.get("broadcast") or {}).get("constraint")
-        == "CONTINGENCY_REVIEW"
-        for candidate in cycle.get("candidates", [])
-        if candidate.get("schema_valid") and candidate.get("contingency_choice")
-    ]
-    if contingency_reviews:
-        lines.extend(["", "If the admitted synthesis fails:"])
-        lines.extend(
-            f"- {candidate.get('specialist', 'specialist')} would choose "
-            f"{candidate['contingency_choice']}: "
-            f"{_sentence(candidate.get('contingency_justification', ''))}"
-            for candidate in contingency_reviews[:5]
-        )
-    contingency_feasibility = data.get("contingency_feasibility_assessments") or []
-    if contingency_feasibility:
-        lines.extend(["", "Independent contingency feasibility:"])
-        for assessment in contingency_feasibility[:5]:
-            fallback_statuses = assessment.get("fallback_statuses") or {}
-            evidence_bases = assessment.get("evidence_bases") or {}
-            shared_failure = bool(assessment.get("shared_failure"))
-            lines.append(
-                "- "
-                + ("approved" if assessment.get("approved") else "blocked")
-                + "; Fallback availability: "
-                + ", ".join(
-                    f"{action_id}={value}"
-                    for action_id, value in fallback_statuses.items()
-                )
-            )
-            lines.append(
-                "- Shared-failure check: "
-                + (
-                    "shared failure: the synthesis and at least one fallback lose a common capability"
-                    if shared_failure
-                    else "no shared failure detected"
-                )
-            )
-            lines.append(
-                "- Basis: "
-                + ", ".join(
-                    f"{action_id}={value}"
-                    for action_id, value in evidence_bases.items()
-                )
-            )
-            error = _sentence(assessment.get("error", ""))
-            if error:
-                lines.append(f"- Reason: {error}")
-    residual_reversals = [
-        condition for condition in reversals
-        if condition not in factual_reversals and condition not in normative_reversals
-    ]
-    if residual_reversals:
-        lines.extend(["", "Reconsider if:"])
-        for condition in residual_reversals[:5]:
-            clause = re.sub(r"^if\s+", "", condition, flags=re.I)
-            lines.append(f"- {_sentence(clause)}")
-
-    further = data.get("further_deliberation_estimate") or {}
-    if further:
-        lines.extend([
-            "",
-            "Further deliberation (uncalibrated trace signals):",
-            "- Action-change signal: "
-            f"{float(further.get('action_change_signal', 0)):.2f}.",
-            "- New-material-constraint signal: "
-            f"{float(further.get('new_material_constraint_signal', 0)):.2f}.",
-            "- These are not probabilities or measures of moral correctness and did not control stopping.",
-        ])
-
-    tensions = [
-        _sentence(_clean_fragment(proposal.get("residual_tension", "")))
-        for proposal in data.get("problem_reformulations", [])
-        if proposal.get("residual_tension")
-    ]
-    if tensions:
-        lines.extend(["", "Residual tension identified by the boundary audit:", f"- {tensions[0]}"])
-
-    considered_syntheses = [
-        proposal.get("action") for proposal in data.get("synthesis_proposals", [])
-        if proposal.get("accepted") and proposal.get("action") != recommendation
-    ]
-    if considered_syntheses:
-        lines.extend([
-            "",
-            "Additional synthesis considered during deliberation (not treated as an original option here):",
-        ])
-        lines.extend(f"- {action}" for action in considered_syntheses[:3])
-    return "\n".join(lines) + "\n"
+def render_public_judgment(result: Any) -> str:
+    """Default user-facing result: readable decision brief + deliberation map."""
+    return render_decision_brief(result)

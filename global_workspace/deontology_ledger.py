@@ -11,6 +11,18 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_valida
 from .graph_transactions import GraphTransactionRecord, SemanticGraphStore
 from .scenario_semantics import query_grounded_action_effects
 from .semantic_graph import SemanticEdge, SemanticGraph, SemanticNode, merge_graphs, validate_graph
+from .specialist_authority import (
+    CONTESTED_NO_LEANING,
+    CONTESTED_NO_LEANING_POLICY_FACTOR,
+    PROVISIONAL_LEANING,
+    PROVISIONAL_LEANING_POLICY_FACTOR,
+    SUPPORTS,
+)
+
+# Preference gap below which an incomplete adjudication contributes no lean.
+_MIN_LEANING_PREFERENCE = 0.10
+# Deprecated alias retained for one migration cycle of importers.
+CONFLICTED_NO_LEANING_POLICY_FACTOR = CONTESTED_NO_LEANING_POLICY_FACTOR
 
 
 class DutyAssessmentProposal(BaseModel):
@@ -408,15 +420,6 @@ def _unresolved_premises(assessment: dict[str, Any]) -> list[str]:
     return list(dict.fromkeys(unresolved))
 
 
-# Illustrative attenuation for provisional Kantian leanings. Tunable later;
-# the architectural invariant is that provisionality reduces policy weight
-# without zeroing directional information or investigative attention.
-PROVISIONAL_LEANING_POLICY_FACTOR = 0.45
-CONFLICTED_NO_LEANING_POLICY_FACTOR = 0.0
-# Preference gap below which an incomplete adjudication contributes no lean.
-_MIN_LEANING_PREFERENCE = 0.10
-
-
 @dataclass(frozen=True)
 class DeontologicalAuthorityProfile:
     """Separate policy, attention, and governing authority for Kantian claims.
@@ -468,10 +471,10 @@ def classify_deontological_authority(
 ) -> DeontologicalAuthorityProfile:
     """Classify Kantian claim authority without laundering leanings into rules.
 
-    Three levels:
-    - CONFLICTED_NO_LEANING: incomplete adjudication, no directional preference
+    Three levels (framework-general names; Kant is one producer):
+    - CONTESTED_NO_LEANING: incomplete adjudication, no directional preference
     - PROVISIONAL_LEANING: incomplete adjudication with a comparative lean
-    - ADJUDICATED_SUPPORTS: comparative priority actually established
+    - SUPPORTS: comparative priority actually established
     """
     primary_party = str(assessment.get("protected_party", "the protected party"))
     competing_party = str(
@@ -548,7 +551,7 @@ def classify_deontological_authority(
         )
 
     return DeontologicalAuthorityProfile(
-        adjudication_status="ADJUDICATED_SUPPORTS",
+        adjudication_status=SUPPORTS,
         broadcast_authority="GOVERNING_CANDIDATE",
         governing_eligible=True,
         policy_weight_factor=1.0,
@@ -582,7 +585,7 @@ def _incomplete_authority(
             "or defeated."
         )
         return DeontologicalAuthorityProfile(
-            adjudication_status="PROVISIONAL_LEANING",
+            adjudication_status=PROVISIONAL_LEANING,
             broadcast_authority="INVESTIGATIVE",
             governing_eligible=False,
             policy_weight_factor=PROVISIONAL_LEANING_POLICY_FACTOR,
@@ -597,10 +600,10 @@ def _incomplete_authority(
         "is yet grounded."
     )
     return DeontologicalAuthorityProfile(
-        adjudication_status="CONFLICTED_NO_LEANING",
+        adjudication_status=CONTESTED_NO_LEANING,
         broadcast_authority="INVESTIGATIVE",
         governing_eligible=False,
-        policy_weight_factor=CONFLICTED_NO_LEANING_POLICY_FACTOR,
+        policy_weight_factor=CONTESTED_NO_LEANING_POLICY_FACTOR,
         investigative_claim=investigative,
         rationale=rationale,
         decision_rule=decision_rule,

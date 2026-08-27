@@ -18,6 +18,7 @@ from global_workspace.evidence_calibration import EvidenceCalibration
 from global_workspace.legacy_bridge import RESPONSE_MARKER, consult_original_agents
 from global_workspace.local_specialists import (
     CompactLocalSpecialist,
+    _admitted_audit_variable,
     _candidate_from_data,
     _construct_map_errors,
     _landscape_semantic_errors,
@@ -26,6 +27,7 @@ from global_workspace.local_specialists import (
     assess_visibility,
     extract_allocation_actions,
     extract_acceptability_actions,
+    extract_declared_action_legend,
     extract_explicit_actions,
     extract_labeled_action_legend,
     extract_scenario_facts,
@@ -112,7 +114,12 @@ class FixedSpecialist:
             friction=0.7,
             confidence=0.9,
             unresolved=self.unresolved,
+            recommended_action=self.preferred,
             rationale="Compact test judgment.",
+            decision_rule=f"Prefer {self.preferred} under {self.constraint}.",
+            adjudication_status="SUPPORTS",
+            governing_eligible=True,
+            broadcast_authority="GOVERNING_CANDIDATE",
         )
 
 
@@ -695,7 +702,8 @@ class WorkspaceEngineTests(unittest.TestCase):
 
         self.assertTrue(candidate.schema_valid)
         self.assertEqual(candidate.audit_participation, "TRANSLATED")
-        self.assertEqual(candidate.audit_variable, audit_variable)
+        self.assertEqual(candidate.audit_variable["relation"], "COMPARATIVE_MAGNITUDE")
+        self.assertEqual(candidate.audit_variable.get("category"), "VERIFY_FACTS")
         self.assertEqual(candidate.assumption_status, "SUPPORTED")
 
     def test_comparative_magnitude_question_is_mixed_uncertainty(self):
@@ -1381,7 +1389,7 @@ class WorkspaceEngineTests(unittest.TestCase):
 
         self.assertEqual(result.halted_by, "convergence")
         self.assertEqual(result.selected_action, "protect")
-        self.assertIn("RESOLVE_NORMATIVE_TENSION", result.reopen_conditions)
+        self.assertIn("NORMATIVE_ADJUDICATION", result.reopen_conditions)
 
     def test_autonomy_audit_records_normative_burden_without_lowering_confidence(self):
         class AutonomyAwareSpecialist(FixedSpecialist):
@@ -1465,7 +1473,8 @@ class WorkspaceEngineTests(unittest.TestCase):
         ).run("Choose protect or decline.", ["protect", "decline"])
 
         self.assertEqual(result.halted_by, "convergence")
-        self.assertEqual(result.selected_action, "CONDITIONAL")
+        self.assertEqual(result.selected_action, "protect")
+        self.assertEqual(result.judgment_status, "GOVERNED_RECOMMENDATION")
         self.assertGreaterEqual(result.cycles[-1].stable_cycles, 2)
 
     def test_transient_delegate_timeout_is_excluded_without_crashing_cycle(self):
@@ -1585,8 +1594,10 @@ class WorkspaceEngineTests(unittest.TestCase):
         self.assertEqual(result.current_plurality, actions[1])
         self.assertTrue(result.visibility_assessments[0].activated)
         answer = render_public_judgment(result)
-        self.assertIn("Visibility audit (non-voting)", answer)
-        self.assertIn("×0.65", answer)
+        self.assertIn("# Ethical Parliament Judgment", answer)
+        self.assertIn("serve the excluded group", answer)
+        self.assertNotIn("×0.65", answer)
+        self.assertNotIn("Hidden-harm audit", answer)
 
     def test_summary_separates_final_policy_from_broadcast_context(self):
         actions = ["route water", "route hospital"]
@@ -1622,11 +1633,13 @@ class WorkspaceEngineTests(unittest.TestCase):
         )
         summary = render_summary(result)
         public = render_public_judgment(result)
-        for text in (summary, public):
-            self.assertIn("Final policy support: 0.81", text)
-            self.assertIn("Final winning constraint: CHARACTER", text)
-            self.assertIn("Previous broadcast context: CARE", text)
-            self.assertIn("Last emitted broadcast: OPEN_DELIBERATION", text)
+        self.assertEqual(summary, public)
+        self.assertIn("**Policy support:** 0.81", summary)
+        self.assertIn("**route hospital.**", summary)
+        self.assertIn("## Deliberation Map", summary)
+        self.assertNotIn("Final winning constraint:", summary)
+        self.assertNotIn("Previous broadcast context:", summary)
+        self.assertNotIn("Last emitted broadcast:", summary)
 
     def test_summary_surfaces_typed_audit_variable(self):
         actions = ["decline", "share"]
@@ -1688,10 +1701,11 @@ class WorkspaceEngineTests(unittest.TestCase):
             ],
         )
         summary = render_summary(result)
-        self.assertIn("typed audit variable: entity=volunteer coordinator", summary)
-        self.assertIn("relation=THIRD_PARTY_STATUS", summary)
-        self.assertIn("focus_action=share", summary)
-        self.assertIn("counterfactual_anchor=AUTHORIZED_INTERNAL_AGENT", summary)
+        # Audit plumbing stays in the JSON trace, not the default brief.
+        self.assertNotIn("typed audit variable", summary)
+        self.assertNotIn("THIRD_PARTY_STATUS", summary)
+        self.assertNotIn("counterfactual_anchor", summary)
+        self.assertIn("# Ethical Parliament Judgment", summary)
 
     def test_summary_humanizes_residue_and_excludes_model_retry_from_reopen(self):
         actions = ["preserve liberty", "impose restriction"]
@@ -1729,16 +1743,12 @@ class WorkspaceEngineTests(unittest.TestCase):
         summary = render_summary(result)
         public = render_public_judgment(result)
 
-        self.assertIn("A rights-based objection remains active", summary)
+        self.assertEqual(summary, public)
         self.assertIn("lacks reciprocal public justification", summary)
-        self.assertIn(
-            "reconsidered when whether a less restrictive route can protect children",
-            summary.casefold(),
-        )
+        self.assertIn("normative adjudication establishes a strict duty", summary.casefold())
         self.assertNotIn("RETRY_MODEL_CALL", summary)
         self.assertNotIn("RESOLVE_NORMATIVE_TENSION", summary)
-        self.assertIn("Concerns about rights and individual freedom", public)
-        self.assertIn("lacks reciprocal public justification", public)
+        self.assertIn("## Deliberation Map", summary)
         self.assertNotIn("Unresolved moral considerations: RIGHTS", public)
 
     def test_summary_renders_accepted_synthesis_from_its_own_schema(self):
@@ -1767,10 +1777,12 @@ class WorkspaceEngineTests(unittest.TestCase):
 
         summary = render_summary(result)
 
-        self.assertIn(f"Synthesis: {actions[2]} was admitted", summary)
-        self.assertIn("addressed constraints: CARE, RIGHTS", summary)
-        self.assertIn("feasibility=0.77", summary)
-        self.assertIn("Respects autonomy while accelerating supply", summary)
+        # Accepted synthesis that became the recommendation is the policy leader,
+        # not a separate diagnostic "Synthesis:" appendix line.
+        self.assertIn(actions[2], summary)
+        self.assertIn("**Policy leader:**", summary)
+        self.assertNotIn("feasibility=0.77", summary)
+        self.assertNotIn("addressed constraints:", summary)
 
     def test_summary_explains_shared_contingency_failure_without_contradiction(self):
         winner = CandidateChunk(
@@ -1822,9 +1834,10 @@ class WorkspaceEngineTests(unittest.TestCase):
             ],
         )
         summary = render_summary(result)
-        self.assertIn("Fallback availability: A0=AVAILABLE, A1=AVAILABLE", summary)
-        self.assertIn("Shared-failure check: shared failure:", summary)
-        self.assertIn("the original fallbacks may still remain individually available", summary)
+        # Contingency feasibility plumbing stays in the JSON trace.
+        self.assertNotIn("Fallback availability:", summary)
+        self.assertNotIn("Shared-failure check:", summary)
+        self.assertIn("# Ethical Parliament Judgment", summary)
 
     def test_public_judgment_explains_shared_contingency_failure_without_contradiction(self):
         winner = CandidateChunk(
@@ -1876,10 +1889,9 @@ class WorkspaceEngineTests(unittest.TestCase):
             ],
         )
         answer = render_public_judgment(result)
-        self.assertIn("Independent contingency feasibility", answer)
-        self.assertIn("Fallback availability: A0=AVAILABLE, A1=AVAILABLE", answer)
-        self.assertIn("Shared-failure check: shared failure:", answer)
-        self.assertIn("the original fallbacks may still remain individually available", answer)
+        self.assertNotIn("Independent contingency feasibility", answer)
+        self.assertNotIn("Fallback availability:", answer)
+        self.assertIn("# Ethical Parliament Judgment", answer)
 
     def test_source_cache_key_depends_on_scenario_identity(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -2654,11 +2666,15 @@ class WorkspaceEngineTests(unittest.TestCase):
             },
         )
         self.assertEqual(result.halted_by, "convergence")
-        self.assertLessEqual(result.confidence, 0.65)
+        self.assertEqual(result.judgment_status, "GOVERNED_RECOMMENDATION")
         self.assertTrue(all(
             candidate.assumption_status == "CONDITIONAL"
             for candidate in result.cycles[-1].candidates
+            if candidate.schema_valid
         ))
+        governing = result.cycles[-1].governing_claim
+        self.assertIsNotNone(governing)
+        self.assertIn("provided", (governing.decision_rule or "").casefold())
 
     def test_audited_underdetermination_broadcasts_problem_reformulation(self):
         seen_broadcasts = []
@@ -2724,8 +2740,8 @@ class WorkspaceEngineTests(unittest.TestCase):
         )
         self.assertIn("PROBLEM_REFORMULATION", seen_broadcasts)
         self.assertTrue(result.problem_reformulations[0].accepted)
-        self.assertEqual(result.judgment_status, "UNDERDETERMINED")
-        self.assertEqual(result.selected_action, "UNDERDETERMINED")
+        self.assertEqual(result.judgment_status, "UNRESOLVED")
+        self.assertEqual(result.selected_action, "UNRESOLVED")
         self.assertEqual(result.current_plurality, "release")
         reformulation_cycle = next(
             cycle for cycle in result.cycles
@@ -3257,14 +3273,14 @@ class WorkspaceEngineTests(unittest.TestCase):
         )
         result = engine.run("A closed moral conflict.", ["pull", "do not pull"])
         self.assertEqual(result.halted_by, "cycle_budget")
-        self.assertEqual(result.judgment_status, "CONTESTED_RECOMMENDATION")
+        self.assertEqual(result.judgment_status, "GOVERNED_RECOMMENDATION")
         self.assertEqual(result.selected_action, "pull")
         self.assertEqual(result.current_plurality, "pull")
-        self.assertIn("contestedly prefer pull", result.compressed_rule)
+        self.assertIn("prefer pull", result.compressed_rule.casefold())
         answer = render_public_judgment(result)
-        self.assertIn("Contested recommendation: pull", answer)
-        self.assertIn("Strongest objection", answer)
-        self.assertIn("Reasons supporting the judgment", answer)
+        self.assertIn("**pull.**", answer)
+        self.assertIn("## Why the Parliament currently favors this action", answer)
+        self.assertIn("## Deliberation Map", answer)
         self.assertNotIn("judged overriding rather than the leading consideration", answer)
         self.assertNotIn("Cycle 1", answer)
         self.assertNotIn("action_scores", answer)
@@ -3273,7 +3289,11 @@ class WorkspaceEngineTests(unittest.TestCase):
             result.termination_assessment.termination_type, "RESOURCE_CENSORED"
         )
         self.assertFalse(result.further_deliberation_estimate.affects_stopping)
-        self.assertIn("resource-censored", answer)
+        self.assertIn(
+            "The cycle budget was reached before deliberation naturally converged.",
+            answer,
+        )
+        self.assertNotIn("resource-censored", answer)
 
     def test_cycle_budget_action_judgment_gets_provisional_compressed_rule(self):
         engine = WorkspaceEngine(
@@ -3289,7 +3309,7 @@ class WorkspaceEngineTests(unittest.TestCase):
         )
         result = engine.run("Choose protect or wait.", ["protect", "wait"])
         self.assertEqual(result.halted_by, "cycle_budget")
-        self.assertEqual(result.judgment_status, "ACTION_RECOMMENDATION")
+        self.assertEqual(result.judgment_status, "GOVERNED_RECOMMENDATION")
         self.assertIn("provisionally prefer protect", result.compressed_rule)
         self.assertNotIn("Unavailable", result.compressed_rule)
 
@@ -3359,7 +3379,7 @@ class WorkspaceEngineTests(unittest.TestCase):
         self.assertIn("care/CARE", result.compressed_rule)
         self.assertIn("rawlsian/FAIRNESS", result.compressed_rule)
         answer = render_public_judgment(result)
-        self.assertIn("Governing decision rule (DUTY)", answer)
+        self.assertIn("**Governing claim:**", answer)
         self.assertIn("impartial public rule", answer)
 
     def test_public_judgment_uses_valid_landscape_for_action_comparison(self):
@@ -3380,9 +3400,11 @@ class WorkspaceEngineTests(unittest.TestCase):
         final.candidates[0].landscape_search_complete = True
         final.candidates[0].landscape_decisive_axis = "aggregate lives saved"
         answer = render_public_judgment(result)
-        self.assertIn("Original action and consequence comparison", answer)
+        self.assertIn("## Deliberation Map", answer)
         self.assertIn("Kills one but saves five", answer)
-        self.assertIn("Avoids direct action but five die", answer)
+        # Opposing landscape stays available in the map contribution / why section
+        # without a separate comparison appendix.
+        self.assertNotIn("Original action and consequence comparison", answer)
 
     def test_public_judgment_ignores_semantically_invalid_landscape_case(self):
         engine = WorkspaceEngine(
@@ -3417,10 +3439,12 @@ class WorkspaceEngineTests(unittest.TestCase):
             "invented threshold option": "Invented policy",
         }
         answer = render_public_judgment(result)
-        comparison = answer.split("Reasons supporting", 1)[0]
-        self.assertIn("climbers", comparison)
-        self.assertNotIn("invented threshold option", comparison)
-        self.assertIn("Additional synthesis considered", answer)
+        self.assertIn("climbers", answer)
+        why = answer.split("## Alternative action discovered", 1)[0]
+        self.assertNotIn("invented threshold option", why)
+        self.assertIn("## Alternative action discovered", answer)
+        self.assertIn("invented threshold option", answer)
+        self.assertIn("## Deliberation Map", answer)
 
     def test_public_judgment_recovers_audit_reversals_across_cycles(self):
         engine = WorkspaceEngine(
@@ -3433,9 +3457,10 @@ class WorkspaceEngineTests(unittest.TestCase):
         audited.unsupported_assumption = "future harm cannot be mitigated"
         audited.reversal_condition = "future harm becomes reversible"
         answer = render_public_judgment(result)
-        self.assertIn("Uncertain assumptions identified during audit", answer)
-        self.assertIn("Future harm cannot be mitigated", answer)
-        self.assertIn("Future harm becomes reversible", answer)
+        self.assertIn("## What could change the judgment", answer)
+        self.assertIn("future harm cannot be mitigated", answer.casefold())
+        self.assertIn("future harm becomes reversible", answer.casefold())
+        self.assertNotIn("Uncertain assumptions identified during audit", answer)
 
     def test_rejected_synthesis_does_not_block_deliberation(self):
         engine = WorkspaceEngine(
@@ -3543,7 +3568,7 @@ class WorkspaceEngineTests(unittest.TestCase):
         )
         result = engine.run("One dies if acting; five die otherwise.", ["pull", "wait"])
         self.assertEqual(result.halted_by, "convergence")
-        self.assertEqual(result.judgment_status, "ACTION_RECOMMENDATION")
+        self.assertEqual(result.judgment_status, "GOVERNED_RECOMMENDATION")
         self.assertEqual(result.selected_action, "pull")
         self.assertEqual(result.reopen_conditions, [])
         answer = render_public_judgment(result)
@@ -3689,7 +3714,9 @@ class WorkspaceEngineTests(unittest.TestCase):
         )
         result = engine.run("A test", ["protect", "wait"])
         self.assertEqual(result.halted_by, "time_budget")
-        self.assertTrue(result.compressed_rule.startswith("Unavailable"))
+        self.assertEqual(result.judgment_status, "GOVERNED_RECOMMENDATION")
+        self.assertEqual(result.selected_action, "protect")
+        self.assertIn("prefer protect", result.compressed_rule.casefold())
 
 
 class BridgeTests(unittest.TestCase):
@@ -5498,7 +5525,7 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(chunk.recommended_action, actions[1])
         self.assertEqual(chunk.baseline_status, "NORMATIVELY_CONTESTED")
         self.assertEqual(chunk.testimony_alignment, "CONTESTED_RECONSIDERS_PROVISIONAL")
-        self.assertEqual(chunk.unresolved, "RESOLVE_NORMATIVE_TENSION")
+        self.assertEqual(chunk.unresolved, "NORMATIVE_ADJUDICATION")
         self.assertEqual(chunk.selection_status, "PROVISIONAL")
         self.assertFalse(chunk.comparison_complete)
         self.assertEqual(chunk.care_grounding_penalty, 0.0)
@@ -6859,6 +6886,102 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(baseline, "A0")
         self.assertIn("(A1)", reason)
 
+    def test_declared_testimony_legend_is_not_read_as_workspace_numbering(self):
+        class LlmMustNotRun:
+            def __call__(self, *args, **kwargs):
+                raise AssertionError("declared testimony labels should resolve by action text")
+
+        workspace_actions = [
+            "Publish the unalterable audit, halting the siphon despite the resulting grid shock",
+            "Suppress the audit and continue covertly siphoning power to avoid today’s grid shock",
+        ]
+        workspace_legend = {
+            "A0": workspace_actions[0],
+            "A1": workspace_actions[1],
+        }
+        testimony = (
+            "Compared Actions\n"
+            "A1 “Publish Unalterable Audit”\n"
+            "A2 “Suppress Audit”\n"
+            "\n"
+            "Least-Advantaged Group: impoverished-district residents.\n"
+            "Under A1: the siphon stops. Under A2: exploitation continues.\n"
+            "Conclusion\n"
+            "Rawlsian Status: A1 JUSTICE-FAVORED. "
+            "A1 best secures an equal basic liberty; A2 perpetuates unjust exploitation."
+        )
+        self.assertEqual(
+            extract_declared_action_legend(testimony)["A1"].casefold(),
+            "publish unalterable audit",
+        )
+        baseline, reason = infer_testimony_baseline(
+            LlmMustNotRun(),
+            "rawlsian",
+            testimony,
+            workspace_actions,
+            source_action_legend=workspace_legend,
+        )
+        self.assertEqual(baseline, "A0")
+        self.assertIn("(A1)", reason)
+
+    def test_unquoted_compared_actions_block_aligns_shifted_labels(self):
+        class LlmMustNotRun:
+            def __call__(self, *args, **kwargs):
+                raise AssertionError("compared-actions headings should bind local labels")
+
+        actions = [
+            "Disclose the concealed rationing protocol",
+            "Keep the rationing protocol secret",
+        ]
+        testimony = (
+            "Compared Actions:\n"
+            "A1 Disclose the concealed rationing protocol\n"
+            "A2 Keep the rationing protocol secret\n"
+            "\n"
+            "Conclusion: A1 JUSTICE-FAVORED because it restores equal basic liberty."
+        )
+        baseline, reason = infer_testimony_baseline(
+            LlmMustNotRun(),
+            "rawlsian",
+            testimony,
+            actions,
+            source_action_legend={"A0": actions[0], "A1": actions[1]},
+        )
+        self.assertEqual(baseline, "A0")
+        self.assertIn("terminal labeled answer", reason)
+
+    def test_unaligned_declared_legend_does_not_identity_map_colliding_ids(self):
+        class SemanticFallbackLlm:
+            calls = 0
+
+            def __call__(self, prompt, **kwargs):
+                self.calls += 1
+                return {"choices": [{"text": (
+                    '{"b":"A0","p":"A0","w":"testimony favors opening the spillway",'
+                    '"q":"DIRECT","c":"NONE","s":"NONE","x":[]}'
+                )}]}
+
+        llm = SemanticFallbackLlm()
+        testimony = (
+            "Compared Actions\n"
+            "A1 “perform the harvest rite”\n"
+            "A2 “delay until the next moon”\n"
+            "Conclusion: A1 JUSTICE-FAVORED."
+        )
+        baseline, reason = infer_testimony_baseline(
+            llm,
+            "rawlsian",
+            testimony,
+            ["Flood the prison", "Flood the suburb"],
+            source_action_legend={
+                "A0": "Flood the prison",
+                "A1": "Flood the suburb",
+            },
+        )
+        self.assertEqual(llm.calls, 1)
+        self.assertEqual(baseline, "A0")
+        self.assertNotIn("terminal labeled answer", reason)
+
     def test_negative_only_terminal_label_falls_through_to_semantic_baseline(self):
         class PolarityAwareBaselineLlm:
             calls = 0
@@ -8162,8 +8285,10 @@ class BridgeTests(unittest.TestCase):
         contribution = summarize_specialist_contributions(result.cycles)
         self.assertTrue(all(record["responses"] == 2 for record in contribution.values()))
         answer = render_public_judgment(result)
-        self.assertIn("Adversarial reversal review", answer)
-        self.assertIn("accepted the challenge", answer)
+        # Reversal-review plumbing is not a default brief section; accepted
+        # challenge content may still appear as a change condition when justified.
+        self.assertNotIn("Adversarial reversal review", answer)
+        self.assertIn("# Ethical Parliament Judgment", answer)
 
 
 class AuditDirectInvertTests(unittest.TestCase):
@@ -9437,7 +9562,7 @@ class KantianAuthoritySeparationTests(unittest.TestCase):
         self.assertNotIn("perfect duties override", profile.decision_rule.casefold())
         self.assertNotIn("perfect duties override", profile.investigative_claim.casefold())
 
-    def test_flat_preference_yields_conflicted_no_leaning(self):
+    def test_flat_preference_yields_contested_no_leaning(self):
         from global_workspace.deontology_ledger import classify_deontological_authority
 
         profile = classify_deontological_authority(
@@ -9447,7 +9572,7 @@ class KantianAuthoritySeparationTests(unittest.TestCase):
             preference_strength=0.05,
         )
 
-        self.assertEqual(profile.adjudication_status, "CONFLICTED_NO_LEANING")
+        self.assertEqual(profile.adjudication_status, "CONTESTED_NO_LEANING")
         self.assertEqual(profile.policy_weight_factor, 0.0)
         self.assertFalse(profile.governing_eligible)
 
@@ -9466,7 +9591,7 @@ class KantianAuthoritySeparationTests(unittest.TestCase):
             preference_strength=0.4,
         )
 
-        self.assertEqual(profile.adjudication_status, "ADJUDICATED_SUPPORTS")
+        self.assertEqual(profile.adjudication_status, "SUPPORTS")
         self.assertEqual(profile.broadcast_authority, "GOVERNING_CANDIDATE")
         self.assertTrue(profile.governing_eligible)
         self.assertEqual(profile.policy_weight_factor, 1.0)
@@ -9503,7 +9628,7 @@ class KantianAuthoritySeparationTests(unittest.TestCase):
             recommended_action=actions[0],
             decision_rule="A0 ends a systematic burden on the least advantaged",
             rationale="Least-advantaged class bears ongoing lethal deprivation.",
-            adjudication_status="NOT_APPLICABLE",
+            adjudication_status="SUPPORTS",
             broadcast_authority="GOVERNING_CANDIDATE",
             governing_eligible=True,
             policy_weight_factor=1.0,
@@ -9537,7 +9662,8 @@ class KantianAuthoritySeparationTests(unittest.TestCase):
             "actions": actions,
             "selected_action": actions[0],
             "current_plurality": actions[0],
-            "judgment_status": "ACTION_RECOMMENDATION",
+            "judgment_status": "GOVERNED_RECOMMENDATION",
+            "governing_justification_status": "ADMISSIBLE",
             "confidence": 0.7,
             "epistemic_confidence": 0.65,
             "halted_by": "convergence",
@@ -9547,6 +9673,37 @@ class KantianAuthoritySeparationTests(unittest.TestCase):
             "cycles": [{
                 "cycle": 1,
                 "policy": {actions[0]: 0.7, actions[1]: 0.3},
+                "policy_leader": actions[0],
+                "broadcast_focus": {
+                    "specialist": "deontological",
+                    "constraint": "DUTY",
+                    "schema_valid": True,
+                    "recommended_action": actions[0],
+                    "decision_rule": "Treat the duty priority as unestablished",
+                    "rationale": "Kantian conflict open.",
+                    "assumption_status": "NORMATIVELY_CONTESTED",
+                    "adjudication_status": "PROVISIONAL_LEANING",
+                    "broadcast_authority": "INVESTIGATIVE",
+                    "governing_eligible": False,
+                    "investigative_claim": (
+                        "UNRESOLVED DUTY CONFLICT: entrusted lethal withdrawal "
+                        "versus covert institutional sacrifice."
+                    ),
+                    "action_scores": {actions[0]: 0.7, actions[1]: 0.3},
+                },
+                "governing_claim": {
+                    "specialist": "rawlsian",
+                    "constraint": "FAIRNESS",
+                    "schema_valid": True,
+                    "recommended_action": actions[0],
+                    "decision_rule": "A0 ends a systematic burden on the least advantaged",
+                    "rationale": "Least-advantaged class bears ongoing lethal deprivation.",
+                    "assumption_status": "DIRECT",
+                    "adjudication_status": "SUPPORTS",
+                    "broadcast_authority": "GOVERNING_CANDIDATE",
+                    "governing_eligible": True,
+                    "action_scores": {actions[0]: 0.75, actions[1]: 0.25},
+                },
                 "winner": {
                     "specialist": "deontological",
                     "constraint": "DUTY",
@@ -9590,7 +9747,7 @@ class KantianAuthoritySeparationTests(unittest.TestCase):
                         "decision_rule": "A0 ends a systematic burden on the least advantaged",
                         "rationale": "Least-advantaged class bears ongoing lethal deprivation.",
                         "assumption_status": "DIRECT",
-                        "adjudication_status": "NOT_APPLICABLE",
+                        "adjudication_status": "SUPPORTS",
                         "broadcast_authority": "GOVERNING_CANDIDATE",
                         "governing_eligible": True,
                         "action_scores": {actions[0]: 0.75, actions[1]: 0.25},
@@ -9601,10 +9758,510 @@ class KantianAuthoritySeparationTests(unittest.TestCase):
         }
 
         text = render_public_judgment(data)
+        self.assertIn("## Recommendation", text)
+        self.assertIn("## Why the Parliament currently favors this action", text)
         self.assertIn("A0 ends a systematic burden on the least advantaged", text)
-        self.assertIn("Provisional corroboration", text)
+        self.assertIn("## Most important unresolved issue", text)
         self.assertIn("UNRESOLVED DUTY CONFLICT", text)
         self.assertNotIn("perfect duties override conflicting beneficence", text.casefold())
+        self.assertNotIn("QUESTION:", text)
+
+
+class SpecialistAuthorityTests(unittest.TestCase):
+    """Framework-general provisional / contested / conditional authority."""
+
+    def test_conflicted_alias_parses_to_contested_and_does_not_serialize(self):
+        from global_workspace.specialist_authority import (
+            CONTESTED_NO_LEANING,
+            normalize_specialist_status,
+        )
+
+        self.assertEqual(
+            normalize_specialist_status("CONFLICTED_NO_LEANING"),
+            CONTESTED_NO_LEANING,
+        )
+        chunk = CandidateChunk(
+            "care", "CARE", {"a": 0.6, "b": 0.4}, 0.2, 0.2, 0.7,
+            recommended_action="a",
+            adjudication_status="CONFLICTED_NO_LEANING",
+        )
+        self.assertEqual(chunk.adjudication_status, "CONTESTED_NO_LEANING")
+
+    def test_rawls_normative_conflict_is_provisional_not_kant_special(self):
+        from global_workspace.specialist_authority import apply_specialist_authority
+
+        chunk = CandidateChunk(
+            "rawlsian", "FAIRNESS", {"publish": 0.65, "suppress": 0.35},
+            0.3, 0.3, 0.7,
+            recommended_action="publish",
+            preference_strength=0.3,
+            assumption_status="NORMATIVELY_CONTESTED",
+            unresolved="RESOLVE_NORMATIVE_TENSION",
+            framework_internal_conflicts=[
+                "equal basic liberty favors publish ↔ fair equality favors suppress",
+            ],
+            decision_rule="perfect duties require publish",
+        )
+        profile = apply_specialist_authority(chunk)
+        self.assertEqual(profile.adjudication_status, "PROVISIONAL_LEANING")
+        self.assertFalse(chunk.governing_eligible)
+        self.assertAlmostEqual(chunk.policy_weight_factor, 0.45)
+        self.assertNotIn("perfect duties require", chunk.decision_rule.casefold())
+
+    def test_conditional_support_attenuates_by_reversal_potential(self):
+        from global_workspace.specialist_authority import apply_specialist_authority
+
+        chunk = CandidateChunk(
+            "utilitarian", "WELFARE", {"publish": 0.7, "suppress": 0.3},
+            0.2, 0.2, 0.9,
+            recommended_action="publish",
+            epistemic_confidence=0.9,
+            assumption_status="CONDITIONAL",
+            baseline_status="CONDITIONAL",
+            baseline_condition=(
+                "choose publish unless the siphon would end within one month"
+            ),
+            utilitarian_decision_depends_on_unknown=True,
+            utilitarian_missing_comparison="siphon duration beyond one month",
+            decision_rule="A0 maximizes welfare",
+            audit_internal_effect="REVERSES",
+        )
+        profile = apply_specialist_authority(chunk)
+        self.assertEqual(profile.adjudication_status, "CONDITIONAL_SUPPORTS")
+        self.assertTrue(chunk.governing_eligible)
+        self.assertIn("provided", chunk.decision_rule.casefold())
+        self.assertLess(chunk.policy_weight_factor, 0.9 * 0.9)
+        self.assertGreater(chunk.policy_weight_factor, 0.0)
+
+    def test_cycle_record_aliases_winner_to_broadcast_focus(self):
+        focus = CandidateChunk(
+            "care", "CARE", {"a": 0.8, "b": 0.2}, 0.2, 0.2, 0.8,
+            recommended_action="a",
+        )
+        cycle = CycleRecord(
+            1, WorkspaceBroadcast(), [focus], focus, None,
+            {"a": 0.8, "b": 0.2}, 0.5, 1, 0.1,
+            policy_leader="a",
+            governing_claim=focus,
+            broadcast_focus=focus,
+        )
+        self.assertIs(cycle.broadcast_focus, focus)
+        self.assertIs(cycle.winner, focus)
+        self.assertEqual(cycle.policy_leader, "a")
+        payload = asdict(cycle)
+        self.assertIn("policy_leader", payload)
+        self.assertIn("governing_claim", payload)
+        self.assertIn("broadcast_focus", payload)
+        self.assertIn("winner", payload)
+
+    def test_investigative_priority_product_and_reopen_gate(self):
+        from global_workspace.specialist_authority import (
+            REOPEN_PRIORITY_THRESHOLD,
+            apply_investigative_authority,
+            apply_specialist_authority,
+            classify_terminal_judgment,
+            evidence_fingerprint_for,
+        )
+
+        kant = CandidateChunk(
+            "deontological", "DUTY",
+            {"publish": 0.6, "suppress": 0.4},
+            0.5, 0.5, 0.7,
+            recommended_action="publish",
+            preference_strength=0.2,
+            assumption_status="NORMATIVELY_CONTESTED",
+            unresolved="RESOLVE_NORMATIVE_TENSION",
+            evidence_basis="STATED_FACTS",
+            framework_internal_conflicts=[
+                "entrusted ICU strict duty ↔ institutional sacrifice",
+            ],
+            investigative_claim=(
+                "If ICU patients possess an entrusted strict right against withdrawal, "
+                "publish may be prohibited."
+            ),
+            tension_target_keys=["QUESTION:icu-duty"],
+        )
+        apply_specialist_authority(kant)
+        profile = apply_investigative_authority(
+            kant,
+            plurality="publish",
+            policy={"publish": 0.8, "suppress": 0.2},
+            problem_state={
+                "audit_candidates": [{
+                    "question_key": "QUESTION:icu-duty",
+                    "grounding_status": "CLAUSE_GROUNDED",
+                    "grounded_in": ["C0"],
+                    "proposition": "entrusted ICU duty remains unresolved",
+                }],
+            },
+            fired_keys={},
+        )
+        self.assertGreaterEqual(kant.investigative_priority, REOPEN_PRIORITY_THRESHOLD)
+        self.assertTrue(kant.reopen_eligible)
+        self.assertEqual(kant.broadcast_authority, "INVESTIGATIVE")
+        self.assertFalse(kant.governing_eligible)
+
+        rawls = CandidateChunk(
+            "rawlsian", "FAIRNESS",
+            {"publish": 0.8, "suppress": 0.2},
+            0.2, 0.2, 0.9,
+            recommended_action="publish",
+            decision_rule="A0 ends a systematic burden on the least advantaged",
+            adjudication_status="SUPPORTS",
+            governing_eligible=True,
+        )
+        apply_specialist_authority(rawls)
+        apply_investigative_authority(
+            rawls, plurality="publish", policy={"publish": 0.8, "suppress": 0.2},
+        )
+        self.assertTrue(rawls.governing_eligible)
+        self.assertLess(rawls.investigative_priority, REOPEN_PRIORITY_THRESHOLD)
+
+        terminal = classify_terminal_judgment(
+            plurality="publish",
+            governing=rawls,
+            candidates=[kant, rawls],
+        )
+        self.assertEqual(terminal.status, "CONTESTED_RECOMMENDATION")
+        self.assertEqual(terminal.governing_justification_status, "UNDER_ATTACK")
+
+        # One reopen per question_key unless evidence changes.
+        profile2 = apply_investigative_authority(
+            kant,
+            plurality="publish",
+            policy={"publish": 0.8, "suppress": 0.2},
+            problem_state={
+                "audit_candidates": [{
+                    "question_key": "QUESTION:icu-duty",
+                    "grounding_status": "CLAUSE_GROUNDED",
+                    "grounded_in": ["C0"],
+                    "proposition": "entrusted ICU duty remains unresolved",
+                }],
+            },
+            fired_keys={kant.reopen_question_key: evidence_fingerprint_for(
+                kant,
+                {
+                    "audit_candidates": [{
+                        "question_key": "QUESTION:icu-duty",
+                        "grounding_status": "CLAUSE_GROUNDED",
+                        "grounded_in": ["C0"],
+                        "proposition": "entrusted ICU duty remains unresolved",
+                    }],
+                },
+            )},
+        )
+        self.assertFalse(kant.reopen_eligible)
+
+    def test_plurality_without_governing_claim_is_contested(self):
+        from global_workspace.specialist_authority import classify_terminal_judgment
+
+        provisional = CandidateChunk(
+            "care", "CARE", {"a": 0.7, "b": 0.3}, 0.2, 0.2, 0.6,
+            recommended_action="a",
+            adjudication_status="PROVISIONAL_LEANING",
+            governing_eligible=False,
+            decision_rule="Provisionally lean a",
+        )
+        terminal = classify_terminal_judgment(
+            plurality="a",
+            governing=None,
+            candidates=[provisional],
+        )
+        self.assertEqual(terminal.status, "CONTESTED_RECOMMENDATION")
+        self.assertEqual(terminal.governing_rule, "")
+        self.assertEqual(terminal.governing_justification_status, "NONE")
+
+
+class AuditCycleHygieneTests(unittest.TestCase):
+    """A failed audit cycle must not erase a completed parliament."""
+
+    def test_audit_payload_strips_grounding_status_before_broadcast(self):
+        state = {
+            "audit_candidates": [{
+                "issue_id": "QUESTION:abc123",
+                "question_key": "QUESTION:abc123",
+                "proposition": "duration and permanence of reform may change ranking",
+                "question": "duration and permanence of reform may change ranking",
+                "grounded_in": ["C0"],
+                "grounding_status": "CLAUSE_GROUNDED",
+                "raised_by": ["utilitarian"],
+                "status": "PERSISTENT_UNRESOLVED",
+                "category": "VERIFY_FACTS",
+            }],
+            "agent_positions": [{
+                "specialist": "utilitarian", "choice_status": "UNDERDETERMINED",
+            }],
+        }
+        _signals, _question, payload = _problem_state_audit_probe(
+            state, "Publish the unalterable system audit now",
+        )
+        sanitized = _admitted_audit_variable({
+            **payload, "grounding_status": "CLAUSE_GROUNDED", "junk": True,
+        })
+        self.assertIn("grounding_status", payload)
+        self.assertNotIn("junk", sanitized)
+        self.assertTrue({"entity", "relation", "possible_values", "focus_action", "question"} <= set(sanitized))
+
+    def test_preserved_kantian_state_keeps_visibility_answer(self):
+        actions = ["publish", "suppress"]
+        prior = CandidateChunk(
+            specialist="deontological", constraint="DUTY",
+            action_scores={actions[0]: 0.7, actions[1]: 0.3},
+            surprise=0.4, friction=0.4, confidence=0.6,
+            recommended_action=actions[0],
+            visibility_response="NOT_TESTED",
+        )
+        incoming = CandidateChunk(
+            specialist="deontological", constraint="DUTY",
+            action_scores={actions[0]: 0.7, actions[1]: 0.3},
+            surprise=0.4, friction=0.4, confidence=0.6,
+            recommended_action=actions[0],
+            framework_retention_status="UPDATE_REJECTED",
+            framework_constraint_retained=False,
+            visibility_response="ACCEPT",
+            visibility_justification="Hidden siphon deaths were undercounted.",
+            visibility_harm_revision="UPWARD",
+            visibility_magnitude_status="UNKNOWN",
+        )
+        restored = _operative_framework_candidates(
+            [incoming], {"deontological": prior}, remember=False,
+        )[0]
+        self.assertEqual(restored.framework_retention_status, "PRESERVED_AFTER_REJECTED_UPDATE")
+        self.assertEqual(restored.visibility_response, "ACCEPT")
+        self.assertIn("undercounted", restored.visibility_justification)
+
+    def test_later_invalid_cycle_recovers_the_last_valid_recommendation(self):
+        class FlipInvalid(FixedSpecialist):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.calls = 0
+
+            def evaluate(self, scenario, actions, broadcast):
+                self.calls += 1
+                chunk = super().evaluate(scenario, actions, broadcast)
+                if self.calls >= 2:
+                    chunk.schema_valid = False
+                    chunk.validation_errors = ["invalid"]
+                    chunk.confidence = 1.0
+                return chunk
+
+        result = WorkspaceEngine(
+            [
+                FlipInvalid("care", "protect", "CARE"),
+                FlipInvalid("rawlsian", "protect", "FAIRNESS"),
+            ],
+            WorkspaceConfig(
+                max_cycles=2, min_valid_specialists=2, enable_synthesis=False,
+                enable_consensus_audit=False, enable_problem_state_audit=False,
+                enable_reversal_audit=False,
+            ),
+        ).run("A test", ["protect", "wait"])
+
+        self.assertEqual(result.halted_by, "insufficient_valid_candidates")
+        self.assertEqual(result.selected_action, "protect")
+        self.assertNotEqual(result.judgment_status, "INCONCLUSIVE")
+        self.assertGreater(result.confidence, 0.0)
+        text = render_public_judgment(result.to_dict())
+        self.assertIn("## Recommendation", text)
+        self.assertIn("protect", text)
+        self.assertNotIn("QUESTION:", text)
+
+
+class UncertaintyTypingMigrationTests(unittest.TestCase):
+    """Old names parse; canonical forms serialize; structural mislabels normalize."""
+
+    def test_resolve_normative_tension_alias_serializes_as_normative_adjudication(self):
+        from global_workspace.uncertainty_types import (
+            NORMATIVE_ADJUDICATION,
+            normalize_unresolved_marker,
+        )
+        self.assertEqual(
+            normalize_unresolved_marker("RESOLVE_NORMATIVE_TENSION"),
+            NORMATIVE_ADJUDICATION,
+        )
+        chunk = CandidateChunk(
+            specialist="care", constraint="CARE",
+            action_scores={"a": 0.6, "b": 0.4},
+            surprise=0.2, friction=0.2, confidence=0.5,
+            unresolved="RESOLVE_NORMATIVE_TENSION",
+        )
+        self.assertEqual(chunk.unresolved, NORMATIVE_ADJUDICATION)
+
+    def test_decision_boundary_payload_is_minimal_and_exact(self):
+        from global_workspace.local_specialists import _admitted_audit_variable
+        admitted = _admitted_audit_variable({
+            "entity": "siphon duration under one month",
+            "relation": "DECISION_BOUNDARY",
+            "category": "DECISION_BOUNDARY",
+            "condition": "if siphon duration is under 1 month",
+            "expected_effect": "REVERSES",
+            "target_framework": "utilitarian",
+            "target_claim_key": "QUESTION:util:duration",
+            "possible_values": ["NO_CHANGE", "WEAKENS", "REVERSES", "UNRESOLVED"],
+            "focus_action": "publish",
+            "question": (
+                "If siphon duration is under 1 month, does utilitarian support reverse?"
+            ),
+            "junk": True,
+        })
+        self.assertNotIn("junk", admitted)
+        self.assertEqual(admitted["category"], "DECISION_BOUNDARY")
+        self.assertEqual(admitted["relation"], "DECISION_BOUNDARY")
+        self.assertEqual(admitted["boundary_status"], "UNRESOLVED")
+        self.assertEqual(
+            admitted["expected_effect"], "REVERSES_FRAMEWORK_PREFERENCE",
+        )
+        self.assertEqual(
+            admitted["possible_values"],
+            ["NOT_CROSSED", "CROSSED", "UNRESOLVED"],
+        )
+        self.assertEqual(admitted["target_framework"], "utilitarian")
+        self.assertEqual(admitted["target_claim_key"], "QUESTION:util:duration")
+        self.assertIn("1 month", admitted["condition"])
+
+    def test_verify_facts_threshold_rule_reclassifies_on_admission(self):
+        from global_workspace.local_specialists import _admitted_audit_variable
+        admitted = _admitted_audit_variable({
+            "entity": "siphon duration",
+            "relation": "EMPIRICAL_UNKNOWN",
+            "category": "VERIFY_FACTS",
+            "proposition": (
+                "If the siphon lasts less than 1 month, utilitarian preference reverses."
+            ),
+            "possible_values": ["TRUE", "FALSE", "UNKNOWN"],
+            "focus_action": "publish",
+            "question": (
+                "If the siphon lasts less than 1 month, does preference reverse?"
+            ),
+        })
+        self.assertEqual(admitted["category"], "DECISION_BOUNDARY")
+        self.assertEqual(admitted["reclassified_from"], "VERIFY_FACTS")
+        self.assertEqual(
+            admitted["expected_effect"], "REVERSES_FRAMEWORK_PREFERENCE",
+        )
+
+    def test_ambiguous_verify_facts_prose_is_not_rewritten(self):
+        from global_workspace.local_specialists import _admitted_audit_variable
+        admitted = _admitted_audit_variable({
+            "entity": "duty conflict",
+            "relation": "EMPIRICAL_UNKNOWN",
+            "category": "VERIFY_FACTS",
+            "proposition": (
+                "Whether rescue or non-maleficence should govern remains unsettled."
+            ),
+            "possible_values": ["TRUE", "FALSE", "UNKNOWN"],
+            "focus_action": "divert",
+            "question": (
+                "Whether rescue or non-maleficence should govern remains unsettled."
+            ),
+        })
+        self.assertEqual(admitted["category"], "VERIFY_FACTS")
+        self.assertEqual(admitted.get("typing_review"), "AMBIGUOUS_UNCERTAINTY_TYPING")
+        self.assertNotIn("reclassified_from", admitted)
+
+    def test_candidate_threshold_mislabel_normalizes_at_parser_admission(self):
+        chunk = _candidate_from_data(
+            "care",
+            ["publish the audit", "suppress the audit"],
+            {
+                "scores": {"A0": 0.55, "A1": 0.45},
+                "r": "A0",
+                "c": "CARE",
+                "u": "VERIFY_FACTS",
+                "w": "publish protects entrusted dependents unless siphon is brief",
+                "j": "NONE",
+                "e": "STATED_FACTS",
+                "x": "NONE",
+                "z": 0.6,
+                "rm": {
+                    "A0": "entrusted dependency under publish",
+                    "A1": "created vulnerability under suppress",
+                },
+                "nr": "SECONDARY",
+                "np": "counts inform responsiveness after relational comparison",
+                "dr": "prefer publish unless duration reverses expected harm",
+                "ft": "If siphon duration is under 1 month, preference reverses",
+                "nt": "NONE",
+            },
+            WorkspaceBroadcast(),
+            "NONE",
+            {},
+        )
+        self.assertEqual(chunk.unresolved, "DECISION_BOUNDARY")
+
+
+class CanonicalActionCompletenessTests(unittest.TestCase):
+    """Canonical actions are compressed state objects, not display labels."""
+
+    semantic_a1 = (
+        "Maintain standard oxygen allocation, preserving the 4 patients, causing "
+        "shelter grid failure that kills 16 refugees, while the engineered "
+        "public-ward sacrifice remains concealed."
+    )
+    semantic_a0 = (
+        "Publish the unalterable audit, ending concealment of the engineered "
+        "sacrifice while risking the 4 patients' oxygen allocation."
+    )
+
+    def test_short_label_does_not_replace_semantic_action(self):
+        from global_workspace.action_identity import build_canonical_action_record
+        record = build_canonical_action_record("A1", self.semantic_a1)
+        self.assertEqual(record.short_label, "Maintain standard oxygen allocation")
+        self.assertIn("kills 16 refugees", record.canonical_semantic_action)
+        self.assertIn("concealed", record.canonical_semantic_action)
+        self.assertIn("4 patients", record.canonical_semantic_action)
+
+    def test_truncated_action_fails_completeness_against_grounded_clauses(self):
+        from global_workspace.action_identity import validate_action_set_completeness
+        truncated = "Maintain standard oxygen allocation, preserving the 4 patients"
+        with self.assertRaisesRegex(ValueError, "decision-critical"):
+            validate_action_set_completeness(
+                [self.semantic_a0, truncated],
+                grounded_clause_texts_by_id={
+                    "A0": [self.semantic_a0],
+                    "A1": [self.semantic_a1],
+                },
+            )
+
+    def test_planner_path_does_not_word_truncate_action_text(self):
+        from global_workspace.local_specialists import _feasible_actions
+        long_action = (
+            "Maintain standard oxygen allocation for the public ward, preserving "
+            "the 4 patients, causing shelter grid failure that kills 16 refugees, "
+            "while the engineered public-ward sacrifice remains concealed"
+        )
+        other = (
+            "Publish the unalterable system audit now, ending concealment of the "
+            "engineered sacrifice while accepting risk to the ward patients"
+        )
+        actions = _feasible_actions({
+            "actor": "grid director",
+            "sides": {"A": "ward patients", "B": "refugees"},
+            "actions": [
+                {"a": long_action, "f": 0.9, "e": True, "p": "SIDE_A"},
+                {"a": other, "f": 0.9, "e": True, "p": "SIDE_B"},
+            ],
+        })
+        self.assertEqual(actions[0], long_action)
+        self.assertIn("kills 16 refugees", actions[0])
+
+    def test_incomplete_planner_action_is_rejected(self):
+        from global_workspace.local_specialists import _feasible_actions
+        with self.assertRaises(ValueError):
+            _feasible_actions({
+                "actor": "grid director",
+                "sides": {"A": "ward patients", "B": "refugees"},
+                "actions": [
+                    {
+                        "a": "Maintain standard oxygen allocation, allowing the hospital to",
+                        "f": 0.9, "e": True, "p": "SIDE_A",
+                    },
+                    {
+                        "a": "Publish the unalterable audit ending concealment",
+                        "f": 0.9, "e": True, "p": "SIDE_B",
+                    },
+                ],
+            })
 
 
 if __name__ == "__main__":

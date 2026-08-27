@@ -34,6 +34,28 @@ _AUDIT_DIRECT_INVERT_CONSTRAINTS = _PROBLEM_AUDIT_CONSTRAINTS | {
     "VISIBILITY_AUDIT",
     "REVERSAL_AUDIT",
 }
+_REQUIRED_AUDIT_KEYS = {"entity", "relation", "possible_values", "focus_action", "question"}
+_ALLOWED_AUDIT_KEYS = _REQUIRED_AUDIT_KEYS | {
+    "required_response", "issue_id", "source", "proposition",
+    "grounded_in", "raised_by", "status", "grounding_status",
+    # Uncertainty typing (v1 boundary / adjudication payload).
+    "category", "condition", "boundary_status", "expected_effect",
+    "target_framework", "target_claim_key", "claim_key", "question_key",
+    "reclassified_from", "reclassification", "typing_review",
+}
+
+
+def _admitted_audit_variable(raw: Any) -> dict[str, Any]:
+    """Keep the typed audit contract and serialize canonical uncertainty forms.
+
+    Old names may parse; identifiable VERIFY_FACTS mislabels that are structural
+    decision boundaries are normalized on admission.
+    """
+    if not isinstance(raw, dict):
+        return {}
+    from .uncertainty_types import normalize_audit_variable
+    filtered = {key: value for key, value in raw.items() if key in _ALLOWED_AUDIT_KEYS}
+    return normalize_audit_variable(filtered)
 
 
 def _proposal_review_from_data(
@@ -588,8 +610,11 @@ def _utilitarian_table_errors(
 ALLOWED_UNRESOLVED = {
     "NONE",
     "VERIFY_FACTS",
+    "DECISION_BOUNDARY",
     "CHECK_FEASIBILITY",
     "CLARIFY_SCENARIO",
+    "NORMATIVE_ADJUDICATION",
+    # One-migration parse alias; canonical serialize is NORMATIVE_ADJUDICATION.
     "RESOLVE_NORMATIVE_TENSION",
 }
 
@@ -1736,6 +1761,8 @@ def _candidate_from_data(
     unresolved = str(data.get("u", data.get("unresolved", "NONE"))).strip().upper().replace(" ", "_")
     if unresolved not in ALLOWED_UNRESOLVED:
         raise ValueError(f"unresolved must be one of {sorted(ALLOWED_UNRESOLVED)}")
+    from .uncertainty_types import normalize_unresolved_marker
+    unresolved = normalize_unresolved_marker(unresolved)
 
     evidence_basis = str(data.get("e", "STATED_FACTS")).strip().upper()
     if evidence_basis not in {"STATED_FACTS", "FRAMEWORK_ONLY", "UNSTATED_FACTS"}:
@@ -2076,11 +2103,13 @@ def _candidate_from_data(
         consensus_audit_effect = str(data.get("ie", "UNRESOLVED")).strip().upper()
         # The admitted ProblemState item is authoritative. Specialists respond
         # to it; they do not have to reproduce its ontology verbatim.
-        consensus_audit_variable = (
-            dict(broadcast.audit_variable)
+        consensus_audit_variable = _admitted_audit_variable(
+            broadcast.audit_variable
             if isinstance(broadcast.audit_variable, dict) and broadcast.audit_variable
             else data.get("av", {})
         )
+        if consensus_audit_effect == "REVERSES_FRAMEWORK_PREFERENCE":
+            consensus_audit_effect = "REVERSES"
         if consensus_audit_effect not in {"NO_CHANGE", "WEAKENS", "REVERSES", "UNRESOLVED"}:
             raise ValueError("audit effect must be NO_CHANGE, WEAKENS, REVERSES, or UNRESOLVED")
         if not isinstance(consensus_audit_variable, dict) or not consensus_audit_variable:
@@ -2113,14 +2142,10 @@ def _candidate_from_data(
                     or "Which fact about the unresolved variable changes the recommendation?"
                 )[:180],
             }
-        required_audit_keys = {"entity", "relation", "possible_values", "focus_action", "question"}
-        allowed_audit_keys = required_audit_keys | {
-            "required_response", "issue_id", "source", "proposition",
-            "grounded_in", "raised_by", "status",
-        }
-        if not required_audit_keys.issubset(consensus_audit_variable):
+        consensus_audit_variable = _admitted_audit_variable(consensus_audit_variable)
+        if not _REQUIRED_AUDIT_KEYS.issubset(consensus_audit_variable):
             raise ValueError("audit typed variable must cover entity, relation, possible_values, focus_action, and question")
-        if not set(consensus_audit_variable).issubset(allowed_audit_keys):
+        if not set(consensus_audit_variable).issubset(_ALLOWED_AUDIT_KEYS):
             raise ValueError("audit typed variable includes unsupported keys")
         if not isinstance(consensus_audit_variable.get("possible_values"), list) or len(consensus_audit_variable.get("possible_values", [])) < 2:
             raise ValueError("audit typed variable must include possible_values")
@@ -2139,10 +2164,8 @@ def _candidate_from_data(
             allowed_effects = required_response.get("allowed_effects")
             if not isinstance(allowed_effects, list) or len(allowed_effects) < 2:
                 raise ValueError("audit typed variable required_response must include allowed_effects")
-        expected_audit_variable = (
-            broadcast.audit_variable
-            if isinstance(broadcast.audit_variable, dict)
-            else {}
+        expected_audit_variable = _admitted_audit_variable(
+            broadcast.audit_variable if isinstance(broadcast.audit_variable, dict) else {}
         )
         if expected_audit_variable and audit_participation == "NOT_TESTED":
             for key in ("entity", "relation", "focus_action"):
@@ -2181,7 +2204,7 @@ def _candidate_from_data(
             # Keep the ethical vote. The audit asked the specialist to record
             # remaining uncertainty, not to forfeit a valid duty ranking.
             unresolved = (
-                "RESOLVE_NORMATIVE_TENSION"
+                "NORMATIVE_ADJUDICATION"
                 if assumption_status == "NORMATIVELY_CONTESTED"
                 else "VERIFY_FACTS"
             )
@@ -2191,7 +2214,7 @@ def _candidate_from_data(
         # A later ordinary or hypothetical cycle cannot erase missing real-world
         # facts merely by omitting the marker.
         unresolved = (
-            "RESOLVE_NORMATIVE_TENSION"
+            "NORMATIVE_ADJUDICATION"
             if assumption_status == "NORMATIVELY_CONTESTED"
             else "VERIFY_FACTS"
         )
@@ -2512,6 +2535,19 @@ def _candidate_from_data(
             proposal_review.validation_errors.append(
                 "proposal review failed framework-retention validation"
             )
+
+    # Admission-time mislabel migration: structural threshold/counterfactual
+    # rules typed as VERIFY_FACTS become DECISION_BOUNDARY. Ambiguous prose stays.
+    if unresolved == "VERIFY_FACTS":
+        from .uncertainty_types import DECISION_BOUNDARY, looks_like_decision_boundary
+        proposition = " ".join(part for part in (
+            unsupported_assumption,
+            reversal_condition,
+            factual_threshold if factual_threshold.upper() != "NONE" else "",
+            decision_rule,
+        ) if part and str(part).strip())
+        if looks_like_decision_boundary(proposition):
+            unresolved = DECISION_BOUNDARY
 
     return CandidateChunk(
         specialist=specialist,
@@ -3355,7 +3391,21 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
         role = FRAMEWORK_ROLES[self.name]
         testimony = _compact_testimony(self.testimony, 900)
         action_ids = [f"A{index}" for index in range(len(actions))]
-        action_legend = {action_id: action for action_id, action in zip(action_ids, actions)}
+        from .action_identity import build_canonical_action_records
+        action_records = build_canonical_action_records(actions)
+        # Deliberative object is the semantic action; short_label is display-only.
+        action_legend = {
+            record.action_id: {
+                "short_label": record.short_label,
+                "canonical_semantic_action": record.canonical_semantic_action,
+                "actor": record.actor,
+                "beneficiaries": list(record.beneficiaries),
+                "harmed": list(record.harmed),
+                "mechanism": record.mechanism,
+                "institutional_effect": record.institutional_effect,
+            }
+            for record in action_records
+        }
         allowed_constraints = sorted(FRAMEWORK_CONSTRAINTS[self.name])
         fixed_baseline = self.baseline_action_id if self.baseline_action_id in {*action_ids, "NONE"} else "NONE"
         baseline_status = str(self.baseline_status).strip().upper()
@@ -3972,7 +4022,7 @@ competence and responsiveness. They are DECISIVE only when the competing relatio
 claims are otherwise comparable; "more lives" alone is not a care-ethical rule.
 When the frozen baseline is NORMATIVELY_CONTESTED, preserve its relational
 commitments rather than its provisional action: choose an interim r, but set
-ss=PROVISIONAL, cc=false, u=RESOLVE_NORMATIVE_TENSION, and name in tf/nt what
+ss=PROVISIONAL, cc=false, u=NORMATIVE_ADJUDICATION, and name in tf/nt what
 priority between the care commitments would settle the judgment.
 """
         elif self.name == "deontological":
@@ -4014,7 +4064,7 @@ states whether numerical magnitude is DECISIVE, SECONDARY, or IRRELEVANT; np mus
 connect any decisive quantity to the scope or category of a duty or rights
 violation, never merely to aggregate welfare. If the frozen baseline is
 NORMATIVELY_CONTESTED, preserve the conflicting duties rather than its provisional
-action: use ss=PROVISIONAL, cc=false, u=RESOLVE_NORMATIVE_TENSION, and identify the
+action: use ss=PROVISIONAL, cc=false, u=NORMATIVE_ADJUDICATION, and identify the
 non-consequential priority rule needed to settle the conflict in tf/nt.
 dp is the typed duty ledger for every action. v must match the fm prefix. k and n
 identify the norm; rel states whether the action SATISFIES, is CONSISTENT with,
@@ -4094,7 +4144,7 @@ least-advantaged distributive group as the liberty subject unless the scenario
 also states that this group bears the liberty restriction or protection.
 If the frozen baseline is NORMATIVELY_CONTESTED, preserve the conflicting Rawlsian
 principles rather than its provisional action: use ss=PROVISIONAL, cc=false,
-u=RESOLVE_NORMATIVE_TENSION, and identify the priority question in tf/nt.
+u=NORMATIVE_ADJUDICATION, and identify the priority question in tf/nt.
 rp is the proposed graph ledger. For each action, identify the subject or
 constituency actually affected, then identify the morally relevant comparative
 relation only when the scenario supports that relation. Do not equate “most
@@ -4163,7 +4213,7 @@ nr states whether numerical magnitude is DECISIVE, SECONDARY, or IRRELEVANT; np
 must explain how the stakes inform phronesis rather than substituting a numerical
 maximization rule for character. If the frozen baseline is NORMATIVELY_CONTESTED,
 preserve the conflicting virtues rather than its provisional action: use
-ss=PROVISIONAL, cc=false, u=RESOLVE_NORMATIVE_TENSION, and identify the practical-
+ss=PROVISIONAL, cc=false, u=NORMATIVE_ADJUDICATION, and identify the practical-
 wisdom comparison needed to settle the conflict in tf/nt.
 vl is the proposed character ledger for every action. v must match the fm prefix;
 r names the actor's role; vs names the virtues expressed; x names the vice or
@@ -4241,7 +4291,12 @@ in fic/foq and your framework fields unless YOUR framework resolves, defeats,
 refines, or reinterprets them for an explicit reason in j/fa. Do not copy another
 framework's vocabulary merely to acknowledge the broadcast.
 Action IDs: {json.dumps(action_legend)}
-Original testimony source labels: {json.dumps(self.source_action_legend or action_legend)}
+Reason from each action's canonical_semantic_action and structured fields
+(actor/beneficiaries/harmed/mechanism/institutional_effect). short_label is
+display-only and must not be treated as the complete deliberative object.
+Original testimony source labels: {json.dumps(self.source_action_legend or {
+            record.action_id: record.canonical_semantic_action for record in action_records
+        })}
 CRITICAL STATE MAPPING: the Action IDs above are immutable for this run. Every
 score, recommendation, admissibility judgment, rationale, and graph update must
 refer to the physical action attached to that exact ID. Do not reuse a label from
@@ -4357,7 +4412,11 @@ the terrain through a different relation, CONTESTED when the proposed comparison
 normatively disputed, REVERSAL_RELEVANT when resolving it could reverse your ranking,
 or UNRESOLVED. Return ax with a framework-specific explanation of at least three
 words. If d is CONDITIONAL or UNDERDETERMINED, u must not be NONE: use
-VERIFY_FACTS or RESOLVE_NORMATIVE_TENSION so the ranking stays inspectable.
+VERIFY_FACTS, DECISION_BOUNDARY, or NORMATIVE_ADJUDICATION so the ranking stays
+inspectable. DECISION_BOUNDARY is for already-derived threshold/counterfactual
+rules (e.g. if duration < 1 month, preference reverses); VERIFY_FACTS is for
+missing world-state unknowns; NORMATIVE_ADJUDICATION is for unresolved
+framework priority/scope/duty conflicts.
 Legacy d/a/v fields
 are optional. Do not contort your framework merely to restate the audited variable.
 If you translate it, name the relation your framework actually evaluates.
@@ -4615,12 +4674,42 @@ def _action_similarity(first: str, second: str) -> float:
     return len(first_words & second_words) / len(union) if union else 1.0
 
 
+def _action_coverage(first: str, second: str) -> float:
+    """How completely the shorter description's content appears in the longer one."""
+    ignored = {"a", "an", "and", "in", "of", "the", "to", "with"}
+    first_words = {word for word in re.findall(r"[a-z0-9]+", first.casefold()) if word not in ignored}
+    second_words = {word for word in re.findall(r"[a-z0-9]+", second.casefold()) if word not in ignored}
+    if not first_words or not second_words:
+        return 0.0
+    shorter, longer = (
+        (first_words, second_words)
+        if len(first_words) <= len(second_words)
+        else (second_words, first_words)
+    )
+    return len(shorter & longer) / len(shorter)
+
+
+def _source_action_alignment_score(source_action: str, workspace_action: str) -> float:
+    """Align a testimony nickname or paraphrase to a workspace action.
+
+    Jaccard alone rejects short quoted names such as ``Publish Unalterable
+    Audit`` against a longer canonical description. Coverage of the shorter
+    side recovers those nicknames without treating label identity as meaning.
+    """
+    return max(
+        _action_similarity(source_action, workspace_action),
+        _action_coverage(source_action, workspace_action),
+    )
+
+
 def _feasible_actions(data: dict[str, Any], scenario: str = "") -> list[str]:
-    actor = _truncate_words(data.get("actor"), 60)
+    actor = " ".join(str(data.get("actor", "")).split())
     if not actor:
         raise ValueError("action set must identify one grounded decision-maker")
     sides = data.get("sides")
-    if not isinstance(sides, dict) or not _truncate_words(sides.get("A")) or not _truncate_words(sides.get("B")):
+    side_a = " ".join(str((sides or {}).get("A", "")).split()) if isinstance(sides, dict) else ""
+    side_b = " ".join(str((sides or {}).get("B", "")).split()) if isinstance(sides, dict) else ""
+    if not isinstance(sides, dict) or not side_a or not side_b:
         raise ValueError("ethical conflict must identify two materially different sides")
     raw_actions = data.get("actions", [])
     actions = []
@@ -4634,9 +4723,11 @@ def _feasible_actions(data: dict[str, Any], scenario: str = "") -> list[str]:
             except ValueError:
                 continue
             position = str(item.get("p", "")).strip().upper()
-            action = _truncate_words(item.get("a", ""))
+            # Never truncate canonical action text — it is a compressed state object.
+            action = " ".join(str(item.get("a", "")).split())
             if (
                 action
+                and action_clause_looks_complete(action)
                 and feasibility >= 0.65
                 and position in {"SIDE_A", "SIDE_B"}
                 and not re.search(
@@ -4743,6 +4834,67 @@ def extract_labeled_action_legend(scenario: str) -> dict[str, str]:
     return {}
 
 
+def extract_declared_action_legend(text: str) -> dict[str, str]:
+    """Read action IDs as the text itself defines them.
+
+    Original agents often mint a local numbering (1-indexed A1/A2, quoted
+    nicknames, a Compared Actions block) that collides with workspace A0/A1.
+    Those bindings are testimony-local; they must not be treated as workspace
+    positions.
+    """
+    from .scenario_semantics import normalize_action_labels
+
+    normalized = normalize_action_labels(text)
+    legend: dict[str, str] = {}
+
+    def remember(action_id: str, description: str, *, min_words: int) -> None:
+        action_id = action_id.upper()
+        cleaned = " ".join(description.strip(" ,;:.?-").split())
+        cleaned = cleaned.strip("\"“”'")
+        if len(cleaned.split()) < min_words:
+            return
+        # Keep the first binding so later "Under A1:" consequence bullets
+        # cannot overwrite an explicit definition.
+        legend.setdefault(action_id, cleaned)
+
+    for match in re.finditer(
+        r"\b(A\d+)\s*[\"“”']([^\"“”']{1,80})[\"“”']",
+        normalized,
+        flags=re.IGNORECASE,
+    ):
+        remember(match.group(1), match.group(2), min_words=1)
+
+    for match in re.finditer(
+        r"\b(?:action|option)\s+(A\d+)\s*[:.\-–—]\s*(.+?)(?="
+        r"(?:\b(?:action|option)\s+A\d+\b)|[.!?\n]|$)",
+        normalized,
+        flags=re.IGNORECASE,
+    ):
+        remember(match.group(1), match.group(2), min_words=2)
+
+    heading = re.search(
+        r"(?:compared\s+actions?|action\s+(?:labels?|mapping|legend|set)|"
+        r"listed\s+actions?)\s*:?\s*\n",
+        normalized,
+        flags=re.IGNORECASE,
+    )
+    if heading:
+        for line in normalized[heading.end():].splitlines():
+            stripped = line.strip()
+            if not stripped:
+                break
+            line_match = re.match(
+                r"^(A\d+)\s*[:.\-–—]?\s*(.+)$",
+                stripped,
+                flags=re.IGNORECASE,
+            )
+            if not line_match:
+                break
+            remember(line_match.group(1), line_match.group(2), min_words=1)
+
+    return legend
+
+
 def extract_explicit_actions(scenario: str) -> list[str]:
     """Extract a closed natural-language either/or choice without model generation."""
     from .scenario_semantics import normalize_action_labels
@@ -4789,19 +4941,8 @@ def extract_explicit_actions(scenario: str) -> list[str]:
 
 def _validate_lossless_action_set(actions: Sequence[str], scenario: str = "") -> None:
     """Reject action sets that lose decision-critical meaning during admission."""
-    normalized_actions = [str(action) for action in actions]
-    if len(normalized_actions) != 2:
-        raise ValueError("canonical action set must contain exactly two actions")
-    problems = [
-        f"A{index}: {_truncate_words(action)}"
-        for index, action in enumerate(normalized_actions)
-        if not action_clause_looks_complete(action)
-    ]
-    if problems:
-        prefix = "incomplete or truncated action clause(s)"
-        if scenario:
-            prefix += " in scenario admission"
-        raise ValueError(f"{prefix}: " + "; ".join(problems))
+    from .action_identity import validate_action_set_completeness
+    validate_action_set_completeness(actions, scenario=scenario)
 
 
 def extract_allocation_actions(scenario: str) -> list[str]:
@@ -4842,7 +4983,7 @@ def extract_acceptability_actions(scenario: str) -> list[str]:
     )
     if not match:
         return []
-    proposed = match.group(1).strip(" ,;:.")[:100]
+    proposed = match.group(1).strip(" ,;:.")
     if not proposed:
         return []
     affirmative = proposed[0].upper() + proposed[1:]
@@ -4949,6 +5090,11 @@ def infer_testimony_stance(
     }.get(specialist_key, specialist_key)
     is_care = specialist_key == "care"
     normalized_testimony = normalize_action_labels(testimony)
+    declared_legend = extract_declared_action_legend(normalized_testimony)
+    if declared_legend:
+        # Testimony-local bindings override positional workspace IDs.
+        source_legend = {**source_legend, **declared_legend}
+    polarity_ids = list(dict.fromkeys([*action_ids, *source_legend.keys()]))
     marker = _FRAMEWORK_CONSTRUCT_MARKERS.get(specialist_key)
     construct_axes = {
         match.group(1).casefold()
@@ -5012,7 +5158,7 @@ def infer_testimony_stance(
         return bool(explicit or decision_if)
 
     def resolve_source_label(source_id: str) -> str:
-        """Resolve a testimony label through the scenario mapping, not position."""
+        """Resolve a testimony label through its bound action, not shared numbering."""
         source_action = source_legend.get(source_id)
         if not source_action:
             return source_id if source_id in action_ids else "NONE"
@@ -5024,7 +5170,7 @@ def infer_testimony_stance(
         if len(exact_matches) == 1:
             return exact_matches[0]
         ranked = sorted(
-            ((_action_similarity(source_action, action), action_id)
+            ((_source_action_alignment_score(source_action, action), action_id)
              for action_id, action in legend.items()),
             reverse=True,
         )
@@ -5071,7 +5217,7 @@ def infer_testimony_stance(
     if terminal_markers:
         terminal = normalized_testimony[terminal_markers[-1].end():]
         positive, terminal_rejected_source_ids = _terminal_action_polarities(
-            terminal, action_ids
+            terminal, polarity_ids
         )
         if len(positive) == 1:
             source_id = next(iter(positive))
@@ -5542,10 +5688,14 @@ All actions must be mutually exclusive choices available to the same actor and
 at the same level of abstraction. Do not bundle implementation tactics.
 Return ONLY JSON:
 {{"actor":"grounded decision-maker","sides":{{"A":"first value or interest","B":"competing value or interest"}},
-"actions":[{{"a":"short action","f":0.9,"e":true,"p":"SIDE_A"}}]}}
+"actions":[{{"a":"complete action preserving all decision-critical consequences and constraints","f":0.9,"e":true,"p":"SIDE_A"}}]}}
 Give exactly 2 materially different actions: one SIDE_A and one SIDE_B. Do not
 include a compromise, hybrid, balanced, conditional middle-ground, or third option.
-Do not give several implementation methods pursuing the same side. f is feasibility (0 to 1). e is
+Do not give several implementation methods pursuing the same side. Each action
+string is a compressed state object, not a display label: preserve every
+decision-critical consequence and constraint from the scenario (who is saved,
+who is harmed, by what mechanism, and any concealment/institutional effect).
+Do not truncate mid-clause. f is feasibility (0 to 1). e is
 true when the action is genuinely available without inventing facts. Do not invent
 waiting, authorities, escape, rescue, or resources. Preserve genuinely closed choices.
 [/INST]"""

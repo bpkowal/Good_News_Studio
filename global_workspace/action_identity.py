@@ -13,7 +13,7 @@ import hashlib
 import json
 import re
 import unicodedata
-from typing import Any
+from typing import Any, Sequence
 
 from .semantic_graph import SemanticEdge, SemanticGraph, SemanticNode
 
@@ -627,3 +627,375 @@ def add_action_identity_subgraph(
             {"condition_type": "ACTION_MODALITY"},
         ))
         graph.add_edge(SemanticEdge(action_node_id, "HAS_CONSTRAINT", condition_id))
+
+
+# --- Canonical action records (identity / label / semantic separation) ---------
+#
+# action_id: stable deliberation handle (A0, A1, …)
+# short_label: concise UI string (may omit detail)
+# canonical_semantic_action: authoritative reasoning string — must preserve every
+#   decision-critical consequence/constraint from the grounded source clauses.
+# Structured fields are the preferred carrier; the semantic string is rendered
+# from them when available so a model-written sentence is not the sole store.
+
+_CRITICAL_EFFECT = re.compile(
+    r"\b(?:kill|kills|killing|killed|die|dies|dying|died|death|deaths|"
+    r"fatalit(?:y|ies)|surviv(?:e|es|ed|ing|al)|preserv(?:e|es|ed|ing)|"
+    r"sav(?:e|es|ed|ing)|sacrific(?:e|es|ed|ing)|harm|harms|harmed|harming|"
+    r"fail(?:s|ed|ure)|conceal(?:s|ed|ing|ment)?|hidden|secret|covert|"
+    r"undisclosed|engineered|siphon|withdraw|withholding)\b",
+    re.IGNORECASE,
+)
+_NUMBERED_OUTCOME = re.compile(
+    r"\b(?P<verb>kill|kills|killing|killed|die|dies|dying|died|death|deaths|"
+    r"fatalit(?:y|ies)|surviv(?:e|es|ed|ing|al)|preserv(?:e|es|ed|ing)|"
+    r"sav(?:e|es|ed|ing)|sacrific(?:e|es|ed|ing))\b"
+    r"(?P<body>[^.;,]{0,80}?\b(?P<count>\d+(?:,\d{3})*(?:\.\d+)?)\b[^.;,]{0,40}?"
+    r"\b(?P<who>patient|patients|refugee|refugees|resident|residents|life|lives|"
+    r"person|people|worker|workers|child|children)\b)"
+    r"|"
+    r"\b(?P<count2>\d+(?:,\d{3})*(?:\.\d+)?)\b[^.;,]{0,40}?"
+    r"\b(?P<who2>patient|patients|refugee|refugees|resident|residents|life|lives|"
+    r"person|people|worker|workers|child|children)\b[^.;,]{0,40}?"
+    r"\b(?P<verb2>kill|kills|killing|killed|die|dies|dying|died|death|deaths|"
+    r"fatalit(?:y|ies)|surviv(?:e|es|ed|ing|al)|preserv(?:e|es|ed|ing)|"
+    r"sav(?:e|es|ed|ing)|sacrific(?:e|es|ed|ing))\b",
+    re.IGNORECASE,
+)
+_MECHANISM_FAILURE = re.compile(
+    r"\b(?:(?:shelter|grid|power|oxygen|allocation|hospital|ward)\s[\w-]*\s*){0,4}"
+    r"(?:fail(?:s|ed|ure)|collapse(?:s|d)?|outage|blackout)\b"
+    r"|"
+    r"\b(?:fail(?:s|ed|ure)|collapse(?:s|d)?)\s[\w-]*\s*"
+    r"(?:shelter|grid|power|oxygen|allocation|hospital|ward)\b",
+    re.IGNORECASE,
+)
+_CONCEALMENT = re.compile(
+    r"\b(?:conceal(?:s|ed|ing|ment)?|hidden|secret|covert|undisclosed|"
+    r"engineered\s+sacrifice|structural\s+design\s+remains\s+hidden|"
+    r"remains?\s+concealed)\b[^.;,]{0,40}",
+    re.IGNORECASE,
+)
+_SHORT_LABEL_SPLIT = re.compile(
+    r",|;|\bwhile\b|\bcausing\b|\bkilling\b|\bpreserving\b|\ballowing\b|"
+    r"\bleaving\b|\bthereby\b|\bresulting\b",
+    re.IGNORECASE,
+)
+
+
+@dataclass(frozen=True, slots=True)
+class CanonicalActionRecord:
+    """Decision-critical action object. Agents reason from the semantic form."""
+
+    action_id: str
+    short_label: str
+    canonical_semantic_action: str
+    actor: str = ""
+    intervention: str = ""
+    beneficiaries: tuple[str, ...] = ()
+    harmed: tuple[str, ...] = ()
+    mechanism: str = ""
+    institutional_effect: str = ""
+    source_clauses: tuple[str, ...] = ()
+    completeness_status: str = "UNCHECKED"
+    missing_critical: tuple[str, ...] = ()
+
+    def as_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+def extract_decision_critical_claims(text: str) -> tuple[str, ...]:
+    """Pull ranking-relevant consequence/constraint atoms from prose or clauses."""
+    cleaned = " ".join(str(text or "").split())
+    if not cleaned:
+        return ()
+    claims: list[str] = []
+
+    def _add(claim: str) -> None:
+        normalized = " ".join(str(claim).split()).strip(" ,;:.-")
+        if len(normalized) < 6:
+            return
+        if normalized.casefold() in {item.casefold() for item in claims}:
+            return
+        claims.append(normalized)
+
+    for match in _NUMBERED_OUTCOME.finditer(cleaned):
+        groups = match.groupdict()
+        if groups.get("count"):
+            _add(
+                f"{groups['verb']} {groups['count']} {groups['who']}"
+            )
+        elif groups.get("count2"):
+            _add(
+                f"{groups['verb2']} {groups['count2']} {groups['who2']}"
+            )
+    for match in _MECHANISM_FAILURE.finditer(cleaned):
+        _add(match.group(0))
+    for match in _CONCEALMENT.finditer(cleaned):
+        _add(match.group(0))
+    return tuple(claims)
+
+
+def _claim_coverage(claim: str, haystack: str) -> float:
+    ignored = {
+        "a", "an", "and", "as", "at", "by", "for", "from", "in", "into", "of",
+        "on", "or", "the", "to", "with", "that", "this", "those", "these",
+    }
+    claim_tokens = {
+        token for token in re.findall(r"[a-z0-9]+", claim.casefold())
+        if token not in ignored and len(token) > 1
+    }
+    hay_tokens = {
+        token for token in re.findall(r"[a-z0-9]+", haystack.casefold())
+        if token not in ignored
+    }
+    if not claim_tokens:
+        return 1.0
+    return len(claim_tokens & hay_tokens) / len(claim_tokens)
+
+
+def missing_decision_critical_claims(
+    action: str,
+    source_texts: Sequence[str],
+    *,
+    coverage_threshold: float = 0.72,
+) -> tuple[str, ...]:
+    """Return source claims that the canonical action failed to preserve."""
+    action_text = " ".join(str(action or "").split())
+    missing: list[str] = []
+    for source in source_texts:
+        for claim in extract_decision_critical_claims(source):
+            if _claim_coverage(claim, action_text) >= coverage_threshold:
+                continue
+            if claim.casefold() not in {item.casefold() for item in missing}:
+                missing.append(claim)
+    return tuple(missing)
+
+
+def render_short_label(semantic_action: str, intervention: str = "") -> str:
+    """UI-facing label. May omit detail; never used as the reasoning object."""
+    text = " ".join(str(semantic_action or "").split())
+    if not text:
+        return " ".join(str(intervention or "action").replace("_", " ").split()).title()
+    head = _SHORT_LABEL_SPLIT.split(text, maxsplit=1)[0].strip(" ,;:.-")
+    if len(head.split()) >= 2 and len(head) <= 72:
+        return head[0].upper() + head[1:] if head else head
+    if intervention:
+        return " ".join(intervention.replace("_", " ").split()).title()
+    if len(text) <= 72:
+        return text[0].upper() + text[1:]
+    shortened = text[:73].rsplit(" ", 1)[0].rstrip(" ,;:-")
+    return shortened + "…"
+
+
+def render_semantic_action_from_structure(
+    *,
+    intervention: str,
+    actor: str = "",
+    beneficiaries: Sequence[str] = (),
+    harmed: Sequence[str] = (),
+    mechanism: str = "",
+    institutional_effect: str = "",
+    fallback: str = "",
+) -> str:
+    """Render the authoritative semantic string from structured fields."""
+    parts: list[str] = []
+    head = " ".join(str(intervention or "").replace("_", " ").split())
+    if actor and head:
+        parts.append(f"{actor.strip()}: {head}")
+    elif head:
+        parts.append(head[0].upper() + head[1:] if head else head)
+    if beneficiaries:
+        parts.append("preserving " + "; ".join(beneficiaries))
+    if harmed:
+        parts.append("causing " + "; ".join(harmed))
+    if mechanism:
+        parts.append(str(mechanism).strip().rstrip("."))
+    if institutional_effect:
+        parts.append(str(institutional_effect).strip().rstrip("."))
+    rendered = ", ".join(part for part in parts if part)
+    if rendered:
+        return rendered + ("." if rendered[-1] not in ".?!" else "")
+    return " ".join(str(fallback or "").split())
+
+
+def _structure_from_identity(identity: ActionIdentity, action_text: str) -> dict[str, Any]:
+    beneficiaries: list[str] = []
+    harmed: list[str] = []
+    mechanisms: list[str] = []
+    institutional: list[str] = []
+    for consequence in identity.consequences:
+        quantity = ", ".join(consequence.quantities)
+        targets = ", ".join(consequence.targets) or consequence.predicate
+        phrase = " ".join(part for part in (quantity, targets) if part).strip()
+        if consequence.polarity == "BENEFICIAL":
+            if phrase and phrase not in beneficiaries:
+                beneficiaries.append(phrase)
+        elif consequence.polarity == "ADVERSE":
+            if phrase and phrase not in harmed:
+                harmed.append(phrase)
+            if consequence.predicate in {"disconnect", "freeze", "failure", "collapse"} or (
+                "fail" in consequence.predicate
+            ):
+                mechanisms.append(phrase or consequence.predicate)
+    text = action_text.casefold()
+    if re.search(r"\b(?:conceal\w*|hidden|secret|covert|undisclosed)\b", text):
+        institutional.append("engineered arrangement remains concealed")
+    if re.search(r"\b(?:siphon|structural\s+design)\b", text):
+        institutional.append("structural design remains hidden")
+    actor = ", ".join(identity.actors)
+    intervention = identity.intervention.replace("_", " ") if identity.intervention else ""
+    if not intervention:
+        intervention = render_short_label(action_text)
+    mechanism = "; ".join(dict.fromkeys(mechanisms))
+    if not mechanism:
+        fail = re.search(
+            r"([^.;,]{0,40}\b(?:grid|shelter|power|oxygen)\b[^.;,]{0,40}\bfail\w*[^.;,]{0,40}"
+            r"|[^.;,]{0,40}\bfail\w*[^.;,]{0,40}\b(?:grid|shelter|power|oxygen)\b[^.;,]{0,40})",
+            action_text,
+            re.IGNORECASE,
+        )
+        if fail:
+            mechanism = " ".join(fail.group(0).split())
+    return {
+        "actor": actor,
+        "intervention": intervention,
+        "beneficiaries": tuple(beneficiaries),
+        "harmed": tuple(harmed),
+        "mechanism": mechanism,
+        "institutional_effect": "; ".join(dict.fromkeys(institutional)),
+    }
+
+
+def build_canonical_action_record(
+    action_id: str,
+    action_text: str,
+    *,
+    actor: str = "",
+    source_clause_texts: Sequence[str] = (),
+    require_complete: bool = False,
+) -> CanonicalActionRecord:
+    """Compile id / short label / semantic action / structured fields."""
+    semantic = " ".join(str(action_text or "").split())
+    identity = compile_action_identity(semantic) if semantic else ActionIdentity(
+        intervention="", basis="LEXICAL_FALLBACK", lexical_fallback="",
+    )
+    structure = _structure_from_identity(identity, semantic)
+    if actor:
+        structure["actor"] = " ".join(str(actor).split())
+    # Prefer the admitted full prose when complete; otherwise render from structure.
+    if semantic and action_clause_looks_complete(semantic):
+        canonical = semantic
+    else:
+        canonical = render_semantic_action_from_structure(
+            intervention=structure["intervention"],
+            actor=structure["actor"],
+            beneficiaries=structure["beneficiaries"],
+            harmed=structure["harmed"],
+            mechanism=structure["mechanism"],
+            institutional_effect=structure["institutional_effect"],
+            fallback=semantic,
+        )
+    short = render_short_label(canonical, structure["intervention"])
+    sources = tuple(
+        " ".join(str(item).split())
+        for item in source_clause_texts
+        if " ".join(str(item).split())
+    )
+    missing = missing_decision_critical_claims(canonical, sources) if sources else ()
+    if not action_clause_looks_complete(canonical):
+        status = "INCOMPLETE_CLAUSE"
+    elif missing:
+        status = "MISSING_CRITICAL"
+    elif sources:
+        status = "COMPLETE"
+    else:
+        status = "UNCHECKED"
+    record = CanonicalActionRecord(
+        action_id=str(action_id).strip().upper() or "A?",
+        short_label=short,
+        canonical_semantic_action=canonical,
+        actor=structure["actor"],
+        intervention=structure["intervention"],
+        beneficiaries=structure["beneficiaries"],
+        harmed=structure["harmed"],
+        mechanism=structure["mechanism"],
+        institutional_effect=structure["institutional_effect"],
+        source_clauses=sources,
+        completeness_status=status,
+        missing_critical=missing,
+    )
+    if require_complete and status in {"INCOMPLETE_CLAUSE", "MISSING_CRITICAL"}:
+        detail = "; ".join(missing) if missing else canonical
+        raise ValueError(
+            f"{record.action_id} fails action-completeness ({status}): {detail}"
+        )
+    return record
+
+
+def build_canonical_action_records(
+    actions: Sequence[str],
+    *,
+    actor: str = "",
+    grounded_clause_texts_by_id: dict[str, Sequence[str]] | None = None,
+    require_complete: bool = False,
+) -> list[CanonicalActionRecord]:
+    grounded = grounded_clause_texts_by_id or {}
+    records: list[CanonicalActionRecord] = []
+    for index, action in enumerate(actions):
+        action_id = f"A{index}"
+        records.append(build_canonical_action_record(
+            action_id,
+            action,
+            actor=actor,
+            source_clause_texts=grounded.get(action_id, ()),
+            require_complete=require_complete,
+        ))
+    return records
+
+
+def validate_action_set_completeness(
+    actions: Sequence[str],
+    *,
+    scenario: str = "",
+    grounded_clause_texts_by_id: dict[str, Sequence[str]] | None = None,
+) -> None:
+    """Hard gate: every canonical action must preserve decision-critical content.
+
+    Checks (1) clause-shape completeness and (2), when source clauses are known,
+    that ranking-relevant effects from those clauses survive in the action text.
+    """
+    normalized = [str(action) for action in actions]
+    if len(normalized) != 2:
+        raise ValueError("canonical action set must contain exactly two actions")
+    shape_problems = [
+        f"A{index}: {action}"
+        for index, action in enumerate(normalized)
+        if not action_clause_looks_complete(action)
+    ]
+    if shape_problems:
+        prefix = "incomplete or truncated action clause(s)"
+        if scenario:
+            prefix += " in scenario admission"
+        raise ValueError(f"{prefix}: " + "; ".join(shape_problems))
+
+    grounded = grounded_clause_texts_by_id or {}
+    if not grounded and scenario:
+        # Before grounding: ensure scenario-level critical claims are not dropped
+        # by *both* actions when the scenario states them in action clauses.
+        return
+    missing_rows = []
+    for index, action in enumerate(normalized):
+        action_id = f"A{index}"
+        sources = list(grounded.get(action_id, ()))
+        missing = missing_decision_critical_claims(action, sources)
+        if missing:
+            missing_rows.append(
+                f"{action_id} drops decision-critical content: "
+                + "; ".join(missing[:4])
+            )
+    if missing_rows:
+        raise ValueError(
+            "canonical action(s) omit decision-critical consequences/constraints "
+            "from grounded source clauses: " + " | ".join(missing_rows)
+        )

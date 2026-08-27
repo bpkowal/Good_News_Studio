@@ -31,6 +31,7 @@ from global_workspace.memory import EpisodicMemory, summarize_specialist_contrib
 from global_workspace.models import WorkspaceBroadcast
 from global_workspace.openai_backend import OpenAIWorkspaceLLM
 from global_workspace.presentation import (
+    render_decision_brief,
     render_public_judgment,
     summarize_problem_shape_paragraphs,
 )
@@ -54,536 +55,13 @@ def _baseline_display_action(baseline: dict[str, object]) -> str:
     return str(baseline.get(field, "NONE")).strip().upper() or "NONE"
 
 
+
 def render_summary(result) -> str:
-    final = next(
-        (cycle for cycle in reversed(result.cycles) if not cycle.is_hypothetical), None
-    )
-    lines = ["# Ethical Parliament Judgment"]
+    """Default user-facing summary: decision brief + deliberation map.
 
-    def add_section(title: str, paragraphs: list[str]) -> None:
-        paragraphs = [entry for entry in paragraphs if entry]
-        if not paragraphs:
-            return
-        lines.extend(["", f"## {title}"])
-        lines.extend(paragraphs)
-
-    def add_diagnostic_section(title: str, entries: list[str]) -> None:
-        entries = [entry for entry in entries if entry]
-        if not entries:
-            return
-        lines.extend(["", f"## {title}"])
-        lines.extend(f"- {entry}" for entry in entries)
-
-    def compact_cycles(cycles: list[int]) -> str:
-        return ", ".join(dict.fromkeys(str(cycle) for cycle in cycles))
-
-    def sentence(text: str) -> str:
-        cleaned = " ".join(str(text).split()).strip()
-        if not cleaned:
-            return ""
-        cleaned = cleaned[0].upper() + cleaned[1:]
-        if cleaned[-1] not in ".?!":
-            cleaned += "."
-        return cleaned
-
-    def format_quantity(number: str, unit: str = "") -> str:
-        try:
-            value = float(number)
-        except ValueError:
-            return number
-        if unit.casefold() == "fraction" and 0.0 <= value <= 1.0:
-            return f"{value * 100:.0f}%"
-        if value.is_integer():
-            return f"{int(value):,}"
-        return f"{value:g}"
-
-    def humanize_threshold(text: str) -> str:
-        cleaned = " ".join(str(text).replace("_", " ").split()).strip()
-        if not cleaned:
-            return cleaned
-
-        pattern = re.compile(
-            r"(?P<lhs>[A-Za-z][A-Za-z ]*?)\s*(?P<op><=|>=|<|>)\s*"
-            r"(?P<num>\d+(?:\.\d+)?)\s*(?P<unit>[A-Za-z%]+)?"
-        )
-
-        def replace(match: re.Match[str]) -> str:
-            lhs = " ".join(match.group("lhs").split()).strip()
-            op = match.group("op")
-            num = format_quantity(match.group("num"), match.group("unit") or "")
-            if op == "<":
-                return f"{lhs} falls below {num}"
-            if op == ">":
-                return f"{lhs} exceeds {num}"
-            if op == "<=":
-                return f"{lhs} is at or below {num}"
-            return f"{lhs} is at or above {num}"
-
-        cleaned = pattern.sub(replace, cleaned)
-        cleaned = cleaned.replace("count", "").replace("fraction", "")
-        cleaned = re.sub(r"\s+", " ", cleaned).strip()
-        return cleaned
-
-    constraint_labels = {
-        "RIGHTS": "a rights-based objection",
-        "DUTY": "a duty-based objection",
-        "CARE": "a relational-care objection",
-        "FAIRNESS": "a fairness objection",
-        "CHARACTER": "a character and practical-wisdom objection",
-        "UNCERTAINTY": "an unresolved consequence comparison",
-        "AUTONOMY": "an autonomy objection",
-    }
-
-    def render_residue(constraint: str) -> str:
-        code = str(constraint).strip().upper()
-        label = constraint_labels.get(
-            code, code.lower().replace("_", " ") + " consideration",
-        )
-        matching = [
-            candidate for cycle in reversed(result.cycles)
-            if not cycle.is_hypothetical
-            for candidate in cycle.candidates
-            if candidate.schema_valid
-            and candidate.constraint == code
-            and result.current_plurality
-            and candidate.action_scores.get(result.current_plurality, 0.5) < 0.5
-        ]
-        detail = next((
-            candidate.rationale for candidate in matching
-            if candidate.rationale and candidate.rationale.casefold() not in {
-                "none", "delegate output failed semantic validation."
-            }
-        ), "")
-        return (
-            f"{label.capitalize()} remains active"
-            + (f": {detail}" if detail else "")
-        )
-
-    def render_reopen_condition(condition: str) -> str:
-        code = str(condition).strip().upper()
-        problem_state = (
-            final.broadcast.problem_state if final is not None else {}
-        ) or {}
-        question = next((
-            str(item.get("question", "")).strip()
-            for item in problem_state.get("unresolved_questions", [])
-            if str(item.get("category", "")).upper() == code
-            and str(item.get("question", "")).strip()
-        ), "")
-        if question:
-            return question[0].lower() + question[1:] if question.startswith("Whether ") else question
-        labels = {
-            "RESOLVE_NORMATIVE_TENSION": "the unresolved normative conflict is clarified",
-            "VERIFY_FACTS": "the decision-critical factual uncertainty is resolved",
-            "CHECK_FEASIBILITY": "the proposed action's feasibility is established",
-            "ACTION_SET_ADEQUACY": "the adequacy of the available action set is reviewed",
-            "FRAMEWORK_GROUNDING_UNCERTAINTY": "the framework-grounding uncertainty is resolved",
-        }
-        return labels.get(code, humanize_threshold(condition))
-
-    def summarize_trace_health() -> list[str]:
-        grouped: dict[tuple[str, str], dict[str, object]] = {}
-        for finding in result.trace_health or []:
-            bucket = grouped.setdefault(
-                (finding.severity, finding.code),
-                {"detail": finding.detail, "cycles": []},
-            )
-            bucket["cycles"].append(finding.cycle)
-        entries: list[str] = []
-        for (severity, code), bucket in sorted(grouped.items()):
-            entry = f"{severity}/{code}"
-            cycles = [cycle for cycle in bucket["cycles"] if cycle]
-            if cycles:
-                entry += f" [cycles {compact_cycles(cycles)}]"
-            detail = str(bucket["detail"])
-            if detail:
-                entry += f" — {detail}"
-            entries.append(entry)
-        return entries
-
-    if final is None:
-        add_section(
-            "Judgment",
-            [
-                "No reliable deliberative judgment was produced.",
-                f"Judgment status: {result.judgment_status}. Decision: INCONCLUSIVE. "
-                f"Halting condition: {result.halted_by}. Compressed rule: {result.compressed_rule}.",
-            ],
-        )
-        if result.trace_health:
-            add_diagnostic_section("Trace note", summarize_trace_health()[:4])
-        return "\n".join(lines) + "\n"
-
-    final_policy_support = final.policy.get(result.current_plurality, result.confidence)
-    valid_count = sum(candidate.schema_valid for candidate in final.candidates)
-    received_broadcast = final.received_broadcast or final.broadcast
-    dissent = final.dissent
-    supporters = [
-        candidate
-        for candidate in final.candidates
-        if getattr(candidate, "schema_valid", False)
-        and getattr(candidate, "recommended_action", "") == result.selected_action
-    ]
-    supporter_names = ", ".join(
-        dict.fromkeys(candidate.specialist for candidate in supporters if candidate.specialist)
-    )
-
-    if result.judgment_status == "ACTION_RECOMMENDATION":
-        judgment_sentence = f"The Parliament recommends **{result.selected_action}**."
-    elif result.judgment_status == "CONTESTED_RECOMMENDATION":
-        judgment_sentence = f"The Parliament recommends **{result.selected_action}** as a contested recommendation."
-    elif result.judgment_status == "CONDITIONAL":
-        judgment_sentence = (
-            f"The Parliament currently leans toward **{result.current_plurality or result.selected_action}** "
-            f"as a conditional judgment."
-        )
-    elif result.judgment_status == "UNDERDETERMINED":
-        judgment_sentence = (
-            f"The Parliament cannot yet justify a conclusive choice; current plurality is "
-            f"{result.current_plurality or 'none'}."
-        )
-    else:
-        judgment_sentence = f"The Parliament's status is {result.judgment_status.lower().replace('_', ' ')}."
-
-    if str(result.halted_by or "").strip():
-        halted_sentence = (
-            "The run stopped because the cycle budget ran out rather than because the Parliament naturally converged."
-            if result.halted_by == "cycle_budget"
-            else f"The run stopped because {result.halted_by.replace('_', ' ')}."
-        )
-    else:
-        halted_sentence = "The run stopped without a recorded halt reason."
-
-    add_section(
-        "Judgment",
-        [
-            judgment_sentence,
-            f"Final policy support: {final_policy_support:.2f}. Epistemic confidence: {result.epistemic_confidence:.2f}. "
-            f"{halted_sentence} Valid delegates: {valid_count}/{len(final.candidates)}.",
-        ],
-    )
-
-    problem_shape_paragraphs = summarize_problem_shape_paragraphs(result.to_dict())
-    if problem_shape_paragraphs:
-        add_section(
-            "What the case turns on",
-            problem_shape_paragraphs[:4],
-        )
-    else:
-        add_section(
-            "What the case turns on",
-            [
-                "The authoritative state did not expose a compact problem-shape relation, so the Parliament relied mainly on framework pressure and the scenario itself.",
-            ],
-        )
-
-    if final.winner is None:
-        leading_paragraphs = [
-            sentence(
-                f"The final cycle produced no valid deliberative winner. System status: "
-                f"{final.system_error}; the last valid ProblemState was retained."
-            ),
-        ]
-    else:
-        leading_paragraphs = [
-            sentence(
-                f"The final cycle's winning constraint was {final.winner.constraint}; the previous broadcast context was {received_broadcast.constraint}; "
-                f"the last emitted broadcast was {final.broadcast.constraint}."
-            ),
-            sentence(
-                f"Final winning constraint: {final.winner.constraint}. Previous broadcast context: {received_broadcast.constraint}. "
-                f"Last emitted broadcast: {final.broadcast.constraint}. The integrator kept the original agents in view: {', '.join(result.source_testimonies) or 'none'}."
-            ),
-        ]
-    if supporter_names:
-        leading_paragraphs.append(
-            sentence(
-                f"The supportive voices were {supporter_names}, which kept the recommendation alive despite the remaining objection."
-            )
-        )
-    if dissent:
-        dissent_line = (
-            f"The strongest preserved objection came from {dissent.specialist} under {dissent.constraint}"
-        )
-        if dissent.rationale:
-            dissent_line += f" ({dissent.rationale})"
-        leading_paragraphs.append(sentence(dissent_line))
-    add_section("Why the Parliament lands there", leading_paragraphs)
-
-    unresolved_paragraphs: list[str] = []
-    if dissent:
-        unresolved_paragraphs.append(
-            sentence(
-                f"The strongest preserved objection remains active: {dissent.specialist} preserved {dissent.constraint}"
-                + (f" ({dissent.rationale})" if dissent.rationale else "")
-            )
-        )
-    if result.moral_residue:
-        unresolved_paragraphs.extend(
-            sentence(render_residue(constraint))
-            for constraint in result.moral_residue[:4]
-        )
-    substantive_reopen = [
-        condition for condition in result.reopen_conditions
-        if str(condition).strip().upper() != "RETRY_MODEL_CALL"
-    ]
-    if substantive_reopen:
-        unresolved_paragraphs.append(sentence(
-            "The judgment should be reconsidered when "
-            + "; or ".join(
-                render_reopen_condition(condition)
-                for condition in substantive_reopen[:3]
-            )
-        ))
-    if unresolved_paragraphs:
-        add_section("What remains unresolved", unresolved_paragraphs)
-
-    if result.termination_assessment is not None:
-        termination = result.termination_assessment
-        add_section(
-            "Process note",
-            [
-                sentence(
-                    f"The run ended as {termination.termination_type.lower().replace('_', ' ')}; resource-censored={str(termination.resource_censored).lower()}; "
-                    f"convergence evidence={termination.convergence_evidence:.2f}"
-                )
-            ],
-        )
-    if result.further_deliberation_estimate is not None:
-        estimate = result.further_deliberation_estimate
-        add_section(
-            "Further-deliberation estimate",
-            [
-                sentence(f"Action-change signal: {estimate.action_change_signal:.2f}."),
-                sentence(f"New-constraint signal: {estimate.new_material_constraint_signal:.2f}."),
-            ],
-        )
-
-    appendix_paragraphs: list[str] = []
-    activated_ev = next(
-        (item for item in reversed(result.ev_dominance_assessments) if item.get("activated")),
-        None,
-    )
-    if activated_ev:
-        appendix_paragraphs.append(
-            sentence(
-                f"EV dominance circuit breaker: {float(activated_ev['ratio']):.2f}× with majority "
-                f"{activated_ev['majority_count']}/{activated_ev['valid_delegate_count']} on unit "
-                f"{activated_ev['unit']} ({activated_ev['direction']})"
-            )
-        )
-    active_visibilities = [
-        visibility
-        for visibility in result.visibility_assessments
-        if visibility.valid and visibility.activated
-    ]
-    if active_visibilities:
-        visibility = active_visibilities[-1]
-        penalties = ", ".join(
-            f"{action}×{value:.2f}"
-            for action, value in visibility.action_multipliers.items()
-            if value < 1.0
-        )
-        appendix_paragraphs.append(
-            sentence(
-                f"Visibility audit: mechanism={visibility.mechanism}; confidence adjustment={penalties or 'none'}"
-            )
-        )
-    active_autonomy = [
-        autonomy
-        for autonomy in result.autonomy_assessments
-        if autonomy.valid and autonomy.activated
-    ]
-    if active_autonomy:
-        autonomy = active_autonomy[-1]
-        tagged = ", ".join(
-            f"{action}={tag}"
-            for action, tag in autonomy.action_tags.items() if tag != "NONE"
-        )
-        autonomy_line = f"Autonomy audit: {tagged or 'none'}"
-        if autonomy.voluntary_alternative.casefold() != "none":
-            autonomy_line += f"; voluntary-exhaustion probe: {autonomy.voluntary_alternative}"
-        appendix_paragraphs.append(sentence(autonomy_line))
-    if result.synthesis_proposals:
-        proposal = next(
-            (proposal for proposal in reversed(result.synthesis_proposals) if proposal.accepted),
-            result.synthesis_proposals[-1],
-        )
-        if proposal.accepted:
-            addressed = ", ".join(proposal.addressed_constraints) or "none recorded"
-            appendix_paragraphs.append(
-                sentence(
-                    f"Synthesis: {proposal.action or 'none'} was admitted; addressed constraints: {addressed}; "
-                    f"feasibility={proposal.feasibility:.2f}; rationale: {proposal.rationale or 'none recorded'}"
-                )
-            )
-        else:
-            appendix_paragraphs.append(
-                sentence(
-                    f"Synthesis: {proposal.action or 'none'} was rejected because {proposal.rejection_reason or 'no rejection reason recorded'}"
-                )
-            )
-    if result.contingency_feasibility_assessments:
-        assessment = result.contingency_feasibility_assessments[-1]
-        fallback_text = ", ".join(
-            f"{action}={status}" for action, status in (assessment.fallback_statuses or {}).items()
-        ) or "unavailable"
-        basis_text = ", ".join(
-            f"{action}={value}" for action, value in (assessment.evidence_bases or {}).items()
-        ) or "unavailable"
-        shared_note = (
-            "shared failure: the synthesis and at least one fallback lose a common capability"
-            if assessment.shared_failure
-            else "no shared failure detected"
-        )
-        appendix_paragraphs.append(
-            sentence(
-                f"Contingency feasibility: Fallback availability: {fallback_text}. Shared-failure check: {shared_note}. "
-                f"Basis: {basis_text}. Reason: {assessment.error or 'none'}"
-            )
-        )
-    if result.planning_assessments:
-        assessment = result.planning_assessments[-1]
-        appendix_paragraphs.append(
-            sentence(
-                f"Planning assessment: {'broadcast' if assessment.broadcast_worthy else 'private'}; "
-                f"target={assessment.target_action}; feasibility={assessment.feasibility:.2f}"
-            )
-        )
-    if result.access_decisions:
-        admitted = [decision for decision in result.access_decisions if decision.admitted]
-        if admitted:
-            decision = admitted[-1]
-            audit_variable = decision.audit_variable or {}
-            parts = [
-                f"{key}={audit_variable.get(key, 'NONE')}"
-                for key in ("entity", "relation", "focus_action")
-                if audit_variable.get(key)
-            ]
-            if audit_variable.get("possible_values"):
-                parts.append(
-                    "possible_values="
-                    + ",".join(map(str, audit_variable.get("possible_values", [])))
-                )
-            if isinstance(audit_variable.get("required_response"), dict):
-                anchor = audit_variable["required_response"].get("counterfactual_anchor", "")
-                if anchor:
-                    parts.append(f"counterfactual_anchor={anchor}")
-            access_line = f"{decision.content_type} admitted ({', '.join(decision.signals)})"
-            if parts:
-                access_line += " | typed audit variable: " + ", ".join(parts)
-            appendix_paragraphs.append(sentence(f"{access_line}. Audit question: {decision.question}"))
-    if result.source_baselines:
-        baseline_lines: list[str] = []
-        for specialist, baseline in result.source_baselines.items():
-            status = str(baseline.get("status", "UNKNOWN"))
-            action_id = _baseline_display_action(baseline)
-            reason = str(baseline.get("reason", "")).strip()
-            if status and action_id:
-                entry = f"{specialist}: {status} {action_id}"
-                if reason:
-                    entry += f" ({reason})"
-                baseline_lines.append(entry)
-        if baseline_lines:
-            appendix_paragraphs.append("Framework baselines: " + "; ".join(baseline_lines[:5]) + ".")
-    if result.action_source_grounding:
-        grounding = result.action_source_grounding
-        status = str(grounding.get("status", "UNKNOWN"))
-        mapping_lines: list[str] = []
-        for action_id, mapping in (grounding.get("actions", {}) or {}).items():
-            if not isinstance(mapping, dict):
-                continue
-            cited = ",".join(str(value) for value in mapping.get("clause_ids", [])) or "NONE"
-            action = str(mapping.get("action", action_id))
-            reason = str(mapping.get("reason", "")).strip()
-            mapping_lines.append(
-                f"{action_id}={action} <- {cited}" + (f" ({reason})" if reason else "")
-            )
-        errors = " | ".join(str(value) for value in grounding.get("errors", []))
-        grounding_line = f"Action-source grounding: {status}"
-        if mapping_lines:
-            grounding_line += "; " + "; ".join(mapping_lines)
-        if errors:
-            grounding_line += f"; errors={errors}"
-        appendix_paragraphs.append(sentence(grounding_line))
-    audited = [
-        (
-            (
-                candidate.specialist,
-                candidate.assumption_status,
-                candidate.unsupported_assumption,
-                candidate.reversal_condition,
-            ),
-            f"{candidate.specialist}={candidate.assumption_status} "
-            f"(assumption: {candidate.unsupported_assumption}; reversal: {candidate.reversal_condition})",
-            cycle.cycle,
-        )
-        for cycle in result.cycles
-        if not cycle.is_hypothetical
-        for candidate in cycle.candidates
-        if candidate.assumption_status != "NOT_AUDITED"
-    ]
-    if audited:
-        grouped: dict[tuple[str, ...], dict[str, object]] = {}
-        for key, entry, cycle in audited:
-            bucket = grouped.setdefault(key, {"entry": entry, "cycles": []})
-            if cycle is not None:
-                bucket["cycles"].append(cycle)
-        for bucket in list(grouped.values())[:4]:
-            entry = str(bucket["entry"])
-            cycles = [str(cycle) for cycle in bucket["cycles"] if cycle is not None]
-            if cycles:
-                entry = f"{entry} [cycles {', '.join(dict.fromkeys(cycles))}]"
-            appendix_paragraphs.append(entry + ".")
-    reversal_reviews = [
-        candidate
-        for cycle in result.cycles
-        if cycle.is_hypothetical
-        and (cycle.received_broadcast or cycle.broadcast).constraint == "REVERSAL_AUDIT"
-        for candidate in cycle.candidates
-        if candidate.reversal_review_response != "NOT_TESTED"
-    ]
-    if reversal_reviews:
-        appendix_paragraphs.append(
-            "Conditional reversal review: "
-            + "; ".join(
-                sentence(
-                    f"{candidate.specialist}={candidate.reversal_review_response} ({candidate.reversal_review_justification})"
-                )
-                for candidate in reversal_reviews[:3]
-            )
-        )
-    if result.problem_reformulations:
-        reformulation = result.problem_reformulations[-1]
-        reformulation_text = "admitted" if reformulation.accepted else f"rejected ({reformulation.rejection_reason})"
-        if reformulation.accepted:
-            reformulation_text += (
-                f"; Switch condition: {reformulation.switch_condition or 'none'}; "
-                f"Residual tension: {reformulation.residual_tension or 'none'}"
-            )
-        if reformulation.question:
-            reformulation_text += f"; Question: {reformulation.question}"
-        appendix_paragraphs.append("Problem reformulation: " + reformulation_text + ".")
-    if result.compressed_rule:
-        appendix_paragraphs.append("Compressed rule: " + sentence(result.compressed_rule))
-    failed_invariants = [record for record in result.semantic_invariants if not record.valid]
-    if failed_invariants:
-        appendix_paragraphs.append(
-            "Semantic invariants: "
-            + "; ".join(
-                sentence(f"{record.boundary} ({' | '.join(record.errors)})")
-                for record in failed_invariants[:3]
-            )
-        )
-    if result.source_errors:
-        appendix_paragraphs.append(
-            "Unavailable original agents: " + ", ".join(result.source_errors) + "."
-        )
-    if appendix_paragraphs:
-        add_section("Appendix: guardrails and review notes", appendix_paragraphs[:10])
-    if result.trace_health:
-        add_diagnostic_section("Trace note", summarize_trace_health()[:6])
-    return "\n".join(lines) + "\n"
+    Implementation-oriented diagnostics remain in the saved JSON trace.
+    """
+    return render_decision_brief(result)
 
 
 def parse_args() -> argparse.Namespace:
@@ -761,6 +239,46 @@ def main() -> int:
     print(
         "Action-source grounding: "
         + json.dumps(action_source_grounding, ensure_ascii=False, sort_keys=True),
+        flush=True,
+    )
+    from global_workspace.action_identity import (
+        build_canonical_action_records,
+        validate_action_set_completeness,
+    )
+    grounded_texts: dict[str, list[str]] = {}
+    for action_id, row in (action_source_grounding.get("actions") or {}).items():
+        texts = []
+        for clause in row.get("clauses") or []:
+            text = " ".join(str(clause.get("text", "")).split())
+            if text:
+                texts.append(text)
+        if texts:
+            grounded_texts[str(action_id)] = texts
+    if action_source_grounding.get("status") == "COMMITTED" and grounded_texts:
+        validate_action_set_completeness(
+            actions,
+            scenario=scenario,
+            grounded_clause_texts_by_id=grounded_texts,
+        )
+    canonical_action_records = [
+        record.as_dict()
+        for record in build_canonical_action_records(
+            actions,
+            grounded_clause_texts_by_id=grounded_texts,
+        )
+    ]
+    # Agents reason from the semantic action object, never a truncated label.
+    actions = [
+        str(record["canonical_semantic_action"])
+        for record in canonical_action_records
+    ]
+    source_action_legend = {
+        str(record["action_id"]): str(record["canonical_semantic_action"])
+        for record in canonical_action_records
+    }
+    print(
+        "Canonical action records: "
+        + json.dumps(canonical_action_records, ensure_ascii=False, sort_keys=True),
         flush=True,
     )
 
@@ -958,6 +476,7 @@ def main() -> int:
         source_action_legend=source_action_legend,
         action_source_grounding=action_source_grounding,
         presentation_actions=presentation_actions,
+        canonical_action_records=canonical_action_records,
         source_testimonies=testimonies,
         reformulate_problem=(
             lambda current_scenario, current_actions, candidates: propose_problem_reformulation(
