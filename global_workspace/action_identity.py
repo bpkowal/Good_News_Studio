@@ -677,14 +677,14 @@ _CONCEALMENT = re.compile(
     re.IGNORECASE,
 )
 _INSTITUTIONAL_CONCEALMENT = re.compile(
-    r"\b(?:engineered\s+(?:to\s+)?sacrific|sacrifice[\s-]+of[\s-]+wards?|"
-    r"sacrifice\s+public\s+wards?|design\s+flaw|structural\s+design|"
-    r"engineered\s+sacrifice)\b",
+    r"\b(?:engineered\s+(?:to\s+)?sacrific\w*|sacrificial\s+design|"
+    r"sacrifice[\s-]+of[\s-]+wards?|sacrifice\s+public\s+wards?|"
+    r"design\s+flaw|structural\s+design|engineered\s+sacrifice)\b",
     re.IGNORECASE,
 )
 _CONCEALMENT_MARKER = re.compile(
     r"\b(?:conceal\w*|hidden|secret|undisclosed|stays?\s+hidden|"
-    r"remains?\s+(?:concealed|hidden))\b",
+    r"stays?\s+(?:permanently\s+)?concealed|remains?\s+(?:concealed|hidden))\b",
     re.IGNORECASE,
 )
 _SHORT_LABEL_SPLIT = re.compile(
@@ -754,37 +754,14 @@ _SCENARIO_ACTOR = re.compile(
     re.IGNORECASE,
 )
 _PATIENT_GROUP = (
-    r"(?:(?P<count>\d+|four)\s+)?"
-    r"(?:(?:non[- ]consenting|chronically\s+ill|public[- ]ward)\s+)*"
-    r"patients?"
+    r"(?P<label>(?:(?:\d+|four)\s+)?"
+    r"(?:(?:non[- ]consenting|chronically\s+ill|public[- ]ward|ward)\s+)*"
+    r"patients?)"
 )
-_REFUGEE_GROUP = r"(?:(?P<count>\d+|sixteen)\s+)?(?:freezing\s+)?refugees?"
+_REFUGEE_GROUP = (
+    r"(?P<label>(?:(?:\d+|sixteen)\s+)?(?:freezing\s+)?refugees?)"
+)
 _TOKEN_BAG_MARKERS = re.compile(r":COUNT\b|^[a-z]+,\s", re.IGNORECASE)
-
-
-def extract_scenario_actor(scenario: str) -> str:
-    """Resolve an explicit scenario actor when the prose names one."""
-    text = " ".join(str(scenario or "").split())
-    match = _SCENARIO_ACTOR.search(text)
-    if not match:
-        return ""
-    scope = " ".join(match.group(1).split()).casefold()
-    if "life" in scope and "support" in scope:
-        return "grid director"
-    if scope.endswith(" director"):
-        return scope
-    return f"{scope} director".strip()
-
-
-def _render_group(count: str, *modifiers: str, group: str = "") -> str:
-    parts = [str(count).strip()] if count and str(count).strip() else []
-    for item in modifiers:
-        cleaned = " ".join(str(item).split())
-        if cleaned:
-            parts.append(cleaned)
-    if group:
-        parts.append(group)
-    return " ".join(parts).strip()
 
 
 def _group_key(label: str) -> tuple[str, ...]:
@@ -800,6 +777,191 @@ def _group_key(label: str) -> tuple[str, ...]:
     return tuple(tokens)
 
 
+def _group_keys_compatible(required: tuple[str, ...], actual: tuple[str, ...]) -> bool:
+    if required == actual:
+        return True
+    if "refugee" in required and "refugee" in actual:
+        return True
+    if "patient" in required and "patient" in actual:
+        return True
+    return False
+
+
+def _best_group_label(text: str, kind: str) -> str:
+    """Return the richest patient/refugee group mention in prose."""
+    pattern = re.compile(
+        _PATIENT_GROUP if kind == "patient" else _REFUGEE_GROUP,
+        re.IGNORECASE,
+    )
+    matches = [match.group("label") for match in pattern.finditer(text)]
+    if not matches:
+        return "patients" if kind == "patient" else "refugees"
+    return max(matches, key=lambda item: (bool(re.search(r"\d", item)), len(item)))
+
+
+def _explicit_count_in_label(label: str) -> str | None:
+    match = re.search(r"\b(\d+|four|sixteen)\b", str(label or ""), re.IGNORECASE)
+    if not match:
+        return None
+    token = match.group(1).casefold()
+    return {"four": "4", "sixteen": "16"}.get(token, token)
+
+
+def _count_from_group_key(key: tuple[str, ...]) -> str | None:
+    if not key:
+        return None
+    token = key[0]
+    if token.isdigit():
+        return token
+    return {"four": "4", "sixteen": "16"}.get(token)
+
+
+def _enrich_refugee_label_from_context(
+    text: str,
+    span_start: int,
+    label: str,
+) -> str:
+    """Keep shelter/emergency context on refugee groups when prose supplies it."""
+    cleaned = " ".join(str(label).split())
+    window = text[max(0, span_start - 120): span_start + len(cleaned)]
+    if "shelter" not in window.casefold() or "shelter" in cleaned.casefold():
+        return cleaned
+    count = _explicit_count_in_label(cleaned)
+    if count:
+        return f"{count} shelter refugees"
+    return "shelter refugees"
+
+
+def _extract_relational_role_bindings(canonical: str) -> list[dict[str, Any]]:
+    """Explicit save/harm relations that must survive in structured fields."""
+    text = " ".join(str(canonical or "").split())
+    bindings: list[dict[str, Any]] = []
+    seen: set[tuple[str, tuple[str, ...]]] = set()
+
+    def _register(field: str, label: str, *, span_start: int) -> None:
+        cleaned = " ".join(str(label).split()).strip(" ,;.")
+        if not cleaned:
+            return
+        if "refugee" in cleaned.casefold():
+            cleaned = _enrich_refugee_label_from_context(text, span_start, cleaned)
+        key = _group_key(cleaned)
+        token = (field, key)
+        if token in seen:
+            return
+        seen.add(token)
+        bindings.append({"field": field, "label": cleaned, "key": key})
+
+    for match in re.finditer(
+        rf"\bkill(?:s|ing|ed)?\s+(?:the\s+)?{_PATIENT_GROUP}\b",
+        text,
+        re.IGNORECASE,
+    ):
+        _register("harmed", match.group("label"), span_start=match.start("label"))
+    if re.search(r"\bkill(?:s|ing|ed)?\s+them\b", text, re.IGNORECASE) and re.search(
+        r"\bpatients?\b", text, re.IGNORECASE,
+    ):
+        patient = _best_group_label(text, "patient")
+        _register("harmed", patient, span_start=text.casefold().find(patient.casefold()))
+
+    for match in re.finditer(
+        rf"\b(?:kills?|killing)\s+(?:all\s+)?{_REFUGEE_GROUP}\b",
+        text,
+        re.IGNORECASE,
+    ):
+        _register("harmed", match.group("label"), span_start=match.start("label"))
+    for match in re.finditer(
+        rf"\b{_REFUGEE_GROUP}\s+(?:die|to\s+die|perish)\b",
+        text,
+        re.IGNORECASE,
+    ):
+        _register("harmed", match.group("label"), span_start=match.start("label"))
+
+    for match in re.finditer(
+        rf"\b{_REFUGEE_GROUP}\s+(?:survive|alive)\b",
+        text,
+        re.IGNORECASE,
+    ):
+        _register("beneficiaries", match.group("label"), span_start=match.start("label"))
+    for match in re.finditer(
+        rf"\bkeep\s+{_REFUGEE_GROUP}\s+alive\b",
+        text,
+        re.IGNORECASE,
+    ):
+        _register("beneficiaries", match.group("label"), span_start=match.start("label"))
+    for match in re.finditer(
+        rf"\b(?:save[sd]?|rescu(?:e|es|ed|ing))\s+{_REFUGEE_GROUP}\b",
+        text,
+        re.IGNORECASE,
+    ):
+        _register("beneficiaries", match.group("label"), span_start=match.start("label"))
+    for match in re.finditer(
+        rf"\bstabiliz\w*[^.;]{{0,120}}?\bholding\s+{_REFUGEE_GROUP}\b",
+        text,
+        re.IGNORECASE,
+    ):
+        _register("beneficiaries", match.group("label"), span_start=match.start("label"))
+    if re.search(r"\bstabiliz", text, re.IGNORECASE):
+        for match in re.finditer(
+            rf"\bholding\s+{_REFUGEE_GROUP}\b",
+            text,
+            re.IGNORECASE,
+        ):
+            _register("beneficiaries", match.group("label"), span_start=match.start("label"))
+
+    for match in re.finditer(
+        rf"\b(?:honoring|preserving|respecting|upholding|sparing)\s+"
+        rf"(?:the\s+)?{_PATIENT_GROUP}\b",
+        text,
+        re.IGNORECASE,
+    ):
+        _register("beneficiaries", match.group("label"), span_start=match.start("label"))
+    for match in re.finditer(
+        rf"\b{_PATIENT_GROUP}\b[^.;]{{0,40}}\b(?:protected|preserved|spared)\b",
+        text,
+        re.IGNORECASE,
+    ):
+        _register("beneficiaries", match.group("label"), span_start=match.start("label"))
+    if re.search(r"\bpatients?['’]?\s+right\s+against\b", text, re.IGNORECASE):
+        _register(
+            "beneficiaries",
+            _best_group_label(text, "patient"),
+            span_start=0,
+        )
+
+    return bindings
+
+
+def _obligatory_role_groups(canonical: str) -> dict[str, set[tuple[str, ...]]]:
+    """Independent prose scan for required harmed/beneficiary group keys."""
+    harmed: set[tuple[str, ...]] = set()
+    benefited: set[tuple[str, ...]] = set()
+    for binding in _extract_relational_role_bindings(canonical):
+        if binding["field"] == "harmed":
+            harmed.add(binding["key"])
+        else:
+            benefited.add(binding["key"])
+
+    lowered = " ".join(str(canonical or "").split()).casefold()
+    if re.search(
+        rf"\b(?:divert\w*|reallocat\w*)\b[^.;]{{0,120}}\bpatients?\b",
+        lowered,
+    ) and not any("patient" in key for key in harmed):
+        harmed.add(_group_key(_best_group_label(canonical, "patient")))
+    if (
+        "grid failure" in lowered
+        and "refugee" in lowered
+        and "maintain" in lowered
+        and not any("refugee" in key for key in harmed)
+    ):
+        harmed.add(_group_key(_best_group_label(canonical, "refugee")))
+    if re.search(r"\bmaintain\b[^.;]{0,80}\ballocation\b", lowered) and any(
+        "refugee" in key for key in harmed
+    ):
+        benefited.add(_group_key(_best_group_label(canonical, "patient")))
+
+    return {"harmed": harmed, "beneficiaries": benefited}
+
+
 def extract_structured_action_roles(
     action_text: str,
     *,
@@ -808,78 +970,179 @@ def extract_structured_action_roles(
     """Extract harmed/beneficiaries/mechanism from a canonical semantic action."""
     text = " ".join(str(action_text or "").split())
     lowered = text.casefold()
+    obligations = _obligatory_role_groups(text)
     beneficiaries: list[str] = []
     harmed: list[str] = []
     mechanism = ""
     institutional = ""
 
-    def _add_unique(bucket: list[str], label: str) -> None:
+    def _add_unique(bucket: list[str], label: str, *, span_start: int = 0) -> None:
         cleaned = " ".join(str(label).split()).strip(" ,;.")
         if not cleaned:
             return
+        if "refugee" in cleaned.casefold():
+            cleaned = _enrich_refugee_label_from_context(text, span_start, cleaned)
         key = _group_key(cleaned)
-        if key and any(_group_key(existing) == key for existing in bucket):
+        for index, existing in enumerate(bucket):
+            if not _group_keys_compatible(key, _group_key(existing)):
+                continue
+            existing_count = _explicit_count_in_label(existing)
+            new_count = _explicit_count_in_label(cleaned)
+            if (new_count and not existing_count) or len(cleaned) > len(existing):
+                bucket[index] = cleaned
             return
         if cleaned.casefold() not in {item.casefold() for item in bucket}:
             bucket.append(cleaned)
 
+    patient_label = _best_group_label(text, "patient")
+    refugee_label = _best_group_label(text, "refugee")
+
     # --- harmed / benefited groups -------------------------------------------
     for match in re.finditer(
-        rf"\bkill(?:s|ing|ed)?\s+(?:the\s+)?(?P<label>{_PATIENT_GROUP})\b",
+        rf"\bkill(?:s|ing|ed)?\s+(?:the\s+)?{_PATIENT_GROUP}\b",
         text,
         re.IGNORECASE,
     ):
-        _add_unique(harmed, match.group("label"))
-    if re.search(r"\bkill(?:s|ing|ed)?\s+them\b", text, re.IGNORECASE):
-        patient = re.search(rf"\b{_PATIENT_GROUP}\b", text, re.IGNORECASE)
-        if patient:
-            _add_unique(harmed, patient.group(0))
+        _add_unique(harmed, match.group("label"), span_start=match.start("label"))
+    if re.search(r"\bkill(?:s|ing|ed)?\s+them\b", text, re.IGNORECASE) and re.search(
+        r"\bpatients?\b", text, re.IGNORECASE,
+    ):
+        _add_unique(harmed, patient_label, span_start=0)
+    for match in re.finditer(
+        rf"\bdivert\w*\s+oxygen\s+from\s+{_PATIENT_GROUP}\b",
+        text,
+        re.IGNORECASE,
+    ):
+        _add_unique(harmed, match.group("label"), span_start=match.start("label"))
+    for match in re.finditer(
+        rf"\breallocat\w*\s+oxygen\s+away\s+from\s+{_PATIENT_GROUP}\b",
+        text,
+        re.IGNORECASE,
+    ):
+        _add_unique(harmed, match.group("label"), span_start=match.start("label"))
+    for match in re.finditer(
+        rf"\b{_PATIENT_GROUP}\b([^.;]{{0,30}})\b(?:die|killed)\b",
+        text,
+        re.IGNORECASE,
+    ):
+        if "refugee" not in match.group(1).casefold():
+            _add_unique(harmed, match.group("label"), span_start=match.start("label"))
 
     for match in re.finditer(
-        rf"\b(?:causes?|kills?)\s+(?:all\s+)?(?P<label>{_REFUGEE_GROUP})\s+to\s+die\b",
+        rf"\b(?:causes?|kills?)\s+(?:all\s+)?{_REFUGEE_GROUP}\s+to\s+die\b",
         text,
         re.IGNORECASE,
     ):
-        _add_unique(harmed, match.group("label"))
+        _add_unique(harmed, match.group("label"), span_start=match.start("label"))
     for match in re.finditer(
-        rf"\bthat\s+kills?\s+(?:all\s+)?(?P<label>{_REFUGEE_GROUP})\b",
+        rf"\bthat\s+kills?\s+(?:all\s+)?{_REFUGEE_GROUP}\b",
         text,
         re.IGNORECASE,
     ):
-        _add_unique(harmed, match.group("label"))
+        _add_unique(harmed, match.group("label"), span_start=match.start("label"))
+    for match in re.finditer(
+        rf"\b(?:kills?|killing)\s+(?:all\s+)?{_REFUGEE_GROUP}\b",
+        text,
+        re.IGNORECASE,
+    ):
+        _add_unique(harmed, match.group("label"), span_start=match.start("label"))
+    for match in re.finditer(
+        rf"\b{_REFUGEE_GROUP}\s+(?:die|to\s+die)\b",
+        text,
+        re.IGNORECASE,
+    ):
+        _add_unique(harmed, match.group("label"), span_start=match.start("label"))
+    if re.search(r"\bgrid\s+failure\b", lowered) and "refugee" in lowered:
+        _add_unique(harmed, refugee_label, span_start=0)
 
     for match in re.finditer(
-        rf"\b(?P<label>{_REFUGEE_GROUP})\s+survive\b",
+        rf"\b{_REFUGEE_GROUP}\s+(?:survive|alive)\b",
         text,
         re.IGNORECASE,
     ):
-        _add_unique(beneficiaries, match.group("label"))
+        _add_unique(beneficiaries, match.group("label"), span_start=match.start("label"))
     for match in re.finditer(
-        rf"\b(?:honoring|preserving|respecting|sparing)\s+(?:the\s+)?(?P<label>{_PATIENT_GROUP})",
+        rf"\bkeep\s+{_REFUGEE_GROUP}\s+alive\b",
         text,
         re.IGNORECASE,
     ):
-        _add_unique(beneficiaries, match.group("label"))
+        _add_unique(beneficiaries, match.group("label"), span_start=match.start("label"))
     for match in re.finditer(
-        rf"\bstabiliz(?:e|es|ing)\s+.{0,60}?\bso\s+(?:the\s+)?(?P<label>{_REFUGEE_GROUP})\s+survive\b",
+        rf"\b(?:save[sd]?|rescu(?:e|es|ed|ing))\s+{_REFUGEE_GROUP}\b",
         text,
         re.IGNORECASE,
     ):
-        _add_unique(beneficiaries, match.group("label"))
+        _add_unique(beneficiaries, match.group("label"), span_start=match.start("label"))
+    for match in re.finditer(
+        rf"\bstabiliz\w*[^.;]{{0,120}}?\bholding\s+{_REFUGEE_GROUP}\b",
+        text,
+        re.IGNORECASE,
+    ):
+        _add_unique(beneficiaries, match.group("label"), span_start=match.start("label"))
+    if re.search(r"\bstabiliz", text, re.IGNORECASE):
+        for match in re.finditer(
+            rf"\bholding\s+{_REFUGEE_GROUP}\b",
+            text,
+            re.IGNORECASE,
+        ):
+            _add_unique(beneficiaries, match.group("label"), span_start=match.start("label"))
+    for match in re.finditer(
+        rf"\b(?:honoring|preserving|respecting|upholding|sparing)\s+"
+        rf"(?:the\s+)?{_PATIENT_GROUP}",
+        text,
+        re.IGNORECASE,
+    ):
+        _add_unique(beneficiaries, match.group("label"), span_start=match.start("label"))
+    for match in re.finditer(
+        rf"\b{_PATIENT_GROUP}\b[^.;]{{0,40}}\b(?:protected|preserved|spared)\b",
+        text,
+        re.IGNORECASE,
+    ):
+        _add_unique(beneficiaries, match.group("label"), span_start=match.start("label"))
+    if re.search(r"\bpatients?['’]?\s+right\s+against\b", lowered):
+        _add_unique(beneficiaries, patient_label, span_start=0)
+    for match in re.finditer(
+        rf"\bstabiliz(?:e|es|ing)\s+[^.;]{{0,80}}?\bso\s+(?:the\s+)?"
+        rf"{_REFUGEE_GROUP}\s+(?:survive|alive)\b",
+        text,
+        re.IGNORECASE,
+    ):
+        _add_unique(beneficiaries, match.group("label"), span_start=match.start("label"))
+
+    # Fill any obligations the pattern pass missed from explicit group labels.
+    for binding in _extract_relational_role_bindings(text):
+        bucket = beneficiaries if binding["field"] == "beneficiaries" else harmed
+        _add_unique(bucket, binding["label"], span_start=0)
+    for key in obligations["beneficiaries"]:
+        if key == _group_key(patient_label):
+            _add_unique(beneficiaries, patient_label, span_start=0)
+        if key == _group_key(refugee_label):
+            _add_unique(beneficiaries, refugee_label, span_start=0)
+    for key in obligations["harmed"]:
+        if key == _group_key(patient_label):
+            _add_unique(harmed, patient_label, span_start=0)
+        if key == _group_key(refugee_label):
+            _add_unique(harmed, refugee_label, span_start=0)
 
     # --- mechanism -----------------------------------------------------------
+    if re.search(r"\bmaintain\b[^.;]{0,80}\ballocation\b", lowered) and (
+        "grid failure" in lowered or "grid unstable" in lowered
+    ):
+        mechanism = "maintaining standard allocation causes shelter grid failure"
     realloc = re.search(
-        r"\b(forcibly\s+reallocat\w*\s+oxygen\b[^.;]{0,200}?)"
-        r"(?=\s*(?:,|;|\bkilling\b|\bbut\b|\bto\b|\bso\b))",
+        r"\b((?:forcibly\s+)?(?:reallocat\w*|divert\w*)\s+oxygen\b[^.;]{0,160}?)"
+        r"(?=\s*(?:,|;|\bkilling\b|\bbut\b|\bto\b|\bso\b|\band\b))",
         text,
         re.IGNORECASE,
     )
     if realloc:
         mechanism = " ".join(realloc.group(1).split())
-        if "stabiliz" in lowered and " to " not in mechanism.casefold():
+        if "stabiliz" in lowered and "stabiliz" not in mechanism.casefold():
             mechanism += " to stabilize the shelter"
     if not mechanism:
         grid_fail = re.search(
+            r"\b(?:which\s+)?(?:triggering|causing|leaves?|allow)\s+"
+            r"(?:(?:the|a)\s+)?(?:grid\s+)?failure\b[^.;,]{0,60}|"
             r"\b(?:which\s+)?(?:triggering|causing|leaves?)\s+"
             r"(?:(?:the|a)\s+)?shelter\s+grid\s+"
             r"(?:failure|unstable|to\s+fail)\b[^.;,]{0,60}",
@@ -923,6 +1186,20 @@ def extract_structured_action_roles(
     }
 
 
+def extract_scenario_actor(scenario: str) -> str:
+    """Resolve an explicit scenario actor when the prose names one."""
+    text = " ".join(str(scenario or "").split())
+    match = _SCENARIO_ACTOR.search(text)
+    if not match:
+        return ""
+    scope = " ".join(match.group(1).split()).casefold()
+    if "life" in scope and "support" in scope:
+        return "grid director"
+    if scope.endswith(" director"):
+        return scope
+    return f"{scope} director".strip()
+
+
 def _field_looks_like_token_bag(value: str) -> bool:
     text = " ".join(str(value or "").split())
     if not text:
@@ -946,10 +1223,11 @@ def validate_structured_role_consistency(
     else:
         payload = dict(record)
     canonical = str(payload.get("canonical_semantic_action") or "")
-    expected = extract_structured_action_roles(
+    expected_roles = extract_structured_action_roles(
         canonical,
         scenario_actor=scenario_actor or str(payload.get("actor") or ""),
     )
+    obligations = _obligatory_role_groups(canonical)
     issues: list[str] = []
 
     for field in ("beneficiaries", "harmed"):
@@ -960,7 +1238,6 @@ def validate_structured_role_consistency(
     if scenario_actor and not str(payload.get("actor") or "").strip():
         issues.append("actor missing despite explicit scenario role")
 
-    # Groups implied by prose must appear in structured fields.
     valid_beneficiaries = [
         str(value) for value in (payload.get("beneficiaries") or ())
         if not _field_looks_like_token_bag(str(value))
@@ -969,34 +1246,93 @@ def validate_structured_role_consistency(
         str(value) for value in (payload.get("harmed") or ())
         if not _field_looks_like_token_bag(str(value))
     ]
-    for label in expected["beneficiaries"]:
+
+    # Independent obligation scan — must not share the same extractor blind spot.
+    for required in obligations["beneficiaries"]:
         if not any(
-            _group_key(label) == _group_key(existing)
+            _group_keys_compatible(required, _group_key(existing))
+            for existing in valid_beneficiaries
+        ):
+            issues.append(
+                "beneficiaries missing required prose group: "
+                + "/".join(required)
+            )
+    for required in obligations["harmed"]:
+        if not any(
+            _group_keys_compatible(required, _group_key(existing))
+            for existing in valid_harmed
+        ):
+            issues.append(
+                "harmed missing required prose group: "
+                + "/".join(required)
+            )
+
+    for label in expected_roles["beneficiaries"]:
+        if not any(
+            _group_keys_compatible(_group_key(label), _group_key(existing))
             for existing in valid_beneficiaries
         ):
             issues.append(f"beneficiaries missing prose group: {label}")
-    for label in expected["harmed"]:
+    for label in expected_roles["harmed"]:
         if not any(
-            _group_key(label) == _group_key(existing)
+            _group_keys_compatible(_group_key(label), _group_key(existing))
             for existing in valid_harmed
         ):
             issues.append(f"harmed missing prose group: {label}")
 
+    if obligations["beneficiaries"] and not valid_beneficiaries:
+        issues.append("beneficiaries empty despite prose beneficiaries")
+    if obligations["harmed"] and not valid_harmed:
+        issues.append("harmed empty despite prose harm")
+
+    for binding in _extract_relational_role_bindings(canonical):
+        field = str(binding["field"])
+        labels = valid_beneficiaries if field == "beneficiaries" else valid_harmed
+        key = binding["key"]
+        rich_label = str(binding["label"])
+        compatible = [
+            label for label in labels
+            if _group_keys_compatible(key, _group_key(label))
+        ]
+        if not compatible:
+            issues.append(f"{field} missing relational binding: {rich_label}")
+            continue
+        required_count = _count_from_group_key(key)
+        if required_count and not any(
+            _explicit_count_in_label(label) for label in compatible
+        ):
+            issues.append(
+                f"{field} lost explicit cardinality for {rich_label}"
+            )
+
     harmed_keys = {_group_key(item) for item in valid_harmed}
     beneficiary_keys = {_group_key(item) for item in valid_beneficiaries}
-    overlap = harmed_keys & beneficiary_keys - {()}
+    overlap = {
+        key for key in harmed_keys
+        if any(_group_keys_compatible(key, other) for other in beneficiary_keys)
+    } - {()}
     if overlap:
         issues.append(
             "group appears as both harmed and beneficiary: "
             + ", ".join("/".join(key) for key in sorted(overlap))
         )
 
-    if expected["mechanism"] and not str(payload.get("mechanism") or "").strip():
+    if expected_roles["mechanism"] and not str(payload.get("mechanism") or "").strip():
         issues.append("mechanism missing causal relation from prose")
     if _field_looks_like_token_bag(str(payload.get("mechanism") or "")):
         issues.append("mechanism contains token-bag fragment")
 
     return tuple(dict.fromkeys(issues))
+
+
+def _completeness_status_from_structure_issues(
+    structure_issues: tuple[str, ...],
+) -> str:
+    if not structure_issues:
+        return ""
+    if all("lost explicit cardinality" in issue for issue in structure_issues):
+        return "COMPLETE_WITH_NORMALIZATION"
+    return "NEEDS_REPAIR"
 
 
 def _extract_institutional_concealment_claim(text: str) -> str | None:
@@ -1032,6 +1368,14 @@ def extract_decision_critical_claims(text: str) -> tuple[str, ...]:
     for match in _NUMBERED_OUTCOME.finditer(cleaned):
         groups = match.groupdict()
         if groups.get("count"):
+            body = str(groups.get("body") or "")
+            verb = str(groups.get("verb") or "").casefold()
+            if verb in {"kill", "kills", "killing", "killed"} and re.search(
+                r"\bthem\b", body, re.IGNORECASE,
+            ) and re.search(
+                r"\bholding\b[^.;]{0,80}\brefugees?\b", body, re.IGNORECASE,
+            ):
+                continue
             _add(
                 f"{groups['verb']} {groups['count']} {groups['who']}"
             )
@@ -1039,6 +1383,11 @@ def extract_decision_critical_claims(text: str) -> tuple[str, ...]:
             _add(
                 f"{groups['verb2']} {groups['count2']} {groups['who2']}"
             )
+    if re.search(r"\bkill(?:s|ing|ed)?\s+them\b", cleaned, re.IGNORECASE) and re.search(
+        r"\bpatients?\b", cleaned, re.IGNORECASE,
+    ):
+        patient = _best_group_label(cleaned, "patient")
+        _add(f"killing {patient}")
     for match in _MECHANISM_FAILURE.finditer(cleaned):
         _add(match.group(0))
     concealment = _extract_institutional_concealment_claim(cleaned)
@@ -1062,11 +1411,71 @@ def _claim_coverage(claim: str, haystack: str) -> float:
         and _extract_institutional_concealment_claim(haystack) == claim
     ):
         return 1.0
+    claim_cf = claim.casefold()
+    if any(word in claim_cf for word in ("kill", "die", "death")):
+        if "patient" in claim_cf and re.search(
+            r"\bkill(?:s|ing|ed)?\b", haystack, re.IGNORECASE,
+        ) and re.search(r"\bpatients?\b", haystack, re.IGNORECASE):
+            if _group_keys_compatible(
+                _group_key(claim),
+                _group_key(_best_group_label(haystack, "patient")),
+            ):
+                return 1.0
+        if "refugee" in claim_cf and re.search(
+            r"\b(?:kill|die|death)\w*\b", haystack, re.IGNORECASE,
+        ) and re.search(r"\brefugees?\b", haystack, re.IGNORECASE):
+            if _group_keys_compatible(
+                _group_key(claim),
+                _group_key(_best_group_label(haystack, "refugee")),
+            ):
+                return 1.0
     claim_tokens = _critical_tokens(claim)
     hay_tokens = _critical_tokens(haystack)
     if not claim_tokens:
         return 1.0
     return len(claim_tokens & hay_tokens) / len(claim_tokens)
+
+
+def _source_claim_applies_to_action(claim: str, action_text: str) -> bool:
+    """Return whether a grounded source claim must be preserved in this action."""
+    text = " ".join(str(action_text or "").split()).casefold()
+    claim_cf = " ".join(str(claim or "").split()).casefold()
+    patch_action = bool(re.search(
+        r"\b(?:execute|covert\s+patch|forcibly\s+reallocat\w*|divert\w*\s+oxygen)\b",
+        text,
+    ))
+    maintain_action = bool(re.search(
+        r"\bmaintain\b[^.;]{0,80}\b(?:standard\s+)?(?:oxygen\s+)?allocation\b",
+        text,
+    ))
+
+    if "conceal" in claim_cf or claim_cf == "engineered sacrifice remains concealed":
+        if patch_action:
+            return bool(_extract_institutional_concealment_claim(action_text))
+        return True
+
+    if "refugee" in claim_cf and any(
+        word in claim_cf for word in ("kill", "die", "death")
+    ):
+        if patch_action and re.search(r"\b(?:save|surviv|keep)\b", text) and "refugee" in text:
+            return False
+
+    if "patient" in claim_cf and any(
+        word in claim_cf for word in ("kill", "die", "death")
+    ):
+        if maintain_action and (
+            re.search(r"\bpreserv\w+", text)
+            or "patients' lives" in text
+            or "patients' rights" in text
+            or "patients' right" in text
+        ):
+            return False
+
+    if claim_cf == "shelter grid failure" and patch_action:
+        if "stabiliz" in text and "grid" in text:
+            return False
+
+    return True
 
 
 def missing_decision_critical_claims(
@@ -1085,6 +1494,8 @@ def missing_decision_critical_claims(
     missing: list[str] = []
     for source in source_texts:
         for claim in extract_decision_critical_claims(source):
+            if not _source_claim_applies_to_action(claim, action_text):
+                continue
             if _claim_coverage(claim, action_text) >= coverage_threshold:
                 continue
             # Also accept when the action states an equivalent extracted claim
@@ -1250,7 +1661,7 @@ def build_canonical_action_record(
     elif missing:
         status = "MISSING_CRITICAL"
     elif structure_issues:
-        status = "NEEDS_REPAIR"
+        status = _completeness_status_from_structure_issues(structure_issues)
     elif sources:
         status = "COMPLETE"
     else:
@@ -1271,7 +1682,10 @@ def build_canonical_action_record(
         structure_issues=structure_issues,
     )
     if require_complete and status in {
-        "INCOMPLETE_CLAUSE", "MISSING_CRITICAL", "NEEDS_REPAIR",
+        "INCOMPLETE_CLAUSE",
+        "MISSING_CRITICAL",
+        "NEEDS_REPAIR",
+        "COMPLETE_WITH_NORMALIZATION",
     }:
         detail = "; ".join((*missing, *structure_issues)) or canonical
         raise ValueError(
@@ -1331,6 +1745,25 @@ def validate_action_set_completeness(
         # Before grounding: ensure scenario-level critical claims are not dropped
         # by *both* actions when the scenario states them in action clauses.
         return
+
+    actor = extract_scenario_actor(scenario) if scenario else ""
+    structure_rows: list[str] = []
+    for index, action in enumerate(normalized):
+        action_id = f"A{index}"
+        record = build_canonical_action_record(
+            action_id,
+            action,
+            actor=actor,
+            source_clause_texts=grounded.get(action_id, ()),
+        )
+        if record.structure_issues:
+            structure_rows.append(
+                f"{action_id} structured roles disagree with prose: "
+                + "; ".join(record.structure_issues)
+            )
+    if structure_rows:
+        raise ValueError(" | ".join(structure_rows))
+
     missing_rows = []
     for index, action in enumerate(normalized):
         action_id = f"A{index}"

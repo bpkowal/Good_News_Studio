@@ -3391,13 +3391,18 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
         role = FRAMEWORK_ROLES[self.name]
         testimony = _compact_testimony(self.testimony, 900)
         action_ids = [f"A{index}" for index in range(len(actions))]
-        from .action_identity import build_canonical_action_records
-        action_records = build_canonical_action_records(actions)
+        from .action_identity import build_canonical_action_records, extract_scenario_actor
+        action_records = build_canonical_action_records(
+            actions,
+            actor=extract_scenario_actor(scenario),
+        )
         # Deliberative object is the semantic action; short_label is display-only.
         action_legend = {
             record.action_id: {
                 "short_label": record.short_label,
                 "canonical_semantic_action": record.canonical_semantic_action,
+                "completeness_status": record.completeness_status,
+                "structure_issues": list(record.structure_issues),
                 "actor": record.actor,
                 "beneficiaries": list(record.beneficiaries),
                 "harmed": list(record.harmed),

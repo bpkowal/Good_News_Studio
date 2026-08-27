@@ -10404,6 +10404,70 @@ class CanonicalActionCompletenessTests(unittest.TestCase):
             grounded_clause_texts_by_id={"A0": [source_a1], "A1": [source_a0]},
         )
 
+    def test_sacrificial_design_concealment_matches_engineered_claim(self):
+        from global_workspace.action_identity import (
+            missing_decision_critical_claims,
+            validate_action_set_completeness,
+        )
+        source_a1 = (
+            "Alternatively, you can maintain standard allocation to respect the 4 "
+            "patients' absolute right against direct lethal harm, but triggering a "
+            "shelter grid failure that kills all 16 refugees within hours while "
+            "permanently concealing that the system was engineered to sacrifice "
+            "public wards during emergencies."
+        )
+        action_a1 = (
+            "Maintain standard oxygen allocation, do not apply covert patch, "
+            "preserve the 4 patients' lives and rights, allow shelter grid to fail, "
+            "resulting in death of 16 refugees within hours while the system's "
+            "sacrificial design stays permanently concealed"
+        )
+        source_a0 = (
+            "As director of an automated life-support grid during a freeze, you can "
+            "execute a covert patch that forcibly reallocates oxygen from 4 "
+            "non-consenting, chronically ill public-ward patients—killing them "
+            "instantly—to stabilize an emergency shelter holding 16 freezing refugees."
+        )
+        action_a0 = (
+            "Execute covert patch that forcibly reallocates oxygen from the 4 "
+            "non-consenting chronically ill patients, killing them instantly, to "
+            "stabilize the shelter grid and save all 16 freezing refugees"
+        )
+        self.assertEqual(missing_decision_critical_claims(action_a1, [source_a1]), ())
+        validate_action_set_completeness(
+            [action_a0, action_a1],
+            grounded_clause_texts_by_id={"A0": [source_a0], "A1": [source_a1]},
+        )
+
+    def test_patch_action_does_not_inherit_maintain_concealment_claim(self):
+        from global_workspace.action_identity import (
+            missing_decision_critical_claims,
+            validate_action_set_completeness,
+        )
+        source_a1 = (
+            "Alternatively, you can maintain standard allocation to respect the 4 "
+            "patients' absolute right against direct lethal harm, but triggering a "
+            "shelter grid failure that kills all 16 refugees within hours while "
+            "permanently concealing that the system was engineered to sacrifice "
+            "public wards during emergencies."
+        )
+        action_a0 = (
+            "Execute covert patch that forcibly reallocates oxygen from the 4 "
+            "non-consenting chronically ill patients, killing them instantly, to "
+            "stabilize the shelter grid and save all 16 freezing refugees"
+        )
+        action_a1 = (
+            "Maintain standard oxygen allocation, do not apply covert patch, "
+            "preserve the 4 patients' lives and rights, allow shelter grid to fail, "
+            "resulting in death of 16 refugees within hours while the system's "
+            "sacrificial design stays permanently concealed"
+        )
+        self.assertEqual(missing_decision_critical_claims(action_a0, [source_a1]), ())
+        validate_action_set_completeness(
+            [action_a0, action_a1],
+            grounded_clause_texts_by_id={"A0": [source_a1], "A1": [source_a1]},
+        )
+
     def test_structured_roles_match_oxygen_grid_canonical_actions(self):
         from global_workspace.action_identity import (
             build_canonical_action_record,
@@ -10417,31 +10481,170 @@ class CanonicalActionCompletenessTests(unittest.TestCase):
         actor = extract_scenario_actor(scenario)
         self.assertEqual(actor, "grid director")
         action_a0 = (
-            "Execute a covert patch that forcibly reallocates oxygen away from the 4 "
-            "non-consenting chronically ill public-ward patients, killing them instantly "
-            "but stabilizing the shelter grid so the 16 freezing refugees survive"
-        )
-        action_a1 = (
-            "Maintain standard oxygen allocation, honoring the 4 public-ward patients' "
+            "maintain standard oxygen allocation, honoring the 4 public-ward patients' "
             "right against direct lethal harm, which leaves the shelter grid unstable, "
             "causes all 16 refugees to die within hours, and permanently conceals that "
             "the system was engineered to sacrifice public-ward patients during emergencies"
+        )
+        action_a1 = (
+            "Execute a covert patch that forcibly reallocates oxygen away from the 4 "
+            "non-consenting chronically ill public-ward patients, killing them instantly "
+            "but stabilizing the shelter grid so the 16 freezing refugees survive"
         )
         rec_a0 = build_canonical_action_record("A0", action_a0, actor=actor)
         rec_a1 = build_canonical_action_record("A1", action_a1, actor=actor)
         self.assertEqual(rec_a0.completeness_status, "UNCHECKED")
         self.assertEqual(rec_a1.completeness_status, "UNCHECKED")
         self.assertEqual(rec_a0.actor, "grid director")
-        self.assertIn("patient", rec_a0.harmed[0].casefold())
-        self.assertIn("refugee", rec_a0.beneficiaries[0].casefold())
-        self.assertNotIn("refugee", " ".join(rec_a0.harmed).casefold())
-        self.assertIn("patient", rec_a1.beneficiaries[0].casefold())
-        self.assertIn("refugee", rec_a1.harmed[0].casefold())
-        self.assertNotIn("patient", " ".join(rec_a1.harmed).casefold())
-        self.assertIn("reallocat", rec_a0.mechanism.casefold())
-        self.assertIn("shelter grid", rec_a1.mechanism.casefold())
+        self.assertIn("patient", rec_a0.beneficiaries[0].casefold())
+        self.assertIn("refugee", rec_a0.harmed[0].casefold())
+        self.assertNotIn("refugee", " ".join(rec_a0.beneficiaries).casefold())
+        self.assertIn("patient", rec_a1.harmed[0].casefold())
+        self.assertIn("refugee", rec_a1.beneficiaries[0].casefold())
+        self.assertNotIn("patient", " ".join(rec_a1.beneficiaries).casefold())
+        self.assertIn("shelter grid", rec_a0.mechanism.casefold())
+        self.assertIn("reallocat", rec_a1.mechanism.casefold())
         self.assertEqual(validate_structured_role_consistency(rec_a0, scenario_actor=actor), ())
         self.assertEqual(validate_structured_role_consistency(rec_a1, scenario_actor=actor), ())
+
+    def test_protected_and_die_phrasing_populates_role_fields(self):
+        from global_workspace.action_identity import build_canonical_action_record
+        actor = "grid director"
+        maintain = (
+            "maintain standard oxygen allocation so 4 patients are protected "
+            "while 16 refugees die"
+        )
+        patch = (
+            "execute covert patch killing 4 patients instantly so 16 refugees survive"
+        )
+        rec_maintain = build_canonical_action_record("A0", maintain, actor=actor)
+        rec_patch = build_canonical_action_record("A1", patch, actor=actor)
+        self.assertIn("patient", rec_maintain.beneficiaries[0].casefold())
+        self.assertIn("refugee", rec_maintain.harmed[0].casefold())
+        self.assertIn("patient", rec_patch.harmed[0].casefold())
+        self.assertIn("refugee", rec_patch.beneficiaries[0].casefold())
+        self.assertEqual(rec_maintain.structure_issues, ())
+        self.assertEqual(rec_patch.structure_issues, ())
+
+    def test_eval_oxygen_strings_preserve_relational_cardinality(self):
+        from global_workspace.action_identity import build_canonical_action_record
+
+        actor = "grid director"
+        patch = (
+            "execute a covert patch that forcibly reallocates oxygen from 4 "
+            "non-consenting chronically ill public-ward patients, killing them "
+            "instantly, to stabilize an emergency shelter holding 16 freezing "
+            "refugees"
+        )
+        maintain = (
+            "maintain standard oxygen allocation respecting the 4 patients' "
+            "absolute right against direct lethal harm, triggering a shelter "
+            "grid failure that kills all 16 refugees within hours while "
+            "permanently concealing that the system was engineered to sacrifice "
+            "public wards during emergencies"
+        )
+        source_patch = (
+            "As director of an automated life-support grid during a freeze, you "
+            "can execute a covert patch that forcibly reallocates oxygen from 4 "
+            "non-consenting, chronically ill public-ward patients—killing them "
+            "instantly—to stabilize an emergency shelter holding 16 freezing "
+            "refugees."
+        )
+        source_maintain = (
+            "Alternatively, you can maintain standard allocation to respect the "
+            "4 patients' absolute right against direct lethal harm, but "
+            "triggering a shelter grid failure that kills all 16 refugees "
+            "within hours while permanently concealing that the system was "
+            "engineered to sacrifice public wards during emergencies."
+        )
+        rec_patch = build_canonical_action_record(
+            "A0", patch, actor=actor, source_clause_texts=[source_patch],
+        )
+        rec_maintain = build_canonical_action_record(
+            "A1", maintain, actor=actor, source_clause_texts=[source_maintain],
+        )
+        self.assertEqual(rec_patch.completeness_status, "COMPLETE")
+        self.assertIn("16", rec_patch.beneficiaries[0])
+        self.assertIn("refugee", rec_patch.beneficiaries[0].casefold())
+        self.assertIn("4", rec_patch.harmed[0])
+        self.assertEqual(rec_patch.institutional_effect, "")
+        self.assertEqual(rec_maintain.completeness_status, "COMPLETE")
+        self.assertIn("16", rec_maintain.harmed[0])
+        self.assertIn("shelter", rec_maintain.harmed[0].casefold())
+        self.assertIn("4", rec_maintain.beneficiaries[0])
+        self.assertIn("conceal", rec_maintain.institutional_effect.casefold())
+
+    def test_cardinality_loss_blocks_complete_status(self):
+        from global_workspace.action_identity import (
+            CanonicalActionRecord,
+            validate_structured_role_consistency,
+            _completeness_status_from_structure_issues,
+        )
+        maintain = (
+            "maintain standard oxygen allocation respecting the 4 patients' "
+            "absolute right against direct lethal harm, triggering a shelter "
+            "grid failure that kills all 16 refugees within hours"
+        )
+        record = CanonicalActionRecord(
+            action_id="A1",
+            short_label="Maintain",
+            canonical_semantic_action=maintain,
+            actor="grid director",
+            intervention="maintain standard oxygen allocation",
+            beneficiaries=("4 patients",),
+            harmed=("refugees",),
+            mechanism="maintaining standard allocation causes shelter grid failure",
+            institutional_effect="",
+        )
+        issues = validate_structured_role_consistency(
+            record,
+            scenario_actor="grid director",
+        )
+        self.assertTrue(any("lost explicit cardinality" in issue for issue in issues))
+        self.assertEqual(
+            _completeness_status_from_structure_issues(issues),
+            "COMPLETE_WITH_NORMALIZATION",
+        )
+
+    def test_structured_role_gaps_block_complete_and_admission(self):
+        from unittest.mock import patch
+
+        from global_workspace.action_identity import (
+            build_canonical_action_record,
+            validate_action_set_completeness,
+        )
+        maintain = (
+            "maintain standard oxygen allocation so 4 patients are protected "
+            "while 16 refugees die"
+        )
+        patch_action = (
+            "execute covert patch killing 4 patients instantly so 16 refugees survive"
+        )
+        empty_roles = {
+            "actor": "grid director",
+            "intervention": "action",
+            "beneficiaries": (),
+            "harmed": (),
+            "mechanism": "",
+            "institutional_effect": "",
+        }
+        with patch(
+            "global_workspace.action_identity.extract_structured_action_roles",
+            return_value=empty_roles,
+        ):
+            rec = build_canonical_action_record(
+                "A0", maintain, actor="grid director",
+            )
+            self.assertEqual(rec.completeness_status, "NEEDS_REPAIR")
+            self.assertTrue(rec.structure_issues)
+            with self.assertRaisesRegex(
+                ValueError, "structured roles disagree with prose",
+            ):
+                validate_action_set_completeness(
+                    [maintain, patch_action],
+                    scenario="As director of an automated life-support grid...",
+                    grounded_clause_texts_by_id={"A0": [patch_action], "A1": [maintain]},
+                )
 
     def test_token_bag_structured_fields_mark_needs_repair(self):
         from global_workspace.action_identity import (
