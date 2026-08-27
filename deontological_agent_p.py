@@ -1,132 +1,106 @@
 
 
 from pathlib import Path
+from global_workspace.source_cache import build_source_cache_key
 LAST_QUERY_PATH = Path("agent_outputs/.last_query.txt")
 LAST_RESPONSE_PATH = Path("agent_outputs/.last_response.txt")
 import atexit
 import gc
 import glob
 MODEL_PATH = "../mistral-7b-instruct-v0.2.Q4_K_M.gguf"
-from langchain_chroma import Chroma
-from langchain_huggingface import HuggingFaceEmbeddings
-#from langchain_community.vectorstores import Chroma
-#from langchain_community.embeddings import HuggingFaceEmbeddings
-#from langchain.vectorstores import Chroma
-#from langchain.embeddings import HuggingFaceEmbeddings
-# from load_deontological_corpus import load_deontological_corpus
-from langchain.schema import Document as LangchainDoc
+DEONTOLOGY_PROMPT_VERSION = "deontology-kantian-typed-evidence-v3"
+DEONTOLOGY_CORPUS_DIR = Path("deontological_corpus")
+from global_workspace.framework_retrieval import (
+    EvidenceThresholds,
+    corpus_fingerprint,
+    format_evidence_context,
+    load_corpus_passages,
+    load_explicit_tag_weights,
+    retrieve_framework_evidence,
+)
 import json
 from datetime import datetime
 import os
-import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
-from get_semantic_tag import get_semantic_tag_weights
 
-
-vectorstore = None
 embedder = None
+DEONTOLOGY_EVIDENCE_THRESHOLDS = EvidenceThresholds(core=0.36, adjacent=0.25)
+DEONTOLOGY_IDENTITY_TAGS = {
+    "deontology",
+    "duty",
+    "moral_duty",
+    "moral_law",
+    "categorical_imperative",
+    "autonomy",
+    "kantian_ethics",
+    "respect_for_persons",
+    "universality",
+    "ends_in_themselves",
+    "normativity",
+}
+DEONTOLOGY_QUERY_LENS = (
+    "Strict Kantian ethics evidence about action maxims, universal law, rational agency, "
+    "humanity as an end, autonomy, non-instrumentalization, perfect and imperfect "
+    "duties, and principled duty conflicts."
+)
 
 def cleanup_vectorstore():
-    global vectorstore, embedder
-    if vectorstore is not None:
-        del vectorstore
+    global embedder
     if embedder is not None:
         del embedder
     gc.collect()
 
 atexit.register(cleanup_vectorstore)
 
-class Document:
-    def __init__(self, content, metadata):
-        self.content = content
-        self.metadata = metadata or {}
+def load_scenario_weights(scenario_id, scenario_path=None):
+    return load_explicit_tag_weights(
+        scenario_id,
+        scenario_path=scenario_path,
+    )
 
-def load_scenario_weights(scenario_id):
-    print(f"\U0001f9e0 Expanding tag weights with semantic overlap for scenario: {scenario_id}")
-    return get_semantic_tag_weights(scenario_id, scenario_dir=Path("scenarios"), corpus_dir=Path("deontological_corpus"))
 
-def normalize_tags(raw_tags):
-    if isinstance(raw_tags, str):
-        return [t.strip() for t in raw_tags.split(",")]
-    elif isinstance(raw_tags, list):
-        return [t.strip() for t in raw_tags]
-    return []
+def retrieve_deontological_quotes(
+    query: str,
+    scenario_id: str,
+    limit_per_quote: int = 250,
+    *,
+    embedder=None,
+    scenario_path=None,
+):
+    """Compatibility name for strict-Kantian typed evidence retrieval."""
 
-def cosine_similarity(a, b):
-    a = np.array(a).flatten()
-    b = np.array(b).flatten()
-    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+    if embedder is None:
+        from langchain_huggingface import HuggingFaceEmbeddings
 
-def retrieve_deontological_quotes(query: str, scenario_id: str, limit_per_quote: int = 250):
-    from langchain_chroma import Chroma
-    from langchain_huggingface import HuggingFaceEmbeddings
-    from load_deontological_corpus import load_deontological_corpus
-    # Let cleanup_vectorstore handle resource cleanup at exit
-    global vectorstore, embedder
-    embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    vectorstore = load_deontological_corpus()
-
-    tag_weights = load_scenario_weights(scenario_id)
-    print(f"\U0001f527 Scenario Tag Weights: {tag_weights}")
-
-    raw_docs = vectorstore.similarity_search(query, k=10)
-    print(f"🔍 Retrieved {len(raw_docs)} documents for similarity search.")
-    wrapped_docs = [Document(d.page_content, d.metadata) for d in raw_docs]
-    if wrapped_docs:
-        print("🔍 Sample document content snippet:", wrapped_docs[0].content[:100])
-
-    def doc_score(doc):
-        tags = normalize_tags(doc.metadata.get("tags", []))
-        score = 0.0
-        for tag in tags:
-            tag_weight = tag_weights.get(tag, 0.0)
-            if tag_weight > 0:
-                print(f"\U0001f50d Tag '{tag}' has semantic weight {tag_weight}")
-            score += tag_weight
-        print(f"\U0001f9ea Normalized Tags: {tags} → Score: {score:.2f}")
-        return score
-
-    doc_scores = {id(doc): doc_score(doc) for doc in wrapped_docs}
-
-    quotes = []
-    for doc in wrapped_docs:
-        for line in doc.content.split("\n"):
-            if line.strip().startswith(">"):
-                quote = line.strip()[1:].strip()[:limit_per_quote]
-                if quote:
-                    quotes.append((quote, doc_scores[id(doc)]))
-
-    if not quotes:
-        print("⚠️ No '>'-prefixed quotes found, using document excerpts as fallback quotes.")
-        for doc in wrapped_docs[:3]:
-            lines = [l for l in doc.content.split("\n") if l.strip()]
-            excerpt = lines[0].strip()[:limit_per_quote] if lines else ""
-            if excerpt:
-                quotes.append((excerpt, doc_scores[id(doc)]))
-    if not quotes:
-        return "", []
-
-    quote_texts = [q[0] for q in quotes]
-    quote_tag_scores = [q[1] for q in quotes]
-
-    query_embedding = embedder.embed_query(query)
-    quote_embeddings = embedder.embed_documents(quote_texts)
-
-    ranked = []
-    for i in range(len(quote_texts)):
-        sim = cosine_similarity(query_embedding, quote_embeddings[i])
-        sim = max(0.0, sim)
-        tag_score = quote_tag_scores[i] if i < len(quote_tag_scores) else 0.0
-        combined_score = tag_score * 2 + 0.2 * sim
-        ranked.append((quote_texts[i], combined_score))
-
-    ranked = sorted(ranked, key=lambda x: x[1], reverse=True)
-    top_quotes = ranked[:3]
-
-    for quote, score in top_quotes:
-        print(f"\U0001f4d8 Quote Used (score: {score:.2f}): {quote}")
-
-    return "\n---\n".join([q for q, _ in top_quotes]), top_quotes
+        embedder = HuggingFaceEmbeddings(
+            model_name="sentence-transformers/all-MiniLM-L6-v2"
+        )
+    passages = load_corpus_passages(
+        DEONTOLOGY_CORPUS_DIR,
+        framework="deontological",
+        max_chars=limit_per_quote,
+    )
+    result = retrieve_framework_evidence(
+        passages,
+        query=query,
+        embedder=embedder,
+        query_lens=DEONTOLOGY_QUERY_LENS,
+        identity_tags=DEONTOLOGY_IDENTITY_TAGS,
+        core_evidence_roles={"kantian_core"},
+        tag_weights=load_scenario_weights(scenario_id, scenario_path=scenario_path),
+        thresholds=DEONTOLOGY_EVIDENCE_THRESHOLDS,
+        limit=3,
+        prefer_direct_quotes=True,
+        separate_identity_scoring=True,
+    )
+    for item in result.evidence:
+        print(
+            f"📘 {item.tier.value} evidence (framework={item.framework_score:.2f}, "
+            f"case={item.case_score:.2f}, rank={item.final_score:.2f}): "
+            f"{item.passage.text}"
+        )
+    if not result.evidence:
+        print("⚠️ No Deontological corpus evidence met the adjacent threshold.")
+    return format_evidence_context(result), result.evidence, result
 
 def respond_to_query(query: str, scenario_id: str, temperature: float = 0.4, max_tokens: int = 300, llm=None, scenario_path=None) -> str:
     if scenario_path is None:
@@ -135,16 +109,42 @@ def respond_to_query(query: str, scenario_id: str, temperature: float = 0.4, max
     if not query or not scenario_id:
         raise ValueError("Both 'query' and 'scenario_id' must be provided.")
 
-    # Check if query matches last processed query
-    if LAST_QUERY_PATH.exists() and LAST_RESPONSE_PATH.exists():
+    retrieval_fingerprint = corpus_fingerprint(
+        DEONTOLOGY_CORPUS_DIR,
+        framework="deontological",
+    )
+    cache_key = build_source_cache_key(
+        DEONTOLOGY_PROMPT_VERSION,
+        query,
+        scenario_id,
+        scenario_path,
+        retrieval_fingerprint,
+    )
+    reuse_source = (
+        os.getenv("ETHICS_LLM_BACKEND", "local") == "local"
+        or os.getenv("ETHICS_REUSE_SOURCE_TESTIMONY", "1") != "0"
+    )
+    if reuse_source and LAST_QUERY_PATH.exists() and LAST_RESPONSE_PATH.exists():
         last_query = LAST_QUERY_PATH.read_text().strip()
-        if query.strip() == last_query:
-            print("⚡ Skipping LLM call — using cached response.")
+        if cache_key == last_query:
+            print("⚡ Skipping LLM call — using cached deontological response.")
             return LAST_RESPONSE_PATH.read_text().strip()
 
-    context, top_quotes = retrieve_deontological_quotes(query, scenario_id)
-    print(f"🔍 Retrieved context for quotes:\n{context}\n")
-    print(f"🔍 Retrieved top_quotes list: {top_quotes}\n")
+    from langchain_huggingface import HuggingFaceEmbeddings
+
+    global embedder
+    embedder = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2"
+    )
+    context, evidence, retrieval = retrieve_deontological_quotes(
+        query,
+        scenario_id,
+        embedder=embedder,
+        scenario_path=scenario_path,
+    )
+    del embedder
+    embedder = None
+    gc.collect()
 
     if llm is None:
         from llama_cpp import Llama
@@ -160,16 +160,34 @@ def respond_to_query(query: str, scenario_id: str, temperature: float = 0.4, max
     prompt = f"""<s>[INST]
 You are a strict Kantian ethics assistant. Apply the categorical imperative by reasoning only by maxims you can will as universal laws. Do not reference or mention any other ethical frameworks (e.g., consequentialism) or that you are ignoring them.
 
-For each maxim:
-1. State the maxim exactly.
-2. Test: "Can all rational agents in identical circumstances will this maxim as a universal law?"
-3. Name at least one duty (truth-telling, respect, autonomy, justice, or impartiality) and explain how it applies.
-4. If the maxim involves coercion or force, always choose "autonomy" as the duty, overriding other duties.
-5. Always remember: Respect for persons as ends applies to all, regardless of their moral character, unless the universal law itself justifies an exception.
-Focus solely on deontological reasoning consistent with the relevant quotes below.
+For EACH listed action, using its exact action label:
+1. State the action's maxim and test whether all rational agents in materially
+   identical circumstances could will it as a universal law.
+2. Identify every salient duty or right it satisfies and violates, including
+   truth, non-instrumentalization, autonomy, justice, rescue, and impartiality.
+3. Classify the action as REQUIRED, PERMISSIBLE, or PROHIBITED under those duties.
+4. If duties conflict, state the conflict and the non-consequential priority rule
+   used to resolve it. Coercion creates a stringent autonomy objection; it does
+   not mechanically erase duties owed to third parties.
+5. State whether numerical magnitude is DECISIVE, SECONDARY, or IRRELEVANT.
+   Numbers may establish the scope of a rights violation or duty, but may not
+   substitute aggregate welfare maximization for a universal-law justification.
+6. Respect for persons as ends applies to all regardless of moral character.
+
+If independent Kantian duties favor different actions and no stated priority rule
+resolves them, say "Deontological Status: NORMATIVELY_CONTESTED". A provisional
+recommendation is allowed, but do not disguise a duty conflict as a settled duty.
+Keep the full comparison compact enough to fit within 180 words.
+CORE evidence is Kantian or explicitly Kantian-derived and may ground your analysis.
+ADJACENT evidence comes from a neighboring deontological tradition: it may clarify
+a problem but may not supply your priority rule, change your Kantian identity, or
+override universal law, humanity-as-end, and autonomy analysis. If no evidence
+qualifies, reason from this Kantian specification without pretending the corpus
+settled the issue.
+Focus solely on Kantian reasoning consistent with the relevant evidence below.
 Do not repeat any instructions in your Deontological Answer; only provide the reasoning itself.
 
-### Relevant Quotes:
+### Typed Corpus Evidence:
 {context}
 
 ### Ethical Question:
@@ -193,17 +211,28 @@ Provide your answer as a Deontological Answer.
 
     with open(output_path, "w") as f:
         f.write(f"Ethical Question: {query}\n\n")
-        # f.write("Relevant Quotes Context:\n")
-        # f.write(f"{context}\n\n")
-        f.write("Top Quotes Used:\n")
+        f.write("Top Corpus Evidence Used:\n")
         f.write(f"Scenario ID: {scenario_id}\n")
-        for quote, score in top_quotes:
-            f.write(f"- {quote} (score: {score:.2f})\n")
+        f.write(
+            f"Retrieval candidates: {retrieval.candidate_count}; "
+            f"rejected: {retrieval.rejected_count}; "
+            f"core present: {retrieval.has_core_evidence}\n"
+        )
+        for item in evidence:
+            metadata = item.passage.metadata
+            f.write(
+                f"- [{item.tier.value}] role={metadata.get('framework_role', 'unspecified')}; "
+                f"{metadata.get('author', 'Unknown')}, "
+                f"{metadata.get('source', metadata.get('title', 'Unknown'))}; "
+                f"kind={item.passage.source_kind}; framework={item.framework_score:.2f}; "
+                f"case={item.case_score:.2f}; rank={item.final_score:.2f}: "
+                f"{item.passage.text}\n"
+            )
         f.write("\nDeontological Response:\n")
         f.write(final_response + "\n")
 
     # Save the current query and response for caching
-    LAST_QUERY_PATH.write_text(query.strip())
+    LAST_QUERY_PATH.write_text(cache_key)
     LAST_RESPONSE_PATH.write_text(final_response.strip())
 
     print(f"\U0001f4be Saved output to: {output_path.name}")

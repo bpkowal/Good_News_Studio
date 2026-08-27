@@ -3,6 +3,7 @@ title: Natural Law and Eternal Reason
 author: Thomas Aquinas  
 source: Summa Theologiae  
 status: approved  
+framework_role: adjacent_deontology
 tags: [natural_law, eternal_law, divine_reason, moral_order, human_dignity, intrinsic_rightness]  
 impact_score: 8.5  
 retracted: false  

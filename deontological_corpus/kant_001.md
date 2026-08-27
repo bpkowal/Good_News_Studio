@@ -3,6 +3,7 @@ title: Lying is Always Wrong
 author: Immanuel Kant
 source: Groundwork of the Metaphysics of Morals
 status: approved
+framework_role: kantian_core
 tags: [lying, categorical_imperative, universality, moral_duty]
 impact_score: 9.5
 retracted: false

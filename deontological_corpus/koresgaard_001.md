@@ -3,6 +3,7 @@ title: Acting for the Right Reasons
 author: Christine Korsgaard  
 source: The Sources of Normativity  
 status: approved  
+framework_role: kantian_core
 tags: [moral_duty, autonomy, practical_identity, normativity, respect_for_law, deontological_reasoning]  
 impact_score: 8.7  
 retracted: false  

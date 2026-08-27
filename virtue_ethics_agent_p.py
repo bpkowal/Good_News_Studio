@@ -1,29 +1,44 @@
 MODEL_PATH = "../mistral-7b-instruct-v0.2.Q4_K_M.gguf"
-from langchain_chroma import Chroma
-from langchain_huggingface import HuggingFaceEmbeddings
-from load_virtue_ethics_corpus import load_virtue_ethics_corpus
-from langchain.schema import Document as LangchainDoc
+VIRTUE_PROMPT_VERSION = "virtue-typed-evidence-v3"
 import json
 from pathlib import Path
+from global_workspace.source_cache import build_source_cache_key
+from global_workspace.framework_retrieval import (
+    EvidenceThresholds,
+    corpus_fingerprint,
+    format_evidence_context,
+    load_explicit_tag_weights,
+    load_corpus_passages,
+    retrieve_framework_evidence,
+)
 LAST_QUERY_PATH = Path("agent_outputs/.last_query_virtue.txt")
 LAST_RESPONSE_PATH = Path("agent_outputs/.last_response_virtue.txt")
+VIRTUE_CORPUS_DIR = Path("virtue_ethics_corpus")
+# Calibrated against the current ICU allocation, vehicle, and ordinary-lie cases.
+# Below 0.30 the passages were generic enough to add noise; 0.42 separated the
+# consistently framework-relevant passages from merely neighboring material.
+VIRTUE_EVIDENCE_THRESHOLDS = EvidenceThresholds(core=0.42, adjacent=0.30)
+VIRTUE_IDENTITY_TAGS = {
+    "virtue_ethics",
+    "virtue",
+    "character",
+    "flourishing",
+    "practical_wisdom",
+    "golden_mean",
+}
+VIRTUE_QUERY_LENS = (
+    "Virtue ethics evidence about the actor's role, practical wisdom, character, "
+    "virtues and vices, moral perception, tragic conflict, habituation, and human flourishing."
+)
 import glob
 from datetime import datetime
 import os
 import gc
-import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
-from get_semantic_tag import get_semantic_tag_weights
 
 import atexit
 
 def cleanup_vectorstore():
-    global vectorstore
     global embedder
-    try:
-        del vectorstore
-    except NameError:
-        pass
     try:
         del embedder
     except NameError:
@@ -32,100 +47,57 @@ def cleanup_vectorstore():
 
 atexit.register(cleanup_vectorstore)
 
-class Document:
-    def __init__(self, content, metadata):
-        self.content = content
-        self.metadata = metadata or {}
+def load_scenario_weights(scenario_id, scenario_path=None):
+    """Use explicit tags only; do not invent semantic tag authority."""
 
-def load_scenario_weights(scenario_id):
-    print(f"🧠 Expanding tag weights with semantic overlap for scenario: {scenario_id}")
-    return get_semantic_tag_weights(scenario_id, scenario_dir=Path("scenarios"), corpus_dir=Path("virtue_ethics_corpus"))
+    return load_explicit_tag_weights(
+        scenario_id,
+        scenario_path=scenario_path,
+    )
 
 
-def normalize_tags(raw_tags):
-    if isinstance(raw_tags, str):
-        return [t.strip() for t in raw_tags.split(",")]
-    elif isinstance(raw_tags, list):
-        return [t.strip() for t in raw_tags]
-    return []
+def retrieve_virtue_ethics_quotes(
+    query: str,
+    scenario_id: str,
+    limit_per_quote: int = 250,
+    *,
+    embedder=None,
+    scenario_path=None,
+):
+    """Compatibility name for typed Virtue evidence retrieval."""
 
-def cosine_similarity(a, b):
-    a = np.array(a).flatten()
-    b = np.array(b).flatten()
-    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+    if embedder is None:
+        from langchain_huggingface import HuggingFaceEmbeddings
 
-def retrieve_virtue_ethics_quotes(query: str, scenario_id: str, limit_per_quote: int = 250):
-    tag_weights = load_scenario_weights(scenario_id)
-    print(f"🔧 Scenario Tag Weights: {tag_weights}")
-
-    raw_docs = vectorstore.similarity_search(query, k=10)
-    wrapped_docs = [Document(d.page_content, d.metadata) for d in raw_docs]
-
-    def doc_score(doc):
-        tags = normalize_tags(doc.metadata.get("tags", []))
-        score = 0.0
-        for tag in tags:
-            tag_weight = tag_weights.get(tag, 0.0)
-            if tag_weight > 0:
-                print(f"🔍 Tag '{tag}' has semantic weight {tag_weight}")
-            score += tag_weight
-        print(f"🧪 Normalized Tags: {tags} → Score: {score:.2f}")
-        return score
-
-    doc_scores = {id(doc): doc_score(doc) for doc in wrapped_docs}
-
-    quotes = []
-    for doc in wrapped_docs:
-        for line in doc.content.split("\n"):
-            if line.strip().startswith(">"):
-                quote = line.strip()[1:].strip()[:limit_per_quote]
-                if quote:
-                    quotes.append((quote, doc_scores[id(doc)]))
-
-    if not quotes:
-        return "", []
-
-    quote_texts = [q[0] for q in quotes]
-    quote_tag_scores = [q[1] for q in quotes]
-
-    query_embedding = embedder.embed_query(query)
-    quote_embeddings = embedder.embed_documents(quote_texts)
-
-    ranked = []
-    for i in range(len(quote_texts)):
-        sim = cosine_similarity(query_embedding, quote_embeddings[i])
-        sim = max(0.0, sim)
-        tag_score = quote_tag_scores[i] if i < len(quote_tag_scores) else 0.0
-        combined_score = tag_score * 2 + 0.2 * sim
-        ranked.append((quote_texts[i], combined_score))
-
-    ranked = sorted(ranked, key=lambda x: x[1], reverse=True)
-    top_quotes = ranked[:3]
-
-    for quote, score in top_quotes:
-        print(f"📘 Quote Used (score: {score:.2f}): {quote}")
-
-    del tag_weights
-    del raw_docs
-    del wrapped_docs
-    del quote_embeddings
-    del quote_texts
-    del quote_tag_scores
-    del ranked
-    gc.collect()
-
-    return "\n---\n".join([q for q, _ in top_quotes]), top_quotes
+        embedder = HuggingFaceEmbeddings(
+            model_name="sentence-transformers/all-MiniLM-L6-v2"
+        )
+    tag_weights = load_scenario_weights(scenario_id, scenario_path=scenario_path)
+    passages = load_corpus_passages(
+        VIRTUE_CORPUS_DIR,
+        framework="virtue",
+        max_chars=limit_per_quote,
+    )
+    result = retrieve_framework_evidence(
+        passages,
+        query=query,
+        embedder=embedder,
+        query_lens=VIRTUE_QUERY_LENS,
+        identity_tags=VIRTUE_IDENTITY_TAGS,
+        tag_weights=tag_weights,
+        thresholds=VIRTUE_EVIDENCE_THRESHOLDS,
+        limit=3,
+    )
+    for item in result.evidence:
+        print(
+            f"📘 {item.tier.value} evidence (semantic={item.semantic_score:.2f}, "
+            f"score={item.final_score:.2f}): {item.passage.text}"
+        )
+    if not result.evidence:
+        print("⚠️ No Virtue corpus evidence met the adjacent threshold.")
+    return format_evidence_context(result), result.evidence, result
 
 def respond_to_query(query=None, scenario_id=None, scenario_path=None, temperature: float = 0.7, max_tokens: int = 300, llm=None) -> str:
-    # Load vectorstore and embedder only when needed
-    from langchain_huggingface import HuggingFaceEmbeddings
-    from load_virtue_ethics_corpus import load_virtue_ethics_corpus
-
-    global embedder
-    global vectorstore
-    embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    vectorstore = load_virtue_ethics_corpus()
-
     if scenario_path:
         try:
             with open(scenario_path, "r") as f:
@@ -139,17 +111,37 @@ def respond_to_query(query=None, scenario_id=None, scenario_path=None, temperatu
     if query is None or scenario_id is None:
         print("⚠️ No query or scenario ID provided to respond_to_query. Aborting.")
         return "[ERROR] Missing input."
-    # Skip LLM if query hasn't changed
-    if LAST_QUERY_PATH.exists() and LAST_RESPONSE_PATH.exists():
+    retrieval_fingerprint = corpus_fingerprint(VIRTUE_CORPUS_DIR, framework="virtue")
+    cache_key = build_source_cache_key(
+        VIRTUE_PROMPT_VERSION,
+        query,
+        scenario_id,
+        scenario_path,
+        retrieval_fingerprint,
+    )
+    reuse_source = (
+        os.getenv("ETHICS_LLM_BACKEND", "local") == "local"
+        or os.getenv("ETHICS_REUSE_SOURCE_TESTIMONY", "1") != "0"
+    )
+    if reuse_source and LAST_QUERY_PATH.exists() and LAST_RESPONSE_PATH.exists():
         last_query = LAST_QUERY_PATH.read_text().strip()
-        if query.strip() == last_query:
+        if cache_key == last_query:
             print("⚡ Skipping LLM call — using cached virtue ethics response.")
             return LAST_RESPONSE_PATH.read_text().strip()
-    context, top_quotes = retrieve_virtue_ethics_quotes(query, scenario_id)
+
+    # Load RAG only after the source-testimony cache misses.
+    from langchain_huggingface import HuggingFaceEmbeddings
+    global embedder
+    embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    context, evidence, retrieval = retrieve_virtue_ethics_quotes(
+        query,
+        scenario_id,
+        embedder=embedder,
+        scenario_path=scenario_path,
+    )
 
     # Cleanup RAG components
     del embedder
-    del vectorstore
     gc.collect()
 
     if llm is None:
@@ -166,10 +158,25 @@ def respond_to_query(query=None, scenario_id=None, scenario_path=None, temperatu
 
 
 
-    prompt = f"""<s>[INST] You are a virtue ethics assistant. Your task is to generate a detailed answer from the perspective of virtue ethics to the ethical scenario provided below. You should reason from the perspective of virtue ethics, focusing on character, habituation, and human flourishing.
+    prompt = f"""<s>[INST] You are a virtue ethics assistant. Give a concise answer of at most 180 words from the perspective of virtue ethics, focusing on character, habituation, and human flourishing.
     - Prioritize the development of moral character and virtues over rule-based moral frameworks.
     - Use moral exemplars, narrative analogies, and lived experience as sources of ethical insight.
-    - Provide a specific course of action consistent with one path a virtue ethicists could recommend.
+    - Compare EVERY listed action using its exact action label. For each, identify
+      the actor's role, virtues it expresses, vices it risks, and the concrete
+      circumstances practical wisdom must notice.
+    - State whether numerical magnitude is DECISIVE, SECONDARY, or IRRELEVANT.
+      Stakes can matter to practical wisdom, but numbers alone do not constitute
+      courage, justice, honesty, compassion, or flourishing.
+    - State the central virtue conflict and the practical-wisdom comparison rule.
+      If independent virtues favor different actions and phronesis has no grounded
+      way to rank them, say "Virtue-Ethics Status: NORMATIVELY_CONTESTED" and make
+      any action recommendation explicitly provisional.
+    - CORE corpus evidence may ground your analysis. ADJACENT evidence is optional
+      interpretive context only: it must not determine your recommendation, override
+      scenario facts, or replace virtue-ethical analysis of role, character, and
+      practical wisdom. If no evidence qualifies, reason from these framework
+      instructions without pretending the corpus supplied support.
+    - Do not repeat the scenario or instructions.
 
     Here are the corpus materials for reference:
     {context}
@@ -190,21 +197,33 @@ def respond_to_query(query=None, scenario_id=None, scenario_path=None, temperatu
 
     with open(output_path, "w") as f:
         f.write(f"Ethical Question: {query}\n\n")
-        f.write("Top Quotes Used:\n")
+        f.write("Top Corpus Evidence Used:\n")
         f.write(f"Scenario ID: {scenario_id}\n")
-        for quote, score in top_quotes:
-            f.write(f"- {quote} (score: {score:.2f})\n")
+        f.write(
+            f"Retrieval candidates: {retrieval.candidate_count}; "
+            f"rejected: {retrieval.rejected_count}; "
+            f"core present: {retrieval.has_core_evidence}\n"
+        )
+        for item in evidence:
+            metadata = item.passage.metadata
+            f.write(
+                f"- [{item.tier.value}] {metadata.get('author', 'Unknown')}, "
+                f"{metadata.get('source', metadata.get('title', 'Unknown'))}; "
+                f"kind={item.passage.source_kind}; semantic={item.semantic_score:.2f}; "
+                f"score={item.final_score:.2f}: {item.passage.text}\n"
+            )
         f.write("\nVirtue Ethics Response:\n")
         f.write(final_response + "\n")
 
     print(f"💾 Saved output to: {output_path.name}")
 
     # Save cache for last query/response
-    LAST_QUERY_PATH.write_text(query.strip())
+    LAST_QUERY_PATH.write_text(cache_key)
     LAST_RESPONSE_PATH.write_text(final_response.strip())
 
     del context
-    del top_quotes
+    del evidence
+    del retrieval
     gc.collect()
 
     return final_response

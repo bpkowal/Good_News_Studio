@@ -3,6 +3,7 @@ title: "The Authority of Moral Norms"
 author: "Christine Korsgaard"
 source: "Creating the Kingdom of Ends"
 status: approved
+framework_role: kantian_core
 tags: [deontology, moral_obligation, autonomy, duty, normativity]
 impact_score: 8.2
 retracted: false

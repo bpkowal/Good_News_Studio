@@ -3,6 +3,7 @@ title: Prima Facie Duties and Moral Conflict
 author: W.D. Ross  
 source: The Right and the Good  
 status: approved  
+framework_role: adjacent_deontology
 tags: [prima_facie_duty, moral_conflict, fidelity, promise_keeping, non_maleficence]  
 impact_score: 8.3  
 retracted: false  

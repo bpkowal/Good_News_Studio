@@ -3,6 +3,7 @@ title: Prima Facie Duties
 author: W.D. Ross  
 source: The Right and the Good  
 status: approved  
+framework_role: adjacent_deontology
 tags: [prima_facie_duties, fidelity, reparation, gratitude, justice, moral_conflict]  
 impact_score: 8.7  
 retracted: false  
