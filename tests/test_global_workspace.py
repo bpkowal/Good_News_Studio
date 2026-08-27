@@ -19,6 +19,7 @@ from global_workspace.legacy_bridge import RESPONSE_MARKER, consult_original_age
 from global_workspace.local_specialists import (
     CompactLocalSpecialist,
     _candidate_from_data,
+    _construct_map_errors,
     _landscape_semantic_errors,
     _scenario_closes_action_set,
     analyze_action_plan,
@@ -40,7 +41,17 @@ from global_workspace.rawls_ledger import apply_rawls_ledger_transaction
 from global_workspace.deontology_ledger import (
     DutyAssessmentProposal, apply_deontological_ledger_transaction,
     calibrate_deontological_adjudication, committed_deontological_assessments,
-    render_deontological_adjudication,
+    render_deontological_adjudication, _party_grounding,
+)
+from global_workspace.utilitarian_ledger import (
+    _best_evidence, apply_utilitarian_ledger_transaction,
+)
+from global_workspace.resolved_questions import (
+    QuestionResolution,
+    commit_question_resolution,
+    question_resolution_index,
+    resolve_audited_question,
+    settled_question_keys,
 )
 from global_workspace.source_cache import build_source_cache_key
 from global_workspace.models import CalibrationOutcome, CandidateChunk, ContingencyFeasibilityAssessment, CycleRecord, FailureCondition, PlanningAssessment, PlanningBranchEvaluation, ProblemReformulation, ProposalFrameworkReview, SynthesisProposal, VisibilityAssessment, WorkspaceAccessDecision, WorkspaceBroadcast, WorkspaceResult
@@ -54,6 +65,7 @@ from global_workspace.contingency_feasibility import verify_contingency_feasibil
 from global_workspace.deliberative_state import (
     build_deliberative_problem_state,
     observe_broadcast_influence,
+    opening_problem_state,
     update_broadcast_influence_persistence,
 )
 from global_workspace.landscape_validation import _comparative_claim_errors
@@ -66,7 +78,9 @@ from global_workspace.presentation import render_public_judgment, _support_reaso
 from global_workspace.semantic_state import (
     _derive_action_dimensions, project_authoritative_semantic_state,
 )
-from global_workspace.semantic_graph import SemanticGraph, SemanticNode, SemanticEdge
+from global_workspace.semantic_graph import (
+    SemanticGraph, SemanticNode, SemanticEdge, merge_graphs,
+)
 from global_workspace.scenario_semantics import (
     canonicalize_action_order, canonicalize_deliberation_scenario,
     compile_scenario_graph, resolved_semantic_action_keys, semantic_action_key,
@@ -762,7 +776,7 @@ class WorkspaceEngineTests(unittest.TestCase):
                 "dissenting_positions", "current_plurality", "salient_position",
                 "problem_delta", "support_composition", "surface_consensus",
                 "deliberative_consensus", "framework_warnings",
-                "audit_candidates",
+                "audit_candidates", "resolved_questions",
                 "unresolved_categories", "primary_unresolved",
                 "proposals",
             },
@@ -985,7 +999,10 @@ class WorkspaceEngineTests(unittest.TestCase):
         class UpdatingSpecialist(FixedSpecialist):
             def evaluate(self, scenario, actions, broadcast):
                 chunk = super().evaluate(scenario, actions, broadcast)
-                if broadcast.problem_state:
+                # Update only after a cycle has actually broadcast a position.
+                # The opening cycle now receives a positionless problem frame,
+                # so the presence of a problem state no longer marks recurrence.
+                if broadcast.salient_specialist:
                     chunk.action_scores = {actions[0]: 0.72, actions[1]: 0.28}
                     chunk.preference_strength = 0.44
                     chunk.workspace_reasoning_effect = "NORMATIVE"
@@ -2348,7 +2365,14 @@ class WorkspaceEngineTests(unittest.TestCase):
                 "virtue": "Protection may be appropriate.",
             },
         )
-        self.assertFalse(any(decision.admitted for decision in result.access_decisions))
+        # Unanimity plus conditional testimony cannot manufacture a consensus
+        # audit. The explicitly persistent issue may still earn the dedicated
+        # problem-state slot, which is deliberation about the qualification
+        # rather than agreement erasing it.
+        self.assertFalse(any(
+            decision.admitted for decision in result.access_decisions
+            if decision.content_type == "CONSENSUS_AUDIT"
+        ))
         self.assertEqual(
             result.deliberative_problem_state["deliberative_consensus"],
             "SURFACE_AGREEMENT_WITH_QUALIFICATIONS",
@@ -8140,6 +8164,1447 @@ class BridgeTests(unittest.TestCase):
         answer = render_public_judgment(result)
         self.assertIn("Adversarial reversal review", answer)
         self.assertIn("accepted the challenge", answer)
+
+
+class AuditDirectInvertTests(unittest.TestCase):
+    actions = (
+        "maintain grid, let emergency wing fail",
+        "divert power, sacrifice research unit",
+    )
+    audit_variable = {
+        "entity": "priority between justice and compassion",
+        "relation": "RESOLVE_NORMATIVE_TENSION",
+        "possible_values": ["NO_CHANGE", "WEAKENS", "REVERSES", "UNRESOLVED"],
+        "focus_action": "A0",
+        "question": (
+            "Would resolving the remaining justice versus compassion tension "
+            "leave, weaken, or reverse the recommendation for maintaining the grid?"
+        ),
+    }
+
+    def _payload(
+        self,
+        *,
+        recommended: str,
+        scores: dict[str, float],
+        table: dict[str, list[dict[str, str]]],
+        ev: dict[str, dict[str, object]] | None = None,
+        justification: str = "Corrected expected-death arithmetic favours A0",
+    ) -> dict[str, object]:
+        return {
+            "scores": scores,
+            "r": recommended,
+            "c": "IMMINENT_HARM",
+            "u": "NONE",
+            "w": "Fewer expected deaths overall",
+            "j": justification,
+            "e": "STATED_FACTS",
+            "x": "NONE",
+            "l": {
+                "A0": "Keeps trial patients from being killed",
+                "A1": "Saves emergency residents from freeze",
+            },
+            "da": "expected deaths versus certain killing",
+            "t": "minimize expected deaths",
+            "tf": "NONE",
+            "dr": f"prefer {recommended} when its expected deaths are lower",
+            "ft": "NONE",
+            "nt": "NONE",
+            "z": 0.7,
+            "ct": table,
+            "cd": False,
+            "cm": "",
+            "ev": ev or {
+                "A0": {"value": 5.0, "unit": "DEATHS", "direction": "HARM", "grounded": True},
+                "A1": {"value": 0.001, "unit": "DEATHS", "direction": "HARM", "grounded": True},
+            },
+            "ap": "RELEVANT",
+            "ax": "Expected-death ranking is the utilitarian test of this audit.",
+            "d": "SUPPORTED",
+            "a": "Utilitarian ranking depends on expected lives",
+            "v": "If expected deaths for A1 rose above A0 the ranking would reverse",
+            "ie": "NO_CHANGE",
+            "av": dict(self.audit_variable),
+        }
+
+    def _trace_table(self) -> dict[str, list[dict[str, str]]]:
+        return {
+            "A0": [
+                {
+                    "o": "grid failure kills residents", "s": "emergency residents",
+                    "d": "HARM", "p": "1", "m": "large", "h": "immediate",
+                    "rv": "IRREVERSIBLE", "g": "STATED",
+                },
+                {
+                    "o": "trial data preserved", "s": "future patients",
+                    "d": "BENEFIT", "p": "0.01", "m": "10 lives (0.001 EV)",
+                    "h": "permanent", "rv": "UNKNOWN", "g": "STATED",
+                },
+            ],
+            "A1": [
+                {
+                    "o": "power diversion kills patients", "s": "research patients",
+                    "d": "HARM", "p": "1", "m": "large", "h": "immediate",
+                    "rv": "IRREVERSIBLE", "g": "STATED",
+                },
+                {
+                    "o": "life-support stabilised", "s": "emergency residents",
+                    "d": "BENEFIT", "p": "1", "m": "large", "h": "immediate",
+                    "rv": "IRREVERSIBLE", "g": "STATED",
+                },
+            ],
+        }
+
+    def test_audit_rejects_direct_invert_when_ledger_still_ranks_baseline(self):
+        with self.assertRaisesRegex(ValueError, "audit cycles may not invert"):
+            _candidate_from_data(
+                "utilitarian",
+                self.actions,
+                self._payload(
+                    recommended="A0",
+                    scores={"A0": 0.85, "A1": 0.15},
+                    table=self._trace_table(),
+                ),
+                WorkspaceBroadcast(
+                    constraint="PROBLEM_STATE_AUDIT",
+                    unresolved="VERIFY_ASSUMPTIONS",
+                    audit_variable=dict(self.audit_variable),
+                ),
+                "A1",
+                {},
+                previous_recommendation_id="A1",
+                baseline_status="DIRECT",
+            )
+
+    def test_audit_allows_direct_invert_when_ledger_ranks_new_action(self):
+        table = {
+            "A0": [{
+                "o": "keeps five residents alive", "s": "emergency residents",
+                "d": "BENEFIT", "p": "1", "m": "5 lives", "h": "immediate",
+                "rv": "IRREVERSIBLE", "g": "STATED",
+            }],
+            "A1": [{
+                "o": "kills five residents", "s": "emergency residents",
+                "d": "HARM", "p": "1", "m": "5 lives", "h": "immediate",
+                "rv": "IRREVERSIBLE", "g": "STATED",
+            }],
+        }
+        chunk = _candidate_from_data(
+            "utilitarian",
+            self.actions,
+            self._payload(
+                recommended="A0",
+                scores={"A0": 0.85, "A1": 0.15},
+                table=table,
+                ev={
+                    "A0": {"value": 0.0, "unit": "DEATHS", "direction": "HARM", "grounded": True},
+                    "A1": {"value": 5.0, "unit": "DEATHS", "direction": "HARM", "grounded": True},
+                },
+                justification="Ledger now shows A0 prevents the larger expected harm",
+            ),
+            WorkspaceBroadcast(
+                constraint="PROBLEM_STATE_AUDIT",
+                unresolved="VERIFY_ASSUMPTIONS",
+                audit_variable=dict(self.audit_variable),
+            ),
+            "A1",
+            {},
+            previous_recommendation_id="A1",
+            baseline_status="DIRECT",
+        )
+        self.assertTrue(chunk.schema_valid, chunk.validation_errors)
+        self.assertEqual(chunk.recommended_action, self.actions[0])
+
+    def test_open_deliberation_still_rejects_unjustified_direct_invert(self):
+        with self.assertRaisesRegex(ValueError, "initial recommendation must match"):
+            _candidate_from_data(
+                "utilitarian",
+                self.actions,
+                self._payload(
+                    recommended="A0",
+                    scores={"A0": 0.85, "A1": 0.15},
+                    table=self._trace_table(),
+                ),
+                WorkspaceBroadcast(constraint="OPEN_DELIBERATION"),
+                "A1",
+                {},
+                baseline_status="DIRECT",
+            )
+
+
+class DeontologyAuditVoteTests(unittest.TestCase):
+    """Cycle-3 o3 bug: a conditional audit must not drop a valid duty ranking."""
+
+    actions = (
+        "Keep the grid as is, letting the emergency wing fail to preserve the research unit and patients",
+        "Divert power to life-support in the emergency wing, destroying the research unit",
+    )
+    audit_variable = {
+        "entity": "priority between justice and compassion",
+        "relation": "RESOLVE_NORMATIVE_TENSION",
+        "possible_values": ["NO_CHANGE", "WEAKENS", "REVERSES", "UNRESOLVED"],
+        "focus_action": "A0",
+        "question": (
+            "Would resolving the remaining justice versus compassion tension "
+            "leave, weaken, or reverse the recommendation for maintaining the grid?"
+        ),
+    }
+
+    def _broadcast(self) -> WorkspaceBroadcast:
+        return WorkspaceBroadcast(
+            constraint="PROBLEM_STATE_AUDIT",
+            unresolved="VERIFY_ASSUMPTIONS",
+            audit_variable=dict(self.audit_variable),
+        )
+
+    def _payload(self, **overrides: object) -> dict[str, object]:
+        data: dict[str, object] = {
+            "scores": {"A0": 0.76, "A1": 0.24},
+            "r": "A0",
+            "c": "DUTY",
+            "u": "NONE",
+            "w": "perfect duties override imperfect rescue",
+            "j": "NONE",
+            "e": "FRAMEWORK_ONLY",
+            "x": "NONE",
+            "l": {
+                "A0": "Required: do not kill the research patients",
+                "A1": "Prohibited: uses patients merely as means",
+            },
+            "da": "perfect duty versus imperfect rescue",
+            "t": "perfect duties override imperfect duties",
+            "tf": "NONE",
+            "dr": "prefer A0 when killing innocents remains prohibited",
+            "ft": "NONE",
+            "nt": "If imperfect rescue gained priority over perfect non-maleficence",
+            "z": 0.7,
+            "fm": {
+                "A0": "REQUIRED: refrain from intentional killing of research patients",
+                "A1": "PROHIBITED: instrumentalizes non-consenting patients to rescue others",
+            },
+            "nr": "IRRELEVANT",
+            "np": "counts of lives do not override the perfect duty",
+            "ap": "RELEVANT",
+            "ax": "Rescue remains an imperfect duty beside non-maleficence",
+            "d": "CONDITIONAL",
+            "a": "The audited tension does not defeat the perfect duty",
+            "v": "If imperfect rescue gained priority the ranking would reverse",
+            "ie": "NO_CHANGE",
+            "av": dict(self.audit_variable),
+        }
+        data.update(overrides)
+        return data
+
+    def test_conditional_audit_keeps_deontological_vote_and_marks_uncertainty(self):
+        chunk = _candidate_from_data(
+            "deontological",
+            self.actions,
+            self._payload(),
+            self._broadcast(),
+            "A0",
+            {},
+            previous_recommendation_id="A0",
+            baseline_status="DIRECT",
+        )
+        self.assertTrue(chunk.schema_valid, chunk.validation_errors)
+        self.assertEqual(chunk.recommended_action, self.actions[0])
+        self.assertEqual(chunk.unresolved, "VERIFY_FACTS")
+        self.assertEqual(chunk.assumption_status, "CONDITIONAL")
+        self.assertEqual(chunk.audit_participation, "RELEVANT")
+
+    def test_short_audit_explanation_does_not_drop_deontological_vote(self):
+        chunk = _candidate_from_data(
+            "deontological",
+            self.actions,
+            self._payload(ax="no", fa="NONE", w="duty ranking"),
+            self._broadcast(),
+            "A0",
+            {},
+            previous_recommendation_id="A0",
+            baseline_status="DIRECT",
+        )
+        self.assertTrue(chunk.schema_valid, chunk.validation_errors)
+        self.assertEqual(chunk.recommended_action, self.actions[0])
+        self.assertEqual(chunk.audit_participation, "NOT_TESTED")
+
+
+class ScenarioClausePartyGroundingTests(unittest.TestCase):
+    """A party the scenario names as affected is not always an action target."""
+
+    scenario = (
+        "You can execute a covert override to save 8 freezing residents, but "
+        "doing so overwrites system logs, framing an innocent technician for "
+        "sabotage. Alternatively, you can preserve the audit logs to exonerate "
+        "the innocent technician while the residents continue to freeze."
+    )
+    actions = (
+        "execute the covert override that erases the logs to restore heat",
+        "preserve the audit logs and leave the heating system untouched",
+    )
+
+    def _assessment(self, action_id: str, protected_party: str) -> dict[str, object]:
+        return {
+            "action_id": action_id, "verdict": "CONFLICTED",
+            "norm_kind": "RIGHT", "norm": "do not frame the innocent",
+            "relation": "CONFLICTS", "duty_bearer": "operator",
+            "protected_party": protected_party,
+            "competing_norm": "duty to rescue",
+            "competing_norm_kind": "DUTY", "competing_relation": "CONFLICTS",
+            "competing_protected_party": "residents",
+            "competing_reason": "both claims remain live",
+            "governing_norm": "UNRESOLVED", "priority_basis": "UNRESOLVED",
+            "priority_rule": "the ranking remains unresolved",
+            "protected_standing": "EQUAL_JURIDICAL_STATUS",
+            "competing_protected_standing": "SPECIAL_OBLIGATION",
+            "coercion_kind": "NONE", "coercive_actor": "NONE",
+            "coerced_party": "NONE",
+            "public_justification": "no coercion requires authorization",
+            "reciprocity_status": "UNKNOWN", "necessity_status": "UNKNOWN",
+            "authorization_status": "NOT_APPLICABLE",
+            "derivation": "UNRESOLVED", "resolution_status": "CONTESTED",
+            "evidence_basis": "SCENARIO", "reason": "the duties conflict",
+        }
+
+    def _graph(self) -> SemanticGraph:
+        clauses = segment_scenario_clauses(self.scenario)
+        return compile_scenario_graph(self.scenario, list(self.actions), {
+            "A0": {"clauses": [clauses[0]]},
+            "A1": {"clauses": [clauses[1]]},
+        })
+
+    def _apply(self, protected_party: str):
+        store = SemanticGraphStore(self._graph())
+        record = apply_deontological_ledger_transaction(
+            store,
+            {"assessments": [
+                self._assessment("A0", protected_party),
+                self._assessment("A1", protected_party),
+            ]},
+            cycle=1, specialist="deontological",
+            allowed_actions=tuple(self.actions),
+        )
+        return store, record
+
+    def test_party_named_only_in_the_cited_clause_grounds_the_duty(self):
+        _store, record = self._apply("innocent technician")
+
+        self.assertNotIn(
+            "A0 primary protected party lacks current-run action grounding",
+            record.errors,
+        )
+        committed = record.proposal["committed_assessments"]
+        self.assertTrue(all(
+            item["epistemic_status"] != "UNRESOLVED_PARTY" for item in committed
+        ))
+
+    def test_party_absent_from_every_cited_clause_stays_ungrounded(self):
+        _store, record = self._apply("offshore shareholders")
+
+        self.assertTrue(any(
+            "primary protected party lacks current-run action grounding" in error
+            for error in record.errors
+        ))
+
+    def test_clause_grounding_requires_every_substantive_word(self):
+        graph = self._graph()
+
+        matched, basis = _party_grounding(graph, "A0", "innocent technician")
+        unmatched, missing_basis = _party_grounding(graph, "A0", "innocent bystander")
+
+        self.assertTrue(matched)
+        self.assertEqual(basis, "SCENARIO_CLAUSE")
+        self.assertEqual(unmatched, [])
+        self.assertEqual(missing_basis, "NONE")
+
+
+class UtilitarianDirectionGroundingTests(unittest.TestCase):
+    """A mixed-effect action must not read as contradicting its own ledger."""
+
+    scenario = (
+        "You can execute a covert override to save 8 freezing residents, but "
+        "doing so overwrites system logs, framing an innocent technician for "
+        "sabotage. Alternatively, you can preserve the audit logs to exonerate "
+        "the innocent technician while the residents continue to freeze."
+    )
+    actions = (
+        "execute the covert override that erases the logs to restore heat",
+        "preserve the audit logs and leave the heating system untouched",
+    )
+
+    def _row(self, outcome: str, scope: str, direction: str) -> dict[str, object]:
+        return {
+            "outcome": outcome, "scope": scope, "direction": direction,
+            "probability": "LIKELY", "magnitude": "SEVERE",
+            "duration": "LASTING", "reversibility": "IRREVERSIBLE",
+            "support": "STATED",
+        }
+
+    def _graph(self) -> SemanticGraph:
+        clauses = segment_scenario_clauses(self.scenario)
+        return compile_scenario_graph(self.scenario, list(self.actions), {
+            "A0": {"clauses": [clauses[0]]},
+            "A1": {"clauses": [clauses[1]]},
+        })
+
+    def _committed(self, rows: dict[str, list[dict[str, object]]]):
+        store = SemanticGraphStore(self._graph())
+        record = apply_utilitarian_ledger_transaction(
+            store,
+            {"actions": [
+                {"action_id": action_id, "consequences": rows[action_id]}
+                for action_id in ("A0", "A1")
+            ]},
+            cycle=1, specialist="utilitarian",
+            allowed_actions=tuple(self.actions),
+        )
+        return record
+
+    def test_benefit_row_grounds_on_the_agreeing_effect_of_a_mixed_action(self):
+        record = self._committed({
+            "A0": [self._row("immediate survival", "8 freezing residents", "BENEFIT")],
+            "A1": [self._row("residents keep freezing", "8 freezing residents", "HARM")],
+        })
+
+        committed = {
+            item["canonical_action_id"]: item
+            for item in record.proposal["committed_consequences"]
+        }
+        self.assertEqual(committed["A0"]["direction"], "BENEFIT")
+        self.assertNotEqual(committed["A0"]["epistemic_status"], "CONTRADICTED_DIRECTION")
+        self.assertFalse(any(
+            "direction contradicts its grounded action consequence" in warning
+            for warning in record.errors
+        ))
+
+    def test_direction_lock_still_fires_on_the_same_affected_subject(self):
+        # A1 only ever worsens the residents' position, so claiming a benefit
+        # for them still contradicts the grounded fact.
+        record = self._committed({
+            "A0": [self._row("immediate survival", "8 freezing residents", "BENEFIT")],
+            "A1": [self._row("residents are kept warm", "8 freezing residents", "BENEFIT")],
+        })
+
+        committed = {
+            item["canonical_action_id"]: item
+            for item in record.proposal["committed_consequences"]
+        }
+        self.assertEqual(committed["A1"]["epistemic_status"], "CONTRADICTED_DIRECTION")
+        self.assertEqual(committed["A1"]["direction"], "UNKNOWN")
+        self.assertEqual(committed["A1"]["proposed_direction"], "BENEFIT")
+
+    def test_claim_about_an_uninvolved_subject_reports_no_evidence(self):
+        evidence, score = _best_evidence(
+            self._graph(), "A0", "share price improves", "offshore shareholders",
+            expected_polarity="BENEFICIAL",
+        )
+
+        self.assertIsNone(evidence)
+        self.assertEqual(score, 0)
+
+
+class RawlsMapReconciliationTests(unittest.TestCase):
+    """One explanatory line per action cannot encode a multi-position ledger."""
+
+    actions = (
+        "execute the covert override that erases the logs to restore heat",
+        "preserve the audit logs and leave the heating system untouched",
+    )
+    action_ids = ("A0", "A1")
+    action_map = {
+        actions[0]: (
+            "WORSENS: the innocent technician's basic liberty is compromised "
+            "even though residents regain heat"
+        ),
+        actions[1]: (
+            "PRESERVES: the technician's basic liberty and public "
+            "accountability hold while residents lose heat"
+        ),
+    }
+    positions = {
+        "A0": {
+            "e": "WORSENS", "d": "BASIC_LIBERTY", "ca": "A1", "b": "SCENARIO",
+            "s": "innocent technician", "sk": "INDIVIDUAL",
+            "rs": "framed for sabotage by the erased record",
+            "ad": [{
+                "e": "IMPROVES", "d": "BASIC_INTEREST_SECURITY", "ca": "A1",
+                "b": "SCENARIO", "s": "8 freezing residents", "sk": "GROUP",
+                "rs": "heat restored to the district",
+            }],
+        },
+        "A1": {
+            "e": "PRESERVES", "d": "BASIC_LIBERTY", "ca": "A0", "b": "SCENARIO",
+            "s": "innocent technician", "sk": "INDIVIDUAL",
+            "rs": "the audit record keeps the technician exonerated",
+            "ad": [{
+                "e": "WORSENS", "d": "BASIC_INTEREST_SECURITY", "ca": "A0",
+                "b": "SCENARIO", "s": "8 freezing residents", "sk": "GROUP",
+                "rs": "the district stays without heat",
+            }],
+        },
+    }
+
+    def _errors(self, **overrides: object) -> list[str]:
+        return _construct_map_errors(
+            "rawlsian",
+            list(self.actions),
+            dict(self.action_map),
+            str(overrides.get("numerical_role", "SECONDARY")),
+            "the worst-off subject is the innocent technician's basic liberty",
+            action_ids=list(self.action_ids),
+            recommended_action=str(
+                overrides.get("recommended_action", self.actions[1])
+            ),
+            rationale=str(overrides.get("rationale", "Basic liberty outweighs lives")),
+            supporting_data={"rp": overrides.get("rp", self.positions)},
+        )
+
+    def test_typed_liberty_priority_supplies_the_stated_difference(self):
+        self.assertEqual(self._errors(), [])
+
+    def test_prose_alone_cannot_justify_selecting_the_impaired_position(self):
+        errors = self._errors(recommended_action=self.actions[0])
+
+        self.assertIn(
+            "Rawlsian preference lacks a stated difference in position or "
+            "principle priority",
+            errors,
+        )
+
+    def test_map_line_matching_one_of_several_positions_is_not_a_conflict(self):
+        chunk = _candidate_from_data(
+            "rawlsian",
+            self.actions,
+            {
+                "scores": {"A0": 0.3, "A1": 0.7},
+                "r": "A1", "c": "RIGHTS", "u": "NONE",
+                "w": "basic liberty holds lexical priority over welfare gains",
+                "j": "NONE", "e": "STATED_FACTS", "x": "NONE",
+                "l": {
+                    "A0": "Worsens the technician's basic liberty",
+                    "A1": "Preserves the technician's basic liberty",
+                },
+                "t": "basic liberty versus interest security",
+                "tf": "NONE",
+                "dr": "prefer A1 while basic liberty stays lexically prior",
+                "ft": "NONE",
+                "nt": "If basic liberty lost lexical priority",
+                "z": 0.7,
+                "fm": {
+                    "A0": self.action_map[self.actions[0]],
+                    "A1": self.action_map[self.actions[1]],
+                },
+                "nr": "SECONDARY",
+                "np": "the worst-off subject is the innocent technician",
+                "rb": "LEXICAL_BASIC_LIBERTY",
+                "lc": {"A0": "INFRINGED", "A1": "SATISFIED"},
+                "rp": self.positions,
+            },
+            WorkspaceBroadcast(constraint="OPEN_DELIBERATION"),
+            "A1",
+            {},
+        )
+
+        self.assertEqual(chunk.framework_validation_errors, [])
+        self.assertEqual(
+            len(chunk.rawls_position_proposal["positions"]), 4,
+            "both actions must contribute a primary and an additional position",
+        )
+
+    def test_map_line_contradicting_every_position_still_fails(self):
+        inverted = {
+            "A0": {**self.positions["A0"], "e": "IMPROVES", "ad": []},
+            "A1": {**self.positions["A1"], "e": "PRESERVES", "ad": []},
+        }
+        chunk = _candidate_from_data(
+            "rawlsian",
+            self.actions,
+            {
+                "scores": {"A0": 0.3, "A1": 0.7},
+                "r": "A1", "c": "RIGHTS", "u": "NONE",
+                "w": "basic liberty holds lexical priority over welfare gains",
+                "j": "NONE", "e": "STATED_FACTS", "x": "NONE",
+                "l": {
+                    "A0": "Worsens the technician's basic liberty",
+                    "A1": "Preserves the technician's basic liberty",
+                },
+                "t": "basic liberty versus interest security",
+                "tf": "NONE",
+                "dr": "prefer A1 while basic liberty stays lexically prior",
+                "ft": "NONE",
+                "nt": "If basic liberty lost lexical priority",
+                "z": 0.7,
+                "fm": {
+                    "A0": self.action_map[self.actions[0]],
+                    "A1": self.action_map[self.actions[1]],
+                },
+                "nr": "SECONDARY",
+                "np": "the worst-off subject is the innocent technician",
+                "rb": "LEXICAL_BASIC_LIBERTY",
+                "lc": {"A0": "INFRINGED", "A1": "SATISFIED"},
+                "rp": inverted,
+            },
+            WorkspaceBroadcast(constraint="OPEN_DELIBERATION"),
+            "A1",
+            {},
+        )
+
+        self.assertIn(
+            "Rawlsian position for A0 conflicts with its framework map",
+            chunk.framework_validation_errors,
+        )
+        self.assertNotIn(
+            "Rawlsian position for A1 conflicts with its framework map",
+            chunk.framework_validation_errors,
+        )
+
+
+class VirtueRoleRedescriptionTests(unittest.TestCase):
+    """Renaming the actor's role is not a change of character verdict."""
+
+    actions = (
+        "execute the covert override that erases the logs to restore heat",
+        "preserve the audit logs and leave the heating system untouched",
+    )
+
+    def _specialist(self) -> CompactLocalSpecialist:
+        specialist = CompactLocalSpecialist("virtue", llm=None)
+        specialist.previous_framework_state = {
+            "ranking_basis": "PRACTICAL_WISDOM",
+            "assessments": [
+                {
+                    "action_id": "A0", "verdict": "UNDERMINES",
+                    "actor_role": "public steward",
+                },
+                {
+                    "action_id": "A1", "verdict": "EXEMPLIFIES",
+                    "actor_role": "public steward",
+                },
+            ],
+        }
+        return specialist
+
+    def _candidate(self, assessments: list[dict[str, object]]) -> CandidateChunk:
+        return CandidateChunk(
+            specialist="virtue", constraint="CHARACTER",
+            action_scores={self.actions[0]: 0.3, self.actions[1]: 0.7},
+            surprise=0.1, friction=0.1, confidence=0.6,
+            recommended_action=self.actions[1],
+            rationale="Honesty and practical wisdom favour keeping the record.",
+            virtue_character_proposal={
+                "ranking_basis": "PRACTICAL_WISDOM",
+                "assessments": assessments,
+            },
+        )
+
+    def test_role_relabel_with_stable_verdicts_is_a_refinement(self):
+        specialist = self._specialist()
+        candidate = self._candidate([
+            {"action_id": "A0", "verdict": "UNDERMINES", "actor_role": "chief engineer"},
+            {"action_id": "A1", "verdict": "EXEMPLIFIES", "actor_role": "chief engineer"},
+        ])
+
+        specialist._audit_framework_state_change(
+            candidate, WorkspaceBroadcast(constraint="OPEN_DELIBERATION"),
+        )
+
+        self.assertTrue(candidate.framework_constraint_retained)
+        self.assertEqual(candidate.framework_retention_status, "REFINEMENT")
+        self.assertTrue(candidate.framework_insights)
+        self.assertTrue(any(
+            "chief engineer" in item["proposition"]
+            for item in candidate.framework_insights
+        ))
+
+    def test_verdict_change_still_requires_a_framework_reason(self):
+        specialist = self._specialist()
+        candidate = self._candidate([
+            {"action_id": "A0", "verdict": "EXEMPLIFIES", "actor_role": "public steward"},
+            {"action_id": "A1", "verdict": "UNDERMINES", "actor_role": "public steward"},
+        ])
+
+        specialist._audit_framework_state_change(
+            candidate, WorkspaceBroadcast(constraint="OPEN_DELIBERATION"),
+        )
+
+        self.assertNotEqual(candidate.framework_retention_status, "REFINEMENT")
+
+
+class ResolvedQuestionLedgerTests(unittest.TestCase):
+    """Settled audit answers are graph state, and reopen when evidence moves."""
+
+    actions = (
+        "execute the covert override that erases the logs to restore heat",
+        "preserve the audit logs and leave the heating system untouched",
+    )
+    question_key = "QUESTION:abc123"
+    proposition = (
+        "Whether the relative magnitude of the technician's liberty loss "
+        "outweighs the residents' survival"
+    )
+
+    scenario = (
+        "You can execute a covert override to save 8 freezing residents, but "
+        "doing so overwrites system logs, framing an innocent technician for "
+        "sabotage. Alternatively, you can preserve the audit logs to exonerate "
+        "the innocent technician while the residents continue to freeze."
+    )
+
+    def _store(self) -> SemanticGraphStore:
+        clauses = segment_scenario_clauses(self.scenario)
+        return SemanticGraphStore(compile_scenario_graph(
+            self.scenario, list(self.actions), {
+                "A0": {"clauses": [clauses[0]]},
+                "A1": {"clauses": [clauses[1]]},
+            },
+        ))
+
+    def _responder(
+        self, specialist: str, *, participation: str, effect: str,
+    ) -> CandidateChunk:
+        return CandidateChunk(
+            specialist=specialist, constraint="OPEN_DELIBERATION",
+            action_scores={self.actions[0]: 0.4, self.actions[1]: 0.6},
+            surprise=0.1, friction=0.1, confidence=0.6,
+            recommended_action=self.actions[1],
+            rationale="The audited issue does not move the ranking.",
+            audit_participation=participation,
+            audit_internal_effect=effect,
+        )
+
+    def _resolve(self, store: SemanticGraphStore, candidates: list[CandidateChunk]):
+        return resolve_audited_question(
+            candidates,
+            question_key=self.question_key,
+            proposition=self.proposition,
+            cycle=3,
+            grounded_in=["A0", "A1"],
+            graph=store.graph,
+        )
+
+    def test_agreed_answer_settles_the_question_and_prunes_the_audit_slot(self):
+        store = self._store()
+        resolution = self._resolve(store, [
+            self._responder("utilitarian", participation="RELEVANT", effect="NO_CHANGE"),
+            self._responder("care", participation="IRRELEVANT", effect="NO_CHANGE"),
+        ])
+
+        self.assertIsNotNone(resolution)
+        self.assertEqual(resolution.resolution, "NO_CHANGE")
+        record = commit_question_resolution(store, resolution)
+        self.assertEqual(record.status, "COMMITTED")
+        self.assertEqual(settled_question_keys(store.graph), {self.question_key})
+
+        signals, question, payload = _problem_state_audit_probe(
+            {
+                "audit_candidates": [{
+                    "issue_id": self.question_key,
+                    "proposition": self.proposition,
+                    "grounded_in": ["A0", "A1"],
+                    "raised_by": ["utilitarian"],
+                    "category": "RESOLVE_NORMATIVE_TENSION",
+                    "status": "PERSISTENT_UNRESOLVED",
+                }],
+                "agent_positions": [],
+            },
+            self.actions[1],
+        )
+        self.assertTrue(signals and question and payload)
+
+        state = build_deliberative_problem_state(
+            4, list(self.actions), [], self.actions[1],
+            self._responder("care", participation="RELEVANT", effect="NO_CHANGE"),
+            {"unresolved_questions": []},
+            store.graph,
+        ).to_dict()
+        self.assertEqual(
+            [item["question_key"] for item in state["resolved_questions"]],
+            [self.question_key],
+        )
+        self.assertEqual(state["resolved_questions"][0]["status"], "SETTLED")
+
+    def test_settled_question_leaves_the_audit_slot_but_stays_unresolved(self):
+        store = self._store()
+        asker = CandidateChunk(
+            specialist="utilitarian", constraint="AGGREGATE_WELFARE",
+            action_scores={self.actions[0]: 0.5, self.actions[1]: 0.5},
+            surprise=0.2, friction=0.2, confidence=0.5,
+            recommended_action=self.actions[1],
+            rationale="The comparison remains open.",
+            unresolved="VERIFY_FACTS",
+            unsupported_assumption=(
+                "whether the innocent technician being framed outweighs the "
+                "freezing residents losing heat"
+            ),
+        )
+
+        open_state = build_deliberative_problem_state(
+            3, list(self.actions), [asker], self.actions[1], asker,
+            None, store.graph, self.scenario,
+        ).to_dict()
+        raised = open_state["unresolved_questions"][0]
+        self.assertIn(
+            raised["question_key"],
+            {item["issue_id"] for item in open_state["audit_candidates"]},
+        )
+
+        resolution = resolve_audited_question(
+            [
+                self._responder("utilitarian", participation="RELEVANT", effect="NO_CHANGE"),
+                self._responder("care", participation="RELEVANT", effect="NO_CHANGE"),
+            ],
+            question_key=raised["question_key"],
+            proposition=raised["question"],
+            cycle=3,
+            grounded_in=list(raised["grounded_in"]),
+            graph=store.graph,
+        )
+        self.assertIsNotNone(resolution)
+        self.assertEqual(
+            commit_question_resolution(store, resolution).status, "COMMITTED",
+        )
+
+        pruned = build_deliberative_problem_state(
+            4, list(self.actions), [asker], self.actions[1], asker,
+            open_state, store.graph, self.scenario,
+        ).to_dict()
+
+        self.assertNotIn(
+            raised["question_key"],
+            {item["issue_id"] for item in pruned["audit_candidates"]},
+        )
+        settled = next(
+            item for item in pruned["unresolved_questions"]
+            if item["question_key"] == raised["question_key"]
+        )
+        self.assertEqual(settled["resolution_status"], "SETTLED")
+        self.assertEqual(settled["recorded_resolution"], "NO_CHANGE")
+        self.assertIn("VERIFY_FACTS", pruned["unresolved_categories"])
+
+    def test_disagreement_leaves_the_question_open(self):
+        store = self._store()
+
+        contested = self._resolve(store, [
+            self._responder("utilitarian", participation="RELEVANT", effect="NO_CHANGE"),
+            self._responder("care", participation="RELEVANT", effect="REVERSES"),
+        ])
+        unresolved = self._resolve(store, [
+            self._responder("utilitarian", participation="RELEVANT", effect="NO_CHANGE"),
+            self._responder("care", participation="CONTESTED", effect="NO_CHANGE"),
+        ])
+        lone = self._resolve(store, [
+            self._responder("utilitarian", participation="RELEVANT", effect="NO_CHANGE"),
+            self._responder("care", participation="NOT_TESTED", effect="UNRESOLVED"),
+        ])
+
+        self.assertIsNone(contested)
+        self.assertIsNone(unresolved)
+        self.assertIsNone(lone)
+
+    def test_new_evidence_on_the_grounding_reopens_the_question(self):
+        store = self._store()
+        resolution = self._resolve(store, [
+            self._responder("utilitarian", participation="RELEVANT", effect="NO_CHANGE"),
+            self._responder("care", participation="RELEVANT", effect="NO_CHANGE"),
+        ])
+        commit_question_resolution(store, resolution)
+        self.assertEqual(settled_question_keys(store.graph), {self.question_key})
+
+        store.graph.add_node(SemanticNode(
+            "LATE_CONSEQUENCE", "CONSEQUENCE", "district-wide outage",
+            ("cycle:5", "late evidence"), {"polarity": "ADVERSE"},
+        ))
+        store.graph.add_edge(SemanticEdge(
+            "A0", "HAS_CONSEQUENCE", "LATE_CONSEQUENCE",
+            provenance=("cycle:5", "late evidence"),
+        ))
+
+        index = question_resolution_index(store.graph)
+        self.assertEqual(index[self.question_key]["status"], "REOPENED")
+        self.assertTrue(index[self.question_key]["reopened_by_evidence_change"])
+        self.assertEqual(settled_question_keys(store.graph), frozenset())
+
+    def test_grounding_outside_the_current_run_graph_is_rejected(self):
+        store = self._store()
+        responders = [
+            self._responder("utilitarian", participation="RELEVANT", effect="NO_CHANGE"),
+            self._responder("care", participation="RELEVANT", effect="NO_CHANGE"),
+        ]
+
+        unresolvable = resolve_audited_question(
+            responders,
+            question_key=self.question_key,
+            proposition=self.proposition,
+            cycle=3,
+            grounded_in=["GHOST_NODE"],
+            graph=store.graph,
+        )
+        record = commit_question_resolution(store, QuestionResolution(
+            question_key=self.question_key,
+            proposition=self.proposition,
+            resolution="NO_CHANGE",
+            cycle=3,
+            grounded_in=("GHOST_NODE",),
+            responders=("care", "utilitarian"),
+            evidence_signature="stale",
+        ))
+
+        self.assertIsNone(unresolvable)
+        self.assertEqual(record.status, "REJECTED")
+        self.assertTrue(record.previous_state_preserved)
+        self.assertEqual(question_resolution_index(store.graph), {})
+
+
+class TypedLedgerGroundingTests(unittest.TestCase):
+    """The ledger's own field names must satisfy the framework construct gate."""
+
+    actions = ("publish the audit and end the siphon", "suppress the audit")
+    action_ids = ("A0", "A1")
+    # The delegate writes the ledger's canonical dimension token, which the
+    # prose marker cannot match because an underscore is not whitespace.
+    action_map = {
+        actions[0]: "IMPROVES: the district's BASIC_LIBERTY and survival",
+        actions[1]: "WORSENS: the district's BASIC_LIBERTY and survival",
+    }
+    positions = {
+        "A0": {
+            "e": "IMPROVES", "d": "BASIC_LIBERTY", "ca": "A1", "b": "SCENARIO",
+            "s": "impoverished district residents", "sk": "GROUP",
+            "rs": "the covert siphon stops",
+        },
+        "A1": {
+            "e": "WORSENS", "d": "BASIC_LIBERTY", "ca": "A0", "b": "SCENARIO",
+            "s": "impoverished district residents", "sk": "GROUP",
+            "rs": "the covert siphon continues",
+        },
+    }
+
+    def _errors(self, rp: object) -> list[str]:
+        return _construct_map_errors(
+            "rawlsian",
+            list(self.actions),
+            dict(self.action_map),
+            "SECONDARY",
+            "the worst-off subjects are the district's residents",
+            action_ids=list(self.action_ids),
+            recommended_action=self.actions[0],
+            rationale="Basic liberty for the district holds lexical priority",
+            supporting_data={"rp": rp},
+        )
+
+    def test_ledger_dimension_token_grounds_the_map_line(self):
+        self.assertNotIn(
+            f"framework map for {self.actions[0]} lacks framework-specific grounds",
+            self._errors(self.positions),
+        )
+
+    def test_ledger_about_something_else_cannot_ground_the_map_line(self):
+        unrelated = {
+            "A0": {
+                "e": "IMPROVES", "d": "COST", "ca": "A1", "b": "SCENARIO",
+                "s": "the operating budget", "sk": "INSTITUTION",
+                "rs": "cheaper to run",
+            },
+            "A1": {
+                "e": "WORSENS", "d": "COST", "ca": "A0", "b": "SCENARIO",
+                "s": "the operating budget", "sk": "INSTITUTION",
+                "rs": "more expensive to run",
+            },
+        }
+        errors = self._errors(unrelated)
+
+        self.assertIn(
+            f"framework map for {self.actions[0]} lacks framework-specific grounds",
+            errors,
+        )
+
+    def test_absent_ledger_leaves_the_prose_gate_in_force(self):
+        self.assertIn(
+            f"framework map for {self.actions[0]} lacks framework-specific grounds",
+            self._errors({}),
+        )
+
+
+class OpeningProblemFrameTests(unittest.TestCase):
+    """Cycle one receives the shared world without receiving a position."""
+
+    scenario = (
+        "You can execute a covert override to save 8 freezing residents, but "
+        "doing so overwrites system logs, framing an innocent technician for "
+        "sabotage. Alternatively, you can preserve the audit logs."
+    )
+    actions = ("execute the covert override", "preserve the audit logs")
+
+    def test_frame_carries_vocabulary_and_no_salient_position(self):
+        graph = compile_scenario_graph(self.scenario, list(self.actions), {})
+        frame = opening_problem_state(list(self.actions), self.scenario, graph)
+
+        self.assertEqual(frame["cycle"], 0)
+        self.assertEqual(frame["state_role"], "OPENING_PROBLEM_FRAME")
+        self.assertEqual(
+            [item["action_id"] for item in frame["live_actions"]], ["A0", "A1"],
+        )
+        self.assertTrue(frame["scenario_clauses"])
+        self.assertTrue(all(
+            item["clause_id"].startswith("C") for item in frame["scenario_clauses"]
+        ))
+        identities = {item["node_id"] for item in frame["grounded_identities"]}
+        self.assertTrue({"A0", "A1"} <= identities)
+        self.assertIn(
+            "ACTION", {item["kind"] for item in frame["grounded_identities"]},
+        )
+        self.assertEqual(frame["salient_position"], {})
+        self.assertEqual(frame["agent_positions"], [])
+        self.assertEqual(frame["current_plurality"], "")
+
+    def test_engine_seeds_the_frame_and_records_no_influence_for_it(self):
+        received: list[dict[str, object]] = []
+
+        class Recording(FixedSpecialist):
+            def evaluate(self, scenario, actions, broadcast):
+                received.append(dict(broadcast.problem_state or {}))
+                return super().evaluate(scenario, actions, broadcast)
+
+        result = WorkspaceEngine(
+            [Recording("care", self.actions[1], "CARE"),
+             Recording("duty", self.actions[1], "DUTY")],
+            WorkspaceConfig(
+                max_cycles=1, stable_cycles_required=3,
+                enable_consensus_audit=False, enable_reversal_audit=False,
+                enable_synthesis=False, enable_planning=False,
+            ),
+        ).run(self.scenario, list(self.actions))
+
+        self.assertTrue(received)
+        self.assertEqual(received[0]["state_role"], "OPENING_PROBLEM_FRAME")
+        self.assertTrue(received[0]["scenario_clauses"])
+        # A positionless frame is not a broadcast consideration, so it must not
+        # produce influence records attributing uptake to nobody.
+        self.assertEqual(result.broadcast_influence_records, [])
+
+
+class UnresolvableAuditTests(unittest.TestCase):
+    """An audit nobody can answer records the evidence it would take."""
+
+    actions = (
+        "execute the covert override that erases the logs to restore heat",
+        "preserve the audit logs and leave the heating system untouched",
+    )
+    question_key = "QUESTION:unresolvable01"
+    proposition = "Whether the siphon will stop within a month"
+    scenario = (
+        "You can execute a covert override to save 8 freezing residents, but "
+        "doing so overwrites system logs, framing an innocent technician for "
+        "sabotage. Alternatively, you can preserve the audit logs."
+    )
+
+    def _store(self) -> SemanticGraphStore:
+        return SemanticGraphStore(compile_scenario_graph(
+            self.scenario, list(self.actions), {},
+        ))
+
+    def _responder(
+        self,
+        specialist: str,
+        *,
+        participation: str,
+        effect: str,
+        explanation: str = "",
+    ) -> CandidateChunk:
+        return CandidateChunk(
+            specialist=specialist, constraint="OPEN_DELIBERATION",
+            action_scores={self.actions[0]: 0.4, self.actions[1]: 0.6},
+            surprise=0.1, friction=0.1, confidence=0.6,
+            recommended_action=self.actions[1],
+            rationale="The audited issue cannot be settled here.",
+            audit_participation=participation,
+            audit_internal_effect=effect,
+            audit_framework_explanation=explanation,
+        )
+
+    def _resolve(self, store: SemanticGraphStore, candidates: list[CandidateChunk]):
+        return resolve_audited_question(
+            candidates,
+            question_key=self.question_key,
+            proposition=self.proposition,
+            cycle=3,
+            grounded_in=["A0", "A1"],
+            graph=store.graph,
+        )
+
+    def test_shared_evidence_gap_records_a_named_requirement(self):
+        store = self._store()
+        resolution = self._resolve(store, [
+            self._responder(
+                "utilitarian", participation="REVERSAL_RELEVANT",
+                effect="UNRESOLVED",
+                explanation="If the siphon stops soon the advantage disappears",
+            ),
+            self._responder(
+                "virtue", participation="REVERSAL_RELEVANT",
+                effect="UNRESOLVED",
+                explanation="If the siphon stops soon the justice gain shrinks",
+            ),
+            self._responder(
+                "care", participation="NOT_TESTED", effect="UNRESOLVED",
+            ),
+        ])
+
+        self.assertIsNotNone(resolution)
+        self.assertEqual(resolution.resolution, "UNRESOLVABLE_AT_CURRENT_EVIDENCE")
+        self.assertIn("siphon stops soon", resolution.evidence_requirement)
+        self.assertEqual(resolution.responders, ("utilitarian", "virtue"))
+        self.assertEqual(
+            commit_question_resolution(store, resolution).status, "COMMITTED",
+        )
+        self.assertEqual(settled_question_keys(store.graph), {self.question_key})
+        recorded = question_resolution_index(store.graph)[self.question_key]
+        self.assertIn("siphon stops soon", recorded["evidence_requirement"])
+
+    def test_frameworks_reporting_different_effects_settle_nothing(self):
+        store = self._store()
+
+        self.assertIsNone(self._resolve(store, [
+            self._responder("utilitarian", participation="RELEVANT", effect="NO_CHANGE"),
+            self._responder("virtue", participation="RELEVANT", effect="UNRESOLVED"),
+        ]))
+
+    def test_contested_participation_still_records_nothing(self):
+        store = self._store()
+
+        self.assertIsNone(self._resolve(store, [
+            self._responder("utilitarian", participation="CONTESTED", effect="UNRESOLVED"),
+            self._responder("virtue", participation="REVERSAL_RELEVANT", effect="UNRESOLVED"),
+        ]))
+
+    def test_new_evidence_reopens_an_unresolvable_question(self):
+        store = self._store()
+        resolution = self._resolve(store, [
+            self._responder(
+                "utilitarian", participation="REVERSAL_RELEVANT",
+                effect="UNRESOLVED", explanation="duration of the siphon is unknown",
+            ),
+            self._responder(
+                "virtue", participation="REVERSAL_RELEVANT",
+                effect="UNRESOLVED", explanation="duration of the siphon is unknown",
+            ),
+        ])
+        commit_question_resolution(store, resolution)
+        self.assertEqual(settled_question_keys(store.graph), {self.question_key})
+
+        delta = SemanticGraph()
+        delta.add_node(SemanticNode(
+            "OBS:siphon_schedule", "OBSERVATION",
+            "the siphon is scheduled to end in three weeks",
+            ("cycle:4", "test"), {"support": "STATED"},
+        ))
+        delta.add_edge(SemanticEdge(
+            "A0", "SUPPORTED_BY", "OBS:siphon_schedule",
+            justification="new schedule evidence", provenance=("cycle:4", "test"),
+        ))
+        store.graph = merge_graphs([store.graph, delta])
+
+        self.assertEqual(settled_question_keys(store.graph), frozenset())
+        self.assertEqual(
+            question_resolution_index(store.graph)[self.question_key]["status"],
+            "REOPENED",
+        )
+
+
+class AuditCandidateGroundingPriorityTests(unittest.TestCase):
+    """Ungrounded inquiry stays testable without displacing grounded inquiry."""
+
+    scenario = (
+        "You can execute a covert override to save 8 freezing residents, but "
+        "doing so overwrites system logs, framing an innocent technician for "
+        "sabotage. Alternatively, you can preserve the audit logs."
+    )
+    actions = (
+        "execute the covert override that erases the logs to restore heat",
+        "preserve the audit logs and leave the heating system untouched",
+    )
+
+    def _asker(self, specialist: str, assumption: str) -> CandidateChunk:
+        return CandidateChunk(
+            specialist=specialist, constraint="UNCERTAINTY",
+            action_scores={self.actions[0]: 0.5, self.actions[1]: 0.5},
+            surprise=0.2, friction=0.2, confidence=0.5,
+            recommended_action=self.actions[1],
+            rationale="The comparison remains open.",
+            unresolved="VERIFY_FACTS",
+            unsupported_assumption=assumption,
+        )
+
+    def _state(self, candidates: list[CandidateChunk]) -> dict[str, object]:
+        graph = compile_scenario_graph(self.scenario, list(self.actions), {})
+        return build_deliberative_problem_state(
+            2, list(self.actions), candidates, self.actions[1], candidates[0],
+            None, graph, self.scenario,
+        ).to_dict()
+
+    def test_ungrounded_question_is_offered_when_nothing_grounded_competes(self):
+        state = self._state([self._asker("care", "whether ongoing support holds")])
+        candidates = state["audit_candidates"]
+
+        self.assertEqual(len(candidates), 1)
+        self.assertEqual(candidates[0]["grounding_status"], "UNGROUNDED")
+        # It is anchored to the action nodes so its answer stays recordable.
+        self.assertEqual(candidates[0]["grounded_in"], ["A0", "A1"])
+
+    def test_grounded_question_displaces_every_ungrounded_one(self):
+        state = self._state([
+            self._asker("care", "whether ongoing support holds"),
+            self._asker(
+                "utilitarian",
+                "whether the freezing residents outweigh the innocent technician",
+            ),
+        ])
+        candidates = state["audit_candidates"]
+
+        self.assertTrue(candidates)
+        self.assertEqual(
+            {item["grounding_status"] for item in candidates}, {"CLAUSE_GROUNDED"},
+        )
+        self.assertEqual(
+            {item["raised_by"][0] for item in candidates}, {"utilitarian"},
+        )
+
+    def test_consensus_audit_cannot_focus_an_ungrounded_question(self):
+        state = self._state([self._asker("care", "whether ongoing support holds")])
+
+        _signals, _question, grounded_only = _problem_state_audit_probe(
+            state, self.actions[1], require_clause_grounding=True,
+        )
+        _signals, _question, permissive = _problem_state_audit_probe(
+            state, self.actions[1],
+        )
+
+        self.assertEqual(grounded_only, {})
+        self.assertTrue(permissive)
+        self.assertEqual(permissive["grounding_status"], "UNGROUNDED")
+
+
+class KantianAuthoritySeparationTests(unittest.TestCase):
+    """Provisional leanings may interrupt; they may not govern."""
+
+    def _contested_rival(self) -> dict[str, object]:
+        return {
+            "canonical_action_id": "A1",
+            "protected_party": "impoverished district residents",
+            "norm": "do not treat humans merely as means",
+            "competing_protected_party": "icu patients",
+            "competing_norm": "duty to rescue ICU patients today",
+            "coercive_actor": "grid director",
+            "coerced_party": "impoverished residents",
+            "resolution_status": "CONTESTED",
+            "calibration_errors": [
+                "coercion claim lacks actor-to-mechanism-to-restriction-to-party grounding",
+                "resolved adjudication rests on unsupported decisive premises",
+            ],
+            "derivation": "RESPECT_PERSONS",
+            "priority_rule": "perfect duties are non-negotiable",
+        }
+
+    def _resolved_primary(self) -> dict[str, object]:
+        return {
+            "canonical_action_id": "A0",
+            "protected_party": "impoverished district residents",
+            "norm": "do not treat humans merely as means",
+            "competing_protected_party": "icu patients",
+            "competing_norm": "duty to avoid immediate harm to ICU patients",
+            "resolution_status": "RESOLVED",
+            "calibration_errors": [],
+            "derivation": "RESPECT_PERSONS",
+            "priority_rule": "perfect duties override conflicting beneficence",
+        }
+
+    def test_rival_contestation_yields_provisional_leaning_not_governing_rule(self):
+        from global_workspace.deontology_ledger import classify_deontological_authority
+
+        profile = classify_deontological_authority(
+            self._resolved_primary(),
+            [self._contested_rival()],
+            recommended_action="publish the audit",
+            preference_strength=0.4,
+        )
+
+        self.assertEqual(profile.adjudication_status, "PROVISIONAL_LEANING")
+        self.assertEqual(profile.broadcast_authority, "INVESTIGATIVE")
+        self.assertFalse(profile.governing_eligible)
+        self.assertLess(profile.policy_weight_factor, 1.0)
+        self.assertGreater(profile.policy_weight_factor, 0.0)
+        self.assertIn("UNRESOLVED DUTY CONFLICT", profile.investigative_claim)
+        self.assertIn("publish the audit", profile.investigative_claim)
+        self.assertNotIn("perfect duties override", profile.decision_rule.casefold())
+        self.assertNotIn("perfect duties override", profile.investigative_claim.casefold())
+
+    def test_flat_preference_yields_conflicted_no_leaning(self):
+        from global_workspace.deontology_ledger import classify_deontological_authority
+
+        profile = classify_deontological_authority(
+            self._resolved_primary(),
+            [self._contested_rival()],
+            recommended_action="publish the audit",
+            preference_strength=0.05,
+        )
+
+        self.assertEqual(profile.adjudication_status, "CONFLICTED_NO_LEANING")
+        self.assertEqual(profile.policy_weight_factor, 0.0)
+        self.assertFalse(profile.governing_eligible)
+
+    def test_fully_resolved_comparative_adjudication_remains_governing(self):
+        from global_workspace.deontology_ledger import classify_deontological_authority
+
+        clean_rival = {
+            **self._contested_rival(),
+            "resolution_status": "RESOLVED",
+            "calibration_errors": [],
+        }
+        profile = classify_deontological_authority(
+            self._resolved_primary(),
+            [clean_rival],
+            recommended_action="publish the audit",
+            preference_strength=0.4,
+        )
+
+        self.assertEqual(profile.adjudication_status, "ADJUDICATED_SUPPORTS")
+        self.assertEqual(profile.broadcast_authority, "GOVERNING_CANDIDATE")
+        self.assertTrue(profile.governing_eligible)
+        self.assertEqual(profile.policy_weight_factor, 1.0)
+        self.assertIn("perfect duties override", profile.decision_rule.casefold())
+
+    def test_provisional_kant_cannot_supply_governing_rule_when_rawls_can(self):
+        actions = ["publish the audit", "suppress the audit"]
+        kant = CandidateChunk(
+            specialist="deontological",
+            constraint="DUTY",
+            action_scores={actions[0]: 0.7, actions[1]: 0.3},
+            surprise=0.8,
+            friction=0.7,
+            confidence=0.55,
+            recommended_action=actions[0],
+            decision_rule="Treat the duty priority as unestablished until coercion is grounded",
+            rationale="Comparative Kantian judgment remains contested.",
+            adjudication_status="PROVISIONAL_LEANING",
+            broadcast_authority="INVESTIGATIVE",
+            governing_eligible=False,
+            policy_weight_factor=0.45,
+            investigative_claim=(
+                "UNRESOLVED DUTY CONFLICT: district vs ICU. Current reasoning "
+                "leans publish the audit."
+            ),
+        )
+        rawls = CandidateChunk(
+            specialist="rawlsian",
+            constraint="FAIRNESS",
+            action_scores={actions[0]: 0.75, actions[1]: 0.25},
+            surprise=0.4,
+            friction=0.4,
+            confidence=0.72,
+            recommended_action=actions[0],
+            decision_rule="A0 ends a systematic burden on the least advantaged",
+            rationale="Least-advantaged class bears ongoing lethal deprivation.",
+            adjudication_status="NOT_APPLICABLE",
+            broadcast_authority="GOVERNING_CANDIDATE",
+            governing_eligible=True,
+            policy_weight_factor=1.0,
+        )
+
+        governing = WorkspaceEngine._select_governing_candidate(
+            [kant, rawls], actions[0], preferred=kant,
+        )
+        self.assertIs(governing, rawls)
+        self.assertNotIn("perfect duties", (governing.decision_rule or "").casefold())
+
+        policy = WorkspaceEngine._policy([kant, rawls], actions)
+        # Attenuated Kant still contributes, but Rawls should dominate plurality.
+        self.assertGreater(policy[actions[0]], policy[actions[1]])
+
+        # Investigative Kant can still outrank Rawls on salience.
+        broadcast = WorkspaceBroadcast(constraint="OPEN_DELIBERATION", urgency=0.5)
+        engine = WorkspaceEngine(
+            specialists=[FixedSpecialist("rawlsian", actions[0], "FAIRNESS")],
+            config=WorkspaceConfig(investigative_attention_weight=0.40),
+        )
+        kant.tension_engagement = 0.7
+        kant.unresolved = "RESOLVE_NORMATIVE_TENSION"
+        kant.salience = engine._salience(kant, broadcast, {}, 1.0)
+        rawls.salience = engine._salience(rawls, broadcast, {"FAIRNESS": 1}, 0.0)
+        self.assertGreater(kant.salience, rawls.salience)
+
+    def test_presentation_uses_governing_eligible_rule_not_investigative_winner(self):
+        actions = ["publish the audit", "suppress the audit"]
+        data = {
+            "actions": actions,
+            "selected_action": actions[0],
+            "current_plurality": actions[0],
+            "judgment_status": "ACTION_RECOMMENDATION",
+            "confidence": 0.7,
+            "epistemic_confidence": 0.65,
+            "halted_by": "convergence",
+            "moral_residue": ["DUTY"],
+            "compressed_rule": "When fairness is salient, prefer publish the audit.",
+            "reopen_conditions": [],
+            "cycles": [{
+                "cycle": 1,
+                "policy": {actions[0]: 0.7, actions[1]: 0.3},
+                "winner": {
+                    "specialist": "deontological",
+                    "constraint": "DUTY",
+                    "schema_valid": True,
+                    "recommended_action": actions[0],
+                    "decision_rule": "Treat the duty priority as unestablished",
+                    "rationale": "Kantian conflict open.",
+                    "assumption_status": "NORMATIVELY_CONTESTED",
+                    "adjudication_status": "PROVISIONAL_LEANING",
+                    "broadcast_authority": "INVESTIGATIVE",
+                    "governing_eligible": False,
+                    "investigative_claim": (
+                        "UNRESOLVED DUTY CONFLICT: entrusted lethal withdrawal "
+                        "versus covert institutional sacrifice."
+                    ),
+                    "action_scores": {actions[0]: 0.7, actions[1]: 0.3},
+                },
+                "candidates": [
+                    {
+                        "specialist": "deontological",
+                        "constraint": "DUTY",
+                        "schema_valid": True,
+                        "recommended_action": actions[0],
+                        "decision_rule": "Treat the duty priority as unestablished",
+                        "rationale": "Kantian conflict open.",
+                        "assumption_status": "NORMATIVELY_CONTESTED",
+                        "adjudication_status": "PROVISIONAL_LEANING",
+                        "broadcast_authority": "INVESTIGATIVE",
+                        "governing_eligible": False,
+                        "investigative_claim": (
+                            "UNRESOLVED DUTY CONFLICT: entrusted lethal withdrawal "
+                            "versus covert institutional sacrifice."
+                        ),
+                        "action_scores": {actions[0]: 0.7, actions[1]: 0.3},
+                    },
+                    {
+                        "specialist": "rawlsian",
+                        "constraint": "FAIRNESS",
+                        "schema_valid": True,
+                        "recommended_action": actions[0],
+                        "decision_rule": "A0 ends a systematic burden on the least advantaged",
+                        "rationale": "Least-advantaged class bears ongoing lethal deprivation.",
+                        "assumption_status": "DIRECT",
+                        "adjudication_status": "NOT_APPLICABLE",
+                        "broadcast_authority": "GOVERNING_CANDIDATE",
+                        "governing_eligible": True,
+                        "action_scores": {actions[0]: 0.75, actions[1]: 0.25},
+                    },
+                ],
+                "dissent": None,
+            }],
+        }
+
+        text = render_public_judgment(data)
+        self.assertIn("A0 ends a systematic burden on the least advantaged", text)
+        self.assertIn("Provisional corroboration", text)
+        self.assertIn("UNRESOLVED DUTY CONFLICT", text)
+        self.assertNotIn("perfect duties override conflicting beneficence", text.casefold())
 
 
 if __name__ == "__main__":

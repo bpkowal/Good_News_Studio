@@ -67,6 +67,26 @@ def _words(text: str) -> set[str]:
     }
 
 
+_INFLECTIONS = ("ations", "ation", "ings", "ing", "ies", "ied", "ers", "er", "ed", "es", "s")
+
+
+def _stem(word: str) -> str:
+    """Collapse the inflections that separate a claim from a graph label.
+
+    The graph stores compiled predicate labels ("freeze", "resident") while a
+    delegate writes prose ("freezing", "8 residents"). Without this the two
+    never compare and every row looks equally unsupported.
+    """
+    for suffix in _INFLECTIONS:
+        if word.endswith(suffix) and len(word) - len(suffix) >= 3:
+            return word[: -len(suffix)].rstrip("e")
+    return word.rstrip("e")
+
+
+def _stems(text: str) -> set[str]:
+    return {_stem(word) for word in _words(text)}
+
+
 def _deterministic_consequences(graph: SemanticGraph, action_id: str) -> list[SemanticNode]:
     return [
         graph.nodes[edge.target]
@@ -78,22 +98,47 @@ def _deterministic_consequences(graph: SemanticGraph, action_id: str) -> list[Se
 
 
 def _best_evidence(
-    graph: SemanticGraph, action_id: str, outcome: str, scope: str,
+    graph: SemanticGraph,
+    action_id: str,
+    outcome: str,
+    scope: str,
+    *,
+    expected_polarity: str = "",
 ) -> tuple[SemanticNode | None, int]:
-    claim_words = _words(f"{outcome} {scope}")
+    claim_stems = _stems(f"{outcome} {scope}")
+    subject_stems = _stems(scope) or claim_stems
     effects = query_grounded_action_effects(
         graph, action_id, claim=f"{outcome} {scope}",
     )
-    if not effects:
+    # A grounded effect can only confirm or contradict a row when it concerns
+    # the same affected subject. The claim query alone returns every effect the
+    # action's clause mentions, so without this filter the direction check
+    # compared a claim about residents against a fact about audit evidence.
+    comparable: list[tuple[SemanticNode, int]] = []
+    for effect in effects:
+        consequence = graph.nodes.get(effect.consequence_id)
+        if consequence is None:
+            continue
+        if not subject_stems & _stems(effect.affected_subject):
+            continue
+        score = len(claim_stems & _stems(
+            f"{consequence.label} {effect.affected_subject} {effect.dimension}"
+        ))
+        comparable.append((consequence, max(1, score)))
+    if not comparable:
         return None, 0
-    effect = effects[0]
-    consequence = graph.nodes.get(effect.consequence_id)
-    if consequence is None:
-        return None, 0
-    score = len(claim_words & _words(
-        f"{consequence.label} {effect.affected_subject} {effect.dimension}"
-    ))
-    return consequence, max(1, score)
+    # One action routinely carries several comparable effects with opposite
+    # polarities: the override both preserves life and leaves residents
+    # freezing. A row that agrees with any of them is grounded by it, so the
+    # contradiction only stands when every comparable fact runs the other way.
+    if expected_polarity:
+        agreeing = [
+            item for item in comparable
+            if item[0].attributes.get("polarity") == expected_polarity
+        ]
+        if agreeing:
+            return max(agreeing, key=lambda item: item[1])
+    return comparable[0]
 
 
 def _stable_id(prefix: str, value: str) -> str:
@@ -155,10 +200,11 @@ def apply_utilitarian_ledger_transaction(
             warnings.append(f"unknown action {action_item.action_id}")
             continue
         for index, row in enumerate(action_item.consequences):
-            evidence, overlap = _best_evidence(
-                store.graph, action.id, row.outcome, row.scope
-            )
             expected_polarity = "BENEFICIAL" if row.direction == "BENEFIT" else "ADVERSE"
+            evidence, overlap = _best_evidence(
+                store.graph, action.id, row.outcome, row.scope,
+                expected_polarity=expected_polarity,
+            )
             committed_direction = row.direction
             epistemic_status = {
                 "STATED": "STATED_UNRESOLVED",

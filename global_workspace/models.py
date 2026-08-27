@@ -91,6 +91,11 @@ class WorkspaceBroadcast:
     salient_specialist: str = ""
     salient_action: str = ""
     salient_claim: str = ""
+    # INVESTIGATIVE vs GOVERNING_CANDIDATE: attention authority is not decision
+    # authority. A provisional claim may win the broadcast without becoming the
+    # final justificatory rule.
+    broadcast_authority: str = ""
+    adjudication_status: str = ""
     urgency: float = 0.5
     danger_probability: float = 0.5
     unresolved: str = "NONE"
@@ -115,6 +120,23 @@ class WorkspaceBroadcast:
         self.salient_specialist = self.salient_specialist.strip()[:48]
         self.salient_action = " ".join(self.salient_action.split())[:180]
         self.salient_claim = " ".join(self.salient_claim.split())[:240]
+        authority = self.broadcast_authority.strip().upper()
+        self.broadcast_authority = (
+            authority if authority in {"", "GOVERNING_CANDIDATE", "INVESTIGATIVE", "NONE"}
+            else ""
+        )
+        adjudication = self.adjudication_status.strip().upper()
+        self.adjudication_status = (
+            adjudication if adjudication in {
+                "",
+                "NOT_APPLICABLE",
+                "ADJUDICATED_SUPPORTS",
+                "PROVISIONAL_LEANING",
+                "CONFLICTED_NO_LEANING",
+                "ADJUDICATION_INCOMPLETE",
+            }
+            else ""
+        )
         self.unresolved = self.unresolved.strip().upper()[:48] or "NONE"
         self.contingency_question = " ".join(self.contingency_question.split())[:240]
         self.contingency_synthesis_action = " ".join(
@@ -172,9 +194,21 @@ class WorkspaceBroadcast:
         if not claim:
             claim = "NONE"
         salient = f"{self.salient_specialist or 'NONE'}:{self.salient_action or 'NONE'}"
+        # The opening cycle has no salient position by design. Say so, rather
+        # than rendering identically to a cycle that lost one.
+        frame = ""
+        if not self.salient_specialist and str(
+            self.problem_state.get("state_role", "")
+        ) == "OPENING_PROBLEM_FRAME":
+            frame = (
+                f" | frame=OPENING_PROBLEM_FRAME"
+                f"(clauses={len(self.problem_state.get('scenario_clauses', []))},"
+                f"identities={len(self.problem_state.get('grounded_identities', []))})"
+            )
         return (
             f"{self.constraint} | salient={salient} | claim={claim} | "
-            f"unresolved={self.unresolved}"
+            f"authority={self.broadcast_authority or 'NONE'} | "
+            f"unresolved={self.unresolved}{frame}"
         )
 
 
@@ -291,6 +325,14 @@ class CandidateChunk:
     preference_drift_penalty: float = 0.0
     preference_shift_reason_strength: float = 0.0
     decision_rule: str = ""
+    # Authority typing: policy weight, investigative attention, and governing
+    # eligibility are independent. A provisional Kantian leaning may interrupt
+    # the workspace without supplying a final justificatory rule.
+    adjudication_status: str = "NOT_APPLICABLE"
+    broadcast_authority: str = "GOVERNING_CANDIDATE"
+    governing_eligible: bool = True
+    policy_weight_factor: float = 1.0
+    investigative_claim: str = ""
     factual_reversal_threshold: str = "NONE"
     normative_reversal_threshold: str = "NONE"
     reversal_review_response: str = "NOT_TESTED"
@@ -501,6 +543,33 @@ class CandidateChunk:
         ][:8]
         self.independence_bonus = clamp(self.independence_bonus)
         self.decision_rule = " ".join(self.decision_rule.split())[:180]
+        adjudication = self.adjudication_status.strip().upper()
+        self.adjudication_status = (
+            adjudication if adjudication in {
+                "NOT_APPLICABLE",
+                "ADJUDICATED_SUPPORTS",
+                "PROVISIONAL_LEANING",
+                "CONFLICTED_NO_LEANING",
+                "ADJUDICATION_INCOMPLETE",
+            }
+            else "NOT_APPLICABLE"
+        )
+        authority = self.broadcast_authority.strip().upper()
+        self.broadcast_authority = (
+            authority if authority in {
+                "GOVERNING_CANDIDATE", "INVESTIGATIVE", "NONE",
+            }
+            else "GOVERNING_CANDIDATE"
+        )
+        self.governing_eligible = bool(self.governing_eligible)
+        if self.adjudication_status in {
+            "PROVISIONAL_LEANING", "CONFLICTED_NO_LEANING", "ADJUDICATION_INCOMPLETE",
+        }:
+            self.governing_eligible = False
+            if self.broadcast_authority == "GOVERNING_CANDIDATE":
+                self.broadcast_authority = "INVESTIGATIVE"
+        self.policy_weight_factor = clamp(float(self.policy_weight_factor))
+        self.investigative_claim = " ".join(self.investigative_claim.split())[:240]
         self.factual_reversal_threshold = (
             " ".join(self.factual_reversal_threshold.split())[:180] or "NONE"
         )

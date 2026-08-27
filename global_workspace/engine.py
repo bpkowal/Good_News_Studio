@@ -4,7 +4,7 @@ import copy
 import math
 import re
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Callable, Protocol, Sequence
 
 from .middleware.moral_residue import collect_moral_residue, collect_reopen_conditions
@@ -29,9 +29,14 @@ from .decision_boundaries import select_collective_reversal_boundary
 from .deliberative_state import (
     build_deliberative_problem_state,
     observe_broadcast_influence,
+    opening_problem_state,
     update_broadcast_influence_persistence,
 )
 from .graph_transactions import SemanticGraphStore
+from .resolved_questions import (
+    commit_question_resolution,
+    resolve_audited_question,
+)
 from .rawls_ledger import (
     apply_rawls_ledger_transaction,
     committed_rawls_positions,
@@ -42,8 +47,9 @@ from .utilitarian_ledger import (
 )
 from .deontology_ledger import (
     apply_deontological_ledger_transaction,
+    classify_deontological_authority,
     committed_deontological_assessments,
-    render_deontological_adjudication,
+    latest_assessment_by_action,
 )
 from .virtue_ledger import (
     apply_virtue_ledger_transaction,
@@ -668,8 +674,16 @@ def _missing_decision_variable_probe(
 def _problem_state_audit_probe(
     problem_state: dict[str, object] | None,
     selected_action: str,
+    *,
+    require_clause_grounding: bool = False,
 ) -> tuple[list[str], str, dict[str, object]]:
-    """Select an audit target exclusively from the live ProblemState."""
+    """Select an audit target exclusively from the live ProblemState.
+
+    Callers that manufacture an audit from aggregate signals rather than from
+    an explicitly persistent issue require a clause-grounded target, so a
+    question the graph cannot trace cannot become evidence that the agreement
+    needs reviewing.
+    """
     state = dict(problem_state or {})
     questions = list(state.get("audit_candidates", []) or [])
     positions = {
@@ -688,6 +702,11 @@ def _problem_state_audit_probe(
             continue
         grounded_in = list(question.get("grounded_in", []) or [])
         if not grounded_in:
+            continue
+        if (
+            require_clause_grounding
+            and question.get("grounding_status", "CLAUSE_GROUNDED") != "CLAUSE_GROUNDED"
+        ):
             continue
         proposition = " ".join(str(
             question.get("proposition", question.get("question", ""))
@@ -709,6 +728,8 @@ def _problem_state_audit_probe(
             score += 4
         if category == "ACTION_SET_ADEQUACY":
             score += 6
+        if question.get("grounding_status") == "UNGROUNDED":
+            score -= 6
         ranked.append((score, question))
     if not ranked:
         return [], "", {}
@@ -744,6 +765,7 @@ def _problem_state_audit_probe(
         "source": str(chosen.get("source", "problem_state.unresolved_questions")),
         "proposition": proposition,
         "grounded_in": list(chosen.get("grounded_in", []) or []),
+        "grounding_status": str(chosen.get("grounding_status", "CLAUSE_GROUNDED")),
         "raised_by": raised_by,
         "status": status,
         "entity": proposition,
@@ -838,6 +860,9 @@ class WorkspaceConfig:
     enable_ev_dominance_breaker: bool = True
     ev_dominance_ratio: float = 5.0
     ev_majority_fraction: float = 0.6
+    # Attention bonus for unresolved but consequential claims that may interrupt
+    # without becoming governing rules. Tunable; starts conservative.
+    investigative_attention_weight: float = 0.40
 
 
 class WorkspaceEngine:
@@ -868,6 +893,15 @@ class WorkspaceEngine:
         ) * (0.5 + 0.5 * candidate.epistemic_confidence)
         if candidate.landscape_search_attempted and not candidate.landscape_semantic_valid:
             value *= 0.55
+        # Investigative claims: unresolved consequential arguments interrupt.
+        # Soften confidence dampening so a provisional strict-duty conflict can
+        # still win attention without laundering into decision authority.
+        if candidate.broadcast_authority == "INVESTIGATIVE":
+            value += cfg.investigative_attention_weight * max(
+                candidate.tension_engagement, 0.55,
+            )
+            if candidate.unresolved == "RESOLVE_NORMATIVE_TENSION":
+                value += 0.15
         return value
 
     @staticmethod
@@ -931,6 +965,11 @@ class WorkspaceEngine:
         weight_sum = 0.0
         for candidate in candidates:
             weight = max(0.05, candidate.epistemic_confidence)
+            # Provisional / incomplete adjudications attenuate vote strength
+            # without erasing directional information (factor 0 zeros them).
+            weight *= max(0.0, float(candidate.policy_weight_factor))
+            if weight <= 0.0:
+                continue
             weight_sum += weight
             for action in actions:
                 score = candidate.action_scores.get(action, 0.0)
@@ -949,6 +988,8 @@ class WorkspaceEngine:
                 if score > 0.5 and multiplier < 1.0:
                     score = 0.5 + (score - 0.5) * multiplier
                 totals[action] += weight * score
+        if weight_sum <= 0.0:
+            return {action: 1.0 / len(actions) for action in actions}
         means = {action: score / weight_sum for action, score in totals.items()}
         temperature = 0.25
         exps = {action: math.exp(score / temperature) for action, score in means.items()}
@@ -961,6 +1002,42 @@ class WorkspaceEngine:
             return 0.0
         entropy = -sum(p * math.log(p) for p in policy.values() if p > 0)
         return entropy / math.log(len(policy))
+
+    @staticmethod
+    def _select_governing_candidate(
+        candidates: Sequence[CandidateChunk],
+        plurality: str,
+        preferred: CandidateChunk | None = None,
+    ) -> CandidateChunk | None:
+        """Pick a justificatory rule source — not merely the broadcast winner.
+
+        Investigative / provisional claims may win attention without becoming
+        the governing rationale. Prefer the strongest governing-eligible
+        supporter of the plurality.
+        """
+        eligible = [
+            candidate for candidate in candidates
+            if candidate.schema_valid
+            and candidate.governing_eligible
+            and candidate.broadcast_authority != "INVESTIGATIVE"
+            and candidate.recommended_action == plurality
+            and candidate.decision_rule
+            and candidate.adjudication_status in {
+                "NOT_APPLICABLE", "ADJUDICATED_SUPPORTS",
+            }
+        ]
+        if not eligible:
+            return None
+        if preferred is not None and preferred in eligible:
+            return preferred
+        return max(
+            eligible,
+            key=lambda c: (
+                c.epistemic_confidence,
+                c.preference_strength,
+                c.specialist,
+            ),
+        )
 
     @staticmethod
     def _dissent(candidates: Sequence[CandidateChunk], selected_action: str) -> CandidateChunk | None:
@@ -1317,7 +1394,9 @@ class WorkspaceEngine:
         # ProblemState. Keyword probes remain available to explicit legacy
         # audits, but cannot manufacture a variable for consensus review.
         missing_variable_signals, missing_variable_question, missing_variable_payload = (
-            _problem_state_audit_probe(problem_state, selected_action)
+            _problem_state_audit_probe(
+                problem_state, selected_action, require_clause_grounding=True,
+            )
         )
         if missing_variable_signals:
             signals.extend(missing_variable_signals)
@@ -1386,25 +1465,50 @@ class WorkspaceEngine:
         selected_action: str,
         problem_state: dict[str, object] | None,
     ) -> WorkspaceAccessDecision | None:
-        """Admit one persistent grounded issue without pretending consensus."""
+        """Admit one grounded issue without pretending consensus."""
         if not self.config.enable_problem_state_audit or cycle_number < 2:
             return None
         signals, question, payload = _problem_state_audit_probe(
             problem_state, selected_action,
         )
-        if not payload or payload.get("status") != "PERSISTENT_UNRESOLVED":
+        if not payload:
+            return None
+        # Persistence normally earns the audit: an issue that survived a cycle
+        # is more likely to be live than one raised once. But when every
+        # framework already prefers the same action, another cycle cannot
+        # resolve a disagreement that does not exist, so the remaining
+        # deliberative value is in stress-testing the agreement rather than
+        # waiting a cycle to confirm the question is still there.
+        already_agreed = str(
+            (problem_state or {}).get("surface_consensus", "")
+        ).upper() == "UNANIMOUS"
+        persistent = payload.get("status") == "PERSISTENT_UNRESOLVED"
+        # Unanimity substitutes for persistence, not for grounding. A question
+        # the graph cannot trace to a clause is already the weakest audit
+        # target available, and spending the untested-agreement slot on it
+        # would stack two separate relaxations on one audit.
+        if not persistent and not (
+            already_agreed
+            and payload.get("grounding_status") == "CLAUSE_GROUNDED"
+        ):
             return None
         return WorkspaceAccessDecision(
             cycle=cycle_number,
             content_type="PROBLEM_STATE_AUDIT",
             admitted=True,
             signals=list(dict.fromkeys([
-                *signals, "persistent_grounded_issue", "deliberative_focus",
+                *signals,
+                "persistent_grounded_issue" if persistent
+                else "unanimous_agreement_untested",
+                "deliberative_focus",
             ])),
             question=question,
             rationale=(
                 "A persistent grounded issue receives focused review even when "
                 "the Parliament is contested rather than converged."
+                if persistent else
+                "Every framework already prefers this action, so the cycle is "
+                "spent testing the agreement rather than re-confirming it."
             ),
             audit_variable=payload,
         )
@@ -1469,6 +1573,17 @@ class WorkspaceEngine:
         graph_store = SemanticGraphStore(compile_scenario_graph(
             scenario, clean_actions, grounded_actions,
         ))
+        # The opening cycle is the only one whose broadcast has no prior cycle
+        # to describe, but the shared world already exists by this point. Hand
+        # over that world without a position so cycle 1 is an informed
+        # independent read rather than an uninformed one.
+        if not broadcast.problem_state:
+            broadcast = replace(
+                broadcast,
+                problem_state=opening_problem_state(
+                    clean_actions, scenario, graph_store.graph,
+                ),
+            )
         visibility_multipliers = {action: 1.0 for action in clean_actions}
         visibility: VisibilityAssessment | None = None
         if assess_visibility is not None:
@@ -1764,17 +1879,38 @@ class WorkspaceEngine:
                         f"A{clean_actions.index(candidate.recommended_action)}"
                         if candidate.recommended_action in clean_actions else ""
                     )
-                    rendered_assessment = next((
-                        item for item in result.deontological_duty_ledger
-                        if item.get("canonical_action_id") == recommended_id
-                    ), None)
+                    committed_by_action = latest_assessment_by_action(
+                        result.deontological_duty_ledger
+                    )
+                    rendered_assessment = committed_by_action.get(recommended_id)
+                    # The rival adjudications are part of this verdict, not
+                    # separate ones. Preferring the recommended action rests on
+                    # the rivals being prohibited, so a rival prohibition the
+                    # calibration downgraded has to constrain the claim.
+                    rival_assessments = [
+                        item
+                        for action_id, item in sorted(committed_by_action.items())
+                        if action_id != recommended_id
+                        and action_id in {
+                            f"A{index}" for index in range(len(clean_actions))
+                        }
+                    ]
                     if rendered_assessment is not None:
-                        (
-                            candidate.rationale,
-                            candidate.decision_rule,
-                            internal_conflicts,
-                            open_questions,
-                        ) = render_deontological_adjudication(rendered_assessment)
+                        authority = classify_deontological_authority(
+                            rendered_assessment,
+                            rival_assessments,
+                            recommended_action=candidate.recommended_action,
+                            preference_strength=candidate.preference_strength,
+                        )
+                        candidate.rationale = authority.rationale
+                        candidate.decision_rule = authority.decision_rule
+                        candidate.adjudication_status = authority.adjudication_status
+                        candidate.broadcast_authority = authority.broadcast_authority
+                        candidate.governing_eligible = authority.governing_eligible
+                        candidate.policy_weight_factor = authority.policy_weight_factor
+                        candidate.investigative_claim = authority.investigative_claim
+                        internal_conflicts = list(authority.internal_conflicts)
+                        open_questions = list(authority.open_questions)
                         candidate.framework_internal_conflicts = list(dict.fromkeys([
                             *candidate.framework_internal_conflicts,
                             *internal_conflicts,
@@ -2210,6 +2346,33 @@ class WorkspaceEngine:
                         f"recommendations={', '.join(sorted(calibrated_recommendations))}"
                     )
 
+            # An audited question that came back with agreement is answered.
+            # Record it before projecting the next ProblemState so the audit
+            # slot in later cycles goes to something still open, and so a
+            # later change to the evidence behind the answer can reopen it.
+            audited_issue = dict(received_broadcast.audit_variable or {})
+            if not is_counterfactual and str(
+                audited_issue.get("issue_id", "")
+            ).startswith("QUESTION:"):
+                question_resolution = resolve_audited_question(
+                    valid_candidates,
+                    question_key=str(audited_issue.get("issue_id", "")),
+                    proposition=str(audited_issue.get("proposition", "")),
+                    cycle=cycle_number,
+                    grounded_in=list(audited_issue.get("grounded_in", []) or []),
+                    graph=graph_store.graph,
+                )
+                if question_resolution is not None:
+                    resolution_record = commit_question_resolution(
+                        graph_store, question_resolution,
+                    )
+                    if progress and resolution_record.status == "COMMITTED":
+                        progress(
+                            f"  audited issue {question_resolution.question_key} "
+                            f"settled as {question_resolution.resolution} by "
+                            + ", ".join(question_resolution.responders)
+                        )
+
             deliberative_state = build_deliberative_problem_state(
                 cycle_number,
                 clean_actions,
@@ -2260,8 +2423,22 @@ class WorkspaceEngine:
                 salient_specialist=(winner.specialist if recorded_winner is not None else ""),
                 salient_action=(selected_action if recorded_winner is not None else ""),
                 salient_claim=(
-                    " ".join((winner.decision_rule, winner.rationale)).strip()
-                    if recorded_winner is not None else ""
+                    (
+                        winner.investigative_claim
+                        or " ".join((winner.decision_rule, winner.rationale)).strip()
+                    )
+                    if recorded_winner is not None
+                    and winner.broadcast_authority == "INVESTIGATIVE"
+                    else (
+                        " ".join((winner.decision_rule, winner.rationale)).strip()
+                        if recorded_winner is not None else ""
+                    )
+                ),
+                broadcast_authority=(
+                    winner.broadcast_authority if recorded_winner is not None else ""
+                ),
+                adjudication_status=(
+                    winner.adjudication_status if recorded_winner is not None else ""
                 ),
                 urgency=broadcast.urgency,
                 danger_probability=broadcast.danger_probability,
@@ -2429,6 +2606,9 @@ class WorkspaceEngine:
                     next_broadcast = WorkspaceBroadcast(
                         constraint="VISIBILITY_AUDIT",
                         intent="evaluate_visibility_bias",
+                        salient_specialist=next_broadcast.salient_specialist,
+                        salient_action=next_broadcast.salient_action,
+                        salient_claim=next_broadcast.salient_claim,
                         urgency=broadcast.urgency,
                         danger_probability=broadcast.danger_probability,
                         unresolved="VERIFY_ASSUMPTIONS",
@@ -2517,6 +2697,9 @@ class WorkspaceEngine:
                         next_broadcast = WorkspaceBroadcast(
                             constraint=access_decision.content_type,
                             intent=f"audit_{selected_action}",
+                            salient_specialist=next_broadcast.salient_specialist,
+                            salient_action=next_broadcast.salient_action,
+                            salient_claim=next_broadcast.salient_claim,
                             urgency=broadcast.urgency,
                             danger_probability=broadcast.danger_probability,
                             unresolved="VERIFY_ASSUMPTIONS",
@@ -2564,6 +2747,9 @@ class WorkspaceEngine:
                     next_broadcast = WorkspaceBroadcast(
                         constraint="PROBLEM_REFORMULATION",
                         intent="evaluate_hypothetical_switch_point",
+                        salient_specialist=next_broadcast.salient_specialist,
+                        salient_action=next_broadcast.salient_action,
+                        salient_claim=next_broadcast.salient_claim,
                         urgency=broadcast.urgency,
                         danger_probability=broadcast.danger_probability,
                         unresolved="RESOLVE_VALUE_TENSION",
@@ -2655,6 +2841,9 @@ class WorkspaceEngine:
                     next_broadcast = WorkspaceBroadcast(
                         constraint="REVERSAL_AUDIT",
                         intent=f"test_reversal_of_{selected_action}",
+                        salient_specialist=next_broadcast.salient_specialist,
+                        salient_action=next_broadcast.salient_action,
+                        salient_claim=next_broadcast.salient_claim,
                         urgency=broadcast.urgency,
                         danger_probability=broadcast.danger_probability,
                         unresolved="TEST_REVERSAL",
@@ -2792,6 +2981,9 @@ class WorkspaceEngine:
                         next_broadcast = WorkspaceBroadcast(
                             constraint="PLANNING_REVIEW",
                             intent=f"evaluate_{selected_action}",
+                            salient_specialist=next_broadcast.salient_specialist,
+                            salient_action=next_broadcast.salient_action,
+                            salient_claim=next_broadcast.salient_claim,
                             urgency=broadcast.urgency,
                             danger_probability=broadcast.danger_probability,
                             unresolved="CHECK_FEASIBILITY",
@@ -2823,16 +3015,27 @@ class WorkspaceEngine:
             result.cycles[-1].broadcast = next_broadcast
             broadcast = next_broadcast
             if progress:
-                progress(
-                    f"  cycle policy: {selected_action} "
-                    f"({policy[selected_action]:.2f}); entropy={entropy:.2f}; "
-                    + (
+                if recorded_winner is not None:
+                    claim_text = (
+                        winner.investigative_claim
+                        if winner.broadcast_authority == "INVESTIGATIVE"
+                        else ""
+                    ) or winner.decision_rule or winner.rationale or "NONE"
+                    claim_text = " ".join(str(claim_text).split())[:120]
+                    progress(
+                        f"  cycle policy: {selected_action} "
+                        f"({policy[selected_action]:.2f}); entropy={entropy:.2f}; "
                         f"winner={winner.specialist}:{winner.constraint} | "
-                        f"claim={winner.decision_rule or winner.rationale or 'NONE'}"
-                        if recorded_winner is not None
-                        else "system_status=INSUFFICIENT_VALID_DELEGATES; deliberative_winner=NONE"
+                        f"authority={winner.broadcast_authority or 'NONE'} | "
+                        f"claim={claim_text}"
                     )
-                )
+                else:
+                    progress(
+                        f"  cycle policy: {selected_action} "
+                        f"({policy[selected_action]:.2f}); entropy={entropy:.2f}; "
+                        "system_status=INSUFFICIENT_VALID_DELEGATES; "
+                        "deliberative_winner=NONE"
+                    )
 
             if len(valid_candidates) < self.config.min_valid_specialists:
                 result.halted_by = "insufficient_valid_candidates"
@@ -3367,21 +3570,16 @@ class WorkspaceEngine:
                     else "prefer"
                 )
             )
-            governing_candidate = (
-                final.winner
-                if final.winner is not None
-                and final.winner.schema_valid
-                and final.winner.recommended_action == result.current_plurality
-                and final.winner.decision_rule
-                else next(
-                    (
-                        candidate for candidate in final.candidates
-                        if candidate.schema_valid
-                        and candidate.recommended_action == result.current_plurality
-                        and candidate.decision_rule
-                    ),
-                    None,
-                )
+            governing_candidate = self._select_governing_candidate(
+                final.candidates,
+                result.current_plurality,
+                preferred=(
+                    final.winner
+                    if final.winner is not None
+                    and final.winner.schema_valid
+                    and final.winner.recommended_action == result.current_plurality
+                    else None
+                ),
             )
             governing = (
                 governing_candidate.decision_rule if governing_candidate else ""

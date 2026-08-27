@@ -4,7 +4,7 @@ from __future__ import annotations
 import hashlib
 import re
 from dataclasses import dataclass
-from typing import Any, Literal
+from typing import Any, Literal, Sequence
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
@@ -181,6 +181,44 @@ def _matching_parties(
     return [party for party in parties if words & _words(party.label)]
 
 
+def _clause_grounded_parties(
+    graph: SemanticGraph, action_id: str, text: str,
+) -> list[SemanticNode]:
+    """Ground a named party in the scenario clauses this action cites.
+
+    An action's identity graph only keeps the targets its own predicate
+    governs, so a party the scenario names as affected without being acted on
+    directly - a third party framed by the override, for instance - has no
+    target node to match. The cited clause is still current-run evidence, so
+    admit it only when every substantive word of the party description appears
+    in one asserted clause. Loose overlap would let "innocent bystander" bind
+    to a clause that merely says "innocent".
+    """
+    words = _words(text)
+    if not words:
+        return []
+    return [
+        clause for edge in graph.outgoing(action_id, "GROUNDED_IN")
+        if (clause := graph.nodes.get(edge.target)) is not None
+        and clause.kind == "EVIDENCE"
+        and clause.attributes.get("evidence_role") == "SCENARIO_ASSERTION"
+        and words <= _words(clause.label)
+    ]
+
+
+def _party_grounding(
+    graph: SemanticGraph, action_id: str, text: str,
+) -> tuple[list[SemanticNode], str]:
+    """Resolve a party against the action identity graph, then its clauses."""
+    identity_matches = _matching_parties(graph, action_id, text)
+    if identity_matches:
+        return identity_matches, "ACTION_IDENTITY"
+    clause_matches = _clause_grounded_parties(graph, action_id, text)
+    if clause_matches:
+        return clause_matches, "SCENARIO_CLAUSE"
+    return [], "NONE"
+
+
 def _stable_id(prefix: str, value: str) -> str:
     normalized = " ".join(str(value).casefold().split()).strip(" ,.;:")
     digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:16]
@@ -221,8 +259,8 @@ def _coercion_path_support(
     action: SemanticNode,
     item: DutyAssessmentProposal,
 ) -> tuple[bool, list[str]]:
-    actor_matches = _matching_parties(graph, action.id, item.coercive_actor)
-    party_matches = _matching_parties(graph, action.id, item.coerced_party)
+    actor_matches, _actor_basis = _party_grounding(graph, action.id, item.coercive_actor)
+    party_matches, _party_basis = _party_grounding(graph, action.id, item.coerced_party)
     adverse = query_grounded_action_effects(
         graph, item.action_id, affected_subject=item.coerced_party,
         direction="ADVERSE",
@@ -325,10 +363,116 @@ def calibrate_deontological_adjudication(
     )
 
 
+def latest_assessment_by_action(
+    assessments: Sequence[dict[str, Any]],
+) -> dict[str, dict[str, Any]]:
+    """Index the most recently committed adjudication for each action.
+
+    A revised adjudication commits as a new node rather than overwriting the
+    old one, so the projection can hold several entries per action. Reading the
+    first match would let a superseded verdict govern the rendered claim.
+    """
+    latest: dict[str, dict[str, Any]] = {}
+    for item in assessments:
+        action_id = str(item.get("canonical_action_id", ""))
+        if not action_id:
+            continue
+        current = latest.get(action_id)
+        if current is None or int(item.get("cycle", 0) or 0) >= int(
+            current.get("cycle", 0) or 0
+        ):
+            latest[action_id] = item
+    return latest
+
+
+def _unresolved_premises(assessment: dict[str, Any]) -> list[str]:
+    """Name the premises the calibration found unestablished."""
+    errors = [str(value) for value in assessment.get("calibration_errors", [])]
+    unresolved: list[str] = []
+    if any("necessity" in error for error in errors):
+        unresolved.append("whether a less restrictive route can secure the protected claim")
+    if any("reciprocity" in error for error in errors):
+        unresolved.append("whether the same public rule preserves compatible external freedom")
+    if any("coercion claim" in error for error in errors):
+        unresolved.append("whether the asserted coercive relationship is grounded")
+    if any("authorization" in error for error in errors):
+        unresolved.append(
+            "whether the restriction is authorized by a rule both parties could will"
+        )
+    if any("priority slogan" in error for error in errors):
+        unresolved.append(
+            "whether the priority follows from a Kantian derivation rather than a maxim slogan"
+        )
+    if not unresolved:
+        unresolved.append("which claim governs under a universal public rule")
+    return list(dict.fromkeys(unresolved))
+
+
+# Illustrative attenuation for provisional Kantian leanings. Tunable later;
+# the architectural invariant is that provisionality reduces policy weight
+# without zeroing directional information or investigative attention.
+PROVISIONAL_LEANING_POLICY_FACTOR = 0.45
+CONFLICTED_NO_LEANING_POLICY_FACTOR = 0.0
+# Preference gap below which an incomplete adjudication contributes no lean.
+_MIN_LEANING_PREFERENCE = 0.10
+
+
+@dataclass(frozen=True)
+class DeontologicalAuthorityProfile:
+    """Separate policy, attention, and governing authority for Kantian claims.
+
+    Resolved arguments may govern. Unadjudicated but consequential strict-duty
+    conflicts may interrupt (investigative broadcast) and may lean for search,
+    but may not supply a final justificatory rule.
+    """
+
+    adjudication_status: str
+    broadcast_authority: str
+    governing_eligible: bool
+    policy_weight_factor: float
+    investigative_claim: str
+    rationale: str
+    decision_rule: str
+    internal_conflicts: tuple[str, ...]
+    open_questions: tuple[str, ...]
+
+
 def render_deontological_adjudication(
     assessment: dict[str, Any],
+    rival_assessments: Sequence[dict[str, Any]] = (),
 ) -> tuple[str, str, list[str], list[str]]:
-    """Render the public reason and framework-local tension from committed state."""
+    """Render the public reason and framework-local tension from committed state.
+
+    A Kantian preference is comparative: "publishing is required" carries its
+    force only if suppression is genuinely prohibited. So the rival actions'
+    committed adjudications constrain this one. When the selected action's own
+    adjudication is clean but a rival's prohibition rests on premises the
+    calibration rejected, the priority is not established and must not be
+    reported as a settled rule.
+    """
+    profile = classify_deontological_authority(assessment, rival_assessments)
+    return (
+        profile.rationale,
+        profile.decision_rule,
+        list(profile.internal_conflicts),
+        list(profile.open_questions),
+    )
+
+
+def classify_deontological_authority(
+    assessment: dict[str, Any],
+    rival_assessments: Sequence[dict[str, Any]] = (),
+    *,
+    recommended_action: str = "",
+    preference_strength: float = 1.0,
+) -> DeontologicalAuthorityProfile:
+    """Classify Kantian claim authority without laundering leanings into rules.
+
+    Three levels:
+    - CONFLICTED_NO_LEANING: incomplete adjudication, no directional preference
+    - PROVISIONAL_LEANING: incomplete adjudication with a comparative lean
+    - ADJUDICATED_SUPPORTS: comparative priority actually established
+    """
     primary_party = str(assessment.get("protected_party", "the protected party"))
     competing_party = str(
         assessment.get("competing_protected_party", "the competing claimant")
@@ -338,19 +482,16 @@ def render_deontological_adjudication(
     conflict = (
         f"{primary_party}: {primary_claim} ↔ {competing_party}: {competing_claim}"
     )
-    errors = [str(value) for value in assessment.get("calibration_errors", [])]
+    leaning = (
+        " ".join(str(recommended_action).split())
+        if recommended_action and float(preference_strength) >= _MIN_LEANING_PREFERENCE
+        else ""
+    )
+
     if str(assessment.get("resolution_status", "UNKNOWN")) != "RESOLVED":
         actor = str(assessment.get("coercive_actor", "the acting authority"))
         coerced = str(assessment.get("coerced_party", "the restricted party"))
-        unresolved = []
-        if any("necessity" in error for error in errors):
-            unresolved.append("whether a less restrictive route can secure the protected claim")
-        if any("reciprocity" in error for error in errors):
-            unresolved.append("whether the same public rule preserves compatible external freedom")
-        if any("coercion claim" in error for error in errors):
-            unresolved.append("whether the asserted coercive relationship is grounded")
-        if not unresolved:
-            unresolved.append("which claim governs under a universal public rule")
+        unresolved = _unresolved_premises(assessment)
         rationale = (
             f"Deontology identifies competing claims between {primary_party}'s "
             f"{primary_claim} and {competing_party}'s {competing_claim}. "
@@ -358,15 +499,114 @@ def render_deontological_adjudication(
             + "; and ".join(unresolved)
             + ". The Kantian judgment remains contested."
         )
-        decision_rule = "Keep the action contested until " + "; and ".join(unresolved)
-        return rationale, decision_rule, [conflict], unresolved
+        return _incomplete_authority(
+            conflict=conflict,
+            unresolved=unresolved,
+            rationale=rationale,
+            leaning=leaning,
+            decision_rule_prefix="Keep the action contested until ",
+        )
+
+    contested_rivals = [
+        item for item in rival_assessments
+        if str(item.get("resolution_status", "UNKNOWN")) != "RESOLVED"
+    ]
     derivation = str(assessment.get("derivation", "UNRESOLVED")).lower().replace("_", " ")
-    rationale = (
-        f"Deontology resolves {primary_party}'s {primary_claim} against "
-        f"{competing_party}'s {competing_claim} through {derivation}."
+    if contested_rivals:
+        unresolved = list(dict.fromkeys(
+            premise
+            for item in contested_rivals
+            for premise in _unresolved_premises(item)
+        ))
+        rival_ids = ", ".join(sorted(
+            str(item.get("canonical_action_id", "the rival action"))
+            for item in contested_rivals
+        ))
+        rival_conflicts = [conflict]
+        for item in contested_rivals:
+            rival_claim = str(item.get("norm", "a protected claim"))
+            rival_id = str(item.get("canonical_action_id", "the rival action"))
+            for premise in _unresolved_premises(item):
+                rival_conflicts.append(
+                    f"{rival_id} prohibited by {rival_claim} ↔ {premise}"
+                )
+        rationale = (
+            f"Deontology ranks {primary_party}'s {primary_claim} above "
+            f"{competing_party}'s {competing_claim} through {derivation}, but that "
+            f"priority holds only if {rival_ids} is genuinely prohibited, and the "
+            f"prohibition rests on unestablished premises: "
+            + "; and ".join(unresolved)
+            + ". The comparative Kantian judgment remains contested."
+        )
+        return _incomplete_authority(
+            conflict=conflict,
+            unresolved=unresolved,
+            rationale=rationale,
+            leaning=leaning,
+            decision_rule_prefix="Treat the duty priority as unestablished until ",
+            extra_conflicts=rival_conflicts[1:],
+        )
+
+    return DeontologicalAuthorityProfile(
+        adjudication_status="ADJUDICATED_SUPPORTS",
+        broadcast_authority="GOVERNING_CANDIDATE",
+        governing_eligible=True,
+        policy_weight_factor=1.0,
+        investigative_claim="",
+        rationale=(
+            f"Deontology resolves {primary_party}'s {primary_claim} against "
+            f"{competing_party}'s {competing_claim} through {derivation}."
+        ),
+        decision_rule=str(assessment.get("priority_rule", "priority remains unresolved")),
+        internal_conflicts=(),
+        open_questions=(),
     )
-    decision_rule = str(assessment.get("priority_rule", "priority remains unresolved"))
-    return rationale, decision_rule, [], []
+
+
+def _incomplete_authority(
+    *,
+    conflict: str,
+    unresolved: Sequence[str],
+    rationale: str,
+    leaning: str,
+    decision_rule_prefix: str,
+    extra_conflicts: Sequence[str] = (),
+) -> DeontologicalAuthorityProfile:
+    open_questions = tuple(dict.fromkeys(unresolved))
+    conflicts = tuple(dict.fromkeys((conflict, *extra_conflicts)))
+    decision_rule = decision_rule_prefix + "; and ".join(open_questions)
+    if leaning:
+        investigative = (
+            f"UNRESOLVED DUTY CONFLICT: {conflict}. Current reasoning leans "
+            f"{leaning}, but the competing strict claim has not been vindicated "
+            "or defeated."
+        )
+        return DeontologicalAuthorityProfile(
+            adjudication_status="PROVISIONAL_LEANING",
+            broadcast_authority="INVESTIGATIVE",
+            governing_eligible=False,
+            policy_weight_factor=PROVISIONAL_LEANING_POLICY_FACTOR,
+            investigative_claim=investigative,
+            rationale=rationale,
+            decision_rule=decision_rule,
+            internal_conflicts=conflicts,
+            open_questions=open_questions,
+        )
+    investigative = (
+        f"UNRESOLVED DUTY CONFLICT: {conflict}. No comparative Kantian leaning "
+        "is yet grounded."
+    )
+    return DeontologicalAuthorityProfile(
+        adjudication_status="CONFLICTED_NO_LEANING",
+        broadcast_authority="INVESTIGATIVE",
+        governing_eligible=False,
+        policy_weight_factor=CONFLICTED_NO_LEANING_POLICY_FACTOR,
+        investigative_claim=investigative,
+        rationale=rationale,
+        decision_rule=decision_rule,
+        internal_conflicts=conflicts,
+        open_questions=open_questions,
+    )
 
 
 def apply_deontological_ledger_transaction(
@@ -463,12 +703,17 @@ def apply_deontological_ledger_transaction(
         party_label = " ".join(item.protected_party.casefold().split()).strip(" ,.;:")
         bearer_label = " ".join(item.duty_bearer.casefold().split()).strip(" ,.;:")
         norm_label = " ".join(item.norm.casefold().split()).strip(" ,.;:")
-        matched = _matching_parties(store.graph, action.id, item.protected_party)
-        competing_matched = _matching_parties(
+        matched, party_basis = _party_grounding(
+            store.graph, action.id, item.protected_party,
+        )
+        competing_matched, _competing_basis = _party_grounding(
             store.graph, action.id, item.competing_protected_party,
         )
         if matched and epistemic_status == "PROPOSED":
-            epistemic_status = "GROUNDED_PARTY"
+            epistemic_status = (
+                "GROUNDED_PARTY" if party_basis == "ACTION_IDENTITY"
+                else "GROUNDED_PARTY_BY_SCENARIO_CLAUSE"
+            )
         elif not matched:
             epistemic_status = "UNRESOLVED_PARTY"
             warnings.append(
@@ -478,12 +723,12 @@ def apply_deontological_ledger_transaction(
             warnings.append(
                 f"{item.action_id} competing protected party lacks current-run action grounding"
             )
-        coercive_actor_matches = _matching_parties(
+        coercive_actor_matches = _party_grounding(
             store.graph, action.id, item.coercive_actor,
-        ) if item.coercion_kind != "NONE" else []
-        coerced_party_matches = _matching_parties(
+        )[0] if item.coercion_kind != "NONE" else []
+        coerced_party_matches = _party_grounding(
             store.graph, action.id, item.coerced_party,
-        ) if item.coercion_kind != "NONE" else []
+        )[0] if item.coercion_kind != "NONE" else []
         if item.coercion_kind != "NONE" and (
             not coercive_actor_matches or not coerced_party_matches
         ):
@@ -507,7 +752,11 @@ def apply_deontological_ledger_transaction(
         provenance = (f"delegate:{specialist}", f"cycle:{cycle}")
         delta.add_node(SemanticNode(
             party_id, "TARGET", party_label, provenance,
-            {"framework": "DEONTOLOGICAL", "grounded_node_ids": [p.id for p in matched]},
+            {
+                "framework": "DEONTOLOGICAL",
+                "grounded_node_ids": [p.id for p in matched],
+                "grounding_basis": party_basis,
+            },
         ))
         delta.add_node(SemanticNode(
             bearer_id, "ACTOR", bearer_label, provenance,

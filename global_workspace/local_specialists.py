@@ -30,6 +30,10 @@ from .scenario_semantics import (
 )
 
 _PROBLEM_AUDIT_CONSTRAINTS = {"CONSENSUS_AUDIT", "PROBLEM_STATE_AUDIT"}
+_AUDIT_DIRECT_INVERT_CONSTRAINTS = _PROBLEM_AUDIT_CONSTRAINTS | {
+    "VISIBILITY_AUDIT",
+    "REVERSAL_AUDIT",
+}
 
 
 def _proposal_review_from_data(
@@ -209,6 +213,111 @@ def _framework_grounded_action_sections(
     return grounded
 
 
+def _rawls_basic_liberty_effects(
+    raw_position: object,
+) -> set[str]:
+    """Collect the basic-liberty directions one rp entry records."""
+    if not isinstance(raw_position, dict):
+        return set()
+    entries: list[dict[str, Any]] = [raw_position]
+    additional = raw_position.get(
+        "ad", raw_position.get("additional_dimensions", []),
+    )
+    if isinstance(additional, list):
+        entries.extend(item for item in additional if isinstance(item, dict))
+    return {
+        str(entry.get("e", "")).strip().upper()
+        for entry in entries
+        if str(entry.get("d", "")).strip().upper() == "BASIC_LIBERTY"
+    }
+
+
+def _rawls_ledger_states_priority(
+    actions: Sequence[str],
+    action_ids: Sequence[str],
+    supporting_data: dict[str, Any] | None,
+    *,
+    recommended_action: str,
+    rival_actions: Sequence[str],
+) -> bool:
+    """Report whether rp itself states the lexical basic-liberty priority."""
+    raw_positions = (supporting_data or {}).get("rp")
+    if not isinstance(raw_positions, dict) or not action_ids:
+        return False
+    action_id_by_text = dict(zip(actions, action_ids))
+    selected = _rawls_basic_liberty_effects(
+        raw_positions.get(action_id_by_text.get(recommended_action, "")),
+    )
+    rival = {
+        effect
+        for action in rival_actions
+        for effect in _rawls_basic_liberty_effects(
+            raw_positions.get(action_id_by_text.get(action, "")),
+        )
+    }
+    return bool(
+        selected
+        and selected <= {"IMPROVES", "PRESERVES"}
+        and "WORSENS" in rival
+    )
+
+
+# Only fields that carry the framework's own substantive claim about an action
+# belong here. Schema enums that every well-formed ledger fills in regardless
+# of content, such as a Rawlsian subject_kind of INSTITUTION, would satisfy the
+# construct marker for any position at all and are deliberately excluded.
+_FRAMEWORK_LEDGER_FIELDS: dict[str, tuple[str, tuple[str, ...]]] = {
+    "utilitarian": ("ct", ("o", "s")),
+    "deontological": ("dp", ("k", "n", "b", "p", "cn", "rs")),
+    "rawlsian": ("rp", ("d", "s", "rs")),
+    "virtue": ("vl", ("r", "vs", "x", "c", "rs")),
+}
+
+
+def _typed_ledger_text(
+    specialist: str, action_id: str, supporting_data: dict[str, Any] | None,
+) -> str:
+    """Collect the typed ledger vocabulary a framework recorded for one action.
+
+    Ledger dimension names are machine tokens like BASIC_LIBERTY or
+    RESPECT_PERSONS, so underscores become spaces before the construct marker
+    reads them. Without that the marker cannot see the very field names the
+    ledger schema requires the delegate to use.
+    """
+    ledger_key, fields = _FRAMEWORK_LEDGER_FIELDS.get(specialist, ("", ()))
+    if not ledger_key or not isinstance(supporting_data, dict):
+        return ""
+    ledger = supporting_data.get(ledger_key)
+    if not isinstance(ledger, dict):
+        return ""
+    entry = ledger.get(action_id)
+    entries: list[dict[str, Any]] = []
+    if isinstance(entry, dict):
+        entries.append(entry)
+        nested = entry.get("ad", entry.get("additional_dimensions", []))
+        if isinstance(nested, list):
+            entries.extend(item for item in nested if isinstance(item, dict))
+    elif isinstance(entry, list):
+        entries.extend(item for item in entry if isinstance(item, dict))
+    text = " ".join(
+        str(item.get(field, ""))
+        for item in entries
+        for field in fields
+    )
+    return " ".join(text.replace("_", " ").split())
+
+
+def _typed_ledger_grounds_action(
+    specialist: str,
+    action_id: str,
+    supporting_data: dict[str, Any] | None,
+    marker: re.Pattern[str],
+) -> bool:
+    """Report whether the typed ledger already grounds this action's framework."""
+    text = _typed_ledger_text(specialist, action_id, supporting_data)
+    return bool(text and marker.search(text))
+
+
 def _construct_map_errors(
     specialist: str,
     actions: Sequence[str],
@@ -216,6 +325,7 @@ def _construct_map_errors(
     numerical_role: str,
     numerical_justification: str,
     *,
+    action_ids: Sequence[str] = (),
     recommended_action: str = "",
     rationale: str = "",
     supporting_data: dict[str, Any] | None = None,
@@ -228,11 +338,24 @@ def _construct_map_errors(
     if set(action_map) != set(actions):
         errors.append("framework map must assess every action")
     else:
+        action_id_by_text = dict(zip(actions, action_ids))
         for action, assessment in action_map.items():
             if specialist == "virtue":
                 continue
-            if not marker.search(assessment):
-                errors.append(f"framework map for {action} lacks framework-specific grounds")
+            if marker.search(assessment):
+                continue
+            # fm is explanatory prose; the ledger is what the framework
+            # independently grounds and normalizes. When the ledger already
+            # names the construct, the prose marker is redundant and must not
+            # veto an otherwise grounded position.
+            if _typed_ledger_grounds_action(
+                specialist,
+                action_id_by_text.get(action, ""),
+                supporting_data,
+                marker,
+            ):
+                continue
+            errors.append(f"framework map for {action} lacks framework-specific grounds")
     if numerical_role not in {"DECISIVE", "SECONDARY", "IRRELEVANT"}:
         errors.append("numerical role is missing")
     if _semantic_word_count(numerical_justification) < 3:
@@ -296,10 +419,27 @@ def _construct_map_errors(
             numerically_discriminating = bool(
                 numerical_role == "DECISIVE" and rawls_numerical_ground
             )
+            # The typed position ledger states lexical priority more precisely
+            # than any prose regex can detect: it names the dimension, the
+            # subject, and the direction per action. When it records that the
+            # selected action protects a basic liberty its rival impairs, the
+            # difference in position is stated, whatever wording the rationale
+            # happened to use for "outweighs".
+            ledger_discriminating = _rawls_ledger_states_priority(
+                actions,
+                action_ids,
+                supporting_data,
+                recommended_action=recommended_action,
+                rival_actions=[
+                    action for action in action_map if action != recommended_action
+                ],
+            )
             if rival_ranks and (
                 selected_rank < max(rival_ranks)
                 or selected_rank == max(rival_ranks)
-            ) and not discriminating_priority and not numerically_discriminating:
+            ) and not discriminating_priority and not numerically_discriminating and (
+                not ledger_discriminating
+            ):
                 errors.append(
                     "Rawlsian preference lacks a stated difference in position or principle priority"
                 )
@@ -472,6 +612,116 @@ def _numeric_literals(text: str) -> set[float]:
         if match.group("pct"):
             values.add(value / 100.0)
     return values
+
+
+def _parse_probability_mass(text: str) -> float | None:
+    """Parse a stated probability; unknown or non-numeric values cannot rank a ledger."""
+    raw = " ".join(str(text).split())
+    if not raw or raw.upper() == "UNKNOWN":
+        return None
+    literals = _numeric_literals(raw)
+    if not literals:
+        return None
+    folded = raw.casefold()
+    if "%" in raw or "percent" in folded:
+        pct = max(literals)
+        return max(0.0, min(1.0, pct / 100.0 if pct > 1.0 else pct))
+    unit_interval = [value for value in literals if 0.0 <= value <= 1.0]
+    if unit_interval:
+        return max(unit_interval)
+    return None
+
+
+def _row_expected_welfare(row: dict[str, Any]) -> float | None:
+    """Signed expected welfare for one consequence row; None if not comparable."""
+    direction = str(row.get("direction", "")).strip().upper()
+    if direction not in {"BENEFIT", "HARM"}:
+        return None
+    probability = _parse_probability_mass(row.get("probability", ""))
+    if probability is None:
+        return None
+    magnitude = str(row.get("magnitude", ""))
+    folded = magnitude.casefold()
+    numbers = _numeric_literals(magnitude)
+    if "ev" in folded and numbers:
+        ev_candidates = [value for value in numbers if value <= 1.0] or list(numbers)
+        signed = min(ev_candidates)
+    elif numbers:
+        signed = probability * max(numbers)
+    else:
+        signed = probability * 1.0
+    return signed if direction == "BENEFIT" else -signed
+
+
+def _consequence_table_nets(
+    table: dict[str, list[dict[str, Any]]],
+    actions: Sequence[str],
+) -> dict[str, float] | None:
+    """Net signed welfare by action when every row is numerically comparable."""
+    nets: dict[str, float] = {}
+    for action in actions:
+        rows = table.get(action) or []
+        values = [_row_expected_welfare(row) for row in rows]
+        if not rows or any(value is None for value in values):
+            return None
+        nets[action] = sum(values)
+    return nets
+
+
+def _ev_prefers_recommended(
+    expected_values: dict[str, dict[str, Any]],
+    recommended_action: str,
+    baseline_action: str,
+) -> bool | None:
+    """Whether grounded same-unit EV ranks the new action better; None if incomparable."""
+    recommended = expected_values.get(recommended_action) or {}
+    baseline = expected_values.get(baseline_action) or {}
+    if not recommended.get("grounded") or not baseline.get("grounded"):
+        return None
+    rec_dir = str(recommended.get("direction", "")).upper()
+    base_dir = str(baseline.get("direction", "")).upper()
+    rec_unit = str(recommended.get("unit", "")).upper()
+    base_unit = str(baseline.get("unit", "")).upper()
+    if rec_dir != base_dir or rec_dir not in {"HARM", "BENEFIT"}:
+        return None
+    if rec_unit != base_unit or rec_unit in {"", "NONE"}:
+        return None
+    try:
+        rec_value = float(recommended.get("value", 0.0))
+        base_value = float(baseline.get("value", 0.0))
+    except (TypeError, ValueError):
+        return None
+    if rec_value == base_value:
+        return None
+    if rec_dir == "HARM":
+        return rec_value < base_value
+    return rec_value > base_value
+
+
+def _ledger_justifies_direct_invert(
+    specialist: str,
+    *,
+    recommended_id: str,
+    baseline_id: str,
+    actions: Sequence[str],
+    action_ids: Sequence[str],
+    consequence_table: dict[str, list[dict[str, Any]]],
+    depends_on_unknown: bool,
+    expected_values: dict[str, dict[str, Any]],
+) -> bool:
+    """Allow an audit invert only when the utilitarian ledger ranks the new action better."""
+    if specialist != "utilitarian" or depends_on_unknown:
+        return False
+    if recommended_id not in action_ids or baseline_id not in action_ids:
+        return False
+    recommended_action = actions[action_ids.index(recommended_id)]
+    baseline_action = actions[action_ids.index(baseline_id)]
+    nets = _consequence_table_nets(consequence_table, actions)
+    if nets is not None:
+        return nets[recommended_action] > nets[baseline_action]
+    return bool(_ev_prefers_recommended(
+        expected_values, recommended_action, baseline_action,
+    ))
 
 
 def _preference_shift_reason_strength(
@@ -931,6 +1181,7 @@ def _candidate_from_data(
             framework_action_map,
             framework_numerical_role,
             framework_numerical_justification,
+            action_ids=action_ids,
             recommended_action=actions[action_ids.index(recommended_id)],
             rationale=rationale,
             supporting_data=data,
@@ -1172,15 +1423,6 @@ def _candidate_from_data(
                     position_errors.append(f"Rawlsian position for {action_id} has invalid evidence basis")
                 if _semantic_word_count(subject) < 1 or _semantic_word_count(reason) < 2:
                     position_errors.append(f"Rawlsian position for {action_id} lacks subject or reason")
-                map_effect = framework_action_map.get(action, "").partition(":")[0].upper()
-                if map_effect and effect and map_effect != effect:
-                    # fm is explanatory duplicate state; rp is the typed
-                    # proposal that the ledger will independently ground and
-                    # normalize. Preserve the inconsistency diagnostically,
-                    # but do not drop an otherwise valid graph transaction.
-                    framework_validation_errors.append(
-                        f"Rawlsian position for {action_id} conflicts with its framework map"
-                    )
                 positions.append({
                     "action_id": action_id,
                     "subject": subject,
@@ -1200,6 +1442,33 @@ def _candidate_from_data(
                     "principle_basis": ranking_basis,
                 })
                 positions.extend(additional_positions)
+        # fm carries one explanatory line per action while rp can hold several
+        # typed positions for the same action - a liberty loss for one subject
+        # and a security gain for another. Comparing the line against each
+        # position in turn reported a conflict whenever the ledger was
+        # legitimately multi-dimensional, so reconcile against the whole
+        # position set instead. fm remains explanatory duplicate state: rp is
+        # what the ledger independently grounds and normalizes.
+        action_text_by_id = dict(zip(action_ids, actions))
+        effects_by_action: dict[str, set[str]] = {}
+        for item in positions:
+            effects_by_action.setdefault(
+                str(item.get("action_id", "")), set(),
+            ).add(str(item.get("effect", "")))
+        for action_id, position_effects in sorted(effects_by_action.items()):
+            map_effect = framework_action_map.get(
+                action_text_by_id.get(action_id, ""), "",
+            ).partition(":")[0].strip().upper()
+            if not map_effect or not position_effects or map_effect in position_effects:
+                continue
+            divergent = len(
+                position_effects & {"IMPROVES", "PRESERVES", "WORSENS"}
+            ) > 1
+            if divergent and map_effect in {"MIXED", "UNCERTAIN"}:
+                continue
+            framework_validation_errors.append(
+                f"Rawlsian position for {action_id} conflicts with its framework map"
+            )
         if ranking_basis == "DIFFERENCE_PRINCIPLE":
             selected_position = next(
                 (item for item in positions if item.get("action_id") == recommended_id),
@@ -1632,6 +1901,26 @@ def _candidate_from_data(
         for action_id, value in raw_ev.items()
         if action_id in action_ids and isinstance(value, dict)
     } if isinstance(raw_ev, dict) else {}
+    if (
+        broadcast.constraint in _AUDIT_DIRECT_INVERT_CONSTRAINTS
+        and baseline_status == "DIRECT"
+        and baseline_id != "NONE"
+        and recommended_id != baseline_id
+        and not _ledger_justifies_direct_invert(
+            specialist,
+            recommended_id=recommended_id,
+            baseline_id=baseline_id,
+            actions=actions,
+            action_ids=action_ids,
+            consequence_table=utilitarian_consequence_table,
+            depends_on_unknown=utilitarian_depends_on_unknown,
+            expected_values=expected_values,
+        )
+    ):
+        raise ValueError(
+            "audit cycles may not invert a DIRECT baseline unless the committed "
+            "ledger ranks the new action better"
+        )
     if _semantic_word_count(decision_rule) < 2:
         raise ValueError("decision rule must state how the actions are ranked")
     if factual_threshold.casefold() != "none" and _semantic_word_count(factual_threshold) < 3:
@@ -1745,25 +2034,33 @@ def _candidate_from_data(
         }
         if audit_participation in participation_statuses:
             if len(audit_framework_explanation.split()) < 3:
-                raise ValueError("audit participation must include a framework-specific explanation")
-            assumption_status = str(data.get("d", "")).strip().upper()
-            if assumption_status not in {"SUPPORTED", "CONDITIONAL", "UNDERDETERMINED"}:
-                assumption_status = {
-                    "IRRELEVANT": "SUPPORTED",
-                    "RELEVANT": "SUPPORTED",
-                    "TRANSLATED": "SUPPORTED",
-                    "CONTESTED": "SUPPORTED",
-                    "REVERSAL_RELEVANT": "CONDITIONAL",
-                    "UNRESOLVED": "UNDERDETERMINED",
-                }[audit_participation]
-            unsupported_assumption = " ".join(str(data.get("a", "")).split()) or audit_framework_explanation
-            reversal_condition = " ".join(str(data.get("v", "")).split())
-            if not reversal_condition:
-                reversal_condition = (
-                    "The audited variable does not govern this framework's primary rule"
-                    if audit_participation == "IRRELEVANT"
-                    else audit_framework_explanation
-                )
+                fallback = " ".join(str(data.get("fa") or data.get("w") or "").split())
+                if len(fallback.split()) >= 3:
+                    audit_framework_explanation = fallback
+            if len(audit_framework_explanation.split()) < 3:
+                # Same contract as a malformed reversal sub-answer: keep the
+                # ranking, but do not treat this specialist as audit-tested.
+                audit_participation = "NOT_TESTED"
+                audit_framework_explanation = ""
+            else:
+                assumption_status = str(data.get("d", "")).strip().upper()
+                if assumption_status not in {"SUPPORTED", "CONDITIONAL", "UNDERDETERMINED"}:
+                    assumption_status = {
+                        "IRRELEVANT": "SUPPORTED",
+                        "RELEVANT": "SUPPORTED",
+                        "TRANSLATED": "SUPPORTED",
+                        "CONTESTED": "SUPPORTED",
+                        "REVERSAL_RELEVANT": "CONDITIONAL",
+                        "UNRESOLVED": "UNDERDETERMINED",
+                    }[audit_participation]
+                unsupported_assumption = " ".join(str(data.get("a", "")).split()) or audit_framework_explanation
+                reversal_condition = " ".join(str(data.get("v", "")).split())
+                if not reversal_condition:
+                    reversal_condition = (
+                        "The audited variable does not govern this framework's primary rule"
+                        if audit_participation == "IRRELEVANT"
+                        else audit_framework_explanation
+                    )
         else:
             # Compatibility path for stored delegates and fixtures using the
             # older assumption/reversal audit contract.
@@ -1881,7 +2178,13 @@ def _candidate_from_data(
             # typed entity/relation merely to satisfy the response shape.
             consensus_audit_variable = {}
         if assumption_status != "SUPPORTED" and unresolved == "NONE":
-            raise ValueError("conditional or underdetermined audits must preserve uncertainty")
+            # Keep the ethical vote. The audit asked the specialist to record
+            # remaining uncertainty, not to forfeit a valid duty ranking.
+            unresolved = (
+                "RESOLVE_NORMATIVE_TENSION"
+                if assumption_status == "NORMATIVELY_CONTESTED"
+                else "VERIFY_FACTS"
+            )
     elif assumption_status in {
         "CONDITIONAL", "UNDERDETERMINED", "NORMATIVELY_CONTESTED",
     } and unresolved == "NONE":
@@ -2553,6 +2856,52 @@ class CompactLocalSpecialist:
                 )
             )
         if rawls_dimension_refinement:
+            candidate.framework_constraint_retained = True
+            candidate.framework_retention_status = "REFINEMENT"
+            return
+
+        # Virtue state is the character verdict; the actor role is the
+        # description under which it was reached. A delegate that renames the
+        # role from "public steward" to "chief engineer" while keeping every
+        # verdict and the practical ranking basis has not moved its framework
+        # position, so treating the relabel as a lost constraint discarded a
+        # ledger that still said the same thing. Keep the redescription visible
+        # as a non-voting insight instead of silently absorbing it.
+        virtue_role_refinement = bool(
+            self.name == "virtue"
+            and same_action_set
+            and not auxiliary_changed
+            and str(previous.get("ranking_basis", ""))
+            == str(current.get("ranking_basis", ""))
+            and all(
+                previous_positions[action_id][0] == current_positions[action_id][0]
+                for action_id in previous_positions
+            )
+            and any(
+                previous_positions[action_id][1] != current_positions[action_id][1]
+                for action_id in previous_positions
+            )
+        )
+        if virtue_role_refinement:
+            for action_id in sorted(previous_positions):
+                previous_role = previous_positions[action_id][1]
+                current_role = current_positions[action_id][1]
+                if previous_role == current_role:
+                    continue
+                candidate.framework_insights.append({
+                    "insight_id": "",
+                    "action_id": action_id,
+                    "insight_kind": "REFINEMENT",
+                    "proposition": (
+                        f"Consider whether the agent acts as "
+                        f"{current_role or 'an unstated role'} rather than "
+                        f"{previous_role or 'an unstated role'}; the character "
+                        f"verdict holds under either description."
+                    ),
+                    "normative_construct": current_role or "actor role",
+                    "relation_to_committed_state": "ELABORATES",
+                    "grounded_in": [action_id, "COMMITTED_FRAMEWORK_STATE"],
+                })
             candidate.framework_constraint_retained = True
             candidate.framework_retention_status = "REFINEMENT"
             return
@@ -3904,7 +4253,10 @@ Return scores for every action ID. recommended must have the highest score.
 r=recommended and must have the highest score. The frozen baseline was extracted
 separately from your testimony. Python derives whether the result supports or
 reconsiders it. During OPEN_DELIBERATION, a DIRECT committed baseline must be
-preserved. A CONDITIONAL baseline is not a settled commitment: preserve its missing
+preserved. During PROBLEM_STATE_AUDIT, CONSENSUS_AUDIT, VISIBILITY_AUDIT, and
+REVERSAL_AUDIT, a DIRECT baseline may change only when your consequence table or
+grounded same-unit EV estimates independently rank the new action better. A
+prose correction in j is not enough. A CONDITIONAL baseline is not a settled commitment: preserve its missing
 comparison in u/tf, use ss=PROVISIONAL and esa=false, and rank either action only as
 an interim judgment. UNDERDETERMINED likewise requires explicit uncertainty rather
 than silently becoming a direct choice. Each score means recommendation strength:
@@ -4003,7 +4355,10 @@ Return ap=RELEVANT when it directly matters within your framework, IRRELEVANT wh
 your primary rule does not depend on it, TRANSLATED when your framework recognizes
 the terrain through a different relation, CONTESTED when the proposed comparison is
 normatively disputed, REVERSAL_RELEVANT when resolving it could reverse your ranking,
-or UNRESOLVED. Return ax with a framework-specific explanation. Legacy d/a/v fields
+or UNRESOLVED. Return ax with a framework-specific explanation of at least three
+words. If d is CONDITIONAL or UNDERDETERMINED, u must not be NONE: use
+VERIFY_FACTS or RESOLVE_NORMATIVE_TENSION so the ranking stays inspectable.
+Legacy d/a/v fields
 are optional. Do not contort your framework merely to restate the audited variable.
 If you translate it, name the relation your framework actually evaluates.
 Use the typed audit variable in the broadcast: av.entity names the decision-critical
@@ -4117,6 +4472,9 @@ must answer to resolve or clarify its judgment. Use natural language and [] when
 These are attributed diagnostic records: do not copy another framework's priorities,
 turn them into scenario facts, or change scores merely to populate them.
 r must have the highest score and respect frozen baseline state {json.dumps(baseline_state)} initially.
+On PROBLEM_STATE_AUDIT, CONSENSUS_AUDIT, VISIBILITY_AUDIT, and REVERSAL_AUDIT, do
+not invert a DIRECT baseline unless the consequence table or grounded EV ranks
+the new action better.
 c must be one of: {', '.join(allowed_constraints)}. No prose.
 {('Also include ap and ax for the typed problem audit; respond from your own framework rather than copying the audit ontology.' if broadcast.constraint in _PROBLEM_AUDIT_CONSTRAINTS else '')}
 {('Also include typed pr for the exact UNDER_REVIEW proposal; keep r and scores limited to the supplied scenario actions.' if broadcast.constraint == 'PROPOSAL_REVIEW' else '')}

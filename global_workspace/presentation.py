@@ -1041,9 +1041,22 @@ def render_public_judgment(result: Any) -> str:
             )
     if supporters:
         winner = final.get("winner") or {}
+        # Governing rationale comes from an adjudicated claim, not from whoever
+        # won investigative attention. Provisional Kantian leanings corroborate
+        # but do not supply the compressed rule.
+        def _governing_eligible(candidate: dict[str, Any]) -> bool:
+            if not candidate.get("schema_valid", True):
+                return False
+            if candidate.get("governing_eligible") is False:
+                return False
+            if str(candidate.get("broadcast_authority", "")).upper() == "INVESTIGATIVE":
+                return False
+            status = str(candidate.get("adjudication_status", "NOT_APPLICABLE")).upper()
+            return status in {"", "NOT_APPLICABLE", "ADJUDICATED_SUPPORTS"}
+
         governing_rule = (
             _sentence(winner.get("decision_rule", ""))
-            if winner.get("schema_valid")
+            if _governing_eligible(winner)
             and _candidate_recommendation(winner) == recommendation
             else ""
         )
@@ -1052,13 +1065,23 @@ def render_public_judgment(result: Any) -> str:
                 (
                     _sentence(supporter.get("decision_rule", ""))
                     for supporter in supporters
-                    if supporter.get("decision_rule")
+                    if supporter.get("decision_rule") and _governing_eligible(supporter)
                 ),
                 "",
             )
         if governing_rule:
-            governing_constraint = str(winner.get("constraint", "")).strip().upper()
-            winner_class = _agreement_class(data, winner)
+            governing_source = next(
+                (
+                    candidate for candidate in [winner, *supporters]
+                    if _governing_eligible(candidate)
+                    and _sentence(candidate.get("decision_rule", "")) == governing_rule
+                ),
+                winner if _governing_eligible(winner) else {},
+            )
+            governing_constraint = str(
+                governing_source.get("constraint", winner.get("constraint", ""))
+            ).strip().upper()
+            winner_class = _agreement_class(data, governing_source or winner)
             label = (
                 f"Governing decision rule ({governing_constraint})"
                 if governing_constraint else "Governing decision rule"
@@ -1066,6 +1089,24 @@ def render_public_judgment(result: Any) -> str:
             if winner_class != "DIRECT":
                 label = f"Governing decision rule ({governing_constraint}) — under review"
             lines.extend(["", f"{label}: {governing_rule}"])
+
+        provisional = [
+            candidate for candidate in supporters
+            if str(candidate.get("adjudication_status", "")).upper() == "PROVISIONAL_LEANING"
+            or (
+                str(candidate.get("broadcast_authority", "")).upper() == "INVESTIGATIVE"
+                and candidate.get("investigative_claim")
+            )
+        ]
+        if provisional:
+            lines.append("Provisional corroboration (not governing):")
+            for candidate in provisional[:3]:
+                claim = candidate.get("investigative_claim") or candidate.get("decision_rule") or ""
+                if not claim:
+                    continue
+                lines.append(
+                    f"- {candidate.get('specialist', 'perspective')}: {_sentence(claim)}"
+                )
 
     if dissent and dissent.get("rationale"):
         opposing_action = _candidate_recommendation(dissent)

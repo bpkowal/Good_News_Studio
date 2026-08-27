@@ -13,6 +13,7 @@ import re
 from typing import Any, Sequence
 
 from .models import CandidateChunk, SynthesisProposal
+from .resolved_questions import question_resolution_index
 from .scenario_semantics import segment_scenario_clauses
 
 
@@ -137,6 +138,7 @@ class DeliberativeProblemState:
     deliberative_consensus: str = "INSUFFICIENT"
     framework_warnings: tuple[dict[str, Any], ...] = ()
     audit_candidates: tuple[dict[str, Any], ...] = ()
+    resolved_questions: tuple[dict[str, Any], ...] = ()
     unresolved_categories: tuple[str, ...] = ()
     primary_unresolved: str = "NONE"
     proposals: tuple[dict[str, Any], ...] = ()
@@ -170,6 +172,7 @@ class DeliberativeProblemState:
             "deliberative_consensus": self.deliberative_consensus,
             "framework_warnings": [dict(item) for item in self.framework_warnings],
             "audit_candidates": [dict(item) for item in self.audit_candidates],
+            "resolved_questions": [dict(item) for item in self.resolved_questions],
             "unresolved_categories": list(self.unresolved_categories),
             "primary_unresolved": self.primary_unresolved,
             "proposals": [dict(item) for item in self.proposals],
@@ -971,6 +974,74 @@ def _uncertainty_kind(category: str, question: str) -> str:
     return "UNCLASSIFIED_UNCERTAINTY"
 
 
+def opening_problem_state(
+    actions: Sequence[str],
+    scenario_text: str = "",
+    graph: Any | None = None,
+) -> dict[str, Any]:
+    """Frame the shared problem before any delegate has spoken.
+
+    The opening cycle used to receive an empty state, so the first responses
+    were written without the canonical clause and action vocabulary the rest of
+    the run is validated against. Delegates then grounded their questions in
+    words the graph does not use, and those questions were unauditable for the
+    remainder of the run.
+
+    This frame is deliberately positionless. It carries the action set, the
+    scenario clauses, and the already-compiled graph identities, and it carries
+    no preference, no salient claim, and no framework verdict, so the opening
+    cycle stays an independent read of a shared world rather than a reaction to
+    a preselected answer.
+    """
+    state = DeliberativeProblemState(
+        cycle=0,
+        live_actions=tuple(
+            {"action_id": f"A{index}", "action": str(action)}
+            for index, action in enumerate(actions)
+        ),
+        agent_positions=(),
+        active_constraints=(),
+        active_conflicts=(),
+        unresolved_questions=(),
+        framework_internal_conflicts=(),
+        framework_specific_open_questions=(),
+        framework_insights=(),
+        workspace_contributions=(),
+        dissenting_positions=(),
+        current_plurality="",
+        primary_unresolved="ASSESS_FACTS",
+        unresolved_categories=("ASSESS_FACTS",),
+        state_role="OPENING_PROBLEM_FRAME",
+    )
+    data = state.to_dict()
+    data["scenario_clauses"] = [
+        {"clause_id": clause["clause_id"], "text": " ".join(str(clause["text"]).split())[:240]}
+        for clause in segment_scenario_clauses(scenario_text)
+    ]
+    grounded_identities: list[dict[str, str]] = []
+    for node in (graph.nodes.values() if graph is not None else []):
+        clause_id = str(
+            node.attributes.get("clause_id")
+            or node.attributes.get("source_clause_id")
+            or ""
+        )
+        grounded_identities.append({
+            "node_id": node.id,
+            "kind": node.kind,
+            "label": " ".join(str(node.label).split())[:120],
+            "clause_id": clause_id,
+        })
+    data["grounded_identities"] = sorted(
+        grounded_identities, key=lambda item: item["node_id"],
+    )[:24]
+    data["grounding_vocabulary_note"] = (
+        "Cite these clause_id and node_id values when reporting unresolved "
+        "questions; a question the graph cannot trace to one of them cannot be "
+        "audited."
+    )
+    return data
+
+
 def build_deliberative_problem_state(
     cycle: int,
     actions: Sequence[str],
@@ -1427,20 +1498,75 @@ def build_deliberative_problem_state(
         (str(item.get("source_specialist", "")), str(item.get("category", "")))
         for item in previous_questions
     }
-    audit_candidates = tuple({
-        "issue_id": item["question_key"],
-        "source": "problem_state.unresolved_questions",
-        "proposition": item["question"],
-        "grounded_in": list(item.get("grounded_in", [])),
-        "raised_by": list(item.get("raised_by", [])) or [item["source_specialist"]],
-        "category": item["category"],
-        "uncertainty_kind": item.get("uncertainty_kind", "UNCLASSIFIED_UNCERTAINTY"),
-        "status": (
-            "PERSISTENT_UNRESOLVED"
-            if (item["source_specialist"], item["category"]) in previous_question_types
-            else "UNRESOLVED"
-        ),
-    } for item in unresolved if item.get("grounded_in"))
+    # Delegates rebuild their open questions every cycle, so a question the
+    # workspace already audited to a stable answer reappears here verbatim.
+    # Annotate it from the graph ledger and withhold it from the audit slot
+    # while the evidence its answer rested on is unchanged.
+    resolution_index = question_resolution_index(graph)
+    for item in unresolved:
+        record = resolution_index.get(str(item.get("question_key", "")))
+        if record is None:
+            item["resolution_status"] = "OPEN"
+            continue
+        item["resolution_status"] = record["status"]
+        item["recorded_resolution"] = record["resolution"]
+        item["resolved_cycle"] = record["resolved_cycle"]
+        item["evidence_requirement"] = record.get("evidence_requirement", "")
+    settled_keys = {
+        key for key, record in resolution_index.items()
+        if record["status"] == "SETTLED"
+    }
+
+    action_node_ids = [f"A{index}" for index in range(len(actions))]
+
+    def audit_candidate(item: dict[str, Any], grounding_status: str) -> dict[str, Any]:
+        return {
+            "issue_id": item["question_key"],
+            "source": "problem_state.unresolved_questions",
+            # An ungrounded question still concerns this action set, so the
+            # audit is anchored to the canonical action nodes. That keeps its
+            # answer recordable and reopenable while grounding_status stays
+            # honest that no scenario clause supports the question itself.
+            "proposition": item["question"],
+            "grounded_in": (
+                list(item.get("grounded_in", []))
+                if grounding_status == "CLAUSE_GROUNDED"
+                else list(action_node_ids)
+            ),
+            "grounding_status": grounding_status,
+            "raised_by": list(item.get("raised_by", [])) or [item["source_specialist"]],
+            "category": item["category"],
+            "uncertainty_kind": item.get("uncertainty_kind", "UNCLASSIFIED_UNCERTAINTY"),
+            "status": (
+                "PERSISTENT_UNRESOLVED"
+                if (item["source_specialist"], item["category"]) in previous_question_types
+                else "UNRESOLVED"
+            ),
+        }
+
+    auditable = [
+        item for item in unresolved
+        if item["question_key"] not in settled_keys
+    ]
+    # A question the graph cannot tie to a clause is weaker evidence that the
+    # issue is live, not proof that it is idle. Offer it only when nothing
+    # grounded is competing for the slot, so ungrounded inquiry stays testable
+    # without ever displacing a question the scenario actually supports.
+    grounded_candidates = tuple(
+        audit_candidate(item, "CLAUSE_GROUNDED")
+        for item in auditable if item.get("grounded_in")
+    )
+    audit_candidates = grounded_candidates or tuple(
+        audit_candidate(item, "UNGROUNDED")
+        for item in auditable if not item.get("grounded_in")
+    )
+    resolved_questions = tuple(
+        dict(record) for _key, record in sorted(resolution_index.items())
+    )
+    # A settled question keeps its category. "Resolving this would not change
+    # the recommendation" is an answer about decision relevance, not a claim
+    # that the underlying uncertainty is now known, so it must still be
+    # reported as unresolved even though it no longer earns an audit.
     unresolved_categories = list(dict.fromkeys(
         str(item.get("category", "")).upper()
         for item in unresolved if str(item.get("category", "")).strip()
@@ -1478,6 +1604,7 @@ def build_deliberative_problem_state(
         deliberative_consensus=deliberative_consensus,
         framework_warnings=warnings,
         audit_candidates=audit_candidates,
+        resolved_questions=resolved_questions,
         unresolved_categories=tuple(unresolved_categories),
         primary_unresolved=primary_unresolved,
         proposals=proposal_projection,
