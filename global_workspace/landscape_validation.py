@@ -7,79 +7,54 @@ from typing import Any, Sequence
 from .structured_io import ModelCallBudgetExceeded, call_json_llm, extract_json
 
 
-_COMPARATIVE_BENEFICIARY = re.compile(
-    r"\b(?:(?:protect|benefit|safeguard|improv|abandon|neglect|disadvantag)\w*|"
-    r"better\s+off|worse\s+off|"
-    r"least[- ]advantaged|most\s+vulnerable|fair\s+claim)\b",
+_COMPARATIVE_RANKING = re.compile(
+    r"\b(?:better\s+off|worse\s+off|"
+    r"more\s+than|less\s+than|greater\s+than|fewer\s+than|"
+    r"outweigh\w*|exceed\w*|surpass\w*|dominat\w*|trump\w*|override\w*|"
+    r"prefer\w*|rank\w*)\b",
     re.IGNORECASE,
 )
 
-_RELATION_FAMILIES = {
-    "POSITIVE": re.compile(
-        r"\b(?:(?:protect|benefit|safeguard|improv|rescu)\w*|"
-        r"save|saves|saved|saving)\b", re.I
-    ),
-    "ADVERSE": re.compile(r"\b(?:abandon|neglect|disadvantag)\w*\b|\bworse\s+off\b", re.I),
-    "PRIORITY": re.compile(
-        r"\b(?:least[- ]advantaged|most\s+vulnerable|fair\s+claim|better\s+off)\b",
-        re.I,
-    ),
-}
-_GROUNDING_WORDS_IGNORED = {
-    "action", "option", "protect", "protects", "protected", "protecting",
-    "benefit", "benefits", "benefited", "benefiting", "safeguard", "safeguards",
-    "improve", "improves", "improved", "abandon", "abandons", "abandoned",
-    "abandonment", "neglect", "neglects", "neglected", "disadvantage",
-    "disadvantages", "disadvantaged", "better", "worse", "least", "most",
-    "advantaged", "fair", "claim", "with", "without", "while",
-    "save", "saves", "saved", "saving", "rescue", "rescues", "rescued",
-    "that", "this", "their", "from", "under", "than", "into", "through",
-}
-
-
-def _relation_families(text: str) -> set[str]:
-    return {
-        family for family, pattern in _RELATION_FAMILIES.items()
-        if pattern.search(text)
-    }
-
-
-def _content_words(text: str) -> set[str]:
-    return {
-        token for token in re.findall(r"[a-z0-9]+", text.casefold())
-        if len(token) >= 4 and token not in _GROUNDING_WORDS_IGNORED
-    }
-
-
-def _explicitly_grounded_in_action(action: str, claim: str) -> bool:
-    """Fast-path literal action facts before spending an auxiliary model call."""
-    claim_relations = _relation_families(claim)
-    action_relations = _relation_families(action)
-    if not claim_relations or not (claim_relations & action_relations):
-        return False
-    # Matching a relation word alone is insufficient: the action and claim must
-    # also identify at least one common target/mechanism anchor.
-    return bool(_content_words(action) & _content_words(claim))
-
+_RELATIONAL_PREMISE = re.compile(
+    r"\b(?:third\s+party|authorized\s+internal\s+agent|internal\s+agent|"
+    r"authorized\s+agent|authorization\s+scope|consent\s+scope|privacy\s+scope|promise\s+scope|"
+    r"least[- ]advantaged|most\s+vulnerable|better\s+off|worse\s+off|"
+    r"materially\s+better\s+off|materially\s+worse\s+off|organizational\s+boundary|"
+    r"role\s+relation|status)\b",
+    re.IGNORECASE,
+)
 
 def _comparative_claim_errors(
     actions: Sequence[str], landscape_cases: dict[str, str]
 ) -> list[str]:
-    """Identify beneficiary comparisons that need an action-to-target fact.
+    """Identify explicit comparative claims that need an action-to-target fact.
 
     This is only an admission trigger for semantic verification. It does not
     decide from vocabulary alone whether the claim is true.
     """
-    return [
-        f"case for A{index} makes an unverified comparative beneficiary claim"
-        for index, action in enumerate(actions)
-        if (
-            _COMPARATIVE_BENEFICIARY.search(landscape_cases.get(action, ""))
-            and not _explicitly_grounded_in_action(
-                action, landscape_cases.get(action, "")
+    errors: list[str] = []
+    for index, action in enumerate(actions):
+        case = landscape_cases.get(action, "")
+        comparative_fragments = [
+            fragment.strip()
+            for fragment in re.split(r"(?<=[.!?;])\s+|\s+[—–-]\s+", case)
+            if _COMPARATIVE_RANKING.search(fragment)
+        ]
+        if not comparative_fragments:
+            continue
+        comparative_text = " ".join(comparative_fragments)
+        if _RELATIONAL_PREMISE.search(comparative_text):
+            errors.append(
+                f"UNRESOLVED_RELATIONAL_PREMISE: case for A{index} makes an unverified "
+                f"comparative beneficiary claim (needs a resolved relational premise; "
+                f"operator={comparative_fragments[0][:80]})"
             )
-        )
-    ]
+        else:
+            errors.append(
+                f"COMPARATIVE_MAGNITUDE: case for A{index} makes an unverified comparative "
+                f"beneficiary claim (operator={comparative_fragments[0][:100]})"
+            )
+    return errors
 
 
 def verify_landscape_alignment(
@@ -155,16 +130,19 @@ compare the rival afterward and may paraphrase or use synonyms. Shared outcomes 
 symmetric trade-off are allowed when the case explains how its own action affects them.
 aligned=false when the case actually describes choosing the opposing action, swaps the
 actions' consequences, or gives no identifiable consequence of its own action.
-For any case claiming that its action protects, benefits, safeguards, improves,
-abandons, neglects, disadvantages, or is better/worse for a person or group, set
-comparative_grounded=true only when a committed scenario fact establishes the
-target's treatment under that action relative to the rival. "No additional aid"
-does not mean "made worse," and "unchanged" does not mean "protected" unless the
-other action explicitly worsens that same target. A procedural value such as
-non-interference may support a procedural argument but cannot by itself establish
-that a population is materially better off. fact_node identifies the supporting
-ActionNode, MULTIPLE_ACTIONS, SCENARIO, or NONE. For cases without such a claim, return
-comparative_grounded=true and fact_node=NONE.
+For any case that explicitly ranks outcomes, says one side is better/worse off,
+or uses comparative language like "outweighs", "exceeds", "more than", "less than",
+"least advantaged", or "most vulnerable", set comparative_grounded=true only when
+a committed scenario fact establishes the target's treatment under this action
+relative to the rival. Plain descriptive consequences are allowed and should stay
+grounded even if they mention benefits, harms, privacy, or welcome effects.
+"No additional aid" does not mean "made worse," and "unchanged" does not mean
+"protected" unless the other action explicitly worsens that same target. A
+procedural value such as non-interference may support a procedural argument but
+cannot by itself establish that a population is materially better off. fact_node
+identifies the supporting ActionNode, MULTIPLE_ACTIONS, SCENARIO, or NONE. For
+cases without such a ranking claim, return comparative_grounded=true and
+fact_node=NONE.
 For each flagged case, explicitly answer: which committed fact makes the claimed
 target better or worse off under this action than its rival? If none, use false/NONE.
 Return JSON only.
@@ -199,11 +177,21 @@ Return JSON only.
                 confirmed.append(
                     lexical_error + (f" ({reason})" if reason else "")
                 )
-            comparative_error = (
-                f"case for A{index} makes an unverified comparative beneficiary claim"
+            comparative_error_prefixes = (
+                f"COMPARATIVE_MAGNITUDE: case for A{index} makes an unverified comparative "
+                f"beneficiary claim",
+                f"UNRESOLVED_RELATIONAL_PREMISE: case for A{index} makes an unverified "
+                f"comparative beneficiary claim",
+            )
+            matched_comparative_error = next(
+                (
+                    error for error in comparative_errors
+                    if any(error.startswith(prefix) for prefix in comparative_error_prefixes)
+                ),
+                "",
             )
             if (
-                comparative_error in comparative_errors
+                bool(matched_comparative_error)
                 and (
                     comparative_grounded.get(key) is not True
                     or fact_nodes.get(key) in {None, "NONE"}
@@ -211,7 +199,7 @@ Return JSON only.
             ):
                 reason = " ".join(str(reasons[key]).split())
                 confirmed.append(
-                    comparative_error + (f" ({reason})" if reason else "")
+                    matched_comparative_error + (f" ({reason})" if reason else "")
                 )
         return [*other_errors, *confirmed]
     except (ModelCallBudgetExceeded, ValueError, json.JSONDecodeError, KeyError, TypeError):

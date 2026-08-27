@@ -129,6 +129,216 @@ def _best_action_case(candidates: list[dict[str, Any]], action: str) -> str:
     ) if options else ""
 
 
+def _sentence_or_blank(text: str) -> str:
+    cleaned = " ".join(str(text).split()).strip()
+    if not cleaned:
+        return ""
+    cleaned = cleaned[0].upper() + cleaned[1:]
+    if cleaned[-1] not in ".?!":
+        cleaned += "."
+    return cleaned
+
+
+def _format_quantity(number: str, unit: str = "") -> str:
+    try:
+        value = float(number)
+    except ValueError:
+        return number
+    if unit.casefold() == "fraction" and 0.0 <= value <= 1.0:
+        return f"{value * 100:.0f}%"
+    if value.is_integer():
+        return f"{int(value):,}"
+    return f"{value:g}"
+
+
+def _humanize_threshold(text: str) -> str:
+    cleaned = " ".join(str(text).replace("_", " ").split()).strip()
+    if not cleaned:
+        return ""
+
+    pattern = re.compile(
+        r"(?P<lhs>[A-Za-z][A-Za-z ]*?)\s*(?P<op><=|>=|<|>|≤|≥)\s*"
+        r"(?P<num>\d+(?:\.\d+)?)\s*(?P<unit>[A-Za-z%]+)?"
+    )
+
+    def replace(match: re.Match[str]) -> str:
+        lhs = " ".join(match.group("lhs").split()).strip()
+        op = match.group("op")
+        unit = match.group("unit") or ""
+        if op == "≤":
+            op = "<="
+        elif op == "≥":
+            op = ">="
+        probability_like = unit.casefold() in {"probability", "chance", "risk", "likelihood"}
+        if probability_like:
+            try:
+                value = float(match.group("num"))
+            except ValueError:
+                num = _format_quantity(match.group("num"), unit)
+            else:
+                num = f"{value * 100:.0f}%" if 0.0 <= value <= 1.0 else _format_quantity(match.group("num"), unit)
+        else:
+            num = _format_quantity(match.group("num"), unit)
+        if probability_like:
+            if op == "<":
+                return f"{lhs} falls below around {num}"
+            if op == ">":
+                return f"{lhs} exceeds around {num}"
+            return f"{lhs} falls to around {num}"
+        unit_text = f" {unit}" if unit else ""
+        if op == "<":
+            return f"{lhs} falls below {num}{unit_text}"
+        if op == ">":
+            return f"{lhs} exceeds {num}{unit_text}"
+        if op == "<=":
+            return f"{lhs} is at or below {num}{unit_text}"
+        return f"{lhs} is at or above {num}{unit_text}"
+
+    cleaned = pattern.sub(replace, cleaned)
+    cleaned = cleaned.replace("count", "").replace("fraction", "")
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    return cleaned
+
+
+def summarize_problem_shape_paragraphs(data: dict[str, Any]) -> list[str]:
+    semantic_state = data.get("authoritative_semantic_state") or {}
+    relations = semantic_state.get("problem_shape_relations") or []
+    paragraphs: list[str] = []
+    dimension_states = semantic_state.get("action_dimension_states") or []
+    framework_priorities = semantic_state.get("framework_dimension_priorities") or []
+    substantive = {
+        str(item.get("dimension", "")).upper()
+        for item in dimension_states
+        if str(item.get("dimension", "")).upper()
+        not in {"FEASIBILITY", "UNKNOWN", "OTHER_PRIMARY_GOOD", "OTHER"}
+    }
+    if len(substantive) >= 2:
+        lexical = any(
+            str(item.get("framework", "")).upper() == "RAWLSIAN"
+            and str(item.get("dimension", "")).upper() == "LIBERTY_AUTONOMY"
+            and str(item.get("relation", "")).upper() == "LEXICAL_PRIORITY_OVER"
+            for item in framework_priorities
+        )
+        heading = "The actions form a multidimensional tradeoff"
+        if lexical:
+            heading += "; Rawlsian priority ranks basic liberty lexically over material position"
+        paragraphs.append(_sentence_or_blank(heading))
+        by_action: dict[str, list[dict[str, Any]]] = {}
+        for item in dimension_states:
+            action_id = str(item.get("action_id", "")).strip()
+            if action_id:
+                by_action.setdefault(action_id, []).append(item)
+        dimension_names = {
+            "LIBERTY_AUTONOMY": "liberty and autonomy interests",
+            "MATERIAL_FLOOR": "material floor",
+            "OPPORTUNITY_ACCESS": "opportunity and access",
+            "BASIC_SECURITY": "basic security",
+            "FEASIBILITY": "feasibility",
+        }
+        direction_names = {
+            "IMPROVES": "improves", "WORSENS": "worsens",
+            "PRESERVES": "preserved", "MIXED": "mixed",
+            "UNCERTAIN": "uncertain", "ESTABLISHED": "high",
+        }
+        for action_id in sorted(by_action):
+            cells = []
+            for item in sorted(
+                by_action[action_id],
+                key=lambda value: {
+                    "MATERIAL_FLOOR": 0, "LIBERTY_AUTONOMY": 1, "FEASIBILITY": 2,
+                }.get(str(value.get("dimension", "")).upper(), 9),
+            ):
+                dimension = str(item.get("dimension", "UNKNOWN")).upper()
+                direction = str(item.get("direction", "UNKNOWN")).upper()
+                qualifier = str(item.get("magnitude_or_qualifier", "")).upper()
+                value = direction_names.get(direction, direction.lower().replace("_", " "))
+                if qualifier not in {
+                    "", "UNKNOWN", "HIGHER", "LOWER", "PRESERVED", "MIXED", "HIGH",
+                }:
+                    value += f" ({qualifier.lower().replace('_', ' ')})"
+                cells.append(
+                    f"{dimension_names.get(dimension, dimension.lower().replace('_', ' '))}: {value}"
+                )
+            paragraphs.append(_sentence_or_blank(f"{action_id} — " + "; ".join(cells)))
+            if len(paragraphs) >= 4:
+                return paragraphs
+
+    ordered = sorted(
+        relations,
+        key=lambda relation: {
+            "AGGREGATE_VS_DISTRIBUTIVE": 0,
+            "TEMPORAL_RISK_ASYMMETRY": 1,
+            "EPISTEMIC_ASYMMETRY": 2,
+            "DECISION_BOUNDARY": 4,
+            "DECISION_CRITICAL_UNKNOWN": 5,
+            "OUTCOME_EQUIVALENCE": 6,
+            "ASYMMETRIC_COST": 7,
+        }.get(str(relation.get("relation", "")).upper(), 99),
+    )
+    for relation in ordered:
+        relation_name = str(relation.get("relation", "")).strip().upper()
+        statement = str(relation.get("statement", "")).strip()
+        if not statement:
+            continue
+        if relation_name == "MULTIDIMENSIONAL_TRADEOFF" and dimension_states:
+            continue
+        if relation_name == "DECISION_BOUNDARY":
+            boundary = statement.split(" if ", 1)[-1] if " if " in statement.lower() else statement
+            cleaned = _humanize_threshold(boundary)
+            if cleaned:
+                paragraphs.append(
+                    _sentence_or_blank(
+                        f"The current recommendation would change if {cleaned}"
+                    )
+                )
+        elif relation_name == "DECISION_CRITICAL_UNKNOWN":
+            variable = statement.split(":", 1)[-1].strip() if ":" in statement else statement
+            paragraphs.append(
+                _sentence_or_blank(
+                    f"A decision-critical uncertainty remains unresolved: {variable}"
+                )
+            )
+        elif relation_name in {
+            "AGGREGATE_VS_DISTRIBUTIVE",
+            "TEMPORAL_RISK_ASYMMETRY",
+            "EPISTEMIC_ASYMMETRY",
+            "OUTCOME_EQUIVALENCE",
+            "ASYMMETRIC_COST",
+        }:
+            paragraphs.append(_sentence_or_blank(statement))
+        else:
+            paragraphs.append(_sentence_or_blank(statement))
+        if len(paragraphs) >= 4:
+            break
+
+    if not paragraphs:
+        reformulations = data.get("problem_reformulations") or []
+        accepted = next((item for item in reformulations if item.get("accepted")), None)
+        if accepted:
+            residual = _sentence_or_blank(str(accepted.get("residual_tension", "")))
+            question = _sentence_or_blank(str(accepted.get("question", "")))
+            switch = _sentence_or_blank(str(accepted.get("switch_condition", "")))
+            if residual:
+                paragraphs.append(residual)
+            if switch:
+                paragraphs.append(switch)
+            if question and question not in paragraphs:
+                paragraphs.append(question)
+
+    decision_variables = semantic_state.get("decision_variables") or []
+    if decision_variables and len(paragraphs) < 4:
+        variable = decision_variables[0]
+        label = str(variable.get("label", "")).strip()
+        if label:
+            paragraphs.append(
+                _sentence_or_blank(
+                    f"The authoritative state keeps one decision-critical variable open: {label}"
+                )
+            )
+
+    return paragraphs
+
+
 def _baseline_reason(
     data: dict[str, Any], specialist: str, recommendation: str, original_actions: list[str]
 ) -> str:
@@ -154,6 +364,28 @@ def _support_reason(
     baseline = _baseline_reason(
         data, candidate.get("specialist", ""), recommendation, original_actions
     )
+    if candidate.get("specialist") == "deontological":
+        selected_id = next((
+            action_id for action_id, action in _action_text_by_id(data).items()
+            if action == recommendation
+        ), "")
+        assessments = (
+            (data.get("authoritative_semantic_state") or {})
+            .get("deontological_assessments") or []
+        )
+        calibrated = next((
+            assessment for assessment in assessments
+            if assessment.get("canonical_action_id") == selected_id
+        ), None)
+        if calibrated and (
+            calibrated.get("calibration_errors")
+            or calibrated.get("resolution_status") != "RESOLVED"
+        ):
+            # The frozen testimony remains visible in the appendix, but once
+            # adjudication calibration supersedes REQUIRED/PROHIBITED with a
+            # contested operative judgment it must not be repeated as current
+            # moral support in the public rationale.
+            baseline = ""
     if len(baseline) >= 170 or _looks_truncated(baseline):
         baseline = ""
     rationale = _sentence(candidate.get("rationale", ""))
@@ -167,7 +399,297 @@ def _support_reason(
         if any(normalized in prior.casefold() or prior.casefold().rstrip(".") in normalized for prior in unique):
             continue
         unique.append(part)
-    return " ".join(unique[:2])
+    reason = " ".join(unique[:2])
+    retained = _latest_workspace_contribution(
+        data, str(candidate.get("specialist", ""))
+    )
+    visibility = str(retained.get("retained_issue_visibility", "NOT_APPLICABLE"))
+    issue = _sentence(str(retained.get("visible_retained_issue", "")))
+    if issue and visibility in {"STRUCTURED_ONLY", "OMITTED"}:
+        # Presentation repair only: this does not modify the candidate, vote,
+        # salience, confidence, or authoritative framework state.
+        reason = " ".join(filter(None, (
+            reason,
+            f"Retained unresolved issue: {_lower_initial(issue)}",
+        )))
+    return reason
+
+
+def _latest_workspace_contribution(
+    data: dict[str, Any], specialist: str,
+) -> dict[str, Any]:
+    for cycle in reversed(data.get("cycles", []) or []):
+        state = ((cycle.get("broadcast") or {}).get("problem_state") or {})
+        for contribution in state.get("workspace_contributions", []) or []:
+            if str(contribution.get("agent", "")) == specialist:
+                return dict(contribution)
+    return {}
+
+
+def _agreement_class(data: dict[str, Any], candidate: dict[str, Any]) -> str:
+    """Classify support without changing the underlying policy calculation."""
+    contribution = _latest_workspace_contribution(
+        data, str(candidate.get("specialist", ""))
+    )
+    choice = str(
+        contribution.get("choice_status")
+        or candidate.get("baseline_status")
+        or candidate.get("selection_status")
+        or "DIRECT"
+    ).upper()
+    assumption = str(candidate.get("assumption_status", "")).upper()
+    unresolved = str(candidate.get("unresolved", "NONE")).upper()
+    retention = str(candidate.get("framework_retention_status", "")).upper()
+    if "OUTSIDE_ACTION_SET" in choice or choice in {"FALLBACK", "FORCED"}:
+        return "FALLBACK"
+    if assumption == "NORMATIVELY_CONTESTED" or unresolved == "RESOLVE_NORMATIVE_TENSION":
+        return "CONTESTED"
+    if choice == "CONDITIONAL" or assumption == "CONDITIONAL":
+        return "CONDITIONAL"
+    if choice in {"PROVISIONAL", "UNDERDETERMINED"}:
+        return "PROVISIONAL"
+    if candidate.get("utilitarian_decision_depends_on_unknown"):
+        return "CONDITIONAL"
+    if str(candidate.get("selection_status", "")).upper() == "PROVISIONAL":
+        return "PROVISIONAL"
+    if retention in {"PRESERVED_AFTER_REJECTED_UPDATE", "PRIOR_STATE_PRESERVED"}:
+        return "PRESERVED"
+    if retention in {"FIRST_STATE_ADMITTED_WITH_WARNINGS", "COMMITTED_WITH_UNCERTAINTY"}:
+        return "QUALIFIED"
+    return "DIRECT"
+
+
+def _agreement_profile(
+    data: dict[str, Any],
+    latest_by_specialist: dict[str, dict[str, Any]],
+    recommendation: str,
+) -> dict[str, list[str]]:
+    profile = {
+        "DIRECT": [], "CONDITIONAL": [], "PROVISIONAL": [],
+        "FALLBACK": [], "CONTESTED": [], "PRESERVED": [],
+        "QUALIFIED": [], "OPPOSED": [],
+    }
+    for specialist, candidate in sorted(latest_by_specialist.items()):
+        if _candidate_recommendation(candidate) != recommendation:
+            profile["OPPOSED"].append(specialist)
+        else:
+            profile[_agreement_class(data, candidate)].append(specialist)
+    return profile
+
+
+def _agreement_profile_sentence(profile: dict[str, list[str]]) -> str:
+    labels = {
+        "DIRECT": "direct",
+        "CONDITIONAL": "conditional",
+        "PROVISIONAL": "provisional",
+        "FALLBACK": "fallback within the stated action set",
+        "CONTESTED": "internally contested",
+        "PRESERVED": "supported by the last validated state after a rejected update",
+        "QUALIFIED": "admitted with grounding qualifications",
+        "OPPOSED": "opposed",
+    }
+    parts = [
+        f"{labels[kind]}: {', '.join(names)}"
+        for kind, names in profile.items() if names
+    ]
+    return "; ".join(parts)
+
+
+def _lower_initial(text: str) -> str:
+    text = text.strip()
+    return text[:1].lower() + text[1:] if text else text
+
+
+def _dimensional_synthesis_paragraphs(
+    data: dict[str, Any],
+    *,
+    recommendation: str,
+    latest_by_specialist: dict[str, dict[str, Any]],
+) -> list[str]:
+    """Render moral terrain first, keeping orchestration metadata secondary."""
+    semantic = data.get("authoritative_semantic_state") or {}
+    states = semantic.get("action_dimension_states") or []
+    if not states:
+        return []
+    action_text = _action_text_by_id(data)
+    by_action: dict[str, list[dict[str, Any]]] = {}
+    for state in states:
+        action_id = str(state.get("action_id", "")).strip()
+        if action_id:
+            by_action.setdefault(action_id, []).append(state)
+    substantive = {
+        str(state.get("dimension", "")).upper()
+        for state in states
+        if str(state.get("dimension", "")).upper()
+        not in {"FEASIBILITY", "UNKNOWN", "OTHER_PRIMARY_GOOD", "OTHER"}
+    }
+    if len(substantive) < 2 or len(by_action) < 2:
+        return []
+
+    dimension_names = {
+        "LIBERTY_AUTONOMY": "liberty and autonomy interests",
+        "MATERIAL_FLOOR": "the material floor",
+        "OPPORTUNITY_ACCESS": "opportunity and access",
+        "BASIC_SECURITY": "basic security",
+        "FEASIBILITY": "feasibility",
+    }
+
+    def state_phrase(state: dict[str, Any]) -> str:
+        dimension = str(state.get("dimension", "UNKNOWN")).upper()
+        direction = str(state.get("direction", "UNKNOWN")).upper()
+        qualifier = str(state.get("magnitude_or_qualifier", "")).upper()
+        subject = _clean_fragment(str(state.get("affected_subject", "")))
+        if dimension == "FEASIBILITY":
+            return (
+                "has uncertain feasibility"
+                if direction == "UNCERTAIN" else "has comparatively established feasibility"
+            )
+        strength = ""
+        if qualifier in {"LARGE", "HIGH", "STRONG", "SEVERE", "MODERATE-HIGH"}:
+            strength = "substantially "
+        verb = {
+            "IMPROVES": f"{strength}improves",
+            "WORSENS": f"{strength}worsens",
+            "PRESERVES": "preserves",
+            "MIXED": "has mixed effects on",
+            "UNCERTAIN": "has an uncertain effect on",
+        }.get(direction, direction.lower().replace("_", " "))
+        phrase = f"{verb} {dimension_names.get(dimension, dimension.lower().replace('_', ' '))}"
+        if subject and subject != "implementation":
+            phrase += f" for {subject}"
+        return phrase
+
+    action_sentences = []
+    for action_id in sorted(by_action):
+        action = _clean_fragment(action_text.get(action_id, action_id))
+        ordered = sorted(
+            by_action[action_id],
+            key=lambda state: {
+                "MATERIAL_FLOOR": 0, "LIBERTY_AUTONOMY": 1, "FEASIBILITY": 2,
+            }.get(str(state.get("dimension", "")).upper(), 9),
+        )
+        phrases = [state_phrase(state) for state in ordered]
+        if not phrases:
+            continue
+        if len(phrases) == 1:
+            comparison = phrases[0]
+        else:
+            comparison = ", ".join(phrases[:-1]) + f", and {phrases[-1]}"
+        action_sentences.append(f"{action_id} ({action}) {comparison}")
+    first = (
+        "The Parliament sees the case as a conflict between "
+        + " and ".join(
+            dimension_names.get(dimension, dimension.lower().replace("_", " "))
+            for dimension in sorted(substantive)
+        )
+        + ". "
+        + ". ".join(action_sentences)
+        + "."
+    )
+
+    interpretations: list[str] = []
+    priorities = semantic.get("framework_dimension_priorities") or []
+    if any(
+        str(priority.get("framework", "")).upper() == "RAWLSIAN"
+        and str(priority.get("relation", "")).upper() == "LEXICAL_PRIORITY_OVER"
+        for priority in priorities
+    ):
+        interpretations.append(
+            "Rawlsian reasoning gives basic liberty lexical priority over material advantage"
+        )
+    if any(
+        str(priority.get("framework", "")).upper() == "CARE"
+        and str(priority.get("relation", "")).upper() == "RELATIONAL_TENSION_WITH"
+        for priority in priorities
+    ):
+        interpretations.append(
+            "care reasoning treats dependency relief and domination or autonomy as a context-sensitive tension"
+        )
+    deon = semantic.get("deontological_assessments") or []
+    prohibited = next((
+        assessment for assessment in deon
+        if str(assessment.get("verdict", "")).upper() == "PROHIBITED"
+    ), None)
+    if prohibited:
+        action_id = str(prohibited.get("canonical_action_id", ""))
+        interpretations.append(
+            f"deontological reasoning treats {action_id or 'the coercive option'} as prohibited"
+        )
+    util = latest_by_specialist.get("utilitarian", {})
+    if util.get("utilitarian_decision_depends_on_unknown"):
+        missing = _clean_fragment(str(util.get("utilitarian_missing_comparison", "")))
+        interpretations.append(
+            "utilitarian reasoning remains unresolved"
+            + (f" because {missing}" if missing else " because the aggregate comparison is not quantified")
+        )
+    profile = _agreement_profile(data, latest_by_specialist, recommendation)
+    if profile["DIRECT"]:
+        interpretations.append(
+            "Direct support comes from " + " and ".join(profile["DIRECT"])
+        )
+    qualified: list[str] = []
+    for kind, label in (
+            ("CONDITIONAL", "conditional"),
+            ("PROVISIONAL", "provisional"),
+            ("FALLBACK", "only fallback support within the stated action set"),
+            ("CONTESTED", "internally contested"),
+            ("PRESERVED", "the last validated position after a rejected update"),
+            ("QUALIFIED", "admitted with grounding qualifications"),
+    ):
+        names = profile[kind]
+        if not names:
+            continue
+        joined = names[0] if len(names) == 1 else " and ".join(names)
+        verb = "is" if len(names) == 1 else "are"
+        qualified.append(f"{joined} {verb} {label}")
+    if qualified:
+        interpretations.append("; ".join(qualified))
+    second = _sentence_or_blank("; ".join(interpretations)) if interpretations else ""
+
+    selected_id = next(
+        (action_id for action_id, action in action_text.items() if action == recommendation),
+        "",
+    )
+    selected_states = by_action.get(selected_id, [])
+    unresolved_material = any(
+        str(state.get("dimension", "")).upper() == "MATERIAL_FLOOR"
+        and str(state.get("direction", "")).upper() in {"WORSENS", "UNCERTAIN"}
+        for state in selected_states
+    )
+    synthesis_candidate = next((
+        (action_id, action_states)
+        for action_id, action_states in by_action.items()
+        if action_id != selected_id
+        and any(str(state.get("dimension", "")).upper() == "FEASIBILITY"
+                and str(state.get("direction", "")).upper() == "UNCERTAIN"
+                for state in action_states)
+        and any(str(state.get("dimension", "")).upper() == "LIBERTY_AUTONOMY"
+                and str(state.get("direction", "")).upper() == "PRESERVES"
+                for state in action_states)
+        and any(str(state.get("dimension", "")).upper() == "MATERIAL_FLOOR"
+                and str(state.get("direction", "")).upper() == "IMPROVES"
+                for state in action_states)
+    ), None)
+    qualified_agreement = any(profile[kind] for kind in (
+        "CONDITIONAL", "PROVISIONAL", "FALLBACK", "CONTESTED",
+        "PRESERVED", "QUALIFIED",
+    ))
+    third = (
+        f"Within the stated action set, the Parliament provisionally prefers {recommendation}."
+        if qualified_agreement
+        else f"The Parliament therefore prefers {recommendation}."
+    )
+    if unresolved_material:
+        third += (
+            " This preserves an unresolved demand to improve the material position "
+            "of vulnerable people through less liberty-destructive means."
+        )
+    if synthesis_candidate:
+        action_id, _ = synthesis_candidate
+        third += (
+            f" {action_id} expresses that combined aim, but its feasibility remains uncertain."
+        )
+    return [paragraph for paragraph in (first, second, third) if paragraph]
 
 
 def render_public_judgment(result: Any) -> str:
@@ -230,6 +752,17 @@ def render_public_judgment(result: Any) -> str:
         )),
         reverse=True,
     )
+    agreement_profile = _agreement_profile(
+        data, latest_by_specialist, recommendation
+    )
+    direct_supporters = [
+        candidate for candidate in supporters
+        if _agreement_class(data, candidate) == "DIRECT"
+    ]
+    qualified_supporters = [
+        candidate for candidate in supporters
+        if _agreement_class(data, candidate) != "DIRECT"
+    ]
 
     dissent = final.get("dissent")
     if not dissent and recommendation:
@@ -256,11 +789,38 @@ def render_public_judgment(result: Any) -> str:
         lines.append(f"Underdetermined: the stated facts do not justify choosing conclusively; current plurality is {plurality or 'none'}.")
     else:
         lines.append("No sufficiently reliable recommendation was produced.")
-    lines.append(f"Policy support: {float(data.get('confidence', 0)):.2f}")
+    final_policy_support = float(
+        (final.get("policy") or {}).get(plurality, data.get("confidence", 0))
+    )
+    lines.append(f"Final policy support: {final_policy_support:.2f} (aggregate policy score)")
+    agreement_summary = _agreement_profile_sentence(agreement_profile)
+    if agreement_summary:
+        lines.append(f"Agreement profile: {agreement_summary}.")
     lines.append(
         f"Epistemic confidence: {float(data.get('epistemic_confidence', 0)):.2f} "
         "(likelihood the judgment survives further factual inquiry and scrutiny)"
     )
+    synthesis_paragraphs = _dimensional_synthesis_paragraphs(
+        data,
+        recommendation=recommendation,
+        latest_by_specialist=latest_by_specialist,
+    )
+    if synthesis_paragraphs:
+        lines.extend(["", "Synthesis:", ""])
+        for paragraph in synthesis_paragraphs:
+            lines.extend([paragraph, ""])
+        lines.append("Deliberation details:")
+    final_winner = final.get("winner")
+    if isinstance(final_winner, dict):
+        lines.append(f"Final winning constraint: {final_winner.get('constraint', 'unknown')}")
+    else:
+        lines.append(
+            "Deliberative winner: NONE "
+            f"(system status: {final.get('system_error', 'UNKNOWN')})"
+        )
+    received_broadcast = final.get("received_broadcast") or final.get("broadcast") or {}
+    lines.append(f"Previous broadcast context: {received_broadcast.get('constraint', 'unknown')}")
+    lines.append(f"Last emitted broadcast: {final.get('broadcast', {}).get('constraint', 'unknown')}")
     termination = data.get("termination_assessment") or {}
     if termination:
         if termination.get("resource_censored"):
@@ -313,6 +873,13 @@ def render_public_judgment(result: Any) -> str:
                     f"{_sentence(candidate.get('visibility_justification', ''))}"
                 )
 
+    semantic_state = data.get("authoritative_semantic_state") or {}
+    problem_shape = summarize_problem_shape_paragraphs(data)
+    if problem_shape and not synthesis_paragraphs:
+        lines.extend(["", "Problem shape:"])
+        for paragraph in problem_shape[:4]:
+            lines.append(f"- {paragraph}")
+
     policy = final.get("policy") or {}
     alternatives = [action for action in original_actions if action != recommendation]
     alternatives.sort(key=lambda action: policy.get(action, 0), reverse=True)
@@ -327,7 +894,6 @@ def render_public_judgment(result: Any) -> str:
     # Framework-specific prose is rendered only from committed graph state.
     # Raw delegate claims that failed or never reached the transaction boundary
     # remain available in the trace but cannot be promoted into this summary.
-    semantic_state = data.get("authoritative_semantic_state") or {}
     rawls_positions = semantic_state.get("rawlsian_positions") or []
     util_consequences = semantic_state.get("utilitarian_consequences") or []
     deon_assessments = semantic_state.get("deontological_assessments") or []
@@ -350,24 +916,42 @@ def render_public_judgment(result: Any) -> str:
             action = action_text.get(action_id, action_id or "the action")
             rival = action_text.get(rival_id, rival_id or "the alternative")
             effect = str(position.get("effect", "UNCERTAIN")).lower()
-            group = str(position.get("group_node_id", "the least advantaged"))
-            group_label = _graph_node_label(
-                data, group, "the least-advantaged group"
+            subject = str(
+                position.get("subject_node_id")
+                or position.get("group_node_id")
+                or position.get("affected_subject")
+                or position.get("subject")
+                or "the affected subject"
             )
-            possessive_group = (
-                f"{group_label}'" if group_label.casefold().endswith("s")
-                else f"{group_label}'s"
+            subject_label = _graph_node_label(
+                data, subject, "the affected subject"
+            )
+            possessive_subject = (
+                f"{subject_label}'" if subject_label.casefold().endswith("s")
+                else f"{subject_label}'s"
             )
             dimension = str(position.get("dimension_node_id", "UNKNOWN")).split(":")[-1]
+            additional_dimensions = [
+                str(value).split(":")[-1]
+                for value in position.get("additional_dimensions", [])
+                if str(value).strip()
+            ]
+            epistemic_status = str(position.get("epistemic_status", ""))
             status_note = (
                 "grounded"
-                if position.get("epistemic_status") == "GROUNDED"
+                if epistemic_status == "GROUNDED"
+                else "mixed comparison"
+                if epistemic_status == "MIXED_COMPARISON"
                 else "direction unresolved"
             )
+            bundle_note = (
+                f"; additional dimensions: {', '.join(dim.lower().replace('_', ' ') for dim in additional_dimensions)}"
+                if additional_dimensions else ""
+            )
             lines.append(
-                f"- Rawlsian — {action}: {effect} {possessive_group} "
+                f"- Rawlsian — {action}: {effect} {possessive_subject} "
                 f"{dimension.lower().replace('_', ' ')} relative to {rival} "
-                f"({status_note})."
+                f"({status_note}{bundle_note})."
             )
     if util_consequences:
         ordered_consequences = sorted(
@@ -429,10 +1013,15 @@ def render_public_judgment(result: Any) -> str:
             )
 
     if supporters:
-        heading = "Reasons supporting the judgment:" if actionable else "Leading considerations:"
+        heading = (
+            "Reasons supporting the judgment (classified by commitment):"
+            if actionable else "Leading considerations (classified by commitment):"
+        )
         lines.extend(["", heading])
+    if direct_supporters:
+        lines.append("Direct support:")
         seen: set[str] = set()
-        for supporter in supporters:
+        for supporter in direct_supporters:
             reason = _support_reason(data, supporter, recommendation, original_actions)
             if not reason or reason.casefold() in seen:
                 continue
@@ -440,6 +1029,17 @@ def render_public_judgment(result: Any) -> str:
             lines.append(f"- {supporter.get('specialist', 'supporting perspective')}: {reason}")
             if len(seen) == 3:
                 break
+    if qualified_supporters:
+        lines.append("Qualified positions selecting the same action:")
+        for supporter in qualified_supporters:
+            reason = _support_reason(data, supporter, recommendation, original_actions)
+            if not reason:
+                continue
+            status_label = _agreement_class(data, supporter).lower().replace("_", " ")
+            lines.append(
+                f"- {supporter.get('specialist', 'perspective')} ({status_label}): {reason}"
+            )
+    if supporters:
         winner = final.get("winner") or {}
         governing_rule = (
             _sentence(winner.get("decision_rule", ""))
@@ -458,10 +1058,13 @@ def render_public_judgment(result: Any) -> str:
             )
         if governing_rule:
             governing_constraint = str(winner.get("constraint", "")).strip().upper()
+            winner_class = _agreement_class(data, winner)
             label = (
                 f"Governing decision rule ({governing_constraint})"
                 if governing_constraint else "Governing decision rule"
             )
+            if winner_class != "DIRECT":
+                label = f"Governing decision rule ({governing_constraint}) — under review"
             lines.extend(["", f"{label}: {governing_rule}"])
 
     if dissent and dissent.get("rationale"):
@@ -485,18 +1088,55 @@ def render_public_judgment(result: Any) -> str:
         if alternative_case:
             lines.extend(["", f"Strongest case for the alternative: {_sentence(_clean_fragment(alternative_case))}"])
 
+    residue_labels = {
+        "RIGHTS": "rights and individual freedom",
+        "DUTY": "duties and principled constraints",
+        "CARE": "dependency and relational responsibility",
+        "FAIRNESS": "fairness and equal standing",
+        "CHARACTER": "character and practical wisdom",
+        "UNCERTAINTY": "uncertain consequences",
+        "AUTONOMY": "autonomy and valid consent",
+    }
+
+    def residue_explanation(constraint: str, sources: list[str] | None = None) -> str:
+        source_set = set(sources or [])
+        matching = [
+            candidate for candidate in reversed(all_candidates)
+            if str(candidate.get("constraint", "")).upper() == constraint.upper()
+            and (not source_set or candidate.get("specialist") in source_set)
+            and candidate.get("rationale")
+        ]
+        return _sentence(str(matching[0].get("rationale", ""))) if matching else ""
+
     residue = data.get("moral_residue") or []
-    if residue:
-        lines.append("Unresolved moral considerations: " + ", ".join(residue) + ".")
     typed_residue = data.get("moral_residue_records") or []
     if typed_residue:
         lines.extend(["", "Preserved moral claims:"])
         for record in typed_residue[:4]:
-            sources = ", ".join(record.get("source_specialists") or []) or "unspecified"
+            source_list = list(record.get("source_specialists") or [])
+            sources = ", ".join(source_list) or "unspecified"
+            constraint = str(record.get("constraint", "")).upper()
+            label = residue_labels.get(
+                constraint, constraint.lower().replace("_", " ") + " concerns",
+            )
+            explanation = residue_explanation(constraint, source_list)
             lines.append(
-                f"- {record.get('constraint', 'constraint')} remains relevant to "
+                f"- Concerns about {label} remain relevant to "
                 f"{record.get('affected_action', 'the alternative')} "
-                f"(raised by {sources}); it is compatible with retaining the recommendation."
+                f"(raised by {sources})"
+                + (f": {explanation}" if explanation else ".")
+            )
+    elif residue:
+        lines.extend(["", "Preserved moral claims:"])
+        for constraint in residue[:4]:
+            code = str(constraint).upper()
+            label = residue_labels.get(
+                code, code.lower().replace("_", " ") + " concerns",
+            )
+            explanation = residue_explanation(code)
+            lines.append(
+                f"- Concerns about {label} remain unresolved"
+                + (f": {explanation}" if explanation else ".")
             )
 
     assumptions: list[str] = []
@@ -584,6 +1224,40 @@ def render_public_judgment(result: Any) -> str:
             f"{_sentence(candidate.get('contingency_justification', ''))}"
             for candidate in contingency_reviews[:5]
         )
+    contingency_feasibility = data.get("contingency_feasibility_assessments") or []
+    if contingency_feasibility:
+        lines.extend(["", "Independent contingency feasibility:"])
+        for assessment in contingency_feasibility[:5]:
+            fallback_statuses = assessment.get("fallback_statuses") or {}
+            evidence_bases = assessment.get("evidence_bases") or {}
+            shared_failure = bool(assessment.get("shared_failure"))
+            lines.append(
+                "- "
+                + ("approved" if assessment.get("approved") else "blocked")
+                + "; Fallback availability: "
+                + ", ".join(
+                    f"{action_id}={value}"
+                    for action_id, value in fallback_statuses.items()
+                )
+            )
+            lines.append(
+                "- Shared-failure check: "
+                + (
+                    "shared failure: the synthesis and at least one fallback lose a common capability"
+                    if shared_failure
+                    else "no shared failure detected"
+                )
+            )
+            lines.append(
+                "- Basis: "
+                + ", ".join(
+                    f"{action_id}={value}"
+                    for action_id, value in evidence_bases.items()
+                )
+            )
+            error = _sentence(assessment.get("error", ""))
+            if error:
+                lines.append(f"- Reason: {error}")
     residual_reversals = [
         condition for condition in reversals
         if condition not in factual_reversals and condition not in normative_reversals

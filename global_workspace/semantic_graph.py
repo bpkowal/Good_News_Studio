@@ -11,8 +11,8 @@ from typing import Any, Iterable
 
 
 NODE_KINDS = {
-    "ACTION", "CONDITION", "CONSEQUENCE", "VALUE", "ACTOR", "METRIC", "THRESHOLD",
-    "LOGICAL", "TARGET", "INTERVENTION", "ASSESSMENT",
+    "ACTION", "PROPOSAL", "CONDITION", "CONSEQUENCE", "VALUE", "ACTOR", "METRIC", "THRESHOLD",
+    "LOGICAL", "TARGET", "INTERVENTION", "ASSESSMENT", "DECISION", "EVIDENCE",
 }
 EDGE_RELATIONS = {
     "ACTIVATES", "CAUSES", "PREVENTS", "INCREASES", "DECREASES",
@@ -22,9 +22,10 @@ EDGE_RELATIONS = {
     "REQUIRES", "NEGATES", "DISABLES", "PRESERVES_AVAILABILITY",
     "HAS_INTERVENTION", "HAS_ACTOR", "TARGETS", "HAS_CONSEQUENCE",
     "HAS_CONSTRAINT",
-    "HAS_ASSESSMENT", "ASSESSES", "SUPPORTED_BY",
+    "HAS_ASSESSMENT", "ASSESSES", "SUPPORTED_BY", "GROUNDED_IN",
+    "HAS_VERDICT", "RESOLVES", "GOVERNED_BY",
     "IMPROVES_POSITION", "PRESERVES_POSITION", "WORSENS_POSITION",
-    "POSITION_UNCERTAIN",
+    "MIXED_POSITION", "POSITION_UNCERTAIN",
     "SATISFIES_NORM", "CONSISTENT_WITH_NORM", "VIOLATES_NORM",
     "CONFLICTS_NORM", "NORM_UNCERTAIN",
 }
@@ -158,7 +159,7 @@ def validate_graph(graph: SemanticGraph) -> GraphValidation:
     # observed by downstream consumers after a transaction commits.
     position_relations = {
         "IMPROVES_POSITION", "PRESERVES_POSITION", "WORSENS_POSITION",
-        "POSITION_UNCERTAIN",
+        "MIXED_POSITION", "POSITION_UNCERTAIN",
     }
     assessments = [node for node in graph.nodes.values() if node.kind == "ASSESSMENT"]
     for assessment in assessments:
@@ -190,6 +191,7 @@ def validate_graph(graph: SemanticGraph) -> GraphValidation:
                 "IMPROVES": "IMPROVES_POSITION",
                 "PRESERVES": "PRESERVES_POSITION",
                 "WORSENS": "WORSENS_POSITION",
+                "MIXED": "MIXED_POSITION",
                 "UNCERTAIN": "POSITION_UNCERTAIN",
             }.get(str(assessment.attributes.get("effect", "")))
             if expected_relation and (

@@ -31,5 +31,7 @@ def collect_reopen_conditions(cycles: Sequence[CycleRecord]) -> list[str]:
         for cycle in cycles
         if not cycle.is_hypothetical
         for candidate in cycle.candidates
-        if candidate.unresolved != "NONE"
+        if candidate.schema_valid
+        and candidate.delegate_status == "VALID"
+        and candidate.unresolved != "NONE"
     })

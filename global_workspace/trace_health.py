@@ -41,13 +41,26 @@ def _hypothetical_context_errors(received) -> list[str]:
     return ["typed hypothetical context"]
 
 
+def _framework_retention_finding(candidate) -> tuple[str, str] | None:
+    """Split structural map incompleteness from substantive framework loss."""
+    if candidate.framework_retention_status != "LOST":
+        return None
+    validation_errors = " | ".join(candidate.framework_validation_errors)
+    if candidate.specialist in {"virtue", "care"} and (
+        "framework-specific grounds" in validation_errors
+        or "conflicts with its framework map" in validation_errors
+    ):
+        return "WARNING", "FRAMEWORK_MAP_INCOMPLETE"
+    return "WARNING", "FRAMEWORK_RETENTION_LOST"
+
+
 def audit_trace_health(result: WorkspaceResult) -> list[TraceHealthFinding]:
     """Detect representation failures without judging the ethical conclusion."""
     findings: list[TraceHealthFinding] = []
     for cycle in result.cycles:
         received = cycle.received_broadcast or cycle.broadcast
         for candidate in cycle.candidates:
-            if candidate.constraint == "MODEL_UNAVAILABLE":
+            if candidate.delegate_status == "MODEL_ERROR":
                 findings.append(TraceHealthFinding(
                     "WARNING", "DELEGATE_MODEL_UNAVAILABLE", cycle.cycle,
                     f"{candidate.specialist} provider call failed; response excluded from policy",
@@ -104,20 +117,26 @@ def audit_trace_health(result: WorkspaceResult) -> list[TraceHealthFinding]:
                     f"{candidate.specialist}: {transition_error}; authoritative "
                     "prior framework state remained operative",
                 ))
-            if (
-                candidate.schema_valid
-                and received.constraint != "OPEN_DELIBERATION"
-                and candidate.framework_retention_status == "LOST"
-            ):
-                loss_reason = (
-                    "; ".join(candidate.framework_validation_errors[:2])
-                    or "delegate reported that its prior framework constraint was not retained"
-                )
-                findings.append(TraceHealthFinding(
-                    "WARNING", "FRAMEWORK_RETENTION_LOST", cycle.cycle,
-                    f"{candidate.specialist} did not demonstrate retained framework "
-                    f"constraints: {loss_reason}",
-                ))
+            if candidate.schema_valid and received.constraint != "OPEN_DELIBERATION":
+                retention_finding = _framework_retention_finding(candidate)
+                if retention_finding is not None:
+                    severity, code = retention_finding
+                    loss_reason = (
+                        "; ".join(candidate.framework_validation_errors[:2])
+                        or "delegate reported that its prior framework constraint was not retained"
+                    )
+                    detail = (
+                        f"{candidate.specialist} did not demonstrate retained framework "
+                        f"constraints: {loss_reason}"
+                    )
+                    if code == "FRAMEWORK_MAP_INCOMPLETE":
+                        detail = (
+                            f"{candidate.specialist} framework structure was incomplete: "
+                            f"{loss_reason}"
+                        )
+                    findings.append(TraceHealthFinding(
+                        severity, code, cycle.cycle, detail,
+                    ))
             if (
                 candidate.schema_valid
                 and received.constraint != "OPEN_DELIBERATION"

@@ -6,6 +6,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from .graph_transactions import GraphTransactionRecord, SemanticGraphStore
+from .scenario_semantics import query_grounded_action_effects
 from .semantic_graph import SemanticEdge, SemanticGraph, SemanticNode, merge_graphs, validate_graph
 
 
@@ -100,6 +101,11 @@ def apply_virtue_ledger_transaction(
         if action is None:
             errors.append(f"virtue assessment {assessment.action_id} references an unknown action")
             continue
+        grounded_effects = query_grounded_action_effects(
+            store.graph,
+            assessment.action_id,
+            claim=f"{assessment.circumstance} {assessment.reason}",
+        )
         assessment_id = f"VIRTUE_CHARACTER:{specialist}:{action.id}"
         assessment_ids.add(assessment_id)
         delta.add_node(SemanticNode(
@@ -120,10 +126,18 @@ def apply_virtue_ledger_transaction(
                 "evidence_basis": assessment.evidence_basis,
                 "reason": assessment.reason,
                 "ranking_basis": validated.ranking_basis,
+                "grounded_effect_ids": [effect.effect_id for effect in grounded_effects],
+                "grounded_consequence_ids": [
+                    effect.consequence_id for effect in grounded_effects
+                ],
                 "epistemic_status": (
                     "EXPLICIT_UNCERTAINTY"
                     if assessment.verdict == "UNCERTAIN"
                     or assessment.evidence_basis == "UNKNOWN"
+                    else "FRAMEWORK_GROUNDED_WITH_ACTION_EFFECTS"
+                    if grounded_effects
+                    else "UNRESOLVED_ACTION_GROUNDING"
+                    if assessment.evidence_basis in {"ACTION_GRAPH", "SCENARIO"}
                     else "FRAMEWORK_GROUNDED"
                 ),
             },
@@ -131,6 +145,11 @@ def apply_virtue_ledger_transaction(
         delta.add_edge(SemanticEdge(
             action.id, "HAS_ASSESSMENT", assessment_id, provenance=provenance,
         ))
+        for effect in grounded_effects:
+            delta.add_edge(SemanticEdge(
+                assessment_id, "SUPPORTED_BY", effect.consequence_id,
+                provenance=provenance,
+            ))
 
     if errors or len(assessment_ids) != len(validated.assessments):
         record = GraphTransactionRecord(

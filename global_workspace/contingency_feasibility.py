@@ -97,7 +97,10 @@ removes a capability shared by the synthesis and either fallback. Return JSON on
             and all(bases.get(action_id) != "INSUFFICIENT" for action_id in ("A0", "A1"))
         )
         if response.shared_failure:
-            errors.append("failure removes a capability shared with an original fallback")
+            errors.append(
+                "shared failure: the failure removes a capability used by the synthesis and at least one fallback; "
+                "the original fallbacks may still remain individually available"
+            )
         for action_id in ("A0", "A1"):
             if statuses.get(action_id, "UNKNOWN") != "AVAILABLE":
                 errors.append(

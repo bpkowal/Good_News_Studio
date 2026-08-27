@@ -2,6 +2,7 @@ MODEL_PATH = "../mistral-7b-instruct-v0.2.Q4_K_M.gguf"
 VIRTUE_PROMPT_VERSION = "virtue-typed-evidence-v3"
 import json
 from pathlib import Path
+from global_workspace.source_cache import build_source_cache_key
 from global_workspace.framework_retrieval import (
     EvidenceThresholds,
     corpus_fingerprint,
@@ -111,8 +112,12 @@ def respond_to_query(query=None, scenario_id=None, scenario_path=None, temperatu
         print("⚠️ No query or scenario ID provided to respond_to_query. Aborting.")
         return "[ERROR] Missing input."
     retrieval_fingerprint = corpus_fingerprint(VIRTUE_CORPUS_DIR, framework="virtue")
-    cache_key = (
-        f"{VIRTUE_PROMPT_VERSION}\n{retrieval_fingerprint}\n{query.strip()}"
+    cache_key = build_source_cache_key(
+        VIRTUE_PROMPT_VERSION,
+        query,
+        scenario_id,
+        scenario_path,
+        retrieval_fingerprint,
     )
     reuse_source = (
         os.getenv("ETHICS_LLM_BACKEND", "local") == "local"

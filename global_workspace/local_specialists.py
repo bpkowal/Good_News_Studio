@@ -5,14 +5,14 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Callable, Sequence
 
-from .action_identity import compile_action_identity
+from .action_identity import action_clause_looks_complete, compile_action_identity, _concepts
 from .evidence_calibration import EvidenceCalibration
 from .contingency_graph import compile_contingency_graph
 from .middleware.claim_damping import (
     SPECULATIVE_EPISTEMIC_CAP,
     apply_symmetric_claim_damping,
 )
-from .models import CalibrationOutcome, CandidateChunk, CategoricalAxis, FailureCondition, NumericComparison, PlanningAssessment, ProblemReformulation, SynthesisProposal, TestimonyBaseline, WorkspaceBroadcast
+from .models import CalibrationOutcome, CandidateChunk, CategoricalAxis, FailureCondition, NumericComparison, PlanningAssessment, ProblemReformulation, ProposalFrameworkReview, SynthesisProposal, TestimonyBaseline, WorkspaceBroadcast
 from .structured_io import (
     call_json_llm as _call_json_llm,
     extract_json as _extract_json,
@@ -21,7 +21,106 @@ from .structured_io import (
     structured_text_error,
 )
 from .visibility import assess_visibility
-from .scenario_semantics import normalize_action_labels
+from .scenario_semantics import (
+    classify_planning_failure_grounding,
+    grounded_action_claim_evidence,
+    normalize_action_labels,
+    project_grounded_action_effects,
+    segment_scenario_clauses,
+)
+
+_PROBLEM_AUDIT_CONSTRAINTS = {"CONSENSUS_AUDIT", "PROBLEM_STATE_AUDIT"}
+
+
+def _proposal_review_from_data(
+    specialist: str,
+    data: dict[str, Any],
+    broadcast: WorkspaceBroadcast,
+) -> ProposalFrameworkReview | None:
+    if broadcast.constraint != "PROPOSAL_REVIEW":
+        return None
+    proposals = list((broadcast.problem_state or {}).get("proposals", []) or [])
+    under_review = [
+        proposal for proposal in proposals
+        if proposal.get("promotion_status") == "UNDER_REVIEW"
+    ]
+    raw = data.get("pr")
+    errors: list[str] = []
+    if len(under_review) != 1:
+        errors.append("proposal review requires exactly one UNDER_REVIEW proposal")
+        expected_id = ""
+    else:
+        expected_id = str(under_review[0].get("proposal_id", "")).upper()
+    if not isinstance(raw, dict):
+        raw = {}
+        errors.append("proposal review response is missing")
+    proposal_id = str(raw.get("proposal_id", "")).strip().upper()
+    if not proposal_id or proposal_id != expected_id:
+        errors.append("proposal review does not match the admitted proposal_id")
+    status = str(raw.get("framework_status", "")).strip().upper()
+    if status not in {"SUPPORTS", "QUALIFIES", "OPPOSES", "UNDERDETERMINED"}:
+        errors.append("proposal review has invalid framework_status")
+    reason = " ".join(str(raw.get("framework_reason", "")).split())
+    if len(reason.split()) < 3:
+        errors.append("proposal review lacks framework-specific reason")
+    consequences: list[dict[str, Any]] = []
+    raw_consequences = raw.get("predicted_consequences", [])
+    if not isinstance(raw_consequences, list):
+        raw_consequences = []
+        errors.append("proposal predicted_consequences must be a list")
+    for index, item in enumerate(raw_consequences[:8]):
+        if not isinstance(item, dict):
+            errors.append(f"proposal consequence {index} is not an object")
+            continue
+        consequence = {
+            "dimension": " ".join(str(item.get("dimension", "")).split())[:80],
+            "subject": " ".join(str(item.get("subject", "")).split())[:100],
+            "direction": str(item.get("direction", "")).strip().upper(),
+            "grounding_status": str(item.get("grounding_status", "")).strip().upper(),
+            "provenance": [
+                " ".join(str(value).split())[:80]
+                for value in item.get("provenance", [])
+                if " ".join(str(value).split())
+            ] if isinstance(item.get("provenance", []), list) else [],
+        }
+        if not consequence["dimension"] or not consequence["subject"]:
+            errors.append(f"proposal consequence {index} lacks dimension or subject")
+        if consequence["direction"] not in {
+            "IMPROVES", "PRESERVES", "WORSENS", "MIXED", "UNCERTAIN",
+        }:
+            errors.append(f"proposal consequence {index} has invalid direction")
+        grounding = consequence["grounding_status"]
+        if grounding not in {"PROPOSAL_TEXT", "SCENARIO_INHERITED", "HYPOTHETICAL"}:
+            errors.append(f"proposal consequence {index} has invalid grounding_status")
+        if not consequence["provenance"]:
+            errors.append(f"proposal consequence {index} lacks provenance")
+        elif grounding == "PROPOSAL_TEXT" and expected_id not in {
+            value.upper() for value in consequence["provenance"]
+        }:
+            errors.append(f"proposal consequence {index} does not cite {expected_id}")
+        elif grounding == "SCENARIO_INHERITED" and not any(
+            re.fullmatch(r"C\d+", value.upper()) for value in consequence["provenance"]
+        ):
+            errors.append(f"proposal consequence {index} lacks scenario clause provenance")
+        consequences.append(consequence)
+    return ProposalFrameworkReview(
+        proposal_id=proposal_id or expected_id,
+        specialist=specialist,
+        framework_status=status or "UNDERDETERMINED",
+        framework_reason=reason,
+        predicted_consequences=consequences,
+        feasibility_concerns=(
+            raw.get("feasibility_concerns", [])
+            if isinstance(raw.get("feasibility_concerns", []), list) else []
+        ),
+        required_conditions=(
+            raw.get("required_conditions", [])
+            if isinstance(raw.get("required_conditions", []), list) else []
+        ),
+        framework_retained=True,
+        valid=not errors,
+        validation_errors=errors,
+    )
 
 
 FRAMEWORK_ROLES = {
@@ -29,7 +128,7 @@ FRAMEWORK_ROLES = {
     "deontological": "Score duties, rights, entitlement, coercion, and universal rules.",
     "virtue": "Compare role, practical wisdom, character, virtues, vices, and habituation.",
     "care": "Score vulnerability, dependency, trust, relationship, and responsiveness.",
-    "rawlsian": "Score fairness, equal liberty, public rules, and the least advantaged.",
+    "rawlsian": "Score fairness, equal liberty, public rules, and the affected subject or constituency.",
 }
 
 ALLOWED_CONSTRAINTS = {
@@ -66,8 +165,11 @@ _FRAMEWORK_CONSTRUCT_MARKERS = {
         re.IGNORECASE,
     ),
     "rawlsian": re.compile(
-        r"\b(?:least[- ]advantaged|worse[- ]off|worst[- ]off|basic\s+libert\w*|primary\s+goods?|"
-        r"difference\s+principle|fair\s+equality|original\s+position|"
+        r"\b(?:least[- ]advantaged|worse[- ]off|worst[- ]off|basic\s+libert\w*|"
+        r"individual\s+libert\w*|bodily\s+(?:autonom\w*|integrity|libert\w*)|"
+        r"privacy|rights?|person\w*|subject\w*|"
+        r"constituenc\w*|institution\w*|future\s+populat\w*|future\s+generation\w*|"
+        r"primary\s+goods?|difference\s+principle|fair\s+equality|original\s+position|"
         r"veil\s+of\s+ignorance|justice\s+as\s+fairness|disadvantaged)\b",
         re.IGNORECASE,
     ),
@@ -116,6 +218,7 @@ def _construct_map_errors(
     *,
     recommended_action: str = "",
     rationale: str = "",
+    supporting_data: dict[str, Any] | None = None,
 ) -> list[str]:
     """Validate framework identity without deciding the substantive outcome."""
     marker = _FRAMEWORK_CONSTRUCT_MARKERS.get(specialist)
@@ -126,6 +229,8 @@ def _construct_map_errors(
         errors.append("framework map must assess every action")
     else:
         for action, assessment in action_map.items():
+            if specialist == "virtue":
+                continue
             if not marker.search(assessment):
                 errors.append(f"framework map for {action} lacks framework-specific grounds")
     if numerical_role not in {"DECISIVE", "SECONDARY", "IRRELEVANT"}:
@@ -150,20 +255,24 @@ def _construct_map_errors(
         ):
             errors.append("decisive numbers are not connected to a duty or right")
     elif specialist == "rawlsian":
-        allowed_prefixes = ("IMPROVES:", "PRESERVES:", "WORSENS:", "UNCERTAIN:")
+        allowed_prefixes = ("IMPROVES:", "PRESERVES:", "WORSENS:", "MIXED:", "UNCERTAIN:")
         if any(not value.upper().startswith(allowed_prefixes) for value in action_map.values()):
             errors.append("Rawlsian map lacks a comparative position verdict")
         rawls_numerical_ground = re.search(
-            r"\b(?:least[- ]advantaged|worse[- ]off|worst[- ]off|position|primary\s+good|"
-            r"basic\s+libert|comparab\w*|same\s+libert)\b",
+            r"\b(?:subject|constituency|position|primary\s+good|basic\s+libert|"
+            r"comparab\w*|same\s+libert|public\s+rule|veil\s+of\s+ignorance|"
+            r"resident|patient|worker|future\s+population|institution|"
+            r"worst[- ]off|least\s+harm|least\s+worsen\w*|maximin|minimax)\b",
             numerical_justification,
             re.IGNORECASE,
         )
         if numerical_role == "DECISIVE" and not rawls_numerical_ground:
-            errors.append("decisive numbers are not tied to the least-advantaged position")
+            errors.append("decisive numbers are not tied to the affected subject or Rawlsian position")
+        if numerical_role == "DECISIVE" and not _numeric_literals(numerical_justification):
+            errors.append("decisive numerical role cites no explicit quantity")
         if recommended_action in action_map and len(action_map) > 1:
             effect_rank = {
-                "IMPROVES": 3, "PRESERVES": 2, "UNCERTAIN": 1, "WORSENS": 0,
+                "IMPROVES": 3, "PRESERVES": 2, "MIXED": 1, "UNCERTAIN": 1, "WORSENS": 0,
             }
             effects = {
                 action: assessment.partition(":")[0].strip().upper()
@@ -178,7 +287,9 @@ def _construct_map_errors(
             discriminating_priority = re.search(
                 r"\b(?:lexical\s+priorit\w*|basic\s+libert\w*\s+(?:over|before)|"
                 r"fair\s+equality|difference\s+principle|more\s+sever\w*|"
-                r"greater\s+impair\w*|primary\s+good\w*\s+(?:over|before))\b",
+                r"greater\s+impair\w*|primary\s+good\w*\s+(?:over|before)|"
+                r"maximin|minimax|least\s+harm\w*|least\s+worsen\w*|"
+                r"worst[- ]off(?:\s+subject|\s+constituency)?(?:\s+least\s+harm|\s+less\s+harm)?)\b",
                 rationale,
                 re.IGNORECASE,
             )
@@ -201,8 +312,24 @@ def _construct_map_errors(
         errors.append("decisive counts lack relational comparability")
     elif specialist == "virtue":
         allowed_prefixes = ("EXEMPLIFIES:", "MIXED:", "UNDERMINES:", "UNCERTAIN:")
-        if any(not value.upper().startswith(allowed_prefixes) for value in action_map.values()):
-            errors.append("virtue map lacks an action-level character verdict")
+        virtue_ledger = {}
+        if isinstance(supporting_data, dict):
+            maybe_ledger = supporting_data.get("vl", {})
+            if isinstance(maybe_ledger, dict):
+                virtue_ledger = maybe_ledger
+        for action, assessment in action_map.items():
+            if assessment.upper().startswith(allowed_prefixes):
+                continue
+            ledger_entry = virtue_ledger.get(action, {})
+            ledger_text = ""
+            if isinstance(ledger_entry, dict):
+                ledger_text = " ".join(
+                    str(ledger_entry.get(key, ""))
+                    for key in ("v", "r", "vs", "x", "c", "rs")
+                )
+            if ledger_text and marker.search(ledger_text):
+                continue
+            errors.append(f"framework map for {action} lacks framework-specific grounds")
         if numerical_role == "DECISIVE" and not re.search(
             r"\b(?:practical\s+wisdom|phronesis|stakes|circumstance\w*|"
             r"flourish\w*|virtue\w*|vice\w*)\b",
@@ -211,6 +338,21 @@ def _construct_map_errors(
         ):
             errors.append("decisive numbers are not connected to practical wisdom")
     return list(dict.fromkeys(errors))
+
+
+def _virtue_verdicts_compatible(map_verdict: str, verdict: str) -> bool:
+    """Allow MIXED to bridge adjacent virtue labels without hiding reversals."""
+    left = str(map_verdict).strip().upper()
+    right = str(verdict).strip().upper()
+    if not left or not right:
+        return True
+    if left == right:
+        return True
+    return (
+        (left == "EXEMPLIFIES" and right == "MIXED")
+        or (left == "MIXED" and right in {"EXEMPLIFIES", "UNDERMINES"})
+        or (left == "UNDERMINES" and right == "MIXED")
+    )
 
 
 def _utilitarian_table_errors(
@@ -223,13 +365,47 @@ def _utilitarian_table_errors(
     errors: list[str] = []
     if set(table) != set(actions):
         errors.append("consequence table must assess every action")
+
+    def _best_consequence_polarity(action: str, outcome: str, scope: str) -> tuple[str | None, int]:
+        identity = compile_action_identity(action)
+        row_words = set(_concepts(f"{outcome} {scope}"))
+        row_effect_polarity: str | None = None
+        row_effect_text = f"{outcome} {scope}".casefold()
+        if re.search(r"\b(?:save|saves|saved|sparing|spare|preserve|protect|prevent|contain)\b", row_effect_text):
+            row_effect_polarity = "BENEFIT"
+        elif re.search(
+            r"\b(?:kill|killing|death|dying|harm|injur|displac|depriv|destroy|corrupt|"
+            r"steriliz|flood|freeze|strike|expos|expropriat|detain|disconnect)\b",
+            row_effect_text,
+        ):
+            row_effect_polarity = "HARM"
+        best_polarity: str | None = None
+        best_score = (-1, -1)
+        for consequence in identity.consequences:
+            consequence_words = {
+                token for token in re.findall(
+                    r"[a-z0-9]+",
+                    " ".join([consequence.predicate, *consequence.targets]).casefold(),
+                )
+                if len(token) >= 3
+            }
+            structural_score = len(row_words & consequence_words)
+            polarity_score = 0
+            if row_effect_polarity is not None:
+                if consequence.polarity == row_effect_polarity:
+                    polarity_score = 1
+                else:
+                    polarity_score = -1
+            score = (structural_score, polarity_score)
+            if score > best_score:
+                best_score = score
+                best_polarity = (
+                    "BENEFIT" if consequence.polarity == "BENEFICIAL" else "HARM"
+                )
+        return best_polarity, best_score[0]
+
     for action in actions:
         rows = table.get(action, [])
-        identity = compile_action_identity(action)
-        stated_polarities = {
-            "BENEFIT" if consequence.polarity == "BENEFICIAL" else "HARM"
-            for consequence in identity.consequences
-        }
         if not rows:
             errors.append(f"consequence table for {action} is empty")
             continue
@@ -242,14 +418,19 @@ def _utilitarian_table_errors(
                 errors.append(f"consequence for {action} lacks benefit/harm direction")
             if row.get("support") not in {"STATED", "INFERRED", "UNKNOWN"}:
                 errors.append(f"consequence for {action} lacks evidence status")
-            elif (
-                row.get("support") == "STATED"
-                and stated_polarities
-                and row.get("direction") not in stated_polarities
-            ):
-                errors.append(
-                    f"stated consequence for {action} reverses its committed polarity"
+            else:
+                expected_polarity, overlap = _best_consequence_polarity(
+                    action, str(row.get("outcome", "")), str(row.get("scope", ""))
                 )
+                if (
+                    row.get("support") == "STATED"
+                    and expected_polarity is not None
+                    and overlap >= 2
+                    and row.get("direction") != expected_polarity
+                ):
+                    errors.append(
+                        f"stated consequence for {action} reverses its committed polarity"
+                    )
             if row.get("reversibility") not in {
                 "REVERSIBLE", "IRREVERSIBLE", "UNKNOWN",
             }:
@@ -275,6 +456,74 @@ ALLOWED_UNRESOLVED = {
 def _semantic_word_count(text: str) -> int:
     """Count identifier-style labels as ordinary multiword phrases."""
     return len(re.findall(r"[A-Za-z0-9]+", str(text).replace("_", " ")))
+
+
+def _numeric_literals(text: str) -> set[float]:
+    """Return explicit quantities without mistaking canonical action IDs for facts."""
+    normalized = re.sub(r"\bA\d+\b", "", str(text), flags=re.IGNORECASE)
+    values: set[float] = set()
+    for match in re.finditer(
+        r"(?<![A-Za-z0-9])(?P<n>\d+(?:\.\d+)?)\s*(?P<pct>%|percent)?",
+        normalized,
+        re.IGNORECASE,
+    ):
+        value = float(match.group("n"))
+        values.add(value)
+        if match.group("pct"):
+            values.add(value / 100.0)
+    return values
+
+
+def _preference_shift_reason_strength(
+    *,
+    change_justification: str,
+    framework_application: str,
+    evidence_basis: str,
+    assumption_status: str,
+    framework_retention_status: str,
+    broadcast_constraint: str,
+) -> float:
+    """Estimate how much newly supplied reasoning supports a preference shift.
+
+    The score is intentionally coarse: the goal is not to audit full argument
+    quality, but to distinguish a naked commitment swing from one backed by
+    explicit, framework-relevant reasons.
+    """
+    support = 0.0
+    justification = " ".join(str(change_justification).split())
+    application = " ".join(str(framework_application).split())
+    justification_words = _semantic_word_count(justification)
+    application_words = _semantic_word_count(application)
+    if justification_words >= 3:
+        support += 0.20
+    if justification_words >= 6:
+        support += 0.10
+    if re.search(
+        r"\b(?:because|since|due to|given|therefore|thus|as a result|"
+        r"compared to|versus|vs\.?|if|unless|when|while|despite|however|"
+        r"although|in light of)\b",
+        justification,
+        re.IGNORECASE,
+    ):
+        support += 0.20
+    if application_words >= 2:
+        support += 0.20
+    if application_words >= 6:
+        support += 0.10
+    if evidence_basis != "UNSTATED_FACTS":
+        support += 0.15
+    if assumption_status in {"SUPPORTED", "NOT_AUDITED"}:
+        support += 0.05
+    if framework_retention_status in {
+        "PRESERVED", "COMMITTED_WITH_UNCERTAINTY", "UPDATE_REJECTED",
+    }:
+        support += 0.10
+    if broadcast_constraint in {
+        "CONSENSUS_AUDIT", "PROBLEM_STATE_AUDIT", "REVERSAL_AUDIT", "PROBLEM_REFORMULATION",
+        "PLANNING_REVIEW", "CONTINGENCY_REVIEW", "SYNTHESIS_REVIEW", "PROPOSAL_REVIEW",
+    }:
+        support += 0.05
+    return max(0.0, min(1.0, support))
 
 
 _LANDSCAPE_STOPWORDS = {
@@ -388,6 +637,10 @@ def _landscape_semantic_errors(
 _CLOSED_CHOICE_PATTERNS = (
     re.compile(r"\bno\s+(?:other|third|alternative)\s+(?:way|option|choice|action)\b", re.I),
     re.compile(r"\b(?:only|sole)\s+(?:available\s+)?(?:options|choices|actions)\b", re.I),
+    re.compile(r"\bcan\s+only\b", re.I),
+    re.compile(r"\bone\s+of\s+two\b", re.I),
+    re.compile(r"\bone\s+of\s+the\s+two\b", re.I),
+    re.compile(r"\bonly\s+one\s+of\s+two\b", re.I),
     re.compile(r"\bmust\s+(?:choose|decide)\s+between\b", re.I),
     re.compile(r"\bmust\s+either\b", re.I),
     re.compile(r"\bcannot\s+(?:do|act|choose)\s+otherwise\b", re.I),
@@ -414,6 +667,48 @@ def _scenario_closes_action_set(scenario: str) -> bool:
     return any(pattern.search(normalized) for pattern in _CLOSED_CHOICE_PATTERNS)
 
 
+def _synthesis_admission_annotations(
+    scenario: str,
+    action: str,
+    support_text: str,
+) -> list[str]:
+    """Classify why a synthesis proposal should be withheld from review."""
+    normalized_scenario = " ".join(scenario.split()).casefold()
+    normalized_action = " ".join(action.split()).casefold()
+    annotations: list[str] = []
+    exclusive_choice = _scenario_closes_action_set(scenario)
+    shared_terms = (
+        "alternate", "alternating", "alternately", "rotate", "rotating",
+        "switch", "switching", "share", "sharing", "split", "splitting",
+        "divide", "dividing", "between", "hourly", "per hour", "every hour",
+        "each hour", "temporarily", "interval", "intermittent",
+    )
+    temporal_sharing = any(term in normalized_action for term in shared_terms)
+    references_both_actions = (
+        " and " in normalized_action
+        or " between " in normalized_action
+        or re.search(r"\b(?:both|either)\b", normalized_action) is not None
+    )
+    if exclusive_choice and (temporal_sharing or references_both_actions):
+        annotations.append(
+            "CONTRADICTS_SCENARIO: proposal attempts temporal sharing across an explicitly exclusive choice"
+        )
+    temporal_claims = [
+        term for term in ("hourly", "per hour", "every hour", "each hour", "daily", "weekly")
+        if term in normalized_action and term not in support_text.casefold()
+    ]
+    if temporal_claims:
+        annotations.append(
+            "UNVERIFIED_DESCRIPTIVE_CLAIM: "
+            + ", ".join(f"{claim} interval lacks scenario provenance" for claim in temporal_claims)
+        )
+    if exclusive_choice and re.search(r"\b(?:rotate|alternat(?:e|ing|ely)|switch|share|split)\b", normalized_action):
+        annotations.append(
+            "WITHHOLD_FROM_REVIEW: synthesis would evade the scenario's exclusivity constraint"
+        )
+    return list(dict.fromkeys(annotations))
+
+
 def _candidate_from_data(
     specialist: str,
     actions: Sequence[str],
@@ -433,6 +728,7 @@ def _candidate_from_data(
     baseline_provisional_id: str = "NONE",
     baseline_condition: str = "",
     scenario_text: str = "",
+    baseline_preferred_extension: str = "",
 ) -> CandidateChunk:
     action_ids = [f"A{index}" for index in range(len(actions))]
     raw_scores = data.get("scores")
@@ -467,19 +763,23 @@ def _candidate_from_data(
         raise ValueError("baseline must be a valid action ID or NONE")
     allowed_baseline_statuses = {
         "DIRECT", "CONDITIONAL", "UNDERDETERMINED", "NORMATIVELY_CONTESTED",
-        "OUTSIDE_ACTION_SET", "UNAVAILABLE",
+        "OUTSIDE_ACTION_SET", "OUTSIDE_ACTION_SET_WITH_FALLBACK",
+        "NO_POSITION", "PARSE_FAILURE", "UNAVAILABLE",
     }
     baseline_status = str(baseline_status).strip().upper()
     if baseline_status not in allowed_baseline_statuses:
-        baseline_status = "DIRECT" if baseline_id != "NONE" else "UNAVAILABLE"
+        baseline_status = "DIRECT" if baseline_id != "NONE" else "PARSE_FAILURE"
     if baseline_status == "UNAVAILABLE" and baseline_id != "NONE":
         # Backward compatibility for callers created before typed baselines.
         baseline_status = "DIRECT"
     if baseline_provisional_id not in {*action_ids, "NONE"}:
         baseline_provisional_id = "NONE"
-    baseline_reference_id = (
-        baseline_id if baseline_status == "DIRECT" else baseline_provisional_id
-    )
+    if baseline_status in {"NO_POSITION", "PARSE_FAILURE"}:
+        baseline_reference_id = "NONE"
+    else:
+        baseline_reference_id = (
+            baseline_id if baseline_status == "DIRECT" else baseline_provisional_id
+        )
     if baseline_status == "NORMATIVELY_CONTESTED":
         alignment = (
             "CONTESTED_SUPPORTS_PROVISIONAL"
@@ -488,6 +788,8 @@ def _candidate_from_data(
             if baseline_reference_id != "NONE"
             else "NORMATIVELY_CONTESTED"
         )
+    elif baseline_status in {"NO_POSITION", "PARSE_FAILURE"}:
+        alignment = baseline_status
     elif baseline_status == "UNDERDETERMINED":
         alignment = "UNRESOLVED"
     elif baseline_status == "CONDITIONAL" and baseline_reference_id == "NONE":
@@ -497,6 +799,12 @@ def _candidate_from_data(
             "CONDITIONAL_SUPPORTS"
             if recommended_id == baseline_reference_id
             else "CONDITIONAL_RECONSIDERS"
+        )
+    elif baseline_status == "OUTSIDE_ACTION_SET_WITH_FALLBACK":
+        alignment = (
+            "FALLBACK_SUPPORTS"
+            if baseline_reference_id != "NONE" and recommended_id == baseline_reference_id
+            else "FALLBACK_RECONSIDERS"
         )
     elif baseline_id == "NONE":
         alignment = "UNCLEAR"
@@ -540,6 +848,12 @@ def _candidate_from_data(
     rationale = " ".join(str(data.get("w", data.get("why", ""))).split())
     if len(rationale.split()) < 2:
         raise ValueError("why must contain at least two words")
+    framework_internal_conflicts = (
+        data.get("fic", []) if isinstance(data.get("fic", []), list) else []
+    )
+    framework_specific_open_questions = (
+        data.get("foq", []) if isinstance(data.get("foq", []), list) else []
+    )
     framework_action_map: dict[str, str] = {}
     framework_numerical_role = "NOT_APPLICABLE"
     framework_numerical_justification = ""
@@ -619,6 +933,7 @@ def _candidate_from_data(
             framework_numerical_justification,
             recommended_action=actions[action_ids.index(recommended_id)],
             rationale=rationale,
+            supporting_data=data,
         )
         framework_validation_errors.extend(construct_errors)
         if construct_errors:
@@ -639,6 +954,49 @@ def _candidate_from_data(
                 rationale = replacement
             if specialist in {"deontological", "rawlsian", "virtue"}:
                 framework_grounding_penalty = max(framework_grounding_penalty, 0.35)
+        # The compact rationale is presentation text, whereas fm is the validated
+        # framework account. If Deontology's shorthand names only a distributive
+        # position, render the selected action's duty ground without treating the
+        # wording issue as framework drift or changing any decision state.
+        deontological_distributive_shorthand = (
+            specialist == "deontological"
+            and re.search(
+                r"\b(?:least[- ]advantaged|worse[- ]off|worst[- ]off|poorest|"
+                r"disadvantaged|low[- ]income|distribution|distributive)\b",
+                rationale,
+                re.IGNORECASE,
+            )
+            and not framework_marker.search(rationale)
+        )
+        if deontological_distributive_shorthand:
+            replacement = framework_action_map.get(
+                actions[action_ids.index(recommended_id)], ""
+            )
+            if replacement:
+                rationale = replacement
+    if specialist == "utilitarian":
+        utilitarian_text = " ".join(
+            str(value) for value in (
+                rationale,
+                " ".join(str(data.get("dr", "")).split()),
+                " ".join(str(data.get("t", "")).split()),
+                " ".join(str(data.get("ft", "")).split()),
+                " ".join(str(data.get("nt", "")).split()),
+                " ".join(str(data.get("np", "")).split()),
+                " ".join(framework_action_map.values()),
+            )
+        )
+        if re.search(
+            r"\b(?:least\s+advantaged|difference\s+principle|veil\s+of\s+ignorance|"
+            r"original\s+position|primary\s+goods?|public\s+rule|justice\s+as\s+fairness|"
+            r"lexical\s+priority|fair\s+equality\s+of\s+opportunity|maximin|minimax)\b",
+            utilitarian_text,
+            re.IGNORECASE,
+        ):
+            framework_validation_errors.append(
+                "utilitarian rationale imports Rawlsian normative language"
+            )
+            framework_grounding_penalty = max(framework_grounding_penalty, 0.35)
 
     # Preserve the old Care-specific trace fields while exposing the common
     # construct state for all framework delegates.
@@ -666,6 +1024,19 @@ def _candidate_from_data(
             "ORIGINAL_POSITION_PUBLIC_RULE", "UNRESOLVED",
         }:
             position_errors.append("Rawlsian ledger lacks a valid principle-ranking basis")
+        rawls_comparative_ground = re.search(
+            r"\b(?:because|compared\s+to|relative\s+to|versus|vs\.?|"
+            r"better\s+off|worse\s+off|less\s+badly\s+off|more\s+badly\s+off|"
+            r"more\s+sever\w*|less\s+sever\w*|protect\w*|preserv\w*|"
+            r"impair\w*|infring\w*|surviv\w*)\b",
+            " ".join((rationale, framework_numerical_justification)),
+            re.IGNORECASE,
+        )
+        if ranking_basis == "BASIC_INTEREST_SECURITY" and any(
+            value.upper().startswith(("IMPROVES:", "PRESERVES:", "WORSENS:"))
+            for value in framework_action_map.values()
+        ) and not rawls_comparative_ground:
+            position_errors.append("Rawlsian preference lacks a concrete comparative difference")
         liberty_status = {
             action_id: str(raw_liberty_status.get(action_id, "")).strip().upper()
             for action_id in action_ids
@@ -721,45 +1092,122 @@ def _candidate_from_data(
                 effect = str(raw_position.get("e", "")).strip().upper()
                 compared_to = str(raw_position.get("ca", "")).strip().upper()
                 dimension = str(raw_position.get("d", "")).strip().upper()
+                additional_dimensions_raw = raw_position.get(
+                    "ad", raw_position.get("additional_dimensions", raw_position.get("secondary_dimensions", []))
+                )
                 basis = str(raw_position.get("b", "")).strip().upper()
-                group = " ".join(str(raw_position.get("g", "")).split())[:100]
+                subject = " ".join(
+                    str(raw_position.get("s", raw_position.get("g", ""))).split()
+                )[:100]
+                subject_kind = str(raw_position.get("sk", raw_position.get("subject_kind", "UNKNOWN"))).strip().upper()
                 reason = " ".join(str(raw_position.get("rs", "")).split())[:180]
                 allowed_dimensions = {
                     "BASIC_LIBERTY", "OPPORTUNITY", "INCOME_WEALTH",
                     "POWERS_OFFICES", "SELF_RESPECT", "BASIC_INTEREST_SECURITY",
                     "OTHER_PRIMARY_GOOD", "UNKNOWN",
                 }
-                if effect not in {"IMPROVES", "PRESERVES", "WORSENS", "UNCERTAIN"}:
+                if effect not in {"IMPROVES", "PRESERVES", "WORSENS", "MIXED", "UNCERTAIN"}:
                     position_errors.append(f"Rawlsian position for {action_id} has invalid effect")
                 if compared_to not in set(action_ids) - {action_id}:
                     position_errors.append(f"Rawlsian position for {action_id} lacks its rival")
                 if dimension not in allowed_dimensions:
                     position_errors.append(f"Rawlsian position for {action_id} has invalid dimension")
+                additional_dimensions: list[str] = []
+                legacy_additional_dimensions: list[str] = []
+                additional_positions: list[dict[str, Any]] = []
+                if additional_dimensions_raw not in (None, "", []):
+                    if not isinstance(additional_dimensions_raw, list):
+                        position_errors.append(f"Rawlsian position for {action_id} has invalid additional dimensions")
+                    else:
+                        legacy_dimensions = [
+                            item for item in additional_dimensions_raw
+                            if isinstance(item, str)
+                        ]
+                        structured_dimensions = [
+                            item for item in additional_dimensions_raw
+                            if isinstance(item, dict)
+                        ]
+                        if len(legacy_dimensions) + len(structured_dimensions) != len(additional_dimensions_raw):
+                            position_errors.append(f"Rawlsian position for {action_id} has invalid additional dimensions")
+                        additional_dimensions = [str(item).strip().upper() for item in legacy_dimensions]
+                        legacy_additional_dimensions = list(additional_dimensions)
+                        for item in structured_dimensions:
+                            secondary_dimension = str(item.get("d", "")).strip().upper()
+                            secondary_effect = str(item.get("e", "")).strip().upper()
+                            secondary_subject = " ".join(str(item.get("s", item.get("g", ""))).split())[:100]
+                            secondary_kind = str(item.get("sk", "UNKNOWN")).strip().upper()
+                            secondary_basis = str(item.get("b", "")).strip().upper()
+                            secondary_reason = " ".join(str(item.get("rs", "")).split())[:180]
+                            additional_dimensions.append(secondary_dimension)
+                            if secondary_dimension not in allowed_dimensions or secondary_dimension == dimension:
+                                position_errors.append(f"Rawlsian position for {action_id} has invalid additional dimensions")
+                            if secondary_effect not in {"IMPROVES", "PRESERVES", "WORSENS", "MIXED", "UNCERTAIN"}:
+                                position_errors.append(f"Rawlsian secondary position for {action_id} has invalid effect")
+                            if secondary_basis not in {"ACTION_GRAPH", "SCENARIO", "FRAMEWORK_ONLY", "UNKNOWN"}:
+                                position_errors.append(f"Rawlsian secondary position for {action_id} has invalid evidence basis")
+                            if _semantic_word_count(secondary_subject) < 1 or _semantic_word_count(secondary_reason) < 2:
+                                position_errors.append(f"Rawlsian secondary position for {action_id} lacks subject or reason")
+                            additional_positions.append({
+                                "action_id": action_id,
+                                "subject": secondary_subject,
+                                "subject_kind": secondary_kind if secondary_kind in {
+                                    "INDIVIDUAL", "GROUP", "INSTITUTION", "FUTURE_POPULATION",
+                                    "CONSTITUENCY", "UNKNOWN",
+                                } else "UNKNOWN",
+                                "dimension": secondary_dimension,
+                                "additional_dimensions": [],
+                                "effect": secondary_effect,
+                                "compared_to_action_id": compared_to,
+                                "evidence_basis": secondary_basis,
+                                "reason": secondary_reason,
+                                "principle_basis": ranking_basis,
+                            })
+                        if len(additional_dimensions) != len(set(additional_dimensions)):
+                            position_errors.append(f"Rawlsian position for {action_id} repeats an additional dimension")
+                        if dimension in additional_dimensions:
+                            position_errors.append(f"Rawlsian position for {action_id} repeats its primary dimension as additional")
+                        if any(dim not in allowed_dimensions for dim in additional_dimensions):
+                            position_errors.append(f"Rawlsian position for {action_id} has invalid additional dimensions")
                 if basis not in {"ACTION_GRAPH", "SCENARIO", "FRAMEWORK_ONLY", "UNKNOWN"}:
                     position_errors.append(f"Rawlsian position for {action_id} has invalid evidence basis")
-                if _semantic_word_count(group) < 1 or _semantic_word_count(reason) < 2:
-                    position_errors.append(f"Rawlsian position for {action_id} lacks group or reason")
+                if _semantic_word_count(subject) < 1 or _semantic_word_count(reason) < 2:
+                    position_errors.append(f"Rawlsian position for {action_id} lacks subject or reason")
                 map_effect = framework_action_map.get(action, "").partition(":")[0].upper()
                 if map_effect and effect and map_effect != effect:
-                    position_errors.append(
+                    # fm is explanatory duplicate state; rp is the typed
+                    # proposal that the ledger will independently ground and
+                    # normalize. Preserve the inconsistency diagnostically,
+                    # but do not drop an otherwise valid graph transaction.
+                    framework_validation_errors.append(
                         f"Rawlsian position for {action_id} conflicts with its framework map"
                     )
                 positions.append({
                     "action_id": action_id,
-                    "group": group,
+                    "subject": subject,
+                    "subject_kind": subject_kind if subject_kind in {
+                        "INDIVIDUAL", "GROUP", "INSTITUTION", "FUTURE_POPULATION",
+                        "CONSTITUENCY", "UNKNOWN",
+                    } else "UNKNOWN",
                     "dimension": dimension,
+                    # Legacy string entries remain annotations. Structured ad
+                    # entries are separate positions and must not also be
+                    # folded into the primary position's dimension bundle.
+                    "additional_dimensions": legacy_additional_dimensions,
                     "effect": effect,
                     "compared_to_action_id": compared_to,
                     "evidence_basis": basis,
                     "reason": reason,
+                    "principle_basis": ranking_basis,
                 })
+                positions.extend(additional_positions)
         if ranking_basis == "DIFFERENCE_PRINCIPLE":
             selected_position = next(
                 (item for item in positions if item.get("action_id") == recommended_id),
                 {},
             )
             if selected_position.get("dimension") not in {
-                "INCOME_WEALTH", "POWERS_OFFICES",
+                "OPPORTUNITY", "INCOME_WEALTH", "POWERS_OFFICES",
+                "SELF_RESPECT", "OTHER_PRIMARY_GOOD",
             }:
                 position_errors.append(
                     "difference principle was applied outside social or economic inequality"
@@ -806,7 +1254,7 @@ def _candidate_from_data(
                 if min(map(_semantic_word_count, (role, virtues, vice, circumstance, reason))) < 1:
                     virtue_errors.append(f"virtue assessment for {action_id} is incomplete")
                 map_verdict = framework_action_map.get(action, "").partition(":")[0].upper()
-                if map_verdict and verdict and map_verdict != verdict:
+                if map_verdict and verdict and not _virtue_verdicts_compatible(map_verdict, verdict):
                     virtue_errors.append(
                         f"virtue assessment for {action_id} conflicts with its framework map"
                     )
@@ -854,6 +1302,24 @@ def _candidate_from_data(
                 bearer = " ".join(str(raw_assessment.get("b", "")).split())[:80]
                 party = " ".join(str(raw_assessment.get("p", "")).split())[:100]
                 competing = " ".join(str(raw_assessment.get("cn", "NONE")).split())[:100]
+                competing_kind = str(raw_assessment.get("ck", "UNKNOWN")).strip().upper()
+                competing_relation = str(raw_assessment.get("crel", "UNCERTAIN")).strip().upper()
+                competing_party = " ".join(str(raw_assessment.get("cp", "unspecified party")).split())[:100]
+                competing_reason = " ".join(str(raw_assessment.get("crs", "competing norm remains unresolved")).split())[:180]
+                governing_norm = str(raw_assessment.get("gv", "PRIMARY")).strip().upper()
+                priority_basis = str(raw_assessment.get("pb", "UNRESOLVED")).strip().upper()
+                priority_rule = " ".join(str(raw_assessment.get("pr", "priority remains unresolved")).split())[:180]
+                protected_standing = str(raw_assessment.get("ps", "UNKNOWN")).strip().upper()
+                competing_standing = str(raw_assessment.get("cps", "UNKNOWN")).strip().upper()
+                coercion_kind = str(raw_assessment.get("ki", "UNKNOWN")).strip().upper()
+                coercive_actor = " ".join(str(raw_assessment.get("coa", "NONE")).split())[:100]
+                coerced_party = " ".join(str(raw_assessment.get("cop", "NONE")).split())[:100]
+                public_justification = " ".join(str(raw_assessment.get("pj", "unresolved")).split())[:180]
+                reciprocity = str(raw_assessment.get("rec", "UNKNOWN")).strip().upper()
+                necessity = str(raw_assessment.get("nec", "UNKNOWN")).strip().upper()
+                authorization = str(raw_assessment.get("auth", "UNKNOWN")).strip().upper()
+                derivation = str(raw_assessment.get("dv", "UNRESOLVED")).strip().upper()
+                resolution_status = str(raw_assessment.get("res", "UNKNOWN")).strip().upper()
                 reason = " ".join(str(raw_assessment.get("rs", "")).split())[:180]
                 if verdict not in {"REQUIRED", "PERMISSIBLE", "PROHIBITED", "CONFLICTED"}:
                     duty_errors.append(f"Deontological assessment for {action_id} has invalid verdict")
@@ -864,6 +1330,79 @@ def _candidate_from_data(
                     "RESPECT_PERSONS", "OTHER", "UNKNOWN",
                 }:
                     duty_errors.append(f"Deontological assessment for {action_id} has invalid norm kind")
+                if competing_kind not in {
+                    "DUTY", "RIGHT", "AUTONOMY", "UNIVERSAL_LAW",
+                    "RESPECT_PERSONS", "OTHER", "UNKNOWN",
+                }:
+                    duty_errors.append(f"Deontological competing norm for {action_id} has invalid kind")
+                if competing_relation not in {
+                    "SATISFIES", "CONSISTENT", "VIOLATES", "CONFLICTS", "UNCERTAIN",
+                }:
+                    duty_errors.append(f"Deontological competing norm for {action_id} has invalid relation")
+                if governing_norm not in {"PRIMARY", "COMPETING", "UNRESOLVED"}:
+                    duty_errors.append(f"Deontological verdict for {action_id} has invalid governing norm")
+                if priority_basis not in {
+                    "UNIVERSAL_LAW", "RESPECT_PERSONS", "PERFECT_DUTY",
+                    "RIGHTFUL_COERCION", "AUTONOMY", "UNRESOLVED",
+                }:
+                    duty_errors.append(f"Deontological verdict for {action_id} has invalid priority basis")
+                standing_values = {
+                    "EXTERNAL_FREEDOM", "AUTONOMY", "EQUAL_JURIDICAL_STATUS",
+                    "BODILY_INTEGRITY", "CONSENT", "CONTRACTUAL_RIGHT",
+                    "SPECIAL_OBLIGATION", "OTHER", "UNKNOWN",
+                }
+                if protected_standing not in standing_values or competing_standing not in standing_values:
+                    duty_errors.append(f"Deontological assessment for {action_id} has invalid protected standing")
+                if coercion_kind not in {
+                    "NONE", "PUBLIC", "PRIVATE", "INSTITUTIONAL", "INTERPERSONAL", "UNKNOWN",
+                }:
+                    duty_errors.append(f"Deontological assessment for {action_id} has invalid coercion kind")
+                if reciprocity not in {"SATISFIED", "FAILED", "CONTESTED", "UNKNOWN"}:
+                    duty_errors.append(f"Deontological assessment for {action_id} has invalid reciprocity status")
+                if necessity not in {
+                    "NECESSARY", "LESS_RESTRICTIVE_ROUTE_AVAILABLE", "CONTESTED", "UNKNOWN",
+                }:
+                    duty_errors.append(f"Deontological assessment for {action_id} has invalid necessity status")
+                if authorization not in {
+                    "JUSTIFIED", "UNJUSTIFIED", "CONTESTED", "UNKNOWN", "NOT_APPLICABLE",
+                }:
+                    duty_errors.append(f"Deontological assessment for {action_id} has invalid authorization status")
+                if derivation not in {
+                    "UNIVERSAL_LAW", "RECIPROCAL_EXTERNAL_FREEDOM", "RESPECT_PERSONS",
+                    "PERFECT_DUTY", "RIGHTFUL_PUBLIC_COERCION", "CONSENT", "UNRESOLVED",
+                }:
+                    duty_errors.append(f"Deontological assessment for {action_id} has invalid derivation")
+                if resolution_status not in {"RESOLVED", "CONTESTED", "UNKNOWN"}:
+                    duty_errors.append(f"Deontological assessment for {action_id} has invalid resolution status")
+                if coercion_kind == "NONE" and authorization != "NOT_APPLICABLE":
+                    # Authorization adjudicates coercion.  When the delegate has
+                    # already classified an action as non-coercive, UNKNOWN or a
+                    # similarly inapplicable authorization value is a local
+                    # representation mismatch, not grounds for discarding the
+                    # complete multi-action duty ledger.  Normalize the derived
+                    # field while leaving every substantive norm, relation, and
+                    # verdict available to the transaction/calibration layer.
+                    authorization = "NOT_APPLICABLE"
+                if coercion_kind != "NONE" and authorization == "NOT_APPLICABLE":
+                    duty_errors.append(f"coercive Deontological assessment for {action_id} must adjudicate authorization")
+                if resolution_status == "RESOLVED" and derivation == "UNRESOLVED":
+                    duty_errors.append(f"resolved Deontological assessment for {action_id} lacks derivation")
+                borrowed = re.search(
+                    r"\b(?:fair equality of opportunity|difference principle|least[- ]advantaged)\b",
+                    " ".join((norm, competing, priority_rule)), re.IGNORECASE,
+                )
+                kantian_bridge = re.search(
+                    r"\b(?:external freedom|autonom\w*|juridical|universal\w*|persons?|consent|rightful coercion)\b",
+                    " ".join((norm, competing, priority_rule, public_justification)), re.IGNORECASE,
+                )
+                if borrowed and not kantian_bridge:
+                    duty_errors.append(
+                        f"CROSS_FRAMEWORK_CONCEPT_UNTRANSLATED for {action_id}"
+                    )
+                if verdict == "CONFLICTED" and governing_norm != "UNRESOLVED":
+                    duty_errors.append(f"conflicted Deontological verdict for {action_id} must leave priority unresolved")
+                if verdict != "CONFLICTED" and governing_norm == "UNRESOLVED":
+                    duty_errors.append(f"resolved Deontological verdict for {action_id} must identify its governing norm")
                 if basis not in {"ACTION_GRAPH", "SCENARIO", "FRAMEWORK_ONLY", "UNKNOWN"}:
                     duty_errors.append(f"Deontological assessment for {action_id} has invalid evidence basis")
                 if any(_semantic_word_count(value) < 1 for value in (norm, bearer, party, reason)):
@@ -882,6 +1421,24 @@ def _candidate_from_data(
                     "duty_bearer": bearer,
                     "protected_party": party,
                     "competing_norm": competing or "NONE",
+                    "competing_norm_kind": competing_kind,
+                    "competing_relation": competing_relation,
+                    "competing_protected_party": competing_party,
+                    "competing_reason": competing_reason,
+                    "governing_norm": governing_norm,
+                    "priority_basis": priority_basis,
+                    "priority_rule": priority_rule,
+                    "protected_standing": protected_standing,
+                    "competing_protected_standing": competing_standing,
+                    "coercion_kind": coercion_kind,
+                    "coercive_actor": coercive_actor,
+                    "coerced_party": coerced_party,
+                    "public_justification": public_justification,
+                    "reciprocity_status": reciprocity,
+                    "necessity_status": necessity,
+                    "authorization_status": authorization,
+                    "derivation": derivation,
+                    "resolution_status": resolution_status,
                     "evidence_basis": basis,
                     "reason": reason,
                 })
@@ -993,6 +1550,77 @@ def _candidate_from_data(
                 clause["affected_action"] = str(
                     clause.get("affected_action", "NONE")
                 ).strip().upper()
+    # Preserve structural diagnostics from the submitted proposal before a
+    # later provenance check can normalize it to NONE. Otherwise an invalid
+    # compound Utilitarian update is correctly stripped but misleadingly
+    # reported only as an ungrounded-number problem.
+    if specialist == "utilitarian" and graph_update.get("operation") != "NONE":
+        if graph_update.get("operation") != "BOUNDARY":
+            framework_validation_errors.append(
+                "utilitarian graph updates must be a single measurable boundary"
+            )
+        if not isinstance(graph_clauses, list) or len(graph_clauses) != 1:
+            framework_validation_errors.append(
+                "utilitarian graph updates must use exactly one clause"
+            )
+    grounded_numbers = _numeric_literals(" ".join([scenario_text, *actions]))
+    proposed_numbers = {
+        float(clause.get("threshold"))
+        for clause in graph_clauses
+        if isinstance(clause, dict)
+        and isinstance(clause.get("threshold"), (int, float))
+        and not isinstance(clause.get("threshold"), bool)
+    } if isinstance(graph_clauses, list) else set()
+    ungrounded_numbers = (
+        proposed_numbers | _numeric_literals(factual_threshold)
+    ) - grounded_numbers
+    if ungrounded_numbers:
+        framework_validation_errors.append(
+            "numeric reversal threshold lacks a scenario-grounded quantity"
+        )
+        factual_threshold = "NONE"
+        graph_update = {
+            "operation": "NONE", "from_action": "NONE",
+            "to_action": "NONE", "clauses": [],
+        }
+        graph_clauses = []
+    if specialist == "utilitarian" and graph_update.get("operation") != "NONE":
+        utilitarian_graph_errors: list[str] = []
+        if graph_update.get("operation") not in {"BOUNDARY"}:
+            utilitarian_graph_errors.append(
+                "utilitarian graph updates must be a single measurable boundary"
+            )
+        if evidence_basis != "STATED_FACTS":
+            utilitarian_graph_errors.append(
+                "utilitarian graph updates require stated facts"
+            )
+        if factual_threshold.casefold() == "none":
+            utilitarian_graph_errors.append(
+                "utilitarian graph updates require a factual threshold"
+            )
+        if graph_update.get("from_action") not in action_ids or graph_update.get("to_action") not in action_ids:
+            utilitarian_graph_errors.append(
+                "utilitarian graph updates must stay within the canonical action set"
+            )
+        if graph_update.get("from_action") == graph_update.get("to_action"):
+            utilitarian_graph_errors.append(
+                "utilitarian graph updates cannot switch an action to itself"
+            )
+        if isinstance(graph_clauses, list) and len(graph_clauses) != 1:
+            utilitarian_graph_errors.append(
+                "utilitarian graph updates must use exactly one clause"
+            )
+        if utilitarian_graph_errors:
+            framework_validation_errors.extend(
+                error for error in utilitarian_graph_errors
+                if error not in framework_validation_errors
+            )
+            graph_update = {
+                "operation": "NONE",
+                "from_action": "NONE",
+                "to_action": "NONE",
+                "clauses": [],
+            }
     raw_ev = data.get("ev", {})
     expected_values = {
         actions[action_ids.index(action_id)]: {
@@ -1084,7 +1712,7 @@ def _candidate_from_data(
     unsupported_assumption = prior_unsupported_assumption
     reversal_condition = prior_reversal_condition
     if (
-        broadcast.constraint != "CONSENSUS_AUDIT"
+        broadcast.constraint not in _PROBLEM_AUDIT_CONSTRAINTS
         and assumption_status == "NOT_AUDITED"
         and baseline_status in {
             "CONDITIONAL", "UNDERDETERMINED", "NORMATIVELY_CONTESTED",
@@ -1099,21 +1727,159 @@ def _candidate_from_data(
     if (
         specialist == "utilitarian"
         and utilitarian_depends_on_unknown
-        and broadcast.constraint != "CONSENSUS_AUDIT"
+        and broadcast.constraint not in _PROBLEM_AUDIT_CONSTRAINTS
     ):
         assumption_status = "UNDERDETERMINED"
         unsupported_assumption = utilitarian_missing_comparison
         reversal_condition = utilitarian_missing_comparison
-    if broadcast.constraint == "CONSENSUS_AUDIT":
-        assumption_status = str(data.get("d", "")).strip().upper()
-        unsupported_assumption = " ".join(str(data.get("a", "")).split())
-        reversal_condition = " ".join(str(data.get("v", "")).split())
-        if assumption_status not in {"SUPPORTED", "CONDITIONAL", "UNDERDETERMINED"}:
-            raise ValueError("audit status must be SUPPORTED, CONDITIONAL, or UNDERDETERMINED")
-        if len(unsupported_assumption.split()) < 3:
-            raise ValueError("audit must identify the central assumption")
-        if len(reversal_condition.split()) < 3:
-            raise ValueError("audit must identify a plausible reversal condition")
+    consensus_audit_effect = "UNRESOLVED"
+    consensus_audit_variable: dict[str, Any] = {}
+    audit_participation = "NOT_TESTED"
+    audit_framework_explanation = ""
+    if broadcast.constraint in _PROBLEM_AUDIT_CONSTRAINTS:
+        audit_participation = str(data.get("ap", "")).strip().upper()
+        audit_framework_explanation = " ".join(str(data.get("ax", "")).split())
+        participation_statuses = {
+            "RELEVANT", "IRRELEVANT", "TRANSLATED", "CONTESTED",
+            "REVERSAL_RELEVANT", "UNRESOLVED",
+        }
+        if audit_participation in participation_statuses:
+            if len(audit_framework_explanation.split()) < 3:
+                raise ValueError("audit participation must include a framework-specific explanation")
+            assumption_status = str(data.get("d", "")).strip().upper()
+            if assumption_status not in {"SUPPORTED", "CONDITIONAL", "UNDERDETERMINED"}:
+                assumption_status = {
+                    "IRRELEVANT": "SUPPORTED",
+                    "RELEVANT": "SUPPORTED",
+                    "TRANSLATED": "SUPPORTED",
+                    "CONTESTED": "SUPPORTED",
+                    "REVERSAL_RELEVANT": "CONDITIONAL",
+                    "UNRESOLVED": "UNDERDETERMINED",
+                }[audit_participation]
+            unsupported_assumption = " ".join(str(data.get("a", "")).split()) or audit_framework_explanation
+            reversal_condition = " ".join(str(data.get("v", "")).split())
+            if not reversal_condition:
+                reversal_condition = (
+                    "The audited variable does not govern this framework's primary rule"
+                    if audit_participation == "IRRELEVANT"
+                    else audit_framework_explanation
+                )
+        else:
+            # Compatibility path for stored delegates and fixtures using the
+            # older assumption/reversal audit contract.
+            assumption_status = str(data.get("d", "")).strip().upper()
+            unsupported_assumption = " ".join(str(data.get("a", "")).split())
+            reversal_condition = " ".join(str(data.get("v", "")).split())
+            if assumption_status not in {"SUPPORTED", "CONDITIONAL", "UNDERDETERMINED"}:
+                raise ValueError("audit status must be SUPPORTED, CONDITIONAL, or UNDERDETERMINED")
+            if len(unsupported_assumption.split()) < 3:
+                raise ValueError("audit must identify the central assumption")
+            if len(reversal_condition.split()) < 3:
+                raise ValueError("audit must identify a plausible reversal condition")
+        consensus_audit_effect = str(data.get("ie", "UNRESOLVED")).strip().upper()
+        # The admitted ProblemState item is authoritative. Specialists respond
+        # to it; they do not have to reproduce its ontology verbatim.
+        consensus_audit_variable = (
+            dict(broadcast.audit_variable)
+            if isinstance(broadcast.audit_variable, dict) and broadcast.audit_variable
+            else data.get("av", {})
+        )
+        if consensus_audit_effect not in {"NO_CHANGE", "WEAKENS", "REVERSES", "UNRESOLVED"}:
+            raise ValueError("audit effect must be NO_CHANGE, WEAKENS, REVERSES, or UNRESOLVED")
+        if not isinstance(consensus_audit_variable, dict) or not consensus_audit_variable:
+            relation = "THIRD_PARTY_STATUS"
+            if "authorization" in unsupported_assumption.casefold() or "consent" in unsupported_assumption.casefold():
+                relation = "AUTHORIZATION_SCOPE"
+            elif "privacy" in unsupported_assumption.casefold():
+                relation = "PRIVACY_SCOPE"
+            entity = (
+                (broadcast.audit_variable or {}).get("entity")
+                if isinstance(getattr(broadcast, "audit_variable", None), dict)
+                else ""
+            ) or "decision-critical variable"
+            consensus_audit_variable = {
+                "entity": entity,
+                "relation": relation,
+                "possible_values": (
+                    ["EXTERNAL_THIRD_PARTY", "AUTHORIZED_INTERNAL_AGENT", "UNKNOWN"]
+                    if relation in {"THIRD_PARTY_STATUS", "ORGANIZATIONAL_BOUNDARY"}
+                    else (
+                        ["COVERS_DISCLOSURE", "DOES_NOT_COVER_DISCLOSURE", "UNKNOWN"]
+                        if relation == "AUTHORIZATION_SCOPE"
+                        else ["EXTENDS_TO_PRIVATE_SCOPE", "LIMITED_TO_THIRD_PARTIES", "UNKNOWN"]
+                    )
+                ),
+                "focus_action": recommended_id,
+                "question": (
+                    broadcast.contingency_question
+                    or unsupported_assumption
+                    or "Which fact about the unresolved variable changes the recommendation?"
+                )[:180],
+            }
+        required_audit_keys = {"entity", "relation", "possible_values", "focus_action", "question"}
+        allowed_audit_keys = required_audit_keys | {
+            "required_response", "issue_id", "source", "proposition",
+            "grounded_in", "raised_by", "status",
+        }
+        if not required_audit_keys.issubset(consensus_audit_variable):
+            raise ValueError("audit typed variable must cover entity, relation, possible_values, focus_action, and question")
+        if not set(consensus_audit_variable).issubset(allowed_audit_keys):
+            raise ValueError("audit typed variable includes unsupported keys")
+        if not isinstance(consensus_audit_variable.get("possible_values"), list) or len(consensus_audit_variable.get("possible_values", [])) < 2:
+            raise ValueError("audit typed variable must include possible_values")
+        if len(" ".join(str(consensus_audit_variable.get("entity", "")).split())) < 2:
+            raise ValueError("audit typed variable must name the entity")
+        if len(" ".join(str(consensus_audit_variable.get("question", "")).split())) < 12:
+            raise ValueError("audit typed variable must state a question")
+        required_response = consensus_audit_variable.get("required_response")
+        if required_response is not None:
+            if not isinstance(required_response, dict):
+                raise ValueError("audit typed variable required_response must be an object")
+            if set(required_response) != {"counterfactual_anchor", "allowed_effects"}:
+                raise ValueError("audit typed variable required_response must cover counterfactual_anchor and allowed_effects")
+            if len(" ".join(str(required_response.get("counterfactual_anchor", "")).split())) < 2:
+                raise ValueError("audit typed variable required_response must name the counterfactual anchor")
+            allowed_effects = required_response.get("allowed_effects")
+            if not isinstance(allowed_effects, list) or len(allowed_effects) < 2:
+                raise ValueError("audit typed variable required_response must include allowed_effects")
+        expected_audit_variable = (
+            broadcast.audit_variable
+            if isinstance(broadcast.audit_variable, dict)
+            else {}
+        )
+        if expected_audit_variable and audit_participation == "NOT_TESTED":
+            for key in ("entity", "relation", "focus_action"):
+                expected = " ".join(str(expected_audit_variable.get(key, "")).casefold().split())
+                received = " ".join(str(consensus_audit_variable.get(key, "")).casefold().split())
+                if key == "focus_action" and expected in {
+                    " ".join(action.casefold().split()) for action in actions
+                }:
+                    expected = action_ids[
+                        next(
+                            index for index, action in enumerate(actions)
+                            if " ".join(action.casefold().split()) == expected
+                        )
+                    ].casefold()
+                if expected and received != expected:
+                    raise ValueError(
+                        f"audit typed variable {key} must match the admitted current-run variable"
+                    )
+            expected_audit_values = {
+                str(value).strip().upper()
+                for value in expected_audit_variable.get("possible_values", [])
+            }
+            received_values = {
+                str(value).strip().upper()
+                for value in consensus_audit_variable.get("possible_values", [])
+            }
+            if expected_audit_values and received_values != expected_audit_values:
+                raise ValueError(
+                    "audit typed variable possible_values must match the admitted current-run variable"
+                )
+        elif not expected_audit_variable:
+            # A generic consensus challenge has no authority to manufacture a
+            # typed entity/relation merely to satisfy the response shape.
+            consensus_audit_variable = {}
         if assumption_status != "SUPPORTED" and unresolved == "NONE":
             raise ValueError("conditional or underdetermined audits must preserve uncertainty")
     elif assumption_status in {
@@ -1177,23 +1943,45 @@ def _candidate_from_data(
         )
     comparative_grounding_errors = [
         error for error in landscape_validation_errors
-        if "unverified comparative beneficiary claim" in error
+        if (
+            "unverified comparative beneficiary claim" in error
+            or error.startswith("UNRESOLVED_RELATIONAL_PREMISE:")
+            or error.startswith("COMPARATIVE_MAGNITUDE:")
+        )
     ]
     if comparative_grounding_errors and evidence_basis != "UNSTATED_FACTS":
         # Preserve the normative vote while removing confidence supplied by an
         # unsupported action-to-beneficiary edge. This is the same symmetric
         # uncertainty treatment used for delegate-disclosed speculation.
-        evidence_basis = "UNSTATED_FACTS"
+        typed_magnitude_only = all(
+            error.startswith("COMPARATIVE_MAGNITUDE:")
+            for error in comparative_grounding_errors
+        )
+        # A magnitude operator can be unsupported even when both operands are
+        # scenario-stated. Preserve their evidence status and damp only the
+        # ranking that depends on the unresolved comparison.
+        if not typed_magnitude_only:
+            evidence_basis = "UNSTATED_FACTS"
         speculative_claim = comparative_grounding_errors[0][:180]
         calibration_tier = "DECISION_CRITICAL"
-        calibration_reason = (
-            "No committed scenario edge establishes the claimed comparative treatment."
-        )
+        if comparative_grounding_errors[0].startswith("UNRESOLVED_RELATIONAL_PREMISE:"):
+            calibration_reason = (
+                "The claim depends on an unresolved relational premise rather than a "
+                "grounded comparative fact."
+            )
+        elif comparative_grounding_errors[0].startswith("COMPARATIVE_MAGNITUDE:"):
+            calibration_reason = (
+                "The claim compares beneficiary magnitude without a committed scenario edge."
+            )
+        else:
+            calibration_reason = (
+                "No committed scenario edge establishes the claimed comparative treatment."
+            )
         calibration_retention = 0.55
         calibration_epistemic_cap = SPECULATIVE_EPISTEMIC_CAP
         damping = apply_symmetric_claim_damping(
             id_scores,
-            evidence_basis,
+            "UNSTATED_FACTS",
             unresolved,
             retention=calibration_retention,
         )
@@ -1283,8 +2071,8 @@ def _candidate_from_data(
     )
     conformity_penalty = 0.0
     review_constraints = {
-        "SYNTHESIS_REVIEW", "CONTINGENCY_REVIEW", "PLANNING_REVIEW",
-        "CONSENSUS_AUDIT", "PROBLEM_REFORMULATION", "VISIBILITY_AUDIT",
+        "SYNTHESIS_REVIEW", "PROPOSAL_REVIEW", "CONTINGENCY_REVIEW", "PLANNING_REVIEW",
+        "CONSENSUS_AUDIT", "PROBLEM_STATE_AUDIT", "PROBLEM_REFORMULATION", "VISIBILITY_AUDIT",
     }
     if moved_to_favored and broadcast.constraint not in review_constraints:
         conformity_penalty = 0.65
@@ -1296,9 +2084,9 @@ def _candidate_from_data(
     current_context = (
         "BASE"
         if broadcast.constraint not in {
-            "VISIBILITY_AUDIT", "CONSENSUS_AUDIT", "REVERSAL_AUDIT",
+            "VISIBILITY_AUDIT", "CONSENSUS_AUDIT", "PROBLEM_STATE_AUDIT", "REVERSAL_AUDIT",
             "PROBLEM_REFORMULATION", "PLANNING_REVIEW", "CONTINGENCY_REVIEW",
-            "SYNTHESIS_REVIEW",
+            "SYNTHESIS_REVIEW", "PROPOSAL_REVIEW",
         }
         else broadcast.constraint
     )
@@ -1312,17 +2100,17 @@ def _candidate_from_data(
         if previous_confidence is not None and not position_changed and comparable_context
         else 0.0
     )
-    recommended_is_favored = bool(
-        favored_fragment and recommended_action.casefold().startswith(favored_fragment)
-    )
-    drift_favors_salient_action = bool(
-        previous_confidence is not None
-        and not position_changed
-        and comparable_context
-        and (
-            (recommended_is_favored and confidence_drift > 0.10)
-            or (not recommended_is_favored and confidence_drift < -0.10)
-        )
+    preference_shift_reason_strength = _preference_shift_reason_strength(
+        change_justification=change_justification,
+        framework_application=" ".join(str(data.get("fa", "")).split()),
+        evidence_basis=evidence_basis,
+        assumption_status=assumption_status,
+        framework_retention_status=(
+            "LOST"
+            if framework_grounding_penalty > 0.0
+            else ("PRESERVED" if bool(data.get("fr", True)) else "LOST")
+        ),
+        broadcast_constraint=broadcast.constraint,
     )
     justification_is_specific = (
         change_justification.casefold() != "none"
@@ -1331,14 +2119,20 @@ def _candidate_from_data(
     )
     confidence_drift_penalty = 0.0
     if (
-        drift_favors_salient_action
+        position_changed
+        and previous_confidence is not None
         and broadcast.constraint not in review_constraints
-        and not justification_is_specific
     ):
-        confidence_drift_penalty = 0.75
-        # Preserve the observed preference, but reduce how much an unjustified
-        # shift is trusted in aggregation.
-        epistemic_confidence *= 1.0 - confidence_drift_penalty
+        if not justification_is_specific:
+            confidence_drift_penalty = max(
+                0.0, min(1.0, 0.85 * (1.0 - preference_shift_reason_strength))
+            )
+            epistemic_confidence *= 1.0 - confidence_drift_penalty
+        elif preference_shift_reason_strength < 0.25:
+            confidence_drift_penalty = max(
+                0.0, min(1.0, 0.35 * (1.0 - preference_shift_reason_strength))
+            )
+            epistemic_confidence *= 1.0 - confidence_drift_penalty
 
     # Passive measurement layer: malformed or omitted measurements fall back to
     # transparent derivations and never invalidate the delegate's ethical vote.
@@ -1385,8 +2179,13 @@ def _candidate_from_data(
         reasoning_effect = "NONE"
     framework_application = " ".join(str(data.get("fa", "")).split())
     framework_retained = bool(data.get("fr", True))
-    if framework_grounding_penalty > 0.0:
-        framework_retained = False
+    # Evidence or ledger-grounding warnings weaken the support for this
+    # particular judgment; they do not establish that the specialist abandoned
+    # its normative framework.  Recurrent framework loss is decided later by
+    # _audit_framework_state_change against an actually committed prior state.
+    # Conflating these two concepts caused otherwise valid first-cycle agents to
+    # disappear from the operative set whenever any framework validator raised
+    # a warning.
     broadcast_dependence = str(data.get("bd", "NONE")).strip().upper()
     if broadcast_dependence not in {"NONE", "LOW", "MEDIUM", "HIGH"}:
         broadcast_dependence = "NONE"
@@ -1401,6 +2200,15 @@ def _candidate_from_data(
         retention_status = "PRESERVED"
     else:
         retention_status = "UNCLEAR"
+
+    proposal_review = _proposal_review_from_data(specialist, data, broadcast)
+    if proposal_review is not None:
+        proposal_review.framework_retained = framework_retained
+        if not framework_retained:
+            proposal_review.valid = False
+            proposal_review.validation_errors.append(
+                "proposal review failed framework-retention validation"
+            )
 
     return CandidateChunk(
         specialist=specialist,
@@ -1418,6 +2226,7 @@ def _candidate_from_data(
         ),
         baseline_status=baseline_status,
         baseline_condition=baseline_condition,
+        baseline_preferred_extension=baseline_preferred_extension,
         testimony_alignment=alignment,
         previous_action=(actions[action_ids.index(previous_id)] if previous_id else ""),
         position_changed=position_changed,
@@ -1451,6 +2260,7 @@ def _candidate_from_data(
         previous_preference_strength=(previous_confidence or 0.0),
         preference_drift=confidence_drift,
         preference_drift_penalty=confidence_drift_penalty,
+        preference_shift_reason_strength=preference_shift_reason_strength,
         decision_rule=decision_rule,
         factual_reversal_threshold=factual_threshold,
         normative_reversal_threshold=normative_threshold,
@@ -1463,6 +2273,10 @@ def _candidate_from_data(
         contingency_justification=contingency_justification,
         contingency_response_valid=contingency_valid,
         contingency_response_error=contingency_error,
+        audit_variable=consensus_audit_variable,
+        audit_internal_effect=consensus_audit_effect,
+        audit_participation=audit_participation,
+        audit_framework_explanation=audit_framework_explanation,
         graph_update_proposal=graph_update,
         expected_value_estimates=expected_values,
         visibility_response=visibility_response,
@@ -1481,6 +2295,8 @@ def _candidate_from_data(
         framework_constraint_retained=framework_retained,
         self_reported_broadcast_dependence=broadcast_dependence,
         framework_retention_status=retention_status,
+        framework_internal_conflicts=framework_internal_conflicts,
+        framework_specific_open_questions=framework_specific_open_questions,
         framework_action_map=framework_action_map,
         framework_numerical_role=framework_numerical_role,
         framework_numerical_justification=framework_numerical_justification,
@@ -1497,13 +2313,27 @@ def _candidate_from_data(
         care_numerical_role=care_numerical_role,
         care_numerical_justification=care_numerical_justification,
         care_grounding_penalty=care_grounding_penalty,
+        proposal_review=proposal_review,
     )
 
 
 def _invalid_candidate(specialist: str, actions: Sequence[str], error: str) -> CandidateChunk:
+    normalized_error = str(error)
+    if re.search(r"invalid schema|schema for response_format|schema rejection", normalized_error, re.I):
+        delegate_status = "SCHEMA_ERROR"
+        error_type = "SCHEMA_REJECTION"
+    elif re.search(
+        r"model[- ]call (?:failed|unavailable)|backend|timeout|connection|rate limit|call budget",
+        normalized_error, re.I,
+    ):
+        delegate_status = "MODEL_ERROR"
+        error_type = "MODEL_ERROR"
+    else:
+        delegate_status = "SEMANTIC_VALIDATION_ERROR"
+        error_type = "SEMANTIC_VALIDATION_ERROR"
     return CandidateChunk(
         specialist=specialist,
-        constraint="MALFORMED_RESPONSE",
+        constraint="NONE",
         action_scores={action: 0.5 for action in actions},
         surprise=0.0,
         friction=0.0,
@@ -1511,6 +2341,8 @@ def _invalid_candidate(specialist: str, actions: Sequence[str], error: str) -> C
         unresolved="REVIEW_MODEL_OUTPUT",
         rationale="Delegate output failed semantic validation.",
         schema_valid=False,
+        delegate_status=delegate_status,
+        error_type=error_type,
         validation_errors=[error[:300]],
     )
 
@@ -1523,6 +2355,7 @@ class CompactLocalSpecialist:
     baseline_action_id: str = "NONE"
     baseline_status: str = "UNAVAILABLE"
     baseline_provisional_action_id: str = "NONE"
+    baseline_preferred_extension: str = ""
     baseline_condition: str = ""
     baseline_framework_commitments: dict[str, str] = field(default_factory=dict)
     baseline_numerical_role: str = "UNASSESSED"
@@ -1542,13 +2375,19 @@ class CompactLocalSpecialist:
     # Populated only after a Rawls ledger transaction commits. Generated prose
     # never becomes the delegate's recurrent principle state by itself.
     previous_framework_state: dict[str, Any] = field(default_factory=dict)
+    # Private recurrence channel, returned only to this specialist. The global
+    # broadcast remains a separate shared channel.
+    private_framework_contribution: dict[str, Any] = field(default_factory=dict)
+    # Shared scenario evidence compiled once by the engine. Frameworks may
+    # interpret these facts differently, but do not re-decide whether they exist.
+    scenario_graph: Any | None = None
 
     def _audit_framework_state_change(
         self, candidate: CandidateChunk, broadcast: WorkspaceBroadcast,
     ) -> None:
         """Keep recurrent framework state stable unless a typed review warrants change."""
         if (
-            self.name not in {"rawlsian", "virtue"}
+            self.name not in {"rawlsian", "virtue", "deontological"}
             or not self.previous_framework_state
         ):
             return
@@ -1556,30 +2395,40 @@ class CompactLocalSpecialist:
         current = (
             candidate.rawls_position_proposal
             if self.name == "rawlsian" else candidate.virtue_character_proposal
+            if self.name == "virtue" else candidate.deontological_ledger_proposal
         )
         if not current:
+            if self.name == "rawlsian":
+                candidate.framework_constraint_retained = True
+                candidate.framework_retention_status = "PRIOR_STATE_PRESERVED"
+                message = (
+                    "Rawlsian recurrent framework fields were unusable; "
+                    "prior committed ledger preserved"
+                )
+                if message not in candidate.framework_validation_errors:
+                    candidate.framework_validation_errors.append(message)
             return
         if self.name == "rawlsian":
-            previous_positions = {
-                str(item.get("canonical_action_id", item.get("action_id", ""))): (
-                    str(item.get("proposed_effect", item.get("effect", ""))),
-                    str(item.get("dimension", "")),
-                )
-                for item in previous.get("positions", [])
-                if isinstance(item, dict)
-            }
-            current_positions = {
-                str(item.get("action_id", "")): (
-                    str(item.get("effect", "")), str(item.get("dimension", "")),
-                )
-                for item in current.get("positions", [])
-                if isinstance(item, dict)
-            }
+            def rawls_state(items: list[dict[str, Any]], *, committed: bool) -> dict[str, tuple[tuple[str, str, str], ...]]:
+                state: dict[str, list[tuple[str, str, str]]] = {}
+                for item in items:
+                    if not isinstance(item, dict):
+                        continue
+                    action_id = str(item.get("canonical_action_id", item.get("action_id", "")))
+                    state.setdefault(action_id, []).append((
+                        str(item.get("proposed_effect" if committed else "effect", item.get("effect", ""))),
+                        str(item.get("dimension", "")),
+                        " ".join(str(item.get("subject", item.get("affected_subject", ""))).casefold().split()),
+                    ))
+                return {key: tuple(sorted(value)) for key, value in state.items()}
+
+            previous_positions = rawls_state(previous.get("positions", []), committed=True)
+            current_positions = rawls_state(current.get("positions", []), committed=False)
             auxiliary_changed = (
                 dict(previous.get("liberty_status", {}))
                 != dict(current.get("liberty_status", {}))
             )
-        else:
+        elif self.name == "virtue":
             previous_positions = {
                 str(item.get("action_id", "")): (
                     str(item.get("verdict", "")), str(item.get("actor_role", "")),
@@ -1595,9 +2444,118 @@ class CompactLocalSpecialist:
                 if isinstance(item, dict)
             }
             auxiliary_changed = False
+        else:
+            fields = (
+                "verdict", "norm_kind", "relation", "competing_norm_kind",
+                "competing_relation", "governing_norm", "priority_basis",
+                "protected_standing", "competing_protected_standing",
+                "coercion_kind", "authorization_status", "derivation",
+                "resolution_status",
+            )
+            previous_positions = {
+                str(item.get("action_id", "")): tuple(
+                    str(item.get(field, "")) for field in fields
+                )
+                for item in previous.get("assessments", []) if isinstance(item, dict)
+            }
+            current_positions = {
+                str(item.get("action_id", "")): tuple(
+                    str(item.get(field, "")) for field in fields
+                )
+                for item in current.get("assessments", []) if isinstance(item, dict)
+            }
+            auxiliary_changed = False
         same_action_set = bool(
             previous_positions and set(previous_positions) == set(current_positions)
         )
+        new_action_grounding = False
+        if self.name == "rawlsian" and same_action_set and self.scenario_graph is not None:
+            synthesis_action_ids = {
+                str(node.attributes.get("canonical_action_id", node.id))
+                for node in self.scenario_graph.nodes.values()
+                if node.kind == "ACTION"
+                and str(node.attributes.get("source_type", "")).upper()
+                == "SYNTHESIS_PROPOSAL"
+            }
+            current_items_by_action: dict[str, list[dict[str, Any]]] = {}
+            for item in current.get("positions", []):
+                if isinstance(item, dict):
+                    current_items_by_action.setdefault(
+                        str(item.get("action_id", item.get("canonical_action_id", ""))), []
+                    ).append(item)
+            elaborated_actions = {
+                action_id for action_id in synthesis_action_ids
+                if action_id in previous_positions
+                and action_id in current_positions
+                and all(
+                    effect in {"UNCERTAIN", "UNKNOWN"}
+                    and dimension in {"UNKNOWN", "OTHER_PRIMARY_GOOD"}
+                    for effect, dimension, _subject in previous_positions[action_id]
+                )
+                and current_items_by_action.get(action_id)
+                and all(
+                    str(item.get("evidence_basis", "")).upper()
+                    in {"ACTION_GRAPH", "SCENARIO"}
+                    for item in current_items_by_action[action_id]
+                )
+            }
+            stable_existing_actions = all(
+                previous_positions[action_id] == current_positions[action_id]
+                for action_id in previous_positions
+                if action_id not in elaborated_actions
+            )
+            new_action_grounding = bool(
+                elaborated_actions
+                and stable_existing_actions
+                and str(previous.get("ranking_basis", ""))
+                == str(current.get("ranking_basis", ""))
+                and all(
+                    previous.get("liberty_status", {}).get(action_id)
+                    == current.get("liberty_status", {}).get(action_id)
+                    for action_id in previous_positions
+                    if action_id not in elaborated_actions
+                )
+            )
+        if new_action_grounding:
+            candidate.framework_constraint_retained = True
+            candidate.framework_retention_status = "NEW_ACTION_GROUNDING"
+            return
+        rawls_dimension_refinement = False
+        if self.name == "rawlsian" and same_action_set:
+            placeholder_dimensions = {"OTHER_PRIMARY_GOOD", "UNKNOWN"}
+            current_items = {
+                str(item.get("action_id", "")): item
+                for item in current.get("positions", [])
+                if isinstance(item, dict)
+            }
+            rawls_dimension_refinement = bool(
+                str(previous.get("ranking_basis", ""))
+                == str(current.get("ranking_basis", ""))
+                and not auxiliary_changed
+                and all(
+                    len(previous_positions[action_id]) == 1
+                    and len(current_positions[action_id]) == 1
+                    and previous_positions[action_id][0][0] == current_positions[action_id][0][0]
+                    and (
+                        previous_positions[action_id][0][1] == current_positions[action_id][0][1]
+                        or (
+                            previous_positions[action_id][0][1] in placeholder_dimensions
+                            and current_positions[action_id][0][1] not in placeholder_dimensions
+                            and str(current_items.get(action_id, {}).get("evidence_basis", ""))
+                            in {"ACTION_GRAPH", "SCENARIO"}
+                        )
+                    )
+                    for action_id in previous_positions
+                )
+                and any(
+                    previous_positions[action_id][0][1] != current_positions[action_id][0][1]
+                    for action_id in previous_positions
+                )
+            )
+        if rawls_dimension_refinement:
+            candidate.framework_constraint_retained = True
+            candidate.framework_retention_status = "REFINEMENT"
+            return
         changed = same_action_set and (
             str(previous.get("ranking_basis", ""))
             != str(current.get("ranking_basis", ""))
@@ -1616,8 +2574,19 @@ class CompactLocalSpecialist:
             )
         for action_id in sorted(set(previous_positions) & set(current_positions)):
             if previous_positions[action_id] != current_positions[action_id]:
-                old = "/".join(previous_positions[action_id])
-                new = "/".join(current_positions[action_id])
+                def format_typed_state(value: object) -> str:
+                    if isinstance(value, tuple) and value and all(
+                        isinstance(item, tuple) for item in value
+                    ):
+                        return " | ".join(
+                            "/".join(map(str, item)) for item in value
+                        )
+                    if isinstance(value, tuple):
+                        return "/".join(map(str, value))
+                    return str(value)
+
+                old = format_typed_state(previous_positions[action_id])
+                new = format_typed_state(current_positions[action_id])
                 change_details.append(f"{action_id} {old} -> {new}")
         if self.name == "rawlsian" and auxiliary_changed:
             change_details.append("basic-liberty comparison changed")
@@ -1634,10 +2603,161 @@ class CompactLocalSpecialist:
                 " ".join((explanation, candidate.rationale))
             )
         )
+        if self.name == "rawlsian" and previous_basis != current_basis:
+            rawls_change_ground = re.search(
+                r"\b(?:because|compared\s+to|relative\s+to|versus|vs\.?|"
+                r"better\s+off|worse\s+off|less\s+badly\s+off|more\s+badly\s+off|"
+                r"more\s+sever\w*|less\s+sever\w*|protect\w*|preserv\w*|"
+                r"impair\w*|infring\w*|surviv\w*)\b",
+                " ".join((explanation, candidate.rationale)),
+                re.IGNORECASE,
+            )
+            if not rawls_change_ground:
+                review_supplied_reason = False
         if review_supplied_reason:
             return
 
-        framework_name = "Rawlsian" if self.name == "rawlsian" else "Virtue"
+        # A rejected state mutation may still contain a useful, non-voting
+        # refinement. Admit only same-action, same-party Deontological changes
+        # that preserve verdict, relation, and priority. This lets the workspace
+        # retain a higher-level distinction (for example autonomy versus a
+        # consent-bearing right) without allowing it to rewrite the operative
+        # vote or framework ordering.
+        if self.name == "deontological" and same_action_set:
+            previous_items = {
+                str(item.get("action_id", "")): item
+                for item in previous.get("assessments", []) if isinstance(item, dict)
+            }
+            current_items = {
+                str(item.get("action_id", "")): item
+                for item in current.get("assessments", []) if isinstance(item, dict)
+            }
+            invariant_fields = (
+                "verdict", "relation", "governing_norm", "priority_basis",
+                "protected_party", "competing_protected_party",
+            )
+            refinement_fields = (
+                "competing_norm", "competing_norm_kind",
+                "competing_protected_standing",
+            )
+            for action_id in sorted(previous_items):
+                old = previous_items[action_id]
+                new = current_items.get(action_id, {})
+                if not new or any(
+                    str(old.get(field, "")) != str(new.get(field, ""))
+                    for field in invariant_fields
+                ):
+                    continue
+                changed_refinements = [
+                    field for field in refinement_fields
+                    if str(old.get(field, "")) != str(new.get(field, ""))
+                ]
+                if not changed_refinements:
+                    continue
+                old_construct = str(
+                    old.get("competing_norm")
+                    or old.get("competing_protected_standing")
+                    or old.get("competing_norm_kind", "claim")
+                )
+                new_construct = str(
+                    new.get("competing_norm")
+                    or new.get("competing_protected_standing")
+                    or new.get("competing_norm_kind", "claim")
+                )
+                party = str(
+                    new.get("competing_protected_party")
+                    or old.get("competing_protected_party")
+                    or "the competing claimant"
+                )
+                proposition = (
+                    f"Consider whether {party}'s {old_construct} is more precisely "
+                    f"understood as {new_construct}."
+                )
+                candidate.framework_insights.append({
+                    "insight_id": "",
+                    "action_id": action_id,
+                    "insight_kind": "REFINEMENT",
+                    "proposition": proposition,
+                    "normative_construct": new_construct,
+                    "relation_to_committed_state": "ELABORATES",
+                    "grounded_in": [action_id, "COMMITTED_FRAMEWORK_STATE"],
+                })
+
+            # A proposed resolution can fail while still noticing a legitimate
+            # part of the framework terrain. Preserve same-action, same-party
+            # normative observations independently of the rejected verdict,
+            # governing norm, priority, or authorization claim. They remain
+            # explicitly qualified and non-voting downstream.
+            observation_fields = (
+                "norm", "norm_kind", "protected_standing",
+                "competing_norm", "competing_norm_kind",
+                "competing_protected_standing", "competing_reason",
+            )
+            existing_propositions = {
+                str(item.get("proposition", "")).casefold()
+                for item in candidate.framework_insights
+            }
+            for action_id in sorted(previous_items):
+                old = previous_items[action_id]
+                new = current_items.get(action_id, {})
+                if not new:
+                    continue
+                same_parties = all(
+                    not str(old.get(field, "")).strip()
+                    or not str(new.get(field, "")).strip()
+                    or " ".join(str(old.get(field, "")).casefold().split())
+                    == " ".join(str(new.get(field, "")).casefold().split())
+                    for field in ("protected_party", "competing_protected_party")
+                )
+                if not same_parties:
+                    continue
+                changed = [
+                    field for field in observation_fields
+                    if str(new.get(field, "")).strip()
+                    and str(old.get(field, "")) != str(new.get(field, ""))
+                ]
+                if not changed:
+                    continue
+                primary_party = str(
+                    new.get("protected_party") or old.get("protected_party")
+                    or "the protected party"
+                )
+                competing_party = str(
+                    new.get("competing_protected_party")
+                    or old.get("competing_protected_party")
+                    or "the competing claimant"
+                )
+                primary = str(
+                    new.get("norm") or new.get("protected_standing")
+                    or new.get("norm_kind") or "a protected claim"
+                )
+                competing = str(
+                    new.get("competing_norm")
+                    or new.get("competing_protected_standing")
+                    or new.get("competing_norm_kind") or "a competing claim"
+                )
+                proposition = (
+                    f"For {action_id}, examine {primary_party}'s {primary} together "
+                    f"with {competing_party}'s {competing}."
+                )
+                if proposition.casefold() in existing_propositions:
+                    continue
+                existing_propositions.add(proposition.casefold())
+                candidate.framework_insights.append({
+                    "insight_id": "",
+                    "action_id": action_id,
+                    "insight_kind": "NORMATIVE_OBSERVATION",
+                    "proposition": proposition,
+                    "normative_construct": f"{primary} ↔ {competing}",
+                    "relation_to_committed_state": "QUALIFIES",
+                    "grounded_in": [action_id, "COMMITTED_FRAMEWORK_STATE"],
+                    "qualification": "FAILED_ADJUDICATION_NOT_AUTHORITY",
+                })
+
+        framework_name = {
+            "rawlsian": "Rawlsian", "virtue": "Virtue",
+            "deontological": "Deontological",
+        }[self.name]
         error = (
             f"{framework_name} principle state changed without a framework-relevant "
             f"workspace reason ({change_summary}); previous committed ledger preserved"
@@ -1668,8 +2788,10 @@ class CompactLocalSpecialist:
         # graph state. The vote remains visible but is epistemically damped.
         if self.name == "rawlsian":
             candidate.rawls_position_proposal = {}
-        else:
+        elif self.name == "virtue":
             candidate.virtue_character_proposal = {}
+        else:
+            candidate.deontological_ledger_proposal = {}
 
     def _evaluate_contingency(
         self,
@@ -1759,13 +2881,22 @@ framework remains operative. Do not restate the base case without applying failu
             baseline_status = str(self.baseline_status).strip().upper()
             if baseline_status == "UNAVAILABLE" and baseline_id != "NONE":
                 baseline_status = "DIRECT"
+            if baseline_status not in {
+                "DIRECT", "CONDITIONAL", "UNDERDETERMINED", "NORMATIVELY_CONTESTED",
+                "OUTSIDE_ACTION_SET", "OUTSIDE_ACTION_SET_WITH_FALLBACK",
+                "NO_POSITION", "PARSE_FAILURE", "UNAVAILABLE",
+            }:
+                baseline_status = "PARSE_FAILURE" if baseline_id == "NONE" else "DIRECT"
             provisional_id = (
                 self.baseline_provisional_action_id
                 if self.baseline_provisional_action_id in action_ids else "NONE"
             )
-            baseline_reference_id = (
-                baseline_id if baseline_status == "DIRECT" else provisional_id
-            )
+            if baseline_status in {"NO_POSITION", "PARSE_FAILURE"}:
+                baseline_reference_id = "NONE"
+            else:
+                baseline_reference_id = (
+                    baseline_id if baseline_status == "DIRECT" else provisional_id
+                )
             previous_id = (
                 self.previous_recommendation_id
                 if self.previous_recommendation_id in action_ids else ""
@@ -1774,6 +2905,13 @@ framework remains operative. Do not restate the base case without applying failu
                 "UNRESOLVED" if baseline_status in {
                     "UNDERDETERMINED", "NORMATIVELY_CONTESTED",
                 }
+                else baseline_status if baseline_status in {"NO_POSITION", "PARSE_FAILURE"}
+                else "SUPPORTS" if (
+                    baseline_status == "OUTSIDE_ACTION_SET_WITH_FALLBACK"
+                    and baseline_reference_id != "NONE"
+                    and choice_id == baseline_reference_id
+                )
+                else "RECONSIDERS" if baseline_status == "OUTSIDE_ACTION_SET_WITH_FALLBACK"
                 else "UNCLEAR" if baseline_reference_id == "NONE"
                 else "SUPPORTS" if choice_id == baseline_reference_id else "RECONSIDERS"
             )
@@ -1876,9 +3014,10 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
             baseline_status = "DIRECT"
         if baseline_status not in {
             "DIRECT", "CONDITIONAL", "UNDERDETERMINED", "NORMATIVELY_CONTESTED",
-            "OUTSIDE_ACTION_SET", "UNAVAILABLE",
+            "OUTSIDE_ACTION_SET", "OUTSIDE_ACTION_SET_WITH_FALLBACK",
+            "NO_POSITION", "PARSE_FAILURE", "UNAVAILABLE",
         }:
-            baseline_status = "DIRECT" if fixed_baseline != "NONE" else "UNAVAILABLE"
+            baseline_status = "DIRECT" if fixed_baseline != "NONE" else "PARSE_FAILURE"
         baseline_provisional = (
             self.baseline_provisional_action_id
             if self.baseline_provisional_action_id in {*action_ids, "NONE"}
@@ -1886,14 +3025,17 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
         )
         if baseline_status == "DIRECT":
             baseline_provisional = fixed_baseline
+        elif baseline_status in {"NO_POSITION", "PARSE_FAILURE"}:
+            baseline_provisional = "NONE"
         baseline_state = {
             "status": baseline_status,
             "committed_action": fixed_baseline,
             "provisional_action": baseline_provisional,
+            "preferred_extension": self.baseline_preferred_extension,
             "condition": self.baseline_condition or "NONE",
-            "framework_commitments": dict(self.baseline_framework_commitments or {}),
-            "numerical_role": self.baseline_numerical_role,
-        }
+                "framework_commitments": dict(self.baseline_framework_commitments or {}),
+                "numerical_role": self.baseline_numerical_role,
+            }
         schema = {
             "type": "object",
             "properties": {
@@ -2000,11 +3142,20 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                 "fa": {"type": "string", "maxLength": 140},
                 "fr": {"type": "boolean"},
                 "bd": {"type": "string", "enum": ["NONE", "LOW", "MEDIUM", "HIGH"]},
+                "fic": {
+                    "type": "array", "minItems": 0, "maxItems": 3,
+                    "items": {"type": "string", "minLength": 4, "maxLength": 180},
+                },
+                "foq": {
+                    "type": "array", "minItems": 0, "maxItems": 3,
+                    "items": {"type": "string", "minLength": 4, "maxLength": 180},
+                },
             },
             "required": [
                 "scores", "r", "c", "u", "w", "j", "e", "x", "l", "da", "t", "tf",
                 "dr", "ft", "nt", "z", "gu", "ev",
                 "ss", "am", "cc", "esa", "ia", "wp", "we", "fa", "fr", "bd",
+                "fic", "foq",
             ],
             "additionalProperties": False,
         }
@@ -2091,13 +3242,93 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                     "b": {"type": "string", "minLength": 1, "maxLength": 80},
                     "p": {"type": "string", "minLength": 1, "maxLength": 100},
                     "cn": {"type": "string", "minLength": 1, "maxLength": 100},
+                    "ck": {
+                        "type": "string",
+                        "enum": [
+                            "DUTY", "RIGHT", "AUTONOMY", "UNIVERSAL_LAW",
+                            "RESPECT_PERSONS", "OTHER", "UNKNOWN",
+                        ],
+                    },
+                    "crel": {
+                        "type": "string",
+                        "enum": ["SATISFIES", "CONSISTENT", "VIOLATES", "CONFLICTS", "UNCERTAIN"],
+                    },
+                    "cp": {"type": "string", "minLength": 1, "maxLength": 100},
+                    "crs": {"type": "string", "minLength": 4, "maxLength": 180},
+                    "gv": {
+                        "type": "string",
+                        "enum": ["PRIMARY", "COMPETING", "UNRESOLVED"],
+                    },
+                    "pb": {
+                        "type": "string",
+                        "enum": [
+                            "UNIVERSAL_LAW", "RESPECT_PERSONS", "PERFECT_DUTY",
+                            "RIGHTFUL_COERCION", "AUTONOMY", "UNRESOLVED",
+                        ],
+                    },
+                    "pr": {"type": "string", "minLength": 8, "maxLength": 180},
+                    "ps": {
+                        "type": "string", "enum": [
+                            "EXTERNAL_FREEDOM", "AUTONOMY", "EQUAL_JURIDICAL_STATUS",
+                            "BODILY_INTEGRITY", "CONSENT", "CONTRACTUAL_RIGHT",
+                            "SPECIAL_OBLIGATION", "OTHER", "UNKNOWN",
+                        ],
+                    },
+                    "cps": {
+                        "type": "string", "enum": [
+                            "EXTERNAL_FREEDOM", "AUTONOMY", "EQUAL_JURIDICAL_STATUS",
+                            "BODILY_INTEGRITY", "CONSENT", "CONTRACTUAL_RIGHT",
+                            "SPECIAL_OBLIGATION", "OTHER", "UNKNOWN",
+                        ],
+                    },
+                    "ki": {
+                        "type": "string", "enum": [
+                            "NONE", "PUBLIC", "PRIVATE", "INSTITUTIONAL",
+                            "INTERPERSONAL", "UNKNOWN",
+                        ],
+                    },
+                    "coa": {"type": "string", "minLength": 1, "maxLength": 100},
+                    "cop": {"type": "string", "minLength": 1, "maxLength": 100},
+                    "pj": {"type": "string", "minLength": 4, "maxLength": 180},
+                    "rec": {
+                        "type": "string", "enum": [
+                            "SATISFIED", "FAILED", "CONTESTED", "UNKNOWN",
+                        ],
+                    },
+                    "nec": {
+                        "type": "string", "enum": [
+                            "NECESSARY", "LESS_RESTRICTIVE_ROUTE_AVAILABLE",
+                            "CONTESTED", "UNKNOWN",
+                        ],
+                    },
+                    "auth": {
+                        "type": "string", "enum": [
+                            "JUSTIFIED", "UNJUSTIFIED", "CONTESTED", "UNKNOWN",
+                            "NOT_APPLICABLE",
+                        ],
+                    },
+                    "dv": {
+                        "type": "string", "enum": [
+                            "UNIVERSAL_LAW", "RECIPROCAL_EXTERNAL_FREEDOM",
+                            "RESPECT_PERSONS", "PERFECT_DUTY",
+                            "RIGHTFUL_PUBLIC_COERCION", "CONSENT", "UNRESOLVED",
+                        ],
+                    },
+                    "res": {
+                        "type": "string", "enum": ["RESOLVED", "CONTESTED", "UNKNOWN"],
+                    },
                     "g": {
                         "type": "string",
                         "enum": ["ACTION_GRAPH", "SCENARIO", "FRAMEWORK_ONLY", "UNKNOWN"],
                     },
                     "rs": {"type": "string", "minLength": 4, "maxLength": 180},
                 },
-                "required": ["v", "k", "n", "rel", "b", "p", "cn", "g", "rs"],
+                "required": [
+                    "v", "k", "n", "rel", "b", "p", "cn", "ck", "crel",
+                    "cp", "crs", "gv", "pb", "pr", "ps", "cps", "ki",
+                    "coa", "cop", "pj", "rec", "nec", "auth", "dv", "res",
+                    "g", "rs",
+                ],
                 "additionalProperties": False,
             }
             schema["properties"]["dp"] = {
@@ -2151,6 +3382,13 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                 "type": "object",
                 "properties": {
                     "g": {"type": "string", "minLength": 2, "maxLength": 100},
+                    "sk": {
+                        "type": "string",
+                        "enum": [
+                            "INDIVIDUAL", "GROUP", "INSTITUTION",
+                            "FUTURE_POPULATION", "CONSTITUENCY", "UNKNOWN",
+                        ],
+                    },
                     "d": {
                         "type": "string",
                         "enum": [
@@ -2159,9 +3397,45 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                             "OTHER_PRIMARY_GOOD", "UNKNOWN",
                         ],
                     },
+                    "ad": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "g": {"type": "string", "minLength": 2, "maxLength": 100},
+                                "sk": {
+                                    "type": "string",
+                                    "enum": [
+                                        "INDIVIDUAL", "GROUP", "INSTITUTION",
+                                        "FUTURE_POPULATION", "CONSTITUENCY", "UNKNOWN",
+                                    ],
+                                },
+                                "d": {
+                                    "type": "string",
+                                    "enum": [
+                                        "BASIC_LIBERTY", "OPPORTUNITY", "INCOME_WEALTH",
+                                        "POWERS_OFFICES", "SELF_RESPECT", "BASIC_INTEREST_SECURITY",
+                                        "OTHER_PRIMARY_GOOD", "UNKNOWN",
+                                    ],
+                                },
+                                "e": {
+                                    "type": "string",
+                                    "enum": ["IMPROVES", "PRESERVES", "WORSENS", "MIXED", "UNCERTAIN"],
+                                },
+                                "b": {
+                                    "type": "string",
+                                    "enum": ["ACTION_GRAPH", "SCENARIO", "FRAMEWORK_ONLY", "UNKNOWN"],
+                                },
+                                "rs": {"type": "string", "minLength": 4, "maxLength": 180},
+                            },
+                            "required": ["g", "sk", "d", "e", "b", "rs"],
+                            "additionalProperties": False,
+                        },
+                        "maxItems": 4,
+                    },
                     "e": {
                         "type": "string",
-                        "enum": ["IMPROVES", "PRESERVES", "WORSENS", "UNCERTAIN"],
+                        "enum": ["IMPROVES", "PRESERVES", "WORSENS", "MIXED", "UNCERTAIN"],
                     },
                     "ca": {"type": "string", "enum": action_ids},
                     "b": {
@@ -2170,13 +3444,23 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                     },
                     "rs": {"type": "string", "minLength": 4, "maxLength": 180},
                 },
-                "required": ["g", "d", "e", "ca", "b", "rs"],
+                "required": ["g", "sk", "d", "ad", "e", "ca", "b", "rs"],
                 "additionalProperties": False,
             }
             schema["properties"]["rp"] = {
                 "type": "object",
                 "properties": {
-                    action_id: rawls_position_schema for action_id in action_ids
+                    action_id: {
+                        **rawls_position_schema,
+                        "properties": {
+                            **rawls_position_schema["properties"],
+                            "ca": {
+                                "type": "string",
+                                "enum": [rival for rival in action_ids if rival != action_id],
+                            },
+                        },
+                    }
+                    for action_id in action_ids
                 },
                 "required": action_ids,
                 "additionalProperties": False,
@@ -2205,16 +3489,87 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                 "type": "string", "minLength": 8, "maxLength": 140,
             }
             schema["required"].extend(["rp", "rb", "lc"])
-        if broadcast.constraint == "CONSENSUS_AUDIT":
-            schema["properties"].update({
-                "d": {
-                    "type": "string",
-                    "enum": ["SUPPORTED", "CONDITIONAL", "UNDERDETERMINED"],
+        if broadcast.constraint == "PROPOSAL_REVIEW":
+            proposal_ids = [
+                str(item.get("proposal_id", "")).upper()
+                for item in (broadcast.problem_state or {}).get("proposals", [])
+                if item.get("promotion_status") == "UNDER_REVIEW"
+                and str(item.get("proposal_id", "")).strip()
+            ]
+            schema["properties"]["pr"] = {
+                "type": "object",
+                "properties": {
+                    "proposal_id": {"type": "string", "enum": proposal_ids or ["NONE"]},
+                    "framework_status": {
+                        "type": "string",
+                        "enum": ["SUPPORTS", "QUALIFIES", "OPPOSES", "UNDERDETERMINED"],
+                    },
+                    "framework_reason": {"type": "string", "minLength": 8, "maxLength": 240},
+                    "predicted_consequences": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "dimension": {"type": "string", "minLength": 2, "maxLength": 80},
+                                "subject": {"type": "string", "minLength": 2, "maxLength": 100},
+                                "direction": {
+                                    "type": "string",
+                                    "enum": ["IMPROVES", "PRESERVES", "WORSENS", "MIXED", "UNCERTAIN"],
+                                },
+                                "grounding_status": {
+                                    "type": "string",
+                                    "enum": ["PROPOSAL_TEXT", "SCENARIO_INHERITED", "HYPOTHETICAL"],
+                                },
+                                "provenance": {
+                                    "type": "array",
+                                    "items": {"type": "string", "minLength": 2, "maxLength": 80},
+                                    "minItems": 1,
+                                    "maxItems": 4,
+                                },
+                            },
+                            "required": [
+                                "dimension", "subject", "direction",
+                                "grounding_status", "provenance",
+                            ],
+                            "additionalProperties": False,
+                        },
+                        "maxItems": 8,
+                    },
+                    "feasibility_concerns": {
+                        "type": "array",
+                        "items": {"type": "string", "minLength": 2, "maxLength": 160},
+                        "maxItems": 6,
+                    },
+                    "required_conditions": {
+                        "type": "array",
+                        "items": {"type": "string", "minLength": 2, "maxLength": 160},
+                        "maxItems": 6,
+                    },
                 },
-                "a": {"type": "string"},
-                "v": {"type": "string"},
+                "required": [
+                    "proposal_id", "framework_status", "framework_reason",
+                    "predicted_consequences", "feasibility_concerns",
+                    "required_conditions",
+                ],
+                "additionalProperties": False,
+            }
+            schema["required"].append("pr")
+        if broadcast.constraint in _PROBLEM_AUDIT_CONSTRAINTS:
+            schema["properties"].update({
+                "ap": {
+                    "type": "string",
+                    "enum": [
+                        "RELEVANT", "IRRELEVANT", "TRANSLATED", "CONTESTED",
+                        "REVERSAL_RELEVANT", "UNRESOLVED",
+                    ],
+                },
+                "ax": {"type": "string", "minLength": 8, "maxLength": 240},
+                "ie": {
+                    "type": "string",
+                    "enum": ["NO_CHANGE", "WEAKENS", "REVERSES", "UNRESOLVED"],
+                },
             })
-            schema["required"].extend(["d", "a", "v"])
+            schema["required"].extend(["ap", "ax", "ie"])
         if broadcast.constraint == "PROBLEM_REFORMULATION":
             schema["properties"].update({
                 "bp": {"type": "string", "enum": [*action_ids, "SPLIT"]},
@@ -2278,11 +3633,28 @@ priority between the care commitments would settle the judgment.
                 '"nr":"SECONDARY","np":"numbers establish the scope of duties, not aggregate value",'
                 '"dp":{"A0":{"v":"PERMISSIBLE","k":"AUTONOMY",'
                 '"n":"respect competent choice","rel":"CONSISTENT","b":"decision maker",'
-                '"p":"affected person","cn":"NONE","g":"FRAMEWORK_ONLY",'
+                '"p":"affected person","cn":"duty of care","ck":"DUTY",'
+                '"crel":"CONSISTENT","cp":"dependent parties",'
+                '"crs":"A0 remains compatible with the secondary duty",'
+                '"gv":"PRIMARY","pb":"AUTONOMY",'
+                '"pr":"autonomy governs when no stricter duty is violated",'
+                '"ps":"AUTONOMY","cps":"SPECIAL_OBLIGATION","ki":"NONE",'
+                '"coa":"NONE","cop":"NONE","pj":"no coercion requires public authorization",'
+                '"rec":"SATISFIED","nec":"UNKNOWN","auth":"NOT_APPLICABLE",'
+                '"dv":"RESPECT_PERSONS","res":"RESOLVED","g":"FRAMEWORK_ONLY",'
                 '"rs":"A0 remains consistent with respect for autonomy"},'
                 '"A1":{"v":"PROHIBITED","k":"RESPECT_PERSONS",'
                 '"n":"do not instrumentalize persons","rel":"VIOLATES","b":"decision maker",'
-                '"p":"affected person","cn":"duty to rescue","g":"FRAMEWORK_ONLY",'
+                '"p":"affected person","cn":"duty to rescue","ck":"DUTY",'
+                '"crel":"CONFLICTS","cp":"persons at risk",'
+                '"crs":"The rescue duty remains a genuine opposing claim",'
+                '"gv":"PRIMARY","pb":"RESPECT_PERSONS",'
+                '"pr":"the prohibition on instrumentalization governs the conflict",'
+                '"ps":"BODILY_INTEGRITY","cps":"SPECIAL_OBLIGATION","ki":"INTERPERSONAL",'
+                '"coa":"decision maker","cop":"affected person",'
+                '"pj":"coercion cannot be reciprocal when it instrumentalizes its subject",'
+                '"rec":"FAILED","nec":"CONTESTED","auth":"UNJUSTIFIED",'
+                '"dv":"RESPECT_PERSONS","res":"RESOLVED","g":"FRAMEWORK_ONLY",'
                 '"rs":"A1 uses the affected person merely as a means"}}'
             )
             framework_prompt = """
@@ -2298,49 +3670,100 @@ non-consequential priority rule needed to settle the conflict in tf/nt.
 dp is the typed duty ledger for every action. v must match the fm prefix. k and n
 identify the norm; rel states whether the action SATISFIES, is CONSISTENT with,
 VIOLATES, or CONFLICTS with that norm; b is the duty bearer; p is the protected
-party; cn names a competing norm or NONE; g separates action/scenario grounding
-from framework interpretation; rs gives the shortest justification. A REQUIRED
+party; cn names the strongest competing norm. ck, crel, cp, and crs type that
+competing norm, its relation to the action, its protected party, and why it matters.
+Never reduce an explicitly stated autonomy or liberty burden to cn prose alone:
+represent it through ck=AUTONOMY or RIGHT and crel=VIOLATES or CONFLICTS. g separates
+action/scenario grounding from framework interpretation; rs gives the shortest justification. A REQUIRED
 verdict normally SATISFIES, PERMISSIBLE is CONSISTENT, PROHIBITED VIOLATES, and
-CONFLICTED CONFLICTS. Use rel=UNCERTAIN rather than forcing an inconsistent pair.
+CONFLICTED leaves priority unresolved. gv says whether the PRIMARY or COMPETING
+norm governs the separate overall verdict; pb gives the deontological priority basis;
+pr states the non-consequential priority rule. The overall verdict is derived from
+the governing norm, not necessarily the primary row: an action may be PROHIBITED
+while CONSISTENT with its primary norm when a competing violated duty governs.
+The short human-facing reason w must foreground that same deontological ground.
+Do not use a group's relative advantage or disadvantage as the reason by itself;
+identify the duty, right, universal law, autonomy claim, or respect-for-persons
+requirement governing how that group may be treated.
+The remaining dp fields encode the FORM of adjudication, never a memorized terrain.
+ps and cps classify the protected standing of the two current-run claims. ki identifies
+whether the action uses coercion; coa and cop name its current-scenario actor and
+coerced party, or NONE when ki=NONE. pj gives the public justification. rec tests
+whether the restriction is reciprocal, nec whether this coercive route is necessary,
+and auth records JUSTIFIED, UNJUSTIFIED, CONTESTED, UNKNOWN, or NOT_APPLICABLE.
+dv names the Kantian derivation actually used; res says whether the conflict is
+RESOLVED, CONTESTED, or UNKNOWN. A priority slogan such as "justice outweighs liberty"
+is not a derivation. For state or institutional coercion, explain why the restriction
+can coexist with each person's external freedom under a universal public rule. When
+that cannot be established, use auth=CONTESTED or UNKNOWN, dv=UNRESOLVED, res=CONTESTED,
+v=CONFLICTED, gv=UNRESOLVED, and keep the judgment provisional. Generate coa, cop,
+p, cp, n, cn, and pj anew from the current action graph and scenario. Never copy a
+party, institution, right, or coercion justification from another problem. Rawlsian
+terms such as fair equality of opportunity require an explicit translation into
+universal law, respect for persons, equal juridical status, or reciprocal external
+freedom; do not relabel them as perfect duties without that derivation.
 """
         elif self.name == "rawlsian":
             framework_example = (
-                ',"fm":{"A0":"PRESERVES: least-advantaged group keeps equal liberty",'
-                '"A1":"IMPROVES: worse-off group gains the relevant primary good"},'
-                '"nr":"DECISIVE","np":"same basic liberties make the least-advantaged position comparable",'
-                '"rp":{"A0":{"g":"least-advantaged group","d":"BASIC_LIBERTY",'
-                '"e":"PRESERVES","ca":"A1","b":"ACTION_GRAPH",'
-                '"rs":"A0 preserves its stated basic liberty"},'
-                '"A1":{"g":"worse-off group","d":"INCOME_WEALTH",'
-                '"e":"IMPROVES","ca":"A0","b":"ACTION_GRAPH",'
-                '"rs":"A1 supplies the stated primary good"}},'
+                ',"fm":{"A0":"MIXED: nursing-home residents retain equal liberty but another protected interest is burdened",'
+                '"A1":"MIXED: transport workers gain one primary good while another protected interest is burdened"},'
+                '"nr":"SECONDARY","np":"no explicit quantity governs this comparison",'
+                '"rp":{"A0":{"s":"nursing-home residents","sk":"GROUP","d":"BASIC_LIBERTY",'
+                '"ad":["INCOME_WEALTH"],"e":"MIXED","ca":"A1","b":"ACTION_GRAPH",'
+                '"rs":"A0 helps one protected interest but harms another"},'
+                '"A1":{"s":"transport workers","sk":"INDIVIDUAL","d":"INCOME_WEALTH",'
+                '"ad":["BASIC_LIBERTY"],"e":"MIXED","ca":"A0","b":"ACTION_GRAPH",'
+                '"rs":"A1 helps one protected interest but harms another"}},'
                 '"rb":"MAXIMIN_PRIMARY_GOODS",'
                 '"lc":{"A0":"SATISFIED","A1":"SATISFIED"}'
             )
             framework_prompt = """
-RAWLSIAN COMPARISON: fm must assess EVERY action. Start each value with IMPROVES:,
-PRESERVES:, WORSENS:, or UNCERTAIN:, then identify the least-advantaged affected
-group, its position relative to the rival action, and the relevant basic liberty,
-opportunity, or primary good. Do not say an action protects that group when no
-stated comparative fact supports it. nr states whether numerical magnitude is
-DECISIVE, SECONDARY, or IRRELEVANT; np must tie decisive quantities to the position
-of the least advantaged under compatible basic liberties, not aggregate welfare.
+RAWLSIAN COMPARISON: normalize each judgment to four pieces of state: action,
+affected subject, comparative effect, and principle basis. fm must assess EVERY
+action. Start each value with IMPROVES:, PRESERVES:, WORSENS:, MIXED:, or
+UNCERTAIN:,
+then identify the affected subject or constituency, the action's relative impact
+on that subject, and the relevant basic liberty, opportunity, primary good, or
+other Rawlsian basis. Do not say an action protects that subject when no stated
+comparative fact supports it. nr states whether numerical magnitude is DECISIVE,
+SECONDARY, or IRRELEVANT; np must tie decisive quantities to the relevant subject
+position, compatible basic liberties, or public-rule choice, not aggregate welfare.
+Use DECISIVE only when the scenario supplies an explicit quantity and cite that
+quantity in np. A Rawlsian principle may govern the decision while numerical
+magnitude remains SECONDARY or IRRELEVANT.
+Use MIXED when the same action helps one protected interest while burdening
+another, or when the comparison is still legitimately split across dimensions.
+Use ad for complete additional Rawls-relevant positions. Each ad entry must name
+its own affected subject (g), dimension (d), effect (e), evidence basis (b), and
+reason (rs). Do not copy the primary subject or effect when the scenario supports
+a different subject or direction on that dimension. Thus BASIC_LIBERTY and
+INCOME_WEALTH remain independently grounded rather than becoming one mixed label.
+In particular, g for BASIC_LIBERTY names the people whose liberty is restricted
+or preserved; g for INCOME_WEALTH names the people whose material position changes.
+These may be different constituencies in the same action. Never reuse the
+least-advantaged distributive group as the liberty subject unless the scenario
+also states that this group bears the liberty restriction or protection.
 If the frozen baseline is NORMATIVELY_CONTESTED, preserve the conflicting Rawlsian
 principles rather than its provisional action: use ss=PROVISIONAL, cc=false,
 u=RESOLVE_NORMATIVE_TENSION, and identify the priority question in tf/nt.
-rp is the proposed graph ledger. For each action, first identify who bears its
-gravest stated burden. Then identify a socially or institutionally least-advantaged
-group only when the scenario supports that relation. Do not equate “most harmed in
-this event” with Rawls's least advantaged, and do not choose the largest group, the
-action's beneficiaries, or the group favored by the current broadcast. When the
-scenario has no distributive structure, use ORIGINAL_POSITION_PUBLIC_RULE to test
-the public rule parties would accept under label uncertainty; do not fabricate a
-difference-principle beneficiary. d names the relevant basic liberty, opportunity,
-primary good, or basic interest in security; e must match the fm
-prefix; ca is the rival action ID; b says whether the relation comes from the action
-graph, the shared scenario, framework interpretation only, or remains unknown; rs
-states the shortest supporting reason. Use e=UNCERTAIN and b=UNKNOWN rather than
-inventing an action-to-group edge.
+rp is the proposed graph ledger. For each action, identify the subject or
+constituency actually affected, then identify the morally relevant comparative
+relation only when the scenario supports that relation. Do not equate “most
+harmed in this event” with Rawls's least advantaged, and do not choose the largest
+group, the action's beneficiaries, or the subject favored by the current broadcast.
+When the scenario explicitly identifies one least-advantaged constituency whose
+position differs across rival policies, use that same constituency as s for every
+policy in the comparison; do not switch to developers, taxpayers, officials, or
+another policy's beneficiaries merely because they gain under one action.
+When the scenario has no distributive structure, use ORIGINAL_POSITION_PUBLIC_RULE
+to test the public rule parties would accept under label uncertainty; do not
+fabricate a difference-principle beneficiary. s names the affected subject; sk
+names its kind; d names the relevant basic liberty, opportunity, primary good, or
+basic interest in security; e must match the fm prefix; ca is the rival action ID;
+b says whether the relation comes from the action graph, the shared scenario,
+framework interpretation only, or remains unknown; rs states the shortest
+supporting reason. Use e=UNCERTAIN and b=UNKNOWN rather than inventing an
+action-to-group edge.
 rb identifies the governing Rawlsian stage. Equal basic liberties have lexical
 priority; use the difference principle or maximin primary goods only after recording
 each action's liberty status in lc. The difference principle is not a synonym for
@@ -2357,6 +3780,19 @@ Rawlsian priority conflict that warrants the revision. When Previous graph-commi
 framework state is nonempty and no such reason exists, copy its ranking basis,
 liberty statuses, and action effects exactly; do not silently resolve an UNCERTAIN
 effect or UNRESOLVED ranking merely because the current broadcast is salient.
+Do not relabel an unresolved liberty comparison as BASIC_INTEREST_SECURITY unless the
+scenario states a concrete security or survival burden that is worse for one action
+than the rival. If you cannot name the comparative fact that makes one group better
+off or less badly off, keep rb=UNRESOLVED, ss=PROVISIONAL, cc=false, esa=false, and
+use UNCERTAIN rather than upgrading the basis.
+If every listed action remains contested yet one action is still the least harmful
+for the worst-off subject or constituency, you may use that as a provisional
+maximin fallback. Keep the action/subject comparison explicit, set rb=MAXIMIN_PRIMARY_GOODS
+when the comparison is about primary goods, or rb=ORIGINAL_POSITION_PUBLIC_RULE
+when the case is about a public rule rather than a distributive burden, and keep
+ss=PROVISIONAL with cc=false and esa=false. That fallback is still schema-compliant
+because it stays within the subject, effect, and principle_basis fields; it is not
+a new action or an invented group.
 """
         elif self.name == "virtue":
             framework_example = (
@@ -2413,6 +3849,18 @@ action. cd=true exactly when the ranking depends on an unknown consequence or
 comparison; then cm must name it, use ss=PROVISIONAL, cc=false, esa=false, and
 preserve uncertainty. A compact table is more important than listing remote effects.
 """
+        grounded_effect_context = [
+            {
+                "action_id": effect.action_id,
+                "subject": effect.affected_subject,
+                "dimension": effect.dimension,
+                "direction": effect.direction,
+                "qualifier": effect.magnitude_or_qualifier,
+                "source_clause_id": effect.source_clause_id,
+                "consequence_id": effect.consequence_id,
+            }
+            for effect in project_grounded_action_effects(self.scenario_graph)
+        ] if self.scenario_graph is not None else []
         prompt = f"""[INST]
 You are the {self.name} specialist in a bandwidth-limited ethical workspace.
 Task: {role}
@@ -2421,10 +3869,28 @@ Your original corpus-grounded testimony: {testimony}
 Frozen testimony baseline state: {json.dumps(baseline_state)}
 Previous cycle recommendation: {self.previous_recommendation_id or 'NONE'}
 Workspace: {broadcast.compact()}
+DELIBERATIVE STATE RULE: problem_state is a read-only description of attributed
+agent positions, confidences, constraints, conflicts, unresolved questions, and
+dissent. problem_delta describes attributed changes since the state received by
+the previous cycle; disappearance marked WITHDRAWN is not a solved question. The
+state is not scenario evidence and does not establish any framework's
+priority for another framework. Use it to notice neglected questions and actions;
+evaluate every attributed position independently under YOUR assigned framework.
+Only Scenario facts and Canonical grounded action effects can ground descriptive
+claims. Never copy the salient framework's priority rule into your own ledger.
 Scenario facts: {json.dumps(self.scenario_facts or {}, sort_keys=True)}
+Canonical grounded action effects: {json.dumps(grounded_effect_context[:24], sort_keys=True)}
 Prior contribution profile: {json.dumps(self.memory_profile or {}, sort_keys=True)}
 Active audited propositions: {json.dumps(self.epistemic_commitments[-3:])}
 Previous graph-committed framework state: {json.dumps(self.previous_framework_state)}
+Your preserved private framework contribution: {json.dumps(self.private_framework_contribution, sort_keys=True)}
+PRESERVATION CONTRACT: On a recurrent call, reconsider every item in your preserved
+private contribution, including when you supplied the current broadcast winner.
+The broadcast directs attention; it does not erase your prior grounds, unresolved
+conflicts, open questions, defeat conditions, or new considerations. Retain these
+in fic/foq and your framework fields unless YOUR framework resolves, defeats,
+refines, or reinterprets them for an explicit reason in j/fa. Do not copy another
+framework's vocabulary merely to acknowledge the broadcast.
 Action IDs: {json.dumps(action_legend)}
 Original testimony source labels: {json.dumps(self.source_action_legend or action_legend)}
 CRITICAL STATE MAPPING: the Action IDs above are immutable for this run. Every
@@ -2433,7 +3899,7 @@ refer to the physical action attached to that exact ID. Do not reuse a label fro
 the original testimony unless it denotes the same action in this mapping.
 
 Return ONLY compact JSON like:
-{{"scores":{{"A0":0.8,"A1":0.2}},"r":"A0","c":"{allowed_constraints[0]}","u":"NONE","w":"short reason","j":"NONE","e":"STATED_FACTS","x":"NONE","l":{{"A0":"best case A0","A1":"best case A1"}},"da":"decisive ethical axis","t":"attempted comparison rule","tf":"NONE","dr":"prefer A0 when its reason outweighs A1","ft":"NONE","nt":"prefer A1 if its value is overriding","z":0.8,"gu":{{"operation":"NONE","from_action":"NONE","to_action":"NONE","clauses":[]}},"ev":{{"A0":{{"value":0,"unit":"NONE","direction":"HARM","grounded":false}},"A1":{{"value":0,"unit":"NONE","direction":"HARM","grounded":false}}}},"ss":"SELECTED","am":{{"A0":"PERMISSIBLE","A1":"REJECTED"}},"cc":true,"esa":true,"ia":"A0","wp":"NOT_APPLICABLE","we":"NONE","fa":"NONE","fr":true,"bd":"NONE"{framework_example}}}
+{{"scores":{{"A0":0.8,"A1":0.2}},"r":"A0","c":"{allowed_constraints[0]}","u":"NONE","w":"short reason","j":"NONE","e":"STATED_FACTS","x":"NONE","l":{{"A0":"best case A0","A1":"best case A1"}},"da":"decisive ethical axis","t":"attempted comparison rule","tf":"NONE","dr":"prefer A0 when its reason outweighs A1","ft":"NONE","nt":"prefer A1 if its value is overriding","z":0.8,"gu":{{"operation":"NONE","from_action":"NONE","to_action":"NONE","clauses":[]}},"ev":{{"A0":{{"value":0,"unit":"NONE","direction":"HARM","grounded":false}},"A1":{{"value":0,"unit":"NONE","direction":"HARM","grounded":false}}}},"ss":"SELECTED","am":{{"A0":"PERMISSIBLE","A1":"REJECTED"}},"cc":true,"esa":true,"ia":"A0","wp":"NOT_APPLICABLE","we":"NONE","fa":"NONE","fr":true,"bd":"NONE","fic":[],"foq":[]{framework_example}}}
 Return scores for every action ID. recommended must have the highest score.
 r=recommended and must have the highest score. The frozen baseline was extracted
 separately from your testimony. Python derives whether the result supports or
@@ -2488,8 +3954,10 @@ a moral priority in ft or an empirical prediction in nt. At least one threshold
 should expose how the recommendation could change unless reversal truly requires a
 different scenario.
 gu is a proposed semantic-graph update. When ft contains a measurable threshold,
-encode it directly instead of asking middleware to recover it from prose. Set
-operation=BOUNDARY for one clause, AND/OR for 2-3 clauses, from_action=r, and
+encode it directly instead of asking middleware to recover it from prose. For
+utilitarian responses, default gu to NONE; only emit a single-clause
+operation=BOUNDARY when the threshold cleanly crosses away from the recommended
+action. Never emit AND/OR for utilitarian graph updates. Set from_action=r, and
 to_action to the action preferred when the predicate holds. Each clause names the
 affected action ID, metric, ADVERSE or BENEFICIAL valence, LT/LE/GT/GE comparator,
 numeric threshold, unit (PERCENT, COUNT, DAY, USD, etc.), and exact source_text.
@@ -2529,19 +3997,38 @@ justifies the change. Repetition or popularity is not new information. Otherwise
 When Workspace contingency is not NONE, directly analyze that failure condition.
 Score the original fallback actions for that branch and make w state the preferred
 fallback; do not merely repeat your general position on the original scenario.
-During CONSENSUS_AUDIT, test whether the leading action depends on facts not stated
-in the scenario. Add d=SUPPORTED, CONDITIONAL, or UNDERDETERMINED; a=the central
-assumption; v=a plausible factual condition that would reverse the recommendation.
-If d is not SUPPORTED, u must be VERIFY_FACTS or CLARIFY_SCENARIO. Do not treat
-agreement, vividness, temporal proximity, or an abstract group as evidence.
-An explicit scenario fact is not an unsupported assumption. If reversal would
-require changing the actor, actions, consent, causal structure, or another stated
-fact, use d=SUPPORTED, make a identify the fact supporting the judgment, and make v
-say that reversal requires a different scenario. Do not manufacture uncertainty.
+During CONSENSUS_AUDIT or PROBLEM_STATE_AUDIT, the workspace is auditing the supplied
+grounded issue; it is not imposing that issue as YOUR framework's decision rule.
+Return ap=RELEVANT when it directly matters within your framework, IRRELEVANT when
+your primary rule does not depend on it, TRANSLATED when your framework recognizes
+the terrain through a different relation, CONTESTED when the proposed comparison is
+normatively disputed, REVERSAL_RELEVANT when resolving it could reverse your ranking,
+or UNRESOLVED. Return ax with a framework-specific explanation. Legacy d/a/v fields
+are optional. Do not contort your framework merely to restate the audited variable.
+If you translate it, name the relation your framework actually evaluates.
+Use the typed audit variable in the broadcast: av.entity names the decision-critical
+entity, av.relation names the unresolved relation, av.possible_values lists the
+typed values under dispute, and av.focus_action identifies the action under review.
+If av.required_response is present, use its allowed_effects to report ie. If the
+relation is THIRD_PARTY_STATUS, state whether the entity is EXTERNAL_THIRD_PARTY,
+AUTHORIZED_INTERNAL_AGENT, or UNKNOWN; if AUTHORIZATION_SCOPE, state whether the
+permission covers this disclosure; otherwise answer the named relation without
+inventing a new ambiguity. Do not return a rewritten av object: the admitted
+ProblemState item remains authoritative. Your ap/ax response may reject or translate
+its normative relevance without changing its entity, provenance, or question.
 During PROBLEM_REFORMULATION, treat every supplied number as a hypothetical
 switch-point probe, not as a newly discovered scenario fact. Score the original
 actions at that boundary and use w and j to identify the framework-specific value
 tension that remains. Do not clear prior factual uncertainty or invent a third action.
+During PROPOSAL_REVIEW, the proposal in ProblemState.proposals is a hypothesis under
+review, not a live action. Score only the supplied scenario actions. Do not recommend
+or assign an action score to the proposal; identify proposal concerns only within your
+own framework reasoning until a later typed promotion step exists. Return pr with the
+exact proposal_id, framework_status, framework_reason, predicted_consequences,
+feasibility_concerns, and required_conditions. Each predicted consequence must name a
+dimension, subject, direction, grounding_status, and provenance. Use PROPOSAL_TEXT with
+P0-style proposal provenance, SCENARIO_INHERITED with C-style clause provenance, or
+HYPOTHETICAL; never present a prediction as a scenario-established fact.
 Also return bp=A0, A1, or SPLIT; dx=the decisive numeric dimension or categorical
 axis from the broadcast; and sv=the smallest directional change that would switch
 your recommendation. bp must match r unless bp=SPLIT. Generic references to harm,
@@ -2569,10 +4056,16 @@ Return vm=GROUNDED_BOUNDED only when the scenario states a bound on the missing
 magnitude. Otherwise vm=UNKNOWN: revise direction without inventing a plausible ceiling,
 range, population size, or claim that the hidden harm cannot approach a threshold.
 [/INST]"""
+        response_token_budget = (
+            max(512, self.max_tokens)
+            if broadcast.constraint == "PROPOSAL_REVIEW"
+            or broadcast.constraint in _PROBLEM_AUDIT_CONSTRAINTS
+            else self.max_tokens
+        )
         output = _call_json_llm(
             self.llm,
             prompt,
-            max_tokens=self.max_tokens,
+            max_tokens=response_token_budget,
             temperature=0.2,
             schema=schema,
         )
@@ -2594,6 +4087,7 @@ range, population size, or claim that the hidden harm cannot approach a threshol
                 baseline_provisional,
                 self.baseline_condition,
                 scenario,
+                self.baseline_preferred_extension,
             )
             self._audit_framework_state_change(candidate, broadcast)
             self.previous_recommendation_id = action_ids[actions.index(candidate.recommended_action)]
@@ -2617,19 +4111,26 @@ Also return ev for every action ID with value, unit, BENEFIT/HARM direction, and
 grounded boolean; use zero/NONE/false consistently when stated facts cannot compute EV.
 Also return passive fields ss, am, cc, esa, ia, wp, we, fa, fr, and bd. They describe
 the response but must not be used to alter scores merely for consistency.
+Also return fic and foq as arrays (maximum three each). fic contains only unresolved
+conflicts internal to YOUR framework; foq contains only questions that YOUR framework
+must answer to resolve or clarify its judgment. Use natural language and [] when none.
+These are attributed diagnostic records: do not copy another framework's priorities,
+turn them into scenario facts, or change scores merely to populate them.
 r must have the highest score and respect frozen baseline state {json.dumps(baseline_state)} initially.
 c must be one of: {', '.join(allowed_constraints)}. No prose.
-{('Also include d, a, v for the CONSENSUS_AUDIT; if d is not SUPPORTED, u cannot be NONE.' if broadcast.constraint == 'CONSENSUS_AUDIT' else '')}
+{('Also include ap and ax for the typed problem audit; respond from your own framework rather than copying the audit ontology.' if broadcast.constraint in _PROBLEM_AUDIT_CONSTRAINTS else '')}
+{('Also include typed pr for the exact UNDER_REVIEW proposal; keep r and scores limited to the supplied scenario actions.' if broadcast.constraint == 'PROPOSAL_REVIEW' else '')}
 {('Also include bp, dx, sv for the PROBLEM_REFORMULATION.' if broadcast.constraint == 'PROBLEM_REFORMULATION' else '')}
 {('Also include rr, rj, rv for REVERSAL_AUDIT.' if broadcast.constraint == 'REVERSAL_AUDIT' else '')}
 {('Also include vp, vj, vh, vm for VISIBILITY_AUDIT.' if broadcast.constraint == 'VISIBILITY_AUDIT' else '')}
 {('Also include cr and cj for CONTINGENCY_REVIEW; r must equal cr.' if broadcast.constraint == 'CONTINGENCY_REVIEW' else '')}
+{('Also include dp for every action with both claims and the complete generic coercion/adjudication form.' if self.name == 'deontological' else '')}
 {('Also include vl for every action and vb for the typed virtue ledger.' if self.name == 'virtue' else '')}
 [/INST]"""
             repaired = _call_json_llm(
                 self.llm,
                 repair_prompt,
-                max_tokens=max(128, self.max_tokens),
+                max_tokens=max(128, response_token_budget),
                 temperature=0.0,
                 schema=schema,
             )
@@ -2651,6 +4152,7 @@ c must be one of: {', '.join(allowed_constraints)}. No prose.
                     baseline_provisional,
                     self.baseline_condition,
                     scenario,
+                    self.baseline_preferred_extension,
                 )
                 self._audit_framework_state_change(candidate, broadcast)
                 self.previous_recommendation_id = action_ids[actions.index(candidate.recommended_action)]
@@ -2671,9 +4173,9 @@ c must be one of: {', '.join(allowed_constraints)}. No prose.
     @staticmethod
     def _context_class(broadcast: WorkspaceBroadcast) -> str:
         review_contexts = {
-            "VISIBILITY_AUDIT", "CONSENSUS_AUDIT", "REVERSAL_AUDIT",
+            "VISIBILITY_AUDIT", "CONSENSUS_AUDIT", "PROBLEM_STATE_AUDIT", "REVERSAL_AUDIT",
             "PROBLEM_REFORMULATION", "PLANNING_REVIEW", "CONTINGENCY_REVIEW",
-            "SYNTHESIS_REVIEW",
+            "SYNTHESIS_REVIEW", "PROPOSAL_REVIEW",
         }
         return broadcast.constraint if broadcast.constraint in review_contexts else "BASE"
 
@@ -2712,6 +4214,25 @@ c must be one of: {', '.join(allowed_constraints)}. No prose.
         landscape_cases: dict[str, str],
         errors: Sequence[str],
     ) -> list[str]:
+        graph_resolved: list[str] = []
+        for error in errors:
+            match = re.match(
+                r"(?:UNRESOLVED_RELATIONAL_PREMISE|COMPARATIVE_MAGNITUDE): "
+                r"case for A(?P<index>\d+) ",
+                error,
+            )
+            if match:
+                index = int(match.group("index"))
+                if index < len(actions) and grounded_action_claim_evidence(
+                    self.scenario_graph,
+                    f"A{index}",
+                    landscape_cases.get(actions[index], ""),
+                ):
+                    continue
+            graph_resolved.append(error)
+        errors = graph_resolved
+        if not errors:
+            return []
         if self.landscape_verifier is None:
             return list(errors)
         return self.landscape_verifier(
@@ -2789,6 +4310,7 @@ def _feasible_actions(data: dict[str, Any], scenario: str = "") -> list[str]:
     )
     if institutional_action and not institutional_context:
         raise ValueError("actions invent an institutional policymaker or implementation program")
+    _validate_lossless_action_set(actions, scenario)
     return actions
 
 
@@ -2811,10 +4333,12 @@ def extract_labeled_action_legend(scenario: str) -> dict[str, str]:
         second = second.split(".", 1)[0].strip(" ,;:.?")
         actions = [first, second]
         if all(len(action.split()) >= 2 for action in actions):
-            return {
+            legend = {
                 f"A{index}": action[0].upper() + action[1:]
                 for index, action in enumerate(actions)
             }
+            _validate_lossless_action_set(list(legend.values()), scenario)
+            return legend
     # Also accept labeled alternatives stated as adjacent sentences rather than
     # joined by a literal "or". Labels provide the boundary; consequences stay
     # attached to their own action. This is topic-independent.
@@ -2827,10 +4351,12 @@ def extract_labeled_action_legend(scenario: str) -> dict[str, str]:
     if sentence_labeled:
         actions = [value.strip(" ,;:.?") for value in sentence_labeled.groups()]
         if all(len(action.split()) >= 2 for action in actions):
-            return {
+            legend = {
                 f"A{index}": action[0].upper() + action[1:]
                 for index, action in enumerate(actions)
             }
+            _validate_lossless_action_set(list(legend.values()), scenario)
+            return legend
     # Preserve explicitly labeled alternatives before applying the looser
     # either/or recognizer. This form commonly carries long consequence clauses
     # whose labels, rather than verb symmetry, define the action boundary.
@@ -2850,10 +4376,12 @@ def extract_labeled_action_legend(scenario: str) -> dict[str, str]:
         second = second.split(".", 1)[0].strip(" ,;:.?")
         actions = [first, second]
         if all(len(action.split()) >= 2 for action in actions):
-            return {
+            legend = {
                 f"A{index}": action[0].upper() + action[1:]
                 for index, action in enumerate(actions)
             }
+            _validate_lossless_action_set(list(legend.values()), scenario)
+            return legend
     return {}
 
 
@@ -2899,6 +4427,23 @@ def extract_explicit_actions(scenario: str) -> list[str]:
         if action and action.lower() not in {item.lower() for item in actions}:
             actions.append(action[0].upper() + action[1:])
     return actions if len(actions) == 2 else []
+
+
+def _validate_lossless_action_set(actions: Sequence[str], scenario: str = "") -> None:
+    """Reject action sets that lose decision-critical meaning during admission."""
+    normalized_actions = [str(action) for action in actions]
+    if len(normalized_actions) != 2:
+        raise ValueError("canonical action set must contain exactly two actions")
+    problems = [
+        f"A{index}: {_truncate_words(action)}"
+        for index, action in enumerate(normalized_actions)
+        if not action_clause_looks_complete(action)
+    ]
+    if problems:
+        prefix = "incomplete or truncated action clause(s)"
+        if scenario:
+            prefix += " in scenario admission"
+        raise ValueError(f"{prefix}: " + "; ".join(problems))
 
 
 def extract_allocation_actions(scenario: str) -> list[str]:
@@ -3080,8 +4625,15 @@ def infer_testimony_stance(
     )
     terminal_direct_fallback: tuple[str, str] | None = None
 
+    def parse_failure(reason: str) -> TestimonyBaseline:
+        return TestimonyBaseline(status="PARSE_FAILURE", reason=reason)
+
+    def no_position(reason: str) -> TestimonyBaseline:
+        return TestimonyBaseline(status="NO_POSITION", reason=reason)
+
     def unavailable(reason: str) -> TestimonyBaseline:
-        return TestimonyBaseline(status="UNAVAILABLE", reason=reason)
+        # Backward-compatible alias for older call sites in this function.
+        return parse_failure(reason)
 
     def conclusion_is_conditional(text: str) -> bool:
         """Detect decision qualifications, not arbitrary antecedents in analysis."""
@@ -3196,17 +4748,18 @@ def infer_testimony_stance(
                 "type": "string",
                 "enum": [
                     "DIRECT", "CONDITIONAL", "UNDERDETERMINED",
-                    "NORMATIVELY_CONTESTED",
-                    "OUTSIDE_ACTION_SET",
+                    "NORMATIVELY_CONTESTED", "NO_POSITION",
+                    "OUTSIDE_ACTION_SET", "OUTSIDE_ACTION_SET_WITH_FALLBACK",
                 ],
             },
             "c": {"type": "string", "maxLength": 240},
+            "s": {"type": "string", "maxLength": 240},
             "x": {
                 "type": "array",
                 "items": {"type": "string", "enum": action_ids},
             },
         },
-        "required": ["b", "p", "w", "q", "c", "x"],
+        "required": ["b", "p", "w", "q", "c", "s", "x"],
         "additionalProperties": False,
     }
     if framework_construct_audit:
@@ -3256,30 +4809,45 @@ def infer_testimony_stance(
             construct_heading = "Deontological construct check"
         elif specialist_key == "rawlsian":
             map_example = {
-                "A0": "PRESERVES: least-advantaged group retains equal liberty",
-                "A1": "IMPROVES: worse-off group gains the primary good",
+                "A0": "MIXED: least-advantaged group retains equal liberty but another protected interest is burdened",
+                "A1": "MIXED: worse-off group gains one primary good while another burden remains",
             }
             detail = (
-                "Start each value IMPROVES:, PRESERVES:, WORSENS:, or UNCERTAIN:, "
+                "Start each value IMPROVES:, PRESERVES:, WORSENS:, MIXED:, or UNCERTAIN:, "
                 "then distinguish the gravest event burden from any socially "
                 "least-advantaged position actually stated, and name the relevant "
-                "basic liberty or primary good. In a non-distributive dilemma use "
-                "the public-rule/original-position test instead of inventing a "
+                "basic liberty or primary good. Use ad for any additional Rawls-relevant "
+                "dimensions that are also affected; do not rewrite the primary d dimension "
+                "just to add a second interest. In a non-distributive dilemma use the "
+                "public-rule/original-position test instead of inventing a "
                 "difference-principle beneficiary. Numbers can be DECISIVE only "
-                "for that position under compatible liberties."
+                "for that position under compatible liberties. If the case stays "
+                "contested across all listed actions, use a maximin fallback: choose "
+                "the action that least harms the worst-off subject or constituency, "
+                "but keep the comparison explicit and do not fabricate a least-"
+                "advantaged group."
             )
             conflict_name = "priority among Rawlsian principles"
             construct_heading = "Rawlsian construct check"
         else:
             map_example = {
-                "A0": "EXEMPLIFIES: responsible role expresses courage with prudence",
-                "A1": "MIXED: compassion risks imprudence in these circumstances",
+                "A0": "EXEMPLIFIES: prudent courage protects others while preserving agency",
+                "A1": "MIXED: heroic sacrifice risks reckless self-erasure in these circumstances",
             }
             detail = (
                 "Start each value EXEMPLIFIES:, MIXED:, UNDERMINES:, or UNCERTAIN:, "
                 "then identify the actor's role, virtues, vices, and circumstances "
-                "relevant to practical wisdom. Numbers can be DECISIVE only when "
-                "their stakes are connected to phronesis or flourishing."
+                "relevant to practical wisdom. Treat virtue as balanced flourishing, "
+                "not maximal altruism or heroic self-sacrifice. A virtuous response "
+                "may preserve the agent's agency, competence, and capacity to keep "
+                "doing good over time; courage must be tempered by prudence, and "
+                "compassion must not collapse into self-erasure. When direct action "
+                "imposes severe personal or family costs, explicitly compare at least "
+                "two virtue-shaped responses such as direct disclosure, protected "
+                "escalation, anonymous reporting, or phased disclosure. Do not treat "
+                "public self-sacrifice as the default expression of virtue. Numbers "
+                "can be DECISIVE only when their stakes are connected to phronesis "
+                "or sustainable flourishing."
             )
             conflict_name = "practical-wisdom priority among virtues"
             construct_heading = "Virtue-ethics construct check"
@@ -3292,6 +4860,11 @@ testimony. Use q=NORMATIVELY_CONTESTED when independent commitments inside this
 framework favor different actions and the testimony has no rule resolving their
 priority—even if it ends with a provisional recommendation. Then b=NONE, p may
 preserve that provisional action, and c must name the unresolved {conflict_name}.
+Use q=OUTSIDE_ACTION_SET_WITH_FALLBACK when the testimony leaves the dilemma by
+recommending an extension beyond the listed actions but still offers a fallback
+listed action; in that case s should state the preferred extension and p should
+name the fallback canonical action. Do not collapse this into OUTSIDE_ACTION_SET
+when a concrete fallback is still present.
 Do not classify ordinary factual uncertainty or mere tragedy as normative conflict.
 """
     prompt = f"""[INST]
@@ -3307,16 +4880,20 @@ on missing facts but the testimony gives a provisional direction. A statement li
 "choose A0 unless X" is CONDITIONAL, not DIRECT. q=UNDERDETERMINED when missing
 facts prevent even a provisional ranking. q=OUTSIDE_ACTION_SET when it evades the
 dilemma by recommending a sequence, compromise, delay, different treatment, or
-third option. For every non-DIRECT label, b must be NONE. Set p to the provisional
-canonical action for CONDITIONAL, and NONE otherwise. Set c to the missing factual
-comparison or switch condition for CONDITIONAL/UNDERDETERMINED, and NONE otherwise.
+third option. q=OUTSIDE_ACTION_SET_WITH_FALLBACK when the answer extends beyond
+the listed options but still names a fallback listed action. For every non-DIRECT
+label, b must be NONE. Set p to the provisional canonical action for CONDITIONAL
+or the fallback listed action for OUTSIDE_ACTION_SET_WITH_FALLBACK, and NONE
+otherwise. Set c to the missing factual comparison or switch condition for
+CONDITIONAL/UNDERDETERMINED, and NONE otherwise. Set s to the preferred extension
+text for OUTSIDE_ACTION_SET_WITH_FALLBACK, and NONE otherwise.
 Do not force the nearest action onto an evasive or unresolved conclusion. Source
 labels describe the scenario author's mapping; return the corresponding canonical
 workspace ID, not merely the same label text.
 x must list every canonical action the conclusion explicitly rejects. b may not
 also appear in x, and a provisional p may not be explicitly rejected.
 {construct_instruction}
-Return JSON only: {{"b":"NONE","p":"A0","w":"short evidence","q":"CONDITIONAL","c":"A0 unless the rival gain exceeds the other party loss","x":[]{baseline_example_extra}}}
+Return JSON only: {{"b":"NONE","p":"A0","w":"short evidence","q":"CONDITIONAL","c":"A0 unless the rival gain exceeds the other party loss","s":"NONE","x":[]{baseline_example_extra}}}
 [/INST]"""
     output = _call_json_llm(llm, prompt, max_tokens=max_tokens, temperature=0.0, schema=schema)
     raw = output["choices"][0]["text"] if isinstance(output, dict) else str(output)
@@ -3327,6 +4904,7 @@ Return JSON only: {{"b":"NONE","p":"A0","w":"short evidence","q":"CONDITIONAL","
         reason = " ".join(str(data.get("w", "")).split())[:240]
         quality = str(data.get("q", "DIRECT")).strip().upper()
         condition = " ".join(str(data.get("c", "NONE")).split())[:240]
+        preferred_extension = " ".join(str(data.get("s", "NONE")).split())[:240]
         raw_commitments = data.get("m", {}) if framework_construct_audit else {}
         commitments = {
             str(action_id).strip().upper(): " ".join(str(value).split())[:180]
@@ -3341,22 +4919,23 @@ Return JSON only: {{"b":"NONE","p":"A0","w":"short evidence","q":"CONDITIONAL","
             str(value).strip().upper() for value in raw_rejected
         } if isinstance(raw_rejected, list) else set()
         if isinstance(raw_rejected, list) and len(rejected) != len(raw_rejected):
-            return unavailable("baseline classifier repeated a rejected-action ID")
+            return parse_failure("baseline classifier repeated a rejected-action ID")
         system_rejected = {
             resolve_source_label(source_id)
             for source_id in terminal_rejected_source_ids
         } - {"NONE"}
         if quality not in {
             "DIRECT", "CONDITIONAL", "UNDERDETERMINED",
-            "NORMATIVELY_CONTESTED", "OUTSIDE_ACTION_SET"
+            "NORMATIVELY_CONTESTED", "OUTSIDE_ACTION_SET",
+            "OUTSIDE_ACTION_SET_WITH_FALLBACK", "NO_POSITION",
         }:
-            return unavailable("invalid baseline quality")
+            return parse_failure("invalid baseline quality")
         if baseline not in {*action_ids, "NONE"}:
-            return unavailable("invalid baseline ID")
+            return parse_failure("invalid baseline ID")
         if provisional not in {*action_ids, "NONE"}:
-            return unavailable("invalid provisional baseline ID")
+            return parse_failure("invalid provisional baseline ID")
         if rejected - set(action_ids):
-            return unavailable("invalid rejected-action ID")
+            return parse_failure("invalid rejected-action ID")
         if framework_construct_audit and set(commitments) != set(action_ids):
             if terminal_direct_fallback is not None:
                 return TestimonyBaseline(
@@ -3364,9 +4943,28 @@ Return JSON only: {{"b":"NONE","p":"A0","w":"short evidence","q":"CONDITIONAL","
                     action_id=terminal_direct_fallback[0],
                     reason=terminal_direct_fallback[1],
                 )
-            return unavailable("framework baseline omitted an action commitment")
+            if quality == "DIRECT" and baseline != "NONE":
+                return TestimonyBaseline(
+                    status="DIRECT",
+                    action_id=baseline,
+                    reason=reason,
+                    rejected_action_ids=all_rejected,
+                    framework_commitments=commitments,
+                    numerical_role=numerical_role,
+                )
+            if quality == "CONDITIONAL" and provisional != "NONE":
+                return TestimonyBaseline(
+                    status="CONDITIONAL",
+                    provisional_action_id=provisional,
+                    condition=condition,
+                    reason=reason,
+                    rejected_action_ids=all_rejected,
+                    framework_commitments=commitments,
+                    numerical_role=numerical_role,
+                )
+            return parse_failure("framework baseline omitted an action commitment")
         if framework_construct_audit and numerical_role not in {"DECISIVE", "SECONDARY", "IRRELEVANT"}:
-            return unavailable("framework baseline omitted the role of numerical magnitude")
+            return parse_failure("framework baseline omitted the role of numerical magnitude")
         if framework_construct_audit:
             mapped_commitments = {
                 legend[action_id]: assessment
@@ -3405,17 +5003,17 @@ Return JSON only: {{"b":"NONE","p":"A0","w":"short evidence","q":"CONDITIONAL","
                         reason=terminal_direct_fallback[1],
                         numerical_role=numerical_role,
                     )
-                return unavailable(structural_errors[0])
+                return parse_failure(structural_errors[0])
         if baseline != "NONE" and baseline in (rejected | system_rejected):
-            return unavailable("baseline classifier selected an explicitly rejected action")
+            return parse_failure("baseline classifier selected an explicitly rejected action")
         if provisional != "NONE" and provisional in (rejected | system_rejected):
-            return unavailable("baseline classifier provisionally selected an explicitly rejected action")
+            return parse_failure("baseline classifier provisionally selected an explicitly rejected action")
         all_rejected = sorted(rejected | system_rejected)
         if quality == "DIRECT":
             if baseline == "NONE":
-                return unavailable("direct baseline omitted its action ID")
+                return parse_failure("direct baseline omitted its action ID")
             if provisional not in {"NONE", baseline}:
-                return unavailable("direct and provisional baseline IDs disagree")
+                return parse_failure("direct and provisional baseline IDs disagree")
             return TestimonyBaseline(
                 status="DIRECT",
                 action_id=baseline,
@@ -3424,13 +5022,37 @@ Return JSON only: {{"b":"NONE","p":"A0","w":"short evidence","q":"CONDITIONAL","
                 framework_commitments=commitments,
                 numerical_role=numerical_role,
             )
+        if quality == "NO_POSITION":
+            if baseline != "NONE" or provisional != "NONE":
+                return parse_failure("no-position baseline must not name an action")
+            return TestimonyBaseline(
+                status="NO_POSITION",
+                reason=reason,
+                rejected_action_ids=all_rejected,
+                framework_commitments=commitments,
+                numerical_role=numerical_role,
+            )
+        if quality == "OUTSIDE_ACTION_SET_WITH_FALLBACK":
+            if provisional == "NONE":
+                return parse_failure("outside-set baseline omitted its fallback action")
+            if preferred_extension.casefold() == "none" or _semantic_word_count(preferred_extension) < 2:
+                return parse_failure("outside-set baseline omitted its preferred extension")
+            return TestimonyBaseline(
+                status="OUTSIDE_ACTION_SET_WITH_FALLBACK",
+                provisional_action_id=provisional,
+                preferred_extension=preferred_extension,
+                reason=reason,
+                rejected_action_ids=all_rejected,
+                framework_commitments=commitments,
+                numerical_role=numerical_role,
+            )
         if baseline != "NONE":
-            return unavailable("non-direct baseline improperly froze an action")
+            return parse_failure("non-direct baseline improperly froze an action")
         if quality == "CONDITIONAL":
             if provisional == "NONE":
-                return unavailable("conditional baseline omitted its provisional action")
+                return parse_failure("conditional baseline omitted its provisional action")
             if condition.casefold() == "none" or _semantic_word_count(condition) < 3:
-                return unavailable("conditional baseline omitted its switch condition")
+                return parse_failure("conditional baseline omitted its switch condition")
             return TestimonyBaseline(
                 status="CONDITIONAL",
                 provisional_action_id=provisional,
@@ -3442,7 +5064,7 @@ Return JSON only: {{"b":"NONE","p":"A0","w":"short evidence","q":"CONDITIONAL","
             )
         if quality == "UNDERDETERMINED":
             if condition.casefold() == "none" or _semantic_word_count(condition) < 3:
-                return unavailable("underdetermined baseline omitted the missing comparison")
+                return parse_failure("underdetermined baseline omitted the missing comparison")
             return TestimonyBaseline(
                 status="UNDERDETERMINED",
                 condition=condition,
@@ -3453,7 +5075,7 @@ Return JSON only: {{"b":"NONE","p":"A0","w":"short evidence","q":"CONDITIONAL","
             )
         if quality == "NORMATIVELY_CONTESTED":
             if condition.casefold() == "none" or _semantic_word_count(condition) < 3:
-                return unavailable("contested baseline omitted its framework-priority conflict")
+                return parse_failure("contested baseline omitted its framework-priority conflict")
             return TestimonyBaseline(
                 status="NORMATIVELY_CONTESTED",
                 provisional_action_id=provisional,
@@ -3471,7 +5093,7 @@ Return JSON only: {{"b":"NONE","p":"A0","w":"short evidence","q":"CONDITIONAL","
             numerical_role=numerical_role,
         )
     except (ValueError, json.JSONDecodeError) as exc:
-        return unavailable(f"baseline extraction failed: {exc}"[:240])
+        return parse_failure(f"baseline extraction failed: {exc}"[:240])
 
 
 def infer_testimony_baseline(
@@ -3511,12 +5133,15 @@ def _compact_testimony(testimony: str, limit: int) -> str:
 def propose_actions(llm: Any, scenario: str, max_tokens: int = 128) -> list[str]:
     explicit_actions = extract_explicit_actions(scenario)
     if explicit_actions:
+        _validate_lossless_action_set(explicit_actions, scenario)
         return explicit_actions
     allocation_actions = extract_allocation_actions(scenario)
     if allocation_actions:
+        _validate_lossless_action_set(allocation_actions, scenario)
         return allocation_actions
     acceptability_actions = extract_acceptability_actions(scenario)
     if acceptability_actions:
+        _validate_lossless_action_set(acceptability_actions, scenario)
         return acceptability_actions
 
     action_schema = {
@@ -3575,7 +5200,9 @@ waiting, authorities, escape, rescue, or resources. Preserve genuinely closed ch
     )
     raw = output["choices"][0]["text"] if isinstance(output, dict) else str(output)
     try:
-        return _feasible_actions(_extract_json(raw), scenario)
+        actions = _feasible_actions(_extract_json(raw), scenario)
+        _validate_lossless_action_set(actions, scenario)
+        return actions
     except (ValueError, json.JSONDecodeError) as first_error:
         repair_prompt = f"""[INST]
 Repair this action plan: {raw[:400]}
@@ -3597,12 +5224,116 @@ the recurrent workspace may generate one later if disagreement warrants synthesi
         )
         repaired_raw = repaired["choices"][0]["text"] if isinstance(repaired, dict) else str(repaired)
         try:
-            return _feasible_actions(_extract_json(repaired_raw), scenario)
+            actions = _feasible_actions(_extract_json(repaired_raw), scenario)
+            _validate_lossless_action_set(actions, scenario)
+            return actions
         except (ValueError, json.JSONDecodeError) as repair_error:
             raise ValueError(
                 f"Action plan failed feasibility validation: initial={first_error}; "
                 f"repair={repair_error}"
             ) from repair_error
+
+
+def ground_actions_in_scenario(
+    llm: Any,
+    scenario: str,
+    actions: Sequence[str],
+    max_tokens: int = 160,
+) -> dict[str, Any]:
+    """Map every canonical action to explicit scenario clauses for graph provenance.
+
+    The model interprets the problem anew; deterministic validation only admits
+    existing clause IDs and exposes the complete mapping for later audit.
+    """
+    clauses = segment_scenario_clauses(scenario)
+    action_ids = [f"A{index}" for index in range(len(actions))]
+    clause_ids = [clause["clause_id"] for clause in clauses]
+    if not clauses:
+        return {"status": "UNAVAILABLE", "actions": {}, "errors": ["scenario has no source clauses"]}
+    row_schema = {
+        "type": "object",
+        "properties": {
+            "clause_ids": {
+                "type": "array", "minItems": 1, "maxItems": min(4, len(clause_ids)),
+                "items": {"type": "string", "enum": clause_ids},
+            },
+            "reason": {"type": "string", "minLength": 4, "maxLength": 160},
+        },
+        "required": ["clause_ids", "reason"],
+        "additionalProperties": False,
+    }
+    schema = {
+        "type": "object",
+        "properties": {
+            "actions": {
+                "type": "object",
+                "properties": {action_id: row_schema for action_id in action_ids},
+                "required": action_ids,
+                "additionalProperties": False,
+            },
+        },
+        "required": ["actions"],
+        "additionalProperties": False,
+    }
+    prompt = f"""[INST]
+Map each canonical action to the scenario clauses that state what that action is
+and what follows if it is chosen. This is source attribution, not ethical judgment.
+An action may cite multiple clauses. Cite only supplied clause IDs. Keep distinct
+alternatives mapped to distinct source clauses whenever the scenario distinguishes
+them. Shared background clauses may be cited by both only when genuinely applicable.
+An interrogative choice clause may be cited as mapping context, but it is not itself
+an assertion that the consequences it mentions occur under every cited action.
+
+Canonical actions: {json.dumps(dict(zip(action_ids, actions)), sort_keys=True)}
+Scenario clauses: {json.dumps(clauses, ensure_ascii=False)}
+
+Return JSON only. For each action give clause_ids and a short mapping reason.
+[/INST]"""
+    try:
+        output = _call_json_llm(
+            llm, prompt, max_tokens=max_tokens, temperature=0.0, schema=schema,
+        )
+        raw = output["choices"][0]["text"] if isinstance(output, dict) else str(output)
+        data = _extract_json(raw)
+    except Exception as exc:
+        return {
+            "status": "REJECTED", "actions": {},
+            "errors": [f"action-source mapping failed: {type(exc).__name__}: {exc}"],
+            "clauses": clauses,
+        }
+    rows = data.get("actions", {}) if isinstance(data, dict) else {}
+    errors: list[str] = []
+    admitted: dict[str, dict[str, Any]] = {}
+    clause_lookup = {clause["clause_id"]: clause for clause in clauses}
+    if not isinstance(rows, dict) or set(rows) != set(action_ids):
+        errors.append("action-source mapping must cover every canonical action")
+    else:
+        for action_id, action in zip(action_ids, actions):
+            row = rows.get(action_id, {})
+            cited = row.get("clause_ids", []) if isinstance(row, dict) else []
+            if not isinstance(cited, list) or not cited:
+                errors.append(f"{action_id} lacks a source clause")
+                continue
+            invalid = [clause_id for clause_id in cited if clause_id not in clause_lookup]
+            if invalid:
+                errors.append(f"{action_id} cites unknown clauses: {invalid}")
+                continue
+            unique_ids = list(dict.fromkeys(str(value) for value in cited))
+            admitted[action_id] = {
+                "action": action,
+                "clause_ids": unique_ids,
+                "clauses": [clause_lookup[value] for value in unique_ids],
+                "reason": " ".join(str(row.get("reason", "")).split()),
+            }
+    cited_sets = [tuple(value.get("clause_ids", [])) for value in admitted.values()]
+    if len(admitted) > 1 and len(set(cited_sets)) == 1:
+        errors.append("distinct actions were mapped to identical source clauses")
+    return {
+        "status": "COMMITTED" if not errors else "REJECTED",
+        "actions": admitted if not errors else {},
+        "errors": errors,
+        "clauses": clauses,
+    }
 
 
 def propose_synthesis(
@@ -3628,15 +5359,34 @@ def propose_synthesis(
         and candidate.specialist.lower() in source_names
         and candidate.recommended_action
     }
+    closed_choice_scenario = _scenario_closes_action_set(scenario)
     if len(source_names) < 2 or len(constraints) < 2 or len(source_recommendations) < 2:
         return SynthesisProposal(
             "", [], [], 0.0, "", accepted=False,
             rejection_reason="insufficient disagreeing globally available evidence",
+            admission_status="WITHHOLD_FROM_REVIEW",
+            admission_annotations=[
+                "WITHHOLD_FROM_REVIEW: insufficient disagreeing globally available evidence",
+            ],
+        )
+    if closed_choice_scenario:
+        return SynthesisProposal(
+            "", [], [], 0.0, "", accepted=False,
+            rejection_reason=(
+                "CONTRADICTS_SCENARIO: scenario explicitly closes the action set; "
+                "a third action is unavailable; "
+                "UNVERIFIED_DESCRIPTIVE_CLAIM: temporal sharing is not supported by the scenario"
+            ),
+            admission_status="WITHHOLD_FROM_REVIEW",
+            admission_annotations=[
+                "CONTRADICTS_SCENARIO: scenario explicitly closes the action set; a third action is unavailable",
+                "UNVERIFIED_DESCRIPTIVE_CLAIM: temporal sharing is not supported by the scenario",
+            ],
         )
     schema = {
         "type": "object",
         "properties": {
-            "a": {"type": "string", "maxLength": 120},
+            "a": {"type": "string", "maxLength": 240},
             "g": {"type": "array", "minItems": 2, "maxItems": 5, "items": {"type": "string", "enum": source_names}},
             "k": {"type": "array", "minItems": 2, "maxItems": 5, "items": {"type": "string", "enum": constraints}},
             "q": {"type": "array", "maxItems": 1, "items": {"type": "string"}},
@@ -3703,7 +5453,7 @@ x means executable; n means non-evasive.
     normalized = proposal.action.casefold().strip(" .")
     if not normalized or normalized in {action.casefold().strip(" .") for action in actions}:
         reasons.append("not a distinct action")
-    if normalized and _scenario_closes_action_set(scenario):
+    if normalized and closed_choice_scenario:
         reasons.append("scenario explicitly closes the action set; a third action is unavailable")
     if len(proposal.grounded_in) < 2 or not set(proposal.grounded_in).issubset(set(source_names)):
         reasons.append("not grounded in available testimony")
@@ -3725,6 +5475,14 @@ x means executable; n means non-evasive.
         reasons.append("insufficiently feasible")
     if not proposal.non_evasive:
         reasons.append("evades rather than resolves the dilemma")
+    support_text = f"{scenario} {' '.join(testimonies.values())}".casefold()
+    admission_annotations = _synthesis_admission_annotations(
+        scenario,
+        proposal.action,
+        support_text,
+    )
+    if admission_annotations:
+        reasons.extend(admission_annotations)
     action_word_count = len(re.findall(r"\b[\w'-]+\b", proposal.action))
     procedural_terms = re.findall(
         r"\b(?:benchmark(?:s)?|survey(?:s)?|referendum|enforcement|monitor(?:ing)?|"
@@ -3742,7 +5500,6 @@ x means executable; n means non-evasive.
     ):
         reasons.append("over-engineered synthesis; use one minimal action clause")
     unsupported_escape = re.search(r"\b(?:call (?:the )?(?:police|authorities)|wait|flee|escape|obtain help|summon help)\b", normalized)
-    support_text = f"{scenario} {' '.join(testimonies.values())}".casefold()
     if unsupported_escape and unsupported_escape.group(0) not in support_text:
         reasons.append("introduces an unsupported escape or helper")
     unsupported_requirements = [
@@ -3800,6 +5557,8 @@ x means executable; n means non-evasive.
             + ", ".join(ungrounded_clauses[:2])
         )
     proposal.accepted = not reasons
+    proposal.admission_status = "ADMITTED" if proposal.accepted else "WITHHOLD_FROM_REVIEW"
+    proposal.admission_annotations = admission_annotations
     proposal.rejection_reason = "; ".join(reasons)
     return proposal
 
@@ -3999,6 +5758,18 @@ Return compact JSON only.
                 "planning introduced unsupported access conditions: "
                 + ", ".join(invented_access)
             )
+        failure_grounding_status, unsupported_planning_details = (
+            classify_planning_failure_grounding(
+                necessary, failure, scenario, actions, grounded_evidence,
+            )
+        )
+        if unsupported_planning_details:
+            raise ValueError(
+                "planning introduced concrete external details without provenance: "
+                + ", ".join(unsupported_planning_details)
+            )
+        if failure_grounding_status == "PLAUSIBLE_HYPOTHETICAL_FAILURE_CONDITION":
+            material = False
         broadcast_worthy = bool(
             material and fallback_available and (feasibility < 0.75 or fallback_id != target_id)
         )
@@ -4017,6 +5788,7 @@ Return compact JSON only.
             fallback_available=fallback_available,
             fallback_availability_reason=fallback_availability_reason,
             target_action_node_id=target_id,
+            failure_grounding_status=failure_grounding_status,
         )
     except Exception as exc:
         return PlanningAssessment(

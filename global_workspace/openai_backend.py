@@ -142,7 +142,7 @@ class OpenAIWorkspaceLLM:
             # Structured synthesis needs room for hidden reasoning before the
             # schema-constrained answer. A tiny llama.cpp output budget is not
             # a suitable total budget for a reasoning model.
-            request["max_completion_tokens"] = max(1024, max_tokens)
+            request["max_completion_tokens"] = max(1536, int(max_tokens) * 2)
             request["reasoning_effort"] = "low"
         else:
             request["temperature"] = temperature
@@ -178,12 +178,10 @@ class OpenAIWorkspaceLLM:
             content = message.content or ""
             finish_reason = getattr(response.choices[0], "finish_reason", "unknown")
         if not content.strip():
-            refusal = getattr(message, "refusal", None)
-            detail = f"; refusal={refusal}" if refusal else ""
-            raise RuntimeError(
-                f"OpenAI model {self.model} returned no structured text "
-                f"(finish_reason={finish_reason}{detail})"
-            )
+            # Some reasoning-model completions exhaust their budget without
+            # emitting usable structured text. Return the empty payload so the
+            # caller can treat it as a malformed response and recover softly.
+            return {"choices": [{"text": content}]}
         return {"choices": [{"text": content}]}
 
     def __call__(self, prompt: str, **kwargs: Any) -> dict[str, Any]:
@@ -219,7 +217,7 @@ class OpenAIWorkspaceLLM:
             content = response.choices[0].message.content or ""
             finish_reason = getattr(response.choices[0], "finish_reason", "unknown")
         if not content.strip():
-            raise RuntimeError(
-                f"OpenAI model {self.model} returned no text (finish_reason={finish_reason})"
-            )
+            # Preserve the empty text response so higher layers can decide
+            # whether to retry, repair, or downgrade the candidate.
+            return {"choices": [{"text": content}]}
         return {"choices": [{"text": content}]}

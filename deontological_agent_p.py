@@ -1,6 +1,7 @@
 
 
 from pathlib import Path
+from global_workspace.source_cache import build_source_cache_key
 LAST_QUERY_PATH = Path("agent_outputs/.last_query.txt")
 LAST_RESPONSE_PATH = Path("agent_outputs/.last_response.txt")
 import atexit
@@ -112,8 +113,12 @@ def respond_to_query(query: str, scenario_id: str, temperature: float = 0.4, max
         DEONTOLOGY_CORPUS_DIR,
         framework="deontological",
     )
-    cache_key = (
-        f"{DEONTOLOGY_PROMPT_VERSION}\n{retrieval_fingerprint}\n{query.strip()}"
+    cache_key = build_source_cache_key(
+        DEONTOLOGY_PROMPT_VERSION,
+        query,
+        scenario_id,
+        scenario_path,
+        retrieval_fingerprint,
     )
     reuse_source = (
         os.getenv("ETHICS_LLM_BACKEND", "local") == "local"

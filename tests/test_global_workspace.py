@@ -4,11 +4,15 @@ import unittest
 import base64
 import json
 import tempfile
+from dataclasses import asdict
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from global_workspace.engine import WorkspaceConfig, WorkspaceEngine
+from global_workspace.engine import (
+    WorkspaceConfig, WorkspaceEngine, _preserve_problem_state_after_invalid_cycle,
+    _problem_state_audit_probe, _operative_framework_candidates,
+)
 from global_workspace.action_identity import compile_action_identity
 from global_workspace.evidence_calibration import EvidenceCalibration
 from global_workspace.legacy_bridge import RESPONSE_MARKER, consult_original_agents
@@ -32,29 +36,50 @@ from global_workspace.local_specialists import (
     propose_synthesis,
 )
 from global_workspace.memory import EpisodicMemory, summarize_specialist_contributions
-from global_workspace.models import CalibrationOutcome, CandidateChunk, ContingencyFeasibilityAssessment, CycleRecord, FailureCondition, PlanningAssessment, ProblemReformulation, SynthesisProposal, VisibilityAssessment, WorkspaceBroadcast, WorkspaceResult
+from global_workspace.rawls_ledger import apply_rawls_ledger_transaction
+from global_workspace.deontology_ledger import (
+    DutyAssessmentProposal, apply_deontological_ledger_transaction,
+    calibrate_deontological_adjudication, committed_deontological_assessments,
+    render_deontological_adjudication,
+)
+from global_workspace.source_cache import build_source_cache_key
+from global_workspace.models import CalibrationOutcome, CandidateChunk, ContingencyFeasibilityAssessment, CycleRecord, FailureCondition, PlanningAssessment, PlanningBranchEvaluation, ProblemReformulation, ProposalFrameworkReview, SynthesisProposal, VisibilityAssessment, WorkspaceAccessDecision, WorkspaceBroadcast, WorkspaceResult
+from global_workspace.models import AutonomyAssessment
 from global_workspace.construct_validity import collect_typed_residue
 from global_workspace.contingency_graph import (
     certify_fallback_availability, compile_contingency_graph,
     validate_contingency_graph_dict,
 )
 from global_workspace.contingency_feasibility import verify_contingency_feasibility
+from global_workspace.deliberative_state import (
+    build_deliberative_problem_state,
+    observe_broadcast_influence,
+    update_broadcast_influence_persistence,
+)
+from global_workspace.landscape_validation import _comparative_claim_errors
 from global_workspace.middleware.moral_residue import collect_moral_residue
 from global_workspace.trace_health import audit_trace_health
 from global_workspace.graph_transactions import SemanticGraphStore
 from global_workspace.invariance import compare_label_permutation_traces
 from global_workspace.openai_backend import OpenAIWorkspaceLLM
-from global_workspace.presentation import render_public_judgment
-from global_workspace.semantic_state import project_authoritative_semantic_state
+from global_workspace.presentation import render_public_judgment, _support_reason
+from global_workspace.semantic_state import (
+    _derive_action_dimensions, project_authoritative_semantic_state,
+)
+from global_workspace.semantic_graph import SemanticGraph, SemanticNode, SemanticEdge
 from global_workspace.scenario_semantics import (
     canonicalize_action_order, canonicalize_deliberation_scenario,
     compile_scenario_graph, resolved_semantic_action_keys, semantic_action_key,
+    segment_scenario_clauses,
 )
 from global_workspace.scenario_semantics import (
     compile_action_burdens, compile_execution_obstacles,
     compile_observability_facts,
+    classify_planning_failure_grounding,
+    project_grounded_action_effects,
 )
 from global_workspace.structured_io import ModelCallUnavailable
+from global_workspace_pipeline import _baseline_display_action, render_summary
 
 
 class FixedSpecialist:
@@ -105,6 +130,1213 @@ def typed_reversal_proposal(source: str, target: str) -> dict:
 
 
 class WorkspaceEngineTests(unittest.TestCase):
+    def test_rejected_framework_update_uses_last_valid_candidate_operatively(self):
+        actions = ["preserve association", "mandate common schools"]
+        accepted = CandidateChunk(
+            specialist="virtue", constraint="CHARACTER",
+            action_scores={actions[0]: 0.65, actions[1]: 0.35},
+            surprise=0.2, friction=0.3, confidence=0.7,
+            recommended_action=actions[0],
+            rationale="Practical wisdom preserves plural forms of flourishing.",
+            decision_rule="Prefer A0 when plural flourishing remains viable.",
+        )
+        retained: dict[str, CandidateChunk] = {}
+        first = _operative_framework_candidates([accepted], retained, remember=True)
+        self.assertEqual(first[0].recommended_action, actions[0])
+
+        rejected = CandidateChunk(
+            specialist="virtue", constraint="CHARACTER",
+            action_scores={actions[0]: 0.05, actions[1]: 0.95},
+            surprise=1.0, friction=0.9, confidence=0.9,
+            recommended_action=actions[1],
+            rationale="The broadcast says duty requires common schools.",
+            decision_rule="Prefer A1 because duty governs.",
+            framework_retention_status="UPDATE_REJECTED",
+            framework_constraint_retained=True,
+            framework_validation_errors=["unjustified character-state reversal"],
+        )
+        operative = _operative_framework_candidates([rejected], retained, remember=True)
+
+        self.assertEqual(len(operative), 1)
+        self.assertEqual(operative[0].recommended_action, actions[0])
+        self.assertEqual(operative[0].action_scores, accepted.action_scores)
+        self.assertEqual(operative[0].rationale, accepted.rationale)
+        self.assertEqual(
+            operative[0].framework_retention_status,
+            "PRESERVED_AFTER_REJECTED_UPDATE",
+        )
+        self.assertNotEqual(operative[0].rationale, rejected.rationale)
+        first_state = _operative_framework_candidates(
+            [rejected], {}, remember=True,
+        )
+        self.assertEqual(len(first_state), 1)
+        self.assertEqual(first_state[0].recommended_action, actions[1])
+        self.assertTrue(first_state[0].framework_constraint_retained)
+        self.assertEqual(
+            first_state[0].framework_retention_status,
+            "FIRST_STATE_ADMITTED_WITH_WARNINGS",
+        )
+
+    def test_first_state_grounding_warning_does_not_suppress_valid_agent(self):
+        actions = ["preserve association", "mandate common schools"]
+        warned = CandidateChunk(
+            specialist="deontological", constraint="DUTY",
+            action_scores={actions[0]: 0.45, actions[1]: 0.55},
+            surprise=0.2, friction=0.1, confidence=0.55,
+            recommended_action=actions[1],
+            rationale="The competing claims remain unresolved.",
+            decision_rule="Keep authorization contested pending necessity.",
+            framework_constraint_retained=False,
+            framework_retention_status="COMMITTED_WITH_UNCERTAINTY",
+            framework_grounding_penalty=0.35,
+            framework_validation_errors=[
+                "necessity lacks grounded less-restrictive-route evidence",
+            ],
+        )
+        retained: dict[str, CandidateChunk] = {}
+
+        operative = _operative_framework_candidates(
+            [warned], retained, remember=True,
+        )
+
+        self.assertEqual(len(operative), 1)
+        self.assertEqual(operative[0].specialist, "deontological")
+        self.assertEqual(operative[0].recommended_action, actions[1])
+        self.assertEqual(operative[0].framework_grounding_penalty, 0.35)
+        self.assertEqual(
+            operative[0].framework_retention_status,
+            "FIRST_STATE_ADMITTED_WITH_WARNINGS",
+        )
+        self.assertIn("deontological", retained)
+
+    def test_rejected_deontology_refinement_survives_as_nonvoting_insight(self):
+        actions = ["permit private schools", "mandate public schools"]
+        specialist = CompactLocalSpecialist("deontological", llm=None)
+        specialist.previous_framework_state = {
+            "adjudication_form": "KANTIAN_CLAIM_COERCION_RESOLUTION",
+            "assessments": [{
+                "action_id": action_id, "verdict": "CONFLICTED",
+                "norm_kind": "UNIVERSAL_LAW", "relation": "CONFLICTS",
+                "competing_norm": "parental autonomy",
+                "competing_norm_kind": "AUTONOMY",
+                "competing_relation": "CONFLICTS",
+                "governing_norm": "UNRESOLVED", "priority_basis": "UNRESOLVED",
+                "protected_party": "children",
+                "competing_protected_party": "parents",
+                "protected_standing": "EQUAL_JURIDICAL_STATUS",
+                "competing_protected_standing": "AUTONOMY",
+                "coercion_kind": "PUBLIC" if action_id == "A1" else "NONE",
+                "authorization_status": "CONTESTED",
+                "derivation": "UNRESOLVED", "resolution_status": "CONTESTED",
+            } for action_id in ("A0", "A1")],
+        }
+        candidate = CandidateChunk(
+            specialist="deontological", constraint="DUTY",
+            action_scores={actions[0]: 0.45, actions[1]: 0.55},
+            surprise=0.1, friction=0.1, confidence=0.55,
+            recommended_action=actions[1],
+            rationale="Parental consent may specify the competing claim.",
+            deontological_ledger_proposal={"assessments": [{
+                **item,
+                "competing_norm": "parental consent right",
+                "competing_norm_kind": "RIGHT",
+                "competing_protected_standing": "CONSENT",
+                "evidence_basis": "FRAMEWORK_ONLY",
+            } for item in specialist.previous_framework_state["assessments"]]},
+        )
+
+        specialist._audit_framework_state_change(candidate, WorkspaceBroadcast(
+            constraint="CHARACTER",
+        ))
+
+        self.assertEqual(candidate.framework_retention_status, "UPDATE_REJECTED")
+        self.assertTrue(candidate.framework_insights)
+        self.assertEqual(candidate.framework_insights[0]["insight_kind"], "REFINEMENT")
+        self.assertEqual(candidate.framework_insights[0]["relation_to_committed_state"], "ELABORATES")
+
+        retained = CandidateChunk(
+            specialist="deontological", constraint="DUTY",
+            action_scores={actions[0]: 0.45, actions[1]: 0.55},
+            surprise=0.1, friction=0.1, confidence=0.55,
+            recommended_action=actions[1], rationale="Prior contested judgment.",
+        )
+        operative = _operative_framework_candidates(
+            [candidate], {"deontological": retained}, remember=True,
+        )
+        state = build_deliberative_problem_state(
+            2, actions, operative, actions[1], operative[0],
+        ).to_dict()
+
+        self.assertEqual(operative[0].rationale, "Prior contested judgment.")
+        self.assertGreaterEqual(len(state["framework_insights"]), 2)
+        self.assertTrue(all(
+            item["voting_effect"] == "NONE"
+            for item in state["framework_insights"]
+        ))
+        self.assertTrue(any(
+            "parental consent right" in item["proposition"]
+            for item in state["framework_insights"]
+        ))
+
+        overclaim = CandidateChunk(
+            specialist="deontological", constraint="DUTY",
+            action_scores={actions[0]: 0.1, actions[1]: 0.9},
+            surprise=0.8, friction=0.8, confidence=0.9,
+            recommended_action=actions[1],
+            rationale="The conflict is now resolved.",
+            deontological_ledger_proposal={"assessments": [{
+                **item,
+                "verdict": "REQUIRED",
+                "relation": "SATISFIES",
+                "governing_norm": "PRIMARY",
+                "priority_basis": "RESPECT_PERSONS",
+                "norm": "future juridical independence",
+                "evidence_basis": "FRAMEWORK_ONLY",
+            } for item in specialist.previous_framework_state["assessments"]]},
+        )
+        specialist._audit_framework_state_change(
+            overclaim, WorkspaceBroadcast(constraint="CHARACTER"),
+        )
+
+        self.assertEqual(overclaim.framework_retention_status, "UPDATE_REJECTED")
+        observations = [
+            item for item in overclaim.framework_insights
+            if item["insight_kind"] == "NORMATIVE_OBSERVATION"
+        ]
+        self.assertTrue(observations)
+        self.assertTrue(all(
+            item["qualification"] == "FAILED_ADJUDICATION_NOT_AUTHORITY"
+            for item in observations
+        ))
+        restored_overclaim = _operative_framework_candidates(
+            [overclaim], {"deontological": retained}, remember=True,
+        )[0]
+        self.assertEqual(restored_overclaim.action_scores, retained.action_scores)
+        self.assertEqual(restored_overclaim.rationale, retained.rationale)
+        self.assertTrue(restored_overclaim.framework_insights)
+
+    def test_framework_positions_do_not_manufacture_shared_dimensions(self):
+        states = _derive_action_dimensions(
+            rawlsian_positions=[{
+                "canonical_action_id": "A0",
+                "affected_subject": "parents",
+                "dimension": "BASIC_LIBERTY",
+                "effect": "WORSENS",
+                "epistemic_status": "FRAMEWORK_INTERPRETATION",
+                "assessment_node_id": "RAWLS_POSITION:test",
+            }],
+            utilitarian_consequences=[],
+            action_ids=["A0"],
+            grounded_action_effects=[],
+        )
+
+        self.assertEqual(states, [])
+
+    def test_deontological_adjudication_form_is_terrain_neutral(self):
+        actions = ["honor the refusal", "impose treatment"]
+        graph = compile_scenario_graph(
+            "A clinician must either honor a patient's refusal or impose treatment on the patient.",
+            actions,
+        )
+        proposal = {"assessments": [
+            {
+                "action_id": "A0", "verdict": "PERMISSIBLE",
+                "norm_kind": "AUTONOMY", "norm": "respect competent refusal",
+                "relation": "CONSISTENT", "duty_bearer": "clinician",
+                "protected_party": "patient", "competing_norm": "duty of care",
+                "competing_norm_kind": "DUTY", "competing_relation": "CONFLICTS",
+                "competing_protected_party": "patient",
+                "competing_reason": "care remains an opposing obligation",
+                "governing_norm": "PRIMARY", "priority_basis": "AUTONOMY",
+                "priority_rule": "competent refusal governs treatment",
+                "protected_standing": "CONSENT",
+                "competing_protected_standing": "SPECIAL_OBLIGATION",
+                "coercion_kind": "NONE", "coercive_actor": "NONE",
+                "coerced_party": "NONE",
+                "public_justification": "no coercion requires authorization",
+                "reciprocity_status": "SATISFIED", "necessity_status": "UNKNOWN",
+                "authorization_status": "NOT_APPLICABLE",
+                "derivation": "CONSENT", "resolution_status": "RESOLVED",
+                "evidence_basis": "SCENARIO", "reason": "honors the refusal",
+            },
+            {
+                "action_id": "A1", "verdict": "CONFLICTED",
+                "norm_kind": "AUTONOMY", "norm": "respect competent refusal",
+                "relation": "CONFLICTS", "duty_bearer": "clinician",
+                "protected_party": "patient", "competing_norm": "duty of care",
+                "competing_norm_kind": "DUTY", "competing_relation": "CONFLICTS",
+                "competing_protected_party": "patient",
+                "competing_reason": "treatment may protect the patient",
+                "governing_norm": "UNRESOLVED", "priority_basis": "UNRESOLVED",
+                "priority_rule": "authorization remains unresolved",
+                "protected_standing": "CONSENT",
+                "competing_protected_standing": "SPECIAL_OBLIGATION",
+                "coercion_kind": "INTERPERSONAL", "coercive_actor": "clinician",
+                "coerced_party": "patient",
+                "public_justification": "whether care authorizes overriding refusal",
+                "reciprocity_status": "CONTESTED", "necessity_status": "CONTESTED",
+                "authorization_status": "CONTESTED",
+                "derivation": "UNRESOLVED", "resolution_status": "CONTESTED",
+                "evidence_basis": "SCENARIO", "reason": "coercion remains contested",
+            },
+        ]}
+        store = SemanticGraphStore(graph)
+        record = apply_deontological_ledger_transaction(
+            store, proposal, cycle=1, specialist="deontological",
+            allowed_actions=tuple(actions),
+        )
+
+        self.assertIn(record.status, {"COMMITTED", "COMMITTED_WITH_UNCERTAINTY"})
+        committed = record.proposal["committed_assessments"]
+        self.assertEqual(committed[0]["derivation"], "CONSENT")
+        self.assertEqual(committed[1]["authorization_status"], "CONTESTED")
+        self.assertNotIn("education", json.dumps(committed).casefold())
+        projected = committed_deontological_assessments(store.graph)
+        self.assertEqual(projected[0]["protected_party"], "patient")
+        self.assertEqual(projected[0]["norm"], "respect competent refusal")
+        self.assertEqual(projected[0]["duty_bearer"], "clinician")
+
+    def test_deontological_coercion_terrain_rejects_foreign_entities(self):
+        actions = ["permit private schools", "mandate public schools"]
+        graph = compile_scenario_graph(
+            "The state may permit private schools or mandate public schools for parents and children.",
+            actions,
+        )
+        base = {
+            "verdict": "CONFLICTED", "norm_kind": "AUTONOMY",
+            "norm": "respect external freedom", "relation": "CONFLICTS",
+            "duty_bearer": "state", "protected_party": "parents",
+            "competing_norm": "protect children's independence",
+            "competing_norm_kind": "DUTY", "competing_relation": "CONFLICTS",
+            "competing_protected_party": "children",
+            "competing_reason": "both claims remain live",
+            "governing_norm": "UNRESOLVED", "priority_basis": "UNRESOLVED",
+            "priority_rule": "rightful coercion remains unresolved",
+            "protected_standing": "EXTERNAL_FREEDOM",
+            "competing_protected_standing": "EQUAL_JURIDICAL_STATUS",
+            "coercion_kind": "PUBLIC", "coercive_actor": "volunteer coordinator",
+            "coerced_party": "resident", "public_justification": "unresolved",
+            "reciprocity_status": "UNKNOWN", "necessity_status": "UNKNOWN",
+            "authorization_status": "UNKNOWN", "derivation": "UNRESOLVED",
+            "resolution_status": "CONTESTED", "evidence_basis": "SCENARIO",
+            "reason": "the claims conflict",
+        }
+        proposal = {"assessments": [
+            {"action_id": "A0", **base}, {"action_id": "A1", **base},
+        ]}
+        store = SemanticGraphStore(graph)
+        record = apply_deontological_ledger_transaction(
+            store, proposal, cycle=1, specialist="deontological",
+            allowed_actions=tuple(actions),
+        )
+
+        self.assertEqual(record.status, "COMMITTED_WITH_UNCERTAINTY")
+        self.assertTrue(any(
+            "coercion terrain lacks current-run actor/party grounding" in error
+            for error in record.errors
+        ))
+
+    def test_deontological_ledger_requires_kantian_bridge_for_rawlsian_term(self):
+        actions = ["act", "decline"]
+        graph = compile_scenario_graph(
+            "A decision maker must act for residents or decline.", actions,
+        )
+        assessment = {
+            "verdict": "REQUIRED", "norm_kind": "DUTY",
+            "norm": "secure fair equality of opportunity", "relation": "SATISFIES",
+            "duty_bearer": "decision maker", "protected_party": "residents",
+            "competing_norm": "administrative convenience",
+            "competing_norm_kind": "OTHER", "competing_relation": "CONFLICTS",
+            "competing_protected_party": "decision maker",
+            "competing_reason": "convenience opposes the duty",
+            "governing_norm": "PRIMARY", "priority_basis": "PERFECT_DUTY",
+            "priority_rule": "fair equality of opportunity is a perfect duty",
+            "protected_standing": "OTHER", "competing_protected_standing": "OTHER",
+            "coercion_kind": "NONE", "coercive_actor": "NONE", "coerced_party": "NONE",
+            "public_justification": "justice overrides convenience",
+            "reciprocity_status": "UNKNOWN", "necessity_status": "UNKNOWN",
+            "authorization_status": "NOT_APPLICABLE", "derivation": "PERFECT_DUTY",
+            "resolution_status": "RESOLVED", "evidence_basis": "FRAMEWORK_ONLY",
+            "reason": "justice requires action",
+        }
+        store = SemanticGraphStore(graph)
+        record = apply_deontological_ledger_transaction(
+            store,
+            {"assessments": [
+                {"action_id": "A0", **assessment},
+                {"action_id": "A1", **assessment},
+            ]},
+            cycle=1, specialist="deontological", allowed_actions=tuple(actions),
+        )
+
+        self.assertEqual(record.status, "REJECTED")
+        self.assertTrue(any(
+            "CROSS_FRAMEWORK_CONCEPT_UNTRANSLATED" in error
+            for error in record.errors
+        ))
+
+    def test_adjudication_calibration_downgrades_unsupported_public_monopoly(self):
+        actions = [
+            "Constitutionalize compulsory publicly funded public-only schooling",
+            "Guarantee parental choice of private schools",
+        ]
+        graph = compile_scenario_graph(
+            "The state may abolish private schooling and mandate public-only education, "
+            "restricting parents but improving children's educational opportunity, or "
+            "permit private schools, preserving parental choice but worsening opportunity.",
+            actions,
+        )
+        action = next(
+            node for node in graph.nodes.values()
+            if node.kind == "ACTION"
+            and node.attributes.get("canonical_action_id") == "A0"
+        )
+        proposed = DutyAssessmentProposal.model_validate({
+            "action_id": "A0", "verdict": "REQUIRED",
+            "norm_kind": "UNIVERSAL_LAW", "norm": "secure equal juridical standing",
+            "relation": "SATISFIES", "duty_bearer": "state",
+            "protected_party": "children", "competing_norm": "parental association",
+            "competing_norm_kind": "AUTONOMY", "competing_relation": "CONFLICTS",
+            "competing_protected_party": "parents",
+            "competing_reason": "public-only schooling restricts parental freedom",
+            "governing_norm": "PRIMARY", "priority_basis": "PERFECT_DUTY",
+            "priority_rule": "justice overrides associative liberty",
+            "protected_standing": "EQUAL_JURIDICAL_STATUS",
+            "competing_protected_standing": "EXTERNAL_FREEDOM",
+            "coercion_kind": "PUBLIC", "coercive_actor": "state",
+            "coerced_party": "parents",
+            "public_justification": "reciprocal law enabling equal freedom",
+            "reciprocity_status": "SATISFIED", "necessity_status": "NECESSARY",
+            "authorization_status": "JUSTIFIED", "derivation": "UNIVERSAL_LAW",
+            "resolution_status": "RESOLVED", "evidence_basis": "ACTION_GRAPH",
+            "reason": "justice overrides parental liberty",
+        })
+
+        calibration = calibrate_deontological_adjudication(graph, action, proposed)
+
+        self.assertFalse(calibration.calibrated)
+        self.assertEqual(calibration.assessment.verdict, "CONFLICTED")
+        self.assertEqual(calibration.assessment.necessity_status, "CONTESTED")
+        self.assertEqual(calibration.assessment.reciprocity_status, "CONTESTED")
+        self.assertEqual(calibration.assessment.authorization_status, "CONTESTED")
+        self.assertEqual(calibration.assessment.derivation, "UNRESOLVED")
+        self.assertEqual(calibration.assessment.resolution_status, "CONTESTED")
+
+    def test_calibrated_deontology_renderer_exposes_conflict_and_open_questions(self):
+        rationale, rule, conflicts, questions = render_deontological_adjudication({
+            "protected_party": "children",
+            "norm": "future juridical independence",
+            "competing_protected_party": "parents",
+            "competing_norm": "external freedom of association",
+            "coercive_actor": "state",
+            "coerced_party": "parents",
+            "resolution_status": "CONTESTED",
+            "calibration_errors": [
+                "necessity lacks grounded less-restrictive-route evidence",
+                "reciprocity lacks a two-party compatible-freedom derivation",
+            ],
+        })
+
+        self.assertIn("competing claims", rationale)
+        self.assertIn("Kantian judgment remains contested", rationale)
+        self.assertNotIn("justice overrides", rationale.casefold())
+        self.assertIn("less restrictive route", rule)
+        self.assertEqual(len(conflicts), 1)
+        self.assertTrue(any("compatible external freedom" in item for item in questions))
+
+    def test_calibrated_deontology_support_supersedes_direct_baseline(self):
+        action = "mandate public schooling"
+        candidate = {
+            "specialist": "deontological",
+            "rationale": "The Kantian judgment remains contested.",
+            "landscape_decisive_axis": "parental freedom versus child independence",
+        }
+        data = {
+            "actions": [action, "permit private schools"],
+            "source_baselines": {
+                "deontological": {
+                    "status": "DIRECT", "action_id": "A0",
+                    "reason": "Policy B is REQUIRED and Policy A is PROHIBITED.",
+                },
+            },
+            "source_action_legend": {"A0": action, "A1": "permit private schools"},
+            "authoritative_semantic_state": {
+                "deontological_assessments": [{
+                    "canonical_action_id": "A0",
+                    "resolution_status": "CONTESTED",
+                    "calibration_errors": ["necessity lacks grounding"],
+                }],
+            },
+        }
+
+        reason = _support_reason(data, candidate, action, data["actions"])
+
+        self.assertNotIn("REQUIRED", reason)
+        self.assertNotIn("PROHIBITED", reason)
+        self.assertIn("Kantian judgment remains contested", reason)
+
+    def test_noncoercive_authorization_mismatch_does_not_erase_duty_ledger(self):
+        actions = ["mandate public schooling", "permit private schools"]
+        common = {
+            "k": "AUTONOMY", "n": "protect external freedom", "rel": "CONFLICTS",
+            "b": "state", "p": "children", "cn": "parental association",
+            "ck": "RIGHT", "crel": "CONFLICTS", "cp": "parents",
+            "crs": "parental freedom remains a competing claim",
+            "gv": "UNRESOLVED", "pb": "UNRESOLVED",
+            "pr": "rightful coercion remains unresolved",
+            "ps": "EQUAL_JURIDICAL_STATUS", "cps": "EXTERNAL_FREEDOM",
+            "coa": "state", "cop": "parents", "pj": "unresolved",
+            "rec": "UNKNOWN", "nec": "UNKNOWN", "dv": "UNRESOLVED",
+            "res": "CONTESTED", "g": "ACTION_GRAPH",
+            "rs": "children and parents retain competing claims",
+        }
+        data = {
+            "scores": {"A0": 0.55, "A1": 0.45}, "r": "A0",
+            "c": "DUTY", "u": "RESOLVE_NORMATIVE_TENSION",
+            "w": "The competing claims remain unresolved.", "j": "NONE",
+            "e": "STATED_FACTS", "x": "NONE", "z": 0.6,
+            "fm": {
+                "A0": "CONFLICTED: public coercion requires justification",
+                "A1": "CONFLICTED: private ordering threatens children's standing",
+            },
+            "dp": {
+                "A0": {**common, "v": "CONFLICTED", "ki": "PUBLIC", "auth": "UNKNOWN"},
+                # The model's UNKNOWN authorization is harmless here because it
+                # has already said this action contains no coercion.
+                "A1": {**common, "v": "CONFLICTED", "ki": "NONE", "auth": "UNKNOWN"},
+            },
+        }
+
+        candidate = _candidate_from_data(
+            "deontological", actions, data, WorkspaceBroadcast(), "NONE", {},
+        )
+
+        assessments = candidate.deontological_ledger_proposal["assessments"]
+        self.assertEqual(len(assessments), 2)
+        self.assertEqual(assessments[0]["authorization_status"], "UNKNOWN")
+        self.assertEqual(assessments[1]["authorization_status"], "NOT_APPLICABLE")
+        self.assertFalse(any(
+            "non-coercive Deontological assessment" in error
+            for error in candidate.framework_validation_errors
+        ))
+
+    def test_engine_clears_scenario_local_framework_state_between_runs(self):
+        seen: list[dict[str, object]] = []
+
+        class ReusedSpecialist:
+            name = "deontological"
+            scenario_graph = None
+            previous_framework_state = {"party": "resident", "right": "privacy"}
+            previous_recommendation_id = "A1"
+            previous_confidence = 0.9
+            previous_context = "prior privacy case"
+            assumption_status = "SUPPORTED"
+            unsupported_assumption = "third-party disclosure"
+            reversal_condition = "resident authorizes disclosure"
+            epistemic_commitments = ["resident privacy"]
+
+            def evaluate(self, scenario, actions, broadcast):
+                seen.append(dict(self.previous_framework_state))
+                return CandidateChunk(
+                    specialist=self.name, constraint="DUTY",
+                    action_scores={actions[0]: 0.7, actions[1]: 0.3},
+                    surprise=0.1, friction=0.4, confidence=0.7,
+                    recommended_action=actions[0], rationale="respects current duty",
+                )
+
+        WorkspaceEngine(
+            [ReusedSpecialist()],
+            WorkspaceConfig(
+                max_cycles=1, min_valid_specialists=1,
+                enable_consensus_audit=False, enable_problem_state_audit=False,
+                enable_reversal_audit=False, enable_synthesis=False,
+                enable_planning=False,
+            ),
+        ).run("Choose the current action.", ["act", "decline"])
+
+        self.assertEqual(seen, [{}])
+
+    def test_framework_can_translate_audit_without_copying_its_ontology(self):
+        audit_variable = {
+            "entity": "autonomy loss versus welfare gain",
+            "relation": "COMPARATIVE_MAGNITUDE",
+            "possible_values": ["NO_CHANGE", "WEAKENS", "REVERSES", "UNRESOLVED"],
+            "focus_action": "A0",
+            "question": "Would resolving autonomy loss versus welfare gain change A0?",
+        }
+        candidate = _candidate_from_data(
+            "care", ["universal schooling", "private enclaves"], {
+                "scores": {"A0": 0.7, "A1": 0.3}, "r": "A0",
+                "c": "CARE", "u": "NONE",
+                "w": "dependency and autonomy remain connected", "j": "NONE",
+                "ap": "TRANSLATED",
+                "ax": "Care evaluates how both policies reshape dependency and relational vulnerability.",
+                "ie": "WEAKENS",
+            },
+            WorkspaceBroadcast(
+                constraint="CONSENSUS_AUDIT", audit_variable=audit_variable,
+            ),
+            "NONE", {},
+        )
+
+        self.assertTrue(candidate.schema_valid)
+        self.assertEqual(candidate.audit_participation, "TRANSLATED")
+        self.assertEqual(candidate.audit_variable, audit_variable)
+        self.assertEqual(candidate.assumption_status, "SUPPORTED")
+
+    def test_comparative_magnitude_question_is_mixed_uncertainty(self):
+        actions = ["preserve liberty", "increase welfare"]
+        util = CandidateChunk(
+            specialist="utilitarian", constraint="UNCERTAINTY",
+            action_scores={actions[0]: 0.51, actions[1]: 0.49},
+            surprise=0.1, friction=0.2, confidence=0.4,
+            recommended_action=actions[0], unresolved="VERIFY_FACTS",
+            assumption_status="UNDERDETERMINED",
+            unsupported_assumption="uncertain severity of autonomy loss versus welfare gain",
+        )
+        state = build_deliberative_problem_state(
+            1, actions, [util], actions[0], util,
+        ).to_dict()
+        self.assertEqual(
+            state["unresolved_questions"][0]["uncertainty_kind"],
+            "MIXED_UNCERTAINTY",
+        )
+
+    def test_education_clause_projects_distinct_liberty_and_opportunity_effects(self):
+        scenario = (
+            "You are designing a foundational educational and child-welfare system. "
+            "Policy A maximizes freedom of association and parental liberty, but "
+            "systematically obliterates fair equality of opportunity for marginalized children. "
+            "Policy B severely restricts parental choice and freedom of association, but "
+            "guarantees structural equality of opportunity across socioeconomic classes."
+        )
+        actions = [
+            "Implement Policy B mandating universal public education and banning private schooling",
+            "Enact Policy A permitting private exclusive educational enclaves",
+        ]
+        clauses = segment_scenario_clauses(scenario)
+        graph = compile_scenario_graph(scenario, actions, {
+            "A0": {"clauses": [clauses[0], clauses[2]]},
+            "A1": {"clauses": [clauses[0], clauses[1]]},
+        })
+        effects = project_grounded_action_effects(graph)
+        facts = {(item.action_id, item.dimension, item.direction) for item in effects}
+
+        self.assertIn(("A0", "LIBERTY_AUTONOMY", "WORSENS"), facts)
+        self.assertIn(("A0", "OPPORTUNITY_ACCESS", "IMPROVES"), facts)
+        self.assertIn(("A1", "LIBERTY_AUTONOMY", "IMPROVES"), facts)
+        self.assertIn(("A1", "OPPORTUNITY_ACCESS", "WORSENS"), facts)
+        self.assertFalse(any(item.source_clause_id == "C0" for item in effects))
+
+    def test_deliberative_problem_state_is_attributed_and_complete(self):
+        actions = ["preserve liberty", "raise the material floor"]
+        rawls = CandidateChunk(
+            specialist="rawlsian", constraint="FAIRNESS",
+            action_scores={actions[0]: 0.8, actions[1]: 0.2},
+            surprise=0.2, friction=0.6, confidence=0.7,
+            recommended_action=actions[0],
+            rationale="Basic liberty has lexical priority.",
+            decision_rule="Preserve liberty before comparing material gains",
+        )
+        util = CandidateChunk(
+            specialist="utilitarian", constraint="UNCERTAINTY",
+            action_scores={actions[0]: 0.4, actions[1]: 0.6},
+            surprise=0.3, friction=0.2, confidence=0.45,
+            recommended_action=actions[1],
+            rationale="Aggregate welfare comparison remains uncertain.",
+            unresolved="VERIFY_FACTS",
+            utilitarian_missing_comparison="welfare cost of liberty loss versus poverty relief",
+        )
+
+        state = build_deliberative_problem_state(
+            1, actions, [rawls, util], actions[0], rawls,
+        ).to_dict()
+
+        self.assertEqual(
+            set(state), {
+                "cycle", "state_role", "live_actions", "agent_positions",
+                "active_constraints", "active_conflicts", "unresolved_questions",
+                "framework_internal_conflicts", "framework_specific_open_questions",
+                "framework_insights",
+                "workspace_contributions",
+                "dissenting_positions", "current_plurality", "salient_position",
+                "problem_delta", "support_composition", "surface_consensus",
+                "deliberative_consensus", "framework_warnings",
+                "audit_candidates",
+                "unresolved_categories", "primary_unresolved",
+                "proposals",
+            },
+        )
+        rawls_contract = next(
+            item for item in state["workspace_contributions"]
+            if item["agent"] == "rawlsian"
+        )
+        self.assertEqual(rawls_contract["tendency"], actions[0])
+        self.assertTrue(rawls_contract["core_ground"])
+        self.assertIn("unresolved", rawls_contract)
+        self.assertIn("defeat_conditions", rawls_contract)
+        self.assertIn("new_considerations", rawls_contract)
+        self.assertEqual(rawls_contract["voting_effect"], "NONE")
+        self.assertEqual(
+            state["salient_position"]["workspace_contribution"]["agent"],
+            "rawlsian",
+        )
+        self.assertEqual(len(state["agent_positions"]), 2)
+        self.assertEqual(state["dissenting_positions"][0]["specialist"], "utilitarian")
+        self.assertTrue(all(
+            item["source_type"] == "FRAMEWORK_ATTRIBUTED"
+            for item in state["active_constraints"]
+        ))
+        self.assertEqual(
+            state["salient_position"]["source_type"],
+            "FRAMEWORK_ATTRIBUTED_POSITION",
+        )
+        self.assertIn(
+            "Preserve liberty before comparing material gains",
+            state["salient_position"]["conditional_justification"],
+        )
+        self.assertNotIn("rationale", state["agent_positions"][0])
+
+    def test_private_workspace_contribution_returns_only_to_its_specialist(self):
+        seen: dict[str, list[dict[str, object]]] = {
+            "deontological": [], "care": [],
+        }
+
+        class RecurrentSpecialist:
+            scenario_graph = None
+            previous_framework_state = {}
+            private_framework_contribution = {}
+
+            def __init__(self, name, constraint):
+                self.name = name
+                self.constraint = constraint
+
+            def evaluate(self, scenario, actions, broadcast):
+                seen[self.name].append(dict(self.private_framework_contribution))
+                return CandidateChunk(
+                    specialist=self.name, constraint=self.constraint,
+                    action_scores={actions[0]: 0.7, actions[1]: 0.3},
+                    surprise=0.2, friction=0.4, confidence=0.7,
+                    recommended_action=actions[0],
+                    rationale=f"{self.name} preserves its own ground",
+                    decision_rule=f"prefer A0 under {self.constraint}",
+                    framework_specific_open_questions=[
+                        f"{self.name} unresolved question",
+                    ],
+                    normative_reversal_threshold=f"reverse if {self.name} ground fails",
+                )
+
+        result = WorkspaceEngine(
+            [
+                RecurrentSpecialist("deontological", "DUTY"),
+                RecurrentSpecialist("care", "CARE"),
+            ],
+            WorkspaceConfig(
+                max_cycles=2, stable_cycles_required=99,
+                min_valid_specialists=2, enable_consensus_audit=False,
+                enable_problem_state_audit=False, enable_reversal_audit=False,
+                enable_synthesis=False, enable_planning=False,
+                enable_ev_dominance_breaker=False,
+            ),
+        ).run("Choose one action.", ["act", "decline"])
+
+        self.assertEqual(seen["deontological"][0], {})
+        self.assertEqual(seen["care"][0], {})
+        self.assertEqual(
+            seen["deontological"][1]["agent"], "deontological",
+        )
+        self.assertEqual(seen["care"][1]["agent"], "care")
+        self.assertNotEqual(
+            seen["deontological"][1]["unresolved"],
+            seen["care"][1]["unresolved"],
+        )
+        self.assertEqual(
+            len(result.cycles[0].broadcast.problem_state["workspace_contributions"]),
+            2,
+        )
+
+    def test_recurrence_suspends_omitted_private_structure_instead_of_losing_it(self):
+        actions = ["act", "decline"]
+        first = CandidateChunk(
+            specialist="deontological", constraint="DUTY",
+            action_scores={actions[0]: 0.6, actions[1]: 0.4},
+            surprise=0.2, friction=0.2, confidence=0.6,
+            recommended_action=actions[0], rationale="Public duty remains contested",
+            framework_internal_conflicts=["equal freedom versus imposed coercion"],
+            framework_specific_open_questions=[
+                "whether a less restrictive route secures equal freedom",
+                "whether the rule is reciprocal",
+            ],
+        )
+        state1 = build_deliberative_problem_state(
+            1, actions, [first], actions[0], first,
+        ).to_dict()
+        recurrent = CandidateChunk(
+            specialist="deontological", constraint="DUTY",
+            action_scores={actions[0]: 0.6, actions[1]: 0.4},
+            surprise=0.2, friction=0.2, confidence=0.6,
+            recommended_action=actions[0], rationale="Public duty remains contested",
+            framework_specific_open_questions=["whether the rule is reciprocal"],
+            framework_retention_status="PRESERVED",
+        )
+        state2 = build_deliberative_problem_state(
+            2, actions, [recurrent], actions[0], recurrent, state1,
+        ).to_dict()
+        contribution = state2["workspace_contributions"][0]
+        self.assertIn(
+            "whether a less restrictive route secures equal freedom",
+            contribution["unresolved"],
+        )
+        suspended = [
+            item for item in contribution["preservation_transitions"]
+            if item["status"] == "SUSPENDED"
+        ]
+        self.assertTrue(any(
+            item["prior_item"] == "whether a less restrictive route secures equal freedom"
+            for item in suspended
+        ))
+        self.assertTrue(any(
+            item["question"] == "whether a less restrictive route secures equal freedom"
+            and item["status"] == "SUSPENDED"
+            for item in state2["framework_specific_open_questions"]
+        ))
+        self.assertTrue(any(
+            item["conflict"] == "equal freedom versus imposed coercion"
+            and item["status"] == "SUSPENDED"
+            for item in state2["framework_internal_conflicts"]
+        ))
+        self.assertIn(
+            contribution["retained_issue_visibility"],
+            {"EXPLICIT", "PARAPHRASED", "STRUCTURED_ONLY"},
+        )
+        self.assertTrue(contribution["visible_retained_issue"])
+
+    def test_broadcast_winner_receives_same_preservation_contract(self):
+        actions = ["act", "decline"]
+        winner = CandidateChunk(
+            specialist="care", constraint="CARE",
+            action_scores={actions[0]: 0.7, actions[1]: 0.3},
+            surprise=0.2, friction=0.4, confidence=0.7,
+            recommended_action=actions[0], rationale="Dependency concern is decisive",
+            framework_specific_open_questions=["whether relief creates domination"],
+        )
+        state1 = build_deliberative_problem_state(
+            1, actions, [winner], actions[0], winner,
+        ).to_dict()
+        compressed_winner = CandidateChunk(
+            specialist="care", constraint="CARE",
+            action_scores={actions[0]: 0.7, actions[1]: 0.3},
+            surprise=0.2, friction=0.4, confidence=0.7,
+            recommended_action=actions[0], rationale="Dependency concern is decisive",
+            framework_retention_status="PRESERVED",
+        )
+        state2 = build_deliberative_problem_state(
+            2, actions, [compressed_winner], actions[0], compressed_winner, state1,
+        ).to_dict()
+        contribution = state2["workspace_contributions"][0]
+        self.assertIn("whether relief creates domination", contribution["unresolved"])
+        self.assertIn(
+            "SUSPENDED",
+            {item["status"] for item in contribution["preservation_transitions"]},
+        )
+        self.assertEqual(contribution["retained_issue_visibility"], "OMITTED")
+        self.assertEqual(
+            contribution["visible_retained_issue"],
+            "whether relief creates domination",
+        )
+
+    def test_completed_cycle_broadcasts_typed_deliberative_state(self):
+        observed = []
+
+        class StateAwareSpecialist(FixedSpecialist):
+            def evaluate(self, scenario, actions, broadcast):
+                observed.append((self.name, broadcast.problem_state))
+                return super().evaluate(scenario, actions, broadcast)
+
+        result = WorkspaceEngine(
+            [
+                StateAwareSpecialist("care", "protect", "CARE"),
+                StateAwareSpecialist("duty", "protect", "DUTY"),
+            ],
+            WorkspaceConfig(
+                max_cycles=2,
+                stable_cycles_required=2,
+                enable_consensus_audit=False,
+                enable_reversal_audit=False,
+                enable_synthesis=False,
+                enable_planning=False,
+            ),
+        ).run("Choose whether to protect.", ["protect", "decline"])
+
+        second_cycle_states = [state for _name, state in observed[2:]]
+        self.assertTrue(second_cycle_states)
+        self.assertTrue(all(state["live_actions"] for state in second_cycle_states))
+        self.assertTrue(all(state["agent_positions"] for state in second_cycle_states))
+        self.assertTrue(all(
+            state["salient_position"]["source_type"]
+            == "FRAMEWORK_ATTRIBUTED_POSITION"
+            for state in second_cycle_states
+        ))
+        self.assertEqual(
+            result.deliberative_problem_state["current_plurality"], "protect",
+        )
+
+    def test_broadcast_influence_is_observed_without_changing_salience(self):
+        class UpdatingSpecialist(FixedSpecialist):
+            def evaluate(self, scenario, actions, broadcast):
+                chunk = super().evaluate(scenario, actions, broadcast)
+                if broadcast.problem_state:
+                    chunk.action_scores = {actions[0]: 0.72, actions[1]: 0.28}
+                    chunk.preference_strength = 0.44
+                    chunk.workspace_reasoning_effect = "NORMATIVE"
+                    chunk.self_reported_broadcast_dependence = "MEDIUM"
+                    chunk.framework_constraint_retained = True
+                    chunk.framework_retention_status = "PRESERVED"
+                return chunk
+
+        result = WorkspaceEngine(
+            [
+                UpdatingSpecialist("care", "protect", "CARE"),
+                UpdatingSpecialist("duty", "protect", "DUTY"),
+            ],
+            WorkspaceConfig(
+                max_cycles=2,
+                stable_cycles_required=3,
+                enable_consensus_audit=False,
+                enable_reversal_audit=False,
+                enable_synthesis=False,
+                enable_planning=False,
+            ),
+        ).run("Choose whether to protect.", ["protect", "decline"])
+
+        records = result.broadcast_influence_records
+        self.assertEqual(len(records), 2)
+        self.assertEqual({item["observation_lag"] for item in records}, {1})
+        self.assertTrue(all(
+            item["attribution_status"]
+            == "OBSERVED_AFTER_EXPOSURE_NOT_CAUSALLY_ESTABLISHED"
+            for item in records
+        ))
+        self.assertTrue(all(item["framework_retained"] for item in records))
+        translated = [
+            item for item in records
+            if item["receiving_agent"] != item["source_agent"]
+        ]
+        self.assertEqual(translated[0]["framework_effect"], "TRANSLATED")
+        self.assertEqual(translated[0]["influence_class"], "REFINEMENT")
+        # Phase one is observational: the hand-authored salience calculation is
+        # unchanged and contains no learned influence bonus.
+        self.assertFalse(hasattr(result.cycles[1].winner, "influence_bonus"))
+
+    def test_framework_capture_gates_observed_influence(self):
+        actions = ["protect", "decline"]
+        source = CandidateChunk(
+            specialist="duty", constraint="DUTY",
+            action_scores={"protect": 0.8, "decline": 0.2},
+            surprise=0.2, friction=0.6, confidence=0.8,
+            recommended_action="protect", rationale="Respect persons.",
+        )
+        first = build_deliberative_problem_state(
+            1, actions, [source], "protect", source,
+        ).to_dict()
+        captured = CandidateChunk(
+            specialist="rawlsian", constraint="WELFARE_MAXIMIZATION",
+            action_scores={"protect": 0.9, "decline": 0.1},
+            surprise=0.3, friction=0.7, confidence=0.7,
+            recommended_action="protect",
+            framework_constraint_retained=False,
+            framework_retention_status="LOST",
+            self_reported_broadcast_dependence="HIGH",
+        )
+        second = build_deliberative_problem_state(
+            2, actions, [captured], "protect", captured, first,
+        )
+        record = observe_broadcast_influence(first, second, [captured])[0]
+        self.assertEqual(record.framework_effect, "CAPTURED")
+        self.assertEqual(record.influence_class, "FRAMEWORK_CAPTURE")
+
+    def test_broadcast_influence_persistence_tracks_surviving_update(self):
+        actions = ["protect", "decline"]
+        source = CandidateChunk(
+            specialist="duty", constraint="DUTY",
+            action_scores={"protect": 0.8, "decline": 0.2},
+            surprise=0.2, friction=0.6, confidence=0.8,
+            recommended_action="protect", rationale="Respect persons.",
+        )
+        care_before = CandidateChunk(
+            specialist="care", constraint="CARE",
+            action_scores={"protect": 0.4, "decline": 0.6},
+            surprise=0.2, friction=0.2, confidence=0.6,
+            recommended_action="decline",
+        )
+        first = build_deliberative_problem_state(
+            1, actions, [source, care_before], "protect", source,
+        ).to_dict()
+        care_after = CandidateChunk(
+            specialist="care", constraint="CARE",
+            action_scores={"protect": 0.65, "decline": 0.35},
+            surprise=0.2, friction=0.3, confidence=0.65,
+            recommended_action="protect",
+            workspace_reasoning_effect="NORMATIVE",
+            self_reported_broadcast_dependence="MEDIUM",
+            framework_retention_status="PRESERVED",
+        )
+        second = build_deliberative_problem_state(
+            2, actions, [source, care_after], "protect", care_after, first,
+        )
+        records = [
+            item.to_dict()
+            for item in observe_broadcast_influence(first, second, [source, care_after])
+        ]
+        third = build_deliberative_problem_state(
+            3, actions, [source, care_after], "protect", care_after, second.to_dict(),
+        )
+        update_broadcast_influence_persistence(records, third)
+        care_record = next(
+            item for item in records if item["receiving_agent"] == "care"
+        )
+        self.assertEqual(care_record["framework_effect"], "TRANSLATED")
+        self.assertEqual(care_record["persistence"], "PERSISTENT")
+
+    def test_live_tension_engagement_is_bounded_and_integrity_gated(self):
+        problem_state = {
+            "unresolved_questions": [{
+                "source_specialist": "care", "category": "VERIFY_FACTS",
+                "question_key": "QUESTION:1",
+            }],
+            "active_conflicts": [{
+                "conflict_type": "ACTION_PREFERENCE",
+                "specialists": ["care", "duty"], "conflict_key": "CONFLICT:1",
+            }],
+        }
+        engaged = CandidateChunk(
+            specialist="care", constraint="CARE",
+            action_scores={"protect": 0.7, "decline": 0.3},
+            surprise=0.2, friction=0.3, confidence=0.7,
+            recommended_action="protect", unresolved="NONE",
+            workspace_reasoning_effect="FACTUAL",
+            workspace_proposition_response="QUALIFY",
+        )
+        score = WorkspaceEngine._tension_engagement(engaged, problem_state)
+        self.assertGreater(score, 0.5)
+        self.assertLessEqual(score, 1.0)
+        self.assertEqual(
+            set(engaged.tension_target_keys), {"QUESTION:1", "CONFLICT:1"},
+        )
+
+        captured = CandidateChunk(
+            specialist="care", constraint="FOREIGN_FRAMEWORK",
+            action_scores={"protect": 0.9, "decline": 0.1},
+            surprise=0.9, friction=0.9, confidence=0.9,
+            recommended_action="protect",
+            workspace_reasoning_effect="BOTH",
+            workspace_proposition_response="ACCEPT",
+            framework_constraint_retained=False,
+        )
+        self.assertEqual(
+            WorkspaceEngine._tension_engagement(captured, problem_state), 0.0,
+        )
+
+    def test_problem_delta_tracks_constraint_and_question_resolution(self):
+        actions = ["protect", "decline"]
+        care_first = CandidateChunk(
+            specialist="care", constraint="CARE",
+            action_scores={"protect": 0.7, "decline": 0.3},
+            surprise=0.2, friction=0.4, confidence=0.55,
+            recommended_action="protect", unresolved="VERIFY_FACTS",
+            unsupported_assumption="whether support reaches dependent residents",
+        )
+        duty_first = CandidateChunk(
+            specialist="duty", constraint="DUTY",
+            action_scores={"protect": 0.3, "decline": 0.7},
+            surprise=0.2, friction=0.4, confidence=0.7,
+            recommended_action="decline",
+        )
+        first = build_deliberative_problem_state(
+            1, actions, [care_first, duty_first], "protect", care_first,
+        ).to_dict()
+
+        care_second = CandidateChunk(
+            specialist="care", constraint="DEPENDENCY",
+            action_scores={"protect": 0.85, "decline": 0.15},
+            surprise=0.2, friction=0.7, confidence=0.82,
+            recommended_action="protect", unresolved="NONE",
+            workspace_reasoning_effect="FACTUAL",
+        )
+        duty_second = CandidateChunk(
+            specialist="duty", constraint="DUTY",
+            action_scores={"protect": 0.75, "decline": 0.25},
+            surprise=0.2, friction=0.5, confidence=0.78,
+            recommended_action="protect",
+        )
+        second = build_deliberative_problem_state(
+            2, actions, [care_second, duty_second], "protect", care_second, first,
+        ).to_dict()
+        delta = second["problem_delta"]
+
+        self.assertEqual(delta["from_cycle"], 1)
+        self.assertEqual(delta["to_cycle"], 2)
+        self.assertTrue(any(
+            change["specialist"] == "care"
+            and change["previous_constraint"] == "CARE"
+            and change["current_constraint"] == "DEPENDENCY"
+            for change in delta["constraint_changes"]
+        ))
+        self.assertTrue(any(
+            item["constraint"] == "DEPENDENCY" for item in delta["new_constraints"]
+        ))
+        self.assertTrue(any(
+            item["constraint"] == "CARE" for item in delta["removed_constraints"]
+        ))
+        self.assertTrue(any(
+            item["resolution_type"] == "RESOLVED_BY_SCENARIO_FACT"
+            for item in delta["resolved_questions"]
+        ))
+        self.assertTrue(any(
+            item["conflict_type"] == "ACTION_PREFERENCE"
+            and item["resolution_type"] == "RESOLVED_BY_DELIBERATIVE_CONVERGENCE"
+            for item in delta["resolved_conflicts"]
+        ))
+
+    def test_problem_state_tracks_framework_local_tensions_without_promoting_them(self):
+        actions = ["common schools", "private schools"]
+        rawls = CandidateChunk(
+            specialist="rawlsian", constraint="FAIRNESS",
+            action_scores={actions[0]: 0.6, actions[1]: 0.4},
+            surprise=0.2, friction=0.7, confidence=0.6,
+            recommended_action=actions[0],
+            framework_internal_conflicts=[
+                "basic liberty versus fair equality of opportunity",
+            ],
+            framework_specific_open_questions=[
+                "status of parental educational association",
+            ],
+        )
+        state = build_deliberative_problem_state(
+            1, actions, [rawls], actions[0], rawls,
+        ).to_dict()
+
+        local_conflict = state["framework_internal_conflicts"][0]
+        local_question = state["framework_specific_open_questions"][0]
+        self.assertEqual(local_conflict["source_specialist"], "rawlsian")
+        self.assertEqual(
+            local_conflict["source_type"],
+            "FRAMEWORK_ATTRIBUTED_INTERNAL_CONFLICT",
+        )
+        self.assertEqual(local_question["source_specialist"], "rawlsian")
+        self.assertFalse(any(
+            item.get("conflict_key") == local_conflict["conflict_key"]
+            for item in state["active_conflicts"]
+        ))
+        self.assertFalse(any(
+            item.get("question_key") == local_question["question_key"]
+            for item in state["unresolved_questions"]
+        ))
+
+    def test_problem_delta_distinguishes_internal_conflict_reframing(self):
+        actions = ["common schools", "private schools"]
+        first_candidate = CandidateChunk(
+            specialist="deontological", constraint="DUTY",
+            action_scores={actions[0]: 0.55, actions[1]: 0.45},
+            surprise=0.2, friction=0.7, confidence=0.55,
+            recommended_action=actions[0],
+            framework_internal_conflicts=[
+                "parental freedom versus the child's equal independence",
+            ],
+        )
+        first = build_deliberative_problem_state(
+            1, actions, [first_candidate], actions[0], first_candidate,
+        ).to_dict()
+        second_candidate = CandidateChunk(
+            specialist="deontological", constraint="DUTY",
+            action_scores={actions[0]: 0.55, actions[1]: 0.45},
+            surprise=0.2, friction=0.7, confidence=0.55,
+            recommended_action=actions[0],
+            framework_internal_conflicts=[
+                "parental autonomy versus children's claims to equal freedom",
+            ],
+        )
+        second = build_deliberative_problem_state(
+            2, actions, [second_candidate], actions[0], second_candidate, first,
+        ).to_dict()
+        delta = second["problem_delta"]
+
+        self.assertEqual(len(delta["reframed_internal_conflicts"]), 1)
+        self.assertEqual(delta["new_internal_conflicts"], ())
+        self.assertEqual(delta["resolved_internal_conflicts"], ())
+
+        old_issue = first["framework_internal_conflicts"][0]
+        new_issue = second["framework_internal_conflicts"][0]
+        self.assertEqual(old_issue["issue_key"], new_issue["issue_key"])
+        self.assertIn(
+            old_issue["conflict"], new_issue["wording_history"],
+        )
+
+    def test_framework_issue_type_validation_reclassifies_question_from_conflict_field(self):
+        actions = ["common schools", "private schools"]
+        candidate = CandidateChunk(
+            specialist="deontological", constraint="DUTY",
+            action_scores={actions[0]: 0.55, actions[1]: 0.45},
+            surprise=0.2, friction=0.7, confidence=0.55,
+            recommended_action=actions[0],
+            framework_internal_conflicts=["whether less restrictive means exist"],
+        )
+        state = build_deliberative_problem_state(
+            1, actions, [candidate], actions[0], candidate,
+        ).to_dict()
+
+        self.assertEqual(state["framework_internal_conflicts"], [])
+        self.assertEqual(len(state["framework_specific_open_questions"]), 1)
+        issue = state["framework_specific_open_questions"][0]
+        self.assertEqual(issue["issue_type"], "OPEN_QUESTION")
+        self.assertEqual(issue["question"], "whether less restrictive means exist")
+
+    def test_equivalent_open_question_keeps_one_live_wording_and_prior_history(self):
+        actions = ["common schools", "private schools"]
+        first_candidate = CandidateChunk(
+            specialist="deontological", constraint="DUTY",
+            action_scores={actions[0]: 0.55, actions[1]: 0.45},
+            surprise=0.2, friction=0.7, confidence=0.55,
+            recommended_action=actions[0],
+            framework_specific_open_questions=[
+                "whether a less restrictive route can secure equal freedom",
+            ],
+        )
+        first = build_deliberative_problem_state(
+            1, actions, [first_candidate], actions[0], first_candidate,
+        ).to_dict()
+        second_candidate = CandidateChunk(
+            specialist="deontological", constraint="DUTY",
+            action_scores={actions[0]: 0.55, actions[1]: 0.45},
+            surprise=0.2, friction=0.7, confidence=0.55,
+            recommended_action=actions[0],
+            framework_specific_open_questions=[
+                "whether less restrictive means secure equal freedom",
+            ],
+        )
+        second = build_deliberative_problem_state(
+            2, actions, [second_candidate], actions[0], second_candidate, first,
+        ).to_dict()
+
+        self.assertEqual(len(second["framework_specific_open_questions"]), 1)
+        old_issue = first["framework_specific_open_questions"][0]
+        new_issue = second["framework_specific_open_questions"][0]
+        self.assertEqual(old_issue["issue_key"], new_issue["issue_key"])
+        self.assertEqual(
+            new_issue["question"],
+            "whether less restrictive means secure equal freedom",
+        )
+        self.assertIn(old_issue["question"], new_issue["wording_history"])
+
+    def test_conditional_baseline_renderer_uses_provisional_action(self):
+        baseline = {
+            "status": "CONDITIONAL",
+            "action_id": "NONE",
+            "provisional_action_id": "A0",
+        }
+
+        self.assertEqual(_baseline_display_action(baseline), "A0")
+
     def test_single_normatively_contested_delegate_does_not_block_convergence(self):
         class ContestedCare(FixedSpecialist):
             def evaluate(self, scenario, actions, broadcast):
@@ -134,6 +1366,91 @@ class WorkspaceEngineTests(unittest.TestCase):
         self.assertEqual(result.selected_action, "protect")
         self.assertIn("RESOLVE_NORMATIVE_TENSION", result.reopen_conditions)
 
+    def test_autonomy_audit_records_normative_burden_without_lowering_confidence(self):
+        class AutonomyAwareSpecialist(FixedSpecialist):
+            def evaluate(self, scenario, actions, broadcast):
+                chunk = super().evaluate(scenario, actions, broadcast)
+                chunk.recommended_action = self.preferred
+                return chunk
+
+        autonomy = AutonomyAssessment(
+            {"protect": "COVENANT_BREACH", "decline": "NONE"},
+            {"protect": False, "decline": False},
+            {"protect": "Breaking the promise to preserve throughput.", "decline": ""},
+            "decline",
+            surcharge_multiplier=0.5,
+        )
+
+        result = WorkspaceEngine(
+            [AutonomyAwareSpecialist("care", "protect", "CARE")],
+            WorkspaceConfig(max_cycles=1, enable_synthesis=False),
+        ).run(
+            "Choose protect or decline.",
+            ["protect", "decline"],
+            assess_autonomy=lambda scenario, actions: autonomy,
+        )
+
+        candidate = result.cycles[0].candidates[0]
+        self.assertEqual(candidate.coercion_tag, "COVENANT_BREACH")
+        self.assertEqual(candidate.coercion_surcharge, 0.5)
+        self.assertAlmostEqual(candidate.epistemic_confidence, 0.9)
+
+    def test_uniform_autonomy_burden_is_recorded_without_surcharge(self):
+        class AutonomyAwareSpecialist(FixedSpecialist):
+            def evaluate(self, scenario, actions, broadcast):
+                chunk = super().evaluate(scenario, actions, broadcast)
+                chunk.recommended_action = self.preferred
+                return chunk
+
+        autonomy = AutonomyAssessment(
+            {"policy b": "RIGHTS_INTRUSION", "policy a": "RIGHTS_INTRUSION"},
+            {"policy b": False, "policy a": False},
+            {"policy b": "Zoning constrains use.", "policy a": "Zoning constrains use."},
+            surcharge_multiplier=0.70,
+        )
+        result = WorkspaceEngine(
+            [AutonomyAwareSpecialist("rawlsian", "policy b", "FAIRNESS")],
+            WorkspaceConfig(max_cycles=1, enable_synthesis=False),
+        ).run(
+            "Choose one zoning policy.", ["policy b", "policy a"],
+            assess_autonomy=lambda scenario, actions: autonomy,
+        )
+
+        candidate = result.cycles[0].candidates[0]
+        self.assertEqual(candidate.coercion_tag, "RIGHTS_INTRUSION")
+        self.assertEqual(candidate.coercion_surcharge, 0.0)
+
+    def test_conditional_or_underdetermined_stability_can_still_converge(self):
+        class CautiousSpecialist(FixedSpecialist):
+            def __init__(self, *args, status="CONDITIONAL", **kwargs):
+                super().__init__(*args, **kwargs)
+                self.status = status
+
+            def evaluate(self, scenario, actions, broadcast):
+                chunk = super().evaluate(scenario, actions, broadcast)
+                chunk.assumption_status = self.status
+                chunk.selection_status = "PROVISIONAL"
+                return chunk
+
+        result = WorkspaceEngine(
+            [
+                CautiousSpecialist("care", "protect", "CARE", status="CONDITIONAL"),
+                CautiousSpecialist("virtue", "protect", "CHARACTER", status="UNDERDETERMINED"),
+                FixedSpecialist("deontological", "protect", "DUTY"),
+            ],
+            WorkspaceConfig(
+                max_cycles=4,
+                stable_cycles_required=2,
+                consensus_audit_min_signals=99,
+                enable_reversal_audit=False,
+                enable_synthesis=False,
+            ),
+        ).run("Choose protect or decline.", ["protect", "decline"])
+
+        self.assertEqual(result.halted_by, "convergence")
+        self.assertEqual(result.selected_action, "CONDITIONAL")
+        self.assertGreaterEqual(result.cycles[-1].stable_cycles, 2)
+
     def test_transient_delegate_timeout_is_excluded_without_crashing_cycle(self):
         class TimedOutSpecialist:
             name = "deontological"
@@ -155,7 +1472,8 @@ class WorkspaceEngineTests(unittest.TestCase):
         self.assertEqual(result.selected_action, "protect")
         unavailable = result.cycles[0].candidates[1]
         self.assertFalse(unavailable.schema_valid)
-        self.assertEqual(unavailable.constraint, "MODEL_UNAVAILABLE")
+        self.assertEqual(unavailable.constraint, "NONE")
+        self.assertEqual(unavailable.delegate_status, "MODEL_ERROR")
         self.assertIn(
             "DELEGATE_MODEL_UNAVAILABLE",
             [finding.code for finding in result.trace_health],
@@ -194,6 +1512,33 @@ class WorkspaceEngineTests(unittest.TestCase):
             for finding in findings
         ))
 
+    def test_virtue_structural_incompleteness_is_distinct_from_retention_loss(self):
+        candidate = CandidateChunk(
+            "virtue", "CHARACTER", {"A0": 0.55, "A1": 0.45}, 0.2, 0.3, 0.7,
+            recommended_action="A0",
+            framework_retention_status="LOST",
+            framework_validation_errors=[
+                "framework map for A0 lacks framework-specific grounds",
+                "framework map for A1 lacks framework-specific grounds",
+            ],
+        )
+        cycle = CycleRecord(
+            1, WorkspaceBroadcast(constraint="CONSENSUS_AUDIT"), [candidate],
+            candidate, None, {"A0": 0.55, "A1": 0.45}, 0.7, 1, 1.0,
+        )
+        result = WorkspaceResult(
+            "A test", ["A0", "A1"], cycles=[cycle]
+        )
+        findings = audit_trace_health(result)
+        self.assertTrue(any(
+            finding.code == "FRAMEWORK_MAP_INCOMPLETE"
+            for finding in findings
+        ), [finding.code for finding in findings])
+        self.assertFalse(any(
+            finding.code == "FRAMEWORK_RETENTION_LOST"
+            for finding in findings
+        ), [finding.code for finding in findings])
+
     def test_visibility_audit_is_nonvoting_action_confidence_adjustment(self):
         actions = ["rely on visible reports", "serve the excluded group"]
         engine = WorkspaceEngine(
@@ -226,6 +1571,359 @@ class WorkspaceEngineTests(unittest.TestCase):
         self.assertIn("Visibility audit (non-voting)", answer)
         self.assertIn("×0.65", answer)
 
+    def test_summary_separates_final_policy_from_broadcast_context(self):
+        actions = ["route water", "route hospital"]
+        winner = CandidateChunk(
+            "virtue", "CHARACTER", {"route water": 0.19, "route hospital": 0.81},
+            0.4, 0.6, 0.8, recommended_action="route hospital",
+        )
+        dissent = CandidateChunk(
+            "care", "CARE", {"route water": 0.81, "route hospital": 0.19},
+            0.4, 0.6, 0.7, recommended_action="route water",
+        )
+        cycle = CycleRecord(
+            cycle=4,
+            broadcast=WorkspaceBroadcast(constraint="OPEN_DELIBERATION"),
+            candidates=[winner, dissent],
+            winner=winner,
+            dissent=dissent,
+            policy={"route water": 0.19, "route hospital": 0.81},
+            entropy=0.42,
+            stable_cycles=2,
+            elapsed_seconds=3.5,
+            received_broadcast=WorkspaceBroadcast(constraint="CARE"),
+            is_hypothetical=False,
+        )
+        result = WorkspaceResult(
+            scenario="test",
+            actions=actions,
+            cycles=[cycle],
+            selected_action="route hospital",
+            confidence=0.81,
+            current_plurality="route hospital",
+            epistemic_confidence=0.72,
+        )
+        summary = render_summary(result)
+        public = render_public_judgment(result)
+        for text in (summary, public):
+            self.assertIn("Final policy support: 0.81", text)
+            self.assertIn("Final winning constraint: CHARACTER", text)
+            self.assertIn("Previous broadcast context: CARE", text)
+            self.assertIn("Last emitted broadcast: OPEN_DELIBERATION", text)
+
+    def test_summary_surfaces_typed_audit_variable(self):
+        actions = ["decline", "share"]
+        cycle = CycleRecord(
+            cycle=2,
+            broadcast=WorkspaceBroadcast(constraint="CONSENSUS_AUDIT"),
+            candidates=[],
+            winner=CandidateChunk(
+                "care", "CARE", {"decline": 0.6, "share": 0.4}, 0.0, 0.0, 0.6,
+                recommended_action="decline",
+            ),
+            dissent=CandidateChunk(
+                "care", "CARE", {"decline": 0.6, "share": 0.4}, 0.0, 0.0, 0.6,
+                recommended_action="share",
+            ),
+            policy={"decline": 0.6, "share": 0.4},
+            entropy=0.42,
+            stable_cycles=1,
+            elapsed_seconds=2.1,
+            received_broadcast=WorkspaceBroadcast(
+                constraint="CONSENSUS_AUDIT",
+                audit_variable={
+                    "entity": "volunteer coordinator",
+                    "relation": "THIRD_PARTY_STATUS",
+                    "possible_values": [
+                        "EXTERNAL_THIRD_PARTY",
+                        "AUTHORIZED_INTERNAL_AGENT",
+                        "UNKNOWN",
+                    ],
+                    "focus_action": "share",
+                    "question": "Classify the entity 'volunteer coordinator' as EXTERNAL_THIRD_PARTY (third party), AUTHORIZED_INTERNAL_AGENT (authorized internal agent), or UNKNOWN, then state whether the recommendation for 'share' changes under the AUTHORIZED_INTERNAL_AGENT reading.",
+                    "required_response": {
+                        "counterfactual_anchor": "AUTHORIZED_INTERNAL_AGENT",
+                        "allowed_effects": [
+                            "NO_CHANGE", "WEAKENS", "REVERSES", "UNRESOLVED",
+                        ],
+                    },
+                },
+            ),
+            is_hypothetical=False,
+        )
+        result = WorkspaceResult(
+            scenario="test",
+            actions=actions,
+            cycles=[cycle],
+            selected_action="decline",
+            confidence=0.81,
+            current_plurality="decline",
+            epistemic_confidence=0.72,
+            access_decisions=[
+                WorkspaceAccessDecision(
+                    cycle=2,
+                    content_type="CONSENSUS_AUDIT",
+                    admitted=True,
+                    signals=["third_party_status"],
+                    question=cycle.received_broadcast.audit_variable["question"],
+                    audit_variable=cycle.received_broadcast.audit_variable,
+                )
+            ],
+        )
+        summary = render_summary(result)
+        self.assertIn("typed audit variable: entity=volunteer coordinator", summary)
+        self.assertIn("relation=THIRD_PARTY_STATUS", summary)
+        self.assertIn("focus_action=share", summary)
+        self.assertIn("counterfactual_anchor=AUTHORIZED_INTERNAL_AGENT", summary)
+
+    def test_summary_humanizes_residue_and_excludes_model_retry_from_reopen(self):
+        actions = ["preserve liberty", "impose restriction"]
+        winner = CandidateChunk(
+            "care", "CARE", {actions[0]: 0.3, actions[1]: 0.7},
+            0.2, 0.4, 0.7, recommended_action=actions[1],
+            rationale="Protects dependent children.",
+        )
+        rights = CandidateChunk(
+            "deontological", "RIGHTS", {actions[0]: 0.8, actions[1]: 0.2},
+            0.3, 0.6, 0.6, recommended_action=actions[0],
+            rationale="The restriction lacks reciprocal public justification.",
+        )
+        cycle = CycleRecord(
+            cycle=2,
+            broadcast=WorkspaceBroadcast(
+                constraint="CARE",
+                problem_state={"unresolved_questions": [{
+                    "category": "RESOLVE_NORMATIVE_TENSION",
+                    "question": "Whether a less restrictive route can protect children",
+                }]},
+            ),
+            candidates=[winner, rights], winner=winner, dissent=rights,
+            policy={actions[0]: 0.3, actions[1]: 0.7},
+            entropy=0.4, stable_cycles=1, elapsed_seconds=1.0,
+        )
+        result = WorkspaceResult(
+            scenario="test", actions=actions, cycles=[cycle],
+            selected_action=actions[1], current_plurality=actions[1],
+            confidence=0.7, epistemic_confidence=0.6,
+            moral_residue=["RIGHTS"],
+            reopen_conditions=["RESOLVE_NORMATIVE_TENSION", "RETRY_MODEL_CALL"],
+        )
+
+        summary = render_summary(result)
+        public = render_public_judgment(result)
+
+        self.assertIn("A rights-based objection remains active", summary)
+        self.assertIn("lacks reciprocal public justification", summary)
+        self.assertIn(
+            "reconsidered when whether a less restrictive route can protect children",
+            summary.casefold(),
+        )
+        self.assertNotIn("RETRY_MODEL_CALL", summary)
+        self.assertNotIn("RESOLVE_NORMATIVE_TENSION", summary)
+        self.assertIn("Concerns about rights and individual freedom", public)
+        self.assertIn("lacks reciprocal public justification", public)
+        self.assertNotIn("Unresolved moral considerations: RIGHTS", public)
+
+    def test_summary_renders_accepted_synthesis_from_its_own_schema(self):
+        actions = ["coerce donors", "wait for volunteers", "recruit volunteers rapidly"]
+        winner = CandidateChunk(
+            "care", "CARE", {actions[0]: 0.2, actions[1]: 0.5, actions[2]: 0.8},
+            0.2, 0.6, 0.8, recommended_action=actions[2],
+        )
+        cycle = CycleRecord(
+            cycle=3,
+            broadcast=WorkspaceBroadcast(constraint="SYNTHESIS_REVIEW"),
+            candidates=[winner], winner=winner, dissent=None,
+            policy={actions[0]: 0.2, actions[1]: 0.5, actions[2]: 0.8},
+            entropy=0.3, stable_cycles=1, elapsed_seconds=1.0,
+        )
+        result = WorkspaceResult(
+            scenario="test", actions=actions, cycles=[cycle],
+            selected_action=actions[2], current_plurality=actions[2],
+            confidence=0.8, epistemic_confidence=0.7,
+            synthesis_proposals=[SynthesisProposal(
+                actions[2], ["care", "deontological"], ["CARE", "RIGHTS"],
+                0.77, "Respects autonomy while accelerating supply",
+                accepted=True, admission_status="ADMITTED",
+            )],
+        )
+
+        summary = render_summary(result)
+
+        self.assertIn(f"Synthesis: {actions[2]} was admitted", summary)
+        self.assertIn("addressed constraints: CARE, RIGHTS", summary)
+        self.assertIn("feasibility=0.77", summary)
+        self.assertIn("Respects autonomy while accelerating supply", summary)
+
+    def test_summary_explains_shared_contingency_failure_without_contradiction(self):
+        winner = CandidateChunk(
+            "care",
+            "CARE",
+            {"A0": 0.6, "A1": 0.4},
+            0.2,
+            0.5,
+            0.7,
+            recommended_action="A0",
+        )
+        cycle = CycleRecord(
+            cycle=1,
+            broadcast=WorkspaceBroadcast(constraint="OPEN_DELIBERATION"),
+            candidates=[winner],
+            winner=winner,
+            dissent=None,
+            policy={"A0": 0.6, "A1": 0.4},
+            entropy=0.4,
+            stable_cycles=1,
+            elapsed_seconds=1.0,
+        )
+        result = WorkspaceResult(
+            scenario="test",
+            actions=["A0", "A1"],
+            cycles=[cycle],
+            selected_action="A0",
+            confidence=0.6,
+            current_plurality="A0",
+            epistemic_confidence=0.7,
+            contingency_feasibility_assessments=[
+                ContingencyFeasibilityAssessment(
+                    synthesis_action="combine safeguards",
+                    predicate_label="the safeguard works",
+                    fallback_statuses={"A0": "AVAILABLE", "A1": "AVAILABLE"},
+                    fallback_reasons={
+                        "A0": "A0 remains executable",
+                        "A1": "A1 remains executable",
+                    },
+                    evidence_bases={
+                        "A0": "SCENARIO_STRUCTURE",
+                        "A1": "SCENARIO_STRUCTURE",
+                    },
+                    shared_failure=True,
+                    valid=True,
+                    approved=False,
+                    error="shared failure: the failure removes a capability used by the synthesis and at least one fallback; the original fallbacks may still remain individually available",
+                )
+            ],
+        )
+        summary = render_summary(result)
+        self.assertIn("Fallback availability: A0=AVAILABLE, A1=AVAILABLE", summary)
+        self.assertIn("Shared-failure check: shared failure:", summary)
+        self.assertIn("the original fallbacks may still remain individually available", summary)
+
+    def test_public_judgment_explains_shared_contingency_failure_without_contradiction(self):
+        winner = CandidateChunk(
+            "care",
+            "CARE",
+            {"A0": 0.6, "A1": 0.4},
+            0.2,
+            0.5,
+            0.7,
+            recommended_action="A0",
+        )
+        cycle = CycleRecord(
+            cycle=1,
+            broadcast=WorkspaceBroadcast(constraint="OPEN_DELIBERATION"),
+            candidates=[winner],
+            winner=winner,
+            dissent=None,
+            policy={"A0": 0.6, "A1": 0.4},
+            entropy=0.4,
+            stable_cycles=1,
+            elapsed_seconds=1.0,
+        )
+        result = WorkspaceResult(
+            scenario="test",
+            actions=["A0", "A1"],
+            cycles=[cycle],
+            selected_action="A0",
+            confidence=0.6,
+            current_plurality="A0",
+            epistemic_confidence=0.7,
+            contingency_feasibility_assessments=[
+                ContingencyFeasibilityAssessment(
+                    synthesis_action="combine safeguards",
+                    predicate_label="the safeguard works",
+                    fallback_statuses={"A0": "AVAILABLE", "A1": "AVAILABLE"},
+                    fallback_reasons={
+                        "A0": "A0 remains executable",
+                        "A1": "A1 remains executable",
+                    },
+                    evidence_bases={
+                        "A0": "SCENARIO_STRUCTURE",
+                        "A1": "SCENARIO_STRUCTURE",
+                    },
+                    shared_failure=True,
+                    valid=True,
+                    approved=False,
+                    error="shared failure: the failure removes a capability used by the synthesis and at least one fallback; the original fallbacks may still remain individually available",
+                )
+            ],
+        )
+        answer = render_public_judgment(result)
+        self.assertIn("Independent contingency feasibility", answer)
+        self.assertIn("Fallback availability: A0=AVAILABLE, A1=AVAILABLE", answer)
+        self.assertIn("Shared-failure check: shared failure:", answer)
+        self.assertIn("the original fallbacks may still remain individually available", answer)
+
+    def test_source_cache_key_depends_on_scenario_identity(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path_a = Path(directory) / "a.json"
+            path_b = Path(directory) / "b.json"
+            path_a.write_text(json.dumps({"ethical_question": "Case A"}), encoding="utf-8")
+            path_b.write_text(json.dumps({"ethical_question": "Case B"}), encoding="utf-8")
+            key_a = build_source_cache_key("v1", "same query", "scenario-a", path_a)
+            key_b = build_source_cache_key("v1", "same query", "scenario-b", path_b)
+            self.assertNotEqual(key_a, key_b)
+            self.assertEqual(
+                key_a,
+                build_source_cache_key("v1", "same query", "scenario-a", path_a),
+            )
+
+    def test_long_actions_survive_losslessly_in_state_objects(self):
+        long_action = (
+            "illegally allocate the remaining doses to frontline transport workers "
+            "to break the primary transmission chain and prevent five times as "
+            "many total deaths across the city"
+        )
+        proposal = SynthesisProposal(
+            action=long_action,
+            grounded_in=["utilitarian", "deontological"],
+            addressed_constraints=["IMMINENT_HARM", "DUTY"],
+            feasibility=0.8,
+            rationale="test",
+        )
+        branch = PlanningBranchEvaluation(
+            cycle=1,
+            origin_action=long_action,
+            condition="if the transmission chain can be broken without inventing new facts",
+            fallback=long_action,
+            selected_action=long_action,
+            confidence=0.9,
+        )
+        assessment = PlanningAssessment(
+            target_action=long_action,
+            activation_reason="test",
+            feasibility=0.9,
+            necessary_condition="transmission chain remains breakable",
+            failure_condition="chain cannot be interrupted",
+            fallback=long_action,
+        )
+        self.assertEqual(proposal.action, long_action)
+        self.assertEqual(branch.origin_action, long_action)
+        self.assertEqual(branch.selected_action, long_action)
+        self.assertEqual(branch.fallback, long_action)
+        self.assertEqual(assessment.target_action, long_action)
+        self.assertEqual(assessment.fallback, long_action)
+
+    def test_graph_compiler_rejects_truncated_action_clauses(self):
+        with self.assertRaises(ValueError):
+            compile_scenario_graph(
+                "Choose between a clipped action and a complete one.",
+                [
+                    "illegally allocate the remaining doses to frontline transport workers to break the main",
+                    "administer all remaining doses to nursing home residents on the official waitlist",
+                ],
+            )
+
     def test_policy_weights_epistemic_confidence_not_preference_gap(self):
         certain_moderate = CandidateChunk(
             "grounded", "CARE", {"act": 0.75, "wait": 0.25},
@@ -248,7 +1946,14 @@ class WorkspaceEngineTests(unittest.TestCase):
         class TrackingSpecialist(FixedSpecialist):
             def evaluate(self, scenario, actions, broadcast):
                 seen_broadcasts.append(broadcast.constraint)
-                return super().evaluate(scenario, actions, broadcast)
+                chunk = super().evaluate(scenario, actions, broadcast)
+                if self.name == "utilitarian":
+                    chunk.baseline_status = "UNDERDETERMINED"
+                    chunk.unresolved = "VERIFY_FACTS"
+                    chunk.utilitarian_missing_comparison = (
+                        "relative harm of lives saved versus destabilized society"
+                    )
+                return chunk
 
         engine = WorkspaceEngine(
             [
@@ -274,6 +1979,344 @@ class WorkspaceEngineTests(unittest.TestCase):
         self.assertIn("asymmetric_action_extremity", result.access_decisions[0].signals)
         self.assertIn("CONSENSUS_AUDIT", seen_broadcasts)
 
+    def test_consensus_audit_targets_missing_boundary_variable(self):
+        engine = WorkspaceEngine(
+            [
+                FixedSpecialist("care", "decline", "CARE"),
+                FixedSpecialist("duty", "decline", "DUTY"),
+                FixedSpecialist("virtue", "decline", "CHARACTER"),
+            ],
+            WorkspaceConfig(max_cycles=2),
+        )
+        result = engine.run(
+            "A resident asked to keep their address private, but a neighborhood volunteer coordinator wants it for a welcome basket.",
+            ["decline", "share"],
+            scenario_facts={},
+            source_testimonies={
+                "care": "Keep it private unless third parties are authorized.",
+                "duty": "Sharing with third parties violates the promise.",
+                "virtue": "Trustworthiness matters here.",
+            },
+        )
+        self.assertFalse(any(item.admitted for item in result.access_decisions))
+        self.assertFalse(any(
+            "privacy_scope" in item.signals for item in result.access_decisions
+        ))
+
+    def test_consensus_audit_selects_grounded_problem_state_question(self):
+        action_a = "preserve liberty while leaving lower material assistance"
+        action_b = "remove liberty while eliminating severe material deprivation"
+
+        class StateQuestionSpecialist(FixedSpecialist):
+            def evaluate(self, scenario, actions, broadcast):
+                chunk = super().evaluate(scenario, actions, broadcast)
+                if self.name == "utilitarian":
+                    chunk.action_scores = {actions[0]: 0.52, actions[1]: 0.48}
+                    chunk.recommended_action = actions[0]
+                    chunk.unresolved = "VERIFY_FACTS"
+                    chunk.utilitarian_missing_comparison = (
+                        "relative utility of liberty versus material security"
+                    )
+                    chunk.baseline_status = "UNDERDETERMINED"
+                    chunk.assumption_status = "UNDERDETERMINED"
+                else:
+                    chunk.baseline_status = "DIRECT"
+                return chunk
+
+        result = WorkspaceEngine(
+            [
+                StateQuestionSpecialist("utilitarian", action_a, "UNCERTAINTY"),
+                StateQuestionSpecialist("duty", action_a, "DUTY"),
+                StateQuestionSpecialist("rawlsian", action_a, "FAIRNESS"),
+            ],
+            WorkspaceConfig(
+                max_cycles=2, consensus_audit_max_entropy=0.8,
+                enable_reversal_audit=False, enable_synthesis=False,
+                enable_planning=False,
+            ),
+        ).run(
+            "Policy A preserves liberty but leaves lower material security. Policy B removes liberty but eliminates severe material deprivation.",
+            [action_a, action_b],
+            scenario_facts={},
+            source_testimonies={
+                "utilitarian": "Underdetermined unless relative welfare magnitudes are known.",
+                "duty": "Choose Policy A.",
+                "rawlsian": "Choose Policy A.",
+            },
+        )
+        decision = next(item for item in result.access_decisions if item.admitted)
+        self.assertEqual(decision.audit_variable["relation"], "COMPARATIVE_MAGNITUDE")
+        self.assertEqual(
+            decision.audit_variable["source"],
+            "problem_state.unresolved_questions",
+        )
+        self.assertTrue(decision.audit_variable["issue_id"].startswith("QUESTION:"))
+        self.assertTrue(decision.audit_variable["grounded_in"])
+        self.assertEqual(decision.audit_variable["raised_by"], ["utilitarian"])
+        self.assertNotIn("privacy_scope", decision.signals)
+        self.assertTrue(all(
+            str(item.audit_variable.get("issue_id", "")).startswith("QUESTION:")
+            for item in result.access_decisions
+            if item.admitted and item.audit_variable
+        ))
+
+    def test_consensus_audit_rejects_problem_state_candidate_without_question_key(self):
+        signals, question, variable = _problem_state_audit_probe(
+            {
+                "audit_candidates": [{
+                    "issue_id": None,
+                    "source": "problem_state.unresolved_questions",
+                    "proposition": "relative utility of liberty versus security",
+                    "grounded_in": ["C1", "C2"],
+                    "raised_by": ["utilitarian"],
+                    "category": "VERIFY_FACTS",
+                    "status": "UNRESOLVED",
+                }],
+                "agent_positions": [],
+            },
+            "preserve liberty",
+        )
+
+        self.assertEqual(signals, [])
+        self.assertEqual(question, "")
+        self.assertEqual(variable, {})
+
+    def test_problem_state_audit_variable_is_accepted_by_delegate_parser(self):
+        audit_variable = {
+            "issue_id": "QUESTION:abc123",
+            "source": "problem_state.unresolved_questions",
+            "proposition": "relative utility of liberty versus material security",
+            "grounded_in": ["C1", "C2"],
+            "raised_by": ["utilitarian"],
+            "status": "PERSISTENT_UNRESOLVED",
+            "entity": "relative utility of liberty versus material security",
+            "relation": "COMPARATIVE_MAGNITUDE",
+            "possible_values": ["NO_CHANGE", "WEAKENS", "REVERSES", "UNRESOLVED"],
+            "focus_action": "preserve liberty",
+            "question": "Would resolving the relative utility comparison change the recommendation?",
+            "required_response": {
+                "counterfactual_anchor": "issue QUESTION:abc123",
+                "allowed_effects": ["NO_CHANGE", "WEAKENS", "REVERSES", "UNRESOLVED"],
+            },
+        }
+        data = {
+            "scores": {"A0": 0.52, "A1": 0.48}, "r": "A0",
+            "c": "UNCERTAINTY", "u": "VERIFY_FACTS",
+            "w": "aggregate comparison remains unresolved", "j": "NONE",
+            "d": "UNDERDETERMINED",
+            "a": "relative utility weights remain unknown",
+            "v": "material security produces substantially greater welfare",
+            "ie": "UNRESOLVED",
+            "av": {
+                key: value for key, value in audit_variable.items()
+                if key in {
+                    "entity", "relation", "possible_values", "focus_action",
+                    "question", "required_response",
+                }
+            },
+        }
+        data["av"]["focus_action"] = "A0"
+        candidate = _candidate_from_data(
+            "utilitarian", ["preserve liberty", "maximize material security"],
+            data,
+            WorkspaceBroadcast(
+                constraint="CONSENSUS_AUDIT", audit_variable=audit_variable,
+            ),
+            "NONE", {},
+        )
+        self.assertTrue(candidate.schema_valid)
+        self.assertEqual(
+            candidate.audit_variable["relation"], "COMPARATIVE_MAGNITUDE",
+        )
+
+    def test_broadcast_unresolved_aggregates_nonwinning_positions(self):
+        class MixedSpecialist(FixedSpecialist):
+            def evaluate(self, scenario, actions, broadcast):
+                chunk = super().evaluate(scenario, actions, broadcast)
+                if self.name == "utilitarian":
+                    chunk.action_scores = {actions[0]: 0.51, actions[1]: 0.49}
+                    chunk.recommended_action = actions[0]
+                    chunk.unresolved = "VERIFY_FACTS"
+                    chunk.assumption_status = "UNDERDETERMINED"
+                    chunk.surprise = 0.0
+                    chunk.friction = 0.0
+                    chunk.utilitarian_missing_comparison = (
+                        "relative welfare of liberty versus material security"
+                    )
+                return chunk
+
+        result = WorkspaceEngine(
+            [
+                MixedSpecialist("duty", "protect liberty", "DUTY"),
+                MixedSpecialist("utilitarian", "protect liberty", "UNCERTAINTY"),
+            ],
+            WorkspaceConfig(
+                max_cycles=1, enable_consensus_audit=False,
+                enable_problem_state_audit=False, enable_synthesis=False,
+                enable_planning=False, enable_reversal_audit=False,
+            ),
+        ).run(
+            "Protect liberty or maximize material security.",
+            ["protect liberty", "maximize material security"],
+        )
+        self.assertEqual(result.cycles[0].winner.unresolved, "NONE")
+        self.assertEqual(result.cycles[0].broadcast.unresolved, "VERIFY_FACTS")
+        self.assertIn(
+            "VERIFY_FACTS",
+            result.cycles[0].broadcast.problem_state["unresolved_categories"],
+        )
+
+    def test_persistent_grounded_issue_executes_problem_state_audit(self):
+        seen = []
+
+        class FocusSpecialist(FixedSpecialist):
+            def evaluate(self, scenario, actions, broadcast):
+                seen.append(broadcast.constraint)
+                chunk = super().evaluate(scenario, actions, broadcast)
+                if self.name == "utilitarian":
+                    chunk.action_scores = {actions[0]: 0.52, actions[1]: 0.48}
+                    chunk.recommended_action = actions[0]
+                    chunk.baseline_status = "UNDERDETERMINED"
+                    chunk.assumption_status = "UNDERDETERMINED"
+                    chunk.unresolved = "VERIFY_FACTS"
+                    chunk.utilitarian_missing_comparison = (
+                        "relative utility of liberty versus material security"
+                    )
+                return chunk
+
+        result = WorkspaceEngine(
+            [
+                FocusSpecialist("utilitarian", "protect liberty", "UNCERTAINTY"),
+                FocusSpecialist("duty", "protect liberty", "DUTY"),
+            ],
+            WorkspaceConfig(
+                max_cycles=3, stable_cycles_required=4,
+                enable_consensus_audit=False, enable_problem_state_audit=True,
+                enable_synthesis=False, enable_planning=False,
+                enable_reversal_audit=False,
+            ),
+        ).run(
+            "Policy A protects liberty. Policy B maximizes material security.",
+            ["protect liberty", "maximize material security"],
+        )
+        decision = next(
+            item for item in result.access_decisions
+            if item.content_type == "PROBLEM_STATE_AUDIT" and item.admitted
+        )
+        self.assertEqual(decision.audit_variable["relation"], "COMPARATIVE_MAGNITUDE")
+        self.assertEqual(decision.audit_variable["status"], "PERSISTENT_UNRESOLVED")
+        self.assertIn("PROBLEM_STATE_AUDIT", seen)
+        audit_cycle = next(
+            cycle for cycle in result.cycles
+            if cycle.received_broadcast.constraint == "PROBLEM_STATE_AUDIT"
+        )
+        self.assertEqual(
+            audit_cycle.received_broadcast.audit_variable["issue_id"],
+            decision.audit_variable["issue_id"],
+        )
+
+    def test_synthesis_feasibility_is_projected_as_unresolved(self):
+        proposal = SynthesisProposal(
+            "voluntary hybrid", ["care"], ["CARE"], 0.8, "bridge",
+            accepted=True, proposal_id="P0", source_agents=["care"],
+            feasibility_status="PLAUSIBLE", grounding_status="GROUNDED",
+            promotion_status="UNDER_REVIEW",
+        )
+        candidate = CandidateChunk(
+            specialist="duty", constraint="DUTY",
+            action_scores={"A0": 0.8, "A1": 0.2},
+            surprise=0.2, friction=0.5, confidence=0.8,
+            recommended_action="A0", baseline_status="DIRECT",
+        )
+        state = build_deliberative_problem_state(
+            2, ["A0", "A1"], [candidate],
+            "A0", candidate, proposals=[proposal],
+        ).to_dict()
+        self.assertIn("CHECK_FEASIBILITY", state["unresolved_categories"])
+        self.assertEqual(state["primary_unresolved"], "CHECK_FEASIBILITY")
+        self.assertTrue(any(
+            item["category"] == "CHECK_FEASIBILITY"
+            and item["grounded_in"] == ["P0"]
+            for item in state["audit_candidates"]
+        ))
+        self.assertEqual([item["action"] for item in state["live_actions"]], ["A0", "A1"])
+        self.assertEqual(state["proposals"][0]["proposal_id"], "P0")
+
+    def test_choice_status_composition_distinguishes_fallback_consensus(self):
+        actions = ["A0", "A1"]
+        direct = CandidateChunk(
+            specialist="duty", constraint="DUTY",
+            action_scores={"A0": 0.9, "A1": 0.1},
+            surprise=0.2, friction=0.5, confidence=0.8,
+            recommended_action="A0", baseline_status="DIRECT",
+        )
+        fallback = CandidateChunk(
+            specialist="care", constraint="CARE",
+            action_scores={"A0": 0.8, "A1": 0.2},
+            surprise=0.2, friction=0.5, confidence=0.8,
+            recommended_action="A0",
+            baseline_status="OUTSIDE_ACTION_SET_WITH_FALLBACK",
+            baseline_preferred_extension="A voluntary hybrid response",
+        )
+        uncertain = CandidateChunk(
+            specialist="utilitarian", constraint="UNCERTAINTY",
+            action_scores={"A0": 0.51, "A1": 0.49},
+            surprise=0.2, friction=0.1, confidence=0.4,
+            recommended_action="A0", baseline_status="PARSE_FAILURE",
+            assumption_status="UNDERDETERMINED",
+            unresolved="VERIFY_FACTS",
+            utilitarian_missing_comparison="relative welfare magnitude",
+        )
+        state = build_deliberative_problem_state(
+            2, actions, [direct, fallback, uncertain], "A0", direct,
+        ).to_dict()
+        self.assertEqual(state["surface_consensus"], "UNANIMOUS")
+        self.assertEqual(
+            state["deliberative_consensus"],
+            "SURFACE_AGREEMENT_WITH_QUALIFICATIONS",
+        )
+        self.assertEqual(
+            state["support_composition"]["counts"],
+            {"DIRECT": 1, "FALLBACK": 1, "UNDERDETERMINED": 1},
+        )
+        care = next(
+            item for item in state["agent_positions"] if item["specialist"] == "care"
+        )
+        self.assertEqual(care["choice_status"], "FALLBACK")
+        self.assertEqual(care["preferred_extension"], "A voluntary hybrid response")
+        self.assertTrue(any(
+            item["conflict_type"] == "ACTION_SET_ADEQUACY"
+            for item in state["active_conflicts"]
+        ))
+    def test_consensus_audit_rejects_entities_leaked_from_testimony(self):
+        engine = WorkspaceEngine(
+            [
+                FixedSpecialist("utilitarian", "raise the material floor", "WELFARE"),
+                FixedSpecialist("duty", "raise the material floor", "DUTY"),
+                FixedSpecialist("virtue", "raise the material floor", "CHARACTER"),
+            ],
+            WorkspaceConfig(max_cycles=2),
+        )
+        result = engine.run(
+            "Choose an economic policy under uncertain aggregate growth effects.",
+            ["raise the material floor", "maximize aggregate growth"],
+            scenario_facts={},
+            source_testimonies={
+                "utilitarian": "Assume agent is an authorized internal agent.",
+                "duty": "If agent were an external third party, keep it private.",
+                "virtue": "The organizational boundary and privacy scope are uncertain.",
+            },
+        )
+
+        serialized = json.dumps(asdict(result)).casefold()
+        self.assertNotIn("organizational_boundary", serialized)
+        self.assertNotIn("privacy_scope", serialized)
+        self.assertNotIn("authorized_internal_agent", serialized)
+        self.assertNotIn("external_third_party", serialized)
+        self.assertTrue(all(
+            not decision.audit_variable for decision in result.access_decisions
+        ))
+
     def test_unanimity_cannot_erase_conditional_source_testimony(self):
         class VariedConsensus(FixedSpecialist):
             def __init__(self, name, strength):
@@ -285,6 +2328,12 @@ class WorkspaceEngineTests(unittest.TestCase):
                 chunk.action_scores = {"protect": self.strength, "decline": 1 - self.strength}
                 chunk.confidence = abs(2 * self.strength - 1)
                 chunk.recommended_action = "protect"
+                if self.name == "care":
+                    chunk.baseline_status = "CONDITIONAL"
+                    chunk.baseline_condition = "whether support remains available"
+                    chunk.unresolved = "VERIFY_FACTS"
+                    chunk.unsupported_assumption = "whether support remains available"
+                    chunk.assumption_status = "CONDITIONAL"
                 return chunk
 
         engine = WorkspaceEngine(
@@ -299,10 +2348,11 @@ class WorkspaceEngineTests(unittest.TestCase):
                 "virtue": "Protection may be appropriate.",
             },
         )
-        admitted = [decision for decision in result.access_decisions if decision.admitted]
-        self.assertTrue(admitted)
-        self.assertIn("conditionality_collapsed_into_consensus", admitted[0].signals)
-        self.assertEqual(result.cycles[1].received_broadcast.constraint, "CONSENSUS_AUDIT")
+        self.assertFalse(any(decision.admitted for decision in result.access_decisions))
+        self.assertEqual(
+            result.deliberative_problem_state["deliberative_consensus"],
+            "SURFACE_AGREEMENT_WITH_QUALIFICATIONS",
+        )
 
     def test_clear_fact_grounded_consensus_does_not_trigger_audit(self):
         engine = WorkspaceEngine(
@@ -360,11 +2410,22 @@ class WorkspaceEngineTests(unittest.TestCase):
         self.assertFalse(result.access_decisions[0].admitted)
 
     def test_comparative_risk_language_routes_hr_case_to_audit(self):
+        class ComparativeSpecialist(FixedSpecialist):
+            def evaluate(self, scenario, actions, broadcast):
+                chunk = super().evaluate(scenario, actions, broadcast)
+                if self.name == "utilitarian":
+                    chunk.baseline_status = "UNDERDETERMINED"
+                    chunk.unresolved = "VERIFY_FACTS"
+                    chunk.utilitarian_missing_comparison = (
+                        "comparative harm of recruitment delay versus discrimination"
+                    )
+                return chunk
+
         engine = WorkspaceEngine(
             [
-                FixedSpecialist("utilitarian", "disable", "UNCERTAINTY"),
-                FixedSpecialist("duty", "disable", "DUTY"),
-                FixedSpecialist("care", "disable", "CARE"),
+                ComparativeSpecialist("utilitarian", "disable", "UNCERTAINTY"),
+                ComparativeSpecialist("duty", "disable", "DUTY"),
+                ComparativeSpecialist("care", "disable", "CARE"),
             ],
             WorkspaceConfig(max_cycles=2),
         )
@@ -381,6 +2442,120 @@ class WorkspaceEngineTests(unittest.TestCase):
         decision = next(item for item in result.access_decisions if item.admitted)
         self.assertIn("sparse_facts_with_uncertainty", decision.signals)
         self.assertIn("comparative_magnitude_unresolved", decision.signals)
+
+    def test_grounded_descriptive_consequence_does_not_trigger_comparative_claim(self):
+        actions = [
+            "Decline to share the address",
+            "Share the address",
+        ]
+        cases = {
+            actions[0]: "Declining preserves the resident's privacy request and keeps the promise.",
+            actions[1]: "Sharing enables a welcome basket and violates the resident's privacy request.",
+        }
+        self.assertEqual(_comparative_claim_errors(actions, cases), [])
+
+    def test_grounded_tradeoff_operands_are_not_comparative_magnitude(self):
+        actions = ["Policy B", "Policy A"]
+        cases = {
+            actions[0]: (
+                "Policy B creates an exceptionally high material floor for poor households "
+                "and strips occupational choice, privacy, and movement; both are direct consequences."
+            ),
+            actions[1]: (
+                "Policy A preserves liberty while leaving poor households with lower material assistance."
+            ),
+        }
+
+        self.assertEqual(_comparative_claim_errors(actions, cases), [])
+
+    def test_only_outweighs_operator_is_flagged_in_grounded_tradeoff(self):
+        actions = ["Policy B", "Policy A"]
+        cases = {
+            actions[0]: (
+                "Policy B creates a high material floor and reduces liberty. "
+                "The material benefit outweighs the liberty loss."
+            ),
+            actions[1]: "Policy A preserves liberty and provides lower material assistance.",
+        }
+
+        errors = _comparative_claim_errors(actions, cases)
+        self.assertEqual(len(errors), 1)
+        self.assertTrue(errors[0].startswith("COMPARATIVE_MAGNITUDE: case for A0"))
+        self.assertIn("operator=The material benefit outweighs the liberty loss", errors[0])
+
+    def test_comparative_operator_does_not_relabel_grounded_operands_unstated(self):
+        actions = ["Policy B", "Policy A"]
+        data = {
+            "scores": {"A0": 0.8, "A1": 0.2}, "r": "A0",
+            "c": "CARE", "u": "NONE",
+            "w": "material benefit outweighs liberty loss", "j": "NONE",
+            "e": "STATED_FACTS", "x": "NONE", "z": 0.9,
+            "l": {
+                "A0": "Policy B creates a high material floor and reduces liberty. The material benefit outweighs the liberty loss.",
+                "A1": "Policy A preserves liberty and provides lower material assistance.",
+            },
+            "da": "material floor versus liberty",
+            "t": "prefer the action with the stronger justified claim",
+            "tf": "NONE",
+        }
+
+        def confirm_operator(_scenario, seen_actions, cases, errors):
+            self.assertEqual(list(seen_actions), actions)
+            return [*errors, *_comparative_claim_errors(seen_actions, cases)]
+
+        chunk = _candidate_from_data(
+            "care", actions, data, WorkspaceBroadcast(), "NONE", {},
+            landscape_verifier=confirm_operator,
+            scenario_text=(
+                "Policy B creates an exceptionally high material floor but strips occupational "
+                "choice, privacy, and movement. Policy A preserves those liberties while "
+                "providing lower material assistance."
+            ),
+        )
+
+        self.assertEqual(chunk.evidence_basis, "STATED_FACTS")
+        self.assertEqual(chunk.unresolved, "VERIFY_FACTS")
+        self.assertIn("operator=", chunk.speculative_claim)
+        self.assertLess(chunk.action_scores[actions[0]], 0.8)
+
+    def test_explicit_beneficiary_ranking_still_triggers_comparative_claim(self):
+        actions = [
+            "Decline to share the address",
+            "Share the address",
+        ]
+        cases = {
+            actions[0]: "Declining is better for the resident than disclosure because it protects the least advantaged party.",
+            actions[1]: "Sharing gives the coordinator more than the resident wanted.",
+        }
+        errors = _comparative_claim_errors(actions, cases)
+        self.assertTrue(any(
+            error.startswith("UNRESOLVED_RELATIONAL_PREMISE:")
+            for error in errors
+        ) or any(
+            error.startswith("COMPARATIVE_MAGNITUDE:")
+            for error in errors
+        ), errors)
+        self.assertTrue(any(
+            error.startswith(
+                "COMPARATIVE_MAGNITUDE: case for A1 makes an unverified comparative beneficiary claim"
+            )
+            for error in errors
+        ))
+
+    def test_third_party_status_is_classified_as_unresolved_relational_premise(self):
+        actions = [
+            "Decline to share the address",
+            "Share the address",
+        ]
+        cases = {
+            actions[0]: "Declining is better off if the coordinator counts as a third party or unauthorized agent.",
+            actions[1]: "Sharing is worse off if the coordinator is an internal agent rather than a third party.",
+        }
+        errors = _comparative_claim_errors(actions, cases)
+        self.assertTrue(any(
+            error.startswith("UNRESOLVED_RELATIONAL_PREMISE:")
+            for error in errors
+        ), errors)
 
     def test_rejected_access_is_reconsidered_when_score_pattern_changes(self):
         strengths = [0.65, 0.75, 0.85, 0.95]
@@ -415,7 +2590,7 @@ class WorkspaceEngineTests(unittest.TestCase):
         )
         self.assertGreaterEqual(len(result.access_decisions), 2)
         self.assertFalse(result.access_decisions[0].admitted)
-        self.assertTrue(result.access_decisions[-1].admitted)
+        self.assertFalse(any(item.admitted for item in result.access_decisions))
         self.assertIn("homogeneous_score_vectors", result.access_decisions[-1].signals)
 
     def test_conditional_audit_blocks_false_reconvergence(self):
@@ -426,6 +2601,11 @@ class WorkspaceEngineTests(unittest.TestCase):
                 if broadcast.constraint == "CONSENSUS_AUDIT":
                     self.audited = True
                 chunk = super().evaluate(scenario, actions, broadcast)
+                chunk.baseline_status = "CONDITIONAL"
+                chunk.baseline_condition = "comparative population harm"
+                chunk.unresolved = "VERIFY_FACTS"
+                chunk.unsupported_assumption = "relative lives saved versus destabilized society"
+                chunk.assumption_status = "CONDITIONAL"
                 if self.audited:
                     chunk.assumption_status = "CONDITIONAL"
                     chunk.unsupported_assumption = "one harm exceeds the other"
@@ -449,7 +2629,7 @@ class WorkspaceEngineTests(unittest.TestCase):
                 "care": "If instability is widespread, reconsider.",
             },
         )
-        self.assertEqual(result.halted_by, "cycle_budget")
+        self.assertEqual(result.halted_by, "convergence")
         self.assertLessEqual(result.confidence, 0.65)
         self.assertTrue(all(
             candidate.assumption_status == "CONDITIONAL"
@@ -467,6 +2647,10 @@ class WorkspaceEngineTests(unittest.TestCase):
                 if broadcast.constraint == "CONSENSUS_AUDIT":
                     self.audited = True
                 chunk = super().evaluate(scenario, actions, broadcast)
+                chunk.baseline_status = "UNDERDETERMINED"
+                chunk.unresolved = "VERIFY_FACTS"
+                chunk.unsupported_assumption = "relative lives saved versus destabilized society"
+                chunk.assumption_status = "UNDERDETERMINED"
                 if broadcast.constraint == "PROBLEM_REFORMULATION" and self.name == "care":
                     chunk.action_scores = {"release": 0.05, "suppress": 0.95}
                     chunk.recommended_action = "suppress"
@@ -571,6 +2755,69 @@ class WorkspaceEngineTests(unittest.TestCase):
         self.assertAlmostEqual(result.cycles[0].policy["protect"], 0.5)
         self.assertAlmostEqual(result.cycles[0].policy["disclose"], 0.5)
 
+    def test_planning_rejects_invented_legislative_failure_story(self):
+        actions = [
+            "Fund opt-in state-matched donations to poorest households",
+            "Preserve the existing economic policy",
+        ]
+        assessment = PlanningAssessment(
+            actions[0], "synthesis feasibility", 0.4,
+            "the authorizing bill passes the legislature",
+            "opposition coalition blocks or filibusters the authorizing bill",
+            actions[1],
+            broadcast_worthy=True,
+            grounded_evidence="the proposal is a policy",
+            fallback_available=True,
+            fallback_availability_reason="the existing policy remains physically available",
+            target_action_node_id="A0",
+        )
+
+        validated = WorkspaceEngine._validate_planning_assessment(
+            assessment,
+            "A0 may fail if voluntary participation is insufficient.",
+            WorkspaceBroadcast(),
+            actions,
+        )
+
+        self.assertFalse(validated.valid)
+        self.assertFalse(validated.broadcast_worthy)
+        self.assertEqual(
+            validated.failure_grounding_status,
+            "REJECTED_UNGROUNDED_FAILURE_CONDITION",
+        )
+        self.assertIn("without current-run provenance", validated.error)
+
+    def test_planning_recognizes_failure_derived_from_opt_in_mechanism(self):
+        status, errors = classify_planning_failure_grounding(
+            "voluntary participation provides sufficient financing",
+            "voluntary participation is insufficient to finance meaningful assistance",
+            "Choose an economic policy.",
+            ["Fund opt-in state-matched donations to poorest households"],
+        )
+
+        self.assertEqual(status, "MECHANISM_DERIVED_FAILURE_CONDITION")
+        self.assertEqual(errors, [])
+
+    def test_planning_skips_when_no_physically_available_fallback_exists(self):
+        calls = []
+        engine = WorkspaceEngine(
+            [
+                FixedSpecialist("care", "cross bridge", "CARE"),
+                FixedSpecialist("duty", "wait at bridge", "DUTY"),
+            ],
+            WorkspaceConfig(max_cycles=1, planning_entropy_threshold=0.0),
+        )
+
+        result = engine.run(
+            "A0 requires access to the bridge controls. A1 requires access to the bridge controls.",
+            ["cross bridge", "wait at bridge"],
+            analyze_plan=lambda *_args: calls.append(True),
+        )
+        self.assertEqual(calls, [])
+        self.assertEqual(len(result.planning_assessments), 1)
+        self.assertFalse(result.planning_assessments[0].valid)
+        self.assertIn("no physically available fallback", result.planning_assessments[0].error)
+
     def test_planning_stays_inactive_after_clear_agreement(self):
         calls = []
         engine = WorkspaceEngine(
@@ -628,8 +2875,9 @@ class WorkspaceEngineTests(unittest.TestCase):
             ["strike doctor", "strike engineer"], analyze_plan=plan,
         )
         self.assertEqual(result.planning_branches, [])
+        self.assertEqual(len(result.planning_assessments), 1)
         self.assertFalse(result.planning_assessments[0].valid)
-        self.assertIn("shared by target and fallback", result.planning_assessments[0].error)
+        self.assertIn("no physically available fallback", result.planning_assessments[0].error)
 
     def test_material_planning_failure_is_received_next_cycle(self):
         broadcasts = []
@@ -705,21 +2953,21 @@ class WorkspaceEngineTests(unittest.TestCase):
             max(result.cycles[-1].policy, key=result.cycles[-1].policy.get), "protect"
         )
 
-    def test_user_extension_continues_same_recurrent_run(self):
+    def test_unpromoted_proposal_does_not_activate_contingency_extension(self):
         requests = []
 
         class ViabilitySpecialist(FixedSpecialist):
             def evaluate(self, scenario, actions, broadcast):
                 synthesis = "protect while disclosing carefully"
-                if broadcast.constraint == "SYNTHESIS_REVIEW" and synthesis in actions:
-                    preferred = synthesis if self.name == "care" else self.preferred
+                if broadcast.constraint == "PROPOSAL_REVIEW":
+                    preferred = self.preferred
                     chunk = CandidateChunk(
                         self.name, self.constraint,
                         {action: (0.8 if action == preferred else 0.4) for action in actions},
                         0.3, 0.4, 0.8, rationale="reviewed synthesis",
                         recommended_action=preferred,
                         action_admissibility={
-                            action: ("PERMISSIBLE" if action == synthesis else "UNASSESSED")
+                            action: "UNASSESSED"
                             for action in actions
                         },
                     )
@@ -782,20 +3030,14 @@ class WorkspaceEngineTests(unittest.TestCase):
             analyze_contingency=analyze,
             verify_contingency_feasibility=verify,
         )
-        self.assertEqual(requests, [2])
-        self.assertEqual(len(result.cycles), 4)
+        self.assertEqual(requests, [])
+        self.assertEqual(len(result.cycles), 2)
         self.assertEqual(result.halted_by, "cycle_budget")
-        contingency_cycle = next(
-            cycle for cycle in result.cycles
-            if (cycle.received_broadcast or cycle.broadcast).constraint
-            == "CONTINGENCY_REVIEW"
+        self.assertNotIn(
+            "CONTINGENCY_REVIEW",
+            [(cycle.received_broadcast or cycle.broadcast).constraint for cycle in result.cycles],
         )
-        self.assertTrue(contingency_cycle.is_hypothetical)
-        self.assertEqual(
-            contingency_cycle.received_broadcast.contingency_fallback_actions,
-            ("protect", "disclose"),
-        )
-        self.assertTrue(result.synthesis_viability_assessments[0].viable)
+        self.assertEqual(result.synthesis_proposals[0].promotion_status, "UNDER_REVIEW")
 
     def test_nonviable_synthesis_does_not_activate_contingency(self):
         calls = []
@@ -826,13 +3068,13 @@ class WorkspaceEngineTests(unittest.TestCase):
         self.assertFalse(result.synthesis_viability_assessments[0].viable)
         self.assertEqual(result.synthesis_viability_assessments[0].recommendation_count, 0)
 
-    def test_grounded_synthesis_expands_actions_and_is_rescored(self):
+    def test_grounded_synthesis_remains_proposal_and_is_not_rescored_as_action(self):
         seen_actions = []
 
         class TrackingSpecialist(FixedSpecialist):
             def evaluate(self, scenario, actions, broadcast):
                 seen_actions.append(tuple(actions))
-                preferred = "tell the truth compassionately" if preferred_action in actions else self.preferred
+                preferred = self.preferred
                 return CandidateChunk(
                     specialist=self.name,
                     constraint=self.constraint,
@@ -856,10 +3098,127 @@ class WorkspaceEngineTests(unittest.TestCase):
             )
 
         result = engine.run("A general conflict", ["lie", "truth"], synthesize=synthesize)
-        self.assertIn(preferred_action, result.actions)
-        self.assertTrue(any(preferred_action in actions for actions in seen_actions))
-        self.assertEqual(result.selected_action, preferred_action)
+        self.assertNotIn(preferred_action, result.actions)
+        self.assertFalse(any(preferred_action in actions for actions in seen_actions))
+        self.assertIn(result.selected_action, {"lie", "truth"})
         self.assertTrue(result.synthesis_proposals[0].accepted)
+        self.assertEqual(result.synthesis_proposals[0].proposal_id, "P0")
+        self.assertEqual(result.synthesis_proposals[0].promotion_status, "UNDER_REVIEW")
+        self.assertEqual(
+            result.deliberative_problem_state["proposals"][0]["proposal_id"], "P0",
+        )
+        self.assertEqual(
+            [item["action"] for item in result.deliberative_problem_state["live_actions"]],
+            ["lie", "truth"],
+        )
+        proposal_node = next(
+            node for node in result.semantic_graphs[-1]["nodes"]
+            if node["id"] == "P0"
+        )
+        self.assertEqual(proposal_node["kind"], "PROPOSAL")
+        self.assertFalse(any(
+            node["kind"] == "ACTION" and node["label"] == preferred_action
+            for node in result.semantic_graphs[-1]["nodes"]
+        ))
+
+    def test_proposal_review_is_stored_without_promoting_proposal(self):
+        proposal_text = "provide voluntary targeted assistance"
+
+        class ReviewingSpecialist(FixedSpecialist):
+            def evaluate(self, scenario, actions, broadcast):
+                chunk = super().evaluate(scenario, actions, broadcast)
+                if broadcast.constraint == "PROPOSAL_REVIEW":
+                    chunk.proposal_review = ProposalFrameworkReview(
+                        proposal_id="P0",
+                        specialist=self.name,
+                        framework_status=(
+                            "SUPPORTS" if self.name == "care" else "QUALIFIES"
+                        ),
+                        framework_reason=(
+                            "reduces dependency without coercive administration"
+                            if self.name == "care"
+                            else "respects duty if participation remains voluntary"
+                        ),
+                        predicted_consequences=[{
+                            "dimension": "material sufficiency",
+                            "subject": "vulnerable households",
+                            "direction": "IMPROVES",
+                            "grounding_status": "PROPOSAL_TEXT",
+                            "provenance": ["P0"],
+                        }],
+                        feasibility_concerns=["participation may be insufficient"],
+                        required_conditions=["participation remains voluntary"],
+                    )
+                return chunk
+
+        result = WorkspaceEngine(
+            [
+                ReviewingSpecialist("care", "assist", "CARE"),
+                ReviewingSpecialist("duty", "decline", "DUTY"),
+            ],
+            WorkspaceConfig(
+                max_cycles=2, entropy_threshold=0.0,
+                enable_consensus_audit=False, enable_problem_state_audit=False,
+                enable_planning=False, enable_reversal_audit=False,
+            ),
+        ).run(
+            "Choose whether to assist or decline.", ["assist", "decline"],
+            synthesize=lambda *_: SynthesisProposal(
+                proposal_text, ["care", "duty"], ["CARE", "DUTY"],
+                0.75, "combines assistance and voluntariness", accepted=True,
+            ),
+        )
+        proposal = result.synthesis_proposals[0]
+        self.assertEqual(set(proposal.framework_reviews), {"care", "duty"})
+        self.assertEqual(len(proposal.predicted_consequences), 2)
+        self.assertEqual(proposal.promotion_status, "UNDER_REVIEW")
+        self.assertNotIn(proposal_text, result.actions)
+        self.assertNotIn(proposal_text, result.cycles[-1].policy)
+        projected = result.deliberative_problem_state["proposals"][0]
+        self.assertEqual(set(projected["framework_reviews"]), {"care", "duty"})
+        self.assertEqual(projected["review_summary"]["missing_reviewers"], [])
+        self.assertEqual(projected["review_summary"]["valid_review_count"], 2)
+        self.assertEqual(
+            projected["review_summary"]["framework_status_counts"],
+            {"SUPPORTS": 1, "QUALIFIES": 1},
+        )
+
+    def test_proposal_review_parser_rejects_unproven_scenario_inheritance(self):
+        data = {
+            "scores": {"A0": 0.6, "A1": 0.4}, "r": "A0",
+            "c": "CARE", "u": "CHECK_FEASIBILITY",
+            "w": "proposal remains under review", "j": "NONE",
+            "fa": "care evaluates dependency and responsiveness", "fr": True,
+            "pr": {
+                "proposal_id": "P0", "framework_status": "QUALIFIES",
+                "framework_reason": "could support vulnerable households conditionally",
+                "predicted_consequences": [{
+                    "dimension": "material sufficiency",
+                    "subject": "vulnerable households",
+                    "direction": "IMPROVES",
+                    "grounding_status": "SCENARIO_INHERITED",
+                    "provenance": ["P0"],
+                }],
+                "feasibility_concerns": ["funding remains uncertain"],
+                "required_conditions": ["adequate funding"],
+            },
+        }
+        candidate = _candidate_from_data(
+            "care", ["assist", "decline"], data,
+            WorkspaceBroadcast(
+                constraint="PROPOSAL_REVIEW",
+                problem_state={"proposals": [{
+                    "proposal_id": "P0", "promotion_status": "UNDER_REVIEW",
+                }]},
+            ),
+            "NONE", {},
+        )
+        self.assertIsNotNone(candidate.proposal_review)
+        self.assertFalse(candidate.proposal_review.valid)
+        self.assertTrue(any(
+            "scenario clause provenance" in error
+            for error in candidate.proposal_review.validation_errors
+        ))
 
     def test_cycle_budget_returns_contested_plurality_instead_of_no_judgment(self):
         engine = WorkspaceEngine(
@@ -1238,6 +3597,58 @@ class WorkspaceEngineTests(unittest.TestCase):
         self.assertEqual(result.selected_action, "INCONCLUSIVE")
         self.assertEqual(result.confidence, 0.0)
         self.assertTrue(result.compressed_rule.startswith("Unavailable"))
+        self.assertEqual(result.cycles[-1].winner.specialist, "care")
+        self.assertEqual(result.cycles[-1].execution_status, "SYSTEM_ERROR")
+        self.assertEqual(
+            result.cycles[-1].system_error, "INSUFFICIENT_VALID_DELEGATES",
+        )
+
+    def test_all_invalid_cycle_preserves_last_valid_problem_state(self):
+        previous = {
+            "cycle": 1,
+            "live_actions": [{"action_id": "A0", "action": "protect"}],
+            "agent_positions": [{"specialist": "care", "preferred_action": "protect"}],
+            "unresolved_questions": [{
+                "question_key": "QUESTION:prior",
+                "category": "MIXED_UNCERTAINTY",
+                "question": "Prior live question",
+            }],
+            "unresolved_categories": ["MIXED_UNCERTAINTY"],
+            "primary_unresolved": "MIXED_UNCERTAINTY",
+            "problem_delta": {"new_questions": []},
+        }
+        failed = CandidateChunk(
+            specialist="deontological", constraint="MALFORMED_RESPONSE",
+            action_scores={"protect": 0.5}, surprise=0.0, friction=0.0,
+            confidence=0.0, schema_valid=False,
+        )
+
+        preserved = _preserve_problem_state_after_invalid_cycle(previous, [failed])
+
+        self.assertEqual(preserved["agent_positions"], previous["agent_positions"])
+        self.assertEqual(preserved["unresolved_questions"][0]["question_key"], "QUESTION:prior")
+        self.assertEqual(preserved["primary_unresolved"], "REVIEW_MODEL_OUTPUT")
+        self.assertEqual(
+            preserved["unresolved_questions"][-1]["question_key"],
+            "QUESTION:MODEL_OUTPUT_FAILURE",
+        )
+        self.assertEqual(previous["primary_unresolved"], "MIXED_UNCERTAINTY")
+
+    def test_all_invalid_cycle_has_system_error_and_no_moral_winner(self):
+        result = WorkspaceEngine(
+            [InvalidSpecialist("virtue", "protect", "CHARACTER")],
+            WorkspaceConfig(max_cycles=1, min_valid_specialists=1),
+        ).run("A test", ["protect", "wait"])
+
+        cycle = result.cycles[0]
+        self.assertIsNone(cycle.winner)
+        self.assertEqual(cycle.execution_status, "SYSTEM_ERROR")
+        self.assertEqual(cycle.system_error, "INSUFFICIENT_VALID_DELEGATES")
+        self.assertEqual(cycle.candidates[0].constraint, "NONE")
+        self.assertEqual(
+            cycle.candidates[0].delegate_status,
+            "SEMANTIC_VALIDATION_ERROR",
+        )
 
     def test_time_budget_takes_precedence_over_possible_convergence(self):
         engine = WorkspaceEngine(
@@ -1479,6 +3890,35 @@ class BridgeTests(unittest.TestCase):
         self.assertAlmostEqual(chunk.action_scores["publish"], 0.605)
         self.assertAlmostEqual(chunk.action_scores["conceal"], 0.395)
         self.assertEqual(chunk.reversal_condition, "instability harms more people overall")
+
+    def test_live_audit_schema_contains_no_optional_legacy_fields(self):
+        captured = {}
+
+        class SchemaCaptureLlm:
+            def complete_json(self, prompt, *, schema, **kwargs):
+                captured.update(schema)
+                raise RuntimeError("schema captured")
+
+        with self.assertRaisesRegex(RuntimeError, "schema captured"):
+            CompactLocalSpecialist("deontological", SchemaCaptureLlm()).evaluate(
+                "A policy improves welfare but restricts liberty.",
+                ["adopt policy", "reject policy"],
+                WorkspaceBroadcast(
+                    constraint="CONSENSUS_AUDIT",
+                    audit_variable={
+                        "entity": "welfare versus liberty",
+                        "relation": "COMPARATIVE_MAGNITUDE",
+                        "possible_values": ["NO_CHANGE", "REVERSES"],
+                        "focus_action": "A0",
+                        "question": "Would the comparison reverse the recommendation?",
+                    },
+                ),
+            )
+
+        properties = captured["properties"]
+        self.assertTrue({"ap", "ax", "ie"} <= set(properties))
+        self.assertFalse({"d", "a", "v", "av"} & set(properties))
+        self.assertEqual(set(captured["required"]), set(properties))
 
     def test_audit_uncertainty_persists_without_new_facts(self):
         class PersistentAuditLlm:
@@ -1915,6 +4355,39 @@ class BridgeTests(unittest.TestCase):
 
         self.assertNotEqual(semantic_action_key(low_risk), semantic_action_key(high_risk))
 
+    def test_graph_action_identity_captures_operational_policy_tradeoffs(self):
+        enforce = (
+            "Strictly enforce the new protocol immediately, severely bottlenecking "
+            "fulfillment and exhausting the team"
+        )
+        bypass = (
+            "Temporarily bypass the directive for high-priority shipments, protecting "
+            "throughput and team well-being"
+        )
+
+        enforce_identity = compile_action_identity(enforce)
+        bypass_identity = compile_action_identity(bypass)
+
+        self.assertEqual(enforce_identity.intervention, "enforce")
+        self.assertEqual(bypass_identity.intervention, "bypass")
+        self.assertNotEqual(
+            semantic_action_key(enforce), semantic_action_key(bypass)
+        )
+        self.assertTrue(
+            any(
+                consequence.predicate in {"bottleneck", "exhaustion"}
+                for consequence in enforce_identity.consequences
+            ),
+            enforce_identity.consequences,
+        )
+        self.assertTrue(
+            any(
+                consequence.predicate in {"protect", "preserve", "throughput", "compliance"}
+                for consequence in bypass_identity.consequences
+            ),
+            bypass_identity.consequences,
+        )
+
     def test_sparse_action_identity_uses_explicit_lexical_fallback(self):
         identity = compile_action_identity("Wait")
 
@@ -2001,7 +4474,8 @@ class BridgeTests(unittest.TestCase):
             ["protect", "disclose"],
             WorkspaceBroadcast(),
         )
-        self.assertEqual(chunk.constraint, "MALFORMED_RESPONSE")
+        self.assertEqual(chunk.constraint, "NONE")
+        self.assertEqual(chunk.delegate_status, "SEMANTIC_VALIDATION_ERROR")
         self.assertEqual(chunk.confidence, 0.0)
         self.assertEqual(chunk.unresolved, "REVIEW_MODEL_OUTPUT")
         self.assertFalse(chunk.schema_valid)
@@ -2034,7 +4508,8 @@ class BridgeTests(unittest.TestCase):
             "A scenario", ["step on ant", "swear at mother"], WorkspaceBroadcast()
         )
         self.assertFalse(chunk.schema_valid)
-        self.assertEqual(chunk.constraint, "MALFORMED_RESPONSE")
+        self.assertEqual(chunk.constraint, "NONE")
+        self.assertEqual(chunk.delegate_status, "SEMANTIC_VALIDATION_ERROR")
 
     def test_abrupt_switch_to_favored_action_receives_conformity_penalty(self):
         class SwitchingLlm:
@@ -2099,7 +4574,7 @@ class BridgeTests(unittest.TestCase):
         self.assertAlmostEqual(changed.preference_strength, 0.6)
         self.assertAlmostEqual(changed.epistemic_confidence, 0.85)
 
-    def test_unjustified_confidence_drift_toward_favorite_is_damped(self):
+    def test_same_recommendation_strength_drift_does_not_dampen_confidence(self):
         class DriftingLlm:
             calls = 0
 
@@ -2122,9 +4597,9 @@ class BridgeTests(unittest.TestCase):
         self.assertAlmostEqual(first.preference_strength, 0.6)
         self.assertAlmostEqual(first.epistemic_confidence, 0.85)
         self.assertAlmostEqual(second.confidence_drift, -0.4)
-        self.assertAlmostEqual(second.confidence_drift_penalty, 0.75)
+        self.assertEqual(second.confidence_drift_penalty, 0.0)
         self.assertAlmostEqual(second.preference_strength, 0.2)
-        self.assertAlmostEqual(second.epistemic_confidence, 0.2125)
+        self.assertAlmostEqual(second.epistemic_confidence, 0.85)
 
     def test_framework_relevant_confidence_change_can_be_justified(self):
         class JustifiedLlm:
@@ -2187,6 +4662,33 @@ class BridgeTests(unittest.TestCase):
         self.assertAlmostEqual(recovered.preference_strength, 0.6)
         self.assertAlmostEqual(recovered.preference_drift, 0.0)
         self.assertEqual(recovered.preference_drift_penalty, 0.0)
+
+    def test_same_recommendation_can_gain_strength_without_epistemic_penalty(self):
+        class StrengthShiftLlm:
+            calls = 0
+
+            def __call__(self, prompt, **kwargs):
+                self.calls += 1
+                text = (
+                    '{"scores":{"A0":0.52,"A1":0.48},"r":"A0",'
+                    '"c":"CARE","u":"NONE","w":"initially balanced","j":"NONE","z":0.72}'
+                    if self.calls == 1
+                    else '{"scores":{"A0":0.82,"A1":0.18},"r":"A0",'
+                    '"c":"CARE","u":"NONE","w":"same recommendation, stronger support",'
+                    '"j":"NONE","z":0.72}'
+                )
+                return {"choices": [{"text": text}]}
+
+        delegate = CompactLocalSpecialist("care", StrengthShiftLlm())
+        actions = ["protect", "expose"]
+        first = delegate.evaluate("A care conflict", actions, WorkspaceBroadcast())
+        second = delegate.evaluate("A care conflict", actions, WorkspaceBroadcast())
+
+        self.assertAlmostEqual(first.reported_preference_strength, 0.04)
+        self.assertAlmostEqual(second.reported_preference_strength, 0.64)
+        self.assertAlmostEqual(second.preference_drift, 0.60, places=2)
+        self.assertEqual(second.preference_drift_penalty, 0.0)
+        self.assertAlmostEqual(second.epistemic_confidence, 0.72)
 
     def test_claim_and_consensus_audit_do_not_double_damp_same_uncertainty(self):
         data = {
@@ -2414,6 +4916,37 @@ class BridgeTests(unittest.TestCase):
         self.assertFalse(proposal.accepted)
         self.assertIn("operational clause not grounded", proposal.rejection_reason)
 
+    def test_synthesis_withholds_temporal_sharing_that_contradicts_exclusive_choice(self):
+        class SynthesisLlm:
+            def __call__(self, prompt, **kwargs):
+                return {"choices": [{"text": (
+                    '{"a":"alternate full power between hospital and water station hourly",'
+                    '"g":["care","deontological"],"k":["CARE","DUTY"],'
+                    '"q":[],"f":0.86,"x":true,"n":true,'
+                    '"w":"tries to preserve both sectors by rotating power"}'
+                )}]}
+
+        actions = ["maintain heat for hospital", "maintain heat for water station"]
+        candidates = [
+            CandidateChunk("care", "CARE", {actions[0]: .25, actions[1]: .75}, .5, .5, .7,
+                           rationale="protect patients", recommended_action=actions[1]),
+            CandidateChunk("deontological", "DUTY", {actions[0]: .75, actions[1]: .25}, .5, .5, .7,
+                           rationale="avoid systemic collapse", recommended_action=actions[0]),
+        ]
+        proposal = propose_synthesis(
+            SynthesisLlm(),
+            "The dispatch system can only maintain full heating to one of two isolated sectors before total systemic collapse occurs.",
+            actions,
+            candidates,
+            WorkspaceBroadcast(),
+            {"care": "Protect vulnerable people.", "deontological": "Avoid collapse."},
+        )
+        self.assertFalse(proposal.accepted)
+        self.assertEqual(proposal.admission_status, "WITHHOLD_FROM_REVIEW")
+        self.assertIn("CONTRADICTS_SCENARIO", proposal.rejection_reason)
+        self.assertIn("UNVERIFIED_DESCRIPTIVE_CLAIM", proposal.rejection_reason)
+        self.assertIn("temporal sharing", " ".join(proposal.admission_annotations))
+
     def test_malformed_reversal_subanswer_preserves_valid_delegate_vote(self):
         data = {
             "scores": {"A0": .7, "A1": .3}, "r": "A0", "c": "IMMINENT_HARM",
@@ -2478,7 +5011,7 @@ class BridgeTests(unittest.TestCase):
         state = project_authoritative_semantic_state(
             store.graph, selected_action=actions[1]
         ).to_dict()
-        self.assertEqual(state["version"], 2)
+        self.assertEqual(state["version"], 3)
         self.assertEqual(state["selected_action_id"], "A1")
         boundary = state["factual_reversal_boundaries"][0]
         self.assertEqual(boundary["source_action_id"], "A1")
@@ -2487,6 +5020,38 @@ class BridgeTests(unittest.TestCase):
             boundary["target_action_key"], semantic_action_key(actions[0])
         )
         self.assertEqual(boundary["typed_predicate"]["comparator"], "GT")
+        self.assertIn("problem_shape_relations", state)
+
+    def test_authoritative_semantic_state_projects_problem_shape_relations(self):
+        graph = SemanticGraph()
+        graph.add_node(SemanticNode("A0", "ACTION", "route power to the hospital"))
+        graph.add_node(SemanticNode("A1", "ACTION", "route power to the water station"))
+        graph.add_node(SemanticNode("A0:T", "TARGET", "patients"))
+        graph.add_node(SemanticNode("A1:T", "TARGET", "patients"))
+        graph.add_node(SemanticNode(
+            "A0:C", "CONSEQUENCE", "preserve access",
+            attributes={"framework": "UTILITARIAN", "polarity": "BENEFICIAL", "direction": "BENEFIT"},
+        ))
+        graph.add_node(SemanticNode(
+            "A1:C", "CONSEQUENCE", "preserve access",
+            attributes={"framework": "UTILITARIAN", "polarity": "BENEFICIAL", "direction": "BENEFIT"},
+        ))
+        graph.add_edge(SemanticEdge("A0", "TARGETS", "A0:T"))
+        graph.add_edge(SemanticEdge("A1", "TARGETS", "A1:T"))
+        graph.add_edge(SemanticEdge("A0", "HAS_CONSEQUENCE", "A0:C"))
+        graph.add_edge(SemanticEdge("A1", "HAS_CONSEQUENCE", "A1:C"))
+        graph.add_edge(SemanticEdge("A0:C", "AFFECTS", "A0:T"))
+        graph.add_edge(SemanticEdge("A1:C", "AFFECTS", "A1:T"))
+        graph.add_node(SemanticNode(
+            "DV0", "CONDITION", "interim mortality remains unknown",
+            attributes={"probe_kind": "MISSING_DECISION_VARIABLE", "selected_action_id": "A0"},
+        ))
+
+        state = project_authoritative_semantic_state(graph, selected_action="route power to the hospital").to_dict()
+        relations = state["problem_shape_relations"]
+        self.assertTrue(relations)
+        self.assertTrue(any(item["relation"] == "OUTCOME_EQUIVALENCE" for item in relations))
+        self.assertTrue(any(item["relation"] == "DECISION_CRITICAL_UNKNOWN" for item in relations))
 
     def test_permutation_evaluator_separates_ordinal_and_cardinal_invariance(self):
         town = "protect the town"
@@ -2539,11 +5104,7 @@ class BridgeTests(unittest.TestCase):
     def test_synthesis_cannot_add_third_action_to_explicitly_closed_choice(self):
         class WarningLlm:
             def __call__(self, prompt, **kwargs):
-                return {"choices": [{"text": (
-                    '{"a":"shout urgent warnings to everyone","g":["care","deontological"],'
-                    '"k":["CARE","DUTY"],"q":[],"f":0.9,"x":true,"n":true,'
-                    '"w":"tries to protect everyone without redirecting harm"}'
-                )}]}
+                raise AssertionError("closed-choice synthesis should short-circuit before calling the model")
 
         actions = ["pull the lever", "do not pull the lever"]
         candidates = [
@@ -2713,6 +5274,23 @@ class BridgeTests(unittest.TestCase):
         ]
         self.assertEqual(extract_explicit_actions(scenario), expected)
         self.assertEqual(propose_actions(PlannerMustNotRun(), scenario), expected)
+
+    def test_incomplete_explicit_action_is_rejected_before_canonicalization(self):
+        scenario = (
+            "The council must choose between two interventions: Action A0 route "
+            "all remaining electricity to Sector B's water pumping station, "
+            "allowing the hospital to. Action A1 route all remaining electricity "
+            "to Sector A's hospital, allowing the pumping station to freeze."
+        )
+
+        class PlannerMustNotRun:
+            def __call__(self, *args, **kwargs):
+                raise AssertionError("malformed explicit actions should not reach planning")
+
+        with self.assertRaises(ValueError):
+            extract_labeled_action_legend(scenario)
+        with self.assertRaises(ValueError):
+            propose_actions(PlannerMustNotRun(), scenario)
 
     def test_latex_action_labels_preserve_declared_action_order(self):
         scenario = (
@@ -2984,6 +5562,37 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(set(stance.framework_commitments), {"A0", "A1"})
         self.assertIn("Rawlsian construct check", llm.prompt)
 
+    def test_rawlsian_baseline_supports_maximin_fallback_when_everything_remains_contested(self):
+        class RawlsianMaximinFallbackLlm:
+            def __call__(self, prompt, **kwargs):
+                self.prompt = prompt
+                return {"choices": [{"text": (
+                    '{"b":"NONE","p":"A1","w":"least harm to the worst-off subject",'
+                    '"q":"NORMATIVELY_CONTESTED",'
+                    '"c":"least harm to the worst-off subject or constituency",'
+                    '"s":"provisional maximin fallback to the less harmful option",'
+                    '"x":[],"m":{"A0":"WORSENS: residents lose privacy and access",'
+                    '"A1":"PRESERVES: residents keep privacy and access"},'
+                    '"nr":"DECISIVE"}'
+                )}]}
+
+        llm = RawlsianMaximinFallbackLlm()
+        stance = infer_testimony_stance(
+            llm,
+            "rawlsian",
+            (
+                "Both actions remain contested, but the least harmful option for the "
+                "worst-off subject is A1. Rawlsian Status: NORMATIVELY_CONTESTED."
+            ),
+            ["disclose the address", "withhold the address"],
+        )
+
+        self.assertEqual(stance.status, "NORMATIVELY_CONTESTED")
+        self.assertEqual(stance.provisional_action_id, "A1")
+        self.assertEqual(stance.condition, "least harm to the worst-off subject or constituency")
+        self.assertIn("maximin fallback", llm.prompt)
+        self.assertIn("worst-off subject or constituency", llm.prompt)
+
     def test_deontological_aggregate_substitution_is_damped(self):
         actions = ["respect refusal", "override refusal to rescue others"]
         data = {
@@ -3024,6 +5633,30 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(chunk.framework_grounding_penalty, 0.35)
         self.assertEqual(chunk.framework_retention_status, "LOST")
 
+    def test_deontological_distributive_shorthand_renders_validated_duty_ground(self):
+        actions = ["establish an education floor", "retain local funding"]
+        data = {
+            "scores": {"A0": 0.9, "A1": 0.1}, "r": "A0", "c": "DUTY",
+            "u": "NONE", "w": "Protects the poorest students", "j": "NONE",
+            "e": "STATED_FACTS", "x": "NONE", "z": 0.8,
+            "fm": {
+                "A0": "REQUIRED: satisfies the universal duty to secure basic education",
+                "A1": "PROHIBITED: violates respect for persons by denying basic education",
+            },
+            "nr": "SECONDARY", "np": "funding identifies the scope of the duty",
+        }
+
+        chunk = _candidate_from_data(
+            "deontological", actions, data, WorkspaceBroadcast(), "NONE", {},
+        )
+
+        self.assertEqual(
+            chunk.rationale,
+            "REQUIRED: satisfies the universal duty to secure basic education",
+        )
+        self.assertEqual(chunk.framework_grounding_penalty, 0.0)
+        self.assertEqual(chunk.recommended_action, actions[0])
+
     def test_rawlsian_equal_position_claim_needs_discriminating_ground(self):
         actions = [
             "preserve allocation and save 20",
@@ -3046,6 +5679,695 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(chunk.framework_grounding_penalty, 0.35)
         self.assertEqual(chunk.framework_retention_status, "LOST")
         self.assertLess(chunk.epistemic_confidence, 0.85)
+
+    def test_rawlsian_decisive_numerical_role_requires_explicit_quantity(self):
+        actions = ["raise the minimum", "maximize the aggregate"]
+        data = {
+            "scores": {"A0": 0.8, "A1": 0.2}, "r": "A0", "c": "FAIRNESS",
+            "u": "NONE", "w": "Raises floor for worst-off", "j": "NONE",
+            "e": "STATED_FACTS", "x": "NONE", "z": 0.8,
+            "fm": {
+                "A0": "IMPROVES: worst-off residents gain a primary good",
+                "A1": "WORSENS: worst-off residents retain a lower position",
+            },
+            "nr": "DECISIVE",
+            "np": "Health prospects of the worst-off residents govern",
+        }
+
+        chunk = _candidate_from_data(
+            "rawlsian", actions, data, WorkspaceBroadcast(), "NONE", {},
+        )
+
+        self.assertIn(
+            "decisive numerical role cites no explicit quantity",
+            chunk.framework_validation_errors,
+        )
+
+    def test_rawlsian_map_recognizes_bodily_liberty_language(self):
+        actions = ["detain immune citizens", "forbid involuntary harvesting"]
+        data = {
+            "scores": {"A0": 0.1, "A1": 0.9}, "r": "A1", "c": "FAIRNESS",
+            "u": "NONE", "w": "Basic liberty has priority", "j": "NONE",
+            "e": "STATED_FACTS", "x": "NONE", "z": 0.8,
+            "fm": {
+                "A0": "WORSENS: immune citizens lose bodily integrity",
+                "A1": "PRESERVES: immune citizens keep bodily autonomy",
+            },
+            "nr": "SECONDARY",
+            "np": "life counts do not override bodily liberty",
+        }
+
+        chunk = _candidate_from_data(
+            "rawlsian", actions, data, WorkspaceBroadcast(), "NONE", {},
+        )
+
+        self.assertFalse(any(
+            "lacks framework-specific grounds" in error
+            for error in chunk.framework_validation_errors
+        ), chunk.framework_validation_errors)
+
+    def test_rawlsian_missing_recurrent_map_preserves_committed_state(self):
+        specialist = CompactLocalSpecialist("rawlsian", llm=None)
+        specialist.previous_framework_state = {
+            "ranking_basis": "MAXIMIN_PRIMARY_GOODS",
+            "liberty_status": {"A0": "SATISFIED", "A1": "SATISFIED"},
+            "positions": [
+                {"action_id": "A0", "effect": "IMPROVES", "dimension": "BASIC_INTEREST_SECURITY"},
+                {"action_id": "A1", "effect": "WORSENS", "dimension": "BASIC_INTEREST_SECURITY"},
+            ],
+        }
+        candidate = CandidateChunk(
+            specialist="rawlsian", constraint="FAIRNESS",
+            action_scores={"A0": 0.8, "A1": 0.2}, surprise=0.0,
+            friction=0.6, confidence=0.5, unresolved="NONE",
+            rationale="Raises floor for worst-off",
+            framework_constraint_retained=False,
+            framework_retention_status="LOST",
+            rawls_position_proposal={},
+        )
+
+        specialist._audit_framework_state_change(
+            candidate, WorkspaceBroadcast(constraint="CONSENSUS_AUDIT"),
+        )
+
+        self.assertTrue(candidate.framework_constraint_retained)
+        self.assertEqual(candidate.framework_retention_status, "PRIOR_STATE_PRESERVED")
+        self.assertTrue(any(
+            "prior committed ledger preserved" in error
+            for error in candidate.framework_validation_errors
+        ))
+
+    def test_care_landscape_uses_shared_scenario_consequence_grounding(self):
+        actions = ["build neighborhood clinics", "fund the urban center"]
+        scenario = (
+            "Policy B builds neighborhood clinics, raising the baseline health floor "
+            "for the poorest populations. Policy A funds an urban center but leaves "
+            "rural and impoverished communities with basic, understaffed clinics."
+        )
+        clauses = segment_scenario_clauses(scenario)
+        policy_b = next(row for row in clauses if "Policy B" in row["text"])
+        policy_a = next(row for row in clauses if "Policy A" in row["text"])
+        graph = compile_scenario_graph(scenario, actions, {
+            "A0": {"clauses": [policy_b]},
+            "A1": {"clauses": [policy_a]},
+        })
+        verifier_called = []
+        specialist = CompactLocalSpecialist(
+            "care", llm=None,
+            landscape_verifier=lambda *args, **kwargs: verifier_called.append(True) or [],
+        )
+        specialist.scenario_graph = graph
+        error = (
+            "UNRESOLVED_RELATIONAL_PREMISE: case for A0 makes an unverified "
+            "comparative beneficiary claim (needs a resolved relational premise)"
+        )
+
+        remaining = specialist._verify_landscape(
+            scenario,
+            actions,
+            {
+                actions[0]: "Directly supplies reliable primary care to poor patients",
+                actions[1]: "Leaves rural communities with understaffed clinics",
+            },
+            [error],
+        )
+
+        self.assertEqual(remaining, [])
+        self.assertEqual(verifier_called, [])
+
+    def test_rawlsian_action_graph_can_bind_abstract_group_labels(self):
+        actions = [
+            "route all remaining electricity to Sector B's water pumping station, allowing the hospital to lose power",
+            "route all remaining electricity to the hospital, allowing the water supply to freeze",
+        ]
+        scenario = (
+            "A0 routes electricity to Sector B's water pumping station, allowing the hospital to lose power. "
+            "A1 routes electricity to the hospital, allowing the water supply to freeze."
+        )
+        store = SemanticGraphStore(compile_scenario_graph(scenario, actions))
+        proposal = {
+            "ranking_basis": "DIFFERENCE_PRINCIPLE",
+            "liberty_status": {"A0": "SATISFIED", "A1": "SATISFIED"},
+            "positions": [
+                {
+                    "action_id": "A0",
+                    "group": "hospital patients",
+                    "dimension": "BASIC_INTEREST_SECURITY",
+                    "effect": "WORSENS",
+                    "compared_to_action_id": "A1",
+                    "evidence_basis": "SCENARIO",
+                    "reason": "hospital patients lose power",
+                },
+                {
+                    "action_id": "A1",
+                    "group": "water users",
+                    "dimension": "BASIC_INTEREST_SECURITY",
+                    "effect": "WORSENS",
+                    "compared_to_action_id": "A0",
+                    "evidence_basis": "SCENARIO",
+                    "reason": "water users lose water supply",
+                },
+            ],
+        }
+
+        record = apply_rawls_ledger_transaction(
+            store,
+            proposal,
+            cycle=1,
+            specialist="rawlsian",
+            allowed_actions=tuple(actions),
+        )
+
+        self.assertIn(record.status, {"COMMITTED", "COMMITTED_WITH_UNCERTAINTY"})
+        self.assertFalse(record.errors)
+        assessments = [
+            node for node in store.graph.nodes.values()
+            if node.kind == "ASSESSMENT" and node.attributes.get("framework") == "RAWLSIAN"
+        ]
+        self.assertTrue(assessments)
+        self.assertTrue(any(
+            node.attributes.get("group_selection_status") == "BOUND_TO_ACTION"
+            for node in assessments
+        ))
+
+    def test_rawlsian_ledger_uses_the_full_action_comparison_even_with_foreign_framework_noise(self):
+        actions = [
+            "route all remaining electricity to the hospital, allowing the water supply to freeze",
+            "route all remaining electricity to the water station, allowing the hospital to lose power",
+        ]
+        graph = compile_scenario_graph(
+            "A0 routes electricity to the hospital. A1 routes electricity to the water station.",
+            actions,
+        )
+        graph.add_node(SemanticNode(
+            "UTIL_FOREIGN_TARGET",
+            "TARGET",
+            "utility costs",
+            ("test_foreign_framework",),
+            {},
+        ))
+        graph.add_node(SemanticNode(
+            "UTIL_FOREIGN_CONSEQUENCE",
+            "CONSEQUENCE",
+            "short-term utility gain",
+            ("test_foreign_framework",),
+            {
+                "framework": "UTILITARIAN",
+                "direction": "BENEFIT",
+                "polarity": "BENEFICIAL",
+            },
+        ))
+        graph.add_edge(SemanticEdge(
+            "A0",
+            "HAS_CONSEQUENCE",
+            "UTIL_FOREIGN_CONSEQUENCE",
+            provenance=("test_foreign_framework",),
+        ))
+        graph.add_edge(SemanticEdge(
+            "UTIL_FOREIGN_CONSEQUENCE",
+            "AFFECTS",
+            "UTIL_FOREIGN_TARGET",
+            provenance=("test_foreign_framework",),
+        ))
+        store = SemanticGraphStore(graph)
+        proposal = {
+            "ranking_basis": "DIFFERENCE_PRINCIPLE",
+            "liberty_status": {"A0": "SATISFIED", "A1": "SATISFIED"},
+            "positions": [
+                {
+                    "action_id": "A0",
+                    "group": "water users",
+                    "dimension": "BASIC_INTEREST_SECURITY",
+                    "effect": "WORSENS",
+                    "compared_to_action_id": "A1",
+                    "evidence_basis": "ACTION_GRAPH",
+                    "reason": "A0 leaves water users worse off than A1",
+                },
+                {
+                    "action_id": "A1",
+                    "group": "water users",
+                    "dimension": "BASIC_INTEREST_SECURITY",
+                    "effect": "IMPROVES",
+                    "compared_to_action_id": "A0",
+                    "evidence_basis": "ACTION_GRAPH",
+                    "reason": "A1 protects water users better than A0",
+                },
+            ],
+        }
+        record = apply_rawls_ledger_transaction(
+            store,
+            proposal,
+            cycle=1,
+            specialist="rawlsian",
+            allowed_actions=tuple(actions),
+        )
+        self.assertIn(record.status, {"COMMITTED", "COMMITTED_WITH_UNCERTAINTY"})
+        self.assertFalse(
+            any("action-bound subject grounding" in error for error in record.errors),
+            record.errors,
+        )
+        assessments = [
+            node for node in store.graph.nodes.values()
+            if node.kind == "ASSESSMENT" and node.attributes.get("framework") == "RAWLSIAN"
+        ]
+        self.assertTrue(any(
+            node.attributes.get("group_selection_status") == "BOUND_TO_ACTION"
+            for node in assessments
+        ), [node.attributes for node in assessments])
+
+    def test_rawlsian_ledger_accepts_additive_dimensions(self):
+        actions = [
+            "route all remaining electricity to Sector B's water pumping station, allowing the hospital to lose power",
+            "route all remaining electricity to the hospital, allowing the water supply to freeze",
+        ]
+        graph = compile_scenario_graph(
+            "A0 routes electricity to Sector B's water pumping station, allowing the hospital to lose power. "
+            "A1 routes electricity to the hospital, allowing the water supply to freeze.",
+            actions,
+        )
+        store = SemanticGraphStore(graph)
+        proposal = {
+            "ranking_basis": "UNRESOLVED",
+            "liberty_status": {"A0": "SATISFIED", "A1": "SATISFIED"},
+            "positions": [
+                {
+                    "action_id": "A0",
+                    "group": "hospital patients",
+                    "dimension": "BASIC_INTEREST_SECURITY",
+                    "ad": ["INCOME_WEALTH"],
+                    "effect": "MIXED",
+                    "compared_to_action_id": "A1",
+                    "evidence_basis": "ACTION_GRAPH",
+                    "reason": "A0 protects one interest while burdening another",
+                },
+                {
+                    "action_id": "A1",
+                    "group": "hospital patients",
+                    "dimension": "BASIC_INTEREST_SECURITY",
+                    "ad": ["INCOME_WEALTH"],
+                    "effect": "MIXED",
+                    "compared_to_action_id": "A0",
+                    "evidence_basis": "ACTION_GRAPH",
+                    "reason": "A1 reverses the tradeoff without resolving it",
+                },
+            ],
+        }
+        record = apply_rawls_ledger_transaction(
+            store,
+            proposal,
+            cycle=1,
+            specialist="rawlsian",
+            allowed_actions=tuple(actions),
+        )
+        self.assertIn(record.status, {"COMMITTED", "COMMITTED_WITH_UNCERTAINTY"})
+        self.assertFalse(
+            any("invalid additional dimensions" in error for error in record.errors),
+            record.errors,
+        )
+        assessments = [
+            node for node in store.graph.nodes.values()
+            if node.kind == "ASSESSMENT" and node.attributes.get("framework") == "RAWLSIAN"
+        ]
+        self.assertTrue(any(
+            node.attributes.get("additional_dimensions") == ["INCOME_WEALTH"]
+            for node in assessments
+        ), [node.attributes for node in assessments])
+
+    def test_rawlsian_ledger_preserves_mixed_comparisons(self):
+        scenario = (
+            "A cooling system can be kept running to shield current residents from heat deaths, "
+            "but doing so may intensify monsoon instability and future famine risk. Halting the "
+            "cooling avoids the future systemic risk but leaves the present heat burden in place."
+        )
+        actions = [
+            "Continue the cooling to protect current residents from heat deaths while increasing future monsoon risk",
+            "Halt the cooling to avoid future monsoon instability while exposing current residents to heat deaths",
+        ]
+        store = SemanticGraphStore(compile_scenario_graph(scenario, actions))
+        proposal = {
+            "ranking_basis": "UNRESOLVED",
+            "liberty_status": {"A0": "SATISFIED", "A1": "SATISFIED"},
+            "positions": [
+                {
+                    "action_id": "A0",
+                    "group": "current residents",
+                    "dimension": "BASIC_INTEREST_SECURITY",
+                    "effect": "MIXED",
+                    "compared_to_action_id": "A1",
+                    "evidence_basis": "ACTION_GRAPH",
+                    "reason": "A0 protects current residents but raises future monsoon risk",
+                },
+                {
+                    "action_id": "A1",
+                    "group": "current residents",
+                    "dimension": "BASIC_INTEREST_SECURITY",
+                    "effect": "MIXED",
+                    "compared_to_action_id": "A0",
+                    "evidence_basis": "ACTION_GRAPH",
+                    "reason": "A1 avoids future risk but leaves current residents exposed to heat",
+                },
+            ],
+        }
+        record = apply_rawls_ledger_transaction(
+            store,
+            proposal,
+            cycle=1,
+            specialist="rawlsian",
+            allowed_actions=tuple(actions),
+        )
+        self.assertIn(record.status, {"COMMITTED", "COMMITTED_WITH_UNCERTAINTY"})
+        self.assertFalse(
+            any("invalid effect" in error for error in record.errors),
+            record.errors,
+        )
+        assessments = [
+            node for node in store.graph.nodes.values()
+            if node.kind == "ASSESSMENT" and node.attributes.get("framework") == "RAWLSIAN"
+        ]
+        self.assertTrue(any(
+            node.attributes.get("effect") == "MIXED"
+            and node.attributes.get("epistemic_status") == "MIXED_COMPARISON"
+            for node in assessments
+        ), [node.attributes for node in assessments])
+
+    def test_rawlsian_ledger_normalizes_directional_tradeoffs_to_mixed(self):
+        scenario = (
+            "A cooling system can be kept running to shield current residents from heat deaths, "
+            "but doing so may intensify monsoon instability and future famine risk. Halting the "
+            "cooling avoids the future systemic risk but leaves the present heat burden in place."
+        )
+        actions = [
+            "Continue the cooling to protect current residents from heat deaths while increasing future monsoon risk",
+            "Halt the cooling to avoid future monsoon instability while exposing current residents to heat deaths",
+        ]
+        store = SemanticGraphStore(compile_scenario_graph(scenario, actions))
+        proposal = {
+            "ranking_basis": "UNRESOLVED",
+            "liberty_status": {"A0": "SATISFIED", "A1": "SATISFIED"},
+            "positions": [
+                {
+                    "action_id": "A0",
+                    "group": "current residents",
+                    "dimension": "BASIC_INTEREST_SECURITY",
+                    "effect": "IMPROVES",
+                    "compared_to_action_id": "A1",
+                    "evidence_basis": "ACTION_GRAPH",
+                    "reason": "A0 protects current residents but raises future monsoon risk",
+                },
+                {
+                    "action_id": "A1",
+                    "group": "current residents",
+                    "dimension": "BASIC_INTEREST_SECURITY",
+                    "effect": "WORSENS",
+                    "compared_to_action_id": "A0",
+                    "evidence_basis": "ACTION_GRAPH",
+                    "reason": "A1 avoids future risk but leaves current residents exposed to heat",
+                },
+            ],
+        }
+        record = apply_rawls_ledger_transaction(
+            store,
+            proposal,
+            cycle=1,
+            specialist="rawlsian",
+            allowed_actions=tuple(actions),
+        )
+        self.assertIn(record.status, {"COMMITTED", "COMMITTED_WITH_UNCERTAINTY"})
+        self.assertFalse(
+            any("lacked directional support" in error for error in record.errors),
+            record.errors,
+        )
+        assessments = [
+            node for node in store.graph.nodes.values()
+            if node.kind == "ASSESSMENT" and node.attributes.get("framework") == "RAWLSIAN"
+        ]
+        self.assertTrue(any(
+            node.attributes.get("proposed_effect") in {"IMPROVES", "WORSENS"}
+            and node.attributes.get("effect") == "MIXED"
+            and node.attributes.get("epistemic_status") == "MIXED_COMPARISON"
+            for node in assessments
+        ), [node.attributes for node in assessments])
+
+    def test_action_graph_projects_beneficiary_groups_for_rawls(self):
+        actions = [
+            "route all remaining electricity to the hospital",
+            "route all remaining electricity to the water station",
+        ]
+        graph = compile_scenario_graph(
+            "A0 routes electricity to the hospital. A1 routes electricity to the water station.",
+            actions,
+        )
+        target_labels = {
+            node.label for node in graph.nodes.values()
+            if node.kind == "TARGET"
+        }
+        self.assertIn("hospital patients", target_labels)
+        self.assertIn("water users", target_labels)
+
+    def test_holiday_rush_burdens_project_worker_targets_for_rawls(self):
+        scenario = (
+            "During the peak holiday rush, your district manager mandates an immediate "
+            "shift to a time-intensive software protocol to improve long-term inventory "
+            "accuracy, but applying it now will severely bottleneck your fulfillment "
+            "floor, miss critical shipping cutoffs, and push your exhausted team past "
+            "their limits. You must decide whether to strictly enforce the new protocol "
+            "immediately to uphold organizational compliance despite the operational "
+            "collapse, or temporarily bypass the directive for high-priority shipments "
+            "to protect your team's throughput and well-being during the rush."
+        )
+        actions = [
+            "Strictly enforce the new protocol immediately to uphold organizational compliance despite the operational collapse",
+            "Temporarily bypass the directive for high-priority shipments to protect your team's throughput and well-being during the rush",
+        ]
+        graph = compile_scenario_graph(scenario, actions)
+        burden_targets = {
+            node.label for node in graph.nodes.values()
+            if node.kind == "TARGET" and node.id.startswith("BURDEN_")
+        }
+        self.assertIn("workers", burden_targets)
+        self.assertGreaterEqual(
+            sum(1 for node in graph.nodes.values()
+                if node.kind == "TARGET" and node.id.startswith("BURDEN_")),
+            2,
+        )
+
+        proposal = {
+            "ranking_basis": "ORIGINAL_POSITION_PUBLIC_RULE",
+            "liberty_status": {"A0": "SATISFIED", "A1": "SATISFIED"},
+            "positions": [
+                {
+                    "action_id": "A0",
+                    "group": "floor-level fulfillment workers",
+                    "subject_kind": "INDIVIDUAL",
+                    "dimension": "BASIC_INTEREST_SECURITY",
+                    "effect": "PRESERVES",
+                    "compared_to_action_id": "A1",
+                    "evidence_basis": "SCENARIO",
+                    "reason": "A0 protects workers from collapse during the rush",
+                },
+                {
+                    "action_id": "A1",
+                    "group": "floor-level fulfillment workers",
+                    "subject_kind": "INDIVIDUAL",
+                    "dimension": "BASIC_INTEREST_SECURITY",
+                    "effect": "WORSENS",
+                    "compared_to_action_id": "A0",
+                    "evidence_basis": "SCENARIO",
+                    "reason": "A1 preserves worker throughput and well-being",
+                },
+            ],
+        }
+        store = SemanticGraphStore(graph)
+        record = apply_rawls_ledger_transaction(
+            store,
+            proposal,
+            cycle=1,
+            specialist="rawlsian",
+            allowed_actions=tuple(actions),
+        )
+        self.assertIn(record.status, {"COMMITTED", "COMMITTED_WITH_UNCERTAINTY"})
+        self.assertFalse(
+            any("action-bound subject grounding" in error for error in record.errors),
+            record.errors,
+        )
+        assessments = [
+            node for node in store.graph.nodes.values()
+            if node.kind == "ASSESSMENT" and node.attributes.get("framework") == "RAWLSIAN"
+        ]
+        self.assertTrue(any(
+            node.attributes.get("group_selection_status") == "BOUND_TO_ACTION"
+            for node in assessments
+        ), [node.attributes for node in assessments])
+
+    def test_rawlsian_privacy_case_can_bind_an_individual_subject(self):
+        actions = [
+            "Decline to provide the resident’s address to the volunteer coordinator",
+            "Give the resident’s address to the volunteer coordinator for the welcome gift basket",
+        ]
+        data = {
+            "scores": {"A0": 0.85, "A1": 0.15}, "r": "A0", "c": "FAIRNESS",
+            "u": "NONE", "w": "Resident privacy is the relevant liberty", "j": "NONE",
+            "e": "STATED_FACTS", "x": "NONE", "z": 0.86,
+            "fm": {
+                "A0": "PRESERVES: resident retains informational privacy as an individual liberty",
+                "A1": "WORSENS: resident’s privacy is exposed for a small social benefit",
+            },
+            "nr": "IRRELEVANT", "np": "privacy is the liberty at stake",
+            "rp": {
+                "A0": {
+                    "s": "resident",
+                    "sk": "INDIVIDUAL",
+                    "d": "BASIC_LIBERTY",
+                    "e": "PRESERVES",
+                    "ca": "A1",
+                    "b": "ACTION_GRAPH",
+                    "rs": "A0 preserves the resident’s privacy",
+                },
+                "A1": {
+                    "s": "resident",
+                    "sk": "INDIVIDUAL",
+                    "d": "BASIC_LIBERTY",
+                    "e": "WORSENS",
+                    "ca": "A0",
+                    "b": "ACTION_GRAPH",
+                    "rs": "A1 infringes the resident’s privacy",
+                },
+            },
+            "rb": "LEXICAL_BASIC_LIBERTY",
+            "lc": {"A0": "SATISFIED", "A1": "INFRINGED"},
+        }
+        chunk = _candidate_from_data(
+            "rawlsian", actions, data, WorkspaceBroadcast(), "NONE", {},
+        )
+
+        self.assertEqual(chunk.framework_grounding_penalty, 0.0)
+        self.assertNotEqual(chunk.framework_retention_status, "LOST")
+        self.assertNotIn(
+            "action-bound subject grounding",
+            " | ".join(chunk.framework_validation_errors),
+        )
+        self.assertEqual(chunk.rawls_position_proposal["positions"][0]["subject"], "resident")
+        self.assertEqual(chunk.rawls_position_proposal["positions"][0]["subject_kind"], "INDIVIDUAL")
+
+    def test_rawlsian_medical_risk_case_projects_patient_targets(self):
+        scenario = (
+            "You are the lead compliance officer for a major pharmaceutical company. "
+            "A newly approved medication has undocumented cardiac risk, but the CEO "
+            "ordered you not to report it."
+        )
+        actions = [
+            "Leak the confidential files publicly under your own name",
+            "Submit the evidence through the official regulatory whistleblower process",
+        ]
+        graph = compile_scenario_graph(scenario, actions)
+        target_labels = {
+            node.label for node in graph.nodes.values()
+            if node.kind == "TARGET"
+        }
+        self.assertIn("patients", target_labels)
+
+        store = SemanticGraphStore(graph)
+        proposal = {
+            "ranking_basis": "DIFFERENCE_PRINCIPLE",
+            "liberty_status": {"A0": "SATISFIED", "A1": "SATISFIED"},
+            "positions": [
+                {
+                    "action_id": "A0",
+                    "subject": "patients",
+                    "subject_kind": "GROUP",
+                    "dimension": "BASIC_INTEREST_SECURITY",
+                    "effect": "WORSENS",
+                    "compared_to_action_id": "A1",
+                    "evidence_basis": "ACTION_GRAPH",
+                    "reason": "A0 leaves patients exposed to the medication risk",
+                },
+                {
+                    "action_id": "A1",
+                    "subject": "patients",
+                    "subject_kind": "GROUP",
+                    "dimension": "BASIC_INTEREST_SECURITY",
+                    "effect": "IMPROVES",
+                    "compared_to_action_id": "A0",
+                    "evidence_basis": "ACTION_GRAPH",
+                    "reason": "A1 supports patients by reporting the cardiac risk",
+                },
+            ],
+        }
+        record = apply_rawls_ledger_transaction(
+            store,
+            proposal,
+            cycle=1,
+            specialist="rawlsian",
+            allowed_actions=tuple(actions),
+        )
+        self.assertIn(record.status, {"COMMITTED", "COMMITTED_WITH_UNCERTAINTY"})
+        self.assertFalse(
+            any(
+                "action-bound subject grounding" in error
+                for error in record.errors
+            ),
+            record.errors,
+        )
+        assessments = [
+            node for node in store.graph.nodes.values()
+            if node.kind == "ASSESSMENT" and node.attributes.get("framework") == "RAWLSIAN"
+        ]
+        self.assertTrue(any(
+            node.attributes.get("subject_selection_status") == "BOUND_TO_ACTION"
+            for node in assessments
+        ), [node.attributes for node in assessments])
+
+    def test_rawlsian_ledger_accepts_principle_basis_field(self):
+        actions = [
+            "route electricity to the hospital",
+            "route electricity to the water station",
+        ]
+        graph = compile_scenario_graph(
+            "A0 routes electricity to the hospital. A1 routes electricity to the water station.",
+            actions,
+        )
+        store = SemanticGraphStore(graph)
+        proposal = {
+            "ranking_basis": "LEXICAL_BASIC_LIBERTY",
+            "liberty_status": {"A0": "SATISFIED", "A1": "SATISFIED"},
+            "positions": [
+                {
+                    "action_id": "A0",
+                    "s": "hospital patients",
+                    "sk": "GROUP",
+                    "d": "BASIC_LIBERTY",
+                    "principle_basis": "LEXICAL_BASIC_LIBERTY",
+                    "effect": "PRESERVES",
+                    "compared_to_action_id": "A1",
+                    "evidence_basis": "SCENARIO",
+                    "reason": "A0 preserves hospital patients' access to power",
+                },
+                {
+                    "action_id": "A1",
+                    "s": "hospital patients",
+                    "sk": "GROUP",
+                    "d": "BASIC_LIBERTY",
+                    "principle_basis": "LEXICAL_BASIC_LIBERTY",
+                    "effect": "WORSENS",
+                    "compared_to_action_id": "A0",
+                    "evidence_basis": "SCENARIO",
+                    "reason": "A1 worsens hospital patients' access to power",
+                },
+            ],
+        }
+        record = apply_rawls_ledger_transaction(
+            store,
+            proposal,
+            cycle=1,
+            specialist="rawlsian",
+            allowed_actions=tuple(actions),
+        )
+        self.assertIn(record.status, {"COMMITTED", "COMMITTED_WITH_UNCERTAINTY"})
+        self.assertTrue(record.errors)
+        self.assertTrue(
+            any("directional support" in error for error in record.errors),
+            record.errors,
+        )
 
     def test_utilitarian_action_consequence_table_is_preserved(self):
         actions = ["evacuate the district", "keep the district open"]
@@ -3106,6 +6428,62 @@ class BridgeTests(unittest.TestCase):
         self.assertFalse(chunk.evidence_sufficient_for_action)
         self.assertTrue(chunk.utilitarian_decision_depends_on_unknown)
 
+    def test_utilitarian_multi_clause_graph_updates_are_stripped(self):
+        actions = ["evacuate the district", "keep the district open"]
+        data = {
+            "scores": {"A0": 0.78, "A1": 0.22}, "r": "A0",
+            "c": "IMMINENT_HARM", "u": "NONE", "w": "Lower expected mortality",
+            "j": "NONE", "e": "STATED_FACTS", "x": "NONE", "z": 0.8,
+            "ct": {
+                "A0": [{
+                    "o": "temporary displacement harms residents", "s": "district residents",
+                    "d": "HARM", "p": "CERTAIN", "m": "moderate", "h": "two days",
+                    "rv": "REVERSIBLE", "g": "STATED",
+                }],
+                "A1": [{
+                    "o": "exposure causes preventable deaths", "s": "district residents",
+                    "d": "HARM", "p": "40%", "m": "severe", "h": "permanent",
+                    "rv": "IRREVERSIBLE", "g": "STATED",
+                }],
+            },
+            "cd": False, "cm": "NONE",
+            "gu": {
+                "operation": "AND",
+                "from_action": "A0",
+                "to_action": "A1",
+                "clauses": [
+                    {
+                        "affected_action": "A0",
+                        "metric": "mortality",
+                        "metric_valence": "ADVERSE",
+                        "comparator": "GT",
+                        "threshold": 100.0,
+                        "unit": "COUNT",
+                        "source_text": "expected deaths exceed one hundred",
+                    },
+                    {
+                        "affected_action": "A1",
+                        "metric": "mortality",
+                        "metric_valence": "BENEFICIAL",
+                        "comparator": "LT",
+                        "threshold": 50.0,
+                        "unit": "COUNT",
+                        "source_text": "expected deaths fall below fifty",
+                    },
+                ],
+            },
+        }
+        chunk = _candidate_from_data(
+            "utilitarian", actions, data, WorkspaceBroadcast(), "NONE", {},
+        )
+
+        self.assertEqual(chunk.graph_update_proposal["operation"], "NONE")
+        self.assertTrue(any(
+            "utilitarian graph updates must be a single measurable boundary"
+            in error
+            for error in chunk.framework_validation_errors
+        ))
+
     def test_utilitarian_table_rejects_stated_polarity_inversion(self):
         actions = [
             "Release gas, killing trapped residents",
@@ -3138,6 +6516,70 @@ class BridgeTests(unittest.TestCase):
             "reverses its committed polarity" in error
             for error in chunk.framework_validation_errors
         ))
+
+    def test_utilitarian_table_matches_row_specific_outcome_not_whole_action(self):
+        actions = [
+            "Redirect power to the hospital, preserving critical patients while freezing the water station",
+        ]
+        data = {
+            "scores": {"A0": 0.7}, "r": "A0",
+            "c": "IMMINENT_HARM", "u": "NONE", "w": "Mixed but grounded",
+            "j": "NONE", "e": "STATED_FACTS", "x": "NONE", "z": 0.8,
+            "ct": {
+                "A0": [
+                    {
+                        "o": "preserving critical patients", "s": "critical patients",
+                        "d": "BENEFIT", "p": "CERTAIN", "m": "large", "h": "temporary",
+                        "rv": "REVERSIBLE", "g": "STATED",
+                    },
+                    {
+                        "o": "freezing the water station", "s": "water station",
+                        "d": "HARM", "p": "CERTAIN", "m": "large", "h": "temporary",
+                        "rv": "REVERSIBLE", "g": "STATED",
+                    },
+                ],
+            },
+            "cd": False, "cm": "NONE",
+        }
+        chunk = _candidate_from_data(
+            "utilitarian", actions, data, WorkspaceBroadcast(), "NONE", {},
+        )
+
+        self.assertFalse(any(
+            "reverses its committed polarity" in error
+            for error in chunk.framework_validation_errors
+        ), chunk.framework_validation_errors)
+
+    def test_utilitarian_rawlsian_language_is_flagged(self):
+        actions = ["expand the highway", "fund the bus network"]
+        data = {
+            "scores": {"A0": 0.2, "A1": 0.8}, "r": "A1",
+            "c": "IMMINENT_HARM", "u": "NONE",
+            "w": "Choose the bus network for the least advantaged", "j": "NONE",
+            "e": "STATED_FACTS", "x": "NONE", "z": 0.8,
+            "ct": {
+                "A0": [{
+                    "o": "highway expansion benefits commuters", "s": "commuters",
+                    "d": "BENEFIT", "p": "CERTAIN", "m": "large", "h": "long term",
+                    "rv": "REVERSIBLE", "g": "STATED",
+                }],
+                "A1": [{
+                    "o": "bus network benefits riders", "s": "riders",
+                    "d": "BENEFIT", "p": "CERTAIN", "m": "large", "h": "long term",
+                    "rv": "REVERSIBLE", "g": "STATED",
+                }],
+            },
+            "cd": False, "cm": "NONE",
+        }
+        chunk = _candidate_from_data(
+            "utilitarian", actions, data, WorkspaceBroadcast(), "NONE", {},
+        )
+
+        self.assertEqual(chunk.framework_grounding_penalty, 0.35)
+        self.assertTrue(any(
+            "imports Rawlsian normative language" in error
+            for error in chunk.framework_validation_errors
+        ), chunk.framework_validation_errors)
 
     def test_virtue_baseline_preserves_unresolved_virtue_conflict(self):
         class VirtueBaselineLlm:
@@ -3218,6 +6660,138 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(chunk.framework_grounding_penalty, 0.35)
         self.assertEqual(chunk.framework_retention_status, "LOST")
         self.assertIn("compassionate courage", chunk.rationale)
+
+    def test_virtue_typed_ledger_can_ground_a_sparse_framework_map(self):
+        actions = [
+            "route remaining electricity to Sector A hospital",
+            "alternate full power between hospital and water station hourly",
+        ]
+        data = {
+            "scores": {"A0": 0.46, "A1": 0.54},
+            "r": "A1",
+            "c": "CHARACTER",
+            "u": "NONE",
+            "w": "Prudence and compassion remain in tension",
+            "j": "NONE",
+            "e": "STATED_FACTS",
+            "x": "NONE",
+            "z": 0.61,
+            "fm": {
+                "A0": "EXEMPLIFIES: protects the hospital under time pressure",
+                "A1": "MIXED: shares scarce power across competing needs",
+            },
+            "vl": {
+                "A0": {
+                    "v": "EXEMPLIFIES",
+                    "r": "public steward",
+                    "vs": "prudence and practical wisdom",
+                    "x": "callousness",
+                    "c": "imminent infrastructure collapse",
+                    "g": "FRAMEWORK_ONLY",
+                    "rs": "A0 fits the steward role through proportionate judgment",
+                },
+                "A1": {
+                    "v": "MIXED",
+                    "r": "public steward",
+                    "vs": "compassion and civic stewardship",
+                    "x": "imprudence",
+                    "c": "scarce power and competing responsibilities",
+                    "g": "FRAMEWORK_ONLY",
+                    "rs": "A1 expresses care but risks excess",
+                },
+            },
+            "vb": "PRACTICAL_WISDOM",
+            "nr": "SECONDARY",
+            "np": "stakes inform practical wisdom without defining virtue",
+        }
+        chunk = _candidate_from_data(
+            "virtue", actions, data, WorkspaceBroadcast(), "NONE", {},
+        )
+
+        self.assertEqual(chunk.framework_grounding_penalty, 0.0)
+        self.assertNotEqual(chunk.framework_retention_status, "LOST")
+        self.assertNotIn("lacks framework-specific grounds", " | ".join(chunk.framework_validation_errors))
+
+    def test_virtue_mixed_verdict_does_not_trigger_false_map_conflict(self):
+        actions = [
+            "postpone the protocol until after the holiday peak",
+            "immediately enforce the new inventory protocol",
+        ]
+        data = {
+            "scores": {"A0": 0.62, "A1": 0.38},
+            "r": "A0",
+            "c": "CHARACTER",
+            "u": "NONE",
+            "w": "Compassion and prudence favor delay",
+            "j": "NONE",
+            "e": "STATED_FACTS",
+            "x": "NONE",
+            "z": 0.58,
+            "fm": {
+                "A0": "EXEMPLIFIES: compassionate prudence sustains the team",
+                "A1": "EXEMPLIFIES: diligence also matters, but risks rigidity",
+            },
+            "vl": {
+                "A0": {
+                    "v": "EXEMPLIFIES",
+                    "r": "floor manager",
+                    "vs": "compassion, prudence, courage",
+                    "x": "possible laxity",
+                    "c": "holiday rush fatigue",
+                    "g": "FRAMEWORK_ONLY",
+                    "rs": "A0 fits humane stewardship in the rush",
+                },
+                "A1": {
+                    "v": "MIXED",
+                    "r": "floor manager",
+                    "vs": "diligence, loyalty",
+                    "x": "rigidity, indifference",
+                    "c": "holiday rush fatigue",
+                    "g": "FRAMEWORK_ONLY",
+                    "rs": "A1 shows diligence but risks excess",
+                },
+            },
+            "vb": "PRACTICAL_WISDOM",
+            "nr": "SECONDARY",
+            "np": "stakes inform practical wisdom without defining virtue",
+        }
+        chunk = _candidate_from_data(
+            "virtue", actions, data, WorkspaceBroadcast(), "NONE", {},
+        )
+
+        self.assertEqual(chunk.framework_grounding_penalty, 0.0)
+        self.assertNotIn("conflicts with its framework map", " | ".join(chunk.framework_validation_errors))
+
+    def test_virtue_prompt_emphasizes_balanced_flourishing_over_heroic_sacrifice(self):
+        class VirtuePromptCaptureLlm:
+            def __call__(self, prompt, **kwargs):
+                self.prompt = prompt
+                return {"choices": [{"text": (
+                    '{"b":"NONE","p":"A0","w":"prudence and courage remain in tension",'
+                    '"q":"NORMATIVELY_CONTESTED","c":"which character ideal governs the role",'
+                    '"s":"NONE","x":[],"m":{"A0":"EXEMPLIFIES: prudent courage preserves agency",'
+                    '"A1":"MIXED: heroic sacrifice risks self-erasure"},"nr":"SECONDARY"}'
+                )}]}
+
+        llm = VirtuePromptCaptureLlm()
+        infer_testimony_stance(
+            llm,
+            "virtue",
+            (
+                "Action A0 expresses prudent courage and preserves agency, while "
+                "Action A1 tempts heroic sacrifice. Virtue-Ethics Status: "
+                "NORMATIVELY_CONTESTED; provisionally choose A0."
+            ),
+            ["protect the town without self-erasure", "make a risky public stand"],
+        )
+
+        self.assertIn("balanced flourishing", llm.prompt.lower())
+        self.assertIn("not maximal altruism or heroic self-sacrifice", llm.prompt.lower())
+        self.assertIn("preserve the agent's agency", llm.prompt.lower())
+        self.assertIn("self-erasure", llm.prompt.lower())
+        self.assertIn("protected escalation", llm.prompt.lower())
+        self.assertIn("anonymous reporting", llm.prompt.lower())
+        self.assertIn("phased disclosure", llm.prompt.lower())
 
     def test_terminal_labeled_answer_prevents_early_maxim_inversion(self):
         class LlmMustNotRun:
@@ -3371,6 +6945,58 @@ class BridgeTests(unittest.TestCase):
         )
         self.assertEqual(baseline, "NONE")
         self.assertIn("outside_action_set", reason)
+
+    def test_outside_action_set_with_fallback_preserves_extension_and_fallback(self):
+        class BaselineLlm:
+            def __call__(self, prompt, **kwargs):
+                return {"choices": [{"text": (
+                    '{"b":"NONE","p":"A1","w":"seek consent before fallback",'
+                    '"q":"OUTSIDE_ACTION_SET_WITH_FALLBACK",'
+                    '"c":"NONE","s":"seek consent","x":["A0"]}'
+                )}]}
+
+        stance = infer_testimony_stance(
+            BaselineLlm(),
+            "care",
+            "The testimony prefers to seek consent before taking the fallback.",
+            ["Share the address", "Decline to share the address"],
+        )
+        self.assertEqual(stance.status, "OUTSIDE_ACTION_SET_WITH_FALLBACK")
+        self.assertEqual(stance.provisional_action_id, "A1")
+        self.assertEqual(stance.preferred_extension, "seek consent")
+        self.assertEqual(stance.action_id, "NONE")
+
+    def test_no_position_is_distinct_from_parse_failure(self):
+        class NoPositionLlm:
+            def __call__(self, prompt, **kwargs):
+                return {"choices": [{"text": (
+                    '{"b":"NONE","p":"NONE","w":"the testimony does not take a position",'
+                    '"q":"NO_POSITION","c":"NONE","x":[]}'
+                )}]}
+
+        stance = infer_testimony_stance(
+            NoPositionLlm(),
+            "care",
+            "The testimony does not recommend either listed action.",
+            ["Option A", "Option B"],
+        )
+        self.assertEqual(stance.status, "NO_POSITION")
+        self.assertEqual(stance.action_id, "NONE")
+        self.assertEqual(stance.provisional_action_id, "NONE")
+        self.assertEqual(stance.condition, "")
+
+        class BadJsonLlm:
+            def __call__(self, prompt, **kwargs):
+                return {"choices": [{"text": '{"b":"NONE","q":"DIRECT"'}]}
+
+        failed = infer_testimony_stance(
+            BadJsonLlm(),
+            "care",
+            "Malformed baseline output.",
+            ["Option A", "Option B"],
+        )
+        self.assertEqual(failed.status, "PARSE_FAILURE")
+        self.assertIn("baseline extraction failed", failed.reason)
 
     def test_conditional_terminal_choice_is_preserved_as_typed_stance(self):
         class ConditionalBaselineLlm:
@@ -3716,7 +7342,7 @@ class BridgeTests(unittest.TestCase):
             max_tokens=192,
             temperature=0.0,
         )
-        self.assertEqual(calls, [1024, 4096])
+        self.assertEqual(calls, [1536, 4096])
         self.assertEqual(result["choices"][0]["text"], '{"ok":true}')
 
     def test_openai_timeout_is_translated_to_bounded_model_failure(self):
@@ -3743,6 +7369,54 @@ class BridgeTests(unittest.TestCase):
             )
         self.assertEqual(raised.exception.category, "timeout")
         self.assertFalse(raised.exception.terminal)
+
+    def test_openai_empty_structured_output_returns_blank_text(self):
+        class Completions:
+            def create(self, **request):
+                return SimpleNamespace(
+                    choices=[SimpleNamespace(
+                        message=SimpleNamespace(content="", refusal=None),
+                        finish_reason="length",
+                    )],
+                    usage=None,
+                )
+
+        client = SimpleNamespace(chat=SimpleNamespace(completions=Completions()))
+        llm = OpenAIWorkspaceLLM("o3", client=client)
+        result = llm.complete_json(
+            "return json",
+            schema={
+                "type": "object",
+                "properties": {"ok": {"type": "boolean"}},
+                "required": ["ok"],
+                "additionalProperties": False,
+            },
+            max_tokens=192,
+            temperature=0.0,
+        )
+        self.assertEqual(result["choices"][0]["text"], "")
+
+    def test_engine_converts_specialist_exceptions_to_malformed_candidates(self):
+        class BrokenSpecialist:
+            name = "rawlsian"
+
+            def evaluate(self, scenario, actions, broadcast):
+                raise RuntimeError("structured repair failed")
+
+        result = WorkspaceEngine(
+            [
+                FixedSpecialist("care", "protect", "CARE"),
+                BrokenSpecialist(),
+                FixedSpecialist("virtue", "protect", "CHARACTER"),
+            ],
+            WorkspaceConfig(max_cycles=1, enable_synthesis=False),
+        ).run("Choose protect or decline.", ["protect", "decline"])
+
+        candidate = result.cycles[0].candidates[1]
+        self.assertFalse(candidate.schema_valid)
+        self.assertEqual(candidate.constraint, "NONE")
+        self.assertEqual(candidate.delegate_status, "SEMANTIC_VALIDATION_ERROR")
+        self.assertIn("specialist evaluation failed", candidate.validation_errors[0])
 
     def test_visibility_auditor_penalizes_endogenous_epistemic_exclusion_without_vote(self):
         scenario = (
@@ -3794,6 +7468,34 @@ class BridgeTests(unittest.TestCase):
         self.assertFalse(assessment.valid)
         self.assertFalse(assessment.activated)
         self.assertTrue(all(value == 1.0 for value in assessment.action_multipliers.values()))
+
+    def test_visibility_auditor_can_use_structural_power_asymmetry_as_external_generalization(self):
+        scenario = (
+            "You are the lead structural inspector for a massive, decaying mining dam "
+            "above an impoverished rural community. The conglomerate dominates the "
+            "region's economy and politics, and if you issue the evacuation order it "
+            "will orchestrate a retaliatory legal campaign."
+        )
+
+        class StructuralVisibilityLlm:
+            def __call__(self, prompt, **kwargs):
+                return {"choices": [{"text": (
+                    '{"lo":true,"en":true,"g":"impoverished rural community",'
+                    '"m":"corporate dominance and retaliatory legal pressure can suppress '
+                    'reporting and institutional attention",'
+                    '"q":"the conglomerate dominates the region\'s economy and politics",'
+                    '"p":{"A0":0.8,"A1":1.0}}'
+                )}]}
+
+        assessment = assess_visibility(
+            StructuralVisibilityLlm(),
+            scenario,
+            ["issue evacuation", "falsify report"],
+        )
+        self.assertTrue(assessment.valid, assessment.error)
+        self.assertTrue(assessment.activated)
+        self.assertIn(assessment.mechanism_provenance, {"SCENARIO_GROUNDED", "EXTERNAL_GENERALIZATION"})
+        self.assertLess(assessment.action_multipliers["issue evacuation"], 1.0)
 
     def test_visibility_proposition_receives_recurrent_workspace_access(self):
         seen = []
@@ -3994,6 +7696,48 @@ class BridgeTests(unittest.TestCase):
         self.assertFalse(assessment.valid)
         self.assertFalse(assessment.activated)
         self.assertIn("semantic grounding", assessment.error)
+
+    def test_visibility_hypothetical_mechanism_does_not_apply_penalty(self):
+        class HypotheticalMechanismLlm:
+            def __call__(self, prompt, **kwargs):
+                return {"choices": [{"text": (
+                    '{"lo":true,"en":true,"g":"rural residents",'
+                    '"m":"preventive infrastructure failures are less visible and receive less institutional attention",'
+                    '"q":"rural casualties under A0 remain unmonitored",'
+                    '"p":{"A0":0.7,"A1":1.0}}'
+                )}]}
+
+        assessment = assess_visibility(
+            HypotheticalMechanismLlm(),
+            "Rural casualties under A0 remain unmonitored; urban harms are live-tracked.",
+            ["isolate the rural grid", "risk the urban system"],
+        )
+        self.assertTrue(assessment.valid, assessment.error)
+        self.assertFalse(assessment.activated)
+        self.assertEqual(assessment.mechanism_provenance, "HYPOTHETICAL")
+        self.assertTrue(all(value == 1.0 for value in assessment.action_multipliers.values()))
+
+    def test_visibility_prompt_exposes_typed_facts_before_interpretation(self):
+        prompts = []
+
+        class PromptCaptureLlm:
+            def __call__(self, prompt, **kwargs):
+                prompts.append(prompt)
+                return {"choices": [{"text": (
+                    '{"lo":true,"en":true,"g":"rural residents",'
+                    '"m":"rural casualties remain unmonitored",'
+                    '"q":"rural casualties under A0 remain unmonitored",'
+                    '"p":{"A0":0.8,"A1":1.0}}'
+                )}]}
+
+        assess_visibility(
+            PromptCaptureLlm(),
+            "Rural casualties under A0 remain unmonitored; urban harms are live-tracked.",
+            ["isolate the rural grid", "risk the urban system"],
+        )
+        self.assertTrue(prompts)
+        self.assertIn("Typed observability facts", prompts[0])
+        self.assertIn("telemetry_visibility", prompts[0])
 
     def test_explicit_off_telemetry_language_compiles_to_typed_visibility_fact(self):
         calls = []

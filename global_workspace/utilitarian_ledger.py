@@ -8,6 +8,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from .graph_transactions import GraphTransactionRecord, SemanticGraphStore
+from .scenario_semantics import query_grounded_action_effects
 from .semantic_graph import SemanticEdge, SemanticGraph, SemanticNode, merge_graphs, validate_graph
 
 
@@ -80,18 +81,19 @@ def _best_evidence(
     graph: SemanticGraph, action_id: str, outcome: str, scope: str,
 ) -> tuple[SemanticNode | None, int]:
     claim_words = _words(f"{outcome} {scope}")
-    best: SemanticNode | None = None
-    best_score = 0
-    for consequence in _deterministic_consequences(graph, action_id):
-        target_labels = " ".join(
-            graph.nodes[edge.target].label
-            for edge in graph.outgoing(consequence.id, "AFFECTS")
-            if edge.target in graph.nodes
-        )
-        score = len(claim_words & _words(f"{consequence.label} {target_labels}"))
-        if score > best_score:
-            best, best_score = consequence, score
-    return best, best_score
+    effects = query_grounded_action_effects(
+        graph, action_id, claim=f"{outcome} {scope}",
+    )
+    if not effects:
+        return None, 0
+    effect = effects[0]
+    consequence = graph.nodes.get(effect.consequence_id)
+    if consequence is None:
+        return None, 0
+    score = len(claim_words & _words(
+        f"{consequence.label} {effect.affected_subject} {effect.dimension}"
+    ))
+    return consequence, max(1, score)
 
 
 def _stable_id(prefix: str, value: str) -> str:

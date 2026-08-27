@@ -1,117 +1,83 @@
-import glob
-from load_care_ethics_corpus import load_care_ethics_corpus
-from langchain.schema import Document as LangchainDoc
 import json
 from pathlib import Path
+from global_workspace.source_cache import build_source_cache_key
 from datetime import datetime
 import os
-import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
 from get_semantic_tag import get_semantic_tag_weights
 import atexit
 import gc
+from global_workspace.framework_retrieval import (
+    EvidenceThresholds,
+    corpus_fingerprint,
+    format_evidence_context,
+    load_corpus_passages,
+    retrieve_framework_evidence,
+)
 
 LAST_QUERY_PATH = Path("agent_outputs/.last_query_care.txt")
 LAST_RESPONSE_PATH = Path("agent_outputs/.last_response_care.txt")
 
 MODEL_PATH = "../mistral-7b-instruct-v0.2.Q4_K_M.gguf"
 CARE_PROMPT_VERSION = "care-relational-comparison-v2"
-
-class Document:
-    def __init__(self, content, metadata):
-        self.content = content
-        self.metadata = metadata or {}
+CARE_CORPUS_DIR = Path("care_ethics_corpus")
+CARE_EVIDENCE_THRESHOLDS = EvidenceThresholds(core=0.40, adjacent=0.28)
+CARE_IDENTITY_TAGS = {
+    "care",
+    "care_ethics",
+    "relationship",
+    "responsibility",
+    "dependency",
+    "trust",
+    "responsiveness",
+}
+CARE_QUERY_LENS = (
+    "Care ethics evidence about relationship, responsibility, dependency, trust, "
+    "responsiveness, vulnerability, attentiveness, and moral attention to concrete people."
+)
 
 def load_scenario_weights(scenario_id):
     print(f"🧠 Expanding tag weights with semantic overlap for scenario: {scenario_id}")
     return get_semantic_tag_weights(scenario_id, scenario_dir=Path("scenarios"), corpus_dir=Path("care_ethics_corpus"))
 
-def normalize_tags(raw_tags):
-    if isinstance(raw_tags, str):
-        return [t.strip() for t in raw_tags.split(",")]
-    elif isinstance(raw_tags, list):
-        return [t.strip() for t in raw_tags]
-    return []
-
-def cosine_similarity(a, b):
-    a = np.array(a).flatten()
-    b = np.array(b).flatten()
-    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
-
 def retrieve_care_ethics_quotes(query: str, scenario_id: str, limit_per_quote: int = 250):
     from langchain_huggingface import HuggingFaceEmbeddings
-    from load_care_ethics_corpus import load_care_ethics_corpus
-    embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    global vectorstore
-    vectorstore = load_care_ethics_corpus(embedder=embedder)
 
     tag_weights = load_scenario_weights(scenario_id)
     print(f"🔧 Scenario Tag Weights: {tag_weights}")
+    embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    passages = load_corpus_passages(
+        CARE_CORPUS_DIR,
+        framework="care",
+        max_chars=limit_per_quote,
+    )
+    result = retrieve_framework_evidence(
+        passages,
+        query=query,
+        embedder=embedder,
+        query_lens=CARE_QUERY_LENS,
+        identity_tags=CARE_IDENTITY_TAGS,
+        tag_weights=tag_weights,
+        thresholds=CARE_EVIDENCE_THRESHOLDS,
+        limit=3,
+        prefer_direct_quotes=True,
+        separate_identity_scoring=True,
+    )
 
-    raw_docs = vectorstore.similarity_search(query, k=10)
-    wrapped_docs = [Document(d.page_content, d.metadata) for d in raw_docs]
+    for item in result.evidence:
+        print(
+            f"📘 {item.tier.value} evidence (framework={item.framework_score:.2f}, "
+            f"case={item.case_score:.2f}, rank={item.final_score:.2f}): "
+            f"{item.passage.text}"
+        )
+    if not result.evidence:
+        print("⚠️ No Care corpus evidence met the adjacent threshold.")
 
-    def doc_score(doc):
-        tags = normalize_tags(doc.metadata.get("tags", []))
-        score = 0.0
-        for tag in tags:
-            tag_weight = tag_weights.get(tag, 0.0)
-            if tag_weight > 0:
-                print(f"🔍 Tag '{tag}' has semantic weight {tag_weight}")
-            score += tag_weight
-        print(f"🧪 Normalized Tags: {tags} → Score: {score:.2f}")
-        return score
-
-    doc_scores = {id(doc): doc_score(doc) for doc in wrapped_docs}
-
-    quotes = []
-    for doc in wrapped_docs:
-        for line in doc.content.split("\n"):
-            if line.strip().startswith(">"):
-                quote = line.strip()[1:].strip()[:limit_per_quote]
-                if quote:
-                    quotes.append((quote, doc_scores[id(doc)]))
-
-    if not quotes:
-        del vectorstore
-        del embedder
-        import gc; gc.collect()
-        return "", []
-
-    quote_texts = [q[0] for q in quotes]
-    quote_tag_scores = [q[1] for q in quotes]
-
-    query_embedding = embedder.embed_query(query)
-    quote_embeddings = embedder.embed_documents(quote_texts)
-
-    ranked = []
-    for i in range(len(quote_texts)):
-        sim = cosine_similarity(query_embedding, quote_embeddings[i])
-        sim = max(0.0, sim)
-        tag_score = quote_tag_scores[i] if i < len(quote_tag_scores) else 0.0
-        combined_score = tag_score * 2 + 0.2 * sim
-        ranked.append((quote_texts[i], combined_score))
-
-    ranked = sorted(ranked, key=lambda x: x[1], reverse=True)
-    top_quotes = ranked[:3]
-
-    for quote, score in top_quotes:
-        print(f"📘 Quote Used (score: {score:.2f}): {quote}")
-
-    # Cleanup to free memory
-    del quote_embeddings
-    del quote_texts
-    del quote_tag_scores
-    del query_embedding
-    del wrapped_docs
-    del raw_docs
-    del doc_scores
-    del ranked
-    del vectorstore
     del embedder
-    import gc; gc.collect()
+    gc.collect()
 
-    return "\n---\n".join([q for q, _ in top_quotes]), top_quotes
+    return format_evidence_context(result), [
+        (item.passage.text, item.final_score) for item in result.evidence
+    ]
 
 def respond_to_query(query: str, scenario_id: str, scenario_path=None, temperature: float = 0.7, max_tokens: int = 300, llm=None) -> str:
         # fallback if scenario_path not provided
@@ -122,7 +88,12 @@ def respond_to_query(query: str, scenario_id: str, scenario_path=None, temperatu
     if not query or not scenario_id:
         raise ValueError("Both 'query' and 'scenario_id' must be provided.")
 
-    cache_key = f"{CARE_PROMPT_VERSION}\n{query.strip()}"
+    cache_key = build_source_cache_key(
+        CARE_PROMPT_VERSION,
+        query,
+        scenario_id,
+        scenario_path,
+    )
     reuse_source = (
         os.getenv("ETHICS_LLM_BACKEND", "local") == "local"
         or os.getenv("ETHICS_REUSE_SOURCE_TESTIMONY", "1") != "0"
@@ -149,6 +120,10 @@ def respond_to_query(query: str, scenario_id: str, scenario_path=None, temperatu
 
     prompt = f"""<s>[INST] You are a care ethics assistant. Your role is to reason from the perspective of care, prioritizing relationships, emotional resonance, and concrete human contexts.
 
+- Treat CORE evidence as the only corpus material that may ground a decisive care-ethical claim.
+- Treat ADJACENT evidence as interpretive context only; it may illustrate a care theme,
+  but it may not establish a new dependency, trust relation, or vulnerability claim on
+  its own.
 - Prioritize relational closeness and interdependence over abstract impartiality.
 - Emphasize empathy, responsiveness, and moral attention to the specific people involved.
 - Avoid utilitarian calculus or rigid principles unless reframed in terms of care.
@@ -156,6 +131,10 @@ def respond_to_query(query: str, scenario_id: str, scenario_path=None, temperatu
   entrustment, dependency, trust, agent-created vulnerability, responsibility,
   and responsiveness. Do not attach one care concept to whichever action first
   feels salient without testing how it applies to the rival action.
+- Do not upgrade institutional responsibility, prioritization, or dependency into
+  an explicit promise unless the scenario itself states a promise or commitment.
+  Speak in terms of care, trust, and entrustment when those are what the scenario
+  actually gives you.
 - Explicitly state the role of numerical magnitude as exactly one of DECISIVE,
   SECONDARY, or IRRELEVANT. Counts may inform competent and responsive care, but
   they are DECISIVE only when you explain why the competing relational claims are
@@ -164,6 +143,10 @@ def respond_to_query(query: str, scenario_id: str, scenario_path=None, temperatu
   not clearly rank those commitments, say "Care-Ethics Status:
   NORMATIVELY_CONTESTED". You may give a provisional recommendation, but do not
   disguise the unresolved relational priority as a settled framework commitment.
+- Do not claim a relational advantage unless you can point to a concrete action-
+  specific fact that changes responsibility, trust, dependency, or attentiveness.
+- If both actions carry the same relational burden, say the care comparison is
+  unresolved rather than forcing a cleaner answer from a merely adjacent quote.
 - Use the following corpus excerpts where helpful.
 
 Corpus Materials:

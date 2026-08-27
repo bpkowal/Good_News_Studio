@@ -1,18 +1,21 @@
-from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
-from load_utilitarian_corpus import load_utilitarian_corpus
-from langchain.schema import Document as LangchainDoc
 import json
 from pathlib import Path
 from datetime import datetime
 import os
-import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
 from get_semantic_tag import get_semantic_tag_weights
 from pathlib import Path
 import gc
 import atexit
 import glob
+from global_workspace.framework_retrieval import (
+    EvidenceThresholds,
+    corpus_fingerprint,
+    format_evidence_context,
+    load_corpus_passages,
+    retrieve_framework_evidence,
+)
+from global_workspace.source_cache import build_source_cache_key
 
 from horizon_aggregator import (
     horizon_limited_aggregate,
@@ -24,6 +27,20 @@ from horizon_aggregator import (
 
 MODEL_PATH = "../mistral-7b-instruct-v0.2.Q4_K_M.gguf"
 UTILITARIAN_PROMPT_VERSION = "utilitarian-action-consequence-table-v2"
+UTILITARIAN_CORPUS_DIR = Path("utilitarian_corpus")
+UTILITARIAN_EVIDENCE_THRESHOLDS = EvidenceThresholds(core=0.40, adjacent=0.28)
+UTILITARIAN_IDENTITY_TAGS = {
+    "utilitarian",
+    "utility",
+    "consequentialism",
+    "welfare",
+    "expected_value",
+    "aggregate_welfare",
+}
+UTILITARIAN_QUERY_LENS = (
+    "Utilitarian evidence about consequences, welfare, benefits, harms, expected "
+    "value, probability, magnitude, duration, reversibility, and impartial aggregation."
+)
 
 vectorstore = None
 embedder = None
@@ -55,75 +72,41 @@ def cosine_similarity(a, b):
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
 def retrieve_utilitarian_quotes(query: str, scenario_id: str, limit_per_quote: int = 250):
-    from langchain_chroma import Chroma
-    from langchain_huggingface import HuggingFaceEmbeddings
-    from load_utilitarian_corpus import load_utilitarian_corpus
-
-    global vectorstore, embedder
-    embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    vectorstore = load_utilitarian_corpus(embedder=embedder)
-
     tag_weights = load_scenario_weights(scenario_id)
     print(f"\U0001f527 Scenario Tag Weights: {tag_weights}")
 
-    raw_docs = vectorstore.similarity_search(query, k=10)
-    print(f"🔍 Retrieved {len(raw_docs)} documents for similarity search.")
-    wrapped_docs = [Document(d.page_content, d.metadata) for d in raw_docs]
-    if wrapped_docs:
-        print("🔍 Sample document content snippet:", wrapped_docs[0].content[:100])
+    global embedder
+    embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    passages = load_corpus_passages(
+        UTILITARIAN_CORPUS_DIR,
+        framework="utilitarian",
+        max_chars=limit_per_quote,
+    )
+    result = retrieve_framework_evidence(
+        passages,
+        query=query,
+        embedder=embedder,
+        query_lens=UTILITARIAN_QUERY_LENS,
+        identity_tags=UTILITARIAN_IDENTITY_TAGS,
+        tag_weights=tag_weights,
+        thresholds=UTILITARIAN_EVIDENCE_THRESHOLDS,
+        limit=3,
+        prefer_direct_quotes=True,
+        separate_identity_scoring=True,
+    )
 
-    def doc_score(doc):
-        tags = normalize_tags(doc.metadata.get("tags", []))
-        score = 0.0
-        for tag in tags:
-            tag_weight = tag_weights.get(tag, 0.0)
-            if tag_weight > 0:
-                print(f"\U0001f50d Tag '{tag}' has semantic weight {tag_weight}")
-            score += tag_weight
-        print(f"\U0001f9ea Normalized Tags: {tags} → Score: {score:.2f}")
-        return score
+    for item in result.evidence:
+        print(
+            f"📘 {item.tier.value} evidence (framework={item.framework_score:.2f}, "
+            f"case={item.case_score:.2f}, rank={item.final_score:.2f}): "
+            f"{item.passage.text}"
+        )
+    if not result.evidence:
+        print("⚠️ No Utilitarian corpus evidence met the adjacent threshold.")
 
-    doc_scores = {id(doc): doc_score(doc) for doc in wrapped_docs}
-
-    quotes = []
-    for doc in wrapped_docs:
-        for line in doc.content.split("\n"):
-            if line.strip().startswith(">"):
-                quote = line.strip()[1:].strip()[:limit_per_quote]
-                if quote:
-                    quotes.append((quote, doc_scores[id(doc)]))
-
-    if not quotes:
-        print("⚠️ No '>'-prefixed quotes found, using document excerpts as fallback quotes.")
-        for doc in wrapped_docs[:3]:
-            lines = [l for l in doc.content.split("\n") if l.strip()]
-            excerpt = lines[0].strip()[:limit_per_quote] if lines else ""
-            if excerpt:
-                quotes.append((excerpt, doc_scores[id(doc)]))
-    if not quotes:
-        return "", []
-
-    quote_texts = [q[0] for q in quotes]
-    quote_tag_scores = [q[1] for q in quotes]
-
-    query_embedding = embedder.embed_query(query)
-    quote_embeddings = embedder.embed_documents(quote_texts)
-
-    ranked = []
-    for i in range(len(quote_texts)):
-        sim = cosine_similarity(query_embedding, quote_embeddings[i])
-        sim = max(0.0, sim)
-        tag_score = quote_tag_scores[i] if i < len(quote_tag_scores) else 0.0
-        combined_score = tag_score * 2 + 0.2 * sim
-        ranked.append((quote_texts[i], combined_score))
-
-    ranked = sorted(ranked, key=lambda x: x[1], reverse=True)
-    top_quotes = ranked[:3]
-
-    for quote, score in top_quotes:
-        print(f"\U0001f4d8 Quote Used (score: {score:.2f}): {quote}")
-
-    return "\n---\n".join([q for q, _ in top_quotes]), top_quotes
+    return format_evidence_context(result), [
+        (item.passage.text, item.final_score) for item in result.evidence
+    ]
 
 
 # ---------------------------------------------------------------------- #
@@ -159,7 +142,12 @@ def respond_to_query(query: str, scenario_id: str, temperature: float = 0.5, max
     if not query or not scenario_id:
         raise ValueError("Both 'query' and 'scenario_id' must be provided.")
 
-    cache_key = f"{UTILITARIAN_PROMPT_VERSION}\n{query.strip()}"
+    cache_key = build_source_cache_key(
+        UTILITARIAN_PROMPT_VERSION,
+        query,
+        scenario_id,
+        scenario_path,
+    )
     reuse_source = (
         os.getenv("ETHICS_LLM_BACKEND", "local") == "local"
         or os.getenv("ETHICS_REUSE_SOURCE_TESTIMONY", "1") != "0"

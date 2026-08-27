@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
+import json
 import re
 from typing import Any
 
@@ -15,12 +16,15 @@ class TestimonyBaseline:
 
     ``action_id`` is authoritative only for a DIRECT stance.  A conditional
     testimony may retain a ``provisional_action_id`` without turning that
-    provisional ranking into a frozen commitment.
+    provisional ranking into a frozen commitment.  ``NO_POSITION`` means the
+    testimony does not offer a recommendation; ``PARSE_FAILURE`` means the
+    parser could not reliably extract one.
     """
 
     status: str = "UNAVAILABLE"
     action_id: str = "NONE"
     provisional_action_id: str = "NONE"
+    preferred_extension: str = ""
     condition: str = ""
     reason: str = ""
     rejected_action_ids: list[str] = field(default_factory=list)
@@ -30,7 +34,8 @@ class TestimonyBaseline:
     def __post_init__(self) -> None:
         allowed = {
             "DIRECT", "CONDITIONAL", "UNDERDETERMINED", "NORMATIVELY_CONTESTED",
-            "OUTSIDE_ACTION_SET", "UNAVAILABLE",
+            "OUTSIDE_ACTION_SET", "OUTSIDE_ACTION_SET_WITH_FALLBACK",
+            "NO_POSITION", "PARSE_FAILURE", "UNAVAILABLE",
         }
         normalized = str(self.status).strip().upper()
         self.status = normalized if normalized in allowed else "UNAVAILABLE"
@@ -38,6 +43,7 @@ class TestimonyBaseline:
         self.provisional_action_id = (
             str(self.provisional_action_id).strip().upper() or "NONE"
         )
+        self.preferred_extension = " ".join(str(self.preferred_extension).split())[:240]
         self.condition = " ".join(str(self.condition).split())[:240]
         self.reason = " ".join(str(self.reason).split())[:240]
         self.rejected_action_ids = list(dict.fromkeys(
@@ -58,13 +64,20 @@ class TestimonyBaseline:
         if self.status == "DIRECT":
             self.provisional_action_id = self.action_id
             self.condition = ""
+            self.preferred_extension = ""
         else:
             self.action_id = "NONE"
         if self.status not in {
             "CONDITIONAL", "UNDERDETERMINED", "NORMATIVELY_CONTESTED",
         }:
             self.condition = ""
-        if self.status in {"OUTSIDE_ACTION_SET", "UNAVAILABLE"}:
+        if self.status == "OUTSIDE_ACTION_SET":
+            self.preferred_extension = ""
+        if self.status != "OUTSIDE_ACTION_SET_WITH_FALLBACK":
+            self.preferred_extension = ""
+        if self.status in {
+            "OUTSIDE_ACTION_SET", "NO_POSITION", "PARSE_FAILURE", "UNAVAILABLE",
+        }:
             self.provisional_action_id = "NONE"
 
     def as_dict(self) -> dict[str, Any]:
@@ -75,6 +88,9 @@ class TestimonyBaseline:
 class WorkspaceBroadcast:
     constraint: str = "OPEN_DELIBERATION"
     intent: str = "identify_a_defensible_action"
+    salient_specialist: str = ""
+    salient_action: str = ""
+    salient_claim: str = ""
     urgency: float = 0.5
     danger_probability: float = 0.5
     unresolved: str = "NONE"
@@ -84,16 +100,21 @@ class WorkspaceBroadcast:
     contingency_predicate: str = ""
     contingency_failure_truth: bool = False
     contingency_fallback_actions: tuple[str, ...] = ()
+    audit_variable: dict[str, Any] = field(default_factory=dict)
     reformulation_context: str = ""
     branch_kind: str = "BASE"
     branch_origin_action: str = ""
     branch_condition: str = ""
     branch_fallback: str = ""
     reversal_challenge: str = ""
+    problem_state: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         self.constraint = self.constraint.strip().upper()[:48] or "OPEN_DELIBERATION"
         self.intent = self.intent.strip().lower()[:80] or "identify_a_defensible_action"
+        self.salient_specialist = self.salient_specialist.strip()[:48]
+        self.salient_action = " ".join(self.salient_action.split())[:180]
+        self.salient_claim = " ".join(self.salient_claim.split())[:240]
         self.unresolved = self.unresolved.strip().upper()[:48] or "NONE"
         self.contingency_question = " ".join(self.contingency_question.split())[:240]
         self.contingency_synthesis_action = " ".join(
@@ -110,18 +131,23 @@ class WorkspaceBroadcast:
             for action in self.contingency_fallback_actions[:2]
             if " ".join(str(action).split())
         )
+        self.audit_variable = dict(self.audit_variable or {})
         self.reformulation_context = " ".join(self.reformulation_context.split())[:600]
         self.branch_kind = self.branch_kind.strip().upper()[:32] or "BASE"
         self.branch_origin_action = " ".join(self.branch_origin_action.split())[:120]
         self.branch_condition = " ".join(self.branch_condition.split())[:240]
         self.branch_fallback = " ".join(self.branch_fallback.split())[:180]
         self.reversal_challenge = " ".join(self.reversal_challenge.split())[:360]
+        self.problem_state = dict(self.problem_state or {})
         self.urgency = clamp(self.urgency)
         self.danger_probability = clamp(self.danger_probability)
 
     def compact(self) -> str:
         return (
             f"constraint={self.constraint}; intent={self.intent}; "
+            f"salient={self.salient_specialist or 'NONE'}:"
+            f"{self.salient_action or 'NONE'}; "
+            f"claim={self.salient_claim or 'NONE'}; "
             f"urgency={self.urgency:.2f}; danger={self.danger_probability:.2f}; "
             f"unresolved={self.unresolved}; "
             f"contingency={self.contingency_question or 'NONE'}; "
@@ -129,12 +155,69 @@ class WorkspaceBroadcast:
             f"failure_condition={self.contingency_failure_condition or 'NONE'}; "
             f"typed_failure=NOT({self.contingency_predicate or 'NONE'}); "
             f"typed_fallbacks={list(self.contingency_fallback_actions) or 'NONE'}; "
+            f"audit_variable={json.dumps(self.audit_variable, sort_keys=True)[:1200] if self.audit_variable else 'NONE'}; "
             f"reformulation={self.reformulation_context or 'NONE'}; "
             f"branch={self.branch_kind}; origin={self.branch_origin_action or 'NONE'}; "
             f"condition={self.branch_condition or 'NONE'}; "
             f"fallback={self.branch_fallback or 'NONE'}"
-            f"; reversal_challenge={self.reversal_challenge or 'NONE'}"
+            f"; reversal_challenge={self.reversal_challenge or 'NONE'}; "
+            f"problem_delta={json.dumps(self.problem_state.get('problem_delta', {}), sort_keys=True)[:2400] if self.problem_state else 'NONE'}; "
+            f"problem_state={json.dumps(self.problem_state, sort_keys=True)[:4000] if self.problem_state else 'NONE'}"
         )
+
+    def trace_summary(self) -> str:
+        claim = " ".join(self.salient_claim.split()).strip()
+        if len(claim) > 120:
+            claim = claim[:117].rstrip(" ,;:-") + "..."
+        if not claim:
+            claim = "NONE"
+        salient = f"{self.salient_specialist or 'NONE'}:{self.salient_action or 'NONE'}"
+        return (
+            f"{self.constraint} | salient={salient} | claim={claim} | "
+            f"unresolved={self.unresolved}"
+        )
+
+
+@dataclass(slots=True)
+class ProposalFrameworkReview:
+    proposal_id: str
+    specialist: str
+    framework_status: str
+    framework_reason: str
+    predicted_consequences: list[dict[str, Any]] = field(default_factory=list)
+    feasibility_concerns: list[str] = field(default_factory=list)
+    required_conditions: list[str] = field(default_factory=list)
+    framework_retained: bool = True
+    valid: bool = True
+    validation_errors: list[str] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        self.proposal_id = self.proposal_id.strip().upper()[:24]
+        self.specialist = self.specialist.strip()[:32]
+        status = self.framework_status.strip().upper()
+        self.framework_status = status if status in {
+            "SUPPORTS", "QUALIFIES", "OPPOSES", "UNDERDETERMINED",
+        } else "UNDERDETERMINED"
+        self.framework_reason = " ".join(self.framework_reason.split())[:240]
+        self.predicted_consequences = [
+            dict(item) for item in self.predicted_consequences
+            if isinstance(item, dict)
+        ][:8]
+        self.feasibility_concerns = list(dict.fromkeys(
+            " ".join(str(item).split())[:160]
+            for item in self.feasibility_concerns if " ".join(str(item).split())
+        ))[:6]
+        self.required_conditions = list(dict.fromkeys(
+            " ".join(str(item).split())[:160]
+            for item in self.required_conditions if " ".join(str(item).split())
+        ))[:6]
+        self.validation_errors = list(dict.fromkeys(
+            " ".join(str(item).split())[:180]
+            for item in self.validation_errors if " ".join(str(item).split())
+        ))[:8]
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
 
 
 @dataclass(slots=True)
@@ -148,12 +231,17 @@ class CandidateChunk:
     unresolved: str = "NONE"
     rationale: str = ""
     salience: float = 0.0
+    tension_engagement: float = 0.0
+    tension_target_keys: list[str] = field(default_factory=list)
     schema_valid: bool = True
+    delegate_status: str = "VALID"
+    error_type: str = "NONE"
     validation_errors: list[str] = field(default_factory=list)
     recommended_action: str = ""
     baseline_action: str = ""
     baseline_status: str = "UNAVAILABLE"
     baseline_condition: str = ""
+    baseline_preferred_extension: str = ""
     testimony_alignment: str = "UNCLEAR"
     previous_action: str = ""
     position_changed: bool = False
@@ -201,6 +289,7 @@ class CandidateChunk:
     previous_preference_strength: float = 0.0
     preference_drift: float = 0.0
     preference_drift_penalty: float = 0.0
+    preference_shift_reason_strength: float = 0.0
     decision_rule: str = ""
     factual_reversal_threshold: str = "NONE"
     normative_reversal_threshold: str = "NONE"
@@ -213,6 +302,10 @@ class CandidateChunk:
     contingency_justification: str = ""
     contingency_response_valid: bool = True
     contingency_response_error: str = ""
+    audit_variable: dict[str, Any] = field(default_factory=dict)
+    audit_internal_effect: str = "UNRESOLVED"
+    audit_participation: str = "NOT_TESTED"
+    audit_framework_explanation: str = ""
     graph_update_proposal: dict[str, Any] = field(default_factory=dict)
     expected_value_estimates: dict[str, dict[str, Any]] = field(default_factory=dict)
     # Passive construct-validity measurements. These fields are serialized for
@@ -229,6 +322,13 @@ class CandidateChunk:
     framework_constraint_retained: bool = True
     self_reported_broadcast_dependence: str = "NONE"
     framework_retention_status: str = "NOT_MEASURED"
+    # Framework-local tensions are observations about a specialist's own
+    # reasoning, not shared world facts or cross-framework priority rules.
+    framework_internal_conflicts: list[str] = field(default_factory=list)
+    framework_specific_open_questions: list[str] = field(default_factory=list)
+    # Non-voting, framework-attributed refinements recovered from an update
+    # that was not allowed to replace the operative framework state.
+    framework_insights: list[dict[str, Any]] = field(default_factory=list)
     # Framework-specific, action-indexed construct state.  Unlike the short
     # rationale, this map records how the assigned framework evaluates every
     # option and survives presentation-label changes.
@@ -250,22 +350,63 @@ class CandidateChunk:
     care_numerical_role: str = "NOT_APPLICABLE"
     care_numerical_justification: str = ""
     care_grounding_penalty: float = 0.0
+    proposal_review: ProposalFrameworkReview | None = None
 
     def __post_init__(self) -> None:
         self.specialist = self.specialist.strip()[:32]
         self.constraint = self.constraint.strip().upper()[:48] or "UNSPECIFIED"
+        self.framework_internal_conflicts = list(dict.fromkeys(
+            " ".join(str(item).split())[:180]
+            for item in self.framework_internal_conflicts
+            if " ".join(str(item).split())
+        ))[:3]
+        self.framework_specific_open_questions = list(dict.fromkeys(
+            " ".join(str(item).split())[:180]
+            for item in self.framework_specific_open_questions
+            if " ".join(str(item).split())
+        ))[:3]
+        self.framework_insights = [
+            dict(item) for item in self.framework_insights
+            if isinstance(item, dict)
+            and str(item.get("proposition", "")).strip()
+        ][:6]
+        self.tension_engagement = clamp(self.tension_engagement)
+        self.tension_target_keys = list(dict.fromkeys(
+            str(key).strip()[:64] for key in self.tension_target_keys
+            if str(key).strip()
+        ))[:8]
         self.unresolved = self.unresolved.strip().upper()[:48] or "NONE"
+        status = self.delegate_status.strip().upper()
+        self.delegate_status = status if status in {
+            "VALID", "MODEL_ERROR", "SCHEMA_ERROR", "SEMANTIC_VALIDATION_ERROR",
+        } else ("VALID" if self.schema_valid else "SEMANTIC_VALIDATION_ERROR")
+        error_type = self.error_type.strip().upper()
+        self.error_type = error_type if error_type in {
+            "NONE", "MODEL_ERROR", "SCHEMA_REJECTION", "SEMANTIC_VALIDATION_ERROR",
+        } else "NONE"
+        if not self.schema_valid and self.delegate_status == "VALID":
+            self.delegate_status = "SEMANTIC_VALIDATION_ERROR"
+        if not self.schema_valid:
+            # Execution failure is not a moral or epistemic constraint.
+            self.constraint = "NONE"
+        if self.schema_valid:
+            self.delegate_status = "VALID"
+            self.error_type = "NONE"
         self.rationale = " ".join(self.rationale.split())[:180]
         baseline_status = self.baseline_status.strip().upper()
         self.baseline_status = (
             baseline_status
             if baseline_status in {
                 "DIRECT", "CONDITIONAL", "UNDERDETERMINED", "NORMATIVELY_CONTESTED",
-                "OUTSIDE_ACTION_SET", "UNAVAILABLE",
+                "OUTSIDE_ACTION_SET", "OUTSIDE_ACTION_SET_WITH_FALLBACK",
+                "NO_POSITION", "PARSE_FAILURE", "UNAVAILABLE",
             }
-            else "UNAVAILABLE"
+            else "PARSE_FAILURE"
         )
         self.baseline_condition = " ".join(self.baseline_condition.split())[:240]
+        self.baseline_preferred_extension = " ".join(
+            self.baseline_preferred_extension.split()
+        )[:240]
         self.surprise = clamp(self.surprise)
         self.friction = clamp(self.friction)
         if self.preference_strength < 0:
@@ -283,6 +424,7 @@ class CandidateChunk:
         self.previous_preference_strength = clamp(self.previous_preference_strength)
         self.preference_drift = max(-1.0, min(1.0, float(self.preference_drift)))
         self.preference_drift_penalty = clamp(self.preference_drift_penalty)
+        self.preference_shift_reason_strength = clamp(self.preference_shift_reason_strength)
         self.confidence = self.epistemic_confidence
         self.conformity_penalty = clamp(self.conformity_penalty)
         self.previous_confidence = clamp(self.previous_confidence)
@@ -292,6 +434,14 @@ class CandidateChunk:
         self.assumption_status = self.assumption_status.strip().upper()[:24] or "NOT_AUDITED"
         self.unsupported_assumption = " ".join(self.unsupported_assumption.split())[:180]
         self.reversal_condition = " ".join(self.reversal_condition.split())[:180]
+        participation = self.audit_participation.strip().upper()
+        self.audit_participation = participation if participation in {
+            "NOT_TESTED", "RELEVANT", "IRRELEVANT", "TRANSLATED", "CONTESTED",
+            "REVERSAL_RELEVANT", "UNRESOLVED",
+        } else "NOT_TESTED"
+        self.audit_framework_explanation = " ".join(
+            self.audit_framework_explanation.split()
+        )[:240]
         self.boundary_position = self.boundary_position.strip().upper()[:16] or "NOT_TESTED"
         self.decisive_axis = " ".join(self.decisive_axis.split())[:100]
         self.boundary_switch_condition = " ".join(self.boundary_switch_condition.split())[:180]
@@ -378,6 +528,12 @@ class CandidateChunk:
         self.contingency_response_error = " ".join(
             self.contingency_response_error.split()
         )[:180]
+        self.audit_variable = dict(self.audit_variable or {})
+        effect = self.audit_internal_effect.strip().upper()[:16]
+        self.audit_internal_effect = (
+            effect if effect in {"NO_CHANGE", "WEAKENS", "REVERSES", "UNRESOLVED"}
+            else "UNRESOLVED"
+        )
         self.graph_update_proposal = dict(self.graph_update_proposal or {})
         self.expected_value_estimates = dict(self.expected_value_estimates or {})
         selection = self.selection_status.strip().upper()
@@ -416,6 +572,8 @@ class CandidateChunk:
                 # The graph accepted only the uncertainty-preserving form of
                 # the proposal. This is not equivalent to identity loss.
                 "COMMITTED_WITH_UNCERTAINTY",
+                "REVERSAL", "REFINEMENT", "SPECIALIZATION", "RESOLUTION",
+                "NEW_ACTION_GROUNDING",
             }
             else "NOT_MEASURED"
         )
@@ -481,7 +639,7 @@ class CycleRecord:
     cycle: int
     broadcast: WorkspaceBroadcast
     candidates: list[CandidateChunk]
-    winner: CandidateChunk
+    winner: CandidateChunk | None
     dissent: CandidateChunk | None
     policy: dict[str, float]
     entropy: float
@@ -489,6 +647,8 @@ class CycleRecord:
     elapsed_seconds: float
     received_broadcast: WorkspaceBroadcast | None = None
     is_hypothetical: bool = False
+    execution_status: str = "VALID"
+    system_error: str = "NONE"
 
 
 @dataclass(slots=True)
@@ -503,10 +663,10 @@ class PlanningBranchEvaluation:
 
     def __post_init__(self) -> None:
         self.cycle = max(1, int(self.cycle))
-        self.origin_action = " ".join(self.origin_action.split())[:120]
+        self.origin_action = " ".join(self.origin_action.split())[:240]
         self.condition = " ".join(self.condition.split())[:240]
-        self.fallback = " ".join(self.fallback.split())[:180]
-        self.selected_action = " ".join(self.selected_action.split())[:120]
+        self.fallback = " ".join(self.fallback.split())[:240]
+        self.selected_action = " ".join(self.selected_action.split())[:240]
         self.confidence = clamp(self.confidence)
         self.policy = {str(action): clamp(score) for action, score in self.policy.items()}
 
@@ -522,20 +682,66 @@ class SynthesisProposal:
     non_evasive: bool = True
     accepted: bool = False
     rejection_reason: str = ""
+    admission_status: str = "PENDING"
+    admission_annotations: list[str] = field(default_factory=list)
     introduced_requirements: list[str] = field(default_factory=list)
+    proposal_id: str = ""
+    source_agents: list[str] = field(default_factory=list)
+    predicted_consequences: list[dict[str, Any]] = field(default_factory=list)
+    feasibility_status: str = "UNCERTAIN"
+    grounding_status: str = "PENDING"
+    framework_reviews: dict[str, dict[str, Any]] = field(default_factory=dict)
+    promotion_status: str = "PROPOSED"
 
     def __post_init__(self) -> None:
-        self.action = " ".join(self.action.split())[:120]
+        self.action = " ".join(self.action.split())[:240]
         self.grounded_in = list(dict.fromkeys(str(item).strip().lower() for item in self.grounded_in if str(item).strip()))[:5]
         self.addressed_constraints = list(dict.fromkeys(str(item).strip().upper() for item in self.addressed_constraints if str(item).strip()))[:5]
         self.feasibility = clamp(self.feasibility)
         self.rationale = " ".join(self.rationale.split())[:240]
         self.rejection_reason = " ".join(self.rejection_reason.split())[:200]
+        self.admission_status = self.admission_status.strip().upper()[:40] or "PENDING"
+        self.admission_annotations = [
+            " ".join(str(item).split())[:160]
+            for item in dict.fromkeys(self.admission_annotations)
+            if " ".join(str(item).split())
+        ][:8]
         self.introduced_requirements = list(dict.fromkeys(
             " ".join(str(item).split())[:100]
             for item in self.introduced_requirements
             if " ".join(str(item).split())
         ))[:8]
+        self.proposal_id = self.proposal_id.strip().upper()[:24]
+        self.source_agents = list(dict.fromkeys(
+            str(agent).strip()[:48] for agent in self.source_agents
+            if str(agent).strip()
+        ))[:8]
+        self.predicted_consequences = [
+            dict(item) for item in self.predicted_consequences
+            if isinstance(item, dict)
+        ][:12]
+        feasibility_status = self.feasibility_status.strip().upper()
+        self.feasibility_status = (
+            feasibility_status if feasibility_status in {
+                "UNKNOWN", "UNCERTAIN", "PLAUSIBLE", "ESTABLISHED", "FAILED",
+            } else "UNCERTAIN"
+        )
+        grounding_status = self.grounding_status.strip().upper()
+        self.grounding_status = (
+            grounding_status if grounding_status in {
+                "PENDING", "PARTIALLY_GROUNDED", "GROUNDED", "REJECTED",
+            } else "PENDING"
+        )
+        self.framework_reviews = {
+            str(agent): dict(review) for agent, review in self.framework_reviews.items()
+            if str(agent).strip() and isinstance(review, dict)
+        }
+        promotion_status = self.promotion_status.strip().upper()
+        self.promotion_status = (
+            promotion_status if promotion_status in {
+                "PROPOSED", "UNDER_REVIEW", "ADMISSIBLE", "REJECTED", "PROMOTED",
+            } else "PROPOSED"
+        )
 
 
 @dataclass(slots=True)
@@ -555,12 +761,12 @@ class FailureCondition:
     error: str = ""
 
     def __post_init__(self) -> None:
-        self.synthesis_action = " ".join(self.synthesis_action.split())[:120]
+        self.synthesis_action = " ".join(self.synthesis_action.split())[:240]
         self.necessary_condition = " ".join(self.necessary_condition.split())[:180]
         self.failure_condition = " ".join(self.failure_condition.split())[:180]
         self.contingency_question = " ".join(self.contingency_question.split())[:240]
         self.fallback_actions = [
-            " ".join(str(action).split())[:120]
+            " ".join(str(action).split())[:240]
             for action in self.fallback_actions[:2]
             if " ".join(str(action).split())
         ]
@@ -594,7 +800,7 @@ class SynthesisViabilityAssessment:
     reason: str
 
     def __post_init__(self) -> None:
-        self.synthesis_action = " ".join(self.synthesis_action.split())[:120]
+        self.synthesis_action = " ".join(self.synthesis_action.split())[:240]
         self.review_cycle = max(0, int(self.review_cycle))
         self.valid_delegates = max(0, int(self.valid_delegates))
         self.recommendation_count = max(0, int(self.recommendation_count))
@@ -621,7 +827,7 @@ class ContingencyFeasibilityAssessment:
     error: str = ""
 
     def __post_init__(self) -> None:
-        self.synthesis_action = " ".join(self.synthesis_action.split())[:120]
+        self.synthesis_action = " ".join(self.synthesis_action.split())[:240]
         self.predicate_label = " ".join(self.predicate_label.split())[:160]
         self.fallback_statuses = {
             str(key): str(value).strip().upper()
@@ -658,14 +864,15 @@ class PlanningAssessment:
     fallback_available: bool = False
     fallback_availability_reason: str = ""
     target_action_node_id: str = ""
+    failure_grounding_status: str = "UNASSESSED"
 
     def __post_init__(self) -> None:
-        self.target_action = " ".join(self.target_action.split())[:120]
+        self.target_action = " ".join(self.target_action.split())[:240]
         self.activation_reason = " ".join(self.activation_reason.split())[:100]
         self.feasibility = clamp(self.feasibility)
         self.necessary_condition = " ".join(self.necessary_condition.split())[:180]
         self.failure_condition = " ".join(self.failure_condition.split())[:180]
-        self.fallback = " ".join(self.fallback.split())[:180]
+        self.fallback = " ".join(self.fallback.split())[:240]
         self.actor_constraints = self._clean_list(self.actor_constraints)
         self.resource_constraints = self._clean_list(self.resource_constraints)
         self.strategic_forces = self._clean_list(self.strategic_forces)
@@ -675,6 +882,16 @@ class PlanningAssessment:
             self.fallback_availability_reason.split()
         )[:180]
         self.target_action_node_id = self.target_action_node_id.strip().upper()[:20]
+        grounding = self.failure_grounding_status.strip().upper()
+        self.failure_grounding_status = (
+            grounding if grounding in {
+                "UNASSESSED",
+                "GROUNDED_FAILURE_CONDITION",
+                "MECHANISM_DERIVED_FAILURE_CONDITION",
+                "PLAUSIBLE_HYPOTHETICAL_FAILURE_CONDITION",
+                "REJECTED_UNGROUNDED_FAILURE_CONDITION",
+            } else "UNASSESSED"
+        )
 
     @staticmethod
     def _clean_list(values: list[str]) -> list[str]:
@@ -695,6 +912,10 @@ class WorkspaceAccessDecision:
     signals: list[str]
     question: str = ""
     rationale: str = ""
+    semantic_node_id: str = ""
+    semantic_node_kind: str = ""
+    semantic_node_label: str = ""
+    audit_variable: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         self.cycle = max(1, int(self.cycle))
@@ -706,6 +927,10 @@ class WorkspaceAccessDecision:
         ))[:10]
         self.question = " ".join(self.question.split())[:300]
         self.rationale = " ".join(self.rationale.split())[:240]
+        self.semantic_node_id = " ".join(self.semantic_node_id.split())[:120]
+        self.semantic_node_kind = self.semantic_node_kind.strip().upper()[:24]
+        self.semantic_node_label = " ".join(self.semantic_node_label.split())[:240]
+        self.audit_variable = dict(self.audit_variable or {})
 
 
 @dataclass(slots=True)
@@ -723,6 +948,7 @@ class VisibilityAssessment:
     error: str = ""
     proposition: str = ""
     typed_facts: list[dict] = field(default_factory=list)
+    mechanism_provenance: str = "SCENARIO_GROUNDED"
 
     def __post_init__(self) -> None:
         self.affected_group = " ".join(self.affected_group.split())[:120]
@@ -735,6 +961,12 @@ class VisibilityAssessment:
             for action, value in self.action_multipliers.items()
         }
         self.error = " ".join(self.error.split())[:240]
+        provenance = self.mechanism_provenance.strip().upper()
+        self.mechanism_provenance = (
+            provenance
+            if provenance in {"SCENARIO_GROUNDED", "HYPOTHETICAL", "EXTERNAL_GENERALIZATION"}
+            else "HYPOTHETICAL"
+        )
         if not self.proposition and self.activated:
             penalized = [
                 action for action, value in self.action_multipliers.items() if value < 0.999
@@ -944,6 +1176,7 @@ class WorkspaceResult:
     actions: list[str]
     presentation_actions: list[str] = field(default_factory=list)
     source_action_legend: dict[str, str] = field(default_factory=dict)
+    action_source_grounding: dict[str, Any] = field(default_factory=dict)
     source_testimonies: dict[str, str] = field(default_factory=dict)
     source_errors: dict[str, str] = field(default_factory=dict)
     source_baselines: dict[str, dict[str, Any]] = field(default_factory=dict)
@@ -976,6 +1209,8 @@ class WorkspaceResult:
     semantic_graphs: list[dict[str, Any]] = field(default_factory=list)
     graph_transactions: list[dict[str, Any]] = field(default_factory=list)
     authoritative_semantic_state: dict[str, Any] = field(default_factory=dict)
+    deliberative_problem_state: dict[str, Any] = field(default_factory=dict)
+    broadcast_influence_records: list[dict[str, Any]] = field(default_factory=list)
     rawlsian_position_ledger: list[dict[str, Any]] = field(default_factory=list)
     utilitarian_consequence_ledger: list[dict[str, Any]] = field(default_factory=list)
     deontological_duty_ledger: list[dict[str, Any]] = field(default_factory=list)

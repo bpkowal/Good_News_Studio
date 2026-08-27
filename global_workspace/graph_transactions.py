@@ -11,6 +11,7 @@ from .decision_boundaries import (
     DecisionBoundary,
     boundary_satisfied_by_estimates,
 )
+from .action_identity import action_clause_looks_complete
 from .semantic_graph import (
     SemanticEdge, SemanticGraph, merge_graphs, validate_graph,
 )
@@ -87,6 +88,20 @@ class SemanticGraphStore:
         self, extension: SemanticGraph, *, cycle: int, source: str = "synthesis",
     ) -> GraphTransactionRecord:
         """Atomically add newly admitted action nodes and their identity subgraph."""
+        incomplete_nodes = [
+            f"{node_id}: {node.label}"
+            for node_id, node in extension.nodes.items()
+            if node.kind == "ACTION" and not action_clause_looks_complete(node.label)
+        ]
+        if incomplete_nodes:
+            record = GraphTransactionRecord(
+                cycle, source, "ACTION_SET_EXTENSION", "REJECTED",
+                {"new_node_ids": sorted(extension.nodes)},
+                [f"incomplete action node(s): {'; '.join(incomplete_nodes[:3])}"],
+                previous_state_preserved=True, retryable=False,
+            )
+            self.transactions.append(record)
+            return record
         collisions = [
             node_id for node_id, node in extension.nodes.items()
             if node_id in self.graph.nodes
