@@ -1755,6 +1755,7 @@ class WorkspaceEngine:
         grounded_actions = dict((action_source_grounding or {}).get("actions", {}))
         graph_store = SemanticGraphStore(compile_scenario_graph(
             scenario, clean_actions, grounded_actions,
+            world_model=dict((action_source_grounding or {}).get("world_model", {})),
         ))
         # The opening cycle is the only one whose broadcast has no prior cycle
         # to describe, but the shared world already exists by this point. Hand
@@ -4086,5 +4087,19 @@ class WorkspaceEngine:
         result.authoritative_semantic_state = project_authoritative_semantic_state(
             graph_store.graph, selected_action=result.current_plurality
         ).to_dict()
+        world_admission = dict(
+            ((result.action_source_grounding.get("world_model") or {}).get("admission") or {})
+        )
+        if world_admission.get("status") == "USER_ACCEPTED_WITH_QUARANTINE":
+            result.judgment_status = "PROVISIONAL_RECOMMENDATION_DEGRADED_WORLD_STATE"
+            warning = (
+                "The user continued after contradictory direct world effects were "
+                "quarantined; reconsider after those facts are resolved."
+            )
+            if warning not in result.reopen_conditions:
+                result.reopen_conditions.append(warning)
+            result.compressed_rule = (
+                result.compressed_rule + " " + warning
+            ).strip()
         result.trace_health = audit_trace_health(result)
         return result

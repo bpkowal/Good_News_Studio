@@ -765,6 +765,10 @@ class CanonicalActionRecord:
     # Direct recipients stay in beneficiaries/harmed; this layer is surrounding
     # world-state, not a second copy of those roles.
     grounded_effects: tuple[Any, ...] = ()
+    # Complete admitted typed effects, including direct effects. This is the
+    # lossless compatibility bridge to the authoritative ScenarioWorldModel;
+    # beneficiaries/harmed remain convenient projections only.
+    world_effects: tuple[dict[str, Any], ...] = ()
     mechanism: str = ""
     institutional_effect: str = ""
     source_clauses: tuple[str, ...] = ()
@@ -1822,7 +1826,115 @@ def build_canonical_action_records(
     scenario: str = "",
     grounding_status: str = "",
     require_complete: bool = False,
+    world_model: dict[str, Any] | None = None,
 ) -> list[CanonicalActionRecord]:
+    if world_model:
+        from .world_state import world_model_from_dict
+        typed = world_model_from_dict(world_model)
+        if typed is not None:
+            party_by_id = {party.party_id: party for party in typed.parties}
+            action_text_by_id = {f"A{index}": action for index, action in enumerate(actions)}
+            records: list[CanonicalActionRecord] = []
+            all_effect_ids = {effect.effect_id for effect in typed.effects}
+            admitted_effect_ids = {
+                effect.effect_id for effect in typed.effects
+                if effect in typed.effects_for(effect.action_id)
+            }
+            for world_action in typed.actions:
+                direct = [
+                    effect for effect in typed.effects_for(world_action.action_id)
+                    if effect.directness == "DIRECT"
+                ]
+                beneficiaries = tuple(dict.fromkeys(
+                    party_by_id[effect.party_id].label for effect in direct
+                    if effect.polarity == "BENEFICIAL"
+                    and effect.modality == "CERTAIN"
+                    and effect.party_id in party_by_id
+                ))
+                harmed = tuple(dict.fromkeys(
+                    party_by_id[effect.party_id].label for effect in direct
+                    if effect.polarity == "ADVERSE"
+                    and effect.modality == "CERTAIN"
+                    and effect.party_id in party_by_id
+                ))
+                unresolved_effects = [
+                    effect for effect in direct
+                    if effect.modality != "CERTAIN" or effect.polarity == "UNRESOLVED"
+                ]
+                unresolved = tuple(dict.fromkeys(
+                    party_by_id[effect.party_id].label for effect in unresolved_effects
+                    if effect.party_id in party_by_id
+                ))
+                surrounding = tuple(
+                    effect.as_dict() for effect in typed.effects_for(world_action.action_id)
+                    if effect.directness != "DIRECT"
+                )
+                causal = [
+                    link for link in typed.causal_links
+                    if link.source_id == world_action.action_id
+                    or link.source_id in set(world_action.effect_ids)
+                    or link.target_id in set(world_action.effect_ids)
+                ]
+                causal = [
+                    link for link in causal
+                    if not (
+                        (link.source_id in all_effect_ids and link.source_id not in admitted_effect_ids)
+                        or (link.target_id in all_effect_ids and link.target_id not in admitted_effect_ids)
+                    )
+                ]
+                mechanism = "; ".join(
+                    f"{link.source_id} {link.relation.casefold()} {link.target_id}"
+                    for link in causal
+                )
+                actor_party = party_by_id.get(world_action.actor_party_id)
+                sources = tuple(dict.fromkeys(
+                    ref.excerpt for ref in world_action.provenance if ref.excerpt
+                ))
+                quarantined = [
+                    item for item in typed.admission.quarantined_effects
+                    if item.action_id == world_action.action_id
+                ]
+                issues = tuple(
+                    f"quarantined contradictory direct effect {item.effect_id}"
+                    for item in quarantined
+                )
+                semantic = " ".join(str(
+                    action_text_by_id.get(world_action.action_id)
+                    or world_action.intervention
+                ).split())
+                records.append(CanonicalActionRecord(
+                    action_id=world_action.action_id,
+                    short_label=render_short_label(world_action.intervention),
+                    canonical_semantic_action=semantic,
+                    actor=actor_party.label if actor_party else "",
+                    intervention=world_action.intervention,
+                    beneficiaries=beneficiaries,
+                    harmed=harmed,
+                    unresolved=unresolved,
+                    unresolved_outcomes=tuple(effect.as_dict() for effect in unresolved_effects),
+                    grounded_effects=surrounding,
+                    world_effects=tuple(
+                        effect.as_dict()
+                        for effect in typed.effects_for(world_action.action_id)
+                    ),
+                    mechanism=mechanism,
+                    institutional_effect="; ".join(
+                        effect.outcome for effect in typed.effects_for(world_action.action_id)
+                        if effect.directness == "INSTITUTIONAL"
+                    ),
+                    source_clauses=sources,
+                    completeness_status=(
+                        "COMPLETE_WITH_QUARANTINE" if quarantined else "COMPLETE"
+                    ),
+                    missing_critical=(),
+                    structure_issues=issues,
+                    commitment_status="COMMITTED",
+                    commitment_reasons=(
+                        ("user accepted world state with contradictory direct effects quarantined",)
+                        if quarantined else ()
+                    ),
+                ))
+            return records
     grounded = grounded_clause_texts_by_id or {}
     records: list[CanonicalActionRecord] = []
     for index, action in enumerate(actions):

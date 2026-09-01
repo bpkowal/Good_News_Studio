@@ -64,6 +64,54 @@ def render_summary(result) -> str:
     return render_decision_brief(result)
 
 
+def resolve_world_state_contradictions(
+    grounding: dict[str, object],
+    *,
+    input_fn=input,
+    output_fn=print,
+) -> bool:
+    """Ask whether an unrepaired contradictory direct-effect set may be quarantined."""
+    groups = grounding.get("world_contradictions") or []
+    if not groups:
+        return True
+    from global_workspace.world_state import (
+        quarantine_contradictions, world_model_from_dict,
+    )
+    model = world_model_from_dict(grounding.get("world_model"))
+    if model is None:
+        output_fn("World-state contradictions were reported without a recoverable typed model.")
+        return False
+    effect_by_id = {effect.effect_id: effect for effect in model.effects}
+    party_by_id = {party.party_id: party.label for party in model.parties}
+    output_fn("\nWorld-state validation could not resolve contradictory direct effects:")
+    for group in groups:
+        for effect_id in group:
+            effect = effect_by_id.get(str(effect_id))
+            if effect is None:
+                continue
+            output_fn(
+                f"- {effect.action_id} / {party_by_id.get(effect.party_id, effect.party_id)}: "
+                f"{effect.relation} — {effect.outcome} [{effect.modality}]"
+            )
+    output_fn(
+        "These effects will not be treated as established facts. Continuing will "
+        "quarantine every member of each contradictory set and mark the judgment "
+        "as based on a degraded world state."
+    )
+    answer = input_fn(
+        "Continue while ignoring all listed contradictory direct effects? [y/N]: "
+    ).strip().casefold()
+    accepted = answer in {"y", "yes"}
+    resolved = quarantine_contradictions(model, groups, user_override=accepted)
+    grounding["world_model"] = resolved.as_dict()
+    grounding["world_model_status"] = resolved.admission.status
+    grounding["status"] = (
+        "COMMITTED_WITH_QUARANTINE" if accepted
+        else "ABANDONED_CONTRADICTORY_WORLD_STATE"
+    )
+    return accepted
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run the recurrent ethical global workspace.")
     parser.add_argument("scenario", type=Path, help="Scenario JSON containing ethical_question")
@@ -241,6 +289,10 @@ def main() -> int:
         + json.dumps(action_source_grounding, ensure_ascii=False, sort_keys=True),
         flush=True,
     )
+    if action_source_grounding.get("world_contradictions"):
+        if not resolve_world_state_contradictions(action_source_grounding):
+            print("Run abandoned because the direct world state remained contradictory.")
+            return 2
     from global_workspace.action_identity import (
         build_canonical_action_records,
         extract_scenario_actor,
@@ -257,7 +309,11 @@ def main() -> int:
         if texts:
             grounded_texts[str(action_id)] = texts
     grounding_status = str(action_source_grounding.get("status") or "").upper()
-    if grounding_status == "COMMITTED" and grounded_texts:
+    if (
+        grounding_status == "COMMITTED"
+        and grounded_texts
+        and not action_source_grounding.get("world_model")
+    ):
         validate_action_set_completeness(
             actions,
             scenario=scenario,
@@ -269,7 +325,28 @@ def main() -> int:
         grounded_clause_texts_by_id=grounded_texts,
         scenario=scenario,
         grounding_status=grounding_status,
+        world_model=dict(action_source_grounding.get("world_model") or {}),
     )
+    if action_source_grounding.get("world_model"):
+        from global_workspace.world_state import world_model_from_dict
+        typed_world = world_model_from_dict(action_source_grounding["world_model"])
+        if typed_world is None:
+            raise SystemExit("Refusing to deliberate: typed world state could not be restored.")
+        expected_effect_ids = {
+            effect.effect_id
+            for action in typed_world.actions
+            for effect in typed_world.effects_for(action.action_id)
+        }
+        record_effect_ids = {
+            str(effect.get("effect_id"))
+            for record in records
+            for effect in record.world_effects
+        }
+        if record_effect_ids != expected_effect_ids:
+            raise SystemExit(
+                "Refusing to deliberate: canonical records disagree with the admitted "
+                "typed world effects."
+            )
     # Deliberation runs on committed semantic state only. Previously a rejected
     # grounding merely skipped validation and handed the same records downstream,
     # so agents reasoned over a world model the system had already disowned.
@@ -399,6 +476,7 @@ def main() -> int:
             memory_profile=specialist_profiles.get(name, {}),
             evidence_calibrator=calibrate_speculative_claim,
             landscape_verifier=verify_landscape_alignment,
+            canonical_action_records=[dict(record) for record in canonical_action_records],
             assumption_status=(
                 str(baselines.get(name, {}).get("status"))
                 if baselines.get(name, {}).get("status") in {

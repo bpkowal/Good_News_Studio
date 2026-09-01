@@ -2720,6 +2720,7 @@ class CompactLocalSpecialist:
     # Shared scenario evidence compiled once by the engine. Frameworks may
     # interpret these facts differently, but do not re-decide whether they exist.
     scenario_graph: Any | None = None
+    canonical_action_records: list[dict[str, Any]] = field(default_factory=list)
 
     def _audit_framework_state_change(
         self, candidate: CandidateChunk, broadcast: WorkspaceBroadcast,
@@ -3391,25 +3392,30 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
         role = FRAMEWORK_ROLES[self.name]
         testimony = _compact_testimony(self.testimony, 900)
         action_ids = [f"A{index}" for index in range(len(actions))]
-        from .action_identity import build_canonical_action_records, extract_scenario_actor
-        action_records = build_canonical_action_records(
-            actions,
-            actor=extract_scenario_actor(scenario),
-        )
+        if self.canonical_action_records:
+            record_rows = [dict(record) for record in self.canonical_action_records]
+        else:
+            from .action_identity import build_canonical_action_records, extract_scenario_actor
+            record_rows = [record.as_dict() for record in build_canonical_action_records(
+                actions, actor=extract_scenario_actor(scenario),
+            )]
         # Deliberative object is the semantic action; short_label is display-only.
         action_legend = {
-            record.action_id: {
-                "short_label": record.short_label,
-                "canonical_semantic_action": record.canonical_semantic_action,
-                "completeness_status": record.completeness_status,
-                "structure_issues": list(record.structure_issues),
-                "actor": record.actor,
-                "beneficiaries": list(record.beneficiaries),
-                "harmed": list(record.harmed),
-                "mechanism": record.mechanism,
-                "institutional_effect": record.institutional_effect,
+            str(record.get("action_id")): {
+                "short_label": record.get("short_label", ""),
+                "canonical_semantic_action": record.get("canonical_semantic_action", ""),
+                "completeness_status": record.get("completeness_status", "UNCHECKED"),
+                "structure_issues": list(record.get("structure_issues", [])),
+                "actor": record.get("actor", ""),
+                "beneficiaries": list(record.get("beneficiaries", [])),
+                "harmed": list(record.get("harmed", [])),
+                "unresolved": list(record.get("unresolved", [])),
+                "grounded_effects": list(record.get("grounded_effects", [])),
+                "world_effects": list(record.get("world_effects", [])),
+                "mechanism": record.get("mechanism", ""),
+                "institutional_effect": record.get("institutional_effect", ""),
             }
-            for record in action_records
+            for record in record_rows
         }
         allowed_constraints = sorted(FRAMEWORK_CONSTRAINTS[self.name])
         fixed_baseline = self.baseline_action_id if self.baseline_action_id in {*action_ids, "NONE"} else "NONE"
@@ -4300,7 +4306,8 @@ Reason from each action's canonical_semantic_action and structured fields
 (actor/beneficiaries/harmed/mechanism/institutional_effect). short_label is
 display-only and must not be treated as the complete deliberative object.
 Original testimony source labels: {json.dumps(self.source_action_legend or {
-            record.action_id: record.canonical_semantic_action for record in action_records
+            str(record.get("action_id")): str(record.get("canonical_semantic_action", ""))
+            for record in record_rows
         })}
 CRITICAL STATE MAPPING: the Action IDs above are immutable for this run. Every
 score, recommendation, admissibility judgment, rationale, and graph update must
@@ -5781,6 +5788,49 @@ def ground_actions_in_scenario(
         "required": ["clause_ids", "reason"],
         "additionalProperties": False,
     }
+    source_ids_schema = {
+        "type": "array", "minItems": 1, "maxItems": min(4, len(clause_ids)),
+        "items": {"type": "string", "enum": clause_ids},
+    }
+    string_list = {"type": "array", "items": {"type": "string"}}
+    world_model_schema = {
+        "type": "object",
+        "properties": {
+            "parties": {"type": "array", "items": {"type": "object", "properties": {
+                "party_id": {"type": "string"}, "label": {"type": "string"},
+                "kind": {"type": "string"}, "clause_ids": source_ids_schema,
+            }, "required": ["party_id", "label", "kind", "clause_ids"], "additionalProperties": False}},
+            "actions": {"type": "array", "items": {"type": "object", "properties": {
+                "action_id": {"type": "string", "enum": action_ids},
+                "intervention": {"type": "string"}, "actor_party_id": {"type": "string"},
+                "recipient_party_ids": string_list, "effect_ids": string_list,
+                "clause_ids": source_ids_schema,
+            }, "required": ["action_id", "intervention", "actor_party_id", "recipient_party_ids", "effect_ids", "clause_ids"], "additionalProperties": False}},
+            "effects": {"type": "array", "items": {"type": "object", "properties": {
+                "effect_id": {"type": "string"}, "action_id": {"type": "string", "enum": action_ids},
+                "party_id": {"type": "string"}, "outcome": {"type": "string"},
+                "relation": {"type": "string"},
+                "polarity": {"type": "string", "enum": ["BENEFICIAL", "ADVERSE", "NEUTRAL", "UNRESOLVED"]},
+                "directness": {"type": "string", "enum": ["DIRECT", "DOWNSTREAM", "FOREGONE", "INSTITUTIONAL"]},
+                "modality": {"type": "string", "enum": ["CERTAIN", "STIPULATED_CONDITIONAL", "PROBABILISTIC", "POSSIBLE", "UNKNOWN"]},
+                "condition_ids": string_list, "quantities": string_list,
+                "clause_ids": source_ids_schema,
+            }, "required": ["effect_id", "action_id", "party_id", "outcome", "relation", "polarity", "directness", "modality", "condition_ids", "quantities", "clause_ids"], "additionalProperties": False}},
+            "conditions": {"type": "array", "items": {"type": "object", "properties": {
+                "condition_id": {"type": "string"}, "description": {"type": "string"},
+                "value_status": {"type": "string"}, "decision_relevance": {"type": "string"},
+                "clause_ids": source_ids_schema,
+            }, "required": ["condition_id", "description", "value_status", "decision_relevance", "clause_ids"], "additionalProperties": False}},
+            "causal_links": {"type": "array", "items": {"type": "object", "properties": {
+                "source_id": {"type": "string"}, "relation": {"type": "string"},
+                "target_id": {"type": "string"},
+                "modality": {"type": "string", "enum": ["CERTAIN", "STIPULATED_CONDITIONAL", "PROBABILISTIC", "POSSIBLE", "UNKNOWN"]},
+                "condition_ids": string_list, "clause_ids": source_ids_schema,
+            }, "required": ["source_id", "relation", "target_id", "modality", "condition_ids", "clause_ids"], "additionalProperties": False}},
+        },
+        "required": ["parties", "actions", "effects", "conditions", "causal_links"],
+        "additionalProperties": False,
+    }
     schema = {
         "type": "object",
         "properties": {
@@ -5790,8 +5840,9 @@ def ground_actions_in_scenario(
                 "required": action_ids,
                 "additionalProperties": False,
             },
+            "world_model": world_model_schema,
         },
-        "required": ["actions"],
+        "required": ["actions", "world_model"],
         "additionalProperties": False,
     }
     prompt = f"""[INST]
@@ -5800,8 +5851,20 @@ and what follows if it is chosen. This is source attribution, not ethical judgme
 An action may cite multiple clauses. Cite only supplied clause IDs. Keep distinct
 alternatives mapped to distinct source clauses whenever the scenario distinguishes
 them. Shared background clauses may be cited by both only when genuinely applicable.
-An interrogative choice clause may be cited as mapping context, but it is not itself
-an assertion that the consequences it mentions occur under every cited action.
+An interrogative or comparison clause may be cited as mapping context, but citation
+does not attach every consequence in that clause to every action that cites it.
+
+Also return world_model: a framework-neutral factual model. Identify every explicit
+actor, including automated systems and institutions. Use neutral interventions, not
+ethical conclusions. Give every stipulated direct survival, death, receipt, denial,
+or other immediate effect its own action-specific effect. Separate downstream and
+foregone effects. CERTAIN means the outcome itself is stipulated; foregoing a
+research opportunity may be certain while the success and population benefit of
+that research remain STIPULATED_CONDITIONAL, PROBABILISTIC, POSSIBLE, or UNKNOWN.
+Every non-certain effect must name a condition. Record those conditions explicitly.
+Use causal_links for domain-independent ENABLES, CAUSES, ACCELERATES, PREVENTS, or
+FOREGOES relationships. Clause IDs are provenance only; effects must explicitly name
+their action_id and must not be copied wholesale from a clause describing both choices.
 
 Canonical actions: {json.dumps(dict(zip(action_ids, actions)), sort_keys=True)}
 Scenario clauses: {json.dumps(clauses, ensure_ascii=False)}
@@ -5814,7 +5877,7 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
     for attempt in range(1, max(1, max_attempts) + 1):
         try:
             output = _call_json_llm(
-                llm, prompt + repair_note, max_tokens=max_tokens,
+                llm, prompt + repair_note, max_tokens=max(1600, max_tokens),
                 temperature=0.0, schema=schema,
             )
             raw = (
@@ -5832,14 +5895,22 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                 ],
                 "clauses": list(clauses),
             }
-        attempts.append({"attempt": attempt, "errors": list(result["errors"])})
+        attempt_errors = list(result["errors"])
+        if result.get("world_contradictions"):
+            attempt_errors.extend(
+                "contradictory direct effects: " + ", ".join(group)
+                for group in result["world_contradictions"]
+            )
+        attempts.append({"attempt": attempt, "errors": attempt_errors})
         if result["status"] == "COMMITTED":
             break
         repair_note = (
             "\n\nA previous attempt was rejected by deterministic validation for: "
-            + "; ".join(result["errors"])
+            + "; ".join(attempt_errors)
             + "\nEach action must cite at least one clause that no other action "
             "cites. Shared background clauses are still permitted alongside it. "
+            "For contradictory direct effects, re-read the cited clauses and remove "
+            "the incorrectly assigned effect rather than weakening its modality. "
             "Correct exactly these problems and return the mapping again."
         )
     result["attempts"] = attempts
@@ -5879,9 +5950,33 @@ def _admit_action_source_rows(
                 "reason": " ".join(str(row.get("reason", "")).split()),
             }
     errors.extend(_distinguishing_support_errors(admitted))
+    world_model: dict[str, Any] = {}
+    world_contradictions: list[list[str]] = []
+    world_model_status = "UNAVAILABLE"
+    if isinstance(data, dict) and "world_model" in data:
+        try:
+            from .world_state import parse_world_model, validate_world_model
+            parsed_world = parse_world_model(
+                data.get("world_model"), clauses=clauses, action_ids=action_ids,
+            )
+            world_model = parsed_world.as_dict()
+            _, contradictions = validate_world_model(parsed_world, action_ids=action_ids)
+            world_contradictions = [list(group) for group in contradictions]
+            world_model_status = "CONTRADICTORY" if contradictions else "COMMITTED"
+        except ValueError as exc:
+            errors.append(f"typed world model rejected: {exc}")
+            world_model_status = "REJECTED"
+    status = (
+        "REJECTED" if errors else
+        "CONTRADICTORY" if world_contradictions else
+        "COMMITTED"
+    )
     return {
-        "status": "COMMITTED" if not errors else "REJECTED",
+        "status": status,
         "actions": admitted if not errors else {},
+        "world_model": world_model if not errors else {},
+        "world_model_status": world_model_status,
+        "world_contradictions": world_contradictions,
         "errors": errors,
         "clauses": list(clauses),
     }

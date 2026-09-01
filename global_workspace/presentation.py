@@ -805,6 +805,8 @@ def _recommendation_headline(status: str, action: str) -> str:
         return f"**{short}.**"
     if status == "CONTESTED_RECOMMENDATION":
         return f"**{short} — presently favored, but contested.**"
+    if status == "PROVISIONAL_RECOMMENDATION_DEGRADED_WORLD_STATE":
+        return f"**{short} — provisional because direct world facts were quarantined.**"
     if status in {"UNRESOLVED", "UNDERDETERMINED", "INCONCLUSIVE"}:
         return f"**No conclusive recommendation yet.** Current plurality: {short}."
     return f"**{short}.**"
@@ -1050,6 +1052,7 @@ def render_decision_brief(result: Any) -> str:
 
     from global_workspace.specialist_authority import (
         CONTESTED_RECOMMENDATION,
+        DEGRADED_WORLD_STATE_RECOMMENDATION,
         GOVERNED_RECOMMENDATION,
         normalize_judgment_status,
     )
@@ -1067,7 +1070,10 @@ def render_decision_brief(result: Any) -> str:
     status = normalize_judgment_status(data.get("judgment_status", "UNRESOLVED"))
     selected = str(data.get("selected_action") or "")
     plurality = str(data.get("current_plurality") or "")
-    actionable = status in {GOVERNED_RECOMMENDATION, CONTESTED_RECOMMENDATION}
+    actionable = status in {
+        GOVERNED_RECOMMENDATION, CONTESTED_RECOMMENDATION,
+        DEGRADED_WORLD_STATE_RECOMMENDATION,
+    }
     recommendation = selected if actionable and selected not in {
         "UNRESOLVED", "INCONCLUSIVE", "UNDERDETERMINED", "CONDITIONAL", "",
     } else (plurality or selected)
@@ -1154,6 +1160,17 @@ def render_decision_brief(result: Any) -> str:
         f"**Judgment status:** {status}",
         f"**Convergence:** {_convergence_label(data)}",
     ])
+    if status == DEGRADED_WORLD_STATE_RECOMMENDATION:
+        quarantined = (
+            (((data.get("action_source_grounding") or {}).get("world_model") or {})
+             .get("admission") or {}).get("quarantined_effects") or []
+        )
+        lines.extend([
+            "",
+            "> **World-state warning:** The user elected to continue after "
+            f"{len(quarantined)} contradictory direct effect(s) were quarantined. "
+            "The recommendation does not treat those effects as established facts.",
+        ])
     termination = data.get("termination_assessment") or {}
     if termination.get("resource_censored") or str(data.get("halted_by") or "") == "cycle_budget":
         lines.extend([

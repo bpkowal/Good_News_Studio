@@ -626,6 +626,8 @@ def _typed_liberty_roles(
 def _attach_grounded_action_sources(
     graph: SemanticGraph,
     action_source_groundings: dict[str, dict[str, object]],
+    *,
+    attach_consequences: bool = True,
 ) -> None:
     """Attach cited scenario clauses and their generic consequence identities."""
     for action_id, grounding in action_source_groundings.items():
@@ -658,6 +660,8 @@ def _attach_grounded_action_sources(
             graph.add_edge(SemanticEdge(
                 action_id, "GROUNDED_IN", source_id, provenance=provenance,
             ))
+            if not attach_consequences:
+                continue
             # A choice question can restate both alternatives and remains useful
             # mapping provenance, but it does not assert that either consequence
             # follows from the action to which the model happened to attach it.
@@ -1254,10 +1258,164 @@ def attach_grounded_world_effects(
         ))
 
 
+def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
+    """Compile an admitted typed world model without re-reading source prose."""
+    party_by_id = {party.party_id: party for party in model.parties}
+    admitted = set(model.admission.admitted_effect_ids)
+    filter_admission = bool(admitted) or model.admission.status in {
+        "USER_ACCEPTED_WITH_QUARANTINE",
+        "ABANDONED_CONTRADICTORY_WORLD_STATE",
+    }
+    for action in model.actions:
+        if action.action_id not in graph.nodes:
+            continue
+        provenance = tuple(
+            f"scenario_clause:{ref.clause_id}" for ref in action.provenance
+        ) or ("typed_world_model",)
+        intervention_id = f"{action.action_id}:INTERVENTION"
+        graph.add_node(SemanticNode(
+            intervention_id, "INTERVENTION", action.intervention, provenance,
+            {"world_state_typed": True},
+        ))
+        graph.add_edge(SemanticEdge(
+            action.action_id, "HAS_INTERVENTION", intervention_id,
+            provenance=provenance,
+        ))
+        actor = party_by_id.get(action.actor_party_id)
+        if actor is not None:
+            actor_id = f"PARTY:{actor.party_id}"
+            if actor_id not in graph.nodes:
+                graph.add_node(SemanticNode(
+                    actor_id, "ACTOR", actor.label, provenance,
+                    {"party_id": actor.party_id, "party_kind": actor.kind, "world_state_typed": True},
+                ))
+            graph.add_edge(SemanticEdge(
+                action.action_id, "HAS_ACTOR", actor_id, provenance=provenance,
+            ))
+        for recipient_id in action.recipient_party_ids:
+            recipient = party_by_id.get(recipient_id)
+            if recipient is None:
+                continue
+            target_id = f"PARTY:{recipient.party_id}"
+            if target_id not in graph.nodes:
+                graph.add_node(SemanticNode(
+                    target_id, "TARGET", recipient.label, provenance,
+                    {"party_id": recipient.party_id, "party_kind": recipient.kind, "world_state_typed": True},
+                ))
+            graph.add_edge(SemanticEdge(
+                action.action_id, "TARGETS", target_id, provenance=provenance,
+            ))
+    for condition in model.conditions:
+        provenance = tuple(
+            f"scenario_clause:{ref.clause_id}" for ref in condition.provenance
+        ) or ("typed_world_model",)
+        graph.add_node(SemanticNode(
+            condition.condition_id, "CONDITION", condition.description, provenance,
+            {
+                "value_status": condition.value_status,
+                "decision_relevance": condition.decision_relevance,
+                "source_clause_ids": [ref.clause_id for ref in condition.provenance],
+                "world_state_typed": True,
+            },
+        ))
+    effect_node_ids: dict[str, str] = {}
+    for effect in model.effects:
+        if filter_admission and effect.effect_id not in admitted:
+            continue
+        if effect.action_id not in graph.nodes:
+            continue
+        party = party_by_id.get(effect.party_id)
+        if party is None:
+            continue
+        provenance = tuple(
+            f"scenario_clause:{ref.clause_id}" for ref in effect.provenance
+        ) or ("typed_world_model",)
+        consequence_id = f"{effect.action_id}:WORLD_EFFECT:{effect.effect_id}"
+        effect_node_ids[effect.effect_id] = consequence_id
+        graph.add_node(SemanticNode(
+            consequence_id, "CONSEQUENCE", effect.outcome, provenance,
+            {
+                "polarity": effect.polarity,
+                "relation": effect.relation,
+                "directness": effect.directness,
+                "modality": effect.modality,
+                "condition_ids": list(effect.condition_ids),
+                "quantities": list(effect.quantities),
+                "targets": [party.label],
+                "affected_subjects": [party.label],
+                "party_id": party.party_id,
+                "party_kind": party.kind,
+                "scenario_grounded": True,
+                "source_clause_id": (
+                    effect.provenance[0].clause_id if effect.provenance else ""
+                ),
+                "source_clause_ids": [ref.clause_id for ref in effect.provenance],
+                "effect_layer": "TYPED_WORLD",
+                "world_effect_id": effect.effect_id,
+            },
+        ))
+        graph.add_edge(SemanticEdge(
+            effect.action_id, "HAS_CONSEQUENCE", consequence_id,
+            provenance=provenance,
+        ))
+        target_id = f"PARTY:{party.party_id}"
+        if target_id not in graph.nodes:
+            graph.add_node(SemanticNode(
+                target_id, "TARGET", party.label,
+                tuple(f"scenario_clause:{ref.clause_id}" for ref in party.provenance)
+                or provenance,
+                {
+                    "semantic_role": "AFFECTED_SUBJECT",
+                    "party_id": party.party_id,
+                    "party_kind": party.kind,
+                    "world_state_typed": True,
+                },
+            ))
+        graph.add_edge(SemanticEdge(
+            consequence_id, "AFFECTS", target_id, provenance=provenance,
+        ))
+        for condition_id in effect.condition_ids:
+            if condition_id in graph.nodes:
+                graph.add_edge(SemanticEdge(
+                    consequence_id, "CONDITIONAL_ON", condition_id,
+                    provenance=provenance,
+                ))
+        for ref in effect.provenance:
+            evidence_id = f"ACTION_SOURCE:{effect.action_id}:{ref.clause_id}"
+            if evidence_id in graph.nodes:
+                graph.add_edge(SemanticEdge(
+                    consequence_id, "SUPPORTED_BY", evidence_id,
+                    provenance=provenance,
+                ))
+    for index, link in enumerate(model.causal_links):
+        source = effect_node_ids.get(link.source_id, link.source_id)
+        target = effect_node_ids.get(link.target_id, link.target_id)
+        if source not in graph.nodes or target not in graph.nodes:
+            continue
+        provenance = tuple(
+            f"scenario_clause:{ref.clause_id}" for ref in link.provenance
+        ) or ("typed_world_model",)
+        relation = {
+            "MAY_CAUSE": "CAUSES", "MIGHT_CAUSE": "CAUSES",
+            "MAY_ENABLE": "ENABLES", "ACCELERATES": "INCREASES",
+            "FOREGOES": "DISABLES",
+        }.get(link.relation, link.relation)
+        from .semantic_graph import EDGE_RELATIONS
+        if relation not in EDGE_RELATIONS:
+            relation = "CAUSES"
+        graph.add_edge(SemanticEdge(
+            source, relation, target,
+            justification=(
+                f"typed_relation={link.relation}; modality={link.modality}"
+            ), provenance=provenance,
+        ))
+
+
 def compile_scenario_graph(
     scenario: str,
     actions: Sequence[str],
     action_source_groundings: dict[str, dict[str, object]] | None = None,
+    world_model: dict[str, Any] | None = None,
 ) -> SemanticGraph:
     graph = SemanticGraph()
     incomplete_actions = [
@@ -1265,7 +1423,7 @@ def compile_scenario_graph(
         for index, action in enumerate(actions)
         if not action_clause_looks_complete(action)
     ]
-    if incomplete_actions:
+    if incomplete_actions and not world_model:
         raise ValueError(
             "scenario graph admission rejected incomplete or truncated action clause(s): "
             + "; ".join(incomplete_actions)
@@ -1286,13 +1444,39 @@ def compile_scenario_graph(
                 "action_identity_signature": identity.signature(),
             },
         ))
-        add_action_identity_subgraph(graph, node_id, identity)
-        attach_grounded_world_effects(
-            graph,
-            node_id,
-            extract_grounded_effects(action, clauses=scenario_clauses),
-        )
-    _attach_grounded_action_sources(graph, action_source_groundings or {})
+        if not world_model:
+            add_action_identity_subgraph(graph, node_id, identity)
+        if not world_model:
+            attach_grounded_world_effects(
+                graph,
+                node_id,
+                extract_grounded_effects(action, clauses=scenario_clauses),
+            )
+    _attach_grounded_action_sources(
+        graph, action_source_groundings or {},
+        attach_consequences=not bool(world_model),
+    )
+    if world_model:
+        from .world_state import world_model_from_dict
+        typed = world_model_from_dict(world_model)
+        if typed is not None:
+            attach_typed_world_model(graph, typed)
+            expected_effect_ids = {
+                effect.effect_id
+                for action in typed.actions
+                for effect in typed.effects_for(action.action_id)
+            }
+            compiled_effect_ids = {
+                str(node.attributes.get("world_effect_id"))
+                for node in graph.nodes.values()
+                if node.kind == "CONSEQUENCE"
+                and node.attributes.get("effect_layer") == "TYPED_WORLD"
+            }
+            if compiled_effect_ids != expected_effect_ids:
+                raise ValueError(
+                    "typed world projection mismatch: semantic graph effects differ "
+                    "from the admitted world model"
+                )
     for fact in compile_observability_facts(scenario):
         graph.add_node(SemanticNode(
             fact.node_id, "TARGET", fact.target_label, (fact.evidence,),
