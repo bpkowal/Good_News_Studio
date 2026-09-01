@@ -19,6 +19,11 @@ from .action_identity import (
     graph_action_key,
 )
 from .semantic_graph import SemanticEdge, SemanticGraph, SemanticNode
+from .semantic_roles import (
+    RELATION_DOWNSTREAM_BENEFIT,
+    RELATION_FOREGONE_BENEFIT,
+    extract_grounded_effects,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -214,6 +219,9 @@ _DIMENSION_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
 
 
 def _grounded_effect_dimension(consequence: SemanticNode, targets: list[SemanticNode]) -> str:
+    explicit = str(consequence.attributes.get("dimension") or "").strip()
+    if explicit:
+        return explicit
     protected = [
         target.label for target in targets
         if target.attributes.get("semantic_role") == "PROTECTED_INTEREST"
@@ -318,9 +326,11 @@ def project_grounded_action_effects(graph: SemanticGraph) -> list[GroundedAction
             if not subject_labels:
                 subject_labels = ["affected constituency"]
             polarity = str(consequence.attributes.get("polarity", "")).upper()
+            relation = str(consequence.attributes.get("relation", "")).upper()
             predicate = consequence.label.casefold()
             direction = (
-                "PRESERVES" if polarity == "BENEFICIAL" and predicate.startswith(("preserv", "protect"))
+                "FOREGOES" if polarity == "FOREGONE" or relation == RELATION_FOREGONE_BENEFIT
+                else "PRESERVES" if polarity == "BENEFICIAL" and predicate.startswith(("preserv", "protect"))
                 else "IMPROVES" if polarity == "BENEFICIAL"
                 else "WORSENS" if polarity == "ADVERSE"
                 else "UNCERTAIN"
@@ -1178,6 +1188,72 @@ def compile_observability_facts(scenario: str) -> list[ObservabilityFact]:
     return facts
 
 
+def attach_grounded_world_effects(
+    graph: SemanticGraph,
+    action_id: str,
+    effects: Sequence[Any],
+) -> None:
+    """Surround an ACTION node with cascade/foregone affected-party relations.
+
+    Direct intervention roles stay on the canonical action. These nodes are the
+    world-state layer that lets structured agents see a future population as
+    affected without treating it as Patient A.
+    """
+    if action_id not in graph.nodes:
+        return
+    for index, effect in enumerate(effects):
+        party = str(getattr(effect, "party", "") or "").strip()
+        if not party:
+            continue
+        relation = str(getattr(effect, "relation", "") or "").upper()
+        outcome = str(getattr(effect, "outcome", "") or relation).strip()
+        modality = str(getattr(effect, "modality", "") or "")
+        condition = str(getattr(effect, "condition", "") or "")
+        party_kind = str(getattr(effect, "party_kind", "") or "")
+        dimension = str(getattr(effect, "dimension", "") or "")
+        clause_ids = tuple(getattr(effect, "clause_ids", ()) or ())
+        provenance = tuple(getattr(effect, "provenance", ()) or ())
+        if not provenance:
+            provenance = ("grounded_world_effect",)
+        polarity = (
+            "BENEFICIAL" if relation == RELATION_DOWNSTREAM_BENEFIT
+            else "FOREGONE" if relation == RELATION_FOREGONE_BENEFIT
+            else "UNCERTAIN"
+        )
+        consequence_id = f"{action_id}:GROUNDED_EFFECT:{index}"
+        graph.add_node(SemanticNode(
+            consequence_id, "CONSEQUENCE", outcome, provenance,
+            {
+                "polarity": polarity,
+                "relation": relation,
+                "modality": modality,
+                "condition": condition,
+                "party_kind": party_kind,
+                "dimension": dimension,
+                "targets": [party],
+                "affected_subjects": [party],
+                "scenario_grounded": bool(clause_ids),
+                "source_clause_id": clause_ids[0] if clause_ids else "",
+                "effect_layer": "GROUNDED_WORLD",
+            },
+        ))
+        graph.add_edge(SemanticEdge(
+            action_id, "HAS_CONSEQUENCE", consequence_id, provenance=provenance,
+        ))
+        target_id = f"{consequence_id}:AFFECTED_SUBJECT:0"
+        graph.add_node(SemanticNode(
+            target_id, "TARGET", party, provenance,
+            {
+                "semantic_role": "AFFECTED_SUBJECT",
+                "party_kind": party_kind,
+                "source_clause_id": clause_ids[0] if clause_ids else "",
+            },
+        ))
+        graph.add_edge(SemanticEdge(
+            consequence_id, "AFFECTS", target_id, provenance=provenance,
+        ))
+
+
 def compile_scenario_graph(
     scenario: str,
     actions: Sequence[str],
@@ -1195,6 +1271,7 @@ def compile_scenario_graph(
             + "; ".join(incomplete_actions)
         )
     resolved_keys = resolved_semantic_action_keys(actions)
+    scenario_clauses = segment_scenario_clauses(scenario)
     for (node_id, action), resolved_key in zip(
         action_legend(actions).items(), resolved_keys,
     ):
@@ -1210,6 +1287,11 @@ def compile_scenario_graph(
             },
         ))
         add_action_identity_subgraph(graph, node_id, identity)
+        attach_grounded_world_effects(
+            graph,
+            node_id,
+            extract_grounded_effects(action, clauses=scenario_clauses),
+        )
     _attach_grounded_action_sources(graph, action_source_groundings or {})
     for fact in compile_observability_facts(scenario):
         graph.add_node(SemanticNode(

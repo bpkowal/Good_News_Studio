@@ -423,6 +423,8 @@ def _direction_supported(
             own_predicates & {"preserve", "preserve_life", "protect"}
             or "ADVERSE" in rival_polarities
         )
+    if effect == "FOREGOES":
+        return "FOREGONE" in own_polarities
     if effect == "MIXED":
         return bool(own or rival)
     return False

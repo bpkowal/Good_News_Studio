@@ -10569,8 +10569,11 @@ class CanonicalActionCompletenessTests(unittest.TestCase):
         self.assertIn("4", rec_patch.harmed[0])
         self.assertEqual(rec_patch.institutional_effect, "")
         self.assertEqual(rec_maintain.completeness_status, "COMPLETE")
+        # Cardinality is the decision-critical part and must survive; the
+        # "shelter" qualifier came from a scenario-specific enrichment that the
+        # domain-neutral extractor no longer synthesizes.
         self.assertIn("16", rec_maintain.harmed[0])
-        self.assertIn("shelter", rec_maintain.harmed[0].casefold())
+        self.assertIn("refugee", rec_maintain.harmed[0].casefold())
         self.assertIn("4", rec_maintain.beneficiaries[0])
         self.assertIn("conceal", rec_maintain.institutional_effect.casefold())
 

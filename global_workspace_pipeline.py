@@ -244,6 +244,7 @@ def main() -> int:
     from global_workspace.action_identity import (
         build_canonical_action_records,
         extract_scenario_actor,
+        partition_records_for_deliberation,
         validate_action_set_completeness,
     )
     grounded_texts: dict[str, list[str]] = {}
@@ -255,20 +256,45 @@ def main() -> int:
                 texts.append(text)
         if texts:
             grounded_texts[str(action_id)] = texts
-    if action_source_grounding.get("status") == "COMMITTED" and grounded_texts:
+    grounding_status = str(action_source_grounding.get("status") or "").upper()
+    if grounding_status == "COMMITTED" and grounded_texts:
         validate_action_set_completeness(
             actions,
             scenario=scenario,
             grounded_clause_texts_by_id=grounded_texts,
         )
-    canonical_action_records = [
-        record.as_dict()
-        for record in build_canonical_action_records(
-            actions,
-            actor=extract_scenario_actor(scenario),
-            grounded_clause_texts_by_id=grounded_texts,
+    records = build_canonical_action_records(
+        actions,
+        actor=extract_scenario_actor(scenario),
+        grounded_clause_texts_by_id=grounded_texts,
+        scenario=scenario,
+        grounding_status=grounding_status,
+    )
+    # Deliberation runs on committed semantic state only. Previously a rejected
+    # grounding merely skipped validation and handed the same records downstream,
+    # so agents reasoned over a world model the system had already disowned.
+    if action_source_grounding.get("repair_attempts"):
+        print(
+            "Action-source grounding required "
+            f"{action_source_grounding['repair_attempts']} repair attempt(s).",
+            flush=True,
         )
-    ]
+    admitted, withheld = partition_records_for_deliberation(records)
+    # The action set is the unit of admission, not the individual action.
+    # Deliberating over a subset would silently pose a different dilemma than
+    # the one the user asked about, so any withheld action halts the run.
+    if withheld:
+        detail = "; ".join(
+            f"{record.action_id} [{record.commitment_status}] "
+            + ", ".join(record.commitment_reasons or ("unspecified",))
+            for record in withheld
+        )
+        raise SystemExit(
+            "Refusing to deliberate: "
+            f"{len(withheld)} of {len(records)} canonical action records did not "
+            f"reach COMMITTED state. {detail}"
+        )
+    canonical_action_records = [record.as_dict() for record in admitted]
     # Agents reason from the semantic action object, never a truncated label.
     actions = [
         str(record["canonical_semantic_action"])

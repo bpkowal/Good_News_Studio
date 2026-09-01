@@ -5752,11 +5752,17 @@ def ground_actions_in_scenario(
     scenario: str,
     actions: Sequence[str],
     max_tokens: int = 160,
+    max_attempts: int = 2,
 ) -> dict[str, Any]:
     """Map every canonical action to explicit scenario clauses for graph provenance.
 
     The model interprets the problem anew; deterministic validation only admits
     existing clause IDs and exposes the complete mapping for later audit.
+
+    A rejected mapping is retried a bounded number of times with the specific
+    validation errors fed back, because the usual failure is a fixable citation
+    mistake rather than an unanswerable scenario. Attempts are recorded so a
+    run that eventually commits still shows what had to be repaired.
     """
     clauses = segment_scenario_clauses(scenario)
     action_ids = [f"A{index}" for index in range(len(actions))]
@@ -5802,18 +5808,52 @@ Scenario clauses: {json.dumps(clauses, ensure_ascii=False)}
 
 Return JSON only. For each action give clause_ids and a short mapping reason.
 [/INST]"""
-    try:
-        output = _call_json_llm(
-            llm, prompt, max_tokens=max_tokens, temperature=0.0, schema=schema,
+    attempts: list[dict[str, Any]] = []
+    repair_note = ""
+    result: dict[str, Any] = {}
+    for attempt in range(1, max(1, max_attempts) + 1):
+        try:
+            output = _call_json_llm(
+                llm, prompt + repair_note, max_tokens=max_tokens,
+                temperature=0.0, schema=schema,
+            )
+            raw = (
+                output["choices"][0]["text"]
+                if isinstance(output, dict) else str(output)
+            )
+            result = _admit_action_source_rows(
+                _extract_json(raw), actions, action_ids, clauses,
+            )
+        except Exception as exc:
+            result = {
+                "status": "REJECTED", "actions": {},
+                "errors": [
+                    f"action-source mapping failed: {type(exc).__name__}: {exc}"
+                ],
+                "clauses": list(clauses),
+            }
+        attempts.append({"attempt": attempt, "errors": list(result["errors"])})
+        if result["status"] == "COMMITTED":
+            break
+        repair_note = (
+            "\n\nA previous attempt was rejected by deterministic validation for: "
+            + "; ".join(result["errors"])
+            + "\nEach action must cite at least one clause that no other action "
+            "cites. Shared background clauses are still permitted alongside it. "
+            "Correct exactly these problems and return the mapping again."
         )
-        raw = output["choices"][0]["text"] if isinstance(output, dict) else str(output)
-        data = _extract_json(raw)
-    except Exception as exc:
-        return {
-            "status": "REJECTED", "actions": {},
-            "errors": [f"action-source mapping failed: {type(exc).__name__}: {exc}"],
-            "clauses": clauses,
-        }
+    result["attempts"] = attempts
+    result["repair_attempts"] = len(attempts) - 1
+    return result
+
+
+def _admit_action_source_rows(
+    data: Any,
+    actions: Sequence[str],
+    action_ids: Sequence[str],
+    clauses: Sequence[dict[str, str]],
+) -> dict[str, Any]:
+    """Validate a proposed action-to-clause mapping and report why it fails."""
     rows = data.get("actions", {}) if isinstance(data, dict) else {}
     errors: list[str] = []
     admitted: dict[str, dict[str, Any]] = {}
@@ -5838,15 +5878,43 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                 "clauses": [clause_lookup[value] for value in unique_ids],
                 "reason": " ".join(str(row.get("reason", "")).split()),
             }
-    cited_sets = [tuple(value.get("clause_ids", [])) for value in admitted.values()]
-    if len(admitted) > 1 and len(set(cited_sets)) == 1:
-        errors.append("distinct actions were mapped to identical source clauses")
+    errors.extend(_distinguishing_support_errors(admitted))
     return {
         "status": "COMMITTED" if not errors else "REJECTED",
         "actions": admitted if not errors else {},
         "errors": errors,
-        "clauses": clauses,
+        "clauses": list(clauses),
     }
+
+
+def _distinguishing_support_errors(
+    admitted: dict[str, dict[str, Any]],
+) -> list[str]:
+    """Require each action to have grounding that tells it apart from the others.
+
+    Distinct alternatives legitimately share background facts: a one-trip budget
+    or a common deadline constrains every option, and a fused comparison clause
+    may describe them all. Demanding disjoint sources would reject those honest
+    mappings. What must hold instead is that each action cites at least one
+    clause no rival cites, so the grounding can still distinguish the choices.
+    """
+    if len(admitted) < 2:
+        return []
+    cited = {
+        action_id: set(row.get("clause_ids", []))
+        for action_id, row in admitted.items()
+    }
+    errors: list[str] = []
+    for action_id, own in cited.items():
+        shared = set().union(
+            *(other for rival, other in cited.items() if rival != action_id)
+        )
+        if not own - shared:
+            errors.append(
+                f"{action_id} has no distinguishing source clause; its grounding "
+                f"{sorted(own)} is covered entirely by the other actions"
+            )
+    return errors
 
 
 def propose_synthesis(

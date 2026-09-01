@@ -16,6 +16,14 @@ import unicodedata
 from typing import Any, Sequence
 
 from .semantic_graph import SemanticEdge, SemanticGraph, SemanticNode
+from .semantic_roles import (
+    ROLE_UNRESOLVED,
+    extract_grounded_effects,
+    extract_party_registry,
+    parties_compatible,
+    party_identity,
+    relational_role_bindings,
+)
 
 
 _LABEL_PREFIX = re.compile(
@@ -662,12 +670,29 @@ _NUMBERED_OUTCOME = re.compile(
     r"sav(?:e|es|ed|ing)|sacrific(?:e|es|ed|ing))\b",
     re.IGNORECASE,
 )
+# Infrastructure failure as a decision-critical mechanism. The system noun is
+# required: without it the pattern also matched a bare "failure", turning a
+# bodily event like "fatal organ failure" into an infrastructure claim that no
+# action could ever satisfy.
+_FAILURE_SUBJECT = (
+    r"(?:shelter|grid|power|oxygen|allocation|hospital|ward|network|"
+    r"infrastructure|supply|reactor|plant|server|"
+    r"life[- ]support\s+system|support\s+system)"
+)
 _MECHANISM_FAILURE = re.compile(
-    r"\b(?:(?:shelter|grid|power|oxygen|allocation|hospital|ward)\s[\w-]*\s*){0,4}"
+    rf"\b{_FAILURE_SUBJECT}(?:\s+[\w-]+){{0,3}}\s+"
     r"(?:fail(?:s|ed|ure)|collapse(?:s|d)?|outage|blackout|unstable|instability)\b"
     r"|"
-    r"\b(?:fail(?:s|ed|ure)|collapse(?:s|d)?|unstable|instability)\s[\w-]*\s*"
-    r"(?:shelter|grid|power|oxygen|allocation|hospital|ward)\b",
+    r"\b(?:fail(?:s|ed|ure)|collapse(?:s|d)?|outage|blackout|unstable|instability)"
+    rf"(?:\s+[\w-]+){{0,3}}\s+{_FAILURE_SUBJECT}\b",
+    re.IGNORECASE,
+)
+# Medical events named with "failure" are harms to a body, not infrastructure.
+# Requiring them on the action that prevents them is how A1 was rejected for
+# dropping a bare "failure" token from "fatal organ failure without the drug".
+_BODILY_FAILURE = re.compile(
+    r"\b(?:organ|heart|liver|kidney|renal|hepatic|respiratory|cardiac|"
+    r"multi[- ]organ|pulmonary|neurologic(?:al)?)\b",
     re.IGNORECASE,
 )
 _CONCEALMENT = re.compile(
@@ -732,15 +757,81 @@ class CanonicalActionRecord:
     intervention: str = ""
     beneficiaries: tuple[str, ...] = ()
     harmed: tuple[str, ...] = ()
+    # Parties the action affects without settling the outcome. Kept separate so
+    # a probabilistic harm is neither asserted as certain nor lost from view.
+    unresolved: tuple[str, ...] = ()
+    unresolved_outcomes: tuple[dict[str, Any], ...] = ()
+    # Cascade/foregone relations for parties the action does not itself treat.
+    # Direct recipients stay in beneficiaries/harmed; this layer is surrounding
+    # world-state, not a second copy of those roles.
+    grounded_effects: tuple[Any, ...] = ()
     mechanism: str = ""
     institutional_effect: str = ""
     source_clauses: tuple[str, ...] = ()
     completeness_status: str = "UNCHECKED"
     missing_critical: tuple[str, ...] = ()
     structure_issues: tuple[str, ...] = ()
+    commitment_status: str = "REJECTED"
+    commitment_reasons: tuple[str, ...] = ()
+
+    @property
+    def eligible_for_deliberation(self) -> bool:
+        return self.commitment_status == "COMMITTED"
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+
+# Terminal states for a canonical record. Only COMMITTED semantic state may
+# enter deliberation; PARTIAL is usable evidence that is not yet a settled world
+# model, and REJECTED must never reach an agent as if it were one.
+COMMITMENT_COMMITTED = "COMMITTED"
+COMMITMENT_PARTIAL = "PARTIAL"
+COMMITMENT_REJECTED = "REJECTED"
+
+
+def _commitment_state(
+    completeness_status: str,
+    grounding_status: str,
+    has_sources: bool,
+) -> tuple[str, tuple[str, ...]]:
+    """Decide whether a record may enter deliberation, and say why not.
+
+    Grounding is checked first: if the scenario could not say which clauses an
+    action rests on, then however well-formed the record looks it describes a
+    world nobody verified against the source.
+    """
+    grounding = str(grounding_status or "").strip().upper()
+    reasons: list[str] = []
+
+    if grounding == "REJECTED":
+        return COMMITMENT_REJECTED, ("action-source grounding was rejected",)
+    if completeness_status in {"NEEDS_REPAIR", "MISSING_CRITICAL", "INCOMPLETE_CLAUSE"}:
+        return COMMITMENT_REJECTED, (
+            f"record completeness is {completeness_status}",
+        )
+
+    if completeness_status == "COMPLETE_WITH_NORMALIZATION":
+        reasons.append("structured roles required normalization")
+    if not has_sources:
+        reasons.append("no grounded source clauses")
+    if grounding and grounding not in {"COMMITTED", ""}:
+        reasons.append(f"grounding status is {grounding}")
+    if completeness_status == "UNCHECKED":
+        reasons.append("completeness was never checked")
+
+    if reasons:
+        return COMMITMENT_PARTIAL, tuple(dict.fromkeys(reasons))
+    return COMMITMENT_COMMITTED, ()
+
+
+def partition_records_for_deliberation(
+    records: Sequence[CanonicalActionRecord],
+) -> tuple[list[CanonicalActionRecord], list[CanonicalActionRecord]]:
+    """Split records into those admitted to deliberation and those withheld."""
+    admitted = [record for record in records if record.eligible_for_deliberation]
+    withheld = [record for record in records if not record.eligible_for_deliberation]
+    return admitted, withheld
 
 
 # --- Structured role extraction from canonical prose ---------------------------
@@ -800,11 +891,7 @@ def _best_group_label(text: str, kind: str) -> str:
 
 
 def _explicit_count_in_label(label: str) -> str | None:
-    match = re.search(r"\b(\d+|four|sixteen)\b", str(label or ""), re.IGNORECASE)
-    if not match:
-        return None
-    token = match.group(1).casefold()
-    return {"four": "4", "sixteen": "16"}.get(token, token)
+    return party_identity(label)[1]
 
 
 def _count_from_group_key(key: tuple[str, ...]) -> str | None:
@@ -966,163 +1053,43 @@ def extract_structured_action_roles(
     action_text: str,
     *,
     scenario_actor: str = "",
+    registry: Sequence[Any] | None = None,
+    clauses: Sequence[Any] | None = None,
 ) -> dict[str, Any]:
     """Extract harmed/beneficiaries/mechanism from a canonical semantic action."""
     text = " ".join(str(action_text or "").split())
     lowered = text.casefold()
-    obligations = _obligatory_role_groups(text)
     beneficiaries: list[str] = []
     harmed: list[str] = []
     mechanism = ""
     institutional = ""
 
-    def _add_unique(bucket: list[str], label: str, *, span_start: int = 0) -> None:
+    # Roles come from the scenario's own party vocabulary, so a dilemma the
+    # pattern layer has never seen is extracted on the same footing as a
+    # familiar one.
+    parties = list(registry) if registry is not None else extract_party_registry(
+        text, [{"clause_id": "A", "text": text}],
+    )
+
+    def _append_party(bucket: list[str], label: str) -> None:
         cleaned = " ".join(str(label).split()).strip(" ,;.")
         if not cleaned:
             return
-        if "refugee" in cleaned.casefold():
-            cleaned = _enrich_refugee_label_from_context(text, span_start, cleaned)
-        key = _group_key(cleaned)
-        for index, existing in enumerate(bucket):
-            if not _group_keys_compatible(key, _group_key(existing)):
-                continue
-            existing_count = _explicit_count_in_label(existing)
-            new_count = _explicit_count_in_label(cleaned)
-            if (new_count and not existing_count) or len(cleaned) > len(existing):
-                bucket[index] = cleaned
+        if any(parties_compatible(existing, cleaned) for existing in bucket):
             return
-        if cleaned.casefold() not in {item.casefold() for item in bucket}:
-            bucket.append(cleaned)
+        bucket.append(cleaned)
 
-    patient_label = _best_group_label(text, "patient")
-    refugee_label = _best_group_label(text, "refugee")
-
-    # --- harmed / benefited groups -------------------------------------------
-    for match in re.finditer(
-        rf"\bkill(?:s|ing|ed)?\s+(?:the\s+)?{_PATIENT_GROUP}\b",
-        text,
-        re.IGNORECASE,
-    ):
-        _add_unique(harmed, match.group("label"), span_start=match.start("label"))
-    if re.search(r"\bkill(?:s|ing|ed)?\s+them\b", text, re.IGNORECASE) and re.search(
-        r"\bpatients?\b", text, re.IGNORECASE,
-    ):
-        _add_unique(harmed, patient_label, span_start=0)
-    for match in re.finditer(
-        rf"\bdivert\w*\s+oxygen\s+from\s+{_PATIENT_GROUP}\b",
-        text,
-        re.IGNORECASE,
-    ):
-        _add_unique(harmed, match.group("label"), span_start=match.start("label"))
-    for match in re.finditer(
-        rf"\breallocat\w*\s+oxygen\s+away\s+from\s+{_PATIENT_GROUP}\b",
-        text,
-        re.IGNORECASE,
-    ):
-        _add_unique(harmed, match.group("label"), span_start=match.start("label"))
-    for match in re.finditer(
-        rf"\b{_PATIENT_GROUP}\b([^.;]{{0,30}})\b(?:die|killed)\b",
-        text,
-        re.IGNORECASE,
-    ):
-        if "refugee" not in match.group(1).casefold():
-            _add_unique(harmed, match.group("label"), span_start=match.start("label"))
-
-    for match in re.finditer(
-        rf"\b(?:causes?|kills?)\s+(?:all\s+)?{_REFUGEE_GROUP}\s+to\s+die\b",
-        text,
-        re.IGNORECASE,
-    ):
-        _add_unique(harmed, match.group("label"), span_start=match.start("label"))
-    for match in re.finditer(
-        rf"\bthat\s+kills?\s+(?:all\s+)?{_REFUGEE_GROUP}\b",
-        text,
-        re.IGNORECASE,
-    ):
-        _add_unique(harmed, match.group("label"), span_start=match.start("label"))
-    for match in re.finditer(
-        rf"\b(?:kills?|killing)\s+(?:all\s+)?{_REFUGEE_GROUP}\b",
-        text,
-        re.IGNORECASE,
-    ):
-        _add_unique(harmed, match.group("label"), span_start=match.start("label"))
-    for match in re.finditer(
-        rf"\b{_REFUGEE_GROUP}\s+(?:die|to\s+die)\b",
-        text,
-        re.IGNORECASE,
-    ):
-        _add_unique(harmed, match.group("label"), span_start=match.start("label"))
-    if re.search(r"\bgrid\s+failure\b", lowered) and "refugee" in lowered:
-        _add_unique(harmed, refugee_label, span_start=0)
-
-    for match in re.finditer(
-        rf"\b{_REFUGEE_GROUP}\s+(?:survive|alive)\b",
-        text,
-        re.IGNORECASE,
-    ):
-        _add_unique(beneficiaries, match.group("label"), span_start=match.start("label"))
-    for match in re.finditer(
-        rf"\bkeep\s+{_REFUGEE_GROUP}\s+alive\b",
-        text,
-        re.IGNORECASE,
-    ):
-        _add_unique(beneficiaries, match.group("label"), span_start=match.start("label"))
-    for match in re.finditer(
-        rf"\b(?:save[sd]?|rescu(?:e|es|ed|ing))\s+{_REFUGEE_GROUP}\b",
-        text,
-        re.IGNORECASE,
-    ):
-        _add_unique(beneficiaries, match.group("label"), span_start=match.start("label"))
-    for match in re.finditer(
-        rf"\bstabiliz\w*[^.;]{{0,120}}?\bholding\s+{_REFUGEE_GROUP}\b",
-        text,
-        re.IGNORECASE,
-    ):
-        _add_unique(beneficiaries, match.group("label"), span_start=match.start("label"))
-    if re.search(r"\bstabiliz", text, re.IGNORECASE):
-        for match in re.finditer(
-            rf"\bholding\s+{_REFUGEE_GROUP}\b",
-            text,
-            re.IGNORECASE,
-        ):
-            _add_unique(beneficiaries, match.group("label"), span_start=match.start("label"))
-    for match in re.finditer(
-        rf"\b(?:honoring|preserving|respecting|upholding|sparing)\s+"
-        rf"(?:the\s+)?{_PATIENT_GROUP}",
-        text,
-        re.IGNORECASE,
-    ):
-        _add_unique(beneficiaries, match.group("label"), span_start=match.start("label"))
-    for match in re.finditer(
-        rf"\b{_PATIENT_GROUP}\b[^.;]{{0,40}}\b(?:protected|preserved|spared)\b",
-        text,
-        re.IGNORECASE,
-    ):
-        _add_unique(beneficiaries, match.group("label"), span_start=match.start("label"))
-    if re.search(r"\bpatients?['’]?\s+right\s+against\b", lowered):
-        _add_unique(beneficiaries, patient_label, span_start=0)
-    for match in re.finditer(
-        rf"\bstabiliz(?:e|es|ing)\s+[^.;]{{0,80}}?\bso\s+(?:the\s+)?"
-        rf"{_REFUGEE_GROUP}\s+(?:survive|alive)\b",
-        text,
-        re.IGNORECASE,
-    ):
-        _add_unique(beneficiaries, match.group("label"), span_start=match.start("label"))
-
-    # Fill any obligations the pattern pass missed from explicit group labels.
-    for binding in _extract_relational_role_bindings(text):
-        bucket = beneficiaries if binding["field"] == "beneficiaries" else harmed
-        _add_unique(bucket, binding["label"], span_start=0)
-    for key in obligations["beneficiaries"]:
-        if key == _group_key(patient_label):
-            _add_unique(beneficiaries, patient_label, span_start=0)
-        if key == _group_key(refugee_label):
-            _add_unique(beneficiaries, refugee_label, span_start=0)
-    for key in obligations["harmed"]:
-        if key == _group_key(patient_label):
-            _add_unique(harmed, patient_label, span_start=0)
-        if key == _group_key(refugee_label):
-            _add_unique(harmed, refugee_label, span_start=0)
+    unresolved: list[str] = []
+    unresolved_outcomes: list[dict[str, Any]] = []
+    for binding in relational_role_bindings(text, parties):
+        if binding.field == ROLE_UNRESOLVED:
+            _append_party(unresolved, binding.party.label)
+            unresolved_outcomes.append(binding.as_dict())
+            continue
+        _append_party(
+            beneficiaries if binding.field == "beneficiaries" else harmed,
+            binding.party.label,
+        )
 
     # --- mechanism -----------------------------------------------------------
     if re.search(r"\bmaintain\b[^.;]{0,80}\ballocation\b", lowered) and (
@@ -1181,6 +1148,16 @@ def extract_structured_action_roles(
         "intervention": intervention,
         "beneficiaries": tuple(beneficiaries),
         "harmed": tuple(harmed),
+        "unresolved": tuple(unresolved),
+        "unresolved_outcomes": tuple(unresolved_outcomes),
+        "grounded_effects": extract_grounded_effects(
+            text,
+            clauses=clauses,
+            registry=parties,
+            direct_beneficiaries=beneficiaries,
+            direct_harmed=harmed,
+            unresolved=unresolved,
+        ),
         "mechanism": mechanism,
         "institutional_effect": institutional,
     }
@@ -1248,9 +1225,12 @@ def validate_structured_role_consistency(
     ]
 
     # Independent obligation scan — must not share the same extractor blind spot.
+    # Identity is party-compatible, not "any two labels that contain 'patient'":
+    # Patient A and Patient B are different people even though both are patients.
     for required in obligations["beneficiaries"]:
         if not any(
             _group_keys_compatible(required, _group_key(existing))
+            or parties_compatible("/".join(required), existing)
             for existing in valid_beneficiaries
         ):
             issues.append(
@@ -1260,6 +1240,7 @@ def validate_structured_role_consistency(
     for required in obligations["harmed"]:
         if not any(
             _group_keys_compatible(required, _group_key(existing))
+            or parties_compatible("/".join(required), existing)
             for existing in valid_harmed
         ):
             issues.append(
@@ -1269,13 +1250,13 @@ def validate_structured_role_consistency(
 
     for label in expected_roles["beneficiaries"]:
         if not any(
-            _group_keys_compatible(_group_key(label), _group_key(existing))
+            parties_compatible(label, existing)
             for existing in valid_beneficiaries
         ):
             issues.append(f"beneficiaries missing prose group: {label}")
     for label in expected_roles["harmed"]:
         if not any(
-            _group_keys_compatible(_group_key(label), _group_key(existing))
+            parties_compatible(label, existing)
             for existing in valid_harmed
         ):
             issues.append(f"harmed missing prose group: {label}")
@@ -1288,33 +1269,33 @@ def validate_structured_role_consistency(
     for binding in _extract_relational_role_bindings(canonical):
         field = str(binding["field"])
         labels = valid_beneficiaries if field == "beneficiaries" else valid_harmed
-        key = binding["key"]
         rich_label = str(binding["label"])
         compatible = [
             label for label in labels
-            if _group_keys_compatible(key, _group_key(label))
+            if parties_compatible(rich_label, label)
+            or _group_keys_compatible(binding["key"], _group_key(label))
         ]
         if not compatible:
             issues.append(f"{field} missing relational binding: {rich_label}")
             continue
-        required_count = _count_from_group_key(key)
+        required_count = party_identity(rich_label)[1]
         if required_count and not any(
-            _explicit_count_in_label(label) for label in compatible
+            party_identity(label)[1] for label in compatible
         ):
             issues.append(
                 f"{field} lost explicit cardinality for {rich_label}"
             )
 
-    harmed_keys = {_group_key(item) for item in valid_harmed}
-    beneficiary_keys = {_group_key(item) for item in valid_beneficiaries}
-    overlap = {
-        key for key in harmed_keys
-        if any(_group_keys_compatible(key, other) for other in beneficiary_keys)
-    } - {()}
-    if overlap:
+    overlap_labels = [
+        f"{harmed} / {saved}"
+        for harmed in valid_harmed
+        for saved in valid_beneficiaries
+        if parties_compatible(harmed, saved)
+    ]
+    if overlap_labels:
         issues.append(
             "group appears as both harmed and beneficiary: "
-            + ", ".join("/".join(key) for key in sorted(overlap))
+            + ", ".join(overlap_labels)
         )
 
     if expected_roles["mechanism"] and not str(payload.get("mechanism") or "").strip():
@@ -1389,7 +1370,14 @@ def extract_decision_critical_claims(text: str) -> tuple[str, ...]:
         patient = _best_group_label(cleaned, "patient")
         _add(f"killing {patient}")
     for match in _MECHANISM_FAILURE.finditer(cleaned):
-        _add(match.group(0))
+        span = match.group(0)
+        if _BODILY_FAILURE.search(span):
+            continue
+        # A bare "failure" token is not a decision-critical atom; it is almost
+        # always a medical or generic event that the action may be preventing.
+        if re.fullmatch(r"fail(?:s|ed|ure|ing)?", span.strip(), re.IGNORECASE):
+            continue
+        _add(span)
     concealment = _extract_institutional_concealment_claim(cleaned)
     if concealment:
         _add(concealment)
@@ -1475,7 +1463,48 @@ def _source_claim_applies_to_action(claim: str, action_text: str) -> bool:
         if "stabiliz" in text and "grid" in text:
             return False
 
+    # A source clause often states the counterfactual of the other option
+    # ("Patient B dies of organ failure without the drug"). That is not an
+    # obligation on the action that *prevents* the event.
+    if _claim_inverted_by_action(claim, action_text):
+        return False
+
     return True
+
+
+def _claim_inverted_by_action(claim: str, action_text: str) -> bool:
+    """True when the action's own roles reverse the polarity of the claim."""
+    claim_cf = " ".join(str(claim or "").split()).casefold()
+    lethal = bool(re.search(
+        r"\b(?:kill|die|death|fail|failure|perish|drown)\b", claim_cf,
+    ))
+    beneficial = bool(re.search(
+        r"\b(?:save|surviv|preserv|protect|alive|rescue)\b", claim_cf,
+    ))
+    if not lethal and not beneficial:
+        return False
+    registry = extract_party_registry(
+        action_text, [{"clause_id": "A", "text": action_text}],
+    )
+    if not registry:
+        return False
+    for binding in relational_role_bindings(action_text, registry):
+        if not _claim_mentions_party(claim_cf, binding.party):
+            continue
+        if lethal and binding.field == "beneficiaries":
+            return True
+        if beneficial and binding.field == "harmed":
+            return True
+    return False
+
+
+def _claim_mentions_party(claim_cf: str, party) -> bool:
+    if parties_compatible(party, claim_cf):
+        return True
+    if party.designator and party.designator in claim_cf:
+        return True
+    distinctive = party.tokens - {"life", "person", "individual", "patient"}
+    return any(token in claim_cf for token in distinctive)
 
 
 def missing_decision_critical_claims(
@@ -1601,9 +1630,47 @@ def _structure_from_identity(identity: ActionIdentity, action_text: str) -> dict
         "intervention": intervention,
         "beneficiaries": tuple(beneficiaries),
         "harmed": tuple(harmed),
+        "unresolved": (),
+        "unresolved_outcomes": (),
+        "grounded_effects": (),
         "mechanism": mechanism,
         "institutional_effect": "; ".join(dict.fromkeys(institutional)),
     }
+
+
+def _resolve_party_registry(
+    scenario: str,
+    canonical: str,
+    source_clause_texts: Sequence[str],
+) -> list[Any]:
+    """Derive the scenario's party vocabulary for domain-neutral validation.
+
+    Prefers the full scenario, falls back to the grounded clauses, and finally
+    to the action prose itself so records built in isolation are still checked.
+    """
+    from .scenario_semantics import segment_scenario_clauses
+    from .semantic_roles import extract_party_registry
+
+    if scenario:
+        return extract_party_registry(
+            scenario, segment_scenario_clauses(scenario), outcome_context=(canonical,),
+        )
+    clauses = [
+        {"clause_id": f"S{index}", "text": text}
+        for index, text in enumerate(source_clause_texts)
+        if str(text).strip()
+    ]
+    if clauses:
+        joined = " ".join(clause["text"] for clause in clauses)
+        return extract_party_registry(joined, clauses, outcome_context=(canonical,))
+    return extract_party_registry(canonical, [{"clause_id": "A", "text": canonical}])
+
+
+def _merge_completeness(*statuses: str) -> str:
+    """Combine status verdicts, letting the most severe one win."""
+    order = {"NEEDS_REPAIR": 2, "COMPLETE_WITH_NORMALIZATION": 1, "": 0}
+    worst = max((status for status in statuses), key=lambda item: order.get(item, 0))
+    return worst
 
 
 def build_canonical_action_record(
@@ -1612,11 +1679,31 @@ def build_canonical_action_record(
     *,
     actor: str = "",
     source_clause_texts: Sequence[str] = (),
+    scenario: str = "",
+    grounding_status: str = "",
     require_complete: bool = False,
 ) -> CanonicalActionRecord:
     """Compile id / short label / semantic action / structured fields."""
     semantic = " ".join(str(action_text or "").split())
-    structure = extract_structured_action_roles(semantic, scenario_actor=actor)
+    party_registry = _resolve_party_registry(
+        scenario, semantic, [str(text) for text in source_clause_texts],
+    )
+    effect_clauses: Sequence[Any]
+    if scenario:
+        from .scenario_semantics import segment_scenario_clauses
+        effect_clauses = segment_scenario_clauses(scenario)
+    else:
+        effect_clauses = [
+            {"clause_id": f"S{index}", "text": str(text)}
+            for index, text in enumerate(source_clause_texts)
+            if str(text).strip()
+        ]
+    structure = extract_structured_action_roles(
+        semantic,
+        scenario_actor=actor,
+        registry=party_registry,
+        clauses=effect_clauses,
+    )
     # Prefer the admitted full prose when complete; otherwise render from structure.
     if semantic and action_clause_looks_complete(semantic):
         canonical = semantic
@@ -1645,6 +1732,9 @@ def build_canonical_action_record(
         intervention=structure["intervention"],
         beneficiaries=structure["beneficiaries"],
         harmed=structure["harmed"],
+        unresolved=structure.get("unresolved", ()),
+        unresolved_outcomes=structure.get("unresolved_outcomes", ()),
+        grounded_effects=structure.get("grounded_effects", ()),
         mechanism=structure["mechanism"],
         institutional_effect=structure["institutional_effect"],
         source_clauses=sources,
@@ -1652,20 +1742,45 @@ def build_canonical_action_record(
         missing_critical=missing,
         structure_issues=(),
     )
-    structure_issues = validate_structured_role_consistency(
+    from .semantic_roles import completeness_from_role_issues, validate_role_assignment
+
+    legacy_issues = validate_structured_role_consistency(
         record,
         scenario_actor=actor,
     )
+    # Domain-neutral check against the scenario's own party vocabulary, so a
+    # dilemma the pattern layer has never seen cannot pass with empty roles.
+    role_issues = validate_role_assignment(
+        canonical,
+        beneficiaries=record.beneficiaries,
+        harmed=record.harmed,
+        unresolved=record.unresolved,
+        registry=party_registry,
+    )
+    structure_issues = tuple(dict.fromkeys((
+        *legacy_issues,
+        *(issue.message for issue in role_issues),
+    )))
+    # Each layer grades only its own findings: the legacy checks report verdicts
+    # as message text, while the registry checks carry explicit severity.
+    merged_status = _merge_completeness(
+        _completeness_status_from_structure_issues(legacy_issues),
+        completeness_from_role_issues(role_issues),
+    )
+
     if not action_clause_looks_complete(canonical):
         status = "INCOMPLETE_CLAUSE"
     elif missing:
         status = "MISSING_CRITICAL"
     elif structure_issues:
-        status = _completeness_status_from_structure_issues(structure_issues)
+        status = merged_status
     elif sources:
         status = "COMPLETE"
     else:
         status = "UNCHECKED"
+    commitment, commitment_reasons = _commitment_state(
+        status, grounding_status, bool(sources),
+    )
     record = CanonicalActionRecord(
         action_id=record.action_id,
         short_label=record.short_label,
@@ -1674,12 +1789,17 @@ def build_canonical_action_record(
         intervention=record.intervention,
         beneficiaries=record.beneficiaries,
         harmed=record.harmed,
+        unresolved=record.unresolved,
+        unresolved_outcomes=record.unresolved_outcomes,
+        grounded_effects=record.grounded_effects,
         mechanism=record.mechanism,
         institutional_effect=record.institutional_effect,
         source_clauses=record.source_clauses,
         completeness_status=status,
         missing_critical=record.missing_critical,
         structure_issues=structure_issues,
+        commitment_status=commitment,
+        commitment_reasons=commitment_reasons,
     )
     if require_complete and status in {
         "INCOMPLETE_CLAUSE",
@@ -1699,6 +1819,8 @@ def build_canonical_action_records(
     *,
     actor: str = "",
     grounded_clause_texts_by_id: dict[str, Sequence[str]] | None = None,
+    scenario: str = "",
+    grounding_status: str = "",
     require_complete: bool = False,
 ) -> list[CanonicalActionRecord]:
     grounded = grounded_clause_texts_by_id or {}
@@ -1710,6 +1832,8 @@ def build_canonical_action_records(
             action,
             actor=actor,
             source_clause_texts=grounded.get(action_id, ()),
+            scenario=scenario,
+            grounding_status=grounding_status,
             require_complete=require_complete,
         ))
     return records
@@ -1755,8 +1879,12 @@ def validate_action_set_completeness(
             action,
             actor=actor,
             source_clause_texts=grounded.get(action_id, ()),
+            scenario=scenario,
         )
-        if record.structure_issues:
+        # Only a repair-level verdict blocks admission. A normalization issue
+        # (a flattened count, a party the fallback extractor could not name)
+        # is recorded on the action rather than used to reject the whole set.
+        if record.structure_issues and record.completeness_status == "NEEDS_REPAIR":
             structure_rows.append(
                 f"{action_id} structured roles disagree with prose: "
                 + "; ".join(record.structure_issues)
