@@ -14,10 +14,19 @@ from typing import Any, Iterable, Sequence
 
 
 DIRECTNESSES = {"DIRECT", "DOWNSTREAM", "FOREGONE", "INSTITUTIONAL"}
+EFFECT_KINDS = {
+    "INTERVENTION", "RESOURCE_TRANSFER", "CAPABILITY_CHANGE", "PHYSICAL_STATE",
+    "HEALTH_OUTCOME", "WELFARE_OUTCOME", "INSTITUTIONAL_OUTCOME",
+    "OPPORTUNITY_LOSS", "OTHER",
+}
 MODALITIES = {
     "CERTAIN", "STIPULATED_CONDITIONAL", "PROBABILISTIC", "POSSIBLE", "UNKNOWN",
 }
 POLARITIES = {"BENEFICIAL", "ADVERSE", "NEUTRAL", "UNRESOLVED", "FOREGONE"}
+COUNTERFACTUAL_RELATIONS = {
+    "FOREGOES_ALTERNATIVE_EFFECT", "PRECLUDES_ALTERNATIVE_EFFECT",
+    "REPLACES_ALTERNATIVE_EFFECT",
+}
 ADMISSION_STATUSES = {
     "COMMITTED", "COMMITTED_WITH_UNCERTAINTY",
     "USER_ACCEPTED_WITH_QUARANTINE", "ABANDONED_CONTRADICTORY_WORLD_STATE",
@@ -55,6 +64,22 @@ _EXPLICIT_QUANTITY = re.compile(
     r")(?![\w.])",
     re.IGNORECASE,
 )
+_CHAINED_OUTCOME = re.compile(
+    r"\b(?:thereby|thus|which\s+(?:causes?|leads?|enables?|prevents?)|"
+    r"resulting\s+in|leading\s+to|enabling\s+.+\s+to|"
+    r"sustaining\s+(?:people|persons?|patients?|residents?|workers?|families|communities))\b",
+    re.IGNORECASE,
+)
+_HUMAN_OUTCOME = re.compile(
+    r"\b(?:death|die|dies|surviv|health|medical|injur|hunger|thirst|"
+    r"well-?being|sustain(?:s|ing)?\s+(?:people|persons?|patients?|residents?|"
+    r"workers?|families|communities))\b",
+    re.IGNORECASE,
+)
+_NONHUMAN_PARTY_KINDS = {
+    "ORGANIZATION", "INSTITUTION", "AUTOMATED_SYSTEM",
+    "AUTOMATED_DECISION_SYSTEM", "RESOURCE", "INFRASTRUCTURE",
+}
 
 
 def classify_clause_role(text: str) -> str:
@@ -142,6 +167,7 @@ class WorldEffect:
     polarity: str
     directness: str
     modality: str
+    effect_kind: str = "OTHER"
     condition_ids: tuple[str, ...] = ()
     quantities: tuple[str, ...] = ()
     provenance: tuple[SourceRef, ...] = ()
@@ -155,6 +181,31 @@ class CausalLink:
     source_id: str
     relation: str
     target_id: str
+    modality: str
+    condition_ids: tuple[str, ...] = ()
+    provenance: tuple[SourceRef, ...] = ()
+    # Added after the original positional fields for stored/test compatibility.
+    # New schema-version 1.1 models must populate it explicitly.
+    action_id: str = ""
+
+    def as_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True, slots=True)
+class CounterfactualLink:
+    """A typed comparison between effects belonging to alternative actions.
+
+    This is not a causal edge. ``source_effect_id`` is the foregone/precluded
+    effect of the chosen action; ``alternative_effect_id`` is the effect that
+    occurs under the mutually exclusive alternative.
+    """
+
+    action_id: str
+    source_effect_id: str
+    relation: str
+    alternative_action_id: str
+    alternative_effect_id: str
     modality: str
     condition_ids: tuple[str, ...] = ()
     provenance: tuple[SourceRef, ...] = ()
@@ -208,6 +259,7 @@ class ScenarioWorldModel:
     effects: tuple[WorldEffect, ...]
     conditions: tuple[WorldCondition, ...] = ()
     causal_links: tuple[CausalLink, ...] = ()
+    counterfactual_links: tuple[CounterfactualLink, ...] = ()
     admission: WorldStateAdmission = field(default_factory=WorldStateAdmission)
     schema_version: str = "1.0"
 
@@ -245,6 +297,7 @@ def parse_world_model(
     """Parse the compact grounding payload without silently repairing it."""
     if not isinstance(raw, dict):
         raise ValueError("world_model must be an object")
+    schema_version = _clean(raw.get("schema_version"), 16) or "1.0"
     lookup = {
         _clean(row.get("clause_id"), 32): _clean(row.get("text"), 1000)
         for row in clauses if isinstance(row, dict)
@@ -287,6 +340,7 @@ def parse_world_model(
         polarity=_clean(row.get("polarity"), 32).upper(),
         directness=_clean(row.get("directness"), 32).upper(),
         modality=_clean(row.get("modality"), 48).upper(),
+        effect_kind=_clean(row.get("effect_kind"), 48).upper() or "OTHER",
         condition_ids=tuple(
             dict.fromkeys(_clean(value, 80).upper() for value in row.get("condition_ids", []))
         ),
@@ -295,23 +349,90 @@ def parse_world_model(
         ),
         provenance=_refs(row.get("clause_ids", []), lookup),
     ) for row in raw.get("effects", []) if isinstance(row, dict))
-    links = tuple(CausalLink(
-        source_id=_clean(row.get("source_id"), 80),
+    effect_by_id = {effect.effect_id: effect for effect in effects}
+    parsed_links: list[CausalLink] = []
+    migrated_counterfactuals: list[CounterfactualLink] = []
+    for row in raw.get("causal_links", []):
+        if not isinstance(row, dict):
+            continue
+        source_id = _clean(row.get("source_id"), 80)
+        target_id = _clean(row.get("target_id"), 80)
+        relation = _clean(row.get("relation"), 64).upper()
+        source_action = (
+            source_id if source_id in action_ids
+            else effect_by_id[source_id].action_id if source_id in effect_by_id
+            else ""
+        )
+        target_action = (
+            target_id if target_id in action_ids
+            else effect_by_id[target_id].action_id if target_id in effect_by_id
+            else ""
+        )
+        refs = _refs(row.get("clause_ids", []), lookup)
+        condition_values = tuple(dict.fromkeys(
+            _clean(value, 80).upper() for value in row.get("condition_ids", [])
+        ))
+        modality = _clean(row.get("modality"), 48).upper()
+        explicit_action = _clean(row.get("action_id"), 16).upper()
+        # Compatibility normalization for traces emitted before counterfactual
+        # links had their own schema. A cross-action FOREGOES edge is matched to
+        # the chosen action's explicit foregone effect for the same party.
+        if source_action and target_action and source_action != target_action:
+            if schema_version != "1.0" or relation != "FOREGOES":
+                parsed_links.append(CausalLink(
+                    action_id=explicit_action or source_action,
+                    source_id=source_id, relation=relation, target_id=target_id,
+                    modality=modality, condition_ids=condition_values,
+                    provenance=refs,
+                ))
+                continue
+            alternative_effect = effect_by_id.get(target_id)
+            candidates = [
+                effect for effect in effects
+                if effect.action_id == source_action
+                and effect.directness == "FOREGONE"
+                and alternative_effect is not None
+                and effect.party_id == alternative_effect.party_id
+            ]
+            migrated_counterfactuals.append(CounterfactualLink(
+                action_id=source_action,
+                source_effect_id=candidates[0].effect_id if len(candidates) == 1 else "",
+                relation="FOREGOES_ALTERNATIVE_EFFECT",
+                alternative_action_id=target_action,
+                alternative_effect_id=target_id,
+                modality=modality,
+                condition_ids=condition_values,
+                provenance=refs,
+            ))
+            continue
+        parsed_links.append(CausalLink(
+            action_id=explicit_action or source_action or target_action,
+            source_id=source_id, relation=relation, target_id=target_id,
+            modality=modality, condition_ids=condition_values,
+            provenance=refs,
+        ))
+    counterfactuals = [*migrated_counterfactuals]
+    counterfactuals.extend(CounterfactualLink(
+        action_id=_clean(row.get("action_id"), 16).upper(),
+        source_effect_id=_clean(row.get("source_effect_id"), 80),
         relation=_clean(row.get("relation"), 64).upper(),
-        target_id=_clean(row.get("target_id"), 80),
+        alternative_action_id=_clean(row.get("alternative_action_id"), 16).upper(),
+        alternative_effect_id=_clean(row.get("alternative_effect_id"), 80),
         modality=_clean(row.get("modality"), 48).upper(),
-        condition_ids=tuple(
-            dict.fromkeys(_clean(value, 80).upper() for value in row.get("condition_ids", []))
-        ),
+        condition_ids=tuple(dict.fromkeys(
+            _clean(value, 80).upper() for value in row.get("condition_ids", [])
+        )),
         provenance=_refs(row.get("clause_ids", []), lookup),
-    ) for row in raw.get("causal_links", []) if isinstance(row, dict))
+    ) for row in raw.get("counterfactual_links", []) if isinstance(row, dict))
     model = ScenarioWorldModel(
         parties=parties, actions=actions, effects=effects,
-        conditions=conditions, causal_links=links,
+        conditions=conditions, causal_links=tuple(parsed_links),
+        counterfactual_links=tuple(counterfactuals),
         admission=WorldStateAdmission(
             status="COMMITTED",
             admitted_effect_ids=tuple(effect.effect_id for effect in effects),
         ),
+        schema_version=schema_version,
     )
     errors, _ = validate_world_model(model, action_ids=action_ids)
     if errors:
@@ -364,6 +485,19 @@ def validate_world_model(
             errors.append(
                 f"{action.action_id} effect_ids do not exactly match its typed effects"
             )
+        if model.schema_version != "1.0":
+            for recipient_id in action.recipient_party_ids:
+                if not any(
+                    effect.action_id == action.action_id
+                    and effect.party_id == recipient_id
+                    and effect.directness == "DIRECT"
+                    and effect.effect_kind in {"INTERVENTION", "RESOURCE_TRANSFER"}
+                    for effect in model.effects
+                ):
+                    errors.append(
+                        f"{action.action_id} recipient {recipient_id} lacks an atomic "
+                        "atomic DIRECT INTERVENTION or RESOURCE_TRANSFER effect"
+                    )
     for effect in model.effects:
         prefix = effect.effect_id or "effect"
         if effect.action_id not in expected_actions:
@@ -378,6 +512,48 @@ def validate_world_model(
             errors.append(f"{prefix} has invalid modality {effect.modality}")
         if effect.polarity not in POLARITIES:
             errors.append(f"{prefix} has invalid polarity {effect.polarity}")
+        if effect.effect_kind not in EFFECT_KINDS:
+            errors.append(f"{prefix} has invalid effect_kind {effect.effect_kind}")
+        if model.schema_version != "1.0":
+            if (
+                effect.effect_kind in {"INTERVENTION", "RESOURCE_TRANSFER"}
+                and effect.directness != "DIRECT"
+            ):
+                errors.append(
+                    f"{prefix} is an immediate {effect.effect_kind} effect so its "
+                    "directness must be DIRECT"
+                )
+            if (
+                effect.effect_kind == "OPPORTUNITY_LOSS"
+                and effect.directness != "FOREGONE"
+            ):
+                errors.append(
+                    f"{prefix} is an OPPORTUNITY_LOSS so its directness must be FOREGONE"
+                )
+            if (
+                effect.directness == "FOREGONE"
+                and effect.effect_kind != "OPPORTUNITY_LOSS"
+            ):
+                errors.append(
+                    f"{prefix} is FOREGONE so its effect_kind must be OPPORTUNITY_LOSS"
+                )
+        if model.schema_version != "1.0" and _CHAINED_OUTCOME.search(effect.outcome):
+            errors.append(
+                f"{prefix} combines multiple causal stages in one outcome; "
+                "split resource/intermediate/human effects and connect them causally"
+            )
+        party = next((item for item in model.parties if item.party_id == effect.party_id), None)
+        if (
+            model.schema_version != "1.0"
+            and
+            party is not None
+            and party.kind in _NONHUMAN_PARTY_KINDS
+            and _HUMAN_OUTCOME.search(effect.outcome)
+        ):
+            errors.append(
+                f"{prefix} assigns a human outcome to {party.kind} {party.party_id}; "
+                "create a distinct affected-person or population party"
+            )
         if effect.directness == "FOREGONE" and effect.polarity != "FOREGONE":
             errors.append(
                 f"{prefix} is a foregone effect so its polarity must be FOREGONE, "
@@ -433,7 +609,11 @@ def validate_world_model(
                     f"{prefix} quantity {quantity!r} is not stated in its "
                     "provenance (outcome text alone cannot ground a quantity)"
                 )
-    valid_link_nodes = expected_actions | set(effect_ids) | condition_ids
+    valid_link_nodes = expected_actions | set(effect_ids)
+    if model.schema_version == "1.0":
+        valid_link_nodes |= condition_ids
+    effect_by_id = {effect.effect_id: effect for effect in model.effects}
+    effect_owner = {effect_id: effect.action_id for effect_id, effect in effect_by_id.items()}
     for index, link in enumerate(model.causal_links):
         prefix = f"causal_link[{index}]"
         if link.source_id not in valid_link_nodes or link.target_id not in valid_link_nodes:
@@ -449,6 +629,57 @@ def validate_world_model(
                 f"{prefix} is CERTAIN but lists conditions; CERTAIN links "
                 "must not carry condition_ids"
             )
+        if not link.provenance:
+            errors.append(f"{prefix} lacks source provenance")
+        endpoint_owners = {
+            endpoint if endpoint in expected_actions else effect_owner.get(endpoint, "")
+            for endpoint in (link.source_id, link.target_id)
+        } - {""}
+        owning_action = link.action_id or (
+            next(iter(endpoint_owners)) if len(endpoint_owners) == 1 else ""
+        )
+        if owning_action not in expected_actions:
+            errors.append(f"{prefix} lacks a valid owning action_id")
+        if endpoint_owners != {owning_action}:
+            errors.append(
+                f"{prefix} crosses action boundaries {sorted(endpoint_owners)}; "
+                "use counterfactual_links for alternative-action comparisons"
+            )
+    for index, link in enumerate(model.counterfactual_links):
+        prefix = f"counterfactual_link[{index}]"
+        source = effect_by_id.get(link.source_effect_id)
+        alternative = effect_by_id.get(link.alternative_effect_id)
+        if link.action_id not in expected_actions:
+            errors.append(f"{prefix} cites unknown action {link.action_id}")
+        if link.alternative_action_id not in expected_actions:
+            errors.append(
+                f"{prefix} cites unknown alternative action {link.alternative_action_id}"
+            )
+        if link.action_id == link.alternative_action_id:
+            errors.append(f"{prefix} must compare distinct actions")
+        if link.relation not in COUNTERFACTUAL_RELATIONS:
+            errors.append(f"{prefix} has invalid relation {link.relation}")
+        if source is None or source.action_id != link.action_id:
+            errors.append(f"{prefix} source effect does not belong to its action")
+        elif source.directness != "FOREGONE":
+            errors.append(f"{prefix} source effect must be typed FOREGONE")
+        if alternative is None or alternative.action_id != link.alternative_action_id:
+            errors.append(
+                f"{prefix} alternative effect does not belong to the alternative action"
+            )
+        if source is not None and alternative is not None and source.party_id != alternative.party_id:
+            errors.append(f"{prefix} compares effects on different parties")
+        if link.modality not in MODALITIES:
+            errors.append(f"{prefix} has invalid modality {link.modality}")
+        if link.modality != "CERTAIN" and not link.condition_ids:
+            errors.append(f"{prefix} is conditional but has no condition")
+        if link.modality == "CERTAIN" and link.condition_ids:
+            errors.append(
+                f"{prefix} is CERTAIN but lists conditions; CERTAIN links "
+                "must not carry condition_ids"
+            )
+        if set(link.condition_ids) - condition_ids:
+            errors.append(f"{prefix} cites unknown conditions")
         if not link.provenance:
             errors.append(f"{prefix} lacks source provenance")
     contradictions: list[tuple[str, ...]] = []
@@ -509,6 +740,7 @@ def quarantine_contradictions(
     return ScenarioWorldModel(
         parties=model.parties, actions=model.actions, effects=model.effects,
         conditions=model.conditions, causal_links=model.causal_links,
+        counterfactual_links=model.counterfactual_links,
         admission=admission, schema_version=model.schema_version,
     )
 
@@ -521,6 +753,7 @@ def world_model_from_dict(data: Any) -> ScenarioWorldModel | None:
     for collection in (
         data.get("parties", []), data.get("actions", []), data.get("effects", []),
         data.get("conditions", []), data.get("causal_links", []),
+        data.get("counterfactual_links", []),
     ):
         for row in collection if isinstance(collection, (list, tuple)) else []:
             for ref in row.get("provenance", []) if isinstance(row, dict) else []:
@@ -532,6 +765,8 @@ def world_model_from_dict(data: Any) -> ScenarioWorldModel | None:
         "effects": [{**row, "clause_ids": [r.get("clause_id") for r in row.get("provenance", [])]} for row in data.get("effects", [])],
         "conditions": [{**row, "clause_ids": [r.get("clause_id") for r in row.get("provenance", [])]} for row in data.get("conditions", [])],
         "causal_links": [{**row, "clause_ids": [r.get("clause_id") for r in row.get("provenance", [])]} for row in data.get("causal_links", [])],
+        "counterfactual_links": [{**row, "clause_ids": [r.get("clause_id") for r in row.get("provenance", [])]} for row in data.get("counterfactual_links", [])],
+        "schema_version": str(data.get("schema_version", "1.0")),
     }
     action_ids = [str(row.get("action_id", "")) for row in data.get("actions", [])]
     model = parse_world_model(
@@ -551,5 +786,6 @@ def world_model_from_dict(data: Any) -> ScenarioWorldModel | None:
     return ScenarioWorldModel(
         parties=model.parties, actions=model.actions, effects=model.effects,
         conditions=model.conditions, causal_links=model.causal_links,
+        counterfactual_links=model.counterfactual_links,
         admission=admission, schema_version=str(data.get("schema_version", "1.0")),
     )

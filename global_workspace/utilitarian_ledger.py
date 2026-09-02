@@ -8,7 +8,10 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from .graph_transactions import GraphTransactionRecord, SemanticGraphStore
-from .scenario_semantics import query_grounded_action_effects
+from .scenario_semantics import (
+    project_grounded_action_effects,
+    query_grounded_action_effects,
+)
 from .semantic_graph import SemanticEdge, SemanticGraph, SemanticNode, merge_graphs, validate_graph
 
 
@@ -39,6 +42,42 @@ class UtilitarianLedgerProposal(BaseModel):
         action_ids = [item.action_id for item in self.actions]
         if len(action_ids) != len(set(action_ids)):
             raise ValueError("Utilitarian ledger repeats an action")
+        return self
+
+
+class EffectValuationProposal(BaseModel):
+    """Framework valuation of an existing fact; no factual direction is editable."""
+
+    model_config = ConfigDict(extra="forbid", strict=True)
+    # World models commonly issue compact stable IDs such as E1. Identity is
+    # validated against the graph below; string length carries no authority.
+    effect_id: str = Field(min_length=1, max_length=120)
+    importance: Literal["NEGLIGIBLE", "LOW", "MEDIUM", "HIGH", "CRITICAL", "UNKNOWN"]
+    reason: str = Field(min_length=4, max_length=160)
+
+
+class ActionEffectValuationProposal(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    action_id: str = Field(pattern=r"^A\d+$")
+    valuations: list[EffectValuationProposal] = Field(min_length=1, max_length=12)
+
+    @model_validator(mode="after")
+    def unique_effects(self):
+        effect_ids = [item.effect_id for item in self.valuations]
+        if len(effect_ids) != len(set(effect_ids)):
+            raise ValueError("Utilitarian valuation repeats a grounded effect")
+        return self
+
+
+class UtilitarianEffectValuationProposal(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    actions: list[ActionEffectValuationProposal] = Field(min_length=2, max_length=5)
+
+    @model_validator(mode="after")
+    def unique_actions(self):
+        action_ids = [item.action_id for item in self.actions]
+        if len(action_ids) != len(set(action_ids)):
+            raise ValueError("Utilitarian valuation repeats an action")
         return self
 
 
@@ -147,6 +186,206 @@ def _stable_id(prefix: str, value: str) -> str:
     return f"{prefix}:{digest}"
 
 
+def _accounting_role(polarity: str) -> str:
+    """Project world polarity without asking a framework to regenerate it."""
+    return {
+        "BENEFICIAL": "BENEFIT",
+        "ADVERSE": "HARM",
+        "FOREGONE": "OPPORTUNITY_COST",
+        "NEUTRAL": "NEUTRAL",
+        "UNRESOLVED": "UNKNOWN",
+    }.get(str(polarity).upper(), "UNKNOWN")
+
+
+def _apply_effect_valuation_transaction(
+    store: SemanticGraphStore,
+    proposal: dict[str, Any],
+    *,
+    cycle: int,
+    specialist: str,
+    allowed_actions: tuple[str, ...],
+) -> GraphTransactionRecord:
+    """Commit an effect-ID valuation overlay on immutable grounded facts."""
+    raw = dict(proposal) if isinstance(proposal, dict) else {"raw": proposal}
+    try:
+        validated = UtilitarianEffectValuationProposal.model_validate(proposal)
+    except ValidationError as exc:
+        errors = [
+            f"schema {'.'.join(str(part) for part in item['loc'])}: {item['msg']}"
+            for item in exc.errors(include_url=False)
+        ]
+        record = GraphTransactionRecord(
+            cycle, specialist, "UTILITARIAN_EFFECT_VALUATION", "REJECTED",
+            raw, errors, previous_state_preserved=True, retryable=True,
+        )
+        store.transactions.append(record)
+        return record
+
+    allowed_ids = {
+        str(node.attributes.get("canonical_action_id", node.id))
+        for reference in allowed_actions
+        if (node := _resolve_action(store.graph, reference)) is not None
+    }
+    submitted_ids = {item.action_id for item in validated.actions}
+    if submitted_ids != allowed_ids:
+        errors = ["Utilitarian valuation must cover exactly the canonical action set"]
+        record = GraphTransactionRecord(
+            cycle, specialist, "UTILITARIAN_EFFECT_VALUATION", "REJECTED",
+            raw, errors, previous_state_preserved=True, retryable=True,
+        )
+        store.transactions.append(record)
+        return record
+
+    projected_by_action: dict[str, dict[str, Any]] = {}
+    for effect in project_grounded_action_effects(store.graph):
+        evidence = store.graph.nodes.get(effect.consequence_id)
+        if evidence is None:
+            continue
+        projected_by_action.setdefault(effect.action_id, {})[effect.effect_id] = (
+            effect, evidence
+        )
+
+    errors: list[str] = []
+    for action_item in validated.actions:
+        expected = set(projected_by_action.get(action_item.action_id, {}))
+        submitted = {item.effect_id for item in action_item.valuations}
+        if submitted != expected:
+            errors.append(
+                f"{action_item.action_id} valuations must reference every grounded "
+                f"effect exactly once; missing={sorted(expected - submitted)}, "
+                f"unknown={sorted(submitted - expected)}"
+            )
+    if errors:
+        record = GraphTransactionRecord(
+            cycle, specialist, "UTILITARIAN_EFFECT_VALUATION", "REJECTED",
+            raw, errors, previous_state_preserved=True, retryable=True,
+        )
+        store.transactions.append(record)
+        return record
+
+    delta = SemanticGraph()
+    committed: list[dict[str, Any]] = []
+    replace_ids = {
+        node.id for node in store.graph.nodes.values()
+        if node.kind == "CONSEQUENCE"
+        and node.attributes.get("framework") == "UTILITARIAN"
+        and node.attributes.get("specialist") == specialist
+    }
+    for action_item in validated.actions:
+        action = _resolve_action(store.graph, action_item.action_id)
+        if action is None:
+            continue
+        for valuation in action_item.valuations:
+            effect, evidence = projected_by_action[action_item.action_id][valuation.effect_id]
+            polarity = str(evidence.attributes.get("polarity", "UNRESOLVED")).upper()
+            direction = _accounting_role(polarity)
+            modality = str(evidence.attributes.get("modality", "UNKNOWN")).upper()
+            quantities = [
+                str(value) for value in evidence.attributes.get("quantities", [])
+                if str(value).strip()
+            ]
+            probability = "CERTAIN" if modality == "CERTAIN" else "UNKNOWN"
+            magnitude = ", ".join(quantities)[:60] or "UNKNOWN"
+            scope_label = " ".join(effect.affected_subject.casefold().split()).strip(" ,.;:")
+            target_id = _stable_id("UTIL_SCOPE", scope_label)
+            consequence_id = (
+                f"UTIL_CONSEQUENCE:{specialist}:{action.id}:"
+                f"{hashlib.sha256(valuation.effect_id.encode('utf-8')).hexdigest()[:12]}"
+            )
+            provenance = (
+                f"delegate:{specialist}", f"cycle:{cycle}",
+                f"grounded_effect:{valuation.effect_id}",
+            )
+            delta.add_node(SemanticNode(
+                target_id, "TARGET", scope_label, provenance,
+                {"framework": "UTILITARIAN"},
+            ))
+            attributes = {
+                "framework": "UTILITARIAN", "specialist": specialist,
+                "cycle": cycle, "canonical_action_id": action_item.action_id,
+                "grounded_effect_id": valuation.effect_id,
+                "world_effect_id": evidence.attributes.get("world_effect_id", ""),
+                "direction": direction,
+                "direction_source": "GROUNDED_WORLD_POLARITY",
+                "polarity": polarity,
+                "probability": probability,
+                "modality": modality,
+                "magnitude": magnitude,
+                "duration": "UNKNOWN", "reversibility": "UNKNOWN",
+                "support": "STATED",
+                "epistemic_status": effect.epistemic_status,
+                "importance": valuation.importance,
+                "valuation_reason": valuation.reason,
+                "scope_node_id": target_id,
+            }
+            delta.add_node(SemanticNode(
+                consequence_id, "CONSEQUENCE", evidence.label, provenance, attributes,
+            ))
+            delta.add_edge(SemanticEdge(
+                action.id, "HAS_CONSEQUENCE", consequence_id, provenance=provenance,
+            ))
+            delta.add_edge(SemanticEdge(
+                consequence_id, "AFFECTS", target_id, provenance=provenance,
+            ))
+            delta.add_edge(SemanticEdge(
+                consequence_id, "SUPPORTED_BY", evidence.id, provenance=provenance,
+            ))
+            committed.append({
+                "consequence_node_id": consequence_id,
+                "canonical_action_id": action_item.action_id,
+                "grounded_effect_id": valuation.effect_id,
+                "world_effect_id": evidence.attributes.get("world_effect_id", ""),
+                "outcome": evidence.label,
+                "scope": scope_label,
+                "direction": direction,
+                "direction_source": "GROUNDED_WORLD_POLARITY",
+                "polarity": polarity,
+                "probability": probability,
+                "modality": modality,
+                "magnitude": magnitude,
+                "duration": "UNKNOWN",
+                "reversibility": "UNKNOWN",
+                "support": "STATED",
+                "epistemic_status": effect.epistemic_status,
+                "importance": valuation.importance,
+                "valuation_reason": valuation.reason,
+            })
+
+    base = SemanticGraph(
+        nodes={key: node for key, node in store.graph.nodes.items() if key not in replace_ids},
+        edges=[
+            edge for edge in store.graph.edges
+            if edge.source not in replace_ids and edge.target not in replace_ids
+        ],
+    )
+    try:
+        prospective = merge_graphs([base, delta])
+    except ValueError as exc:
+        record = GraphTransactionRecord(
+            cycle, specialist, "UTILITARIAN_EFFECT_VALUATION", "REJECTED", raw,
+            [f"graph merge rejected: {exc}"], previous_state_preserved=True,
+            retryable=True,
+        )
+        store.transactions.append(record)
+        return record
+    validation = validate_graph(prospective)
+    if not validation.valid:
+        record = GraphTransactionRecord(
+            cycle, specialist, "UTILITARIAN_EFFECT_VALUATION", "REJECTED", raw,
+            validation.errors, previous_state_preserved=True, retryable=True,
+        )
+        store.transactions.append(record)
+        return record
+    store.graph = prospective
+    record = GraphTransactionRecord(
+        cycle, specialist, "UTILITARIAN_EFFECT_VALUATION", "COMMITTED",
+        {"submitted": raw, "committed_consequences": committed}, [],
+        previous_state_preserved=False,
+    )
+    store.transactions.append(record)
+    return record
+
+
 def apply_utilitarian_ledger_transaction(
     store: SemanticGraphStore,
     proposal: dict[str, Any],
@@ -155,6 +394,12 @@ def apply_utilitarian_ledger_transaction(
     specialist: str,
     allowed_actions: tuple[str, ...],
 ) -> GraphTransactionRecord:
+    actions = proposal.get("actions", []) if isinstance(proposal, dict) else []
+    if actions and isinstance(actions[0], dict) and "valuations" in actions[0]:
+        return _apply_effect_valuation_transaction(
+            store, proposal, cycle=cycle, specialist=specialist,
+            allowed_actions=allowed_actions,
+        )
     raw = dict(proposal) if isinstance(proposal, dict) else {"raw": proposal}
     try:
         validated = UtilitarianLedgerProposal.model_validate(proposal)

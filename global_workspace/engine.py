@@ -46,6 +46,14 @@ from .deliberative_state import (
     update_broadcast_influence_persistence,
 )
 from .graph_transactions import SemanticGraphStore
+from .epistemic_ledger import (
+    apply_side_premise_audit,
+    attach_candidate_dependencies,
+    focus_proposition_ids,
+    ledger_projection,
+    seed_proposition_ledger,
+    shared_unresolved_dependency_projection,
+)
 from .resolved_questions import (
     commit_question_resolution,
     resolve_audited_question,
@@ -153,6 +161,9 @@ ReformulationCallback = Callable[
 VisibilityCallback = Callable[[str, Sequence[str]], VisibilityAssessment]
 AutonomyCallback = Callable[[str, Sequence[str]], AutonomyAssessment]
 CheckpointCallback = Callable[[WorkspaceResult], None]
+PremiseAuditCallback = Callable[
+    [Sequence[dict[str, object]], Sequence[CandidateChunk]], dict[str, object]
+]
 
 
 class Specialist(Protocol):
@@ -1267,7 +1278,7 @@ class WorkspaceEngine:
         names = (
             "previous_recommendation_id", "previous_confidence", "previous_context", "assumption_status",
             "unsupported_assumption", "reversal_condition", "epistemic_commitments",
-            "previous_framework_state",
+            "previous_framework_state", "proposition_ledger",
         )
         return [
             (specialist, {
@@ -1713,6 +1724,7 @@ class WorkspaceEngine:
         assess_visibility: VisibilityCallback | None = None,
         assess_autonomy: AutonomyCallback | None = None,
         checkpoint: CheckpointCallback | None = None,
+        audit_side_premises: PremiseAuditCallback | None = None,
     ) -> WorkspaceResult:
         clean_actions = list(dict.fromkeys(a.strip() for a in actions if a.strip()))[:5]
         if len(clean_actions) < 2:
@@ -1734,6 +1746,7 @@ class WorkspaceEngine:
                 ("epistemic_commitments", []),
                 ("previous_framework_state", {}),
                 ("private_framework_contribution", {}),
+                ("proposition_ledger", []),
             ):
                 if hasattr(specialist, name):
                     setattr(specialist, name, copy.deepcopy(value))
@@ -1757,6 +1770,8 @@ class WorkspaceEngine:
             scenario, clean_actions, grounded_actions,
             world_model=dict((action_source_grounding or {}).get("world_model", {})),
         ))
+        proposition_ledger = seed_proposition_ledger(graph_store.graph)
+        result.proposition_ledger = ledger_projection(proposition_ledger)
         # The opening cycle is the only one whose broadcast has no prior cycle
         # to describe, but the shared world already exists by this point. Hand
         # over that world without a position so cycle 1 is an informed
@@ -1873,6 +1888,13 @@ class WorkspaceEngine:
                 and len(received_broadcast.contingency_fallback_actions) == 2
                 else clean_actions
             )
+            working_proposition_ledger = (
+                copy.deepcopy(proposition_ledger) if is_counterfactual
+                else proposition_ledger
+            )
+            cycle_proposition_projection = ledger_projection(
+                working_proposition_ledger
+            )
             specialist_snapshot = (
                 self._snapshot_specialist_state(self.specialists) if is_counterfactual else []
             )
@@ -1885,6 +1907,10 @@ class WorkspaceEngine:
             for index, specialist in enumerate(self.specialists, start=1):
                 if hasattr(specialist, "scenario_graph"):
                     specialist.scenario_graph = graph_store.graph
+                if hasattr(specialist, "proposition_ledger"):
+                    specialist.proposition_ledger = copy.deepcopy(
+                        cycle_proposition_projection
+                    )
                 call_started = time.monotonic()
                 if progress:
                     progress(
@@ -1970,6 +1996,14 @@ class WorkspaceEngine:
                         # coercion/rights-breach burden, but the delegate's
                         # epistemic reliability should only change when its own
                         # reasoning is uncertain.
+                if candidate.schema_valid:
+                    attach_candidate_dependencies(
+                        working_proposition_ledger, candidate,
+                    )
+                    if not is_counterfactual:
+                        result.proposition_ledger = ledger_projection(
+                            proposition_ledger
+                        )
                 candidates.append(candidate)
                 if (
                     candidate.schema_valid
@@ -2384,6 +2418,38 @@ class WorkspaceEngine:
                                 "promotion_status": reviewed_proposal.promotion_status,
                             },
                         ))
+            if audit_side_premises is not None and any(
+                candidate.schema_valid for candidate in candidates
+            ):
+                try:
+                    premise_audit = audit_side_premises(
+                        ledger_projection(working_proposition_ledger), candidates,
+                    )
+                except Exception as error:
+                    premise_audit = {
+                        "status": "UNAVAILABLE", "findings": [],
+                        "error": f"{type(error).__name__}: {error}"[:240],
+                    }
+                apply_side_premise_audit(
+                    working_proposition_ledger, candidates, premise_audit,
+                )
+                audit_record = {
+                    "cycle": cycle_number,
+                    "is_hypothetical": is_counterfactual,
+                    "status": str(premise_audit.get("status", "UNAVAILABLE")),
+                    "findings": list(premise_audit.get("findings", []) or []),
+                    "error": str(premise_audit.get("error", "")),
+                }
+                if not is_counterfactual:
+                    result.side_premise_audits.append(audit_record)
+                    result.proposition_ledger = ledger_projection(proposition_ledger)
+                if progress:
+                    progress(
+                        "  side-premise audit="
+                        f"{audit_record['status']}; findings="
+                        f"{len(audit_record['findings'])}"
+                    )
+
             candidates = _operative_framework_candidates(
                 candidates,
                 last_valid_framework_candidates,
@@ -2663,6 +2729,18 @@ class WorkspaceEngine:
                     received_broadcast.problem_state, candidates,
                 )
             )
+            cycle_focus_proposition_ids = focus_proposition_ids(
+                working_proposition_ledger, valid_candidates,
+            )
+            shared_dependencies = shared_unresolved_dependency_projection(
+                working_proposition_ledger, valid_candidates,
+            )
+            next_problem_state["focus_proposition_ids"] = list(
+                cycle_focus_proposition_ids
+            )
+            next_problem_state["shared_unresolved_dependencies"] = shared_dependencies
+            if not is_counterfactual:
+                result.shared_unresolved_dependencies = shared_dependencies
             next_broadcast = WorkspaceBroadcast(
                 constraint=(
                     winner.constraint
@@ -2696,6 +2774,7 @@ class WorkspaceEngine:
                     deliberative_state.primary_unresolved
                     if recorded_winner is not None else "REVIEW_MODEL_OUTPUT"
                 ),
+                focus_proposition_ids=cycle_focus_proposition_ids,
                 problem_state=next_problem_state,
             )
             result.cycles.append(
@@ -2740,6 +2819,7 @@ class WorkspaceEngine:
                 broadcast = planning_resume_broadcast or WorkspaceBroadcast(
                     urgency=received_broadcast.urgency,
                     danger_probability=received_broadcast.danger_probability,
+                    focus_proposition_ids=received_broadcast.focus_proposition_ids,
                 )
                 planning_resume_broadcast = None
                 result.cycles[-1].broadcast = broadcast
@@ -2754,6 +2834,7 @@ class WorkspaceEngine:
                 broadcast = reformulation_resume_broadcast or WorkspaceBroadcast(
                     urgency=received_broadcast.urgency,
                     danger_probability=received_broadcast.danger_probability,
+                    focus_proposition_ids=received_broadcast.focus_proposition_ids,
                 )
                 reformulation_resume_broadcast = None
                 result.cycles[-1].broadcast = broadcast
@@ -2765,6 +2846,7 @@ class WorkspaceEngine:
                 broadcast = reversal_resume_broadcast or WorkspaceBroadcast(
                     urgency=received_broadcast.urgency,
                     danger_probability=received_broadcast.danger_probability,
+                    focus_proposition_ids=received_broadcast.focus_proposition_ids,
                 )
                 reversal_resume_broadcast = None
                 result.cycles[-1].broadcast = broadcast
@@ -2776,6 +2858,7 @@ class WorkspaceEngine:
                 broadcast = contingency_resume_broadcast or WorkspaceBroadcast(
                     urgency=received_broadcast.urgency,
                     danger_probability=received_broadcast.danger_probability,
+                    focus_proposition_ids=received_broadcast.focus_proposition_ids,
                 )
                 contingency_resume_broadcast = None
                 result.cycles[-1].broadcast = broadcast
@@ -2871,6 +2954,7 @@ class WorkspaceEngine:
                             f"Proposition P: {visibility.proposition} Does P alter your "
                             "reasoning or estimated harm? Why or why not?"
                         ),
+                        focus_proposition_ids=next_broadcast.focus_proposition_ids,
                         problem_state=dict(next_broadcast.problem_state),
                     )
                     visibility_broadcast = True
@@ -2994,6 +3078,7 @@ class WorkspaceEngine:
                             unresolved="VERIFY_ASSUMPTIONS",
                             contingency_question=audit_question,
                             audit_variable=dict(access_decision.audit_variable),
+                            focus_proposition_ids=next_broadcast.focus_proposition_ids,
                             problem_state=dict(next_broadcast.problem_state),
                         )
                         audit_broadcast = True
@@ -3044,6 +3129,7 @@ class WorkspaceEngine:
                         unresolved="RESOLVE_VALUE_TENSION",
                         contingency_question=reformulation.question,
                         reformulation_context=reformulation.compact(),
+                        focus_proposition_ids=next_broadcast.focus_proposition_ids,
                         problem_state=dict(next_broadcast.problem_state),
                     )
                     reformulation_broadcast = True
@@ -3142,6 +3228,7 @@ class WorkspaceEngine:
                             + burden_probe
                         ),
                         reversal_challenge=audit_request.challenge,
+                        focus_proposition_ids=next_broadcast.focus_proposition_ids,
                         problem_state=dict(next_broadcast.problem_state),
                     )
                     reversal_audit_broadcast = True
@@ -3283,6 +3370,7 @@ class WorkspaceEngine:
                             branch_origin_action=selected_action,
                             branch_condition=assessment.failure_condition,
                             branch_fallback=assessment.fallback,
+                            focus_proposition_ids=next_broadcast.focus_proposition_ids,
                             problem_state=dict(next_broadcast.problem_state),
                         )
                         planning_broadcast = True
@@ -3472,6 +3560,7 @@ class WorkspaceEngine:
                                 f"Review proposal {proposal.proposal_id}: {proposal.action}. "
                                 "It is not a live action and cannot be selected."
                             ),
+                            focus_proposition_ids=next_broadcast.focus_proposition_ids,
                             problem_state=synthesis_problem_state.to_dict(),
                         )
                         result.access_decisions.append(WorkspaceAccessDecision(
@@ -3550,6 +3639,7 @@ class WorkspaceEngine:
                         f"{pending_proposal.action}. "
                         "It is not a live action and cannot be selected."
                     ),
+                    focus_proposition_ids=next_broadcast.focus_proposition_ids,
                     problem_state=synthesis_problem_state.to_dict(),
                 )
                 result.access_decisions.append(WorkspaceAccessDecision(
@@ -3732,6 +3822,7 @@ class WorkspaceEngine:
                                 analysis.fallback_actions or result.actions[:2]
                             ),
                             branch_kind="SYNTHESIS_CONTINGENCY",
+                            focus_proposition_ids=broadcast.focus_proposition_ids,
                             problem_state=dict(broadcast.problem_state),
                         )
                         requested_cycles = max(0, int(request_extension(result)))

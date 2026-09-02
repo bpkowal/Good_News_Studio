@@ -769,6 +769,9 @@ class CanonicalActionRecord:
     # Complete admitted typed effects, including direct effects. Authoritative
     # when a ScenarioWorldModel was committed; beneficiaries/harmed are projections.
     world_effects: tuple[dict[str, Any], ...] = ()
+    # Cross-action comparisons are not mechanisms. Keep them visible without
+    # allowing them into the within-action causal chain.
+    counterfactual_effects: tuple[dict[str, Any], ...] = ()
     mechanism: str = ""
     institutional_effect: str = ""
     source_clauses: tuple[str, ...] = ()
@@ -1871,9 +1874,7 @@ def build_canonical_action_records(
                 )
                 causal = [
                     link for link in typed.causal_links
-                    if link.source_id == world_action.action_id
-                    or link.source_id in set(world_action.effect_ids)
-                    or link.target_id in set(world_action.effect_ids)
+                    if link.action_id == world_action.action_id
                 ]
                 causal = [
                     link for link in causal
@@ -1882,8 +1883,15 @@ def build_canonical_action_records(
                         or (link.target_id in all_effect_ids and link.target_id not in admitted_effect_ids)
                     )
                 ]
+                effect_by_id = {effect.effect_id: effect for effect in typed.effects}
+                def _mechanism_endpoint(endpoint_id: str) -> str:
+                    if endpoint_id == world_action.action_id:
+                        return world_action.intervention
+                    effect = effect_by_id.get(endpoint_id)
+                    return effect.outcome if effect is not None else endpoint_id
                 mechanism = "; ".join(
-                    f"{link.source_id} {link.relation.casefold()} {link.target_id}"
+                    f"{_mechanism_endpoint(link.source_id)} "
+                    f"{link.relation.casefold()} {_mechanism_endpoint(link.target_id)}"
                     for link in causal
                 )
                 actor_party = party_by_id.get(world_action.actor_party_id)
@@ -1916,6 +1924,10 @@ def build_canonical_action_records(
                     world_effects=tuple(
                         effect.as_dict()
                         for effect in typed.effects_for(world_action.action_id)
+                    ),
+                    counterfactual_effects=tuple(
+                        link.as_dict() for link in typed.counterfactual_links
+                        if link.action_id == world_action.action_id
                     ),
                     mechanism=mechanism,
                     institutional_effect="; ".join(

@@ -30,6 +30,9 @@ class AgentDeliberativePosition:
     choice_status: str
     choice_condition: str
     preferred_extension: str
+    supporting_proposition_ids: tuple[str, ...]
+    decision_critical_proposition_ids: tuple[str, ...]
+    weakest_decision_critical_status: str
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -915,6 +918,11 @@ def _position(candidate: CandidateChunk) -> AgentDeliberativePosition:
         choice_status=choice_status,
         choice_condition=candidate.baseline_condition,
         preferred_extension=candidate.baseline_preferred_extension,
+        supporting_proposition_ids=tuple(candidate.supporting_proposition_ids),
+        decision_critical_proposition_ids=tuple(
+            candidate.decision_critical_proposition_ids
+        ),
+        weakest_decision_critical_status=candidate.weakest_decision_critical_status,
     )
 
 

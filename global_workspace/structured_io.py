@@ -31,6 +31,7 @@ class ModelCallBudget:
     max_auxiliary_calls_per_cycle: int = 5
     cycle: int = 0
     auxiliary_calls: int = 0
+    epistemic_audit_calls: int = 0
     cache: dict[str, Any] = field(default_factory=dict)
 
 
@@ -60,6 +61,7 @@ def begin_model_call_cycle(cycle: int) -> None:
     if budget is not None and budget.cycle != cycle:
         budget.cycle = cycle
         budget.auxiliary_calls = 0
+        budget.epistemic_audit_calls = 0
 
 
 @lru_cache(maxsize=8)
@@ -103,6 +105,12 @@ def call_json_llm(
                     "auxiliary model-call allowance exhausted for this cycle"
                 )
             budget.auxiliary_calls += 1
+        elif call_kind == "epistemic_audit":
+            if budget.epistemic_audit_calls >= 1:
+                raise ModelCallBudgetExceeded(
+                    "epistemic side-audit allowance exhausted for this cycle"
+                )
+            budget.epistemic_audit_calls += 1
         # The OpenAI adapter may retry a length-limited response once. Bound each
         # attempt to half the usable remainder so retries cannot consume the
         # finalization reserve. Local llama.cpp backends have no timeout attribute.

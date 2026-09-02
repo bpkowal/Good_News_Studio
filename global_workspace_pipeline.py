@@ -35,6 +35,7 @@ from global_workspace.presentation import (
     render_public_judgment,
     summarize_problem_shape_paragraphs,
 )
+from global_workspace.premise_audit import audit_side_premises
 from global_workspace.scenario_semantics import (
     canonicalize_action_order,
     canonicalize_deliberation_scenario,
@@ -610,6 +611,12 @@ def main() -> int:
             )
         ) if not args.no_autonomy_audit else None,
         checkpoint=save_checkpoint,
+        audit_side_premises=(
+            lambda ledger, candidates: audit_side_premises(
+                llm, ledger, candidates,
+                max_tokens=max(600, args.delegate_tokens * 4),
+            )
+        ),
         )
     finally:
         reset_model_call_budget(budget_token)

@@ -349,7 +349,10 @@ def project_grounded_action_effects(graph: SemanticGraph) -> list[GroundedAction
                     f"{consequence.id}|{dimension}|{subject.casefold()}".encode("utf-8")
                 ).hexdigest()[:16]
                 effects.append(GroundedActionEffect(
-                    effect_id=f"GROUNDED_EFFECT:{digest}",
+                    effect_id=(
+                        str(consequence.attributes.get("world_effect_id", "")).strip()
+                        or f"GROUNDED_EFFECT:{digest}"
+                    ),
                     action_id=action_id,
                     source_clause_id=source_clause_id,
                     consequence_id=consequence.id,
@@ -1338,6 +1341,7 @@ def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
                 "polarity": effect.polarity,
                 "relation": effect.relation,
                 "directness": effect.directness,
+                "effect_kind": effect.effect_kind,
                 "modality": effect.modality,
                 "condition_ids": list(effect.condition_ids),
                 "quantities": list(effect.quantities),
@@ -1408,6 +1412,23 @@ def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
             justification=(
                 f"typed_relation={link.relation}; modality={link.modality}"
             ), provenance=provenance,
+        ))
+    for link in model.counterfactual_links:
+        source = effect_node_ids.get(link.source_effect_id)
+        alternative = effect_node_ids.get(link.alternative_effect_id)
+        if source not in graph.nodes or alternative not in graph.nodes:
+            continue
+        provenance = tuple(
+            f"scenario_clause:{ref.clause_id}" for ref in link.provenance
+        ) or ("typed_world_model",)
+        relation = {
+            "FOREGOES_ALTERNATIVE_EFFECT": "COUNTERFACTUALLY_FOREGOES",
+            "PRECLUDES_ALTERNATIVE_EFFECT": "COUNTERFACTUALLY_PRECLUDES",
+            "REPLACES_ALTERNATIVE_EFFECT": "COUNTERFACTUALLY_REPLACES",
+        }.get(link.relation, "COUNTERFACTUALLY_FOREGOES")
+        graph.add_edge(SemanticEdge(
+            source, relation, alternative,
+            justification=f"modality={link.modality}", provenance=provenance,
         ))
 
 

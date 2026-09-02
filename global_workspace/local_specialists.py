@@ -1004,8 +1004,50 @@ def _candidate_from_data(
     baseline_condition: str = "",
     scenario_text: str = "",
     baseline_preferred_extension: str = "",
+    grounded_effects: Sequence[dict[str, Any]] | None = None,
+    available_propositions: Sequence[dict[str, Any]] | None = None,
 ) -> CandidateChunk:
     action_ids = [f"A{index}" for index in range(len(actions))]
+    proposition_ids = {
+        str(row.get("proposition_id", ""))
+        for row in (available_propositions or []) if isinstance(row, dict)
+        and str(row.get("proposition_id", ""))
+    }
+    supporting_proposition_ids = list(dict.fromkeys(
+        str(value) for value in data.get("sps", []) if str(value) in proposition_ids
+    )) if isinstance(data.get("sps", []), list) else []
+    decision_critical_proposition_ids = list(dict.fromkeys(
+        str(value) for value in data.get("dcp", []) if str(value) in proposition_ids
+    )) if isinstance(data.get("dcp", []), list) else []
+    submitted_proposition_ids = {
+        str(value) for key in ("sps", "dcp")
+        for value in (data.get(key, []) if isinstance(data.get(key, []), list) else [])
+    }
+    unknown_proposition_ids = submitted_proposition_ids - proposition_ids
+    if proposition_ids and unknown_proposition_ids:
+        raise ValueError(
+            f"candidate cites unknown proposition IDs: {sorted(unknown_proposition_ids)}"
+        )
+    supporting_proposition_ids = list(dict.fromkeys([
+        *supporting_proposition_ids, *decision_critical_proposition_ids,
+    ]))
+    material_empirical_claims: list[dict[str, Any]] = []
+    raw_empirical_claims = data.get("ep", [])
+    if isinstance(raw_empirical_claims, list):
+        for row in raw_empirical_claims[:12]:
+            if not isinstance(row, dict):
+                continue
+            claim = " ".join(str(row.get("c", "")).split())[:240]
+            basis = str(row.get("p", "HYPOTHESIS")).strip()
+            if len(claim.split()) < 2:
+                continue
+            if basis != "HYPOTHESIS" and basis not in proposition_ids:
+                raise ValueError(f"empirical premise cites unknown proposition ID: {basis}")
+            material_empirical_claims.append({
+                "claim": claim,
+                "proposition_id": basis,
+                "decision_critical": row.get("dc") is True,
+            })
     raw_scores = data.get("scores")
     if not isinstance(raw_scores, dict) or set(raw_scores) != set(action_ids):
         raise ValueError(f"scores must contain exactly {action_ids}")
@@ -1144,7 +1186,91 @@ def _candidate_from_data(
     )
     if utilitarian_fields_present:
         raw_table = data.get("ct", {})
-        if isinstance(raw_table, dict):
+        effect_rows = [
+            dict(row) for row in (grounded_effects or []) if isinstance(row, dict)
+        ]
+        valuation_mode = bool(effect_rows) and isinstance(raw_table, dict) and any(
+            isinstance(row, dict) and "eid" in row
+            for rows in raw_table.values() if isinstance(rows, list)
+            for row in rows
+        )
+        valuation_errors: list[str] = []
+        if valuation_mode:
+            effect_by_id = {
+                str(row.get("effect_id", "")): row for row in effect_rows
+                if str(row.get("effect_id", ""))
+            }
+            expected_by_action = {
+                action_id: {
+                    effect_id for effect_id, effect in effect_by_id.items()
+                    if effect.get("action_id") == action_id
+                }
+                for action_id in action_ids
+            }
+            valuation_actions: list[dict[str, Any]] = []
+            for action_id, action in zip(action_ids, actions):
+                raw_rows = raw_table.get(action_id, [])
+                valuations: list[dict[str, str]] = []
+                expanded: list[dict[str, Any]] = []
+                if isinstance(raw_rows, list):
+                    for raw_row in raw_rows[:12]:
+                        if not isinstance(raw_row, dict):
+                            continue
+                        effect_id = " ".join(str(raw_row.get("eid", "")).split())[:120]
+                        importance = str(raw_row.get("wi", "")).strip().upper()
+                        reason = " ".join(str(raw_row.get("vr", "")).split())[:160]
+                        valuations.append({
+                            "effect_id": effect_id,
+                            "importance": importance,
+                            "reason": reason,
+                        })
+                        effect = effect_by_id.get(effect_id, {})
+                        factual_direction = str(effect.get("direction", "UNCERTAIN")).upper()
+                        accounting_direction = {
+                            "IMPROVES": "BENEFIT", "PRESERVES": "BENEFIT",
+                            "WORSENS": "HARM", "FOREGOES": "OPPORTUNITY_COST",
+                        }.get(factual_direction, "UNKNOWN")
+                        modality = str(effect.get("modality", "UNKNOWN")).upper()
+                        qualifier = str(effect.get("qualifier", "UNKNOWN")).strip()
+                        expanded.append({
+                            "effect_id": effect_id,
+                            "outcome": str(effect.get("outcome", "")),
+                            "scope": str(effect.get("subject", "")),
+                            "direction": accounting_direction,
+                            "polarity": str(effect.get("polarity", "UNRESOLVED")).upper(),
+                            "probability": "CERTAIN" if modality == "CERTAIN" else "UNKNOWN",
+                            "magnitude": qualifier if qualifier.upper() != "STATED" else "UNKNOWN",
+                            "duration": "UNKNOWN", "reversibility": "UNKNOWN",
+                            "support": "STATED",
+                            "importance": importance,
+                            "valuation_reason": reason,
+                        })
+                submitted = [row["effect_id"] for row in valuations]
+                expected = expected_by_action[action_id]
+                if set(submitted) != expected or len(submitted) != len(set(submitted)):
+                    valuation_errors.append(
+                        f"{action_id} utilitarian valuations must reference every "
+                        "grounded effect exactly once"
+                    )
+                allowed_importance = {
+                    "NEGLIGIBLE", "LOW", "MEDIUM", "HIGH", "CRITICAL", "UNKNOWN",
+                }
+                if any(row["importance"] not in allowed_importance for row in valuations):
+                    valuation_errors.append(
+                        f"{action_id} utilitarian valuation has invalid importance"
+                    )
+                if any(_semantic_word_count(row["reason"]) < 2 for row in valuations):
+                    valuation_errors.append(
+                        f"{action_id} utilitarian valuation lacks a reason"
+                    )
+                utilitarian_consequence_table[action] = expanded
+                valuation_actions.append({
+                    "action_id": action_id, "valuations": valuations,
+                })
+            framework_validation_errors.extend(valuation_errors)
+            if not valuation_errors:
+                utilitarian_ledger_proposal = {"actions": valuation_actions}
+        elif isinstance(raw_table, dict):
             for action_id, action in zip(action_ids, actions):
                 raw_rows = raw_table.get(action_id, [])
                 rows: list[dict[str, Any]] = []
@@ -1165,16 +1291,27 @@ def _candidate_from_data(
                 utilitarian_consequence_table[action] = rows
         utilitarian_depends_on_unknown = data.get("cd") is True
         utilitarian_missing_comparison = " ".join(str(data.get("cm", "")).split())[:180]
-        table_errors = _utilitarian_table_errors(
-            actions,
-            utilitarian_consequence_table,
-            utilitarian_depends_on_unknown,
-            utilitarian_missing_comparison,
+        table_errors = (
+            [] if valuation_mode else _utilitarian_table_errors(
+                actions,
+                utilitarian_consequence_table,
+                utilitarian_depends_on_unknown,
+                utilitarian_missing_comparison,
+            )
         )
+        if (
+            valuation_mode
+            and
+            utilitarian_depends_on_unknown
+            and _semantic_word_count(utilitarian_missing_comparison) < 3
+        ):
+            table_errors.append(
+                "underdetermined utility ranking omits the missing comparison"
+            )
         framework_validation_errors.extend(table_errors)
-        if table_errors:
+        if table_errors or valuation_errors:
             framework_grounding_penalty = 0.35
-        else:
+        elif not valuation_mode:
             utilitarian_ledger_proposal = {
                 "actions": [
                     {
@@ -2585,6 +2722,9 @@ def _candidate_from_data(
         evidence_calibration_tier=calibration_tier,
         evidence_calibration_reason=calibration_reason,
         evidence_direction_retention=calibration_retention,
+        supporting_proposition_ids=supporting_proposition_ids,
+        decision_critical_proposition_ids=decision_critical_proposition_ids,
+        material_empirical_claims=material_empirical_claims,
         landscape_cases=landscape_cases,
         landscape_decisive_axis=landscape_axis,
         landscape_tiebreaker=landscape_tiebreaker,
@@ -2721,6 +2861,8 @@ class CompactLocalSpecialist:
     # interpret these facts differently, but do not re-decide whether they exist.
     scenario_graph: Any | None = None
     canonical_action_records: list[dict[str, Any]] = field(default_factory=list)
+    # Read-only proposition identities supplied by the engine for this cycle.
+    proposition_ledger: list[dict[str, Any]] = field(default_factory=list)
 
     def _audit_framework_state_change(
         self, candidate: CandidateChunk, broadcast: WorkspaceBroadcast,
@@ -3421,6 +3563,9 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
             }
             if world_effects:
                 row["world_effects"] = world_effects
+                row["counterfactual_effects"] = list(
+                    record.get("counterfactual_effects", [])
+                )
             else:
                 row["grounded_effects"] = list(record.get("grounded_effects", []))
             action_legend[action_id] = row
@@ -3453,6 +3598,47 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                 "framework_commitments": dict(self.baseline_framework_commitments or {}),
                 "numerical_role": self.baseline_numerical_role,
             }
+        grounded_effect_context: list[dict[str, Any]] = []
+        if self.scenario_graph is not None:
+            for effect in project_grounded_action_effects(self.scenario_graph):
+                consequence = self.scenario_graph.nodes.get(effect.consequence_id)
+                grounded_effect_context.append({
+                    "effect_id": effect.effect_id,
+                    "action_id": effect.action_id,
+                    "outcome": consequence.label if consequence is not None else "",
+                    "subject": effect.affected_subject,
+                    "dimension": effect.dimension,
+                    "direction": effect.direction,
+                    "polarity": (
+                        str(consequence.attributes.get("polarity", "UNRESOLVED")).upper()
+                        if consequence is not None else "UNRESOLVED"
+                    ),
+                    "modality": (
+                        str(consequence.attributes.get("modality", "UNKNOWN")).upper()
+                        if consequence is not None else "UNKNOWN"
+                    ),
+                    "qualifier": effect.magnitude_or_qualifier,
+                    "source_clause_id": effect.source_clause_id,
+                    "consequence_id": effect.consequence_id,
+                    "epistemic_status": effect.epistemic_status,
+                })
+        grounded_effect_ids = {
+            action_id: [
+                str(effect["effect_id"])
+                for effect in grounded_effect_context
+                if effect["action_id"] == action_id
+            ]
+            for action_id in action_ids
+        }
+        use_effect_valuations = (
+            self.name == "utilitarian"
+            and all(grounded_effect_ids.get(action_id) for action_id in action_ids)
+        )
+        available_proposition_ids = [
+            str(row.get("proposition_id", ""))
+            for row in self.proposition_ledger if isinstance(row, dict)
+            and str(row.get("proposition_id", ""))
+        ]
         schema = {
             "type": "object",
             "properties": {
@@ -3577,6 +3763,32 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
             "additionalProperties": False,
         }
         is_care = self.name == "care"
+        if available_proposition_ids:
+            proposition_list_schema = {
+                "type": "array", "minItems": 1, "maxItems": 24,
+                "items": {"type": "string", "enum": available_proposition_ids},
+            }
+            schema["properties"].update({
+                "sps": proposition_list_schema,
+                "dcp": {**proposition_list_schema, "minItems": 0, "maxItems": 12},
+                "ep": {
+                    "type": "array", "minItems": 1, "maxItems": 12,
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "c": {"type": "string", "minLength": 4, "maxLength": 240},
+                            "p": {
+                                "type": "string",
+                                "enum": [*available_proposition_ids, "HYPOTHESIS"],
+                            },
+                            "dc": {"type": "boolean"},
+                        },
+                        "required": ["c", "p", "dc"],
+                        "additionalProperties": False,
+                    },
+                },
+            })
+            schema["required"].extend(["sps", "dcp", "ep"])
         is_construct_specialist = self.name in _FRAMEWORK_CONSTRUCT_MARKERS
         construct_map_key = "rm" if is_care else "fm"
         if is_construct_specialist:
@@ -3598,34 +3810,54 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
             })
             schema["required"].extend([construct_map_key, "nr", "np"])
         if self.name == "utilitarian":
-            consequence_row_schema = {
-                "type": "object",
-                "properties": {
-                    "o": {"type": "string", "minLength": 4, "maxLength": 120},
-                    "s": {"type": "string", "minLength": 1, "maxLength": 80},
-                    "d": {"type": "string", "enum": ["BENEFIT", "HARM"]},
-                    "p": {"type": "string", "minLength": 1, "maxLength": 24},
-                    "m": {"type": "string", "minLength": 1, "maxLength": 60},
-                    "h": {"type": "string", "minLength": 1, "maxLength": 40},
-                    "rv": {
-                        "type": "string",
-                        "enum": ["REVERSIBLE", "IRREVERSIBLE", "UNKNOWN"],
+            if use_effect_valuations:
+                row_schemas = {
+                    action_id: {
+                        "type": "object",
+                        "properties": {
+                            "eid": {"type": "string", "enum": grounded_effect_ids[action_id]},
+                            "wi": {
+                                "type": "string",
+                                "enum": ["NEGLIGIBLE", "LOW", "MEDIUM", "HIGH", "CRITICAL", "UNKNOWN"],
+                            },
+                            "vr": {"type": "string", "minLength": 4, "maxLength": 160},
+                        },
+                        "required": ["eid", "wi", "vr"],
+                        "additionalProperties": False,
+                    }
+                    for action_id in action_ids
+                }
+            else:
+                consequence_row_schema = {
+                    "type": "object",
+                    "properties": {
+                        "o": {"type": "string", "minLength": 4, "maxLength": 120},
+                        "s": {"type": "string", "minLength": 1, "maxLength": 80},
+                        "d": {"type": "string", "enum": ["BENEFIT", "HARM"]},
+                        "p": {"type": "string", "minLength": 1, "maxLength": 24},
+                        "m": {"type": "string", "minLength": 1, "maxLength": 60},
+                        "h": {"type": "string", "minLength": 1, "maxLength": 40},
+                        "rv": {
+                            "type": "string",
+                            "enum": ["REVERSIBLE", "IRREVERSIBLE", "UNKNOWN"],
+                        },
+                        "g": {
+                            "type": "string",
+                            "enum": ["STATED", "INFERRED", "UNKNOWN"],
+                        },
                     },
-                    "g": {
-                        "type": "string",
-                        "enum": ["STATED", "INFERRED", "UNKNOWN"],
-                    },
-                },
-                "required": ["o", "s", "d", "p", "m", "h", "rv", "g"],
-                "additionalProperties": False,
-            }
+                    "required": ["o", "s", "d", "p", "m", "h", "rv", "g"],
+                    "additionalProperties": False,
+                }
             schema["properties"].update({
                 "ct": {
                     "type": "object",
                     "properties": {
                         action_id: {
-                            "type": "array", "minItems": 1, "maxItems": 3,
-                            "items": consequence_row_schema,
+                            "type": "array",
+                            "minItems": len(grounded_effect_ids[action_id]) if use_effect_valuations else 1,
+                            "maxItems": len(grounded_effect_ids[action_id]) if use_effect_valuations else 3,
+                            "items": row_schemas[action_id] if use_effect_valuations else consequence_row_schema,
                         }
                         for action_id in action_ids
                     },
@@ -4248,16 +4480,45 @@ and actor roles exactly. Virtue-like prose does not justify changing a MIXED or
 UNRESOLVED committed assessment into a resolved ranking.
 """
         elif self.name == "utilitarian":
-            framework_example = (
-                ',"ct":{"A0":[{"o":"prevents immediate deaths","s":"residents",'
-                '"d":"BENEFIT","p":"99%","m":"large","h":"immediate",'
-                '"rv":"IRREVERSIBLE","g":"STATED"}],'
-                '"A1":[{"o":"risks system failure","s":"region",'
-                '"d":"HARM","p":"UNKNOWN","m":"unknown","h":"unknown",'
-                '"rv":"UNKNOWN","g":"UNKNOWN"}]},'
-                '"cd":true,"cm":"probability and magnitude of the regional failure"'
-            )
-            framework_prompt = """
+            if use_effect_valuations:
+                example_table = {
+                    action_id: [
+                        {
+                            "eid": effect_id,
+                            "wi": "HIGH",
+                            "vr": "material welfare effect in this comparison",
+                        }
+                        for effect_id in grounded_effect_ids[action_id]
+                    ]
+                    for action_id in action_ids
+                }
+                framework_example = (
+                    f',"ct":{json.dumps(example_table, separators=(",", ":"))},'
+                    '"cd":false,"cm":"NONE"'
+                )
+                framework_prompt = """
+UTILITARIAN EFFECT VALUATION: ct must reference every supplied Canonical grounded
+action effect exactly once using eid. Do not restate outcomes, affected scopes,
+factual polarity, probability, or support. Those facts are immutable and Python
+will copy them from the grounded world effect. wi is only the effect's utilitarian
+importance: NEGLIGIBLE, LOW, MEDIUM, HIGH, CRITICAL, or UNKNOWN. vr briefly explains
+that welfare valuation without changing the effect's factual direction. A FOREGONE
+effect remains an OPPORTUNITY_COST; do not rewrite it as an adverse event.
+cd=true exactly when the ranking depends on an unresolved comparison among these
+effects; then cm must name it, use ss=PROVISIONAL, cc=false, esa=false, and preserve
+uncertainty. Do not add hypothetical consequences to ct.
+"""
+            else:
+                framework_example = (
+                    ',"ct":{"A0":[{"o":"prevents immediate deaths","s":"residents",'
+                    '"d":"BENEFIT","p":"99%","m":"large","h":"immediate",'
+                    '"rv":"IRREVERSIBLE","g":"STATED"}],'
+                    '"A1":[{"o":"risks system failure","s":"region",'
+                    '"d":"HARM","p":"UNKNOWN","m":"unknown","h":"unknown",'
+                    '"rv":"UNKNOWN","g":"UNKNOWN"}]},'
+                    '"cd":true,"cm":"probability and magnitude of the regional failure"'
+                )
+                framework_prompt = """
 UTILITARIAN CONSEQUENCE ACCOUNTING: ct must contain 1-3 material consequence rows
 for EVERY action. o=outcome; s=affected scope; d=BENEFIT/HARM; p=stated probability
 or UNKNOWN; m=magnitude; h=duration; rv=reversibility; g=STATED, INFERRED, or
@@ -4266,18 +4527,16 @@ action. cd=true exactly when the ranking depends on an unknown consequence or
 comparison; then cm must name it, use ss=PROVISIONAL, cc=false, esa=false, and
 preserve uncertainty. A compact table is more important than listing remote effects.
 """
-        grounded_effect_context = [
-            {
-                "action_id": effect.action_id,
-                "subject": effect.affected_subject,
-                "dimension": effect.dimension,
-                "direction": effect.direction,
-                "qualifier": effect.magnitude_or_qualifier,
-                "source_clause_id": effect.source_clause_id,
-                "consequence_id": effect.consequence_id,
-            }
-            for effect in project_grounded_action_effects(self.scenario_graph)
-        ] if self.scenario_graph is not None else []
+        proposition_example_fields = ""
+        if available_proposition_ids:
+            example_proposition = self.proposition_ledger[0]
+            example_id = str(example_proposition.get("proposition_id", ""))
+            example_claim = str(example_proposition.get("claim", ""))
+            proposition_example_fields = (
+                f',"sps":[{json.dumps(example_id)}],"dcp":[],'
+                f'"ep":[{{"c":{json.dumps(example_claim)},'
+                f'"p":{json.dumps(example_id)},"dc":false}}]'
+            )
         prompt = f"""[INST]
 You are the {self.name} specialist in a bandwidth-limited ethical workspace.
 Task: {role}
@@ -4296,9 +4555,24 @@ evaluate every attributed position independently under YOUR assigned framework.
 Only Scenario facts and Canonical grounded action effects can ground descriptive
 claims. Never copy the salient framework's priority rule into your own ledger.
 Scenario facts: {json.dumps(self.scenario_facts or {}, sort_keys=True)}
-Canonical grounded action effects: {json.dumps(grounded_effect_context[:24], sort_keys=True)}
+Canonical grounded action effects: {json.dumps(grounded_effect_context[:60], sort_keys=True)}
 Prior contribution profile: {json.dumps(self.memory_profile or {}, sort_keys=True)}
 Active audited propositions: {json.dumps(self.epistemic_commitments[-3:])}
+Authoritative proposition ledger: {json.dumps(self.proposition_ledger[:40], sort_keys=True)}
+PROPOSITION DEPENDENCY CONTRACT: sps lists the existing proposition IDs supporting
+your ranking; dcp lists the subset whose truth could materially change that ranking.
+ep must inventory EVERY material empirical premise used anywhere in your rationale,
+decision rule, action cases, or framework-specific fields. For a grounded premise,
+copy the ledger claim EXACTLY into ep.c and cite its ID in ep.p. If your wording adds
+an outcome, severity, probability, actor, exclusivity, mechanism, or other factual
+content not contained in that exact ledger claim, put the stronger claim in ep.c,
+set ep.p=HYPOTHESIS, and set ep.dc=true when it could change the ranking. Do not use
+an established proposition as support for a stronger paraphrase.
+You may cite IDs but may not change their status. Repetition, reformulation, consensus,
+or broadcast salience is not evidence. Put any important unstated empirical premise
+in x; Python assigns its hypothesis ID and prevents it from gaining authority through
+recurrence. If a decision-critical proposition is HYPOTHETICAL or UNRESOLVED, keep
+the recommendation conditional/provisional and retain the open factual condition.
 Previous graph-committed framework state: {json.dumps(self.previous_framework_state)}
 Your preserved private framework contribution: {json.dumps(self.private_framework_contribution, sort_keys=True)}
 PRESERVATION CONTRACT: On a recurrent call, reconsider every item in your preserved
@@ -4322,7 +4596,7 @@ refer to the physical action attached to that exact ID. Do not reuse a label fro
 the original testimony unless it denotes the same action in this mapping.
 
 Return ONLY compact JSON like:
-{{"scores":{{"A0":0.8,"A1":0.2}},"r":"A0","c":"{allowed_constraints[0]}","u":"NONE","w":"short reason","j":"NONE","e":"STATED_FACTS","x":"NONE","l":{{"A0":"best case A0","A1":"best case A1"}},"da":"decisive ethical axis","t":"attempted comparison rule","tf":"NONE","dr":"prefer A0 when its reason outweighs A1","ft":"NONE","nt":"prefer A1 if its value is overriding","z":0.8,"gu":{{"operation":"NONE","from_action":"NONE","to_action":"NONE","clauses":[]}},"ev":{{"A0":{{"value":0,"unit":"NONE","direction":"HARM","grounded":false}},"A1":{{"value":0,"unit":"NONE","direction":"HARM","grounded":false}}}},"ss":"SELECTED","am":{{"A0":"PERMISSIBLE","A1":"REJECTED"}},"cc":true,"esa":true,"ia":"A0","wp":"NOT_APPLICABLE","we":"NONE","fa":"NONE","fr":true,"bd":"NONE","fic":[],"foq":[]{framework_example}}}
+{{"scores":{{"A0":0.8,"A1":0.2}},"r":"A0","c":"{allowed_constraints[0]}","u":"NONE","w":"short reason","j":"NONE","e":"STATED_FACTS","x":"NONE"{proposition_example_fields},"l":{{"A0":"best case A0","A1":"best case A1"}},"da":"decisive ethical axis","t":"attempted comparison rule","tf":"NONE","dr":"prefer A0 when its reason outweighs A1","ft":"NONE","nt":"prefer A1 if its value is overriding","z":0.8,"gu":{{"operation":"NONE","from_action":"NONE","to_action":"NONE","clauses":[]}},"ev":{{"A0":{{"value":0,"unit":"NONE","direction":"HARM","grounded":false}},"A1":{{"value":0,"unit":"NONE","direction":"HARM","grounded":false}}}},"ss":"SELECTED","am":{{"A0":"PERMISSIBLE","A1":"REJECTED"}},"cc":true,"esa":true,"ia":"A0","wp":"NOT_APPLICABLE","we":"NONE","fa":"NONE","fr":true,"bd":"NONE","fic":[],"foq":[]{framework_example}}}
 Return scores for every action ID. recommended must have the highest score.
 r=recommended and must have the highest score. The frozen baseline was extracted
 separately from your testimony. Python derives whether the result supports or
@@ -4521,6 +4795,8 @@ range, population size, or claim that the hidden harm cannot approach a threshol
                 self.baseline_condition,
                 scenario,
                 self.baseline_preferred_extension,
+                grounded_effect_context,
+                self.proposition_ledger,
             )
             self._audit_framework_state_change(candidate, broadcast)
             self.previous_recommendation_id = action_ids[actions.index(candidate.recommended_action)]
@@ -4536,6 +4812,8 @@ range, population size, or claim that the hidden harm cannot approach a threshol
 Repair this invalid answer as JSON only: {raw[:400]}
 Required fields: scores object for {', '.join(action_ids)}, r, c, u, w, j. Also return
 e=STATED_FACTS, FRAMEWORK_ONLY, or UNSTATED_FACTS and x naming any unstated claim.
+When an authoritative proposition ledger is present, also return sps, dcp, and ep
+under the proposition dependency contract in the original prompt.
 Return l with a case for every action ID, da, t, tf, explicit decision rule dr,
 separate factual/normative thresholds ft and nt, epistemic confidence z, and gu.
 gu must be {{"operation":"NONE","from_action":"NONE","to_action":"NONE","clauses":[]}}
@@ -5808,6 +6086,7 @@ def ground_actions_in_scenario(
     world_model_schema = {
         "type": "object",
         "properties": {
+            "schema_version": {"type": "string", "enum": ["1.1"]},
             "parties": {"type": "array", "items": {"type": "object", "properties": {
                 "party_id": {"type": "string"}, "label": {"type": "string"},
                 "kind": {"type": "string"}, "clause_ids": source_ids_schema,
@@ -5825,22 +6104,33 @@ def ground_actions_in_scenario(
                 "polarity": {"type": "string", "enum": ["BENEFICIAL", "ADVERSE", "NEUTRAL", "UNRESOLVED", "FOREGONE"]},
                 "directness": {"type": "string", "enum": ["DIRECT", "DOWNSTREAM", "FOREGONE", "INSTITUTIONAL"]},
                 "modality": {"type": "string", "enum": ["CERTAIN", "STIPULATED_CONDITIONAL", "PROBABILISTIC", "POSSIBLE", "UNKNOWN"]},
+                "effect_kind": {"type": "string", "enum": ["INTERVENTION", "RESOURCE_TRANSFER", "CAPABILITY_CHANGE", "PHYSICAL_STATE", "HEALTH_OUTCOME", "WELFARE_OUTCOME", "INSTITUTIONAL_OUTCOME", "OPPORTUNITY_LOSS", "OTHER"]},
                 "condition_ids": string_list, "quantities": string_list,
                 "clause_ids": effect_source_ids_schema,
-            }, "required": ["effect_id", "action_id", "party_id", "outcome", "relation", "polarity", "directness", "modality", "condition_ids", "quantities", "clause_ids"], "additionalProperties": False}},
+            }, "required": ["effect_id", "action_id", "party_id", "outcome", "relation", "polarity", "directness", "modality", "effect_kind", "condition_ids", "quantities", "clause_ids"], "additionalProperties": False}},
             "conditions": {"type": "array", "items": {"type": "object", "properties": {
                 "condition_id": {"type": "string"}, "description": {"type": "string"},
                 "value_status": {"type": "string"}, "decision_relevance": {"type": "string"},
                 "clause_ids": source_ids_schema,
             }, "required": ["condition_id", "description", "value_status", "decision_relevance", "clause_ids"], "additionalProperties": False}},
             "causal_links": {"type": "array", "items": {"type": "object", "properties": {
+                "action_id": {"type": "string", "enum": action_ids},
                 "source_id": {"type": "string"}, "relation": {"type": "string"},
                 "target_id": {"type": "string"},
                 "modality": {"type": "string", "enum": ["CERTAIN", "STIPULATED_CONDITIONAL", "PROBABILISTIC", "POSSIBLE", "UNKNOWN"]},
                 "condition_ids": string_list, "clause_ids": source_ids_schema,
-            }, "required": ["source_id", "relation", "target_id", "modality", "condition_ids", "clause_ids"], "additionalProperties": False}},
+            }, "required": ["action_id", "source_id", "relation", "target_id", "modality", "condition_ids", "clause_ids"], "additionalProperties": False}},
+            "counterfactual_links": {"type": "array", "items": {"type": "object", "properties": {
+                "action_id": {"type": "string", "enum": action_ids},
+                "source_effect_id": {"type": "string"},
+                "relation": {"type": "string", "enum": ["FOREGOES_ALTERNATIVE_EFFECT", "PRECLUDES_ALTERNATIVE_EFFECT", "REPLACES_ALTERNATIVE_EFFECT"]},
+                "alternative_action_id": {"type": "string", "enum": action_ids},
+                "alternative_effect_id": {"type": "string"},
+                "modality": {"type": "string", "enum": ["CERTAIN", "STIPULATED_CONDITIONAL", "PROBABILISTIC", "POSSIBLE", "UNKNOWN"]},
+                "condition_ids": string_list, "clause_ids": effect_source_ids_schema,
+            }, "required": ["action_id", "source_effect_id", "relation", "alternative_action_id", "alternative_effect_id", "modality", "condition_ids", "clause_ids"], "additionalProperties": False}},
         },
-        "required": ["parties", "actions", "effects", "conditions", "causal_links"],
+        "required": ["schema_version", "parties", "actions", "effects", "conditions", "causal_links", "counterfactual_links"],
         "additionalProperties": False,
     }
     schema = {
@@ -5885,9 +6175,20 @@ source also states them (for example "16", "40%", "dozen", "tens of thousands").
 Do not copy every quantity from every cited clause. Leave quantities empty when
 the outcome uses no quantity. Do not invent probabilities, QALYs, or counts, and
 do not treat the generated outcome sentence as evidence for a quantity.
-Use causal_links for domain-independent ENABLES, CAUSES, ACCELERATES, PREVENTS, or
-FOREGOES relationships. Clause IDs are provenance only; effects must explicitly name
-their action_id and must not be copied wholesale from a clause describing both choices.
+Return schema_version="1.1". Effects must be atomic: one affected party, one outcome,
+and one causal stage per effect. An immediate action target, an intermediate system
+state, and the people ultimately helped or harmed are distinct parties/effects. For
+every recipient_party_id include an atomic DIRECT effect: use RESOURCE_TRANSFER when
+a resource is transferred and INTERVENTION for other actions. Represent resulting
+health, welfare, or institutional outcomes separately and connect the stages.
+Use causal_links only for within-action ENABLES, CAUSES, ACCELERATES, or PREVENTS
+relationships. Every causal link must name action_id, and both endpoints must belong
+to that same action. Never point a causal link at another action's effect. Represent
+cross-action foreclosure only in counterfactual_links: its source_effect_id must be
+a FOREGONE effect owned by action_id and alternative_effect_id must be the matching
+effect owned by alternative_action_id. Clause IDs are provenance only; effects must
+explicitly name their action_id and must not be copied wholesale from a clause
+describing both choices.
 
 Canonical actions: {json.dumps(dict(zip(action_ids, actions)), sort_keys=True)}
 Scenario clauses: {json.dumps(clauses, ensure_ascii=False)}
@@ -5900,7 +6201,7 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
     for attempt in range(1, max(1, max_attempts) + 1):
         try:
             output = _call_json_llm(
-                llm, prompt + repair_note, max_tokens=max(1600, max_tokens),
+                llm, prompt + repair_note, max_tokens=max(2200, max_tokens),
                 temperature=0.0, schema=schema,
             )
             raw = (

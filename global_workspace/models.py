@@ -112,6 +112,9 @@ class WorkspaceBroadcast:
     branch_condition: str = ""
     branch_fallback: str = ""
     reversal_challenge: str = ""
+    # Exact ledger propositions receiving attention in the next cycle. This is
+    # an address, not evidence and never changes proposition authority.
+    focus_proposition_ids: tuple[str, ...] = ()
     problem_state: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -165,6 +168,10 @@ class WorkspaceBroadcast:
         self.branch_condition = " ".join(self.branch_condition.split())[:240]
         self.branch_fallback = " ".join(self.branch_fallback.split())[:180]
         self.reversal_challenge = " ".join(self.reversal_challenge.split())[:360]
+        self.focus_proposition_ids = tuple(dict.fromkeys(
+            str(value).strip() for value in self.focus_proposition_ids
+            if str(value).strip()
+        ))[:6]
         self.problem_state = dict(self.problem_state or {})
         self.urgency = clamp(self.urgency)
         self.danger_probability = clamp(self.danger_probability)
@@ -188,6 +195,7 @@ class WorkspaceBroadcast:
             f"condition={self.branch_condition or 'NONE'}; "
             f"fallback={self.branch_fallback or 'NONE'}"
             f"; reversal_challenge={self.reversal_challenge or 'NONE'}; "
+            f"focus_propositions={list(self.focus_proposition_ids) or 'NONE'}; "
             f"problem_delta={json.dumps(self.problem_state.get('problem_delta', {}), sort_keys=True)[:2400] if self.problem_state else 'NONE'}; "
             f"problem_state={json.dumps(self.problem_state, sort_keys=True)[:4000] if self.problem_state else 'NONE'}"
         )
@@ -213,7 +221,8 @@ class WorkspaceBroadcast:
         return (
             f"{self.constraint} | salient={salient} | claim={claim} | "
             f"authority={self.broadcast_authority or 'NONE'} | "
-            f"unresolved={self.unresolved}{frame}"
+            f"unresolved={self.unresolved} | "
+            f"focus_propositions={list(self.focus_proposition_ids) or 'NONE'}{frame}"
         )
 
 
@@ -300,6 +309,19 @@ class CandidateChunk:
     evidence_calibration_tier: str = "NOT_APPLICABLE"
     evidence_calibration_reason: str = ""
     evidence_direction_retention: float = 1.0
+    # Proposition-level factual dependencies. IDs are system-owned ledger keys;
+    # agents may cite them but cannot assign or promote their epistemic status.
+    supporting_proposition_ids: list[str] = field(default_factory=list)
+    decision_critical_proposition_ids: list[str] = field(default_factory=list)
+    weakest_decision_critical_status: str = "ESTABLISHED"
+    decision_critical_dependency_claims: list[str] = field(default_factory=list)
+    # Agent-declared inventory of every material empirical premise. A premise
+    # either copies an authoritative proposition exactly or is reclassified by
+    # the system as a hypothesis.
+    material_empirical_claims: list[dict[str, Any]] = field(default_factory=list)
+    epistemic_binding_notes: list[str] = field(default_factory=list)
+    side_premise_audit_status: str = "NOT_RUN"
+    side_premise_audit_findings: list[dict[str, Any]] = field(default_factory=list)
     coercion_tag: str = "NONE"
     coercion_surcharge: float = 0.0
     visibility_response: str = "NOT_TESTED"
@@ -506,6 +528,44 @@ class CandidateChunk:
             self.evidence_calibration_reason.split()
         )[:180]
         self.evidence_direction_retention = clamp(self.evidence_direction_retention)
+        self.supporting_proposition_ids = list(dict.fromkeys(
+            str(value).strip() for value in self.supporting_proposition_ids
+            if str(value).strip()
+        ))[:24]
+        self.decision_critical_proposition_ids = list(dict.fromkeys(
+            str(value).strip() for value in self.decision_critical_proposition_ids
+            if str(value).strip()
+        ))[:12]
+        status = str(self.weakest_decision_critical_status).strip().upper()
+        self.weakest_decision_critical_status = (
+            status if status in {
+                "ESTABLISHED", "DERIVED", "UNRESOLVED", "HYPOTHETICAL", "REJECTED",
+            } else "ESTABLISHED"
+        )
+        self.decision_critical_dependency_claims = list(dict.fromkeys(
+            " ".join(str(value).split())[:240]
+            for value in self.decision_critical_dependency_claims
+            if " ".join(str(value).split())
+        ))[:4]
+        self.material_empirical_claims = [
+            dict(value) for value in self.material_empirical_claims
+            if isinstance(value, dict)
+        ][:12]
+        self.epistemic_binding_notes = list(dict.fromkeys(
+            " ".join(str(value).split())[:240]
+            for value in self.epistemic_binding_notes
+            if " ".join(str(value).split())
+        ))[:12]
+        audit_status = str(self.side_premise_audit_status).strip().upper()
+        self.side_premise_audit_status = (
+            audit_status if audit_status in {
+                "NOT_RUN", "PASSED", "FINDINGS", "UNAVAILABLE",
+            } else "NOT_RUN"
+        )
+        self.side_premise_audit_findings = [
+            dict(value) for value in self.side_premise_audit_findings
+            if isinstance(value, dict)
+        ][:12]
         self.coercion_tag = self.coercion_tag.strip().upper()[:32] or "NONE"
         self.coercion_surcharge = clamp(self.coercion_surcharge)
         response = self.visibility_response.strip().upper()
@@ -693,7 +753,7 @@ class CandidateChunk:
             if " ".join(str(error).split())
         ][:8]
         self.utilitarian_consequence_table = {
-            str(action): [dict(row) for row in rows if isinstance(row, dict)][:4]
+            str(action): [dict(row) for row in rows if isinstance(row, dict)][:12]
             for action, rows in self.utilitarian_consequence_table.items()
             if str(action).strip() and isinstance(rows, list)
         }
@@ -1324,6 +1384,9 @@ class WorkspaceResult:
     utilitarian_consequence_ledger: list[dict[str, Any]] = field(default_factory=list)
     deontological_duty_ledger: list[dict[str, Any]] = field(default_factory=list)
     virtue_character_ledger: list[dict[str, Any]] = field(default_factory=list)
+    proposition_ledger: list[dict[str, Any]] = field(default_factory=list)
+    shared_unresolved_dependencies: list[dict[str, Any]] = field(default_factory=list)
+    side_premise_audits: list[dict[str, Any]] = field(default_factory=list)
     ev_dominance_assessments: list[dict[str, Any]] = field(default_factory=list)
     termination_assessment: Any = None
     moral_residue_records: list[Any] = field(default_factory=list)

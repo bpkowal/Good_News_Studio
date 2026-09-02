@@ -159,6 +159,7 @@ def _open_condition_text(candidate: Any) -> str:
         getattr(candidate, "factual_reversal_threshold", "") or "",
         getattr(candidate, "normative_reversal_threshold", "") or "",
         getattr(candidate, "reversal_condition", "") or "",
+        *list(getattr(candidate, "decision_critical_dependency_claims", []) or []),
     ]
     return " ".join(" ".join(str(part).split()) for part in parts if part and part != "NONE")
 
@@ -203,6 +204,10 @@ def _is_conditional_state(candidate: Any) -> bool:
     if assumption == "CONDITIONAL" or baseline == "CONDITIONAL":
         return True
     if bool(getattr(candidate, "utilitarian_decision_depends_on_unknown", False)):
+        return True
+    if str(
+        getattr(candidate, "weakest_decision_critical_status", "ESTABLISHED")
+    ).upper() in {"REJECTED", "HYPOTHETICAL", "UNRESOLVED"}:
         return True
     if _open_condition_text(candidate) and assumption in {
         "CONDITIONAL", "UNDERDETERMINED",

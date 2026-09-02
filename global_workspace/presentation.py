@@ -744,6 +744,179 @@ def _epistemic_status(candidate: dict[str, Any]) -> str:
     return "SUPPORTS"
 
 
+_UNESTABLISHED_PROPOSITION_STATUSES = {"HYPOTHETICAL", "UNRESOLVED", "REJECTED"}
+
+
+def _proposition_index(data: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    return {
+        str(row.get("proposition_id")): row
+        for row in (data.get("proposition_ledger") or [])
+        if isinstance(row, dict) and str(row.get("proposition_id") or "").strip()
+    }
+
+
+def _candidate_unestablished_dependencies(
+    data: dict[str, Any], candidate: dict[str, Any], *, critical_only: bool = False,
+) -> list[dict[str, Any]]:
+    """Return typed dependencies without inferring status from claim wording."""
+    ledger = _proposition_index(data)
+    critical_order = [
+        str(value) for value in candidate.get("decision_critical_proposition_ids", [])
+    ]
+    critical_ids = set(critical_order)
+    supporting_ids = [
+        str(value) for value in candidate.get("supporting_proposition_ids", [])
+    ]
+    ordered_ids = critical_order + [
+        value for value in supporting_ids if value not in critical_ids
+    ]
+    dependencies: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for proposition_id in ordered_ids:
+        row = ledger.get(proposition_id)
+        if row is None:
+            continue
+        status = str(row.get("epistemic_status") or "UNRESOLVED").upper()
+        is_critical = proposition_id in critical_ids
+        if status not in _UNESTABLISHED_PROPOSITION_STATUSES:
+            continue
+        if critical_only and not is_critical:
+            continue
+        seen.add(proposition_id)
+        dependencies.append({**row, "decision_critical": is_critical})
+
+    # Audit findings are retained as a fallback for older traces whose result-level
+    # ledger projection predates the audit update.
+    for finding in candidate.get("side_premise_audit_findings", []) or []:
+        if not isinstance(finding, dict):
+            continue
+        proposition_id = str(finding.get("proposition_id") or "")
+        is_critical = finding.get("decision_critical") is True
+        if proposition_id in seen or (critical_only and not is_critical):
+            continue
+        row = ledger.get(proposition_id, {})
+        status = str(row.get("epistemic_status") or "HYPOTHETICAL").upper()
+        if status not in _UNESTABLISHED_PROPOSITION_STATUSES:
+            continue
+        claim = str(row.get("claim") or finding.get("claim") or "").strip()
+        if claim:
+            dependencies.append({
+                **row, "proposition_id": proposition_id, "claim": claim,
+                "epistemic_status": status, "decision_critical": is_critical,
+            })
+            seen.add(proposition_id)
+    return dependencies
+
+
+def _candidate_epistemic_qualification(
+    data: dict[str, Any], candidate: dict[str, Any], *, compact: bool = False,
+) -> str:
+    """Make empirical provenance visible without suppressing specific outcomes."""
+    audit_unavailable = (
+        str(candidate.get("side_premise_audit_status") or "").upper() == "UNAVAILABLE"
+    )
+    dependencies = _candidate_unestablished_dependencies(data, candidate)
+    critical = [row for row in dependencies if row.get("decision_critical")]
+    rows = critical or dependencies
+    if not rows:
+        if audit_unavailable:
+            return (
+                "Premise coverage unverified"
+                if compact else
+                "Independent empirical-premise coverage could not be verified."
+            )
+        return ""
+    rendered = []
+    for row in rows[:2]:
+        status = str(row.get("epistemic_status") or "UNRESOLVED").lower()
+        claim = _public_claim(_clean_fragment(str(row.get("claim") or "")))
+        if claim:
+            rendered.append(f"{status}: {claim}")
+    if not rendered:
+        return ""
+    prefix = "Conditional on" if critical else "Uses an unestablished premise"
+    if compact:
+        qualification = f"{prefix} [{'; '.join(rendered)}]"
+        if audit_unavailable:
+            qualification += "; other premise coverage unverified"
+        return qualification
+    noun = "proposition" if len(rendered) == 1 else "propositions"
+    if critical:
+        qualification = (
+            f"This conclusion is conditional on the unestablished {noun}: "
+            f"{'; '.join(rendered)}."
+        )
+    else:
+        qualification = f"Additional unestablished {noun}: {'; '.join(rendered)}."
+    if audit_unavailable:
+        qualification += " Independent coverage of other empirical premises was unavailable."
+    return qualification
+
+
+def _factual_status_lines(
+    data: dict[str, Any], candidates: list[dict[str, Any]],
+) -> list[str]:
+    ledger = _proposition_index(data)
+    established = [
+        row for row in ledger.values()
+        if str(row.get("epistemic_status") or "").upper() in {"ESTABLISHED", "DERIVED"}
+        and str(row.get("proposition_type") or "").upper() == "DESCRIPTIVE"
+        and str(row.get("claim") or "").strip()
+    ]
+    dependents: dict[str, set[str]] = {}
+    relevant_ids: list[str] = []
+    for candidate in candidates:
+        specialist = _framework_display_name(str(candidate.get("specialist") or ""))
+        for row in _candidate_unestablished_dependencies(data, candidate):
+            proposition_id = str(row.get("proposition_id") or "")
+            if not proposition_id:
+                continue
+            if proposition_id not in relevant_ids:
+                relevant_ids.append(proposition_id)
+            if specialist:
+                dependents.setdefault(proposition_id, set()).add(specialist)
+    unestablished = [ledger[value] for value in relevant_ids if value in ledger]
+    if not established and not unestablished and not any(
+        str(candidate.get("side_premise_audit_status") or "").upper() == "UNAVAILABLE"
+        for candidate in candidates
+    ):
+        return []
+
+    lines = ["## Factual Status", ""]
+    if established:
+        lines.extend(["**Established or derived from the admitted world model:**", ""])
+        for row in established[:6]:
+            status = str(row.get("epistemic_status") or "").lower()
+            lines.append(f"- {_sentence(_public_claim(str(row.get('claim') or '')))} ({status})")
+        lines.append("")
+    if unestablished:
+        lines.extend(["**Unestablished premises used in the deliberation:**", ""])
+        for row in unestablished[:6]:
+            proposition_id = str(row.get("proposition_id") or "")
+            status = str(row.get("epistemic_status") or "UNRESOLVED").lower()
+            names = sorted(dependents.get(proposition_id, set()))
+            dependency = f" Used by {', '.join(names)}." if names else ""
+            lines.append(
+                f"- {_sentence(_public_claim(str(row.get('claim') or '')))} "
+                f"**Status: {status}.**{dependency}"
+            )
+        lines.extend([
+            "",
+            "Repeated use can increase a premise's salience, but does not make it established.",
+            "",
+        ])
+    if any(
+        str(candidate.get("side_premise_audit_status") or "").upper() == "UNAVAILABLE"
+        for candidate in candidates
+    ):
+        lines.extend([
+            "> **Premise-audit warning:** Independent coverage of empirical side "
+            "premises could not be verified; affected conclusions remain conditional.",
+            "",
+        ])
+    return lines
+
+
 def _map_position_label(candidate: dict[str, Any], recommendation: str) -> str:
     action = _candidate_recommendation(candidate)
     if not action:
@@ -770,6 +943,8 @@ def _main_contribution(
     candidate: dict[str, Any],
     recommendation: str,
     original_actions: list[str],
+    *,
+    qualify: bool = False,
 ) -> str:
     status = _epistemic_status(candidate)
     claim = ""
@@ -796,7 +971,11 @@ def _main_contribution(
             claim,
             flags=re.IGNORECASE,
         )
-    return claim or "No compact contribution recorded"
+    claim = claim or "No compact contribution recorded"
+    qualification = _candidate_epistemic_qualification(
+        data, candidate, compact=True,
+    ) if qualify else ""
+    return f"{qualification}: {claim}" if qualification else claim
 
 
 def _recommendation_headline(status: str, action: str) -> str:
@@ -999,6 +1178,7 @@ def _alternative_proposals(data: dict[str, Any], recommendation: str) -> list[di
 
 
 def _governing_claim_text(
+    data: dict[str, Any],
     final: dict[str, Any],
     supporters: list[dict[str, Any]],
     recommendation: str,
@@ -1011,9 +1191,12 @@ def _governing_claim_text(
         if status in {"PROVISIONAL_LEANING", "CONTESTED_NO_LEANING"}:
             return "NONE"
         rule = _sentence(_public_claim(str(governing.get("decision_rule") or "")))
-        if rule and status == "CONDITIONAL_SUPPORTS":
-            # Conditional governing claims must keep the condition attached.
-            return rule
+        qualification = _candidate_epistemic_qualification(
+            data, governing, compact=True,
+        )
+        if rule and (status == "CONDITIONAL_SUPPORTS" or qualification):
+            # Conditional governing claims must keep their factual condition attached.
+            return f"{qualification}: {rule}" if qualification else rule
         if rule and status == "SUPPORTS":
             return rule
     for supporter in supporters:
@@ -1025,7 +1208,10 @@ def _governing_claim_text(
             continue
         rule = _sentence(_public_claim(str(supporter.get("decision_rule") or "")))
         if rule:
-            return rule
+            qualification = _candidate_epistemic_qualification(
+                data, supporter, compact=True,
+            )
+            return f"{qualification}: {rule}" if qualification else rule
     return "NONE"
 
 
@@ -1178,6 +1364,10 @@ def render_decision_brief(result: Any) -> str:
             "The cycle budget was reached before deliberation naturally converged.",
         ])
 
+    factual_lines = _factual_status_lines(data, final_candidates)
+    if factual_lines:
+        lines.extend(["", *factual_lines])
+
     # Why favored
     lines.extend(["", "## Why the Parliament currently favors this action", ""])
     why_added = False
@@ -1198,6 +1388,9 @@ def render_decision_brief(result: Any) -> str:
         else:
             lead = f"{label} favors this action"
         lines.append(_sentence(f"{lead}: {_lower_initial(reason)}"))
+        qualification = _candidate_epistemic_qualification(data, candidate)
+        if qualification:
+            lines.append(_sentence(qualification))
         lines.append("")
         why_added = True
     if not why_added:
@@ -1264,6 +1457,32 @@ def render_decision_brief(result: Any) -> str:
         else:
             lines.append("No primary investigative focus remains open in this run.")
     lines.append("")
+
+    shared_dependencies = list(data.get("shared_unresolved_dependencies") or [])
+    if shared_dependencies:
+        lines.extend(["## Shared epistemic dependencies", ""])
+        for dependency in shared_dependencies[:3]:
+            claim = _sentence(_public_claim(str(dependency.get("claim") or "")))
+            specialists = [
+                _framework_display_name(str(name))
+                for name in dependency.get("dependent_specialists") or []
+            ]
+            status_label = str(
+                dependency.get("epistemic_status") or "UNRESOLVED"
+            ).replace("_", " ").lower()
+            if len(specialists) > 1:
+                agent_text = ", ".join(specialists[:-1]) + f" and {specialists[-1]}"
+                lines.append(
+                    f"- **{claim}** Status: {status_label}. The positions of "
+                    f"{agent_text} depend materially on this same proposition; "
+                    "their recurrence does not provide independent factual support."
+                )
+            elif specialists:
+                lines.append(
+                    f"- **{claim}** Status: {status_label}. "
+                    f"{specialists[0]}'s position depends materially on it."
+                )
+        lines.append("")
 
     # What could change
     change_lines = _change_condition_lines(data, all_candidates)
@@ -1341,7 +1560,7 @@ def render_decision_brief(result: Any) -> str:
         ):
             epistemic_status = "RECONSIDERED_SUPPORT"
         contribution = _main_contribution(
-            data, candidate, recommendation, original_actions,
+            data, candidate, recommendation, original_actions, qualify=True,
         ).replace("|", "/")
         if len(contribution) > 140:
             contribution = contribution[:137].rstrip() + "..."
@@ -1352,7 +1571,7 @@ def render_decision_brief(result: Any) -> str:
     lines.append("")
 
     # Governing and investigative state
-    governing_text = _governing_claim_text(final, supporting, recommendation)
+    governing_text = _governing_claim_text(data, final, supporting, recommendation)
     if status == CONTESTED_RECOMMENDATION and governing_text != "NONE":
         # Contested with under-attack still shows the claim but marks it.
         if data.get("governing_justification_status") == "UNDER_ATTACK":

@@ -252,11 +252,12 @@ def _utilitarian_profile(consequences: list[dict[str, Any]]) -> dict[str, list[d
     }
     for consequence in consequences:
         direction = str(consequence.get("direction", "")).upper()
-        if direction not in {"BENEFIT", "HARM"}:
+        profile_direction = "HARM" if direction == "OPPORTUNITY_COST" else direction
+        if profile_direction not in {"BENEFIT", "HARM"}:
             continue
         duration_bucket = _duration_bucket(str(consequence.get("duration", "")))
         if duration_bucket in {"PRESENT", "DELAYED"}:
-            profile[f"{duration_bucket.lower()}_{direction.lower()}"].append(consequence)
+            profile[f"{duration_bucket.lower()}_{profile_direction.lower()}"].append(consequence)
         certainty_bucket = _probability_bucket(str(consequence.get("probability", "")))
         if certainty_bucket in {"CERTAIN", "UNCERTAIN"}:
             profile[certainty_bucket.lower()].append(consequence)
