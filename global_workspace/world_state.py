@@ -8,6 +8,7 @@ contradictory facts from the same prose.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import asdict, dataclass, field
 from typing import Any, Iterable, Sequence
 
@@ -16,7 +17,7 @@ DIRECTNESSES = {"DIRECT", "DOWNSTREAM", "FOREGONE", "INSTITUTIONAL"}
 MODALITIES = {
     "CERTAIN", "STIPULATED_CONDITIONAL", "PROBABILISTIC", "POSSIBLE", "UNKNOWN",
 }
-POLARITIES = {"BENEFICIAL", "ADVERSE", "NEUTRAL", "UNRESOLVED"}
+POLARITIES = {"BENEFICIAL", "ADVERSE", "NEUTRAL", "UNRESOLVED", "FOREGONE"}
 ADMISSION_STATUSES = {
     "COMMITTED", "COMMITTED_WITH_UNCERTAINTY",
     "USER_ACCEPTED_WITH_QUARANTINE", "ABANDONED_CONTRADICTORY_WORLD_STATE",
@@ -25,6 +26,78 @@ ADMISSION_STATUSES = {
 
 def _clean(value: Any, limit: int = 240) -> str:
     return " ".join(str(value or "").split())[:limit]
+
+
+# Hyphenated ages are labels, not effect magnitudes. Quantities are closed-class
+# spans copied from sources: numerals, English cardinals, collective nouns, and
+# optional duration/percent units. Vague comparatives (few/many) are never counts.
+_AGE_LABEL = re.compile(r"\b\d+-year-old\b", re.IGNORECASE)
+_ACTION_SOURCE_ID = re.compile(r"^A\d+$", re.IGNORECASE)
+_COMPARISON_CUE = re.compile(
+    r"\b(?:must\s+choose|choose\s+between|chooses?\s+between|"
+    r"between\s+.+\s+or\s+|either\s+.+\s+or\s+"
+    r"|option\s+(?:1|2|a|b)\b.*\boption\s+(?:1|2|a|b)\b"
+    r"|action\s+a\d+.*action\s+a\d+)\b",
+    re.IGNORECASE | re.DOTALL,
+)
+_DURATION_UNIT = (
+    r"(?:seconds?|minutes?|hours?|days?|weeks?|months?|years?|percent|%)"
+)
+_EXPLICIT_QUANTITY = re.compile(
+    r"(?<![\w.])(?:"
+    r"\d+(?:,\d{3})*(?:\.\d+)?(?:\s*" + _DURATION_UNIT + r")?"
+    # Bare "one crew" / "two pipelines" are not magnitudes. Cardinals count only
+    # with an explicit unit; collective nouns (dozen/score) count on their own.
+    r"|(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)"
+    r"\s+" + _DURATION_UNIT +
+    r"|(?:dozen|score|tens|hundreds|thousands|dozens|millions|billions)"
+    r"(?:\s+of\s+(?:tens\s+of\s+)?(?:thousands|millions|billions))?"
+    r")(?![\w.])",
+    re.IGNORECASE,
+)
+
+
+def classify_clause_role(text: str) -> str:
+    """Structural role of a source span. Domain-neutral; no dilemma vocabulary."""
+    cleaned = " ".join(str(text or "").split())
+    if not cleaned:
+        return "FACT"
+    if cleaned.endswith("?"):
+        return "INTERROGATIVE"
+    if _COMPARISON_CUE.search(cleaned):
+        return "COMPARISON"
+    return "FACT"
+
+
+def is_supporting_source(ref: SourceRef) -> bool:
+    """True when a provenance ref can carry an effect claim, not just frame it.
+
+    Confirmed action text (A0, A1, …) and FACT clauses support claims.
+    Comparison/interrogative clauses may appear as context only.
+    """
+    if _ACTION_SOURCE_ID.match(ref.clause_id or ""):
+        return True
+    return classify_clause_role(ref.excerpt) == "FACT"
+
+
+def explicit_quantity_spans(text: str) -> tuple[str, ...]:
+    """Return numerical and scale phrases copied from source wording.
+
+    Deliberately incomplete: no invented probabilities/QALYs, no age labels,
+    no bare duration units, and no vague comparatives such as 'few' or 'many'.
+    """
+    stripped = _AGE_LABEL.sub(" ", str(text or ""))
+    found: list[str] = []
+    for match in _EXPLICIT_QUANTITY.finditer(stripped):
+        span = " ".join(match.group(0).split())
+        if span and span.casefold() not in {item.casefold() for item in found}:
+            found.append(span)
+    return tuple(found)
+
+
+def _provenance_text(effect: WorldEffect) -> str:
+    """Text that may ground a claim. Generated outcome sentences are excluded."""
+    return " ".join(ref.excerpt for ref in effect.provenance if ref.excerpt)
 
 
 @dataclass(frozen=True, slots=True)
@@ -167,6 +240,7 @@ def parse_world_model(
     *,
     clauses: Sequence[dict[str, str]],
     action_ids: Sequence[str],
+    action_texts: dict[str, str] | None = None,
 ) -> ScenarioWorldModel:
     """Parse the compact grounding payload without silently repairing it."""
     if not isinstance(raw, dict):
@@ -175,6 +249,10 @@ def parse_world_model(
         _clean(row.get("clause_id"), 32): _clean(row.get("text"), 1000)
         for row in clauses if isinstance(row, dict)
     }
+    for action_id, text in (action_texts or {}).items():
+        key = _clean(action_id, 16).upper()
+        if key:
+            lookup[key] = _clean(text, 1000)
     parties = tuple(WorldParty(
         party_id=_clean(row.get("party_id"), 64).upper(),
         label=_clean(row.get("label"), 160),
@@ -300,13 +378,61 @@ def validate_world_model(
             errors.append(f"{prefix} has invalid modality {effect.modality}")
         if effect.polarity not in POLARITIES:
             errors.append(f"{prefix} has invalid polarity {effect.polarity}")
+        if effect.directness == "FOREGONE" and effect.polarity != "FOREGONE":
+            errors.append(
+                f"{prefix} is a foregone effect so its polarity must be FOREGONE, "
+                f"not {effect.polarity}"
+            )
+        if effect.polarity == "FOREGONE" and effect.directness != "FOREGONE":
+            errors.append(
+                f"{prefix} uses polarity FOREGONE but directness is {effect.directness}"
+            )
         if effect.modality != "CERTAIN" and not effect.condition_ids:
             errors.append(f"{prefix} is {effect.modality} but has no condition")
+        if effect.modality == "CERTAIN" and effect.condition_ids:
+            errors.append(
+                f"{prefix} is CERTAIN but lists conditions; CERTAIN effects "
+                "must not carry condition_ids"
+            )
         unknown_conditions = set(effect.condition_ids) - condition_ids
         if unknown_conditions:
             errors.append(f"{prefix} cites unknown conditions: {sorted(unknown_conditions)}")
         if not effect.provenance:
             errors.append(f"{prefix} lacks source provenance")
+        elif not any(is_supporting_source(ref) for ref in effect.provenance):
+            errors.append(
+                f"{prefix} cites only comparison/interrogative context; "
+                "effects need a FACT clause or confirmed action text as support"
+            )
+        # Quantities belong to this effect, not the union of every cited clause.
+        # A harvest row that also cites a dehydration clause must copy 'hundreds'
+        # if the outcome uses it; it must not be forced to list 'dozen'.
+        provenance_text = _provenance_text(effect).casefold()
+        claimed = explicit_quantity_spans(effect.outcome)
+        recorded = {item.casefold() for item in effect.quantities}
+        ungrounded = [
+            span for span in claimed if span.casefold() not in provenance_text
+        ]
+        if ungrounded:
+            errors.append(
+                f"{prefix} outcome uses quantities absent from provenance: "
+                f"{ungrounded} (outcome text alone cannot ground a quantity)"
+            )
+        omitted = [
+            span for span in claimed
+            if span.casefold() in provenance_text and span.casefold() not in recorded
+        ]
+        if omitted:
+            errors.append(
+                f"{prefix} omits quantities stated in its outcome and provenance: "
+                f"{omitted}"
+            )
+        for quantity in effect.quantities:
+            if quantity.casefold() not in provenance_text:
+                errors.append(
+                    f"{prefix} quantity {quantity!r} is not stated in its "
+                    "provenance (outcome text alone cannot ground a quantity)"
+                )
     valid_link_nodes = expected_actions | set(effect_ids) | condition_ids
     for index, link in enumerate(model.causal_links):
         prefix = f"causal_link[{index}]"
@@ -318,6 +444,11 @@ def validate_world_model(
             errors.append(f"{prefix} cites unknown conditions")
         if link.modality != "CERTAIN" and not link.condition_ids:
             errors.append(f"{prefix} is conditional but has no condition")
+        if link.modality == "CERTAIN" and link.condition_ids:
+            errors.append(
+                f"{prefix} is CERTAIN but lists conditions; CERTAIN links "
+                "must not carry condition_ids"
+            )
         if not link.provenance:
             errors.append(f"{prefix} lacks source provenance")
     contradictions: list[tuple[str, ...]] = []

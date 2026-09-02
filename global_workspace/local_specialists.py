@@ -3400,8 +3400,14 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                 actions, actor=extract_scenario_actor(scenario),
             )]
         # Deliberative object is the semantic action; short_label is display-only.
-        action_legend = {
-            str(record.get("action_id")): {
+        # world_effects is the authoritative typed-effect channel. grounded_effects
+        # is the older non-DIRECT prose layer; omit it when the typed model is present
+        # so agents do not see an asymmetric empty/non-empty pair.
+        action_legend = {}
+        for record in record_rows:
+            action_id = str(record.get("action_id"))
+            world_effects = list(record.get("world_effects", []))
+            row = {
                 "short_label": record.get("short_label", ""),
                 "canonical_semantic_action": record.get("canonical_semantic_action", ""),
                 "completeness_status": record.get("completeness_status", "UNCHECKED"),
@@ -3410,13 +3416,14 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                 "beneficiaries": list(record.get("beneficiaries", [])),
                 "harmed": list(record.get("harmed", [])),
                 "unresolved": list(record.get("unresolved", [])),
-                "grounded_effects": list(record.get("grounded_effects", [])),
-                "world_effects": list(record.get("world_effects", [])),
                 "mechanism": record.get("mechanism", ""),
                 "institutional_effect": record.get("institutional_effect", ""),
             }
-            for record in record_rows
-        }
+            if world_effects:
+                row["world_effects"] = world_effects
+            else:
+                row["grounded_effects"] = list(record.get("grounded_effects", []))
+            action_legend[action_id] = row
         allowed_constraints = sorted(FRAMEWORK_CONSTRAINTS[self.name])
         fixed_baseline = self.baseline_action_id if self.baseline_action_id in {*action_ids, "NONE"} else "NONE"
         baseline_status = str(self.baseline_status).strip().upper()
@@ -5792,6 +5799,11 @@ def ground_actions_in_scenario(
         "type": "array", "minItems": 1, "maxItems": min(4, len(clause_ids)),
         "items": {"type": "string", "enum": clause_ids},
     }
+    effect_source_ids = list(dict.fromkeys([*clause_ids, *action_ids]))
+    effect_source_ids_schema = {
+        "type": "array", "minItems": 1, "maxItems": min(5, len(effect_source_ids)),
+        "items": {"type": "string", "enum": effect_source_ids},
+    }
     string_list = {"type": "array", "items": {"type": "string"}}
     world_model_schema = {
         "type": "object",
@@ -5810,11 +5822,11 @@ def ground_actions_in_scenario(
                 "effect_id": {"type": "string"}, "action_id": {"type": "string", "enum": action_ids},
                 "party_id": {"type": "string"}, "outcome": {"type": "string"},
                 "relation": {"type": "string"},
-                "polarity": {"type": "string", "enum": ["BENEFICIAL", "ADVERSE", "NEUTRAL", "UNRESOLVED"]},
+                "polarity": {"type": "string", "enum": ["BENEFICIAL", "ADVERSE", "NEUTRAL", "UNRESOLVED", "FOREGONE"]},
                 "directness": {"type": "string", "enum": ["DIRECT", "DOWNSTREAM", "FOREGONE", "INSTITUTIONAL"]},
                 "modality": {"type": "string", "enum": ["CERTAIN", "STIPULATED_CONDITIONAL", "PROBABILISTIC", "POSSIBLE", "UNKNOWN"]},
                 "condition_ids": string_list, "quantities": string_list,
-                "clause_ids": source_ids_schema,
+                "clause_ids": effect_source_ids_schema,
             }, "required": ["effect_id", "action_id", "party_id", "outcome", "relation", "polarity", "directness", "modality", "condition_ids", "quantities", "clause_ids"], "additionalProperties": False}},
             "conditions": {"type": "array", "items": {"type": "object", "properties": {
                 "condition_id": {"type": "string"}, "description": {"type": "string"},
@@ -5861,7 +5873,18 @@ or other immediate effect its own action-specific effect. Separate downstream an
 foregone effects. CERTAIN means the outcome itself is stipulated; foregoing a
 research opportunity may be certain while the success and population benefit of
 that research remain STIPULATED_CONDITIONAL, PROBABILISTIC, POSSIBLE, or UNKNOWN.
-Every non-certain effect must name a condition. Record those conditions explicitly.
+Every non-certain effect must name a condition. CERTAIN effects and CERTAIN causal
+links must not list condition_ids; put the condition only on the non-certain
+effect that depends on it. Foregone effects use directness FOREGONE and polarity
+FOREGONE. Do not score a missed opportunity as ADVERSE or BENEFICIAL. Effect
+clause_ids must include at least one FACT clause or the confirmed action id
+(A0, A1, …) that states the claim. A choose-between or interrogative clause may
+be cited as context only and is never sufficient alone. Copy into quantities only
+the numerical or scale phrases the outcome itself uses, and only when a supporting
+source also states them (for example "16", "40%", "dozen", "tens of thousands").
+Do not copy every quantity from every cited clause. Leave quantities empty when
+the outcome uses no quantity. Do not invent probabilities, QALYs, or counts, and
+do not treat the generated outcome sentence as evidence for a quantity.
 Use causal_links for domain-independent ENABLES, CAUSES, ACCELERATES, PREVENTS, or
 FOREGOES relationships. Clause IDs are provenance only; effects must explicitly name
 their action_id and must not be copied wholesale from a clause describing both choices.
@@ -5958,6 +5981,7 @@ def _admit_action_source_rows(
             from .world_state import parse_world_model, validate_world_model
             parsed_world = parse_world_model(
                 data.get("world_model"), clauses=clauses, action_ids=action_ids,
+                action_texts=dict(zip(action_ids, actions)),
             )
             world_model = parsed_world.as_dict()
             _, contradictions = validate_world_model(parsed_world, action_ids=action_ids)

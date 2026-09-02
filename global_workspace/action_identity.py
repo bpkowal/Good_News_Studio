@@ -763,11 +763,11 @@ class CanonicalActionRecord:
     unresolved_outcomes: tuple[dict[str, Any], ...] = ()
     # Cascade/foregone relations for parties the action does not itself treat.
     # Direct recipients stay in beneficiaries/harmed; this layer is surrounding
-    # world-state, not a second copy of those roles.
+    # world-state, not a second copy of those roles. Prefer world_effects when a
+    # typed ScenarioWorldModel is present; this field is the legacy non-DIRECT view.
     grounded_effects: tuple[Any, ...] = ()
-    # Complete admitted typed effects, including direct effects. This is the
-    # lossless compatibility bridge to the authoritative ScenarioWorldModel;
-    # beneficiaries/harmed remain convenient projections only.
+    # Complete admitted typed effects, including direct effects. Authoritative
+    # when a ScenarioWorldModel was committed; beneficiaries/harmed are projections.
     world_effects: tuple[dict[str, Any], ...] = ()
     mechanism: str = ""
     institutional_effect: str = ""
