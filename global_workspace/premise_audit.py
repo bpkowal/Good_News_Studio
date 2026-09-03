@@ -19,7 +19,7 @@ _DECISION_FIELDS = (
     "unsupported_assumption", "framework_application", "framework_action_map",
     "utilitarian_consequence_table", "rawls_position_proposal",
     "deontological_ledger_proposal", "virtue_character_proposal",
-    "care_relational_map",
+    "care_ledger_proposal", "care_relational_map",
 )
 
 
@@ -84,7 +84,11 @@ def audit_side_premises(
                         "claim": {"type": "string", "minLength": 4, "maxLength": 240},
                         "binding": {
                             "type": "string",
-                            "enum": [*proposition_ids, "NEW_HYPOTHESIS"],
+                            "enum": [
+                                *proposition_ids,
+                                "DERIVED_ESTABLISHED",
+                                "NEW_HYPOTHESIS",
+                            ],
                         },
                         "derived_from": {
                             "type": "array", "minItems": 0, "maxItems": 4,
@@ -123,6 +127,15 @@ comparative magnitude, timing, or certainty that the bound proposition does not
 establish. Normative classifications such as duty, compassion, fairness, virtue,
 basic-good priority, or moral urgency are not empirical additions by themselves.
 
+ATOMIZATION CONTRACT: each finding must contain only the smallest independently
+assessable empirical addition. If candidate wording combines established content
+with an unsupported addition, do not repeat the whole sentence as a hypothesis:
+report only the unsupported atom. For example, when a ledger establishes acute
+dehydration but not fatality, the finding is the fatality or mortality-risk claim,
+not "the residents are acutely dehydrated and in mortal peril." Quantities,
+affected populations, and time horizons written in an authoritative proposition
+are established content and must not be reported as hypotheses.
+
 A specific outcome is allowed when it is established or explicitly treated as an
 unestablished condition. The error is silently using added specificity as though it
 were established. When an existing HYPOTHETICAL or UNRESOLVED proposition expresses
@@ -132,6 +145,13 @@ cite the closest supporting propositions in derived_from. decision_critical=true
 when changing or removing the premise could materially weaken, reverse, or remove
 the candidate's stated ranking or normative classification. Do not infer factual
 authority from repetition, agreement, salience, or moral importance.
+
+Use DERIVED_ESTABLISHED only when the claim is a transparent conjunction or direct
+restatement of two or more ESTABLISHED/DERIVED ledger propositions and adds no new
+actor, outcome, mechanism, severity, probability, magnitude, timing, or certainty.
+List every composing proposition in derived_from. A causal inference not already
+expressed by those propositions is not transparent composition and remains a
+NEW_HYPOTHESIS.
 
 Return JSON only. Return an empty findings list when every material empirical
 premise is already covered.

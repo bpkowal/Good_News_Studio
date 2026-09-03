@@ -192,7 +192,7 @@ def resolve_audited_question(
     matters is itself unfinished deliberation.
     """
     question_key = str(question_key).strip()
-    if not question_key.startswith("QUESTION:"):
+    if not question_key.startswith(("QUESTION:", "CHALLENGE:")):
         return None
     valid = [
         candidate for candidate in candidates

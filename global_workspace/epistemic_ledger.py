@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 import hashlib
+import re
 from typing import Any, Iterable
 
 from .scenario_semantics import project_grounded_action_effects
@@ -21,6 +22,10 @@ EPISTEMIC_STATUS_RANK = {
     "ESTABLISHED": 4,
 }
 DECISION_CRITICAL_CAP_STATUSES = {"REJECTED", "HYPOTHETICAL", "UNRESOLVED"}
+_COMPOSITION_STOPWORDS = {
+    "a", "an", "and", "are", "as", "at", "by", "for", "from", "in",
+    "is", "of", "on", "or", "that", "the", "to", "with",
+}
 
 
 @dataclass(slots=True)
@@ -49,6 +54,7 @@ def seed_proposition_ledger(graph: SemanticGraph) -> dict[str, PropositionRecord
     """Create established descriptive propositions from admitted world effects."""
     ledger: dict[str, PropositionRecord] = {}
     seen_consequences: set[str] = set()
+    seen_party_quantities: set[tuple[str, str]] = set()
     for effect in project_grounded_action_effects(graph):
         if effect.consequence_id in seen_consequences:
             continue
@@ -61,14 +67,69 @@ def seed_proposition_ledger(graph: SemanticGraph) -> dict[str, PropositionRecord
             f"PROP:WORLD:{world_effect_id}"
             if world_effect_id else _stable_id("GROUND", effect.consequence_id)
         )
+        claim_parts = [consequence.label]
+        affected_subject = " ".join(effect.affected_subject.split())
+        if affected_subject and affected_subject.casefold() != "affected constituency":
+            claim_parts.append(f"affected subject: {affected_subject}")
+        qualifier = " ".join(effect.magnitude_or_qualifier.split())
+        if qualifier and qualifier.upper() != "STATED":
+            qualifier_words = set(qualifier.casefold().split())
+            subject_words = set(affected_subject.casefold().split())
+            if not qualifier_words <= subject_words:
+                claim_parts.append(f"magnitude or qualifier: {qualifier}")
         ledger[proposition_id] = PropositionRecord(
             proposition_id=proposition_id,
-            claim=consequence.label,
+            claim="; ".join(claim_parts),
             proposition_type="DESCRIPTIVE",
             epistemic_status="ESTABLISHED",
             support_ids=[world_effect_id or effect.consequence_id],
             introduced_by="WORLD_MODEL",
         )
+        party_id = (
+            effect.affected_subject_node_ids[0].removeprefix("PARTY:")
+            if effect.affected_subject_node_ids else effect.affected_subject
+        )
+        for quantity in effect.affected_subject_quantities:
+            quantity_key = (party_id, quantity.casefold())
+            if quantity_key in seen_party_quantities:
+                continue
+            seen_party_quantities.add(quantity_key)
+            subject = effect.affected_subject
+            atomic_claim = (
+                subject if quantity.casefold() in subject.casefold()
+                else f"{quantity} {subject}"
+            )
+            quantity_digest = hashlib.sha256(
+                f"{party_id}|{quantity.casefold()}".encode("utf-8")
+            ).hexdigest()[:12]
+            atomic_id = f"PROP:WORLD:PARTY:{party_id}:QUANTITY:{quantity_digest}"
+            ledger[atomic_id] = PropositionRecord(
+                proposition_id=atomic_id,
+                claim=atomic_claim,
+                proposition_type="DESCRIPTIVE",
+                epistemic_status="ESTABLISHED",
+                support_ids=[party_id, quantity],
+                introduced_by="WORLD_MODEL",
+            )
+        qualifier_groups = (
+            ("LIKELIHOOD", effect.likelihood_qualifiers),
+            ("SCOPE", effect.scope_qualifiers),
+            ("TEMPORAL", effect.temporal_qualifiers),
+        )
+        for qualifier_kind, qualifiers in qualifier_groups:
+            for index, qualifier in enumerate(qualifiers):
+                atomic_id = (
+                    f"PROP:WORLD:{world_effect_id or effect.effect_id}:"
+                    f"{qualifier_kind}:{index}"
+                )
+                ledger[atomic_id] = PropositionRecord(
+                    proposition_id=atomic_id,
+                    claim=f"{qualifier} — {consequence.label}",
+                    proposition_type="DESCRIPTIVE",
+                    epistemic_status="ESTABLISHED",
+                    support_ids=[world_effect_id or effect.effect_id, qualifier],
+                    introduced_by="WORLD_MODEL",
+                )
     return ledger
 
 
@@ -116,6 +177,71 @@ def register_hypothesis(
     return proposition_id
 
 
+def register_derived_proposition(
+    ledger: dict[str, PropositionRecord],
+    claim: str,
+    *,
+    specialist: str,
+    derived_from: Iterable[str],
+    decision_critical: bool = False,
+) -> str:
+    """Register a transparent composition without promoting any dependency."""
+    cleaned = " ".join(str(claim).split())[:240]
+    dependencies = [
+        value for value in dict.fromkeys(str(item) for item in derived_from)
+        if value in ledger
+    ]
+    if not cleaned:
+        return ""
+    dependency_statuses_are_authoritative = all(
+        ledger[value].epistemic_status in {"ESTABLISHED", "DERIVED"}
+        for value in dependencies
+    )
+    dependency_words = {
+        word
+        for value in dependencies
+        for word in re.findall(r"[a-z0-9]+", ledger[value].claim.casefold())
+        if word not in _COMPOSITION_STOPWORDS
+    }
+    claim_words = {
+        word for word in re.findall(r"[a-z0-9]+", cleaned.casefold())
+        if word not in _COMPOSITION_STOPWORDS
+    }
+    # A model may propose a transparent composition, but only this deterministic
+    # coverage check can admit it as DERIVED. A single proposition should be
+    # cited directly; new vocabulary remains a hypothesis.
+    transparent_composition = (
+        len(dependencies) >= 2
+        and dependency_statuses_are_authoritative
+        and claim_words <= dependency_words
+    )
+    if not transparent_composition:
+        return register_hypothesis(
+            ledger, cleaned, specialist=specialist,
+            derived_from=dependencies,
+            decision_critical=decision_critical,
+        )
+    proposition_id = _stable_id("DERIVED", cleaned)
+    existing = ledger.get(proposition_id)
+    if existing is None:
+        ledger[proposition_id] = PropositionRecord(
+            proposition_id=proposition_id,
+            claim=cleaned,
+            proposition_type="DESCRIPTIVE",
+            epistemic_status="DERIVED",
+            derived_from=dependencies,
+            introduced_by=specialist,
+            decision_critical_mentions=1 if decision_critical else 0,
+        )
+    else:
+        existing.mention_count += 1
+        existing.decision_critical_mentions += 1 if decision_critical else 0
+        existing.derived_from = list(dict.fromkeys([
+            *existing.derived_from, *dependencies,
+        ]))
+    return proposition_id
+
+
 def weakest_status(
     ledger: dict[str, PropositionRecord], proposition_ids: Iterable[str],
 ) -> str:
@@ -131,6 +257,18 @@ def weakest_status(
 
 def _normalized_claim(value: str) -> str:
     return " ".join(str(value).casefold().split()).strip(" .")
+
+
+def _claim_is_covered(claim: str, authoritative_claim: str) -> bool:
+    """Accept exact canonical atoms and lossless projections of bundled display text."""
+    normalized = _normalized_claim(claim)
+    if normalized == _normalized_claim(authoritative_claim):
+        return True
+    components = [
+        _normalized_claim(value) for value in str(authoritative_claim).split(";")
+        if _normalized_claim(value)
+    ]
+    return normalized in components
 
 
 def _apply_candidate_authority_cap(
@@ -202,7 +340,7 @@ def attach_candidate_dependencies(
         authoritative = ledger.get(basis)
         if (
             authoritative is not None
-            and _normalized_claim(claim) == _normalized_claim(authoritative.claim)
+            and _claim_is_covered(claim, authoritative.claim)
         ):
             cited.append(basis)
             if decision_critical:
@@ -316,12 +454,25 @@ def apply_side_premise_audit(
         ] if isinstance(raw.get("derived_from", []), list) else []
         already_cited = set(candidate.supporting_proposition_ids)
         already_critical = set(candidate.decision_critical_proposition_ids)
+        covered_id = next((
+            proposition_id for proposition_id, record in ledger.items()
+            if record.epistemic_status in {"ESTABLISHED", "DERIVED"}
+            and _claim_is_covered(claim, record.claim)
+        ), "")
+        if covered_id:
+            binding = covered_id
         if binding in ledger:
             proposition_id = binding
             if proposition_id not in already_cited:
                 ledger[proposition_id].mention_count += 1
             if critical and proposition_id not in already_critical:
                 ledger[proposition_id].decision_critical_mentions += 1
+        elif binding == "DERIVED_ESTABLISHED":
+            proposition_id = register_derived_proposition(
+                ledger, claim, specialist=specialist,
+                derived_from=derived_from,
+                decision_critical=critical,
+            )
         else:
             proposition_id = register_hypothesis(
                 ledger, claim, specialist=specialist,
@@ -338,6 +489,8 @@ def apply_side_premise_audit(
         normalized = {
             "claim": claim,
             "proposition_id": proposition_id,
+            "binding": binding,
+            "derived_from": derived_from,
             "decision_critical": critical,
             "source_field": " ".join(str(raw.get("source_field", "")).split())[:80],
             "reason": " ".join(str(raw.get("reason", "")).split())[:180],

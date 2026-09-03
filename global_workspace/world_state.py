@@ -55,14 +55,31 @@ _DURATION_UNIT = (
 _EXPLICIT_QUANTITY = re.compile(
     r"(?<![\w.])(?:"
     r"\d+(?:,\d{3})*(?:\.\d+)?(?:\s*" + _DURATION_UNIT + r")?"
-    # Bare "one crew" / "two pipelines" are not magnitudes. Cardinals count only
-    # with an explicit unit; collective nouns (dozen/score) count on their own.
+    # Bare "one crew" / "two pipelines" are not population magnitudes. Written
+    # cardinals count with a duration or recognized affected-population noun;
+    # collective nouns (dozen/score) count on their own.
     r"|(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)"
     r"\s+" + _DURATION_UNIT +
+    r"|(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)"
+    r"(?=\s+(?:[a-z-]+\s+){0,2}(?:people|persons?|patients?|residents?|"
+    r"infants?|children|adults|workers?|families|households?|communities|"
+    r"students?|animals?))"
     r"|(?:dozen|score|tens|hundreds|thousands|dozens|millions|billions)"
     r"(?:\s+of\s+(?:tens\s+of\s+)?(?:thousands|millions|billions))?"
     r")(?![\w.])",
     re.IGNORECASE,
+)
+_LIKELIHOOD_QUALIFIER = re.compile(
+    r"\b(?:near[- ]certain|almost certain|highly likely|likely|unlikely|"
+    r"possible|uncertain|unknown)\b", re.IGNORECASE,
+)
+_SCOPE_QUALIFIER = re.compile(
+    r"\b(?:widespread|citywide|systemwide|nationwide|regional|localized|"
+    r"broader|limited|narrow)\b", re.IGNORECASE,
+)
+_TEMPORAL_QUALIFIER = re.compile(
+    r"\b(?:immediate|immediately|imminent|near[- ]term|short[- ]term|"
+    r"long[- ]term|prolonged|ongoing|future)\b", re.IGNORECASE,
 )
 _CHAINED_OUTCOME = re.compile(
     r"\b(?:thereby|thus|which\s+(?:causes?|leads?|enables?|prevents?)|"
@@ -120,9 +137,100 @@ def explicit_quantity_spans(text: str) -> tuple[str, ...]:
     return tuple(found)
 
 
+def _explicit_qualifier_spans(text: str, pattern: re.Pattern[str]) -> tuple[str, ...]:
+    found: list[str] = []
+    for match in pattern.finditer(str(text or "")):
+        span = " ".join(match.group(0).split())
+        if span and span.casefold() not in {item.casefold() for item in found}:
+            found.append(span)
+    return tuple(found)
+
+
+def explicit_likelihood_spans(text: str) -> tuple[str, ...]:
+    return _explicit_qualifier_spans(text, _LIKELIHOOD_QUALIFIER)
+
+
+def explicit_scope_spans(text: str) -> tuple[str, ...]:
+    return _explicit_qualifier_spans(text, _SCOPE_QUALIFIER)
+
+
+def explicit_temporal_spans(text: str) -> tuple[str, ...]:
+    return _explicit_qualifier_spans(text, _TEMPORAL_QUALIFIER)
+
+
 def _provenance_text(effect: WorldEffect) -> str:
     """Text that may ground a claim. Generated outcome sentences are excluded."""
     return " ".join(ref.excerpt for ref in effect.provenance if ref.excerpt)
+
+
+_PARTY_MATCH_STOPWORDS = {
+    "affected", "city", "group", "people", "person", "population", "relying",
+    "the", "their", "those",
+}
+_EFFECT_MATCH_STOPWORDS = {
+    "affected", "cause", "caused", "causes", "effect", "failure", "outcome",
+    "prevent", "prevented", "prevents", "risk", "the", "their", "would",
+}
+
+
+def _match_words(text: str, *, stopwords: set[str]) -> set[str]:
+    return {
+        word for word in re.findall(r"[a-z0-9]+", str(text).casefold())
+        if len(word) > 2 and word not in stopwords
+    }
+
+
+def _party_expected_quantities(party: WorldParty) -> tuple[str, ...]:
+    """Find source cardinalities locally modifying a population party."""
+    if party.kind not in {"POPULATION", "GROUP", "HOUSEHOLD", "COMMUNITY"}:
+        return ()
+    party_words = {
+        word for word in re.findall(r"[a-z0-9]+", party.label.casefold())
+        if len(word) > 2 and word not in _PARTY_MATCH_STOPWORDS
+    }
+    found: list[str] = []
+    for ref in party.provenance:
+        text = ref.excerpt
+        for quantity in explicit_quantity_spans(text):
+            match = re.search(re.escape(quantity), text, re.IGNORECASE)
+            if match is None:
+                continue
+            tail = text[match.end():match.end() + 90]
+            tail = re.split(
+                r"[,;.]|\b(?:and|but|or|while|whereas)\b",
+                tail, maxsplit=1, flags=re.IGNORECASE,
+            )[0]
+            local = text[match.start():match.end()] + tail
+            local_words = set(re.findall(r"[a-z0-9]+", local.casefold()))
+            if party_words & local_words:
+                found.append(quantity)
+    return tuple(dict.fromkeys(found))
+
+
+def _effect_expected_qualifiers(
+    effect: WorldEffect, extractor: Any,
+) -> tuple[str, ...]:
+    """Bind explicit source qualifiers by local overlap with an atomic effect."""
+    effect_words = _match_words(effect.outcome, stopwords=_EFFECT_MATCH_STOPWORDS)
+    found: list[str] = []
+    for ref in effect.provenance:
+        text = ref.excerpt
+        for qualifier in extractor(text):
+            match = re.search(re.escape(qualifier), text, re.IGNORECASE)
+            if match is None:
+                continue
+            boundary = r"[;.]|\b(?:and|but|or|while|whereas)\b"
+            before = text[max(0, match.start() - 90):match.start()]
+            after = text[match.end():match.end() + 90]
+            before_parts = re.split(boundary, before, flags=re.IGNORECASE)
+            after_parts = re.split(
+                boundary, after, maxsplit=1, flags=re.IGNORECASE,
+            )
+            local = before_parts[-1] + qualifier + after_parts[0]
+            local_words = _match_words(local, stopwords=_EFFECT_MATCH_STOPWORDS)
+            if effect_words & local_words:
+                found.append(qualifier)
+    return tuple(dict.fromkeys(found))
 
 
 @dataclass(frozen=True, slots=True)
@@ -140,6 +248,7 @@ class WorldParty:
     label: str
     kind: str = "OTHER"
     provenance: tuple[SourceRef, ...] = ()
+    quantities: tuple[str, ...] = ()
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -171,6 +280,9 @@ class WorldEffect:
     condition_ids: tuple[str, ...] = ()
     quantities: tuple[str, ...] = ()
     provenance: tuple[SourceRef, ...] = ()
+    likelihood_qualifiers: tuple[str, ...] = ()
+    scope_qualifiers: tuple[str, ...] = ()
+    temporal_qualifiers: tuple[str, ...] = ()
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -185,7 +297,7 @@ class CausalLink:
     condition_ids: tuple[str, ...] = ()
     provenance: tuple[SourceRef, ...] = ()
     # Added after the original positional fields for stored/test compatibility.
-    # New schema-version 1.1 models must populate it explicitly.
+    # Schema-version 1.1+ models must populate it explicitly.
     action_id: str = ""
 
     def as_dict(self) -> dict[str, Any]:
@@ -310,6 +422,9 @@ def parse_world_model(
         party_id=_clean(row.get("party_id"), 64).upper(),
         label=_clean(row.get("label"), 160),
         kind=_clean(row.get("kind"), 48).upper() or "OTHER",
+        quantities=tuple(dict.fromkeys(
+            _clean(value, 80) for value in row.get("quantities", [])
+        )),
         provenance=_refs(row.get("clause_ids", []), lookup),
     ) for row in raw.get("parties", []) if isinstance(row, dict))
     actions = tuple(WorldAction(
@@ -347,6 +462,15 @@ def parse_world_model(
         quantities=tuple(
             dict.fromkeys(_clean(value, 80) for value in row.get("quantities", []))
         ),
+        likelihood_qualifiers=tuple(dict.fromkeys(
+            _clean(value, 80) for value in row.get("likelihood_qualifiers", [])
+        )),
+        scope_qualifiers=tuple(dict.fromkeys(
+            _clean(value, 80) for value in row.get("scope_qualifiers", [])
+        )),
+        temporal_qualifiers=tuple(dict.fromkeys(
+            _clean(value, 80) for value in row.get("temporal_qualifiers", [])
+        )),
         provenance=_refs(row.get("clause_ids", []), lookup),
     ) for row in raw.get("effects", []) if isinstance(row, dict))
     effect_by_id = {effect.effect_id: effect for effect in effects}
@@ -463,6 +587,25 @@ def validate_world_model(
     effect_ids = [effect.effect_id for effect in model.effects]
     if len(party_ids) != len(model.parties):
         errors.append("parties require unique non-empty party_id values")
+    for party in model.parties:
+        provenance_text = " ".join(
+            ref.excerpt for ref in party.provenance if ref.excerpt
+        ).casefold()
+        for quantity in party.quantities:
+            if quantity.casefold() not in provenance_text:
+                errors.append(
+                    f"{party.party_id} quantity {quantity!r} is not stated in its provenance"
+                )
+        if model.schema_version == "1.2":
+            recorded = {value.casefold() for value in party.quantities}
+            omitted = [
+                value for value in _party_expected_quantities(party)
+                if value.casefold() not in recorded
+            ]
+            if omitted:
+                errors.append(
+                    f"{party.party_id} omits source-grounded population quantities: {omitted}"
+                )
     if {action.action_id for action in model.actions} != expected_actions:
         errors.append("typed world actions must cover every canonical action exactly once")
     if len(set(effect_ids)) != len(effect_ids) or any(not value for value in effect_ids):
@@ -609,6 +752,30 @@ def validate_world_model(
                     f"{prefix} quantity {quantity!r} is not stated in its "
                     "provenance (outcome text alone cannot ground a quantity)"
                 )
+        qualifier_fields = (
+            ("likelihood", effect.likelihood_qualifiers, explicit_likelihood_spans),
+            ("scope", effect.scope_qualifiers, explicit_scope_spans),
+            ("temporal", effect.temporal_qualifiers, explicit_temporal_spans),
+        )
+        for qualifier_kind, recorded_values, extractor in qualifier_fields:
+            recorded_qualifiers = {value.casefold() for value in recorded_values}
+            for value in recorded_values:
+                if value.casefold() not in provenance_text:
+                    errors.append(
+                        f"{prefix} {qualifier_kind} qualifier {value!r} is not stated "
+                        "in its provenance"
+                    )
+            if model.schema_version == "1.2":
+                required = list(_effect_expected_qualifiers(effect, extractor))
+                missing = [
+                    value for value in required
+                    if value.casefold() not in recorded_qualifiers
+                ]
+                if missing:
+                    errors.append(
+                        f"{prefix} omits source-grounded {qualifier_kind} qualifiers: "
+                        f"{missing}"
+                    )
     valid_link_nodes = expected_actions | set(effect_ids)
     if model.schema_version == "1.0":
         valid_link_nodes |= condition_ids

@@ -755,6 +755,27 @@ def _proposition_index(data: dict[str, Any]) -> dict[str, dict[str, Any]]:
     }
 
 
+def _claim_is_established_component(
+    claim: str, ledger: dict[str, dict[str, Any]],
+) -> bool:
+    normalized = " ".join(str(claim).casefold().split()).strip(" .")
+    if not normalized:
+        return False
+    for row in ledger.values():
+        if str(row.get("epistemic_status") or "").upper() not in {
+            "ESTABLISHED", "DERIVED",
+        }:
+            continue
+        components = {
+            " ".join(value.casefold().split()).strip(" .")
+            for value in str(row.get("claim") or "").split(";")
+            if " ".join(value.split())
+        }
+        if normalized in components:
+            return True
+    return False
+
+
 def _candidate_unestablished_dependencies(
     data: dict[str, Any], candidate: dict[str, Any], *, critical_only: bool = False,
 ) -> list[dict[str, Any]]:
@@ -780,6 +801,8 @@ def _candidate_unestablished_dependencies(
         is_critical = proposition_id in critical_ids
         if status not in _UNESTABLISHED_PROPOSITION_STATUSES:
             continue
+        if _claim_is_established_component(str(row.get("claim") or ""), ledger):
+            continue
         if critical_only and not is_critical:
             continue
         seen.add(proposition_id)
@@ -799,7 +822,7 @@ def _candidate_unestablished_dependencies(
         if status not in _UNESTABLISHED_PROPOSITION_STATUSES:
             continue
         claim = str(row.get("claim") or finding.get("claim") or "").strip()
-        if claim:
+        if claim and not _claim_is_established_component(claim, ledger):
             dependencies.append({
                 **row, "proposition_id": proposition_id, "claim": claim,
                 "epistemic_status": status, "decision_critical": is_critical,

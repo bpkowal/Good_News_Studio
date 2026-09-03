@@ -41,8 +41,19 @@ _ALLOWED_AUDIT_KEYS = _REQUIRED_AUDIT_KEYS | {
     # Uncertainty typing (v1 boundary / adjudication payload).
     "category", "condition", "boundary_status", "expected_effect",
     "target_framework", "target_claim_key", "claim_key", "question_key",
+    "generated_by", "about_specialist", "target_specialists",
+    "challenge_kind", "trigger_fields",
     "reclassified_from", "reclassification", "typing_review",
 }
+
+
+class SpecialistEvaluationStageError(RuntimeError):
+    """Preserve where an unexpected specialist implementation failure occurred."""
+
+    def __init__(self, stage: str, cause: Exception):
+        self.stage = " ".join(str(stage).split()).upper() or "SPECIALIST_EVALUATION"
+        self.cause = cause
+        super().__init__(f"{type(cause).__name__}: {cause}")
 
 
 def _admitted_audit_variable(raw: Any) -> dict[str, Any]:
@@ -290,9 +301,10 @@ def _rawls_ledger_states_priority(
 # construct marker for any position at all and are deliberately excluded.
 _FRAMEWORK_LEDGER_FIELDS: dict[str, tuple[str, tuple[str, ...]]] = {
     "utilitarian": ("ct", ("o", "s")),
-    "deontological": ("dp", ("k", "n", "b", "p", "cn", "rs")),
-    "rawlsian": ("rp", ("d", "s", "rs")),
+    "deontological": ("dp", ("k", "n", "dt", "hr", "so", "mr", "b", "p", "cn", "rs")),
+    "rawlsian": ("rp", ("d", "bk", "ir", "s", "g", "rs")),
     "virtue": ("vl", ("r", "vs", "x", "c", "rs")),
+    "care": ("cl", ("p", "rt", "ds", "rb", "nk", "nu", "te", "rr", "cc", "rs")),
 }
 
 
@@ -1181,6 +1193,7 @@ def _candidate_from_data(
     utilitarian_missing_comparison = ""
     utilitarian_ledger_proposal: dict[str, Any] = {}
     deontological_ledger_proposal: dict[str, Any] = {}
+    care_ledger_proposal: dict[str, Any] = {}
     utilitarian_fields_present = specialist == "utilitarian" and any(
         key in data for key in ("ct", "cd", "cm")
     )
@@ -1423,20 +1436,88 @@ def _candidate_from_data(
     care_grounding_penalty = (
         framework_grounding_penalty if specialist == "care" else 0.0
     )
+    if specialist == "care" and "cl" in data:
+        raw_assessments = data.get("cl", {})
+        ranking_basis = str(data.get("cb", "")).strip().upper()
+        care_errors: list[str] = []
+        assessments: list[dict[str, Any]] = []
+        allowed_rankings = {
+            "ENTRUSTED_RESPONSIBILITY", "ACUTE_DEPENDENCY",
+            "AGENT_CREATED_VULNERABILITY", "RELATIONAL_CONTINUITY",
+            "RESPONSIVE_FEASIBILITY", "UNRESOLVED",
+        }
+        if ranking_basis not in allowed_rankings:
+            care_errors.append("Care ledger lacks a valid relational ranking basis")
+        if not isinstance(raw_assessments, dict) or set(raw_assessments) != set(action_ids):
+            care_errors.append("Care ledger must cover every action")
+        else:
+            for action_id in action_ids:
+                raw_assessment = raw_assessments.get(action_id, {})
+                if not isinstance(raw_assessment, dict):
+                    care_errors.append(f"Care assessment for {action_id} is not an object")
+                    continue
+                assessment = {
+                    "action_id": action_id,
+                    "verdict": str(raw_assessment.get("v", "")).strip().upper(),
+                    "affected_party": " ".join(str(raw_assessment.get("p", "")).split())[:100],
+                    "relationship_type": str(raw_assessment.get("rt", "")).strip().upper(),
+                    "dependency_source": " ".join(str(raw_assessment.get("ds", "")).split())[:160],
+                    "responsibility_basis": " ".join(str(raw_assessment.get("rb", "")).split())[:180],
+                    "need_kind": str(raw_assessment.get("nk", "")).strip().upper(),
+                    "need_urgency": str(raw_assessment.get("nu", "")).strip().upper(),
+                    "trust_effect": str(raw_assessment.get("te", "")).strip().upper(),
+                    "responsiveness": str(raw_assessment.get("rr", "")).strip().upper(),
+                    "feasibility": str(raw_assessment.get("f", "")).strip().upper(),
+                    "competing_care_claim": " ".join(str(raw_assessment.get("cc", "")).split())[:180],
+                    "resolution_status": str(raw_assessment.get("res", "")).strip().upper(),
+                    "evidence_basis": str(raw_assessment.get("g", "")).strip().upper(),
+                    "reason": " ".join(str(raw_assessment.get("rs", "")).split())[:180],
+                }
+                if assessment["verdict"] not in {"RESPONSIVE", "MIXED", "NEGLECTFUL", "UNCERTAIN"}:
+                    care_errors.append(f"Care assessment for {action_id} has invalid verdict")
+                if min(
+                    _semantic_word_count(assessment[field])
+                    for field in (
+                        "affected_party", "dependency_source", "responsibility_basis",
+                        "competing_care_claim", "reason",
+                    )
+                ) < 1:
+                    care_errors.append(f"Care assessment for {action_id} is incomplete")
+                assessments.append(assessment)
+        if ranking_basis == "UNRESOLVED" and (
+            str(data.get("ss", "SELECTED")).strip().upper() != "PROVISIONAL"
+            or data.get("cc") is not False
+        ):
+            care_errors.append("unresolved Care ranking must remain provisional")
+        framework_validation_errors.extend(care_errors)
+        if care_errors:
+            framework_grounding_penalty = max(framework_grounding_penalty, 0.35)
+            care_grounding_penalty = max(care_grounding_penalty, 0.35)
+        else:
+            care_ledger_proposal = {
+                "ranking_basis": ranking_basis,
+                "assessments": assessments,
+            }
     rawls_position_proposal: dict[str, Any] = {}
     virtue_character_proposal: dict[str, Any] = {}
     if specialist == "rawlsian" and "rp" in data:
         raw_positions = data.get("rp", {})
         ranking_basis = str(data.get("rb", "")).strip().upper()
+        ranking_classification = " ".join(str(data.get("rbc", "")).split())[:240]
+        lexical_justification = " ".join(str(data.get("lpj", "")).split())[:240]
         raw_liberty_status = data.get("lc", {})
         position_errors: list[str] = []
         positions: list[dict[str, Any]] = []
         if ranking_basis not in {
             "LEXICAL_BASIC_LIBERTY", "FAIR_EQUALITY_OPPORTUNITY",
             "MAXIMIN_PRIMARY_GOODS", "DIFFERENCE_PRINCIPLE",
-            "ORIGINAL_POSITION_PUBLIC_RULE", "UNRESOLVED",
+            "BASIC_INTEREST_SECURITY", "ORIGINAL_POSITION_PUBLIC_RULE", "UNRESOLVED",
         }:
             position_errors.append("Rawlsian ledger lacks a valid principle-ranking basis")
+        if _semantic_word_count(ranking_classification) < 4:
+            position_errors.append("Rawlsian ranking lacks a classification justification")
+        if _semantic_word_count(lexical_justification) < 4:
+            position_errors.append("Rawlsian ranking lacks a lexical-priority justification")
         rawls_comparative_ground = re.search(
             r"\b(?:because|compared\s+to|relative\s+to|versus|vs\.?|"
             r"better\s+off|worse\s+off|less\s+badly\s+off|more\s+badly\s+off|"
@@ -1460,7 +1541,7 @@ def _candidate_from_data(
         ):
             position_errors.append("Rawlsian liberty comparison must cover every action")
         elif any(status not in {
-            "SATISFIED", "INFRINGED", "CONFLICTED", "UNKNOWN",
+            "SATISFIED", "INFRINGED", "CONFLICTED", "UNKNOWN", "NOT_APPLICABLE",
         } for status in liberty_status.values()):
             position_errors.append("Rawlsian liberty comparison has an invalid status")
         selected_liberty = liberty_status.get(recommended_id, "UNKNOWN")
@@ -1505,6 +1586,8 @@ def _candidate_from_data(
                 effect = str(raw_position.get("e", "")).strip().upper()
                 compared_to = str(raw_position.get("ca", "")).strip().upper()
                 dimension = str(raw_position.get("d", "")).strip().upper()
+                basic_liberty_kind = str(raw_position.get("bk", "UNRESOLVED")).strip().upper()
+                institutional_relation = str(raw_position.get("ir", "UNRESOLVED")).strip().upper()
                 additional_dimensions_raw = raw_position.get(
                     "ad", raw_position.get("additional_dimensions", raw_position.get("secondary_dimensions", []))
                 )
@@ -1546,6 +1629,8 @@ def _candidate_from_data(
                         legacy_additional_dimensions = list(additional_dimensions)
                         for item in structured_dimensions:
                             secondary_dimension = str(item.get("d", "")).strip().upper()
+                            secondary_liberty_kind = str(item.get("bk", "UNRESOLVED")).strip().upper()
+                            secondary_institutional_relation = str(item.get("ir", "UNRESOLVED")).strip().upper()
                             secondary_effect = str(item.get("e", "")).strip().upper()
                             secondary_subject = " ".join(str(item.get("s", item.get("g", ""))).split())[:100]
                             secondary_kind = str(item.get("sk", "UNKNOWN")).strip().upper()
@@ -1568,6 +1653,8 @@ def _candidate_from_data(
                                     "CONSTITUENCY", "UNKNOWN",
                                 } else "UNKNOWN",
                                 "dimension": secondary_dimension,
+                                "basic_liberty_kind": secondary_liberty_kind,
+                                "institutional_relation": secondary_institutional_relation,
                                 "additional_dimensions": [],
                                 "effect": secondary_effect,
                                 "compared_to_action_id": compared_to,
@@ -1593,6 +1680,8 @@ def _candidate_from_data(
                         "CONSTITUENCY", "UNKNOWN",
                     } else "UNKNOWN",
                     "dimension": dimension,
+                    "basic_liberty_kind": basic_liberty_kind,
+                    "institutional_relation": institutional_relation,
                     # Legacy string entries remain annotations. Structured ad
                     # entries are separate positions and must not also be
                     # folded into the primary position's dimension bundle.
@@ -1604,6 +1693,41 @@ def _candidate_from_data(
                     "principle_basis": ranking_basis,
                 })
                 positions.extend(additional_positions)
+        liberty_positions = [
+            item for item in positions if item.get("dimension") == "BASIC_LIBERTY"
+        ]
+        allowed_liberty_kinds = {
+            "POLITICAL_LIBERTY", "SPEECH_ASSEMBLY", "CONSCIENCE_THOUGHT",
+            "PERSONAL_FREEDOM_INTEGRITY", "PERSONAL_PROPERTY", "RULE_OF_LAW",
+            "NOT_APPLICABLE", "UNRESOLVED",
+        }
+        allowed_institutional_relations = {
+            "DIRECT_BASIC_STRUCTURE_RULE", "DIRECT_COERCIVE_RESTRICTION",
+            "FAIR_VALUE_PRECONDITION", "MATERIAL_PRECONDITION",
+            "NATURAL_CONTINGENCY", "NOT_APPLICABLE", "UNRESOLVED",
+        }
+        for item in positions:
+            if item.get("basic_liberty_kind") not in allowed_liberty_kinds:
+                position_errors.append(
+                    f"Rawlsian position for {item.get('action_id')} has invalid basic-liberty kind"
+                )
+            if item.get("institutional_relation") not in allowed_institutional_relations:
+                position_errors.append(
+                    f"Rawlsian position for {item.get('action_id')} has invalid institutional relation"
+                )
+        if ranking_basis == "LEXICAL_BASIC_LIBERTY" and (
+            not liberty_positions
+            or any(
+                item.get("basic_liberty_kind") in {"UNRESOLVED", "NOT_APPLICABLE"}
+                or item.get("institutional_relation") not in {
+                    "DIRECT_BASIC_STRUCTURE_RULE", "DIRECT_COERCIVE_RESTRICTION",
+                }
+                for item in liberty_positions
+            )
+        ):
+            position_errors.append(
+                "lexical priority requires a resolved basic-liberty classification and direct institutional relation"
+            )
         # fm carries one explanatory line per action while rp can hold several
         # typed positions for the same action - a liberty loss for one subject
         # and a security gain for another. Comparing the line against each
@@ -1649,6 +1773,8 @@ def _candidate_from_data(
         else:
             rawls_position_proposal = {
                 "ranking_basis": ranking_basis,
+                "ranking_classification_justification": ranking_classification,
+                "lexical_priority_justification": lexical_justification,
                 "liberty_status": liberty_status,
                 "positions": positions,
             }
@@ -1737,6 +1863,13 @@ def _candidate_from_data(
                 competing_relation = str(raw_assessment.get("crel", "UNCERTAIN")).strip().upper()
                 competing_party = " ".join(str(raw_assessment.get("cp", "unspecified party")).split())[:100]
                 competing_reason = " ".join(str(raw_assessment.get("crs", "competing norm remains unresolved")).split())[:180]
+                duty_type = str(raw_assessment.get("dt", "UNRESOLVED")).strip().upper()
+                harm_relation = str(raw_assessment.get("hr", "UNRESOLVED")).strip().upper()
+                special_obligation_status = str(raw_assessment.get("so", "UNKNOWN")).strip().upper()
+                special_obligation_basis = " ".join(
+                    str(raw_assessment.get("sob", "no special obligation established")).split()
+                )[:180]
+                means_relation = str(raw_assessment.get("mr", "UNRESOLVED")).strip().upper()
                 governing_norm = str(raw_assessment.get("gv", "PRIMARY")).strip().upper()
                 priority_basis = str(raw_assessment.get("pb", "UNRESOLVED")).strip().upper()
                 priority_rule = " ".join(str(raw_assessment.get("pr", "priority remains unresolved")).split())[:180]
@@ -1770,6 +1903,25 @@ def _candidate_from_data(
                     "SATISFIES", "CONSISTENT", "VIOLATES", "CONFLICTS", "UNCERTAIN",
                 }:
                     duty_errors.append(f"Deontological competing norm for {action_id} has invalid relation")
+                if duty_type not in {
+                    "PERFECT_NEGATIVE", "PERFECT_POSITIVE", "IMPERFECT",
+                    "RIGHT_CORRELATIVE", "SPECIAL_OBLIGATION", "UNRESOLVED",
+                }:
+                    duty_errors.append(f"Deontological assessment for {action_id} has invalid duty type")
+                if harm_relation not in {
+                    "DOING_HARM", "ALLOWING_HARM", "PREVENTING_HARM",
+                    "WITHHOLDING_BENEFIT", "MIXED", "NOT_APPLICABLE", "UNRESOLVED",
+                }:
+                    duty_errors.append(f"Deontological assessment for {action_id} has invalid harm relation")
+                if special_obligation_status not in {
+                    "ESTABLISHED", "NOT_ESTABLISHED", "NOT_REQUIRED", "CONTESTED", "UNKNOWN",
+                }:
+                    duty_errors.append(f"Deontological assessment for {action_id} has invalid special-obligation status")
+                if means_relation not in {
+                    "INTENDED_AS_MEANS", "FORESEEN_SIDE_EFFECT", "NO_INSTRUMENTALIZATION",
+                    "NOT_APPLICABLE", "UNRESOLVED",
+                }:
+                    duty_errors.append(f"Deontological assessment for {action_id} has invalid means relation")
                 if governing_norm not in {"PRIMARY", "COMPETING", "UNRESOLVED"}:
                     duty_errors.append(f"Deontological verdict for {action_id} has invalid governing norm")
                 if priority_basis not in {
@@ -1818,6 +1970,21 @@ def _candidate_from_data(
                     duty_errors.append(f"coercive Deontological assessment for {action_id} must adjudicate authorization")
                 if resolution_status == "RESOLVED" and derivation == "UNRESOLVED":
                     duty_errors.append(f"resolved Deontological assessment for {action_id} lacks derivation")
+                if resolution_status == "RESOLVED" and (
+                    duty_type == "UNRESOLVED"
+                    or harm_relation == "UNRESOLVED"
+                    or means_relation == "UNRESOLVED"
+                    or special_obligation_status in {"UNKNOWN", "CONTESTED"}
+                ):
+                    duty_errors.append(
+                        f"resolved Deontological assessment for {action_id} lacks required intermediate classifications"
+                    )
+                if duty_type == "SPECIAL_OBLIGATION" and special_obligation_status != "ESTABLISHED":
+                    duty_errors.append(f"special duty for {action_id} lacks an established obligation")
+                if priority_basis == "PERFECT_DUTY" and duty_type not in {
+                    "PERFECT_NEGATIVE", "PERFECT_POSITIVE",
+                }:
+                    duty_errors.append(f"perfect-duty priority for {action_id} lacks a perfect-duty classification")
                 borrowed = re.search(
                     r"\b(?:fair equality of opportunity|difference principle|least[- ]advantaged)\b",
                     " ".join((norm, competing, priority_rule)), re.IGNORECASE,
@@ -1856,6 +2023,11 @@ def _candidate_from_data(
                     "competing_relation": competing_relation,
                     "competing_protected_party": competing_party,
                     "competing_reason": competing_reason,
+                    "duty_type": duty_type,
+                    "harm_relation": harm_relation,
+                    "special_obligation_status": special_obligation_status,
+                    "special_obligation_basis": special_obligation_basis,
+                    "means_relation": means_relation,
                     "governing_norm": governing_norm,
                     "priority_basis": priority_basis,
                     "priority_rule": priority_rule,
@@ -2788,6 +2960,7 @@ def _candidate_from_data(
         rawls_position_proposal=rawls_position_proposal,
         deontological_ledger_proposal=deontological_ledger_proposal,
         virtue_character_proposal=virtue_character_proposal,
+        care_ledger_proposal=care_ledger_proposal,
         care_relational_map=care_relational_map,
         care_numerical_role=care_numerical_role,
         care_numerical_justification=care_numerical_justification,
@@ -2796,7 +2969,16 @@ def _candidate_from_data(
     )
 
 
-def _invalid_candidate(specialist: str, actions: Sequence[str], error: str) -> CandidateChunk:
+def _invalid_candidate(
+    specialist: str,
+    actions: Sequence[str],
+    error: str,
+    *,
+    delegate_status_override: str = "",
+    error_type_override: str = "",
+    exception_type: str = "NONE",
+    failure_stage: str = "NONE",
+) -> CandidateChunk:
     normalized_error = str(error)
     if re.search(r"invalid schema|schema for response_format|schema rejection", normalized_error, re.I):
         delegate_status = "SCHEMA_ERROR"
@@ -2810,6 +2992,10 @@ def _invalid_candidate(specialist: str, actions: Sequence[str], error: str) -> C
     else:
         delegate_status = "SEMANTIC_VALIDATION_ERROR"
         error_type = "SEMANTIC_VALIDATION_ERROR"
+    if delegate_status_override:
+        delegate_status = delegate_status_override
+    if error_type_override:
+        error_type = error_type_override
     return CandidateChunk(
         specialist=specialist,
         constraint="NONE",
@@ -2822,6 +3008,8 @@ def _invalid_candidate(specialist: str, actions: Sequence[str], error: str) -> C
         schema_valid=False,
         delegate_status=delegate_status,
         error_type=error_type,
+        exception_type=exception_type,
+        failure_stage=failure_stage,
         validation_errors=[error[:300]],
     )
 
@@ -2851,8 +3039,8 @@ class CompactLocalSpecialist:
     evidence_calibrator: Any | None = None
     landscape_verifier: Any | None = None
     epistemic_commitments: list[str] = field(default_factory=list)
-    # Populated only after a Rawls ledger transaction commits. Generated prose
-    # never becomes the delegate's recurrent principle state by itself.
+    # Populated only after a transactional framework ledger commits. Generated
+    # prose never becomes the delegate's recurrent principle state by itself.
     previous_framework_state: dict[str, Any] = field(default_factory=dict)
     # Private recurrence channel, returned only to this specialist. The global
     # broadcast remains a separate shared channel.
@@ -2869,7 +3057,7 @@ class CompactLocalSpecialist:
     ) -> None:
         """Keep recurrent framework state stable unless a typed review warrants change."""
         if (
-            self.name not in {"rawlsian", "virtue", "deontological"}
+            self.name not in {"rawlsian", "virtue", "deontological", "care"}
             or not self.previous_framework_state
         ):
             return
@@ -2877,7 +3065,8 @@ class CompactLocalSpecialist:
         current = (
             candidate.rawls_position_proposal
             if self.name == "rawlsian" else candidate.virtue_character_proposal
-            if self.name == "virtue" else candidate.deontological_ledger_proposal
+            if self.name == "virtue" else candidate.care_ledger_proposal
+            if self.name == "care" else candidate.deontological_ledger_proposal
         )
         if not current:
             if self.name == "rawlsian":
@@ -2900,7 +3089,11 @@ class CompactLocalSpecialist:
                     state.setdefault(action_id, []).append((
                         str(item.get("proposed_effect" if committed else "effect", item.get("effect", ""))),
                         str(item.get("dimension", "")),
-                        " ".join(str(item.get("subject", item.get("affected_subject", ""))).casefold().split()),
+                        "|".join((
+                            " ".join(str(item.get("subject", item.get("affected_subject", ""))).casefold().split()),
+                            str(item.get("basic_liberty_kind", "UNRESOLVED")),
+                            str(item.get("institutional_relation", "UNRESOLVED")),
+                        )),
                     ))
                 return {key: tuple(sorted(value)) for key, value in state.items()}
 
@@ -2909,6 +3102,8 @@ class CompactLocalSpecialist:
             auxiliary_changed = (
                 dict(previous.get("liberty_status", {}))
                 != dict(current.get("liberty_status", {}))
+                or str(previous.get("ranking_basis", ""))
+                != str(current.get("ranking_basis", ""))
             )
         elif self.name == "virtue":
             previous_positions = {
@@ -2926,10 +3121,37 @@ class CompactLocalSpecialist:
                 if isinstance(item, dict)
             }
             auxiliary_changed = False
+        elif self.name == "care":
+            care_fields = (
+                "verdict", "affected_party", "relationship_type",
+                "dependency_source", "responsibility_basis", "need_kind",
+                "need_urgency", "trust_effect", "responsiveness", "feasibility",
+                "competing_care_claim", "resolution_status",
+            )
+            previous_positions = {
+                str(item.get("action_id", "")): tuple(
+                    str(item.get(field, "")) for field in care_fields
+                )
+                for item in previous.get("assessments", [])
+                if isinstance(item, dict)
+            }
+            current_positions = {
+                str(item.get("action_id", "")): tuple(
+                    str(item.get(field, "")) for field in care_fields
+                )
+                for item in current.get("assessments", [])
+                if isinstance(item, dict)
+            }
+            auxiliary_changed = (
+                str(previous.get("ranking_basis", ""))
+                != str(current.get("ranking_basis", ""))
+            )
         else:
             fields = (
                 "verdict", "norm_kind", "relation", "competing_norm_kind",
                 "competing_relation", "governing_norm", "priority_basis",
+                "duty_type", "harm_relation", "special_obligation_status",
+                "special_obligation_basis", "means_relation",
                 "protected_standing", "competing_protected_standing",
                 "coercion_kind", "authorization_status", "derivation",
                 "resolution_status",
@@ -3285,6 +3507,7 @@ class CompactLocalSpecialist:
         framework_name = {
             "rawlsian": "Rawlsian", "virtue": "Virtue",
             "deontological": "Deontological",
+            "care": "Care",
         }[self.name]
         error = (
             f"{framework_name} principle state changed without a framework-relevant "
@@ -3318,6 +3541,8 @@ class CompactLocalSpecialist:
             candidate.rawls_position_proposal = {}
         elif self.name == "virtue":
             candidate.virtue_character_proposal = {}
+        elif self.name == "care":
+            candidate.care_ledger_proposal = {}
         else:
             candidate.deontological_ledger_proposal = {}
 
@@ -3809,6 +4034,64 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                 "np": {"type": "string", "minLength": 8, "maxLength": 140},
             })
             schema["required"].extend([construct_map_key, "nr", "np"])
+        if self.name == "care":
+            care_assessment_schema = {
+                "type": "object",
+                "properties": {
+                    "v": {"type": "string", "enum": ["RESPONSIVE", "MIXED", "NEGLECTFUL", "UNCERTAIN"]},
+                    "p": {"type": "string", "minLength": 2, "maxLength": 100},
+                    "rt": {"type": "string", "enum": [
+                        "ENTRUSTED", "DEPENDENCY", "CARE_ROLE",
+                        "AGENT_CREATED_VULNERABILITY", "COMMUNITY_RELATION",
+                        "NONE", "UNRESOLVED",
+                    ]},
+                    "ds": {"type": "string", "minLength": 2, "maxLength": 160},
+                    "rb": {"type": "string", "minLength": 2, "maxLength": 180},
+                    "nk": {"type": "string", "enum": [
+                        "SURVIVAL_HEALTH", "BASIC_NEED", "ONGOING_DEPENDENCY",
+                        "TRUST", "RELATIONAL_CONTINUITY", "OTHER", "UNRESOLVED",
+                    ]},
+                    "nu": {"type": "string", "enum": [
+                        "IMMEDIATE", "NEAR_TERM", "LONG_TERM", "MIXED", "UNKNOWN",
+                    ]},
+                    "te": {"type": "string", "enum": [
+                        "STRENGTHENS", "PRESERVES", "STRAINS", "BETRAYS",
+                        "NOT_APPLICABLE", "UNKNOWN",
+                    ]},
+                    "rr": {"type": "string", "enum": [
+                        "DIRECT", "INDIRECT", "DELAYED", "WITHHELD", "MIXED", "UNKNOWN",
+                    ]},
+                    "f": {"type": "string", "enum": ["ESTABLISHED", "CONDITIONAL", "UNKNOWN"]},
+                    "cc": {"type": "string", "minLength": 2, "maxLength": 180},
+                    "res": {"type": "string", "enum": ["RESOLVED", "CONTESTED", "UNKNOWN"]},
+                    "g": {"type": "string", "enum": [
+                        "ACTION_GRAPH", "SCENARIO", "FRAMEWORK_ONLY", "UNKNOWN",
+                    ]},
+                    "rs": {"type": "string", "minLength": 4, "maxLength": 180},
+                },
+                "required": [
+                    "v", "p", "rt", "ds", "rb", "nk", "nu", "te", "rr",
+                    "f", "cc", "res", "g", "rs",
+                ],
+                "additionalProperties": False,
+            }
+            schema["properties"]["cl"] = {
+                "type": "object",
+                "properties": {
+                    action_id: care_assessment_schema for action_id in action_ids
+                },
+                "required": action_ids,
+                "additionalProperties": False,
+            }
+            schema["properties"]["cb"] = {
+                "type": "string",
+                "enum": [
+                    "ENTRUSTED_RESPONSIBILITY", "ACUTE_DEPENDENCY",
+                    "AGENT_CREATED_VULNERABILITY", "RELATIONAL_CONTINUITY",
+                    "RESPONSIVE_FEASIBILITY", "UNRESOLVED",
+                ],
+            }
+            schema["required"].extend(["cl", "cb"])
         if self.name == "utilitarian":
             if use_effect_valuations:
                 row_schemas = {
@@ -3904,6 +4187,31 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                     },
                     "cp": {"type": "string", "minLength": 1, "maxLength": 100},
                     "crs": {"type": "string", "minLength": 4, "maxLength": 180},
+                    "dt": {
+                        "type": "string", "enum": [
+                            "PERFECT_NEGATIVE", "PERFECT_POSITIVE", "IMPERFECT",
+                            "RIGHT_CORRELATIVE", "SPECIAL_OBLIGATION", "UNRESOLVED",
+                        ],
+                    },
+                    "hr": {
+                        "type": "string", "enum": [
+                            "DOING_HARM", "ALLOWING_HARM", "PREVENTING_HARM",
+                            "WITHHOLDING_BENEFIT", "MIXED", "NOT_APPLICABLE", "UNRESOLVED",
+                        ],
+                    },
+                    "so": {
+                        "type": "string", "enum": [
+                            "ESTABLISHED", "NOT_ESTABLISHED", "NOT_REQUIRED",
+                            "CONTESTED", "UNKNOWN",
+                        ],
+                    },
+                    "sob": {"type": "string", "minLength": 4, "maxLength": 180},
+                    "mr": {
+                        "type": "string", "enum": [
+                            "INTENDED_AS_MEANS", "FORESEEN_SIDE_EFFECT",
+                            "NO_INSTRUMENTALIZATION", "NOT_APPLICABLE", "UNRESOLVED",
+                        ],
+                    },
                     "gv": {
                         "type": "string",
                         "enum": ["PRIMARY", "COMPETING", "UNRESOLVED"],
@@ -3974,7 +4282,8 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                 },
                 "required": [
                     "v", "k", "n", "rel", "b", "p", "cn", "ck", "crel",
-                    "cp", "crs", "gv", "pb", "pr", "ps", "cps", "ki",
+                    "cp", "crs", "dt", "hr", "so", "sob", "mr",
+                    "gv", "pb", "pr", "ps", "cps", "ki",
                     "coa", "cop", "pj", "rec", "nec", "auth", "dv", "res",
                     "g", "rs",
                 ],
@@ -4067,6 +4376,21 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                                         "OTHER_PRIMARY_GOOD", "UNKNOWN",
                                     ],
                                 },
+                                "bk": {
+                                    "type": "string", "enum": [
+                                        "POLITICAL_LIBERTY", "SPEECH_ASSEMBLY",
+                                        "CONSCIENCE_THOUGHT", "PERSONAL_FREEDOM_INTEGRITY",
+                                        "PERSONAL_PROPERTY", "RULE_OF_LAW",
+                                        "NOT_APPLICABLE", "UNRESOLVED",
+                                    ],
+                                },
+                                "ir": {
+                                    "type": "string", "enum": [
+                                        "DIRECT_BASIC_STRUCTURE_RULE", "DIRECT_COERCIVE_RESTRICTION",
+                                        "FAIR_VALUE_PRECONDITION", "MATERIAL_PRECONDITION",
+                                        "NATURAL_CONTINGENCY", "NOT_APPLICABLE", "UNRESOLVED",
+                                    ],
+                                },
                                 "e": {
                                     "type": "string",
                                     "enum": ["IMPROVES", "PRESERVES", "WORSENS", "MIXED", "UNCERTAIN"],
@@ -4077,7 +4401,7 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                                 },
                                 "rs": {"type": "string", "minLength": 4, "maxLength": 180},
                             },
-                            "required": ["g", "sk", "d", "e", "b", "rs"],
+                            "required": ["g", "sk", "d", "bk", "ir", "e", "b", "rs"],
                             "additionalProperties": False,
                         },
                         "maxItems": 4,
@@ -4086,6 +4410,20 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                         "type": "string",
                         "enum": ["IMPROVES", "PRESERVES", "WORSENS", "MIXED", "UNCERTAIN"],
                     },
+                    "bk": {
+                        "type": "string", "enum": [
+                            "POLITICAL_LIBERTY", "SPEECH_ASSEMBLY", "CONSCIENCE_THOUGHT",
+                            "PERSONAL_FREEDOM_INTEGRITY", "PERSONAL_PROPERTY", "RULE_OF_LAW",
+                            "NOT_APPLICABLE", "UNRESOLVED",
+                        ],
+                    },
+                    "ir": {
+                        "type": "string", "enum": [
+                            "DIRECT_BASIC_STRUCTURE_RULE", "DIRECT_COERCIVE_RESTRICTION",
+                            "FAIR_VALUE_PRECONDITION", "MATERIAL_PRECONDITION",
+                            "NATURAL_CONTINGENCY", "NOT_APPLICABLE", "UNRESOLVED",
+                        ],
+                    },
                     "ca": {"type": "string", "enum": action_ids},
                     "b": {
                         "type": "string",
@@ -4093,7 +4431,7 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                     },
                     "rs": {"type": "string", "minLength": 4, "maxLength": 180},
                 },
-                "required": ["g", "sk", "d", "ad", "e", "ca", "b", "rs"],
+                "required": ["g", "sk", "d", "bk", "ir", "ad", "e", "ca", "b", "rs"],
                 "additionalProperties": False,
             }
             schema["properties"]["rp"] = {
@@ -4119,15 +4457,24 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                 "enum": [
                     "LEXICAL_BASIC_LIBERTY", "FAIR_EQUALITY_OPPORTUNITY",
                     "MAXIMIN_PRIMARY_GOODS", "DIFFERENCE_PRINCIPLE",
-                    "ORIGINAL_POSITION_PUBLIC_RULE", "UNRESOLVED",
+                    "BASIC_INTEREST_SECURITY", "ORIGINAL_POSITION_PUBLIC_RULE", "UNRESOLVED",
                 ],
+            }
+            schema["properties"]["rbc"] = {
+                "type": "string", "minLength": 8, "maxLength": 240,
+            }
+            schema["properties"]["lpj"] = {
+                "type": "string", "minLength": 8, "maxLength": 240,
             }
             schema["properties"]["lc"] = {
                 "type": "object",
                 "properties": {
                     action_id: {
                         "type": "string",
-                        "enum": ["SATISFIED", "INFRINGED", "CONFLICTED", "UNKNOWN"],
+                        "enum": [
+                            "SATISFIED", "INFRINGED", "CONFLICTED", "UNKNOWN",
+                            "NOT_APPLICABLE",
+                        ],
                     }
                     for action_id in action_ids
                 },
@@ -4137,7 +4484,7 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
             schema["properties"]["fa"] = {
                 "type": "string", "minLength": 8, "maxLength": 140,
             }
-            schema["required"].extend(["rp", "rb", "lc"])
+            schema["required"].extend(["rp", "rb", "rbc", "lpj", "lc"])
         if broadcast.constraint == "PROPOSAL_REVIEW":
             proposal_ids = [
                 str(item.get("proposal_id", "")).upper()
@@ -4261,7 +4608,20 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
             framework_example = (
                 ',"rm":{"A0":"entrusted dependency under A0",'
                 '"A1":"agent-created vulnerability under A1"},'
-                '"nr":"SECONDARY","np":"counts inform responsiveness after relational comparison"'
+                '"nr":"SECONDARY","np":"counts inform responsiveness after relational comparison",'
+                '"cl":{"A0":{"v":"RESPONSIVE","p":"dependent residents",'
+                '"rt":"ENTRUSTED","ds":"the system controls their only available resource",'
+                '"rb":"control creates a responsibility to answer their dependency",'
+                '"nk":"BASIC_NEED","nu":"IMMEDIATE","te":"PRESERVES",'
+                '"rr":"DIRECT","f":"ESTABLISHED","cc":"the rival dependent group also has a basic need",'
+                '"res":"CONTESTED","g":"ACTION_GRAPH","rs":"A0 directly answers an entrusted immediate need"},'
+                '"A1":{"v":"MIXED","p":"future resource recipients",'
+                '"rt":"COMMUNITY_RELATION","ds":"they depend on the allocation for later resources",'
+                '"rb":"shared control creates a community responsibility",'
+                '"nk":"ONGOING_DEPENDENCY","nu":"LONG_TERM","te":"NOT_APPLICABLE",'
+                '"rr":"DELAYED","f":"ESTABLISHED","cc":"the rival group has a more immediate dependency",'
+                '"res":"CONTESTED","g":"ACTION_GRAPH","rs":"A1 answers a broader but delayed dependency"}},'
+                '"cb":"UNRESOLVED"'
             )
             framework_prompt = """
 CARE-SPECIFIC COMPARISON: rm must give the strongest relational basis for EVERY
@@ -4270,6 +4630,23 @@ responsibility, attentiveness, or responsiveness. nr says whether numerical
 magnitude is DECISIVE, SECONDARY, or IRRELEVANT; np explains why. Counts may inform
 competence and responsiveness. They are DECISIVE only when the competing relational
 claims are otherwise comparable; "more lives" alone is not a care-ethical rule.
+cl is the transactional Care ledger for every action. v classifies the response as
+RESPONSIVE, MIXED, NEGLECTFUL, or UNCERTAIN. p names the affected party; rt identifies
+entrustment, dependency, a care role, agent-created vulnerability, community relation,
+no special relation, or an unresolved relation. ds states where the dependency comes
+from, and rb states why that dependency creates responsibility rather than merely need.
+nk and nu separately classify the kind and urgency of need. te records the effect on
+trust; rr distinguishes direct, indirect, delayed, withheld, mixed, or unknown
+responsiveness; f records whether that response is feasible. cc names the strongest
+competing Care claim, res states whether the comparison is resolved, and g separates
+action/scenario evidence from framework interpretation. rs gives the integrated Care
+reason. cb identifies the governing relational basis: ENTRUSTED_RESPONSIBILITY,
+ACUTE_DEPENDENCY, AGENT_CREATED_VULNERABILITY, RELATIONAL_CONTINUITY,
+RESPONSIVE_FEASIBILITY, or UNRESOLVED. Need alone does not establish entrustment,
+urgency alone does not erase longer dependency, and population size does not establish
+relational priority. If dependency source, responsibility, feasibility, or the
+competing care claim remains unresolved, use res=CONTESTED or UNKNOWN and cb=UNRESOLVED
+with ss=PROVISIONAL and cc=false.
 When the frozen baseline is NORMATIVELY_CONTESTED, preserve its relational
 commitments rather than its provisional action: choose an interim r, but set
 ss=PROVISIONAL, cc=false, u=NORMATIVE_ADJUDICATION, and name in tf/nt what
@@ -4285,6 +4662,9 @@ priority between the care commitments would settle the judgment.
                 '"p":"affected person","cn":"duty of care","ck":"DUTY",'
                 '"crel":"CONSISTENT","cp":"dependent parties",'
                 '"crs":"A0 remains compatible with the secondary duty",'
+                '"dt":"RIGHT_CORRELATIVE","hr":"NOT_APPLICABLE",'
+                '"so":"NOT_REQUIRED","sob":"the autonomy right is general rather than relationship-specific",'
+                '"mr":"NO_INSTRUMENTALIZATION",'
                 '"gv":"PRIMARY","pb":"AUTONOMY",'
                 '"pr":"autonomy governs when no stricter duty is violated",'
                 '"ps":"AUTONOMY","cps":"SPECIAL_OBLIGATION","ki":"NONE",'
@@ -4297,6 +4677,9 @@ priority between the care commitments would settle the judgment.
                 '"p":"affected person","cn":"duty to rescue","ck":"DUTY",'
                 '"crel":"CONFLICTS","cp":"persons at risk",'
                 '"crs":"The rescue duty remains a genuine opposing claim",'
+                '"dt":"PERFECT_NEGATIVE","hr":"DOING_HARM",'
+                '"so":"NOT_REQUIRED","sob":"the negative duty applies without a special relationship",'
+                '"mr":"INTENDED_AS_MEANS",'
                 '"gv":"PRIMARY","pb":"RESPECT_PERSONS",'
                 '"pr":"the prohibition on instrumentalization governs the conflict",'
                 '"ps":"BODILY_INTEGRITY","cps":"SPECIAL_OBLIGATION","ki":"INTERPERSONAL",'
@@ -4321,6 +4704,16 @@ identify the norm; rel states whether the action SATISFIES, is CONSISTENT with,
 VIOLATES, or CONFLICTS with that norm; b is the duty bearer; p is the protected
 party; cn names the strongest competing norm. ck, crel, cp, and crs type that
 competing norm, its relation to the action, its protected party, and why it matters.
+Before assigning categorical priority, classify four independent premises. dt says
+whether the governing claim is a PERFECT_NEGATIVE, PERFECT_POSITIVE, IMPERFECT,
+RIGHT_CORRELATIVE, SPECIAL_OBLIGATION, or UNRESOLVED duty. hr distinguishes DOING_HARM,
+ALLOWING_HARM, PREVENTING_HARM, WITHHOLDING_BENEFIT, MIXED, and cases where the
+distinction is not applicable. so and sob state whether a special obligation is
+established and by what role, undertaking, relationship, or prior act; urgency alone
+does not create one. mr distinguishes INTENDED_AS_MEANS from FORESEEN_SIDE_EFFECT and
+NO_INSTRUMENTALIZATION. A foreseen burden is not automatically use merely as a means.
+If any premise needed for priority remains unresolved, use res=CONTESTED, v=CONFLICTED,
+gv=UNRESOLVED, and pb=UNRESOLVED rather than applying categorical priority.
 Never reduce an explicitly stated autonomy or liberty burden to cn prose alone:
 represent it through ck=AUTONOMY or RIGHT and crel=VIOLATES or CONFLICTS. g separates
 action/scenario grounding from framework interpretation; rs gives the shortest justification. A REQUIRED
@@ -4357,14 +4750,21 @@ freedom; do not relabel them as perfect duties without that derivation.
                 ',"fm":{"A0":"MIXED: nursing-home residents retain equal liberty but another protected interest is burdened",'
                 '"A1":"MIXED: transport workers gain one primary good while another protected interest is burdened"},'
                 '"nr":"SECONDARY","np":"no explicit quantity governs this comparison",'
-                '"rp":{"A0":{"s":"nursing-home residents","sk":"GROUP","d":"BASIC_LIBERTY",'
-                '"ad":["INCOME_WEALTH"],"e":"MIXED","ca":"A1","b":"ACTION_GRAPH",'
+                '"rp":{"A0":{"g":"nursing-home residents","sk":"GROUP","d":"BASIC_INTEREST_SECURITY",'
+                '"bk":"NOT_APPLICABLE","ir":"MATERIAL_PRECONDITION",'
+                '"ad":[{"g":"nursing-home residents","sk":"GROUP","d":"INCOME_WEALTH",'
+                '"bk":"NOT_APPLICABLE","ir":"MATERIAL_PRECONDITION","e":"WORSENS",'
+                '"b":"ACTION_GRAPH","rs":"A0 imposes a material cost on this group"}],'
+                '"e":"IMPROVES","ca":"A1","b":"ACTION_GRAPH",'
                 '"rs":"A0 helps one protected interest but harms another"},'
-                '"A1":{"s":"transport workers","sk":"INDIVIDUAL","d":"INCOME_WEALTH",'
-                '"ad":["BASIC_LIBERTY"],"e":"MIXED","ca":"A0","b":"ACTION_GRAPH",'
+                '"A1":{"g":"transport workers","sk":"INDIVIDUAL","d":"INCOME_WEALTH",'
+                '"bk":"NOT_APPLICABLE","ir":"MATERIAL_PRECONDITION","ad":[],"e":"IMPROVES",'
+                '"ca":"A0","b":"ACTION_GRAPH",'
                 '"rs":"A1 helps one protected interest but harms another"}},'
                 '"rb":"MAXIMIN_PRIMARY_GOODS",'
-                '"lc":{"A0":"SATISFIED","A1":"SATISFIED"}'
+                '"rbc":"the comparison concerns material primary goods rather than a protected liberty",'
+                '"lpj":"lexical liberty priority is not invoked because no direct liberty restriction is established",'
+                '"lc":{"A0":"NOT_APPLICABLE","A1":"NOT_APPLICABLE"}'
             )
             framework_prompt = """
 RAWLSIAN COMPARISON: normalize each judgment to four pieces of state: action,
@@ -4406,15 +4806,30 @@ policy in the comparison; do not switch to developers, taxpayers, officials, or
 another policy's beneficiaries merely because they gain under one action.
 When the scenario has no distributive structure, use ORIGINAL_POSITION_PUBLIC_RULE
 to test the public rule parties would accept under label uncertainty; do not
-fabricate a difference-principle beneficiary. s names the affected subject; sk
+fabricate a difference-principle beneficiary. g names the affected subject; sk
 names its kind; d names the relevant basic liberty, opportunity, primary good, or
 basic interest in security; e must match the fm prefix; ca is the rival action ID;
 b says whether the relation comes from the action graph, the shared scenario,
 framework interpretation only, or remains unknown; rs states the shortest
 supporting reason. Use e=UNCERTAIN and b=UNKNOWN rather than inventing an
 action-to-group edge.
+For every primary and additional position, bk classifies the basic liberty as
+POLITICAL_LIBERTY, SPEECH_ASSEMBLY, CONSCIENCE_THOUGHT,
+PERSONAL_FREEDOM_INTEGRITY, PERSONAL_PROPERTY, RULE_OF_LAW, NOT_APPLICABLE, or
+UNRESOLVED. ir separately classifies whether the action is a DIRECT_BASIC_STRUCTURE_RULE,
+DIRECT_COERCIVE_RESTRICTION, FAIR_VALUE_PRECONDITION, MATERIAL_PRECONDITION,
+NATURAL_CONTINGENCY, NOT_APPLICABLE, or UNRESOLVED. Health, subsistence, wealth,
+and safety may be prerequisites for exercising liberty without themselves being
+direct restrictions on a basic liberty. Classify those as primary goods or
+BASIC_INTEREST_SECURITY unless the action or public rule directly structures or
+restricts a protected freedom.
 rb identifies the governing Rawlsian stage. Equal basic liberties have lexical
-priority; use the difference principle or maximin primary goods only after recording
+priority only when a resolved bk and a direct institutional relation establish an
+actual liberty conflict. rbc justifies the classification among basic liberty, fair
+opportunity, primary goods, basic-interest security, and public-rule choice. lpj
+explains why lexical priority applies or why it does not. Merely selecting
+LEXICAL_BASIC_LIBERTY is never a justification. Use the difference principle or
+maximin primary goods only after recording
 each action's liberty status in lc. The difference principle is not a synonym for
 maximizing lives or total welfare, and applies specifically to social/economic
 inequality. Counts of lives may inform a public-rule choice behind the veil, but
@@ -4565,9 +4980,13 @@ ep must inventory EVERY material empirical premise used anywhere in your rationa
 decision rule, action cases, or framework-specific fields. For a grounded premise,
 copy the ledger claim EXACTLY into ep.c and cite its ID in ep.p. If your wording adds
 an outcome, severity, probability, actor, exclusivity, mechanism, or other factual
-content not contained in that exact ledger claim, put the stronger claim in ep.c,
-set ep.p=HYPOTHESIS, and set ep.dc=true when it could change the ranking. Do not use
-an established proposition as support for a stronger paraphrase.
+content not contained in that exact ledger claim, split the content into atomic ep
+rows: retain the established ledger claim as its own exact row, then put ONLY the
+smallest unsupported addition in another row with ep.p=HYPOTHESIS. Set ep.dc=true
+when that atom could change the ranking. Never turn a mixed sentence such as an
+established medical emergency plus an unestablished fatality inference into one
+all-or-nothing premise. Do not use an established proposition as support for a
+stronger paraphrase.
 You may cite IDs but may not change their status. Repetition, reformulation, consensus,
 or broadcast salience is not evidence. Put any important unstated empirical premise
 in x; Python assigns its hypothesis ID and prevents it from gaining authority through
@@ -4716,6 +5135,14 @@ If you translate it, name the relation your framework actually evaluates.
 Use the typed audit variable in the broadcast: av.entity names the decision-critical
 entity, av.relation names the unresolved relation, av.possible_values lists the
 typed values under dispute, and av.focus_action identifies the action under review.
+When av.target_framework names YOUR framework, directly test the inferential bridge
+named by the question and revise or qualify the relevant framework classification.
+When it names another framework, assess relevance from your own framework without
+adopting that framework's factual premise or increasing its epistemic status.
+av.generated_by identifies who authored the challenge; av.about_specialist identifies
+whose reasoning triggered it. Do not describe a workspace-generated challenge as if
+the audited specialist raised it. av.challenge_kind and av.trigger_fields identify
+the reasoning operation under review, not new evidence or an asserted conclusion.
 If av.required_response is present, use its allowed_effects to report ie. If the
 relation is THIRD_PARTY_STATUS, state whether the entity is EXTERNAL_THIRD_PARTY,
 AUTHORIZED_INTERNAL_AGENT, or UNKNOWN; if AUTHORIZATION_SCOPE, state whether the
@@ -4798,7 +5225,12 @@ range, population size, or claim that the hidden harm cannot approach a threshol
                 grounded_effect_context,
                 self.proposition_ledger,
             )
-            self._audit_framework_state_change(candidate, broadcast)
+            try:
+                self._audit_framework_state_change(candidate, broadcast)
+            except Exception as error:
+                raise SpecialistEvaluationStageError(
+                    "RECURRENT_FRAMEWORK_STATE_CHANGE_AUDIT", error,
+                ) from error
             self.previous_recommendation_id = action_ids[actions.index(candidate.recommended_action)]
             self.previous_confidence = candidate.reported_preference_strength
             self.previous_context = self._context_class(broadcast)
@@ -4868,7 +5300,12 @@ c must be one of: {', '.join(allowed_constraints)}. No prose.
                     scenario,
                     self.baseline_preferred_extension,
                 )
-                self._audit_framework_state_change(candidate, broadcast)
+                try:
+                    self._audit_framework_state_change(candidate, broadcast)
+                except Exception as error:
+                    raise SpecialistEvaluationStageError(
+                        "RECURRENT_FRAMEWORK_STATE_CHANGE_AUDIT", error,
+                    ) from error
                 self.previous_recommendation_id = action_ids[actions.index(candidate.recommended_action)]
                 self.previous_confidence = candidate.reported_preference_strength
                 self.previous_context = self._context_class(broadcast)
@@ -6086,11 +6523,12 @@ def ground_actions_in_scenario(
     world_model_schema = {
         "type": "object",
         "properties": {
-            "schema_version": {"type": "string", "enum": ["1.1"]},
+            "schema_version": {"type": "string", "enum": ["1.2"]},
             "parties": {"type": "array", "items": {"type": "object", "properties": {
                 "party_id": {"type": "string"}, "label": {"type": "string"},
-                "kind": {"type": "string"}, "clause_ids": source_ids_schema,
-            }, "required": ["party_id", "label", "kind", "clause_ids"], "additionalProperties": False}},
+                "kind": {"type": "string"}, "quantities": string_list,
+                "clause_ids": source_ids_schema,
+            }, "required": ["party_id", "label", "kind", "quantities", "clause_ids"], "additionalProperties": False}},
             "actions": {"type": "array", "items": {"type": "object", "properties": {
                 "action_id": {"type": "string", "enum": action_ids},
                 "intervention": {"type": "string"}, "actor_party_id": {"type": "string"},
@@ -6106,8 +6544,11 @@ def ground_actions_in_scenario(
                 "modality": {"type": "string", "enum": ["CERTAIN", "STIPULATED_CONDITIONAL", "PROBABILISTIC", "POSSIBLE", "UNKNOWN"]},
                 "effect_kind": {"type": "string", "enum": ["INTERVENTION", "RESOURCE_TRANSFER", "CAPABILITY_CHANGE", "PHYSICAL_STATE", "HEALTH_OUTCOME", "WELFARE_OUTCOME", "INSTITUTIONAL_OUTCOME", "OPPORTUNITY_LOSS", "OTHER"]},
                 "condition_ids": string_list, "quantities": string_list,
+                "likelihood_qualifiers": string_list,
+                "scope_qualifiers": string_list,
+                "temporal_qualifiers": string_list,
                 "clause_ids": effect_source_ids_schema,
-            }, "required": ["effect_id", "action_id", "party_id", "outcome", "relation", "polarity", "directness", "modality", "effect_kind", "condition_ids", "quantities", "clause_ids"], "additionalProperties": False}},
+            }, "required": ["effect_id", "action_id", "party_id", "outcome", "relation", "polarity", "directness", "modality", "effect_kind", "condition_ids", "quantities", "likelihood_qualifiers", "scope_qualifiers", "temporal_qualifiers", "clause_ids"], "additionalProperties": False}},
             "conditions": {"type": "array", "items": {"type": "object", "properties": {
                 "condition_id": {"type": "string"}, "description": {"type": "string"},
                 "value_status": {"type": "string"}, "decision_relevance": {"type": "string"},
@@ -6169,13 +6610,16 @@ effect that depends on it. Foregone effects use directness FOREGONE and polarity
 FOREGONE. Do not score a missed opportunity as ADVERSE or BENEFICIAL. Effect
 clause_ids must include at least one FACT clause or the confirmed action id
 (A0, A1, …) that states the claim. A choose-between or interrogative clause may
-be cited as context only and is never sufficient alone. Copy into quantities only
-the numerical or scale phrases the outcome itself uses, and only when a supporting
-source also states them (for example "16", "40%", "dozen", "tens of thousands").
-Do not copy every quantity from every cited clause. Leave quantities empty when
-the outcome uses no quantity. Do not invent probabilities, QALYs, or counts, and
-do not treat the generated outcome sentence as evidence for a quantity.
-Return schema_version="1.1". Effects must be atomic: one affected party, one outcome,
+be cited as context only and is never sufficient alone. Put population cardinality
+and scale phrases on the party they describe, even when an atomic effect outcome
+does not repeat them (for example "eight" for infants or "tens of thousands" for residents).
+Put resource, duration, monetary, percentage, and other effect-specific quantities
+on the effect. Copy only exact source spans and do not attach every quantity in a
+clause to every party or effect. Record exact source likelihood words such as
+"near-certain" in likelihood_qualifiers, extent words such as "widespread" in
+scope_qualifiers, and timing words such as "immediate" in temporal_qualifiers when
+they modify that effect. Do not invent probabilities, QALYs, counts, or qualifiers.
+Return schema_version="1.2". Effects must be atomic: one affected party, one outcome,
 and one causal stage per effect. An immediate action target, an intermediate system
 state, and the people ultimately helped or harmed are distinct parties/effects. For
 every recipient_party_id include an atomic DIRECT effect: use RESOURCE_TRANSFER when

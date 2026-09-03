@@ -8,9 +8,10 @@ provenance, never from the generated outcome alone.
 from __future__ import annotations
 
 import unittest
+from dataclasses import replace
 
 from global_workspace.scenario_semantics import (
-    compile_scenario_graph,
+    attach_typed_world_model, compile_scenario_graph,
     project_grounded_action_effects,
 )
 from global_workspace.world_state import (
@@ -23,7 +24,10 @@ from global_workspace.world_state import (
     WorldParty,
     ScenarioWorldModel,
     classify_clause_role,
+    explicit_likelihood_spans,
     explicit_quantity_spans,
+    explicit_scope_spans,
+    explicit_temporal_spans,
     parse_world_model,
     validate_world_model,
     world_model_from_dict,
@@ -196,6 +200,19 @@ class ExplicitQuantitySpanTests(unittest.TestCase):
             ("hundreds", "3 months"),
         )
 
+    def test_written_cardinality_before_population_noun_is_a_quantity(self):
+        self.assertEqual(
+            explicit_quantity_spans("life support for eight premature infants"),
+            ("eight",),
+        )
+        self.assertEqual(explicit_quantity_spans("one repair crew"), ())
+
+    def test_source_qualifier_extractors_keep_likelihood_scope_and_time_distinct(self):
+        text = "an immediate, near-certain fatal failure creates widespread disruption"
+        self.assertEqual(explicit_likelihood_spans(text), ("near-certain",))
+        self.assertEqual(explicit_scope_spans(text), ("widespread",))
+        self.assertEqual(explicit_temporal_spans(text), ("immediate",))
+
 
 class ClauseRoleTests(unittest.TestCase):
     def test_comparison_and_fact_roles(self):
@@ -205,6 +222,138 @@ class ClauseRoleTests(unittest.TestCase):
 
 
 class WorldModelValidationTests(unittest.TestCase):
+    @staticmethod
+    def _qualified_population_model(*, omit_qualifiers: bool = False) -> ScenarioWorldModel:
+        infant_ref = (SourceRef(
+            "C1",
+            "Without backup power, eight premature infants face immediate, "
+            "near-certain fatal equipment failure.",
+        ),)
+        resident_ref = (SourceRef(
+            "C2",
+            "The plant protects safe water for tens of thousands of residents "
+            "against widespread sanitation failure.",
+        ),)
+        parties = (
+            WorldParty("P0", "allocation system", "AUTOMATED_SYSTEM", REF),
+            WorldParty(
+                "P1", "premature infants", "POPULATION", infant_ref,
+                () if omit_qualifiers else ("eight",),
+            ),
+            WorldParty(
+                "P2", "residents", "POPULATION", resident_ref,
+                () if omit_qualifiers else ("tens of thousands",),
+            ),
+        )
+        effects = (
+            WorldEffect(
+                "E1", "A0", "P1", "immediate near-certain fatal equipment failure",
+                "CAUSES", "ADVERSE", "DOWNSTREAM", "PROBABILISTIC",
+                "HEALTH_OUTCOME", ("COND1",), (), infant_ref,
+                () if omit_qualifiers else ("near-certain",),
+                (), () if omit_qualifiers else ("immediate",),
+            ),
+            WorldEffect(
+                "E2", "A1", "P2", "widespread sanitation failure",
+                "PREVENTS", "BENEFICIAL", "DOWNSTREAM", "PROBABILISTIC",
+                "HEALTH_OUTCOME", ("COND2",), (), resident_ref,
+                (), () if omit_qualifiers else ("widespread",), (),
+            ),
+        )
+        return ScenarioWorldModel(
+            parties=parties,
+            actions=(
+                WorldAction("A0", "withhold backup power", "P0", (), ("E1",), REF),
+                WorldAction("A1", "power the treatment plant", "P0", (), ("E2",), REF),
+            ),
+            effects=effects,
+            conditions=(
+                WorldCondition("COND1", "backup power is absent", "STATED", "MATERIAL", infant_ref),
+                WorldCondition("COND2", "plant power is absent", "STATED", "MATERIAL", resident_ref),
+            ),
+            schema_version="1.2",
+        )
+
+    def test_schema_1_2_requires_source_bound_population_and_effect_qualifiers(self):
+        errors, _ = validate_world_model(
+            self._qualified_population_model(omit_qualifiers=True),
+            action_ids=["A0", "A1"],
+        )
+        self.assertTrue(any("P1 omits" in error and "eight" in error for error in errors))
+        self.assertTrue(any(
+            "P2 omits" in error and "tens of thousands" in error for error in errors
+        ))
+        self.assertTrue(any("E1 omits" in error and "likelihood" in error for error in errors))
+        self.assertTrue(any("E1 omits" in error and "temporal" in error for error in errors))
+        self.assertTrue(any("E2 omits" in error and "scope" in error for error in errors))
+
+    def test_schema_1_2_detects_qualifier_omitted_from_generated_outcome(self):
+        model = self._qualified_population_model()
+        weakened = replace(
+            model.effects[0],
+            outcome="fatal equipment failure",
+            likelihood_qualifiers=(),
+            temporal_qualifiers=(),
+        )
+        errors, _ = validate_world_model(
+            replace(model, effects=(weakened, model.effects[1])),
+            action_ids=["A0", "A1"],
+        )
+        self.assertTrue(any(
+            "E1 omits" in error and "near-certain" in error for error in errors
+        ))
+        self.assertTrue(any(
+            "E1 omits" in error and "immediate" in error for error in errors
+        ))
+
+    def test_population_quantities_do_not_cross_bind_within_one_clause(self):
+        model = self._qualified_population_model()
+        shared_ref = (SourceRef(
+            "C3",
+            "The choice affects eight premature infants while tens of thousands "
+            "of residents rely on safe water.",
+        ),)
+        parties = (
+            model.parties[0],
+            replace(model.parties[1], provenance=shared_ref),
+            replace(model.parties[2], provenance=shared_ref),
+        )
+        errors, _ = validate_world_model(
+            replace(model, parties=parties), action_ids=["A0", "A1"],
+        )
+        self.assertFalse(any(
+            "P1 omits" in error and "tens of thousands" in error for error in errors
+        ))
+        self.assertFalse(any(
+            "P2 omits" in error and "eight" in error for error in errors
+        ))
+
+    def test_schema_1_2_qualifiers_project_to_atomic_established_propositions(self):
+        model = self._qualified_population_model()
+        errors, _ = validate_world_model(model, action_ids=["A0", "A1"])
+        self.assertEqual(errors, [])
+        restored = world_model_from_dict(model.as_dict())
+        self.assertIsNotNone(restored)
+        self.assertEqual(restored.schema_version, "1.2")
+        self.assertEqual(restored.parties[1].quantities, ("eight",))
+        self.assertEqual(restored.effects[0].likelihood_qualifiers, ("near-certain",))
+        graph = SemanticGraph()
+        for action_id, action in (("A0", "withhold backup power"), ("A1", "power plant")):
+            graph.add_node(SemanticNode(
+                action_id, "ACTION", action, ("scenario_action_set",),
+                {"canonical_action_id": action_id},
+            ))
+        attach_typed_world_model(graph, model)
+        ledger = seed_proposition_ledger(graph)
+        established_claims = {
+            row.claim for row in ledger.values()
+            if row.epistemic_status == "ESTABLISHED"
+        }
+        self.assertIn("eight premature infants", established_claims)
+        self.assertIn("tens of thousands residents", established_claims)
+        self.assertTrue(any(claim.startswith("near-certain —") for claim in established_claims))
+        self.assertTrue(any(claim.startswith("widespread —") for claim in established_claims))
+
     def test_valid_model_commits(self):
         errors, contradictions = validate_world_model(
             _valid_model(), action_ids=["A0", "A1"],
@@ -846,6 +995,83 @@ def _epistemic_candidate(
 
 
 class EpistemicPropositionLedgerTests(unittest.TestCase):
+    def test_engine_rollback_preserves_same_cycle_side_audit_dependencies(self):
+        class RejectingSpecialist:
+            name = "duty"
+
+            def __init__(self):
+                self.calls = 0
+
+            def evaluate(self, scenario, actions, broadcast):
+                self.calls += 1
+                rejected = self.calls == 2
+                return CandidateChunk(
+                    specialist=self.name, constraint="DUTY",
+                    action_scores={
+                        actions[0]: 0.2 if rejected else 0.8,
+                        actions[1]: 0.8 if rejected else 0.2,
+                    },
+                    surprise=0.5, friction=0.6, confidence=0.8,
+                    recommended_action=actions[1] if rejected else actions[0],
+                    rationale="A duty-based comparison supports the current position.",
+                    decision_rule="Prefer the action supported by the governing duty.",
+                    framework_retention_status=(
+                        "UPDATE_REJECTED" if rejected else "PRESERVED"
+                    ),
+                    framework_constraint_retained=True,
+                    framework_validation_errors=(
+                        ["unjustified duty transition"] if rejected else []
+                    ),
+                )
+
+        audit_calls = 0
+
+        def audit(_ledger, candidates):
+            nonlocal audit_calls
+            audit_calls += 1
+            if audit_calls == 1:
+                return {"status": "PASSED", "findings": [], "error": ""}
+            return {
+                "status": "FINDINGS", "error": "",
+                "findings": [{
+                    "specialist": candidates[0].specialist,
+                    "claim": "the delayed action creates irreversible harm",
+                    "binding": "NEW_HYPOTHESIS", "derived_from": [],
+                    "decision_critical": True, "source_field": "decision_rule",
+                    "reason": "the revised comparison relies on this outcome",
+                }],
+            }
+
+        result = WorkspaceEngine(
+            [RejectingSpecialist()],
+            WorkspaceConfig(
+                max_cycles=2, stable_cycles_required=2, min_valid_specialists=1,
+                stop_redundant_consensus_cycles=False,
+                enable_synthesis=False, enable_planning=False,
+                enable_consensus_audit=False, enable_problem_state_audit=False,
+                enable_reversal_audit=False,
+            ),
+        ).run(
+            "Choose immediate or delayed action under an uncertain harm claim.",
+            ["act immediately", "delay action"],
+            audit_side_premises=audit,
+        )
+        final = result.cycles[-1].candidates[0]
+        hypothesis_ids = [
+            row["proposition_id"] for row in result.proposition_ledger
+            if row["claim"] == "the delayed action creates irreversible harm"
+        ]
+        self.assertEqual(len(hypothesis_ids), 1)
+        self.assertEqual(final.recommended_action, "act immediately")
+        self.assertEqual(
+            final.framework_retention_status, "PRESERVED_AFTER_REJECTED_UPDATE",
+        )
+        self.assertIn(hypothesis_ids[0], final.supporting_proposition_ids)
+        self.assertIn(hypothesis_ids[0], final.decision_critical_proposition_ids)
+        self.assertEqual(final.side_premise_audit_status, "FINDINGS")
+        self.assertEqual(final.adjudication_status, "CONDITIONAL_SUPPORTS")
+        self.assertTrue(result.shared_unresolved_dependencies)
+
     def test_presentation_qualifies_domain_general_specific_hypotheses(self):
         data = {"proposition_ledger": [{
             "proposition_id": "PROP:HYPOTHESIS:SUPPLIER",
@@ -875,11 +1101,95 @@ class EpistemicPropositionLedgerTests(unittest.TestCase):
         }
         self.assertEqual(_candidate_epistemic_qualification(data, candidate), "")
 
+    def test_presentation_suppresses_legacy_hypothesis_duplicating_established_atom(self):
+        data = {"proposition_ledger": [
+            {
+                "proposition_id": "PROP:WORLD:E1",
+                "claim": "widespread sanitation failure; affected subject: residents",
+                "proposition_type": "DESCRIPTIVE",
+                "epistemic_status": "ESTABLISHED",
+            },
+            {
+                "proposition_id": "PROP:HYPOTHESIS:DUPLICATE",
+                "claim": "widespread sanitation failure",
+                "proposition_type": "HYPOTHESIS",
+                "epistemic_status": "HYPOTHETICAL",
+            },
+        ]}
+        candidate = {
+            "supporting_proposition_ids": ["PROP:HYPOTHESIS:DUPLICATE"],
+            "decision_critical_proposition_ids": ["PROP:HYPOTHESIS:DUPLICATE"],
+        }
+        self.assertEqual(_candidate_epistemic_qualification(data, candidate), "")
+
     def test_world_effects_seed_established_propositions(self):
         ledger = seed_proposition_ledger(_epistemic_grounded_graph())
         proposition = ledger["PROP:WORLD:E1"]
         self.assertEqual(proposition.epistemic_status, "ESTABLISHED")
         self.assertEqual(proposition.support_ids, ["E1"])
+        self.assertIn("affected subject: affected residents", proposition.claim)
+
+    def test_side_audit_preserves_transparent_composition_as_derived(self):
+        ledger = seed_proposition_ledger(_epistemic_grounded_graph())
+        ledger["PROP:WORLD:E2"] = type(ledger["PROP:WORLD:E1"])(
+            proposition_id="PROP:WORLD:E2",
+            claim="the clinic remains accessible",
+            proposition_type="DESCRIPTIVE",
+            epistemic_status="ESTABLISHED",
+            support_ids=["E2"],
+            introduced_by="WORLD_MODEL",
+        )
+        candidate = _epistemic_candidate()
+        apply_side_premise_audit(ledger, [candidate], {
+            "status": "FINDINGS",
+            "findings": [{
+                "specialist": "deontological",
+                "claim": "medical emergencies are prevented and the clinic remains accessible",
+                "binding": "DERIVED_ESTABLISHED",
+                "derived_from": ["PROP:WORLD:E1", "PROP:WORLD:E2"],
+                "decision_critical": True,
+                "source_field": "decision_rule",
+                "reason": "transparent conjunction of established effects",
+            }],
+            "error": "",
+        })
+
+        proposition_id = candidate.decision_critical_proposition_ids[0]
+        proposition = ledger[proposition_id]
+        self.assertEqual(proposition.epistemic_status, "DERIVED")
+        self.assertEqual(
+            proposition.derived_from, ["PROP:WORLD:E1", "PROP:WORLD:E2"],
+        )
+        self.assertEqual(candidate.weakest_decision_critical_status, "DERIVED")
+        self.assertEqual(candidate.selection_status, "SELECTED")
+
+    def test_invalid_derived_binding_falls_back_to_hypothesis(self):
+        ledger = seed_proposition_ledger(_epistemic_grounded_graph())
+        ledger["PROP:WORLD:E2"] = type(ledger["PROP:WORLD:E1"])(
+            proposition_id="PROP:WORLD:E2",
+            claim="the clinic remains accessible",
+            proposition_type="DESCRIPTIVE",
+            epistemic_status="ESTABLISHED",
+            support_ids=["E2"],
+            introduced_by="WORLD_MODEL",
+        )
+        candidate = _epistemic_candidate()
+        apply_side_premise_audit(ledger, [candidate], {
+            "status": "FINDINGS",
+            "findings": [{
+                "specialist": "deontological",
+                "claim": "the prevented emergencies avert death",
+                "binding": "DERIVED_ESTABLISHED",
+                "derived_from": ["PROP:WORLD:E1", "PROP:WORLD:E2"],
+                "decision_critical": True,
+                "source_field": "rationale",
+                "reason": "unsupported outcome is not transparent composition",
+            }],
+            "error": "",
+        })
+
+        proposition = ledger[candidate.decision_critical_proposition_ids[0]]
+        self.assertEqual(proposition.epistemic_status, "HYPOTHETICAL")
 
     def test_compact_system_effect_id_is_valid_for_utilitarian_valuation(self):
         valuation = EffectValuationProposal.model_validate({
@@ -981,6 +1291,47 @@ class EpistemicPropositionLedgerTests(unittest.TestCase):
         self.assertEqual(candidate.weakest_decision_critical_status, "HYPOTHETICAL")
         self.assertTrue(candidate.epistemic_binding_notes)
         self.assertLessEqual(candidate.epistemic_confidence, 0.5)
+
+    def test_canonical_component_restatement_remains_established(self):
+        ledger = seed_proposition_ledger(_epistemic_grounded_graph())
+        candidate = _epistemic_candidate()
+        candidate.material_empirical_claims = [{
+            "claim": "medical emergencies are prevented",
+            "proposition_id": "PROP:WORLD:E1",
+            "decision_critical": True,
+        }]
+        attach_candidate_dependencies(ledger, candidate)
+        self.assertEqual(candidate.weakest_decision_critical_status, "ESTABLISHED")
+        self.assertEqual(
+            candidate.decision_critical_proposition_ids, ["PROP:WORLD:E1"],
+        )
+        self.assertFalse(any(
+            record.proposition_type == "HYPOTHESIS" for record in ledger.values()
+        ))
+
+    def test_side_audit_cannot_duplicate_established_component_as_hypothesis(self):
+        ledger = seed_proposition_ledger(_epistemic_grounded_graph())
+        candidate = _epistemic_candidate()
+        apply_side_premise_audit(ledger, [candidate], {
+            "status": "FINDINGS",
+            "findings": [{
+                "specialist": "deontological",
+                "claim": "medical emergencies are prevented",
+                "binding": "NEW_HYPOTHESIS",
+                "derived_from": ["PROP:WORLD:E1"],
+                "decision_critical": True,
+                "source_field": "rationale",
+                "reason": "auditor incorrectly requested a duplicate",
+            }],
+            "error": "",
+        })
+        self.assertEqual(
+            candidate.decision_critical_proposition_ids, ["PROP:WORLD:E1"],
+        )
+        self.assertEqual(candidate.weakest_decision_critical_status, "ESTABLISHED")
+        self.assertFalse(any(
+            record.proposition_type == "HYPOTHESIS" for record in ledger.values()
+        ))
 
     def test_side_audit_attaches_undeclared_specific_outcome_as_hypothesis(self):
         ledger = seed_proposition_ledger(_epistemic_grounded_graph())
@@ -1178,6 +1529,7 @@ class EpistemicPropositionLedgerTests(unittest.TestCase):
             audit_side_premises=audit,
         )
         candidates = result.cycles[0].candidates
+        self.assertEqual(result.active_specialists, ["duty", "care"])
         self.assertTrue(all(
             candidate.adjudication_status == "CONDITIONAL_SUPPORTS"
             for candidate in candidates

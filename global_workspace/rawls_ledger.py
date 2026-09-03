@@ -31,6 +31,16 @@ RawlsDimension = Literal[
     "BASIC_LIBERTY", "OPPORTUNITY", "INCOME_WEALTH", "POWERS_OFFICES",
     "SELF_RESPECT", "BASIC_INTEREST_SECURITY", "OTHER_PRIMARY_GOOD", "UNKNOWN",
 ]
+RawlsBasicLibertyKind = Literal[
+    "POLITICAL_LIBERTY", "SPEECH_ASSEMBLY", "CONSCIENCE_THOUGHT",
+    "PERSONAL_FREEDOM_INTEGRITY", "PERSONAL_PROPERTY", "RULE_OF_LAW",
+    "NOT_APPLICABLE", "UNRESOLVED",
+]
+RawlsInstitutionalRelation = Literal[
+    "DIRECT_BASIC_STRUCTURE_RULE", "DIRECT_COERCIVE_RESTRICTION",
+    "FAIR_VALUE_PRECONDITION", "MATERIAL_PRECONDITION",
+    "NATURAL_CONTINGENCY", "NOT_APPLICABLE", "UNRESOLVED",
+]
 
 
 class RawlsPositionProposal(BaseModel):
@@ -61,6 +71,8 @@ class RawlsPositionProposal(BaseModel):
         default_factory=list,
         validation_alias=AliasChoices("additional_dimensions", "ad", "secondary_dimensions"),
     )
+    basic_liberty_kind: RawlsBasicLibertyKind = "UNRESOLVED"
+    institutional_relation: RawlsInstitutionalRelation = "UNRESOLVED"
     effect: RawlsEffect
     compared_to_action_id: str = Field(pattern=r"^A\d+$")
     evidence_basis: Literal["ACTION_GRAPH", "SCENARIO", "FRAMEWORK_ONLY", "UNKNOWN"]
@@ -78,6 +90,13 @@ class RawlsPositionProposal(BaseModel):
             raise ValueError("Rawlsian position repeats an additional dimension")
         if self.dimension in extras:
             raise ValueError("Rawlsian position cannot repeat its primary dimension as additional")
+        if self.dimension == "BASIC_LIBERTY":
+            if self.basic_liberty_kind == "NOT_APPLICABLE":
+                raise ValueError("basic-liberty position must classify the liberty")
+            if self.institutional_relation == "NOT_APPLICABLE":
+                raise ValueError("basic-liberty position must classify its institutional relation")
+        elif self.basic_liberty_kind not in {"NOT_APPLICABLE", "UNRESOLVED"}:
+            raise ValueError("non-liberty position cannot assert a basic-liberty kind")
         self.additional_dimensions = extras
         return self
 
@@ -87,10 +106,12 @@ class RawlsLedgerProposal(BaseModel):
     ranking_basis: Literal[
         "LEXICAL_BASIC_LIBERTY", "FAIR_EQUALITY_OPPORTUNITY",
         "MAXIMIN_PRIMARY_GOODS", "DIFFERENCE_PRINCIPLE",
-        "ORIGINAL_POSITION_PUBLIC_RULE", "UNRESOLVED",
+        "BASIC_INTEREST_SECURITY", "ORIGINAL_POSITION_PUBLIC_RULE", "UNRESOLVED",
     ]
+    ranking_classification_justification: str = Field(min_length=8, max_length=240)
+    lexical_priority_justification: str = Field(min_length=8, max_length=240)
     liberty_status: dict[str, Literal[
-        "SATISFIED", "INFRINGED", "CONFLICTED", "UNKNOWN",
+        "SATISFIED", "INFRINGED", "CONFLICTED", "UNKNOWN", "NOT_APPLICABLE",
     ]]
     positions: list[RawlsPositionProposal] = Field(min_length=2, max_length=16)
 
@@ -106,6 +127,23 @@ class RawlsLedgerProposal(BaseModel):
         ]
         if len(identities) != len(set(identities)):
             raise ValueError("Rawlsian ledger repeats an action-dimension-subject position")
+        liberty_positions = [
+            position for position in self.positions
+            if position.dimension == "BASIC_LIBERTY"
+        ]
+        if self.ranking_basis == "LEXICAL_BASIC_LIBERTY":
+            if not liberty_positions:
+                raise ValueError("lexical priority requires a classified basic-liberty position")
+            if any(
+                position.basic_liberty_kind == "UNRESOLVED"
+                or position.institutional_relation not in {
+                    "DIRECT_BASIC_STRUCTURE_RULE", "DIRECT_COERCIVE_RESTRICTION",
+                }
+                for position in liberty_positions
+            ):
+                raise ValueError(
+                    "lexical priority requires a resolved liberty classification and direct institutional relation"
+                )
         return self
 
 
@@ -681,6 +719,8 @@ def apply_rawls_ledger_transaction(
                 "affected_subject": subject_label,
                 "subject_kind": subject_kind,
                 "dimension": position.dimension,
+                "basic_liberty_kind": position.basic_liberty_kind,
+                "institutional_relation": position.institutional_relation,
                 "additional_dimensions": list(position.additional_dimensions),
                 "dimension_bundle": [position.dimension, *position.additional_dimensions],
                 "comparative_effect": committed_effect,
@@ -693,6 +733,8 @@ def apply_rawls_ledger_transaction(
                 "epistemic_status": epistemic_status,
                 "reason": position.reason,
                 "ranking_basis": validated.ranking_basis,
+                "ranking_classification_justification": validated.ranking_classification_justification,
+                "lexical_priority_justification": validated.lexical_priority_justification,
                 "liberty_status": validated.liberty_status.get(position.action_id, "UNKNOWN"),
                 "subject_selection_status": (
                     "BOUND_TO_ACTION" if subject_bound_to_action else "UNRESOLVED_SUBJECT_SELECTION"
@@ -747,6 +789,8 @@ def apply_rawls_ledger_transaction(
                 node.id for node in [*own_consequences, *rival_consequences, *grounded_targets]
             ],
             "ranking_basis": validated.ranking_basis,
+            "ranking_classification_justification": validated.ranking_classification_justification,
+            "lexical_priority_justification": validated.lexical_priority_justification,
             "liberty_status": validated.liberty_status.get(position.action_id, "UNKNOWN"),
             "subject_selection_status": (
                 "BOUND_TO_ACTION" if subject_bound_to_action else "UNRESOLVED_SUBJECT_SELECTION"

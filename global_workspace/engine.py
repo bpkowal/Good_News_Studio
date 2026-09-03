@@ -16,7 +16,7 @@ from .middleware.reversal_audit import (
     build_reversal_audit_request,
     dissent_reversal_condition,
 )
-from .models import AutonomyAssessment, CandidateChunk, ContingencyFeasibilityAssessment, CycleRecord, FailureCondition, PlanningAssessment, PlanningBranchEvaluation, ProblemReformulation, SynthesisProposal, SynthesisViabilityAssessment, VisibilityAssessment, WorkspaceAccessDecision, WorkspaceBroadcast, WorkspaceResult, clamp
+from .models import ArgumentChallenge, AutonomyAssessment, CandidateChunk, ContingencyFeasibilityAssessment, CycleRecord, FailureCondition, PlanningAssessment, PlanningBranchEvaluation, ProblemReformulation, SynthesisProposal, SynthesisViabilityAssessment, VisibilityAssessment, WorkspaceAccessDecision, WorkspaceBroadcast, WorkspaceResult, clamp
 from .specialist_authority import (
     CONTESTED_RECOMMENDATION,
     GOVERNED_RECOMMENDATION,
@@ -36,7 +36,10 @@ from .semantic_invariants import (
     validate_transformation,
 )
 from .semantic_graph import SemanticEdge, SemanticGraph, SemanticNode
-from .scenario_semantics import classify_planning_failure_grounding
+from .scenario_semantics import (
+    classify_planning_failure_grounding,
+    project_grounded_action_effects,
+)
 from .trace_health import audit_trace_health
 from .decision_boundaries import select_collective_reversal_boundary
 from .deliberative_state import (
@@ -77,6 +80,7 @@ from .virtue_ledger import (
     apply_virtue_ledger_transaction,
     committed_virtue_assessments,
 )
+from .care_ledger import apply_care_ledger_transaction, committed_care_assessments
 from .scenario_semantics import compile_scenario_graph
 from .scenario_semantics import compile_action_burdens, compile_execution_obstacles
 from .semantic_state import (
@@ -231,6 +235,175 @@ def _framework_retention_failed(candidate: CandidateChunk) -> bool:
     )
 
 
+_FRAMEWORK_STATE_FIELDS = (
+    "constraint", "action_scores", "recommended_action", "rationale",
+    "decision_rule", "framework_action_map", "framework_numerical_role",
+    "framework_numerical_justification", "action_admissibility",
+    "comparison_complete", "evidence_sufficient_for_action", "interim_action",
+    "factual_reversal_threshold", "normative_reversal_threshold",
+    "utilitarian_consequence_table", "utilitarian_ledger_proposal",
+    "rawls_position_proposal", "deontological_ledger_proposal",
+    "virtue_character_proposal", "care_ledger_proposal", "care_relational_map", "care_numerical_role",
+    "care_numerical_justification",
+)
+
+
+def _framework_state_projection(candidate: CandidateChunk) -> dict[str, object]:
+    """Snapshot only the framework-authoritative state subject to rollback."""
+    return {
+        field: copy.deepcopy(getattr(candidate, field))
+        for field in _FRAMEWORK_STATE_FIELDS
+    }
+
+
+def _merge_unique(values: Sequence[object], additions: Sequence[object], limit: int) -> list:
+    merged: list = []
+    for value in [*values, *additions]:
+        if value not in merged:
+            merged.append(copy.deepcopy(value))
+        if len(merged) >= limit:
+            break
+    return merged
+
+
+def _preserve_current_cycle_components(
+    restored: CandidateChunk, candidate: CandidateChunk,
+) -> list[str]:
+    """Overlay facts and diagnostics that a normative transaction cannot reject."""
+    preserved: list[str] = []
+
+    restored.supporting_proposition_ids = _merge_unique(
+        restored.supporting_proposition_ids,
+        candidate.supporting_proposition_ids,
+        24,
+    )
+    restored.decision_critical_proposition_ids = _merge_unique(
+        restored.decision_critical_proposition_ids,
+        candidate.decision_critical_proposition_ids,
+        12,
+    )
+    restored.decision_critical_dependency_claims = _merge_unique(
+        restored.decision_critical_dependency_claims,
+        candidate.decision_critical_dependency_claims,
+        4,
+    )
+    restored.material_empirical_claims = _merge_unique(
+        restored.material_empirical_claims,
+        candidate.material_empirical_claims,
+        12,
+    )
+    restored.epistemic_binding_notes = _merge_unique(
+        restored.epistemic_binding_notes,
+        candidate.epistemic_binding_notes,
+        12,
+    )
+    epistemic_rank = {
+        "REJECTED": 0, "HYPOTHETICAL": 1, "UNRESOLVED": 2,
+        "DERIVED": 3, "ESTABLISHED": 4,
+    }
+    restored.weakest_decision_critical_status = min(
+        (
+            restored.weakest_decision_critical_status,
+            candidate.weakest_decision_critical_status,
+        ),
+        key=lambda status: epistemic_rank.get(str(status).upper(), 0),
+    )
+    if candidate.side_premise_audit_status != "NOT_RUN":
+        restored.side_premise_audit_status = candidate.side_premise_audit_status
+        restored.side_premise_audit_findings = copy.deepcopy(
+            candidate.side_premise_audit_findings
+        )
+    if candidate.assumption_status != "NOT_AUDITED":
+        restored.assumption_status = candidate.assumption_status
+    if candidate.unsupported_assumption:
+        restored.unsupported_assumption = candidate.unsupported_assumption
+    if candidate.unresolved != "NONE":
+        restored.unresolved = candidate.unresolved
+    restored.epistemic_confidence = min(
+        restored.epistemic_confidence, candidate.epistemic_confidence,
+    )
+    restored.confidence = restored.epistemic_confidence
+    if candidate.selection_status == "PROVISIONAL":
+        restored.selection_status = "PROVISIONAL"
+    restored.comparison_complete = (
+        restored.comparison_complete and candidate.comparison_complete
+    )
+    restored.evidence_sufficient_for_action = (
+        restored.evidence_sufficient_for_action
+        and candidate.evidence_sufficient_for_action
+    )
+    if candidate.evidence_basis == "UNSTATED_FACTS":
+        restored.evidence_basis = candidate.evidence_basis
+    if candidate.speculative_claim:
+        restored.speculative_claim = candidate.speculative_claim
+    preserved.append("EPISTEMIC_DEPENDENCIES")
+
+    restored.validation_errors = _merge_unique(
+        restored.validation_errors, candidate.validation_errors, 12,
+    )
+    restored.framework_validation_errors = _merge_unique(
+        restored.framework_validation_errors,
+        [f"rejected update: {error}" for error in candidate.framework_validation_errors],
+        16,
+    )
+    restored.framework_insights = _merge_unique(
+        restored.framework_insights, candidate.framework_insights, 6,
+    )
+    restored.framework_internal_conflicts = _merge_unique(
+        restored.framework_internal_conflicts,
+        candidate.framework_internal_conflicts,
+        3,
+    )
+    restored.framework_specific_open_questions = _merge_unique(
+        restored.framework_specific_open_questions,
+        [
+            *candidate.framework_specific_open_questions,
+            *(
+                str(item.get("proposition", ""))
+                for item in candidate.framework_insights
+                if str(item.get("proposition", "")).strip()
+            ),
+        ],
+        3,
+    )
+    restored.landscape_validation_errors = _merge_unique(
+        restored.landscape_validation_errors,
+        candidate.landscape_validation_errors,
+        8,
+    )
+    preserved.extend(["FRAMEWORK_DIAGNOSTICS", "OPEN_QUESTIONS"])
+
+    restored.self_reported_broadcast_dependence = (
+        candidate.self_reported_broadcast_dependence
+    )
+    if (
+        candidate.workspace_proposition_response != "NOT_APPLICABLE"
+        or candidate.workspace_reasoning_effect != "NONE"
+    ):
+        restored.workspace_proposition_response = candidate.workspace_proposition_response
+        restored.workspace_reasoning_effect = candidate.workspace_reasoning_effect
+        restored.framework_application = candidate.framework_application
+    if candidate.audit_participation != "NOT_TESTED":
+        restored.audit_participation = candidate.audit_participation
+        restored.audit_internal_effect = candidate.audit_internal_effect
+        restored.audit_framework_explanation = candidate.audit_framework_explanation
+        restored.audit_variable = copy.deepcopy(candidate.audit_variable)
+    if candidate.visibility_response != "NOT_TESTED":
+        restored.visibility_response = candidate.visibility_response
+        restored.visibility_justification = candidate.visibility_justification
+        restored.visibility_harm_revision = candidate.visibility_harm_revision
+        restored.visibility_magnitude_status = candidate.visibility_magnitude_status
+        restored.visibility_magnitude_overreach = candidate.visibility_magnitude_overreach
+    if candidate.reversal_review_response != "NOT_TESTED":
+        restored.reversal_review_response = candidate.reversal_review_response
+        restored.reversal_review_justification = candidate.reversal_review_justification
+        restored.revised_reversal_condition = candidate.revised_reversal_condition
+        restored.reversal_review_valid = candidate.reversal_review_valid
+        restored.reversal_review_error = candidate.reversal_review_error
+    preserved.append("CURRENT_CYCLE_MEASUREMENTS")
+    return preserved
+
+
 def _operative_framework_candidates(
     candidates: Sequence[CandidateChunk],
     last_valid: dict[str, CandidateChunk],
@@ -261,55 +434,29 @@ def _operative_framework_candidates(
                     or admitted.framework_grounding_penalty > 0.0
                     else "FIRST_STATE_ADMITTED"
                 )
+                state = _framework_state_projection(admitted)
+                admitted.proposed_framework_state = copy.deepcopy(state)
+                admitted.committed_framework_state = copy.deepcopy(state)
                 operative.append(admitted)
                 if remember:
                     last_valid[admitted.specialist] = copy.deepcopy(admitted)
                 continue
             restored = copy.deepcopy(previous)
+            restored.proposed_framework_state = _framework_state_projection(candidate)
+            restored.committed_framework_state = _framework_state_projection(previous)
             restored.framework_retention_status = "PRESERVED_AFTER_REJECTED_UPDATE"
             restored.framework_constraint_retained = True
-            restored.framework_validation_errors = list(dict.fromkeys([
-                *restored.framework_validation_errors,
-                *(
-                    f"rejected update: {error}"
-                    for error in candidate.framework_validation_errors
-                ),
-            ]))
-            restored.framework_insights = list(candidate.framework_insights)
-            restored.framework_internal_conflicts = list(dict.fromkeys([
-                *restored.framework_internal_conflicts,
-                *candidate.framework_internal_conflicts,
-            ]))[:3]
-            restored.framework_specific_open_questions = list(dict.fromkeys([
-                *restored.framework_specific_open_questions,
-                *candidate.framework_specific_open_questions,
-                *(
-                    str(item.get("proposition", ""))
-                    for item in candidate.framework_insights
-                    if str(item.get("proposition", "")).strip()
-                ),
-            ]))[:3]
-            # Probe answers belong to this cycle's admitted content. A rejected
-            # Kantian mutation must not erase a completed visibility or audit
-            # response when the prior snapshot was taken on OPEN_DELIBERATION.
-            if candidate.visibility_response not in {"", "NOT_TESTED"}:
-                restored.visibility_response = candidate.visibility_response
-                restored.visibility_justification = candidate.visibility_justification
-                restored.visibility_harm_revision = candidate.visibility_harm_revision
-                restored.visibility_magnitude_status = candidate.visibility_magnitude_status
-                restored.visibility_magnitude_overreach = (
-                    candidate.visibility_magnitude_overreach
-                )
-            if candidate.audit_participation not in {"", "NOT_TESTED"}:
-                restored.audit_participation = candidate.audit_participation
-                restored.audit_internal_effect = candidate.audit_internal_effect
-                restored.audit_framework_explanation = (
-                    candidate.audit_framework_explanation
-                )
-                restored.audit_variable = dict(candidate.audit_variable)
+            restored.preserved_current_cycle_components = (
+                _preserve_current_cycle_components(restored, candidate)
+            )
             operative.append(restored)
+            if remember:
+                last_valid[restored.specialist] = copy.deepcopy(restored)
             continue
         operative.append(candidate)
+        state = _framework_state_projection(candidate)
+        candidate.proposed_framework_state = copy.deepcopy(state)
+        candidate.committed_framework_state = copy.deepcopy(state)
         if remember:
             last_valid[candidate.specialist] = copy.deepcopy(candidate)
     return operative
@@ -754,7 +901,10 @@ def _problem_state_audit_probe(
     needs reviewing.
     """
     state = dict(problem_state or {})
-    questions = list(state.get("audit_candidates", []) or [])
+    questions = [
+        *(state.get("audit_candidates", []) or []),
+        *(state.get("argument_challenge_candidates", []) or []),
+    ]
     positions = {
         str(item.get("specialist", "")): item
         for item in state.get("agent_positions", []) or []
@@ -767,14 +917,16 @@ def _problem_state_audit_probe(
         # ProblemState audit candidates must carry their stable current-run
         # identity. Never stringify a missing key into an authoritative
         # "None" audit variable.
-        if not issue_id.startswith("QUESTION:"):
+        if not issue_id.startswith(("QUESTION:", "CHALLENGE:")):
             continue
         grounded_in = list(question.get("grounded_in", []) or [])
         if not grounded_in:
             continue
         if (
             require_clause_grounding
-            and question.get("grounding_status", "CLAUSE_GROUNDED") != "CLAUSE_GROUNDED"
+            and question.get("grounding_status", "CLAUSE_GROUNDED") not in {
+                "CLAUSE_GROUNDED", "PROPOSITION_GROUNDED",
+            }
         ):
             continue
         proposition = " ".join(str(
@@ -782,7 +934,10 @@ def _problem_state_audit_probe(
         ).split())
         category = str(question.get("category", "UNRESOLVED_QUESTION")).upper()
         raised_by = list(question.get("raised_by", []) or [])
-        source = str(raised_by[0] if len(raised_by) == 1 else "")
+        source = str(
+            raised_by[0] if len(raised_by) == 1
+            else question.get("about_specialist", "")
+        )
         score = 1
         if re.search(
             r"\b(?:relative|compare|versus|outweigh|magnitude|utility|trade[- ]?off)\b",
@@ -799,6 +954,7 @@ def _problem_state_audit_probe(
             score += 6
         if question.get("grounding_status") == "UNGROUNDED":
             score -= 6
+        score += int(float(question.get("priority", 0.0) or 0.0) * 10)
         ranked.append((score, question))
     if not ranked:
         return [], "", {}
@@ -815,6 +971,7 @@ def _problem_state_audit_probe(
     ).split())
     category = str(chosen.get("category", "UNRESOLVED_QUESTION")).upper()
     raised_by = list(chosen.get("raised_by", []) or [])
+    target_specialists = list(chosen.get("target_specialists", []) or [])
     persistent = chosen.get("status") == "PERSISTENT_UNRESOLVED"
     relation = (
         "COMPARATIVE_MAGNITUDE"
@@ -832,10 +989,20 @@ def _problem_state_audit_probe(
     payload = {
         "issue_id": issue_id,
         "source": str(chosen.get("source", "problem_state.unresolved_questions")),
+        "generated_by": str(chosen.get("generated_by", "")),
+        "about_specialist": str(chosen.get("about_specialist", "")),
         "proposition": proposition,
         "grounded_in": list(chosen.get("grounded_in", []) or []),
         "grounding_status": str(chosen.get("grounding_status", "CLAUSE_GROUNDED")),
         "raised_by": raised_by,
+        "target_framework": str(
+            (target_specialists or [chosen.get("target_framework", "")])[0]
+        ),
+        "target_specialists": target_specialists,
+        "challenge_kind": str(chosen.get(
+            "challenge_kind", chosen.get("uncertainty_kind", "")
+        )),
+        "trigger_fields": list(chosen.get("trigger_fields", []) or []),
         "status": status,
         "entity": proposition,
         "relation": relation,
@@ -855,6 +1022,504 @@ def _problem_state_audit_probe(
         f"problem_state_{relation.casefold()}",
         "persistent_unresolved" if persistent else "live_unresolved",
     ], question, payload
+
+
+_DECISIVE_OUTCOME_MARKERS: dict[str, re.Pattern[str]] = {
+    "DEATH_OR_SURVIVAL": re.compile(
+        r"\b(?:death|die|dying|fatal|mortal|life[- ]saving|survival)\b", re.I,
+    ),
+    "CERTAIN_OUTCOME": re.compile(
+        r"\b(?:certain(?:ly)?|guarantee[ds]?|inevitabl\w*|necessarily)\b", re.I,
+    ),
+}
+_EFFECT_DOWNGRADE_MARKER = re.compile(
+    r"\b(?:non[- ]vital|mere(?:ly)?\s+(?:benefit|beneficence|beneficent)|"
+    r"optional\s+(?:benefit|welfare)|ordinary\s+beneficence)\b",
+    re.I,
+)
+
+
+def _argument_challenge_candidates(
+    candidates: Sequence[CandidateChunk],
+    proposition_ledger: dict[str, object],
+    graph: SemanticGraph,
+    selected_action: str,
+) -> list[dict[str, object]]:
+    """Compile questions about inferential bridges without asserting answers.
+
+    These are stress tests for an otherwise redundant recurrence. A challenge
+    may increase attention to a premise, but does not change its epistemic
+    status or the current policy by itself.
+    """
+    challenges: list[dict[str, object]] = []
+    known_proposition_ids = set(proposition_ledger)
+    proposition_ids_by_support: dict[str, list[str]] = {}
+    for proposition_id, record in proposition_ledger.items():
+        for support_id in getattr(record, "support_ids", []) or []:
+            proposition_ids_by_support.setdefault(str(support_id), []).append(
+                proposition_id
+            )
+
+    def add(
+        specialist: str,
+        kind: str,
+        question: str,
+        *,
+        grounded_in: Sequence[str] = (),
+        trigger_fields: Sequence[str] = (),
+        priority: float = 0.5,
+    ) -> None:
+        cleaned = " ".join(str(question).split())[:240]
+        if not cleaned:
+            return
+        supports: list[str] = []
+        for item in grounded_in:
+            reference = str(item).strip()
+            if reference in known_proposition_ids:
+                supports.append(reference)
+            supports.extend(proposition_ids_by_support.get(reference, []))
+        supports = list(dict.fromkeys(supports))[:6]
+        challenge = ArgumentChallenge(
+            challenge_kind=kind,
+            question=cleaned,
+            about_specialist=specialist,
+            target_specialists=(specialist,),
+            grounded_in=tuple(supports or [
+                node.id for node in graph.nodes.values() if node.kind == "ACTION"
+            ]),
+            trigger_fields=tuple(trigger_fields),
+            focus_action=selected_action,
+            priority=priority,
+            generated_by="WORKSPACE_ARGUMENT_AUDITOR",
+            raised_by=(),
+            grounding_status=(
+                "PROPOSITION_GROUNDED" if supports else "UNGROUNDED"
+            ),
+        ).as_dict()
+        if any(item.get("issue_id") == challenge["issue_id"] for item in challenges):
+            return
+        challenges.append(challenge)
+
+    established_claims = {
+        proposition_id: str(getattr(record, "claim", ""))
+        for proposition_id, record in proposition_ledger.items()
+        if str(getattr(record, "epistemic_status", "")).upper() == "ESTABLISHED"
+    }
+    world_effects = project_grounded_action_effects(graph)
+
+    for candidate in candidates:
+        if not candidate.schema_valid:
+            continue
+        cited = list(dict.fromkeys((
+            *candidate.supporting_proposition_ids,
+            *candidate.decision_critical_proposition_ids,
+        )))
+        cited_text = " ".join(established_claims.get(item, "") for item in cited)
+
+        if candidate.specialist == "utilitarian":
+            rows = [
+                row
+                for action_rows in candidate.utilitarian_consequence_table.values()
+                for row in action_rows
+                if isinstance(row, dict)
+            ]
+            material_rows = [
+                row for row in rows
+                if str(row.get("importance", "")).upper() in {"HIGH", "CRITICAL"}
+            ]
+            unknown_material = [
+                row for row in material_rows
+                if any(str(row.get(field, "UNKNOWN")).upper() == "UNKNOWN" for field in (
+                    "probability", "magnitude", "duration",
+                ))
+            ]
+            if candidate.utilitarian_decision_depends_on_unknown:
+                missing = candidate.utilitarian_missing_comparison or (
+                    "the probability, magnitude, duration, or relative importance of the competing effects"
+                )
+                add(
+                    candidate.specialist,
+                    "UTILITY_UNRESOLVED_COMPARISON",
+                    f"Which grounded comparison would resolve the utilitarian ranking: {missing}?",
+                    grounded_in=cited,
+                    trigger_fields=("cd", "cm", "ct"),
+                    priority=0.97,
+                )
+            elif unknown_material and candidate.comparison_complete:
+                effect_names = list(dict.fromkeys(
+                    str(row.get("outcome", row.get("effect_id", "effect")))
+                    for row in unknown_material
+                ))
+                add(
+                    candidate.specialist,
+                    "UTILITY_UNCERTAINTY_TREATMENT",
+                    "How can the ranking be complete while decision-relevant probability, magnitude, or duration remains unknown for "
+                    + ", ".join(effect_names[:2]) + "?",
+                    grounded_in=cited,
+                    trigger_fields=("ct.*.wi", "ct.*.probability", "ct.*.magnitude", "ct.*.duration", "cc"),
+                    priority=0.95,
+                )
+            if any(str(row.get("importance", "")).upper() == "UNKNOWN" for row in rows):
+                add(
+                    candidate.specialist,
+                    "UTILITY_UNKNOWN_WEIGHT",
+                    "Would resolving the UNKNOWN utilitarian importance assigned to a grounded effect weaken or reverse the current ranking?",
+                    grounded_in=cited,
+                    trigger_fields=("ct.*.wi",),
+                    priority=0.90,
+                )
+            directions = {
+                str(row.get("direction", "")).upper() for row in material_rows
+                if str(row.get("direction", "")).upper() in {
+                    "BENEFIT", "HARM", "OPPORTUNITY_COST",
+                }
+            }
+            scopes = {
+                " ".join(str(row.get("scope", "")).casefold().split())
+                for row in material_rows if str(row.get("scope", "")).strip()
+            }
+            grounded_ev = bool(candidate.expected_value_estimates) and all(
+                bool(item.get("grounded"))
+                for item in candidate.expected_value_estimates.values()
+                if isinstance(item, dict)
+            )
+            if len(material_rows) >= 2 and (len(directions) > 1 or len(scopes) > 1) and not grounded_ev:
+                add(
+                    candidate.specialist,
+                    "UTILITY_COMMENSURATION",
+                    "What common comparison rule combines the material effects across different directions, affected scopes, and time horizons without treating salience as weight?",
+                    grounded_in=cited,
+                    trigger_fields=("ct", "dr", "ev"),
+                    priority=0.89,
+                )
+            if any("valuations must reference every grounded effect" in error for error in candidate.framework_validation_errors):
+                add(
+                    candidate.specialist,
+                    "UTILITY_EFFECT_COVERAGE",
+                    "Which grounded action effect is missing from or duplicated in the utilitarian valuation ledger?",
+                    grounded_in=cited,
+                    trigger_fields=("ct.*.eid",),
+                    priority=0.96,
+                )
+
+        if candidate.specialist == "deontological":
+            assessments = list(
+                (candidate.deontological_ledger_proposal or {}).get("assessments", [])
+            )
+            for item in assessments:
+                if not isinstance(item, dict) or item.get("resolution_status") != "RESOLVED":
+                    continue
+                decisive_text = " ".join(str(item.get(key, "")) for key in (
+                    "norm", "priority_rule", "public_justification", "reason",
+                ))
+                for category, marker in _DECISIVE_OUTCOME_MARKERS.items():
+                    if marker.search(decisive_text) and not marker.search(cited_text):
+                        add(
+                            candidate.specialist,
+                            "EPISTEMIC_STRENGTH_BRIDGE",
+                            f"Do the established effects justify the stronger {category.lower().replace('_', ' ')} premise used to classify {item.get('norm', 'the duty')}, or is that premise unestablished?",
+                            grounded_in=cited,
+                            trigger_fields=("dp.*.n", "dp.*.pr", "dp.*.pj", "dp.*.rs"),
+                            priority=0.98,
+                        )
+                if _EFFECT_DOWNGRADE_MARKER.search(decisive_text):
+                    add(
+                        candidate.specialist,
+                        "EFFECT_MORAL_CLASSIFICATION",
+                        "What grounded feature makes the competing effect non-vital or merely beneficent rather than a basic-interest claim over the relevant time horizon?",
+                        grounded_in=cited,
+                        trigger_fields=("dp.*.cn", "dp.*.crs", "dp.*.pr"),
+                        priority=0.93,
+                    )
+                if (
+                    item.get("duty_type") == "PERFECT_POSITIVE"
+                    and item.get("special_obligation_status") != "ESTABLISHED"
+                ):
+                    add(
+                        candidate.specialist,
+                        "DUTY_PERFECTION_BASIS",
+                        f"What makes {item.get('norm', 'the positive duty')} perfect rather than imperfect when no special obligation is established?",
+                        grounded_in=cited,
+                        trigger_fields=("dp.*.dt", "dp.*.so", "dp.*.sob"),
+                        priority=0.94,
+                    )
+                if (
+                    item.get("harm_relation") in {"ALLOWING_HARM", "WITHHOLDING_BENEFIT"}
+                    and item.get("duty_type") == "PERFECT_NEGATIVE"
+                ):
+                    add(
+                        candidate.specialist,
+                        "DOING_ALLOWING_CLASSIFICATION",
+                        f"Does the classified omission under {item.get('action_id', 'this action')} violate a perfect negative duty, or does that conclusion require a separate right-correlative premise?",
+                        grounded_in=cited,
+                        trigger_fields=("dp.*.dt", "dp.*.hr", "dp.*.pb"),
+                        priority=0.96,
+                    )
+                if item.get("means_relation") == "INTENDED_AS_MEANS":
+                    add(
+                        candidate.specialist,
+                        "MEANS_CAUSAL_PATH",
+                        f"Is the burden under {item.get('action_id', 'this action')} causally used to produce the chosen end, or is it a foreseen or counterfactual side effect?",
+                        grounded_in=cited,
+                        trigger_fields=("dp.*.mr",),
+                        priority=0.92,
+                    )
+
+        if candidate.specialist == "rawlsian":
+            proposal = candidate.rawls_position_proposal or {}
+            positions = [
+                item for item in proposal.get("positions", [])
+                if isinstance(item, dict)
+            ]
+            represented = " ".join(str(item.get("subject", "")) for item in positions)
+            generic_subject_words = {
+                "people", "person", "persons", "group", "groups", "resident",
+                "residents", "individual", "individuals", "population",
+                "populations", "community", "communities", "stakeholder",
+                "stakeholders",
+            }
+            represented_words = {
+                token for token in re.findall(r"[a-z0-9]+", represented.casefold())
+                if token not in generic_subject_words
+            }
+            omitted: list[str] = []
+            omitted_support: list[str] = []
+            for effect in world_effects:
+                subject = " ".join(str(effect.affected_subject).split())
+                words = {
+                    token for token in re.findall(r"[a-z0-9]+", subject.casefold())
+                    if len(token) >= 4 and token not in generic_subject_words
+                }
+                if subject and words and not words & represented_words:
+                    omitted.append(subject)
+                    omitted_support.append(
+                        f"PROP:WORLD:{effect.effect_id}"
+                        if str(effect.effect_id).startswith("E") else effect.consequence_id
+                    )
+            omitted = list(dict.fromkeys(omitted))
+            if omitted:
+                add(
+                    candidate.specialist,
+                    "POSITION_COVERAGE",
+                    "Does the Rawlsian comparison remain complete after representing the materially affected position of "
+                    + ", ".join(omitted[:2]) + " over the same relevant horizon?",
+                    grounded_in=omitted_support,
+                    trigger_fields=("rp.*.s", "rp.*.d", "rp.*.ca"),
+                    priority=0.90,
+                )
+            dimensions = {str(item.get("dimension", "")) for item in positions}
+            ranking = str(proposal.get("ranking_basis", ""))
+            if ranking == "MAXIMIN_PRIMARY_GOODS" and dimensions == {"BASIC_INTEREST_SECURITY"}:
+                add(
+                    candidate.specialist,
+                    "RAWLS_RANKING_STAGE",
+                    "Does this concern invoke maximin over primary goods, basic-interest security, or an original-position public-rule choice, and what establishes that priority?",
+                    grounded_in=cited,
+                    trigger_fields=("rb", "rbc", "lpj", "rp.*.d"),
+                    priority=0.91,
+                )
+
+        if candidate.specialist == "virtue":
+            proposal = candidate.virtue_character_proposal or {}
+            assessments = [
+                item for item in proposal.get("assessments", [])
+                if isinstance(item, dict)
+            ]
+            ranking = str(proposal.get("ranking_basis", ""))
+            if ranking == "UNRESOLVED" and candidate.comparison_complete:
+                add(
+                    candidate.specialist,
+                    "VIRTUE_RANKING_GAP",
+                    "What practical-wisdom, role-fidelity, flourishing, or exemplar principle resolves the competing virtues rather than merely selecting an action?",
+                    grounded_in=cited,
+                    trigger_fields=("vb", "cc"),
+                    priority=0.96,
+                )
+            unsettled = [
+                item for item in assessments
+                if item.get("verdict") in {"MIXED", "UNCERTAIN"}
+            ]
+            if unsettled and candidate.selection_status == "SELECTED":
+                add(
+                    candidate.specialist,
+                    "VIRTUE_CONFLICT_RESOLUTION",
+                    "Which circumstance-sensitive practical-wisdom judgment resolves the recorded mixed or uncertain virtues strongly enough to support a settled selection?",
+                    grounded_in=cited,
+                    trigger_fields=("vl.*.v", "vl.*.vs", "vl.*.x", "vl.*.c", "ss"),
+                    priority=0.94,
+                )
+            roles = {
+                " ".join(str(item.get("actor_role", "")).casefold().split())
+                for item in assessments if str(item.get("actor_role", "")).strip()
+            }
+            if len(roles) > 1:
+                add(
+                    candidate.specialist,
+                    "VIRTUE_ROLE_CONSISTENCY",
+                    "Is the same decision-maker legitimately acting under different roles across the options, or has role redescription changed the comparison?",
+                    grounded_in=cited,
+                    trigger_fields=("vl.*.r",),
+                    priority=0.91,
+                )
+            effects_by_action = {
+                effect.action_id for effect in world_effects
+            }
+            unsupported_scenario_rows = [
+                item for item in assessments
+                if item.get("evidence_basis") in {"ACTION_GRAPH", "SCENARIO"}
+                and str(item.get("action_id", "")) not in effects_by_action
+            ]
+            if unsupported_scenario_rows:
+                add(
+                    candidate.specialist,
+                    "VIRTUE_CIRCUMSTANCE_GROUNDING",
+                    "Which grounded action effect supports the circumstance used to infer the claimed virtue or vice?",
+                    grounded_in=cited,
+                    trigger_fields=("vl.*.c", "vl.*.g", "vl.*.rs"),
+                    priority=0.93,
+                )
+            virtue_text = " ".join(
+                str(item.get(key, ""))
+                for item in assessments
+                for key in ("virtues", "vice_risk", "circumstance", "reason")
+            ) + " " + candidate.decision_rule + " " + candidate.rationale
+            for category, marker in _DECISIVE_OUTCOME_MARKERS.items():
+                if marker.search(virtue_text) and not marker.search(cited_text):
+                    add(
+                        candidate.specialist,
+                        "VIRTUE_EPISTEMIC_STRENGTH_BRIDGE",
+                        f"Does grounded evidence establish the stronger {category.lower().replace('_', ' ')} premise used in the character judgment, or should the virtue assessment remain conditional?",
+                        grounded_in=cited,
+                        trigger_fields=("vl.*.c", "vl.*.rs"),
+                        priority=0.98,
+                    )
+        if candidate.specialist == "care" and candidate.care_ledger_proposal:
+            proposal = candidate.care_ledger_proposal or {}
+            assessments = [
+                item for item in proposal.get("assessments", [])
+                if isinstance(item, dict)
+            ]
+            ranking = str(proposal.get("ranking_basis", ""))
+            if ranking == "UNRESOLVED" and candidate.comparison_complete:
+                add(
+                    candidate.specialist, "CARE_RANKING_GAP",
+                    "Which relational basis resolves the competing Care claims rather than merely selecting one dependent party?",
+                    grounded_in=cited,
+                    trigger_fields=("cb", "cl.*.cc", "cl.*.res", "cc"),
+                    priority=0.97,
+                )
+            if any(
+                item.get("relationship_type") == "UNRESOLVED"
+                or item.get("need_kind") == "UNRESOLVED"
+                for item in assessments
+            ) and candidate.selection_status == "SELECTED":
+                add(
+                    candidate.specialist, "CARE_RELATIONAL_GROUNDING",
+                    "What establishes the dependency, relationship, and responsibility used to give one Care claim priority?",
+                    grounded_in=cited,
+                    trigger_fields=("cl.*.rt", "cl.*.ds", "cl.*.rb", "cl.*.nk", "ss"),
+                    priority=0.96,
+                )
+            if any(
+                item.get("feasibility") in {"CONDITIONAL", "UNKNOWN"}
+                or item.get("responsiveness") == "UNKNOWN"
+                for item in assessments
+            ) and candidate.evidence_sufficient_for_action:
+                add(
+                    candidate.specialist, "CARE_RESPONSIVENESS_FEASIBILITY",
+                    "Can the proposed response be treated as ethically responsive before its practical feasibility and mode of response are established?",
+                    grounded_in=cited,
+                    trigger_fields=("cl.*.rr", "cl.*.f", "esa"),
+                    priority=0.95,
+                )
+            if ranking == "ENTRUSTED_RESPONSIBILITY" and not any(
+                item.get("relationship_type") in {"ENTRUSTED", "CARE_ROLE"}
+                for item in assessments
+            ):
+                add(
+                    candidate.specialist, "CARE_ENTRUSTMENT_BASIS",
+                    "What action-grounded entrustment or care role supports using entrusted responsibility as the governing basis?",
+                    grounded_in=cited,
+                    trigger_fields=("cb", "cl.*.rt", "cl.*.ds", "cl.*.rb"),
+                    priority=0.94,
+                )
+            if ranking == "ACUTE_DEPENDENCY" and not any(
+                item.get("need_urgency") == "IMMEDIATE" for item in assessments
+            ):
+                add(
+                    candidate.specialist, "CARE_URGENCY_BASIS",
+                    "What establishes acute dependency when no affected party is classified as having an immediate need?",
+                    grounded_in=cited,
+                    trigger_fields=("cb", "cl.*.nk", "cl.*.nu"),
+                    priority=0.94,
+                )
+            represented = " ".join(
+                str(item.get("affected_party", "")) for item in assessments
+            ).casefold()
+            omitted_parties = list(dict.fromkeys(
+                effect.affected_subject for effect in world_effects
+                if effect.affected_subject and not any(
+                    token in represented
+                    for token in re.findall(
+                        r"[a-z0-9]+", effect.affected_subject.casefold()
+                    )
+                    if len(token) >= 5 and token not in {
+                        "people", "person", "persons", "group", "groups",
+                        "resident", "residents", "population", "community",
+                    }
+                )
+            ))
+            if omitted_parties:
+                add(
+                    candidate.specialist, "CARE_CLAIM_COVERAGE",
+                    "Does the Care comparison remain complete after representing the dependency claim of "
+                    + ", ".join(omitted_parties[:2]) + "?",
+                    grounded_in=[
+                        effect.consequence_id for effect in world_effects
+                        if effect.affected_subject in omitted_parties
+                    ],
+                    trigger_fields=("cl.*.p", "cl.*.cc"),
+                    priority=0.92,
+                )
+            care_text = " ".join(
+                str(item.get(key, ""))
+                for item in assessments
+                for key in (
+                    "dependency_source", "responsibility_basis", "need_kind",
+                    "need_urgency", "reason",
+                )
+            ) + " " + candidate.decision_rule + " " + candidate.rationale
+            for category, marker in _DECISIVE_OUTCOME_MARKERS.items():
+                if marker.search(care_text) and not marker.search(cited_text):
+                    add(
+                        candidate.specialist, "CARE_EPISTEMIC_STRENGTH_BRIDGE",
+                        f"Does grounded evidence establish the stronger {category.lower().replace('_', ' ')} premise used to rank the Care claims, or should urgency remain conditional?",
+                        grounded_in=cited,
+                        trigger_fields=("cl.*.nk", "cl.*.nu", "cl.*.rs"),
+                        priority=0.98,
+                    )
+
+        for threshold, kind in (
+            (candidate.factual_reversal_threshold, "FACTUAL_DEFEATER"),
+            (candidate.normative_reversal_threshold, "NORMATIVE_DEFEATER"),
+        ):
+            if threshold and threshold.strip().upper() != "NONE":
+                add(
+                    candidate.specialist,
+                    kind,
+                    f"Would this stated defeat condition weaken or reverse the current argument: {threshold}?",
+                    grounded_in=cited,
+                    trigger_fields=(
+                        "ft" if kind == "FACTUAL_DEFEATER" else "nt",
+                    ),
+                    priority=0.55,
+                )
+
+    settled = set(settled_question_keys(graph))
+    return sorted(
+        [item for item in challenges if str(item.get("issue_id", "")) not in settled],
+        key=lambda item: (-float(item.get("priority", 0.0)), str(item.get("issue_id", ""))),
+    )[:12]
 
 
 def _commit_access_variable_node(
@@ -909,6 +1574,10 @@ class WorkspaceConfig:
     time_budget_seconds: float = 180.0
     entropy_threshold: float = 0.62
     stable_cycles_required: int = 2
+    # Stop after one unchallenged unanimous cycle by default. Deployments or
+    # tests that require two-observation stability can explicitly disable it;
+    # when a challenge exists, recurrence remains targeted rather than skipped.
+    stop_redundant_consensus_cycles: bool = True
     surprise_weight: float = 0.28
     urgency_weight: float = 0.24
     friction_weight: float = 0.28
@@ -1755,6 +2424,7 @@ class WorkspaceEngine:
         result = WorkspaceResult(
             scenario=scenario,
             actions=clean_actions,
+            active_specialists=[specialist.name for specialist in self.specialists],
             presentation_actions=list(presentation_actions or clean_actions),
             source_action_legend=dict(source_action_legend or {}),
             action_source_grounding=dict(action_source_grounding or {}),
@@ -1842,6 +2512,7 @@ class WorkspaceEngine:
                 progress(f"Autonomy audit ignored: {autonomy.error}")
         started = time.monotonic()
         previous_action = ""
+        incumbent_governing_specialist = ""
         stable_cycles = 0
         constraint_counts: dict[str, int] = {}
         previous_dissent: CandidateChunk | None = None
@@ -1945,14 +2616,28 @@ class WorkspaceEngine:
                     if exc.terminal:
                         result.halted_by = "model_backend_unavailable"
                 except Exception as exc:
+                    cause = getattr(exc, "cause", exc)
+                    exception_type = type(cause).__name__
+                    failure_stage = str(
+                        getattr(exc, "stage", "SPECIALIST_EVALUATION")
+                    ).strip().upper()
+                    diagnostic = (
+                        f"specialist evaluation failed at {failure_stage}: "
+                        f"{exception_type}: {cause}"
+                    )
                     candidate = _invalid_candidate(
                         specialist.name,
                         cycle_actions,
-                        f"specialist evaluation failed: {exc}",
+                        diagnostic,
+                        delegate_status_override="SPECIALIST_INTERNAL_ERROR",
+                        error_type_override="SPECIALIST_INTERNAL_ERROR",
+                        exception_type=exception_type,
+                        failure_stage=failure_stage,
                     )
                     if progress:
                         progress(
-                            f"    {specialist.name} delegate failed softly: {exc}"
+                            f"    {specialist.name} delegate failed softly at "
+                            f"{failure_stage}: {exception_type}: {cause}"
                         )
                 if is_contingency_probe and candidate.schema_valid:
                     contingency_errors = []
@@ -2166,6 +2851,15 @@ class WorkspaceEngine:
                                 "competing_relation": item.get(
                                     "competing_relation", "UNCERTAIN"
                                 ),
+                                "duty_type": item.get("duty_type", "UNRESOLVED"),
+                                "harm_relation": item.get("harm_relation", "UNRESOLVED"),
+                                "special_obligation_status": item.get(
+                                    "special_obligation_status", "UNKNOWN"
+                                ),
+                                "special_obligation_basis": item.get(
+                                    "special_obligation_basis", ""
+                                ),
+                                "means_relation": item.get("means_relation", "UNRESOLVED"),
                                 "governing_norm": item.get("governing_norm", "UNRESOLVED"),
                                 "priority_basis": item.get("priority_basis", "UNRESOLVED"),
                                 "protected_standing": item.get("protected_standing", "UNKNOWN"),
@@ -2224,6 +2918,12 @@ class WorkspaceEngine:
                             "ranking_basis": committed_positions[0].get(
                                 "ranking_basis", "UNRESOLVED"
                             ),
+                            "ranking_classification_justification": committed_positions[0].get(
+                                "ranking_classification_justification", ""
+                            ),
+                            "lexical_priority_justification": committed_positions[0].get(
+                                "lexical_priority_justification", ""
+                            ),
                             "liberty_status": {
                                 str(item.get("canonical_action_id", "")): item.get(
                                     "liberty_status", "UNKNOWN"
@@ -2240,6 +2940,12 @@ class WorkspaceEngine:
                                     ),
                                     "subject_kind": item.get("subject_kind", "UNKNOWN"),
                                     "dimension": item.get("dimension", "UNKNOWN"),
+                                    "basic_liberty_kind": item.get(
+                                        "basic_liberty_kind", "UNRESOLVED"
+                                    ),
+                                    "institutional_relation": item.get(
+                                        "institutional_relation", "UNRESOLVED"
+                                    ),
                                     "additional_dimensions": list(
                                         item.get("additional_dimensions", [])
                                     ),
@@ -2308,6 +3014,68 @@ class WorkspaceEngine:
                             "    Virtue character ledger "
                             f"{virtue_transaction.status.lower()}: "
                             + " | ".join(virtue_transaction.errors[:2])
+                        )
+                if (
+                    candidate.schema_valid
+                    and candidate.specialist == "care"
+                    and candidate.care_ledger_proposal
+                    and not is_counterfactual
+                ):
+                    care_transaction = apply_care_ledger_transaction(
+                        graph_store,
+                        candidate.care_ledger_proposal,
+                        cycle=cycle_number,
+                        specialist=candidate.specialist,
+                        allowed_actions=tuple(clean_actions),
+                    )
+                    result.care_relationship_ledger = committed_care_assessments(
+                        graph_store.graph
+                    )
+                    result.graph_transactions = graph_store.transaction_dicts()
+                    result.semantic_graphs = [graph_store.graph_dict()]
+                    if care_transaction.status == "REJECTED":
+                        _apply_framework_ledger_uncertainty(
+                            candidate, care_transaction.errors,
+                            state_status="UPDATE_REJECTED",
+                        )
+                    elif care_transaction.status == "COMMITTED_WITH_UNCERTAINTY":
+                        _apply_framework_ledger_uncertainty(
+                            candidate, care_transaction.errors,
+                        )
+                    if (
+                        care_transaction.status.startswith("COMMITTED")
+                        and hasattr(specialist, "previous_framework_state")
+                        and result.care_relationship_ledger
+                    ):
+                        committed_care = result.care_relationship_ledger
+                        specialist.previous_framework_state = {
+                            "ranking_basis": committed_care[0].get(
+                                "ranking_basis", "UNRESOLVED"
+                            ),
+                            "assessments": [
+                                {
+                                    "action_id": item.get("canonical_action_id", ""),
+                                    "verdict": item.get("verdict", "UNCERTAIN"),
+                                    "affected_party": item.get("affected_party", ""),
+                                    "relationship_type": item.get("relationship_type", "UNRESOLVED"),
+                                    "dependency_source": item.get("dependency_source", ""),
+                                    "responsibility_basis": item.get("responsibility_basis", ""),
+                                    "need_kind": item.get("need_kind", "UNRESOLVED"),
+                                    "need_urgency": item.get("need_urgency", "UNKNOWN"),
+                                    "trust_effect": item.get("trust_effect", "UNKNOWN"),
+                                    "responsiveness": item.get("responsiveness", "UNKNOWN"),
+                                    "feasibility": item.get("feasibility", "UNKNOWN"),
+                                    "competing_care_claim": item.get("competing_care_claim", ""),
+                                    "resolution_status": item.get("resolution_status", "UNKNOWN"),
+                                }
+                                for item in committed_care
+                            ],
+                        }
+                    if progress and care_transaction.status != "COMMITTED":
+                        progress(
+                            "    Care relationship ledger "
+                            f"{care_transaction.status.lower()}: "
+                            + " | ".join(care_transaction.errors[:2])
                         )
                 if progress:
                     validation_note = (
@@ -2562,16 +3330,61 @@ class WorkspaceEngine:
                     fired_keys=fired_reopen_keys,
                     settled_keys=settled_keys,
                 )
-            governing_claim = self._select_governing_candidate(
+            proposed_governing_claim = self._select_governing_candidate(
                 valid_candidates,
                 selected_action,
                 preferred=(
                     focus
-                    if recorded_focus is not None
+                    if not incumbent_governing_specialist
+                    and recorded_focus is not None
                     and focus.recommended_action == selected_action
                     else None
                 ),
             )
+            incumbent_candidate = next((
+                candidate for candidate in valid_candidates
+                if candidate.specialist == incumbent_governing_specialist
+                and candidate.recommended_action == selected_action
+                and candidate.governing_eligible
+                and candidate.decision_rule
+            ), None)
+            governing_claim = incumbent_candidate or proposed_governing_claim
+            transition_reason = ""
+            if not is_counterfactual:
+                if incumbent_governing_specialist and incumbent_candidate is None:
+                    transition_reason = "INCUMBENT_INVALIDATED_OR_POLICY_CHANGED"
+                elif (
+                    incumbent_candidate is not None
+                    and proposed_governing_claim is not None
+                    and proposed_governing_claim.specialist != incumbent_candidate.specialist
+                    and received_broadcast.constraint in {
+                        "CONSENSUS_AUDIT", "PROBLEM_STATE_AUDIT", "REVERSAL_AUDIT",
+                    }
+                    and incumbent_candidate.audit_internal_effect in {"WEAKENS", "REVERSES"}
+                    and proposed_governing_claim.audit_participation != "NOT_TESTED"
+                ):
+                    governing_claim = proposed_governing_claim
+                    transition_reason = "TARGETED_CHALLENGE_CHANGED_ADJUDICATION"
+                elif not incumbent_governing_specialist and governing_claim is not None:
+                    transition_reason = "INITIAL_GOVERNING_ADJUDICATION"
+
+                new_specialist = (
+                    governing_claim.specialist if governing_claim is not None else ""
+                )
+                if new_specialist != incumbent_governing_specialist:
+                    result.governing_authority_transitions.append({
+                        "cycle": cycle_number,
+                        "from_specialist": incumbent_governing_specialist or "NONE",
+                        "to_specialist": new_specialist or "NONE",
+                        "action": selected_action,
+                        "reason": transition_reason or "NO_ELIGIBLE_GOVERNING_CLAIM",
+                        "trigger_constraint": received_broadcast.constraint,
+                        "argumentative_event": transition_reason in {
+                            "INCUMBENT_INVALIDATED_OR_POLICY_CHANGED",
+                            "TARGETED_CHALLENGE_CHANGED_ADJUDICATION",
+                        },
+                    })
+                incumbent_governing_specialist = new_specialist
             for candidate in valid_candidates:
                 candidate.broadcast_authority = derive_broadcast_authority(
                     governing_eligible=candidate.governing_eligible,
@@ -2669,7 +3482,7 @@ class WorkspaceEngine:
             audited_issue = dict(received_broadcast.audit_variable or {})
             if not is_counterfactual and str(
                 audited_issue.get("issue_id", "")
-            ).startswith("QUESTION:"):
+            ).startswith(("QUESTION:", "CHALLENGE:")):
                 question_resolution = resolve_audited_question(
                     valid_candidates,
                     question_key=str(audited_issue.get("issue_id", "")),
@@ -2739,6 +3552,13 @@ class WorkspaceEngine:
                 cycle_focus_proposition_ids
             )
             next_problem_state["shared_unresolved_dependencies"] = shared_dependencies
+            argument_challenges = _argument_challenge_candidates(
+                valid_candidates,
+                working_proposition_ledger,
+                graph_store.graph,
+                selected_action,
+            )
+            next_problem_state["argument_challenge_candidates"] = argument_challenges
             if not is_counterfactual:
                 result.shared_unresolved_dependencies = shared_dependencies
             next_broadcast = WorkspaceBroadcast(
@@ -3078,7 +3898,14 @@ class WorkspaceEngine:
                             unresolved="VERIFY_ASSUMPTIONS",
                             contingency_question=audit_question,
                             audit_variable=dict(access_decision.audit_variable),
-                            focus_proposition_ids=next_broadcast.focus_proposition_ids,
+                            focus_proposition_ids=tuple(dict.fromkeys((
+                                *next_broadcast.focus_proposition_ids,
+                                *(
+                                    str(item) for item in
+                                    (access_decision.audit_variable or {}).get("grounded_in", [])
+                                    if str(item).startswith("PROP:")
+                                ),
+                            ))),
                             problem_state=dict(next_broadcast.problem_state),
                         )
                         audit_broadcast = True
@@ -3667,6 +4494,30 @@ class WorkspaceEngine:
             if elapsed >= self.config.time_budget_seconds:
                 result.halted_by = "time_budget"
                 break
+            no_op_consensus = bool(
+                self.config.stop_redundant_consensus_cycles
+                and cycle_number == 1
+                and cycle_number < cycle_limit
+                and dissent is None
+                and entropy < self.config.entropy_threshold
+                and len(divergent_recommendations) <= 1
+                and all(
+                    candidate.assumption_status not in {
+                        "CONDITIONAL", "UNDERDETERMINED", "NORMATIVELY_CONTESTED",
+                    }
+                    for candidate in valid_candidates
+                )
+                and not next_problem_state.get("argument_challenge_candidates")
+                and not next_problem_state.get("audit_candidates")
+            )
+            if no_op_consensus:
+                result.halted_by = "convergence"
+                if progress:
+                    progress(
+                        "  halting after one cycle: consensus is stable enough to finalize "
+                        "and no grounded argument challenge remains to test"
+                    )
+                break
             if (
                 entropy < self.config.entropy_threshold
                 and stable_cycles >= self.config.stable_cycles_required
@@ -3895,6 +4746,9 @@ class WorkspaceEngine:
             result.virtue_character_ledger = committed_virtue_assessments(
                 graph_store.graph
             )
+            result.care_relationship_ledger = committed_care_assessments(
+                graph_store.graph
+            )
             result.authoritative_semantic_state = project_authoritative_semantic_state(
                 graph_store.graph
             ).to_dict()
@@ -3984,6 +4838,13 @@ class WorkspaceEngine:
                     ),
                 )
             )
+            for candidate in valid_final:
+                candidate.broadcast_authority = derive_broadcast_authority(
+                    governing_eligible=candidate.governing_eligible,
+                    is_governing_focus=(candidate is governing_candidate),
+                    reopen_eligible=candidate.reopen_eligible,
+                    investigative_priority=candidate.investigative_priority,
+                )
             underdetermined_count = sum(
                 candidate.assumption_status == "UNDERDETERMINED"
                 for candidate in valid_final
@@ -4173,6 +5034,9 @@ class WorkspaceEngine:
             graph_store.graph
         )
         result.virtue_character_ledger = committed_virtue_assessments(
+            graph_store.graph
+        )
+        result.care_relationship_ledger = committed_care_assessments(
             graph_store.graph
         )
         result.authoritative_semantic_state = project_authoritative_semantic_state(

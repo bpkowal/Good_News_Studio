@@ -98,6 +98,28 @@ python parliament.py \
   --danger 0.9
 ```
 
+For framework refinement, run only the frameworks under test:
+
+```bash
+python parliament.py \
+  --mode workspace \
+  --question "Should the scientist disclose the dangerous program?" \
+  --agents deontological rawlsian
+```
+
+Interactive workspace runs ask for the framework set; press Enter for all five.
+Selection applies to original testimony, baseline extraction, recurrent delegate
+calls, and framework review, so unselected frameworks consume no model calls.
+At least two frameworks are required to preserve a deliberative quorum. The trace
+records the canonical selection in `active_specialists`.
+
+The workspace also keeps a one-entry cache at
+`workspace_outputs/last_problem_framing.json`. When the ethical-problem text is
+exactly the same as the last successfully framed problem, it reuses the confirmed
+action set and committed typed action-source grounding. The actions are still
+shown for confirmation; editing them invalidates the cached grounding. Use
+`--no-framing-cache` when refining action planning or world-state extraction.
+
 Run a scenario with automatic action planning:
 
 ```bash

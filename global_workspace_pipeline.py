@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import re
 import sys
@@ -15,7 +16,6 @@ from global_workspace.legacy_bridge import AGENT_MODULES, consult_original_agent
 from global_workspace.landscape_validation import verify_landscape_alignment
 from global_workspace.local_specialists import (
     CompactLocalSpecialist,
-    FRAMEWORK_ROLES,
     analyze_action_plan,
     extract_labeled_action_legend,
     extract_scenario_facts,
@@ -47,6 +47,94 @@ from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_MODEL = (ROOT / "../mistral-7b-instruct-v0.2.Q4_K_M.gguf").resolve()
+FRAMING_CACHE_VERSION = 2
+FRAMING_CACHE_FILENAME = "last_problem_framing.json"
+
+
+def load_problem_framing_cache(
+    path: Path, ethical_problem: str,
+) -> tuple[dict[str, object] | None, str]:
+    """Load the last successful framing only for an exact problem-text match."""
+    if not path.exists():
+        return None, "MISS_NO_CACHE"
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return None, "MISS_INVALID_CACHE"
+    if not isinstance(payload, dict) or payload.get("cache_version") != FRAMING_CACHE_VERSION:
+        return None, "MISS_INCOMPATIBLE_CACHE"
+    if payload.get("ethical_problem") != ethical_problem:
+        return None, "MISS_DIFFERENT_PROBLEM"
+    actions = payload.get("presentation_actions")
+    grounding = payload.get("action_source_grounding")
+    canonical_actions = payload.get("canonical_actions")
+    canonical_scenario = payload.get("canonical_scenario")
+    if (
+        not isinstance(actions, list) or not 2 <= len(actions) <= 5
+        or not all(isinstance(action, str) and action.strip() for action in actions)
+        or not isinstance(canonical_actions, list)
+        or not all(isinstance(action, str) and action.strip() for action in canonical_actions)
+        or not isinstance(canonical_scenario, str) or not canonical_scenario.strip()
+        or not isinstance(grounding, dict)
+        or str(grounding.get("status") or "").upper() != "COMMITTED"
+        or not isinstance(grounding.get("world_model"), dict)
+    ):
+        return None, "MISS_INVALID_CACHE"
+    try:
+        from global_workspace.world_state import world_model_from_dict
+        restored_world = world_model_from_dict(grounding["world_model"])
+    except (KeyError, TypeError, ValueError):
+        return None, "MISS_INVALID_CACHE"
+    if restored_world is None:
+        return None, "MISS_INVALID_CACHE"
+    return payload, "HIT"
+
+
+def save_problem_framing_cache(path: Path, payload: dict[str, object]) -> None:
+    """Atomically replace the single-entry successful-framing cache."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    complete = {**payload, "cache_version": FRAMING_CACHE_VERSION}
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text(json.dumps(complete, indent=2), encoding="utf-8")
+    temporary.replace(path)
+
+
+def cached_framing_matches(
+    cached: dict[str, object] | None,
+    *,
+    presentation_actions: list[str],
+    canonical_actions: list[str],
+    canonical_scenario: str,
+) -> bool:
+    return bool(
+        cached is not None
+        and cached.get("presentation_actions") == presentation_actions
+        and cached.get("canonical_actions") == canonical_actions
+        and cached.get("canonical_scenario") == canonical_scenario
+    )
+
+
+def choose_initial_actions(
+    explicit_actions: list[str] | None,
+    cached: dict[str, object] | None,
+    planner,
+) -> tuple[list[str], bool]:
+    if explicit_actions:
+        return list(explicit_actions), False
+    if cached is not None:
+        return list(cached["presentation_actions"]), True
+    return list(planner()), False
+
+
+def choose_action_source_grounding(
+    cached: dict[str, object] | None,
+    *,
+    cache_matches: bool,
+    grounder,
+) -> tuple[dict[str, object], bool]:
+    if cached is not None and cache_matches:
+        return copy.deepcopy(cached["action_source_grounding"]), True
+    return dict(grounder()), False
 
 
 def _baseline_display_action(baseline: dict[str, object]) -> str:
@@ -119,12 +207,20 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--model", type=Path, default=DEFAULT_MODEL)
     parser.add_argument("--backend", choices=("local", "openai"), default="local")
     parser.add_argument("--openai-model", default="o3")
+    parser.add_argument(
+        "--agents", nargs="+", choices=tuple(AGENT_MODULES),
+        help="Run only the selected ethical frameworks (at least two)",
+    )
     parser.add_argument("--actions", nargs="+", help="Skip local action planning and use these actions")
     parser.add_argument("--urgency", type=float, default=0.5)
     parser.add_argument("--danger", type=float, default=0.5)
     parser.add_argument("--max-cycles", type=int, default=3)
     parser.add_argument("--time-budget", type=float, default=600.0)
     parser.add_argument("--output-dir", type=Path, default=ROOT / "workspace_outputs")
+    parser.add_argument(
+        "--no-framing-cache", action="store_true",
+        help="Recompute action planning and action-source grounding",
+    )
     parser.add_argument(
         "--skip-original-agents",
         action="store_true",
@@ -204,12 +300,30 @@ def prompt_cycle_extension(result, extension_cycles: int = 2) -> int:
 
 def main() -> int:
     args = parse_args()
+    selected_agents = [
+        name for name in AGENT_MODULES
+        if name in set(args.agents or AGENT_MODULES)
+    ]
+    if len(selected_agents) < 2:
+        raise ValueError("Select at least two ethical frameworks for a workspace run")
+    print("Active ethical frameworks: " + ", ".join(selected_agents), flush=True)
     load_dotenv()
     scenario_path = args.scenario.resolve()
     data = json.loads(scenario_path.read_text(encoding="utf-8"))
     scenario = str(data.get("ethical_question", "")).strip()
     if not scenario:
         raise ValueError("Scenario JSON must contain a non-empty ethical_question")
+    ethical_problem = scenario
+    framing_cache_path = args.output_dir / FRAMING_CACHE_FILENAME
+    if args.no_framing_cache:
+        cached_framing = None
+        framing_cache_lookup = "DISABLED"
+    else:
+        cached_framing, framing_cache_lookup = load_problem_framing_cache(
+            framing_cache_path, ethical_problem,
+        )
+    grounding_reused = False
+    framing_cache_written = False
     if args.backend == "local" and not args.model.exists():
         raise FileNotFoundError(f"Local GGUF model not found: {args.model}")
 
@@ -244,7 +358,14 @@ def main() -> int:
     if source_action_legend:
         _validate_lossless_action_set(list(source_action_legend.values()), scenario)
     try:
-        actions = args.actions or propose_actions(llm, scenario)
+        actions, cached_actions_reused = choose_initial_actions(
+            args.actions, cached_framing, lambda: propose_actions(llm, scenario),
+        )
+        if cached_actions_reused:
+            print(
+                "Framing cache hit: reusing the last action set for this exact problem.",
+                flush=True,
+            )
     except ValueError as exc:
         print(f"Action planning could not produce a safe feasible set: {exc}", flush=True)
         print("Rerun with explicit choices, for example: --actions \"first action\" \"second action\"", flush=True)
@@ -282,9 +403,31 @@ def main() -> int:
         + "; ".join(f"A{index}={action}" for index, action in enumerate(actions)),
         flush=True,
     )
-    action_source_grounding = ground_actions_in_scenario(
-        llm, scenario, actions, max_tokens=max(128, args.delegate_tokens),
+    cached_actions_match = cached_framing_matches(
+        cached_framing,
+        presentation_actions=presentation_actions,
+        canonical_actions=actions,
+        canonical_scenario=scenario,
     )
+    action_source_grounding, grounding_reused = choose_action_source_grounding(
+        cached_framing,
+        cache_matches=cached_actions_match,
+        grounder=lambda: ground_actions_in_scenario(
+            llm, scenario, actions, max_tokens=max(128, args.delegate_tokens),
+        ),
+    )
+    if grounding_reused:
+        print(
+            "Framing cache hit: reusing committed action-source grounding.",
+            flush=True,
+        )
+    else:
+        if cached_framing is not None:
+            framing_cache_lookup = "MISS_ACTION_SET_CHANGED"
+            print(
+                "Cached actions changed; recomputing action-source grounding.",
+                flush=True,
+            )
     print(
         "Action-source grounding: "
         + json.dumps(action_source_grounding, ensure_ascii=False, sort_keys=True),
@@ -373,6 +516,22 @@ def main() -> int:
             f"reach COMMITTED state. {detail}"
         )
     canonical_action_records = [record.as_dict() for record in admitted]
+    if (
+        not args.no_framing_cache and not grounding_reused
+        and str(action_source_grounding.get("status") or "").upper() == "COMMITTED"
+    ):
+        try:
+            save_problem_framing_cache(framing_cache_path, {
+                "ethical_problem": ethical_problem,
+                "presentation_actions": presentation_actions,
+                "canonical_actions": actions,
+                "canonical_scenario": scenario,
+                "action_source_grounding": action_source_grounding,
+            })
+            framing_cache_written = True
+            print(f"Updated framing cache: {framing_cache_path}", flush=True)
+        except OSError as exc:
+            print(f"Framing cache could not be saved: {exc}", flush=True)
     # Agents reason from the semantic action object, never a truncated label.
     actions = [
         str(record["canonical_semantic_action"])
@@ -393,10 +552,11 @@ def main() -> int:
     # frozen testimony before workspace safeguards ever run.
     if args.skip_original_agents:
         testimonies: dict[str, str] = {}
-        source_errors = {name: "skipped by request" for name in AGENT_MODULES}
+        source_errors = {name: "skipped by request" for name in selected_agents}
     else:
         consultation = consult_original_agents(
             scenario_path,
+            agents=tuple(selected_agents),
             timeout_seconds=max(1.0, args.agent_timeout),
             backend=args.backend,
             openai_model=args.openai_model,
@@ -427,7 +587,7 @@ def main() -> int:
         )
 
     baselines: dict[str, dict[str, object]] = {}
-    for name in (list(testimonies) if testimonies else list(FRAMEWORK_ROLES)):
+    for name in selected_agents:
         if not testimonies.get(name):
             baselines[name] = {
                 "status": "UNAVAILABLE",
@@ -453,7 +613,7 @@ def main() -> int:
             f"({stance.reason or stance.condition})",
             flush=True,
         )
-    specialist_names = list(testimonies) if testimonies else list(FRAMEWORK_ROLES)
+    specialist_names = list(selected_agents)
     specialists = [
         CompactLocalSpecialist(
             name,
@@ -622,6 +782,13 @@ def main() -> int:
         reset_model_call_budget(budget_token)
     result.source_testimonies = testimonies
     result.source_errors = source_errors
+    result.framing_cache = {
+        "lookup_status": framing_cache_lookup,
+        "actions_reused": cached_actions_reused,
+        "grounding_reused": grounding_reused,
+        "cache_written": framing_cache_written,
+        "cache_version": FRAMING_CACHE_VERSION,
+    }
     result.source_action_legend = source_action_legend
     result.source_baselines = baselines
     result.scenario_facts = scenario_facts

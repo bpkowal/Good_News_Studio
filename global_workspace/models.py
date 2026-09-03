@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
+import hashlib
 import json
 import re
 from typing import Any
@@ -82,6 +83,99 @@ class TestimonyBaseline:
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+
+@dataclass(slots=True)
+class ArgumentChallenge:
+    """Typed, non-evidentiary request to audit an inferential bridge.
+
+    ``generated_by`` identifies the actual challenge author. ``about_specialist``
+    identifies whose reasoning triggered the audit. They must not be conflated:
+    a workspace-generated objection is not self-criticism by the target agent.
+    """
+
+    challenge_kind: str
+    question: str
+    about_specialist: str
+    target_specialists: tuple[str, ...]
+    grounded_in: tuple[str, ...] = ()
+    trigger_fields: tuple[str, ...] = ()
+    focus_action: str = ""
+    priority: float = 0.5
+    generated_by: str = "WORKSPACE_ARGUMENT_AUDITOR"
+    raised_by: tuple[str, ...] = ()
+    grounding_status: str = "UNGROUNDED"
+    status: str = "UNTESTED"
+    issue_id: str = ""
+
+    def __post_init__(self) -> None:
+        self.challenge_kind = self.challenge_kind.strip().upper()[:64] or "UNSPECIFIED"
+        self.question = " ".join(self.question.split())[:240]
+        self.about_specialist = self.about_specialist.strip().casefold()[:32]
+        self.target_specialists = tuple(dict.fromkeys(
+            str(value).strip().casefold()[:32]
+            for value in self.target_specialists if str(value).strip()
+        ))[:5]
+        self.grounded_in = tuple(dict.fromkeys(
+            str(value).strip()[:160]
+            for value in self.grounded_in if str(value).strip()
+        ))[:8]
+        self.trigger_fields = tuple(dict.fromkeys(
+            str(value).strip()[:120]
+            for value in self.trigger_fields if str(value).strip()
+        ))[:8]
+        self.focus_action = " ".join(self.focus_action.split())[:180]
+        self.priority = clamp(self.priority)
+        self.generated_by = self.generated_by.strip().upper()[:64]
+        self.raised_by = tuple(dict.fromkeys(
+            str(value).strip().casefold()[:32]
+            for value in self.raised_by if str(value).strip()
+        ))[:5]
+        grounding = self.grounding_status.strip().upper()
+        self.grounding_status = grounding if grounding in {
+            "PROPOSITION_GROUNDED", "CLAUSE_GROUNDED", "UNGROUNDED",
+        } else "UNGROUNDED"
+        self.status = self.status.strip().upper()[:32] or "UNTESTED"
+        if not self.issue_id:
+            identity = "|".join((
+                self.generated_by,
+                self.about_specialist,
+                self.challenge_kind,
+                self.question.casefold(),
+                *self.trigger_fields,
+            ))
+            self.issue_id = "CHALLENGE:" + hashlib.sha256(
+                identity.encode("utf-8")
+            ).hexdigest()[:16]
+        elif not self.issue_id.startswith("CHALLENGE:"):
+            raise ValueError("argument challenge issue_id must start with CHALLENGE:")
+        if not self.question:
+            raise ValueError("argument challenge requires a question")
+        if not self.about_specialist or not self.target_specialists:
+            raise ValueError("argument challenge requires an audited and target specialist")
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "issue_id": self.issue_id,
+            "source": "framework_argument_audit",
+            "generated_by": self.generated_by,
+            "about_specialist": self.about_specialist,
+            "raised_by": list(self.raised_by),
+            "target_specialists": list(self.target_specialists),
+            "target_framework": self.target_specialists[0],
+            "category": "ARGUMENT_CHALLENGE",
+            "challenge_kind": self.challenge_kind,
+            # Compatibility alias retained for existing trace readers.
+            "uncertainty_kind": self.challenge_kind,
+            "proposition": self.question,
+            "question": self.question,
+            "trigger_fields": list(self.trigger_fields),
+            "grounded_in": list(self.grounded_in),
+            "grounding_status": self.grounding_status,
+            "status": self.status,
+            "priority": self.priority,
+            "focus_action": self.focus_action,
+        }
 
 
 @dataclass(slots=True)
@@ -284,6 +378,11 @@ class CandidateChunk:
     schema_valid: bool = True
     delegate_status: str = "VALID"
     error_type: str = "NONE"
+    # Unexpected implementation failures are kept distinct from malformed
+    # delegate judgments.  `error_type` remains the broad pipeline category;
+    # these fields identify the concrete exception and evaluation stage.
+    exception_type: str = "NONE"
+    failure_stage: str = "NONE"
     validation_errors: list[str] = field(default_factory=list)
     recommended_action: str = ""
     baseline_action: str = ""
@@ -395,6 +494,12 @@ class CandidateChunk:
     framework_constraint_retained: bool = True
     self_reported_broadcast_dependence: str = "NONE"
     framework_retention_status: str = "NOT_MEASURED"
+    # Transaction visibility: a rejected recurrent proposal does not disappear.
+    # The operative candidate exposes both the attempted framework state and the
+    # last committed state, plus which current-cycle components survived rollback.
+    proposed_framework_state: dict[str, Any] = field(default_factory=dict)
+    committed_framework_state: dict[str, Any] = field(default_factory=dict)
+    preserved_current_cycle_components: list[str] = field(default_factory=list)
     # Framework-local tensions are observations about a specialist's own
     # reasoning, not shared world facts or cross-framework priority rules.
     framework_internal_conflicts: list[str] = field(default_factory=list)
@@ -419,6 +524,7 @@ class CandidateChunk:
     rawls_position_proposal: dict[str, Any] = field(default_factory=dict)
     deontological_ledger_proposal: dict[str, Any] = field(default_factory=dict)
     virtue_character_proposal: dict[str, Any] = field(default_factory=dict)
+    care_ledger_proposal: dict[str, Any] = field(default_factory=dict)
     care_relational_map: dict[str, str] = field(default_factory=dict)
     care_numerical_role: str = "NOT_APPLICABLE"
     care_numerical_justification: str = ""
@@ -428,6 +534,12 @@ class CandidateChunk:
     def __post_init__(self) -> None:
         self.specialist = self.specialist.strip()[:32]
         self.constraint = self.constraint.strip().upper()[:48] or "UNSPECIFIED"
+        self.exception_type = (
+            " ".join(str(self.exception_type).split())[:80] or "NONE"
+        )
+        self.failure_stage = (
+            " ".join(str(self.failure_stage).split()).upper()[:80] or "NONE"
+        )
         self.framework_internal_conflicts = list(dict.fromkeys(
             " ".join(str(item).split())[:180]
             for item in self.framework_internal_conflicts
@@ -443,6 +555,13 @@ class CandidateChunk:
             if isinstance(item, dict)
             and str(item.get("proposition", "")).strip()
         ][:6]
+        self.proposed_framework_state = dict(self.proposed_framework_state or {})
+        self.committed_framework_state = dict(self.committed_framework_state or {})
+        self.preserved_current_cycle_components = list(dict.fromkeys(
+            str(value).strip()[:64]
+            for value in self.preserved_current_cycle_components
+            if str(value).strip()
+        ))[:24]
         self.tension_engagement = clamp(self.tension_engagement)
         self.tension_target_keys = list(dict.fromkeys(
             str(key).strip()[:64] for key in self.tension_target_keys
@@ -453,10 +572,12 @@ class CandidateChunk:
         status = self.delegate_status.strip().upper()
         self.delegate_status = status if status in {
             "VALID", "MODEL_ERROR", "SCHEMA_ERROR", "SEMANTIC_VALIDATION_ERROR",
+            "SPECIALIST_INTERNAL_ERROR",
         } else ("VALID" if self.schema_valid else "SEMANTIC_VALIDATION_ERROR")
         error_type = self.error_type.strip().upper()
         self.error_type = error_type if error_type in {
             "NONE", "MODEL_ERROR", "SCHEMA_REJECTION", "SEMANTIC_VALIDATION_ERROR",
+            "SPECIALIST_INTERNAL_ERROR",
         } else "NONE"
         if not self.schema_valid and self.delegate_status == "VALID":
             self.delegate_status = "SEMANTIC_VALIDATION_ERROR"
@@ -769,6 +890,7 @@ class CandidateChunk:
             self.deontological_ledger_proposal or {}
         )
         self.virtue_character_proposal = dict(self.virtue_character_proposal or {})
+        self.care_ledger_proposal = dict(self.care_ledger_proposal or {})
         self.care_relational_map = {
             str(action): " ".join(str(reason).split())[:160]
             for action, reason in self.care_relational_map.items()
@@ -1347,6 +1469,8 @@ class WorkspaceResult:
     source_testimonies: dict[str, str] = field(default_factory=dict)
     source_errors: dict[str, str] = field(default_factory=dict)
     source_baselines: dict[str, dict[str, Any]] = field(default_factory=dict)
+    active_specialists: list[str] = field(default_factory=list)
+    framing_cache: dict[str, Any] = field(default_factory=dict)
     scenario_facts: dict[str, Any] = field(default_factory=dict)
     cycles: list[CycleRecord] = field(default_factory=list)
     selected_action: str = ""
@@ -1374,6 +1498,7 @@ class WorkspaceResult:
     epistemic_confidence: float = 0.0
     governing_justification_status: str = "NONE"
     governing_attack_reason: str = ""
+    governing_authority_transitions: list[dict[str, Any]] = field(default_factory=list)
     semantic_invariants: list[Any] = field(default_factory=list)
     semantic_graphs: list[dict[str, Any]] = field(default_factory=list)
     graph_transactions: list[dict[str, Any]] = field(default_factory=list)
@@ -1384,6 +1509,7 @@ class WorkspaceResult:
     utilitarian_consequence_ledger: list[dict[str, Any]] = field(default_factory=list)
     deontological_duty_ledger: list[dict[str, Any]] = field(default_factory=list)
     virtue_character_ledger: list[dict[str, Any]] = field(default_factory=list)
+    care_relationship_ledger: list[dict[str, Any]] = field(default_factory=list)
     proposition_ledger: list[dict[str, Any]] = field(default_factory=list)
     shared_unresolved_dependencies: list[dict[str, Any]] = field(default_factory=list)
     side_premise_audits: list[dict[str, Any]] = field(default_factory=list)

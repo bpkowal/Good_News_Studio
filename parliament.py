@@ -9,6 +9,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Sequence
 
+from global_workspace.legacy_bridge import AGENT_MODULES
+
 
 ROOT = Path(__file__).resolve().parent
 
@@ -30,12 +32,20 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--model", type=Path)
     parser.add_argument("--backend", choices=("local", "openai"))
     parser.add_argument("--openai-model", default="o3")
+    parser.add_argument(
+        "--agents", nargs="+", choices=tuple(AGENT_MODULES),
+        help="Run only the selected ethical frameworks (at least two)",
+    )
     parser.add_argument("--agent-timeout", type=float, default=600.0)
     parser.add_argument("--n-ctx", type=int, default=768)
     parser.add_argument("--n-gpu-layers", type=int, default=8)
     parser.add_argument("--n-batch", type=int, default=32)
     parser.add_argument("--delegate-tokens", type=int, default=128)
     parser.add_argument("--accept-actions", action="store_true")
+    parser.add_argument(
+        "--no-framing-cache", action="store_true",
+        help="Recompute action planning and action-source grounding",
+    )
     parser.add_argument("--no-synthesis", action="store_true")
     parser.add_argument("--extension-cycles", type=int, default=2)
     parser.add_argument("--max-cycle-extensions", type=int, default=1)
@@ -85,6 +95,41 @@ def prompt_max_cycles(default: int = 3) -> int:
     if value < 1:
         raise ValueError("Max cycles must be at least 1")
     return value
+
+
+_AGENT_ALIASES = {
+    "util": "utilitarian", "utility": "utilitarian",
+    "deon": "deontological", "duty": "deontological",
+    "virtue ethics": "virtue",
+    "care ethics": "care",
+    "rawls": "rawlsian",
+}
+
+
+def normalize_agents(values: Sequence[str]) -> list[str]:
+    requested: list[str] = []
+    for raw in values:
+        value = " ".join(str(raw).strip().casefold().replace("_", " ").split())
+        value = _AGENT_ALIASES.get(value, value)
+        if value not in AGENT_MODULES:
+            raise ValueError(
+                f"Unknown framework '{raw}'. Choose from: {', '.join(AGENT_MODULES)}"
+            )
+        if value not in requested:
+            requested.append(value)
+    if len(requested) < 2:
+        raise ValueError("Select at least two ethical frameworks for a workspace run")
+    # Stable canonical order keeps selection order from becoming an experimental variable.
+    return [name for name in AGENT_MODULES if name in requested]
+
+
+def prompt_agents() -> list[str]:
+    answer = input(
+        "Frameworks [all or comma-separated: utilitarian, deontological, virtue, care, rawlsian] (all): "
+    ).strip()
+    if not answer or answer.casefold() == "all":
+        return list(AGENT_MODULES)
+    return normalize_agents(answer.split(","))
 
 
 def resolve_max_cycles(args: argparse.Namespace, *, interactive: bool) -> int:
@@ -151,8 +196,13 @@ def workspace_command(args: argparse.Namespace, scenario_path: Path) -> list[str
     if args.actions:
         command.append("--actions")
         command.extend(args.actions)
+    if args.agents:
+        command.append("--agents")
+        command.extend(normalize_agents(args.agents))
     if args.accept_actions:
         command.append("--accept-actions")
+    if args.no_framing_cache:
+        command.append("--no-framing-cache")
     if args.no_synthesis:
         command.append("--no-synthesis")
     if args.no_cycle_extension:
@@ -229,6 +279,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     args.max_cycles = resolve_max_cycles(
         args, interactive=sys.stdin.isatty() and args.question is None,
     )
+    if args.agents is not None:
+        args.agents = normalize_agents(args.agents)
+    elif sys.stdin.isatty() and args.question is None:
+        args.agents = prompt_agents()
+    else:
+        args.agents = list(AGENT_MODULES)
     return run_workspace(args, question)
 
 

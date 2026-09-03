@@ -47,6 +47,24 @@ class DutyAssessmentProposal(BaseModel):
     ] = "UNCERTAIN"
     competing_protected_party: str = Field(default="unspecified party", min_length=1, max_length=100)
     competing_reason: str = Field(default="competing norm remains unresolved", min_length=4, max_length=180)
+    duty_type: Literal[
+        "PERFECT_NEGATIVE", "PERFECT_POSITIVE", "IMPERFECT",
+        "RIGHT_CORRELATIVE", "SPECIAL_OBIGATION", "UNRESOLVED",
+    ] = "UNRESOLVED"
+    harm_relation: Literal[
+        "DOING_HARM", "ALLOWING_HARM", "PREVENTING_HARM",
+        "WITHHOLDING_BENEFIT", "MIXED", "NOT_APPLICABLE", "UNRESOLVED",
+    ] = "UNRESOLVED"
+    special_obligation_status: Literal[
+        "ESTABLISHED", "NOT_ESTABLISHED", "NOT_REQUIRED", "CONTESTED", "UNKNOWN",
+    ] = "UNKNOWN"
+    special_obligation_basis: str = Field(
+        default="no special obligation established", min_length=4, max_length=180,
+    )
+    means_relation: Literal[
+        "INTENDED_AS_MEANS", "FORESEEN_SIDE_EFFECT", "NO_INSTRUMENTALIZATION",
+        "NOT_APPLICABLE", "UNRESOLVED",
+    ] = "UNRESOLVED"
     governing_norm: Literal["PRIMARY", "COMPETING", "UNRESOLVED"] = "PRIMARY"
     priority_basis: Literal[
         "UNIVERSAL_LAW", "RESPECT_PERSONS", "PERFECT_DUTY",
@@ -94,6 +112,10 @@ class DutyAssessmentProposal(BaseModel):
             raise ValueError("resolved adjudication requires a deontological derivation")
         if self.verdict == "CONFLICTED" and self.resolution_status == "RESOLVED":
             raise ValueError("conflicted verdict cannot claim resolved adjudication")
+        if self.special_obligation_status == "ESTABLISHED" and len(
+            _words(self.special_obligation_basis)
+        ) < 2:
+            raise ValueError("established special obligation requires a stated basis")
         borrowed = re.search(
             r"\b(?:fair equality of opportunity|difference principle|least[- ]advantaged)\b",
             " ".join((self.norm, self.competing_norm, self.priority_rule)), re.I,
@@ -253,6 +275,19 @@ _PRIORITY_SLOGAN = re.compile(
     r"\b(?:justice|equality)\b.{0,40}\b(?:override|outweigh|trump)s?\b.{0,40}"
     r"\b(?:libert\w*|freedom|autonom\w*)\b", re.I,
 )
+_MERELY_AS_MEANS_CLAIM = re.compile(
+    r"\b(?:merely|solely|only)\s+as\s+(?:a\s+)?means\b|\binstrumentali[sz]\w*\b",
+    re.I,
+)
+_PERFECT_POSITIVE_BASIS = re.compile(
+    r"\b(?:right[- ]correlative|undertak\w*|promise\w*|contract\w*|"
+    r"assigned role|created (?:the )?(?:risk|peril|dependency)|special relationship|"
+    r"emergency threshold|universal law)\b",
+    re.I,
+)
+_INSTRUMENTAL_EDGE_TYPES = {
+    "CAUSES", "ENABLES", "NECESSARY_FOR", "MEANS_TO", "PRODUCES",
+}
 
 
 def _graph_supporting_nodes(graph: SemanticGraph, pattern: re.Pattern[str]) -> list[str]:
@@ -294,6 +329,28 @@ def _coercion_path_support(
     )
 
 
+def _means_path_support(
+    graph: SemanticGraph,
+    action: SemanticNode,
+    item: DutyAssessmentProposal,
+) -> tuple[bool, list[str]]:
+    """Require an in-action causal path before classifying a burden as a means."""
+    burden_effects = query_grounded_action_effects(
+        graph, item.action_id, affected_subject=item.protected_party,
+    )
+    burden_ids = {effect.consequence_id for effect in burden_effects}
+    consequence_ids = {
+        edge.target for edge in graph.outgoing(action.id, "HAS_CONSEQUENCE")
+        if edge.target in graph.nodes
+    }
+    support: list[str] = []
+    for burden_id in burden_ids:
+        for edge in graph.outgoing(burden_id):
+            if edge.relation in _INSTRUMENTAL_EDGE_TYPES and edge.target in consequence_ids:
+                support.extend((burden_id, edge.target))
+    return bool(support), list(dict.fromkeys(support))
+
+
 def calibrate_deontological_adjudication(
     graph: SemanticGraph,
     action: SemanticNode,
@@ -313,6 +370,56 @@ def calibrate_deontological_adjudication(
     if _PRIORITY_SLOGAN.search(" ".join((item.priority_rule, item.reason))):
         errors.append("priority slogan does not supply a Kantian derivation")
         updates["derivation"] = "UNRESOLVED"
+
+    # A categorical conclusion is downstream of these distinctions.  They are
+    # not interchangeable: a general positive duty is not automatically a
+    # perfect duty, allowing harm is not doing harm, and a foreseen burden is
+    # not by itself use of a person as a means.
+    if item.resolution_status == "RESOLVED":
+        if item.duty_type == "UNRESOLVED":
+            errors.append("duty type remains unestablished")
+        if item.harm_relation == "UNRESOLVED":
+            errors.append("doing-versus-allowing relation remains unestablished")
+        if item.special_obligation_status in {"UNKNOWN", "CONTESTED"}:
+            errors.append("special-obligation status remains unestablished")
+        if item.means_relation == "UNRESOLVED":
+            errors.append("means-versus-side-effect relation remains unestablished")
+        if (
+            item.duty_type == "SPECIAL_OBLIGATION"
+            and item.special_obligation_status != "ESTABLISHED"
+        ):
+            errors.append("special duty asserted without an established special obligation")
+        if (
+            item.priority_basis == "PERFECT_DUTY"
+            and item.duty_type not in {"PERFECT_NEGATIVE", "PERFECT_POSITIVE"}
+        ):
+            errors.append("perfect-duty priority lacks a perfect-duty classification")
+        if (
+            item.duty_type == "PERFECT_POSITIVE"
+            and item.special_obligation_status != "ESTABLISHED"
+            and not _PERFECT_POSITIVE_BASIS.search(item.special_obligation_basis)
+        ):
+            errors.append(
+                "perfect positive duty lacks a right-correlative, undertaking, or grounded emergency basis"
+            )
+        if (
+            item.duty_type == "PERFECT_NEGATIVE"
+            and item.harm_relation in {"ALLOWING_HARM", "WITHHOLDING_BENEFIT"}
+        ):
+            errors.append(
+                "omission was classified as a perfect negative-duty violation without a separate basis"
+            )
+        if item.means_relation == "INTENDED_AS_MEANS":
+            means_supported, means_support = _means_path_support(graph, action, item)
+            support.extend(means_support)
+            if not means_supported:
+                errors.append(
+                    "intended-as-means classification lacks an in-action causal path"
+                )
+        if _MERELY_AS_MEANS_CLAIM.search(
+            " ".join((item.norm, item.competing_norm, item.priority_rule, item.reason))
+        ) and item.means_relation != "INTENDED_AS_MEANS":
+            errors.append("merely-as-means conclusion lacks intended-as-means classification")
 
     if item.coercion_kind != "NONE":
         path_supported, path_support = _coercion_path_support(graph, action, item)
@@ -415,6 +522,20 @@ def _unresolved_premises(assessment: dict[str, Any]) -> list[str]:
         unresolved.append(
             "whether the priority follows from a Kantian derivation rather than a maxim slogan"
         )
+    if any("duty type" in error or "perfect-duty" in error for error in errors):
+        unresolved.append("whether the asserted duty is perfect, imperfect, right-correlative, or special")
+    if any("doing-versus-allowing" in error for error in errors):
+        unresolved.append("whether the action does harm, allows harm, prevents harm, or withholds a benefit")
+    if any("special-obligation" in error or "special duty" in error for error in errors):
+        unresolved.append("whether a role, undertaking, relationship, or prior act establishes a special obligation")
+    if any("means-versus-side-effect" in error or "merely-as-means" in error for error in errors):
+        unresolved.append("whether the burden is intended as a means or only foreseen as a side effect")
+    if any("intended-as-means classification" in error for error in errors):
+        unresolved.append("whether an in-action causal path makes the burden instrumental to the chosen end")
+    if any("perfect positive duty" in error for error in errors):
+        unresolved.append("what makes the positive duty perfect rather than imperfect")
+    if any("perfect negative-duty" in error for error in errors):
+        unresolved.append("whether the omission violates a separate right-correlative prohibition")
     if not unresolved:
         unresolved.append("which claim governs under a universal public rule")
     return list(dict.fromkeys(unresolved))
@@ -785,6 +906,11 @@ def apply_deontological_ledger_transaction(
                 "competing_relation": item.competing_relation,
                 "competing_protected_party": competing_party_label,
                 "competing_reason": item.competing_reason,
+                "duty_type": item.duty_type,
+                "harm_relation": item.harm_relation,
+                "special_obligation_status": item.special_obligation_status,
+                "special_obligation_basis": item.special_obligation_basis,
+                "means_relation": item.means_relation,
                 "governing_norm": item.governing_norm,
                 "priority_basis": item.priority_basis,
                 "priority_rule": item.priority_rule,
@@ -878,6 +1004,11 @@ def apply_deontological_ledger_transaction(
                 "governing_norm": item.governing_norm,
                 "priority_basis": item.priority_basis,
                 "priority_rule": item.priority_rule,
+                "duty_type": item.duty_type,
+                "harm_relation": item.harm_relation,
+                "special_obligation_status": item.special_obligation_status,
+                "special_obligation_basis": item.special_obligation_basis,
+                "means_relation": item.means_relation,
                 "derivation": item.derivation,
                 "resolution_status": item.resolution_status,
                 "coercion_kind": item.coercion_kind,
@@ -929,6 +1060,11 @@ def apply_deontological_ledger_transaction(
             "competing_relation": item.competing_relation,
             "competing_protected_party": competing_party_label,
             "competing_reason": item.competing_reason,
+            "duty_type": item.duty_type,
+            "harm_relation": item.harm_relation,
+            "special_obligation_status": item.special_obligation_status,
+            "special_obligation_basis": item.special_obligation_basis,
+            "means_relation": item.means_relation,
             "governing_norm": item.governing_norm,
             "priority_basis": item.priority_basis,
             "priority_rule": item.priority_rule,

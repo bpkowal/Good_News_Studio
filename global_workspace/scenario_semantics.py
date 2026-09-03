@@ -40,6 +40,10 @@ class GroundedActionEffect:
     provenance: tuple[str, ...]
     confidence: float
     epistemic_status: str
+    affected_subject_quantities: tuple[str, ...] = ()
+    likelihood_qualifiers: tuple[str, ...] = ()
+    scope_qualifiers: tuple[str, ...] = ()
+    temporal_qualifiers: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -55,6 +59,10 @@ class GroundedActionEffect:
             "provenance": list(self.provenance),
             "confidence": self.confidence,
             "epistemic_status": self.epistemic_status,
+            "affected_subject_quantities": list(self.affected_subject_quantities),
+            "likelihood_qualifiers": list(self.likelihood_qualifiers),
+            "scope_qualifiers": list(self.scope_qualifiers),
+            "temporal_qualifiers": list(self.temporal_qualifiers),
         }
 
 
@@ -369,6 +377,32 @@ def project_grounded_action_effects(graph: SemanticGraph) -> list[GroundedAction
                     epistemic_status=(
                         "SCENARIO_GROUNDED" if scenario_grounded else "ACTION_TEXT_GROUNDED"
                     ),
+                    affected_subject_quantities=tuple(dict.fromkeys(
+                        str(value).strip() for value in [
+                            *[
+                                item
+                                for target in subject_targets
+                                if target.label.strip().casefold() == subject.casefold()
+                                for item in target.attributes.get("quantities", [])
+                            ],
+                            *list(consequence.attributes.get("party_quantities", [])),
+                        ] if str(value).strip()
+                    )),
+                    likelihood_qualifiers=tuple(dict.fromkeys(
+                        str(value).strip()
+                        for value in consequence.attributes.get("likelihood_qualifiers", [])
+                        if str(value).strip()
+                    )),
+                    scope_qualifiers=tuple(dict.fromkeys(
+                        str(value).strip()
+                        for value in consequence.attributes.get("scope_qualifiers", [])
+                        if str(value).strip()
+                    )),
+                    temporal_qualifiers=tuple(dict.fromkeys(
+                        str(value).strip()
+                        for value in consequence.attributes.get("temporal_qualifiers", [])
+                        if str(value).strip()
+                    )),
                 ))
         if str(action.attributes.get("source_type", "")).upper() == "SYNTHESIS_PROPOSAL":
             proposal_text = str(action.attributes.get("proposal_text", action.label))
@@ -1290,7 +1324,8 @@ def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
             if actor_id not in graph.nodes:
                 graph.add_node(SemanticNode(
                     actor_id, "ACTOR", actor.label, provenance,
-                    {"party_id": actor.party_id, "party_kind": actor.kind, "world_state_typed": True},
+                    {"party_id": actor.party_id, "party_kind": actor.kind,
+                     "quantities": list(actor.quantities), "world_state_typed": True},
                 ))
             graph.add_edge(SemanticEdge(
                 action.action_id, "HAS_ACTOR", actor_id, provenance=provenance,
@@ -1303,7 +1338,8 @@ def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
             if target_id not in graph.nodes:
                 graph.add_node(SemanticNode(
                     target_id, "TARGET", recipient.label, provenance,
-                    {"party_id": recipient.party_id, "party_kind": recipient.kind, "world_state_typed": True},
+                    {"party_id": recipient.party_id, "party_kind": recipient.kind,
+                     "quantities": list(recipient.quantities), "world_state_typed": True},
                 ))
             graph.add_edge(SemanticEdge(
                 action.action_id, "TARGETS", target_id, provenance=provenance,
@@ -1345,10 +1381,14 @@ def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
                 "modality": effect.modality,
                 "condition_ids": list(effect.condition_ids),
                 "quantities": list(effect.quantities),
+                "likelihood_qualifiers": list(effect.likelihood_qualifiers),
+                "scope_qualifiers": list(effect.scope_qualifiers),
+                "temporal_qualifiers": list(effect.temporal_qualifiers),
                 "targets": [party.label],
                 "affected_subjects": [party.label],
                 "party_id": party.party_id,
                 "party_kind": party.kind,
+                "party_quantities": list(party.quantities),
                 "scenario_grounded": True,
                 "source_clause_id": (
                     effect.provenance[0].clause_id if effect.provenance else ""
@@ -1372,6 +1412,7 @@ def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
                     "semantic_role": "AFFECTED_SUBJECT",
                     "party_id": party.party_id,
                     "party_kind": party.kind,
+                    "quantities": list(party.quantities),
                     "world_state_typed": True,
                 },
             ))
