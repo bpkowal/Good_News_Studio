@@ -178,6 +178,334 @@ class ArgumentChallenge:
         }
 
 
+def _broadcast_text(value: Any, limit: int) -> str:
+    """Bound one semantic field before JSON serialization, never after it."""
+    text = " ".join(str(value).split())
+    if len(text) <= limit:
+        return text
+    return text[: max(1, limit - 1)].rstrip(" ,;:-") + "…"
+
+
+def _broadcast_action_ids(problem_state: dict[str, Any]) -> dict[str, str]:
+    return {
+        str(item.get("action", "")): str(item.get("action_id", ""))
+        for item in problem_state.get("live_actions", []) or []
+        if str(item.get("action", "")) and str(item.get("action_id", ""))
+    }
+
+
+def _broadcast_action_ref(value: Any, action_ids: dict[str, str]) -> str:
+    text = str(value or "")
+    return action_ids.get(text, _broadcast_text(text, 72) or "NONE")
+
+
+def _attributed_items(
+    values: Any, *, key: str, specialist: str, field: str, limit: int, count: int,
+) -> list[str]:
+    rows = [
+        row for row in (values or [])
+        if isinstance(row, dict) and str(row.get(key, "")) == specialist
+    ]
+    return list(dict.fromkeys(
+        _broadcast_text(row.get(field, ""), limit)
+        for row in rows
+        if _broadcast_text(row.get(field, ""), limit)
+    ))[:count]
+
+
+_NATIVE_REASONING_CHAR_BUDGET = 6500
+_FRAMEWORK_CAPSULE_CHAR_BUDGET = 8300
+
+
+def _shrink_native_value(value: Any, text_limit: int) -> Any:
+    if isinstance(value, dict):
+        return {
+            str(key): _shrink_native_value(item, text_limit)
+            for key, item in value.items()
+        }
+    if isinstance(value, (list, tuple)):
+        return [_shrink_native_value(item, text_limit) for item in value]
+    if isinstance(value, str):
+        return _broadcast_text(value, text_limit)
+    return value
+
+
+def _fit_native_reasoning(payload: Any) -> dict[str, Any]:
+    """Keep native structure intact while bounding its explanatory prose."""
+    native = dict(payload or {})
+    if len(json.dumps(native, sort_keys=True)) <= _NATIVE_REASONING_CHAR_BUDGET:
+        return native
+    for limit in (64, 40, 24):
+        fitted = _shrink_native_value(native, limit)
+        if len(json.dumps(fitted, sort_keys=True)) <= _NATIVE_REASONING_CHAR_BUDGET:
+            return fitted
+    # Schema keys and action rows remain complete. If an unusually large
+    # ledger still exceeds the ordinary cap, remove explanatory prose fields
+    # before considering any structural row for omission.
+    fitted = _shrink_native_value(native, 24)
+    explanatory = {
+        "valuation_reason", "special_obligation_basis", "priority_rule",
+        "public_justification", "practical_judgment", "dependency_source",
+        "responsibility_basis", "competing_care_claim",
+        "classification_justification", "lexical_priority_justification",
+        "public_reason",
+    }
+
+    def remove_explanations(value: Any) -> Any:
+        if isinstance(value, dict):
+            return {
+                key: remove_explanations(item)
+                for key, item in value.items()
+                if key not in explanatory
+            }
+        if isinstance(value, list):
+            return [remove_explanations(item) for item in value]
+        return value
+
+    return remove_explanations(fitted)
+
+
+def _fit_framework_capsule(capsule: dict[str, Any]) -> dict[str, Any]:
+    """Enforce a per-framework cap by shrinking fields, never serialized JSON."""
+    if len(json.dumps(capsule, sort_keys=True)) <= _FRAMEWORK_CAPSULE_CHAR_BUDGET:
+        return capsule
+    fitted = dict(capsule)
+    fitted["qualifiers"] = dict(capsule.get("qualifiers", {}))
+    fitted["counterclaims"] = [
+        dict(item) for item in capsule.get("counterclaims", [])
+    ]
+    for text_limit, item_limit, id_limit in ((90, 2, 4), (64, 1, 3)):
+        fitted["reason_for_lean"] = _broadcast_text(
+            fitted.get("reason_for_lean", ""), text_limit
+        )
+        for field_name in (
+            "supporting_premises", "conditional_dependencies", "defeaters",
+            "decision_boundaries", "open_questions",
+        ):
+            fitted[field_name] = [
+                _broadcast_text(item, text_limit)
+                for item in fitted.get(field_name, [])
+            ][:item_limit]
+        fitted["supporting_proposition_ids"] = [
+            _broadcast_text(item, 64)
+            for item in fitted.get("supporting_proposition_ids", [])
+        ][:id_limit]
+        fitted["qualifiers"]["choice_condition"] = _broadcast_text(
+            fitted["qualifiers"].get("choice_condition", "NONE"), text_limit
+        ) or "NONE"
+        fitted["counterclaims"] = [
+            {
+                "action_id": str(item.get("action_id", "UNRESOLVED")),
+                "case": _broadcast_text(item.get("case", ""), text_limit),
+            }
+            for item in fitted.get("counterclaims", [])
+        ][:item_limit]
+        if len(json.dumps(fitted, sort_keys=True)) <= _FRAMEWORK_CAPSULE_CHAR_BUDGET:
+            break
+    return fitted
+
+
+def _balanced_problem_state_projection(
+    problem_state: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Project equal, attributed semantic capsules for recurrent broadcasts.
+
+    This is a transport-only view. It does not mutate the complete ProblemState
+    used by audits, salience, scoring, or trace serialization.
+    """
+    state = dict(problem_state or {})
+    if not state:
+        return {}
+    action_ids = _broadcast_action_ids(state)
+    live_actions = [
+        {
+            "action_id": str(item.get("action_id", "")),
+            "label": _broadcast_text(item.get("action", ""), 120),
+        }
+        for item in state.get("live_actions", []) or []
+        if isinstance(item, dict)
+    ]
+    positions = {
+        str(item.get("specialist", "")): dict(item)
+        for item in state.get("agent_positions", []) or []
+        if isinstance(item, dict) and str(item.get("specialist", ""))
+    }
+    contributions = {
+        str(item.get("agent", "")): dict(item)
+        for item in state.get("workspace_contributions", []) or []
+        if isinstance(item, dict) and str(item.get("agent", ""))
+    }
+    specialists = sorted(set(positions) | set(contributions))
+    capsules: list[dict[str, Any]] = []
+    for specialist in specialists:
+        position = positions.get(specialist, {})
+        contribution = contributions.get(specialist, {})
+        native_reasoning = _fit_native_reasoning(
+            contribution.get("native_reasoning", {})
+        )
+        grounds = [
+            _broadcast_text(item, 120)
+            for item in contribution.get("core_ground", []) or []
+            if _broadcast_text(item, 120)
+        ][:3]
+        unresolved = [
+            _broadcast_text(item, 120)
+            for item in contribution.get("unresolved", []) or []
+            if _broadcast_text(item, 120)
+        ][:3]
+        defeaters = [
+            _broadcast_text(item, 120)
+            for item in contribution.get("defeat_conditions", []) or []
+            if _broadcast_text(item, 120)
+        ][:3]
+        action_cases = dict(contribution.get("action_cases", {}) or {})
+        current_lean = _broadcast_action_ref(
+            position.get("preferred_action", contribution.get("tendency", "")),
+            action_ids,
+        )
+        counterclaims = [
+            {
+                "action_id": _broadcast_action_ref(action, action_ids),
+                "case": _broadcast_text(case, 140),
+            }
+            for action, case in sorted(
+                action_cases.items(), key=lambda item: _broadcast_action_ref(
+                    item[0], action_ids
+                )
+            )
+            if _broadcast_action_ref(action, action_ids) != current_lean
+            and _broadcast_text(case, 140)
+        ][:2]
+        if not counterclaims:
+            counterclaims = [
+                {"action_id": "UNRESOLVED", "case": item}
+                for item in _attributed_items(
+                    state.get("framework_internal_conflicts", []),
+                    key="source_specialist", specialist=specialist, field="conflict",
+                    limit=140, count=2,
+                )
+            ]
+        choice_condition = _broadcast_text(position.get("choice_condition", ""), 140)
+        qualifiers = {
+            "assumption_status": str(position.get("assumption_status", "NOT_AUDITED")),
+            "choice_condition": choice_condition or "NONE",
+            "weakest_dependency_status": str(
+                position.get("weakest_decision_critical_status", "ESTABLISHED")
+            ),
+        }
+        open_questions = _attributed_items(
+            state.get("framework_specific_open_questions", []),
+            key="source_specialist", specialist=specialist, field="question",
+            limit=120, count=2,
+        )
+        capsules.append(_fit_framework_capsule({
+            "agent": specialist,
+            "source_type": "FRAMEWORK_ATTRIBUTED_PROJECTION",
+            "current_lean": current_lean,
+            "constraint": str(position.get(
+                "active_constraint", contribution.get("constraint", "")
+            )),
+            "choice_status": str(position.get(
+                "choice_status", contribution.get("choice_status", "")
+            )),
+            "unresolved_classification": str(position.get("unresolved", "NONE")),
+            "reason_for_lean": grounds[0] if grounds else "NONE",
+            "supporting_premises": grounds[1:] if len(grounds) > 1 else grounds,
+            "supporting_proposition_ids": list(
+                position.get("supporting_proposition_ids", []) or []
+            )[:6],
+            "qualifiers": qualifiers,
+            "conditional_dependencies": unresolved,
+            "defeaters": defeaters,
+            "counterclaims": counterclaims,
+            "decision_boundaries": list(dict.fromkeys([
+                *defeaters, *([choice_condition] if choice_condition else []),
+            ]))[:3],
+            "open_questions": open_questions,
+            "framework_native_reasoning": native_reasoning,
+        }))
+
+    # Opening frames contain no specialists. Preserve their grounding frame in
+    # a bounded, field-aware form instead of truncating a serialized dictionary.
+    opening = not specialists
+    projection: dict[str, Any] = {
+        "state_role": str(state.get("state_role", "")),
+        "cycle": int(state.get("cycle", 0) or 0),
+        "live_actions": live_actions,
+        "current_plurality": _broadcast_action_ref(
+            state.get("current_plurality", ""), action_ids
+        ),
+        "primary_unresolved": str(state.get("primary_unresolved", "NONE")),
+        "unresolved_categories": list(state.get("unresolved_categories", []) or [])[:6],
+        "surface_consensus": str(state.get("surface_consensus", "INSUFFICIENT")),
+        "deliberative_consensus": str(
+            state.get("deliberative_consensus", "INSUFFICIENT")
+        ),
+        "framework_capsules": capsules,
+    }
+    if opening:
+        projection["scenario_clauses"] = [
+            {
+                "clause_id": str(item.get("clause_id", "")),
+                "text": _broadcast_text(item.get("text", ""), 180),
+            }
+            for item in state.get("scenario_clauses", []) or []
+            if isinstance(item, dict)
+        ][:12]
+        projection["grounded_identities"] = [
+            {
+                "node_id": str(item.get("node_id", "")),
+                "kind": str(item.get("kind", "")),
+                "label": _broadcast_text(item.get("label", ""), 90),
+                "clause_id": str(item.get("clause_id", "")),
+            }
+            for item in state.get("grounded_identities", []) or []
+            if isinstance(item, dict)
+        ][:24]
+    return projection
+
+
+def _balanced_challenge_projection(challenges: Any) -> list[dict[str, Any]]:
+    """Keep every target visible without slicing a serialized challenge list."""
+    return [
+        {
+            "issue_id": str(item.get("issue_id", "")),
+            "generated_by": str(item.get("generated_by", "")),
+            "about_specialist": str(item.get("about_specialist", "")),
+            "raised_by": list(item.get("raised_by", []) or [])[:3],
+            "target_specialists": list(item.get("target_specialists", []) or [])[:3],
+            "challenge_kind": str(item.get("challenge_kind", "")),
+            "question": _broadcast_text(item.get("question", ""), 180),
+            "status": str(item.get("status", "UNTESTED")),
+            "grounded_in": list(item.get("grounded_in", []) or [])[:6],
+        }
+        for item in challenges or []
+        if isinstance(item, dict)
+    ][:8]
+
+
+def _problem_delta_projection(delta: Any) -> dict[str, Any]:
+    value = dict(delta or {})
+    if not value:
+        return {}
+    categories = (
+        "preference_changes", "confidence_changes", "constraint_changes",
+        "new_constraints", "removed_constraints", "new_conflicts",
+        "resolved_conflicts", "new_questions", "resolved_questions",
+        "new_internal_conflicts", "resolved_internal_conflicts",
+        "reframed_internal_conflicts",
+    )
+    return {
+        "from_cycle": int(value.get("from_cycle", 0) or 0),
+        "to_cycle": int(value.get("to_cycle", 0) or 0),
+        "change_counts": {
+            category: len(value.get(category, []) or [])
+            for category in categories
+            if value.get(category, [])
+        },
+    }
+
+
 @dataclass(slots=True)
 class WorkspaceBroadcast:
     constraint: str = "OPEN_DELIBERATION"
@@ -206,6 +534,8 @@ class WorkspaceBroadcast:
     branch_condition: str = ""
     branch_fallback: str = ""
     reversal_challenge: str = ""
+    # Parallel, non-evidentiary questions for the next ordinary cycle.
+    challenge_agenda: tuple[dict[str, Any], ...] = ()
     # Exact ledger propositions receiving attention in the next cycle. This is
     # an address, not evidence and never changes proposition authority.
     focus_proposition_ids: tuple[str, ...] = ()
@@ -262,6 +592,11 @@ class WorkspaceBroadcast:
         self.branch_condition = " ".join(self.branch_condition.split())[:240]
         self.branch_fallback = " ".join(self.branch_fallback.split())[:180]
         self.reversal_challenge = " ".join(self.reversal_challenge.split())[:360]
+        self.challenge_agenda = tuple(
+            dict(item) for item in self.challenge_agenda
+            if isinstance(item, dict)
+            and str(item.get("issue_id", "")).startswith("CHALLENGE:")
+        )[:8]
         self.focus_proposition_ids = tuple(dict.fromkeys(
             str(value).strip() for value in self.focus_proposition_ids
             if str(value).strip()
@@ -271,6 +606,16 @@ class WorkspaceBroadcast:
         self.danger_probability = clamp(self.danger_probability)
 
     def compact(self) -> str:
+        challenge_projection = _balanced_challenge_projection(
+            self.challenge_agenda
+        )
+        state_projection = _balanced_problem_state_projection(
+            self.problem_state
+        )
+        delta_projection = _problem_delta_projection(
+            self.problem_state.get("problem_delta", {})
+            if self.problem_state else {}
+        )
         return (
             f"constraint={self.constraint}; intent={self.intent}; "
             f"salient={self.salient_specialist or 'NONE'}:"
@@ -289,9 +634,10 @@ class WorkspaceBroadcast:
             f"condition={self.branch_condition or 'NONE'}; "
             f"fallback={self.branch_fallback or 'NONE'}"
             f"; reversal_challenge={self.reversal_challenge or 'NONE'}; "
+            f"challenge_agenda={json.dumps(challenge_projection, sort_keys=True) if challenge_projection else 'NONE'}; "
             f"focus_propositions={list(self.focus_proposition_ids) or 'NONE'}; "
-            f"problem_delta={json.dumps(self.problem_state.get('problem_delta', {}), sort_keys=True)[:2400] if self.problem_state else 'NONE'}; "
-            f"problem_state={json.dumps(self.problem_state, sort_keys=True)[:4000] if self.problem_state else 'NONE'}"
+            f"problem_delta={json.dumps(delta_projection, sort_keys=True) if delta_projection else 'NONE'}; "
+            f"problem_state={json.dumps(state_projection, sort_keys=True) if state_projection else 'NONE'}"
         )
 
     def trace_summary(self) -> str:
@@ -478,6 +824,9 @@ class CandidateChunk:
     audit_internal_effect: str = "UNRESOLVED"
     audit_participation: str = "NOT_TESTED"
     audit_framework_explanation: str = ""
+    # Response to this framework's assigned item in the shared challenge agenda.
+    # The embedded issue ID preserves who authored and who was targeted by it.
+    challenge_response: dict[str, Any] = field(default_factory=dict)
     graph_update_proposal: dict[str, Any] = field(default_factory=dict)
     expected_value_estimates: dict[str, dict[str, Any]] = field(default_factory=dict)
     # Passive construct-validity measurements. These fields are serialized for
@@ -499,6 +848,10 @@ class CandidateChunk:
     # last committed state, plus which current-cycle components survived rollback.
     proposed_framework_state: dict[str, Any] = field(default_factory=dict)
     committed_framework_state: dict[str, Any] = field(default_factory=dict)
+    # System-owned snapshot of graph-committed native ledger records. Unlike
+    # committed_framework_state, this cannot contain a merely submitted or
+    # first-state-admitted proposal.
+    committed_native_ledger: dict[str, Any] = field(default_factory=dict)
     preserved_current_cycle_components: list[str] = field(default_factory=list)
     # Framework-local tensions are observations about a specialist's own
     # reasoning, not shared world facts or cross-framework priority rules.
@@ -555,8 +908,10 @@ class CandidateChunk:
             if isinstance(item, dict)
             and str(item.get("proposition", "")).strip()
         ][:6]
+        self.challenge_response = dict(self.challenge_response or {})
         self.proposed_framework_state = dict(self.proposed_framework_state or {})
         self.committed_framework_state = dict(self.committed_framework_state or {})
+        self.committed_native_ledger = dict(self.committed_native_ledger or {})
         self.preserved_current_cycle_components = list(dict.fromkeys(
             str(value).strip()[:64]
             for value in self.preserved_current_cycle_components
@@ -1463,6 +1818,7 @@ class WorkspaceResult:
     scenario: str
     actions: list[str]
     presentation_actions: list[str] = field(default_factory=list)
+    presentation_action_mapping: list[dict[str, Any]] = field(default_factory=list)
     source_action_legend: dict[str, str] = field(default_factory=dict)
     action_source_grounding: dict[str, Any] = field(default_factory=dict)
     canonical_action_records: list[dict[str, Any]] = field(default_factory=list)

@@ -2361,6 +2361,71 @@ def _candidate_from_data(
     consensus_audit_variable: dict[str, Any] = {}
     audit_participation = "NOT_TESTED"
     audit_framework_explanation = ""
+    challenge_response: dict[str, Any] = {}
+    targeted_agenda = [
+        dict(item) for item in getattr(broadcast, "challenge_agenda", ())
+        if specialist.casefold() in {
+            str(value).casefold()
+            for value in item.get("target_specialists", []) or []
+        }
+    ]
+    if targeted_agenda:
+        expected_ids = {
+            str(item.get("issue_id", "")) for item in targeted_agenda
+        }
+        raw_response = data.get("qa", {})
+        if not isinstance(raw_response, dict):
+            raise ValueError("assigned challenge requires a typed qa response")
+        issue_id = str(raw_response.get("issue_id", ""))
+        disposition = str(raw_response.get("disposition", "")).upper()
+        current_effect = str(
+            raw_response.get(
+                "current_position_effect", raw_response.get("effect", "")
+            )
+        ).upper()
+        boundary_effect = str(
+            raw_response.get("boundary_effect", "NOT_APPLICABLE")
+        ).upper()
+        answer = " ".join(str(raw_response.get("answer", "")).split())[:900]
+        follow_up = " ".join(
+            str(raw_response.get("follow_up_question", "")).split()
+        )[:240]
+        if issue_id not in expected_ids:
+            raise ValueError("challenge response issue_id must match the assigned agenda")
+        if disposition not in {"RESOLVED", "REFINED", "UNRESOLVED"}:
+            raise ValueError("challenge disposition must be RESOLVED, REFINED, or UNRESOLVED")
+        if current_effect not in {"NO_CHANGE", "WEAKENS", "REVERSES", "UNRESOLVED"}:
+            raise ValueError(
+                "challenge current_position_effect must be NO_CHANGE, WEAKENS, "
+                "REVERSES, or UNRESOLVED"
+            )
+        if boundary_effect not in {
+            "NOT_APPLICABLE", "NO_SWITCH", "MAY_SWITCH", "SWITCHES", "UNRESOLVED",
+        }:
+            raise ValueError(
+                "challenge boundary_effect must be NOT_APPLICABLE, NO_SWITCH, "
+                "MAY_SWITCH, SWITCHES, or UNRESOLVED"
+            )
+        if len(answer.split()) < 3:
+            raise ValueError("challenge response must explain the framework-specific answer")
+        if disposition == "RESOLVED" and current_effect == "UNRESOLVED" and (
+            boundary_effect in {"NOT_APPLICABLE", "UNRESOLVED"}
+        ):
+            raise ValueError("a resolved challenge cannot report an unresolved effect")
+        if disposition == "REFINED" and (
+            not follow_up or follow_up.upper() == "NONE"
+        ):
+            raise ValueError("a refined challenge must provide its next question")
+        challenge_response = {
+            "issue_id": issue_id,
+            "disposition": disposition,
+            # Keep effect as a compatibility alias for older trace consumers.
+            "effect": current_effect,
+            "current_position_effect": current_effect,
+            "boundary_effect": boundary_effect,
+            "answer": answer,
+            "follow_up_question": follow_up or "NONE",
+        }
     if broadcast.constraint in _PROBLEM_AUDIT_CONSTRAINTS:
         audit_participation = str(data.get("ap", "")).strip().upper()
         audit_framework_explanation = " ".join(str(data.get("ax", "")).split())
@@ -2928,6 +2993,7 @@ def _candidate_from_data(
         audit_internal_effect=consensus_audit_effect,
         audit_participation=audit_participation,
         audit_framework_explanation=audit_framework_explanation,
+        challenge_response=challenge_response,
         graph_update_proposal=graph_update,
         expected_value_estimates=expected_values,
         visibility_response=visibility_response,
@@ -3342,12 +3408,38 @@ class CompactLocalSpecialist:
             change_details.append("basic-liberty comparison changed")
         change_summary = "; ".join(change_details[:3]) or "typed principle state changed"
 
+        challenge_answer = " ".join(str(
+            (candidate.challenge_response or {}).get("answer", "")
+        ).split())
         explanation = " ".join(
-            (candidate.change_justification, candidate.framework_application)
+            (
+                candidate.change_justification,
+                candidate.framework_application,
+                challenge_answer,
+            )
         ).strip()
+        assigned_challenge_ids = {
+            str(item.get("issue_id", ""))
+            for item in broadcast.challenge_agenda
+            if self.name.casefold() in {
+                str(value).casefold()
+                for value in item.get("target_specialists", []) or []
+            }
+        }
+        challenge_supplied_reason = bool(
+            str((candidate.challenge_response or {}).get("issue_id", ""))
+            in assigned_challenge_ids
+            and _semantic_word_count(challenge_answer) >= 4
+            and _FRAMEWORK_CONSTRUCT_MARKERS[self.name].search(
+                " ".join((challenge_answer, candidate.rationale))
+            )
+        )
         review_supplied_reason = bool(
             broadcast.constraint != "OPEN_DELIBERATION"
-            and candidate.workspace_reasoning_effect in {"FACTUAL", "NORMATIVE", "BOTH"}
+            and (
+                candidate.workspace_reasoning_effect in {"FACTUAL", "NORMATIVE", "BOTH"}
+                or challenge_supplied_reason
+            )
             and _semantic_word_count(explanation) >= 4
             and _FRAMEWORK_CONSTRUCT_MARKERS[self.name].search(
                 " ".join((explanation, candidate.rationale))
@@ -3987,6 +4079,53 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
             ],
             "additionalProperties": False,
         }
+        targeted_agenda = [
+            dict(item) for item in broadcast.challenge_agenda
+            if self.name.casefold() in {
+                str(value).casefold()
+                for value in item.get("target_specialists", []) or []
+            }
+        ]
+        if targeted_agenda:
+            assigned_ids = [
+                str(item.get("issue_id", "")) for item in targeted_agenda
+            ]
+            schema["properties"]["qa"] = {
+                "type": "object",
+                "properties": {
+                    "issue_id": {"type": "string", "enum": assigned_ids},
+                    "disposition": {
+                        "type": "string",
+                        "enum": ["RESOLVED", "REFINED", "UNRESOLVED"],
+                    },
+                    "effect": {
+                        "type": "string",
+                        "enum": ["NO_CHANGE", "WEAKENS", "REVERSES", "UNRESOLVED"],
+                    },
+                    "current_position_effect": {
+                        "type": "string",
+                        "enum": ["NO_CHANGE", "WEAKENS", "REVERSES", "UNRESOLVED"],
+                    },
+                    "boundary_effect": {
+                        "type": "string",
+                        "enum": [
+                            "NOT_APPLICABLE", "NO_SWITCH", "MAY_SWITCH",
+                            "SWITCHES", "UNRESOLVED",
+                        ],
+                    },
+                    "answer": {"type": "string", "minLength": 8, "maxLength": 900},
+                    "follow_up_question": {
+                        "type": "string", "minLength": 4, "maxLength": 240,
+                    },
+                },
+                "required": [
+                    "issue_id", "disposition", "effect",
+                    "current_position_effect", "boundary_effect", "answer",
+                    "follow_up_question",
+                ],
+                "additionalProperties": False,
+            }
+            schema["required"].append("qa")
         is_care = self.name == "care"
         if available_proposition_ids:
             proposition_list_schema = {
@@ -4960,6 +5099,25 @@ Your original corpus-grounded testimony: {testimony}
 Frozen testimony baseline state: {json.dumps(baseline_state)}
 Previous cycle recommendation: {self.previous_recommendation_id or 'NONE'}
 Workspace: {broadcast.compact()}
+CHALLENGE AGENDA CONTRACT: challenge_agenda is a shared list of questions, not
+scenario evidence and not a governing norm. generated_by names the actual author;
+about_specialist names whose reasoning caused the question; raised_by names any
+specialist that explicitly raised it; target_specialists names who must answer it.
+Never describe a WORKSPACE_ARGUMENT_AUDITOR question as self-criticism by the target
+framework, and never adopt another framework's priority merely because its question
+is globally visible. Questions targeting other specialists are context only.
+Your assigned challenges: {json.dumps(targeted_agenda, sort_keys=True)}
+When an item targets {self.name}, answer that exact issue in qa from YOUR framework.
+Use disposition=RESOLVED only when your answer settles the inferential bridge;
+REFINED when it yields a smaller unresolved question, supplying that question in
+follow_up_question; otherwise UNRESOLVED. current_position_effect states whether
+your ACTUAL current ranking changed after answering. boundary_effect separately
+states whether the condition under examination would switch the ranking. For
+compatibility, set effect equal to current_position_effect. A hypothetical that
+would reverse you is boundary_effect=SWITCHES and current_position_effect=NO_CHANGE
+unless the hypothetical has become established. Use follow_up_question="NONE" only
+when no narrower question remains. Agenda answers direct attention but cannot promote
+a proposition's epistemic status.
 DELIBERATIVE STATE RULE: problem_state is a read-only description of attributed
 agent positions, confidences, constraints, conflicts, unresolved questions, and
 dissent. problem_delta describes attributed changes since the state received by
@@ -4967,6 +5125,16 @@ the previous cycle; disappearance marked WITHDRAWN is not a solved question. The
 state is not scenario evidence and does not establish any framework's
 priority for another framework. Use it to notice neglected questions and actions;
 evaluate every attributed position independently under YOUR assigned framework.
+FRAMEWORK-NATIVE PAYLOAD RULE: each framework capsule may include a tagged
+framework_native_reasoning object copied by Python from that specialist's operative,
+committed transactional ledger. It preserves the source framework's own reasoning
+geometry and remains attributed argument, not scenario evidence or a norm binding
+your framework. Its source_type must be GRAPH_COMMITTED_FRAMEWORK_LEDGER; treat any
+other source type as unavailable. Use another framework's native fields to identify its actual premise,
+qualification, counterclaim, or boundary; answer from YOUR framework and do not copy
+its duty, utility, care, virtue, or justice priority into your own ledger. A missing
+native payload means no committed native ledger was available, not that the framework
+had no reasons. Never infer that a proposed or rejected ledger became committed.
 Only Scenario facts and Canonical grounded action effects can ground descriptive
 claims. Never copy the salient framework's priority rule into your own ledger.
 Scenario facts: {json.dumps(self.scenario_facts or {}, sort_keys=True)}
@@ -6642,18 +6810,25 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
     attempts: list[dict[str, Any]] = []
     repair_note = ""
     result: dict[str, Any] = {}
+    rejected_candidate: Any = None
     for attempt in range(1, max(1, max_attempts) + 1):
         try:
+            call_prompt = (
+                prompt if not repair_note
+                else prompt.replace("\n[/INST]", repair_note + "\n[/INST]", 1)
+            )
             output = _call_json_llm(
-                llm, prompt + repair_note, max_tokens=max(2200, max_tokens),
+                llm, call_prompt, max_tokens=max(2200, max_tokens),
                 temperature=0.0, schema=schema,
             )
             raw = (
                 output["choices"][0]["text"]
                 if isinstance(output, dict) else str(output)
             )
+            candidate = _extract_json(raw)
+            rejected_candidate = candidate
             result = _admit_action_source_rows(
-                _extract_json(raw), actions, action_ids, clauses,
+                candidate, actions, action_ids, clauses,
             )
         except Exception as exc:
             result = {
@@ -6675,11 +6850,16 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
         repair_note = (
             "\n\nA previous attempt was rejected by deterministic validation for: "
             + "; ".join(attempt_errors)
+            + "\nRepair the rejected candidate below. Preserve every field not "
+            "implicated by those validation errors; do not regenerate the model "
+            "from scratch. Keep existing IDs and already-valid records stable."
             + "\nEach action must cite at least one clause that no other action "
             "cites. Shared background clauses are still permitted alongside it. "
             "For contradictory direct effects, re-read the cited clauses and remove "
             "the incorrectly assigned effect rather than weakening its modality. "
             "Correct exactly these problems and return the mapping again."
+            + "\nRejected candidate JSON:\n"
+            + json.dumps(rejected_candidate, ensure_ascii=False, sort_keys=True)
         )
     result["attempts"] = attempts
     result["repair_attempts"] = len(attempts) - 1

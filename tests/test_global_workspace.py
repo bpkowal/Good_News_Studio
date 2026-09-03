@@ -12,7 +12,8 @@ from unittest.mock import patch
 from global_workspace.engine import (
     WorkspaceConfig, WorkspaceEngine, _preserve_problem_state_after_invalid_cycle,
     _problem_state_audit_probe, _operative_framework_candidates,
-    _argument_challenge_candidates,
+    _advance_argument_challenge_agenda, _argument_challenge_candidates,
+    _record_committed_native_ledger,
 )
 from global_workspace.epistemic_ledger import seed_proposition_ledger
 from global_workspace.action_identity import compile_action_identity
@@ -62,7 +63,7 @@ from global_workspace.resolved_questions import (
     settled_question_keys,
 )
 from global_workspace.source_cache import build_source_cache_key
-from global_workspace.models import ArgumentChallenge, CalibrationOutcome, CandidateChunk, ContingencyFeasibilityAssessment, CycleRecord, FailureCondition, PlanningAssessment, PlanningBranchEvaluation, ProblemReformulation, ProposalFrameworkReview, SynthesisProposal, VisibilityAssessment, WorkspaceAccessDecision, WorkspaceBroadcast, WorkspaceResult
+from global_workspace.models import ArgumentChallenge, CalibrationOutcome, CandidateChunk, ContingencyFeasibilityAssessment, CycleRecord, FailureCondition, PlanningAssessment, PlanningBranchEvaluation, ProblemReformulation, ProposalFrameworkReview, SynthesisProposal, VisibilityAssessment, WorkspaceAccessDecision, WorkspaceBroadcast, WorkspaceResult, _NATIVE_REASONING_CHAR_BUDGET, _balanced_challenge_projection, _balanced_problem_state_projection, _fit_native_reasoning
 from global_workspace.models import AutonomyAssessment
 from global_workspace.construct_validity import collect_typed_residue
 from global_workspace.contingency_graph import (
@@ -90,6 +91,7 @@ from global_workspace.semantic_graph import (
     SemanticGraph, SemanticNode, SemanticEdge, merge_graphs,
 )
 from global_workspace.scenario_semantics import (
+    build_presentation_action_mapping,
     canonicalize_action_order, canonicalize_deliberation_scenario,
     compile_scenario_graph, resolved_semantic_action_keys, semantic_action_key,
     segment_scenario_clauses,
@@ -966,6 +968,424 @@ class WorkspaceEngineTests(unittest.TestCase):
             state["salient_position"]["conditional_justification"],
         )
         self.assertNotIn("rationale", state["agent_positions"][0])
+
+    def test_broadcast_projection_gives_every_framework_a_balanced_semantic_capsule(self):
+        actions = [
+            "route the sole emergency resource to the immediate-care facility " * 4,
+            "route the sole emergency resource to the public-infrastructure facility " * 4,
+        ]
+        specialists = []
+        for index, name in enumerate(
+            ["utilitarian", "deontological", "virtue", "care", "rawlsian"]
+        ):
+            preferred = actions[index % 2]
+            rival = actions[1 - (index % 2)]
+            specialists.append(CandidateChunk(
+                specialist=name,
+                constraint=f"FRAMEWORK_{index}",
+                action_scores={preferred: 0.7, rival: 0.3},
+                surprise=0.2, friction=0.4, confidence=0.7,
+                recommended_action=preferred,
+                rationale=f"{name} reason for the current lean",
+                decision_rule=f"Prefer the selected action while {name} condition holds",
+                framework_action_map={
+                    preferred: f"SUPPORTS: {name} main case with its qualifier",
+                    rival: f"MIXED: {name} strongest counterclaim",
+                },
+                framework_internal_conflicts=[f"{name} competing claim remains open"],
+                framework_specific_open_questions=[f"what would reverse {name}?"],
+                reversal_condition=f"reverse if the {name} counterclaim dominates",
+                factual_reversal_threshold=f"reverse if the {name} fact changes",
+                unsupported_assumption=f"{name} conditional dependency",
+                assumption_status="CONDITIONAL",
+                unresolved="DECISION_BOUNDARY",
+            ))
+        state = build_deliberative_problem_state(
+            1, actions, specialists, actions[0], specialists[0],
+        ).to_dict()
+        complete_before = json.dumps(state, sort_keys=True)
+
+        projection = _balanced_problem_state_projection(state)
+        capsules = projection["framework_capsules"]
+        delivered = WorkspaceBroadcast(problem_state=state).compact()
+        delivered_projection = json.loads(delivered.split("problem_state=", 1)[1])
+
+        self.assertEqual(
+            [capsule["agent"] for capsule in capsules],
+            ["care", "deontological", "rawlsian", "utilitarian", "virtue"],
+        )
+        required = {
+            "current_lean", "reason_for_lean", "supporting_premises",
+            "qualifiers", "conditional_dependencies", "defeaters",
+            "counterclaims", "decision_boundaries", "open_questions",
+            "source_type",
+        }
+        self.assertTrue(all(required <= set(capsule) for capsule in capsules))
+        self.assertTrue(all(
+            capsule["current_lean"] in {"A0", "A1"}
+            and capsule["counterclaims"][0]["action_id"] in {"A0", "A1"}
+            and capsule["source_type"] == "FRAMEWORK_ATTRIBUTED_PROJECTION"
+            for capsule in capsules
+        ))
+        self.assertTrue(all(
+            len(json.dumps(capsule)) < 2200 for capsule in capsules
+        ))
+        self.assertEqual(delivered_projection, projection)
+        self.assertEqual(json.dumps(state, sort_keys=True), complete_before)
+
+    def test_challenge_broadcast_projection_keeps_every_target_and_valid_json(self):
+        challenges = [
+            {
+                "issue_id": f"CHALLENGE:{index:016d}",
+                "generated_by": "WORKSPACE_ARGUMENT_AUDITOR",
+                "about_specialist": name,
+                "raised_by": [],
+                "target_specialists": [name],
+                "challenge_kind": "REVERSAL_BOUNDARY",
+                "question": (f"What would reverse {name}'s current position? " * 20),
+                "status": "ASSIGNED",
+                "grounded_in": ["PROP:WORLD:E0"],
+            }
+            for index, name in enumerate(
+                ["utilitarian", "deontological", "virtue", "care", "rawlsian"]
+            )
+        ]
+
+        projection = _balanced_challenge_projection(challenges)
+        serialized = json.dumps(projection, sort_keys=True)
+
+        self.assertEqual(len(projection), 5)
+        self.assertEqual(
+            {item["target_specialists"][0] for item in projection},
+            {"utilitarian", "deontological", "virtue", "care", "rawlsian"},
+        )
+        self.assertEqual(json.loads(serialized), projection)
+        self.assertTrue(all(len(item["question"]) <= 180 for item in projection))
+
+    def test_framework_native_payloads_preserve_each_committed_reasoning_geometry(self):
+        actions = ["choose immediate protection", "choose systemic protection"]
+        candidates = []
+        committed = {
+            "utilitarian": {
+                "utilitarian_ledger_proposal": {"actions": [
+                    {"action_id": "A0", "valuations": [{
+                        "effect_id": "E0", "importance": "CRITICAL",
+                        "reason": "immediate welfare effect",
+                    }]},
+                    {"action_id": "A1", "valuations": [{
+                        "effect_id": "E1", "importance": "HIGH",
+                        "reason": "systemic welfare effect",
+                    }]},
+                ]},
+                "comparison_complete": False,
+                "evidence_sufficient_for_action": False,
+                "framework_numerical_role": "DECISIVE",
+            },
+            "deontological": {
+                "deontological_ledger_proposal": {"assessments": [
+                    {
+                        "action_id": action_id, "verdict": verdict,
+                        "norm_kind": "UNIVERSAL_LAW", "norm": "reciprocal rescue maxim",
+                        "relation": relation, "duty_type": duty_type,
+                        "duty_bearer": "public authority", "protected_party": party,
+                        "harm_relation": "ALLOWING_HARM",
+                        "special_obligation_status": "CONTESTED",
+                        "special_obligation_basis": "entrustment remains disputed",
+                        "means_relation": "FORESEEN_SIDE_EFFECT",
+                        "competing_norm": "public health duty",
+                        "competing_relation": "CONFLICTS",
+                        "competing_protected_party": "city residents",
+                        "priority_basis": "UNIVERSAL_LAW",
+                        "priority_rule": "reciprocal rescue has provisional priority",
+                        "derivation": "UNIVERSAL_LAW",
+                        "resolution_status": "CONTESTED",
+                    }
+                    for action_id, verdict, relation, duty_type, party in (
+                        ("A0", "REQUIRED", "SATISFIES", "RIGHT_CORRELATIVE", "patients"),
+                        ("A1", "CONFLICTED", "CONFLICTS", "UNRESOLVED", "residents"),
+                    )
+                ]},
+            },
+            "virtue": {
+                "virtue_character_proposal": {
+                    "ranking_basis": "PRACTICAL_WISDOM",
+                    "assessments": [{
+                        "action_id": action_id, "verdict": verdict,
+                        "actor_role": "public steward", "virtues": virtues,
+                        "vice_risk": vice, "circumstance": "tragic resource scarcity",
+                        "reason": "balances role and common flourishing",
+                    } for action_id, verdict, virtues, vice in (
+                        ("A0", "EXEMPLIFIES", "compassion and courage", "partiality"),
+                        ("A1", "MIXED", "prudence and justice", "callousness"),
+                    )],
+                },
+            },
+            "care": {
+                "care_ledger_proposal": {
+                    "ranking_basis": "ENTRUSTED_RESPONSIBILITY",
+                    "assessments": [{
+                        "action_id": action_id, "verdict": verdict,
+                        "affected_party": party, "relationship_type": relationship,
+                        "dependency_source": dependency,
+                        "responsibility_basis": "ongoing responsibility history",
+                        "need_kind": "SURVIVAL_HEALTH", "need_urgency": "IMMEDIATE",
+                        "trust_effect": trust, "responsiveness": responsiveness,
+                        "feasibility": "ESTABLISHED",
+                        "competing_care_claim": "the other party's dependency",
+                        "resolution_status": "CONTESTED",
+                    } for action_id, verdict, party, relationship, dependency, trust, responsiveness in (
+                        ("A0", "RESPONSIVE", "patients", "ENTRUSTED", "clinical support", "PRESERVES", "DIRECT"),
+                        ("A1", "MIXED", "residents", "COMMUNITY_RELATION", "public infrastructure", "STRAINS", "INDIRECT"),
+                    )],
+                },
+            },
+            "rawlsian": {
+                "rawls_position_proposal": {
+                    "ranking_basis": "BASIC_INTEREST_SECURITY",
+                    "ranking_classification_justification": "survival security is the classified concern",
+                    "lexical_priority_justification": "no direct basic-liberty restriction is established",
+                    "liberty_status": {"A0": "NOT_APPLICABLE", "A1": "NOT_APPLICABLE"},
+                    "positions": [{
+                        "action_id": action_id, "subject": party,
+                        "subject_kind": "GROUP", "dimension": "BASIC_INTEREST_SECURITY",
+                        "additional_dimensions": ["OTHER_PRIMARY_GOOD"],
+                        "basic_liberty_kind": "NOT_APPLICABLE",
+                        "institutional_relation": relation,
+                        "effect": effect, "compared_to_action_id": rival,
+                        "principle_basis": "BASIC_INTEREST_SECURITY",
+                        "reason": "compares representative positions under a public rule",
+                    } for action_id, party, relation, effect, rival in (
+                        ("A0", "patients", "NATURAL_CONTINGENCY", "IMPROVES", "A1"),
+                        ("A1", "residents", "MATERIAL_PRECONDITION", "MIXED", "A0"),
+                    )],
+                },
+            },
+        }
+        for index, name in enumerate(committed):
+            candidate = CandidateChunk(
+                specialist=name, constraint=name.upper(),
+                action_scores={actions[0]: 0.7, actions[1]: 0.3},
+                surprise=0.2, friction=0.4, confidence=0.7,
+                recommended_action=actions[0], rationale=f"{name} leans A0",
+                decision_rule=f"apply the {name} comparison",
+                framework_action_map={
+                    actions[0]: f"SUPPORTS: {name} case",
+                    actions[1]: f"MIXED: {name} countercase",
+                },
+                framework_retention_status="COMMITTED",
+            )
+            proposal_key, collection, ledger_kind = {
+                "utilitarian": (
+                    "utilitarian_ledger_proposal", "actions",
+                    "UTILITARIAN_CONSEQUENCE_LEDGER",
+                ),
+                "deontological": (
+                    "deontological_ledger_proposal", "assessments",
+                    "DEONTOLOGICAL_DUTY_LEDGER",
+                ),
+                "virtue": (
+                    "virtue_character_proposal", "assessments",
+                    "VIRTUE_CHARACTER_LEDGER",
+                ),
+                "care": (
+                    "care_ledger_proposal", "assessments",
+                    "CARE_RELATIONSHIP_LEDGER",
+                ),
+                "rawlsian": (
+                    "rawls_position_proposal", "positions",
+                    "RAWLSIAN_POSITION_LEDGER",
+                ),
+            }[name]
+            proposal = committed[name][proposal_key]
+            records = []
+            if name == "utilitarian":
+                for action in proposal[collection]:
+                    records.extend({
+                        "specialist": name,
+                        "canonical_action_id": action["action_id"],
+                        "world_effect_id": row["effect_id"],
+                        "outcome": f"grounded outcome for {row['effect_id']}",
+                        "direction": "BENEFICIAL",
+                        "polarity": "BENEFICIAL",
+                        "probability": "UNKNOWN",
+                        "modality": "ASSERTED",
+                        "magnitude": "UNKNOWN",
+                        "scope": "affected residents",
+                        "importance": row["importance"],
+                        "valuation_reason": row["reason"],
+                        "epistemic_status": "SCENARIO_GROUNDED",
+                    } for row in action["valuations"])
+            else:
+                ranking_fields = {
+                    key: value for key, value in proposal.items()
+                    if key != collection
+                }
+                for row in proposal[collection]:
+                    records.append({
+                        **row,
+                        **ranking_fields,
+                        "specialist": name,
+                        "canonical_action_id": row["action_id"],
+                    })
+            candidate.committed_native_ledger = {
+                "ledger_kind": ledger_kind,
+                "transaction_status": "COMMITTED",
+                "records": records,
+            }
+            candidates.append(candidate)
+
+        state = build_deliberative_problem_state(
+            1, actions, candidates, actions[0], candidates[0],
+        ).to_dict()
+        projection = _balanced_problem_state_projection(state)
+        native = {
+            item["agent"]: item["framework_native_reasoning"]
+            for item in projection["framework_capsules"]
+        }
+
+        self.assertEqual(
+            native["utilitarian"]["schema_kind"], "UTILITARIAN_EFFECT_COMPARISON"
+        )
+        self.assertEqual(
+            native["utilitarian"]["actions"][0]["effects"][0]["importance"],
+            "CRITICAL",
+        )
+        self.assertEqual(
+            native["utilitarian"]["actions"][0]["effects"][0]["direction"],
+            "BENEFICIAL",
+        )
+        self.assertEqual(
+            native["deontological"]["assessments"][0]["duty_type"],
+            "RIGHT_CORRELATIVE",
+        )
+        self.assertEqual(
+            native["deontological"]["assessments"][0]["universalization_status"],
+            "SATISFIES",
+        )
+        self.assertEqual(
+            native["virtue"]["assessments"][0]["actor_role"], "public steward"
+        )
+        self.assertEqual(
+            native["care"]["assessments"][0]["relationship_type"], "ENTRUSTED"
+        )
+        self.assertEqual(
+            native["rawlsian"]["positions"][0]["institutional_relation"],
+            "NATURAL_CONTINGENCY",
+        )
+        for payload in native.values():
+            action_rows = payload.get(
+                "actions", payload.get("assessments", payload.get("positions", []))
+            )
+            self.assertEqual({row["action_id"] for row in action_rows}, {"A0", "A1"})
+            self.assertEqual(
+                payload["source_type"], "GRAPH_COMMITTED_FRAMEWORK_LEDGER"
+            )
+
+    def test_native_ledger_snapshot_is_created_only_after_graph_commit(self):
+        candidate = CandidateChunk(
+            specialist="deontological", constraint="DUTY",
+            action_scores={"act": 1.0}, surprise=0.1, friction=0.1,
+            confidence=0.8, recommended_action="act",
+        )
+        records = [{
+            "specialist": "deontological",
+            "canonical_action_id": "A0",
+            "verdict": "CONFLICTED",
+            "norm": "calibrated operative norm",
+        }]
+        _record_committed_native_ledger(
+            candidate,
+            ledger_kind="DEONTOLOGICAL_DUTY_LEDGER",
+            transaction_status="REJECTED",
+            records=records,
+        )
+        self.assertEqual(candidate.committed_native_ledger, {})
+
+        _record_committed_native_ledger(
+            candidate,
+            ledger_kind="DEONTOLOGICAL_DUTY_LEDGER",
+            transaction_status="COMMITTED_WITH_UNCERTAINTY",
+            records=records,
+        )
+        self.assertEqual(
+            candidate.committed_native_ledger["records"][0]["verdict"],
+            "CONFLICTED",
+        )
+        records[0]["verdict"] = "REQUIRED"
+        self.assertEqual(
+            candidate.committed_native_ledger["records"][0]["verdict"],
+            "CONFLICTED",
+        )
+
+    def test_native_payload_never_leaks_uncommitted_framework_proposal(self):
+        actions = ["act", "decline"]
+        candidate = CandidateChunk(
+            specialist="deontological", constraint="DUTY",
+            action_scores={actions[0]: 0.7, actions[1]: 0.3},
+            surprise=0.2, friction=0.4, confidence=0.7,
+            recommended_action=actions[0],
+            deontological_ledger_proposal={
+                "assessments": [{"action_id": "A0", "norm": "rejected new norm"}]
+            },
+            framework_retention_status="PRESERVED_AFTER_REJECTED_UPDATE",
+        )
+        candidate.committed_native_ledger = {
+            "ledger_kind": "DEONTOLOGICAL_DUTY_LEDGER",
+            "transaction_status": "COMMITTED_WITH_UNCERTAINTY",
+            "records": [{
+                "specialist": "deontological",
+                "canonical_action_id": "A0", "verdict": "CONFLICTED",
+                "norm_kind": "DUTY", "norm": "operative prior norm",
+                "relation": "CONFLICTS", "duty_type": "UNRESOLVED",
+                "duty_bearer": "agent", "protected_party": "affected party",
+                "harm_relation": "UNRESOLVED",
+                "special_obligation_status": "UNKNOWN",
+                "special_obligation_basis": "basis remains unresolved",
+                "means_relation": "UNRESOLVED", "competing_norm": "rival duty",
+                "competing_relation": "CONFLICTS",
+                "competing_protected_party": "other party",
+                "priority_basis": "UNRESOLVED", "priority_rule": "priority unresolved",
+                "derivation": "UNRESOLVED", "resolution_status": "CONTESTED",
+            }],
+        }
+        state = build_deliberative_problem_state(
+            1, actions, [candidate], actions[0], candidate,
+        ).to_dict()
+        payload = state["workspace_contributions"][0]["native_reasoning"]
+        serialized = json.dumps(payload)
+        self.assertIn("operative prior norm", serialized)
+        self.assertNotIn("rejected new norm", serialized)
+
+        candidate.committed_native_ledger = {}
+        state_without_commit = build_deliberative_problem_state(
+            1, actions, [candidate], actions[0], candidate,
+        ).to_dict()
+        self.assertEqual(
+            state_without_commit["workspace_contributions"][0]["native_reasoning"],
+            {},
+        )
+
+    def test_native_payload_budget_preserves_structural_rows(self):
+        payload = {
+            "schema_kind": "RAWLSIAN_POSITION_ANALYSIS",
+            "source_type": "GRAPH_COMMITTED_FRAMEWORK_LEDGER",
+            "positions": [{
+                "action_id": f"A{index}",
+                "representative_subject": "representative constituency " * 20,
+                "dimension": "BASIC_INTEREST_SECURITY",
+                "institutional_relation": "DIRECT_BASIC_STRUCTURE_RULE",
+                "comparative_effect": "MIXED",
+                "public_reason": "public justification with extensive explanation " * 20,
+            } for index in range(16)],
+        }
+        fitted = _fit_native_reasoning(payload)
+        self.assertLessEqual(
+            len(json.dumps(fitted, sort_keys=True)), _NATIVE_REASONING_CHAR_BUDGET
+        )
+        self.assertEqual(
+            [item["action_id"] for item in fitted["positions"]],
+            [f"A{index}" for index in range(16)],
+        )
 
     def test_private_workspace_contribution_returns_only_to_its_specialist(self):
         seen: dict[str, list[dict[str, object]]] = {
@@ -3925,6 +4345,200 @@ class WorkspaceEngineTests(unittest.TestCase):
         self.assertEqual(admitted["about_specialist"], "utilitarian")
         self.assertEqual(admitted["challenge_kind"], "UTILITY_COMMENSURATION")
 
+    def test_challenge_agenda_assigns_one_question_per_target_framework(self):
+        challenges = [
+            {
+                "issue_id": "CHALLENGE:duty000000000001",
+                "generated_by": "WORKSPACE_ARGUMENT_AUDITOR",
+                "about_specialist": "deontological",
+                "raised_by": [],
+                "target_specialists": ["deontological"],
+                "question": "What establishes the claimed perfect duty?",
+                "proposition": "What establishes the claimed perfect duty?",
+                "challenge_kind": "DUTY_PERFECTION_BASIS",
+                "grounded_in": ["PROP:WORLD:E1"],
+                "grounding_status": "PROPOSITION_GROUNDED",
+                "status": "UNTESTED",
+                "priority": 0.94,
+            },
+            {
+                "issue_id": "CHALLENGE:care000000000001",
+                "generated_by": "WORKSPACE_ARGUMENT_AUDITOR",
+                "about_specialist": "care",
+                "raised_by": [],
+                "target_specialists": ["care"],
+                "question": "Does the comparison include every dependency claim?",
+                "proposition": "Does the comparison include every dependency claim?",
+                "challenge_kind": "CARE_CLAIM_COVERAGE",
+                "grounded_in": ["PROP:WORLD:E2"],
+                "grounding_status": "PROPOSITION_GROUNDED",
+                "status": "UNTESTED",
+                "priority": 0.92,
+            },
+        ]
+
+        retained, agenda = _advance_argument_challenge_agenda(
+            previous_challenges=[],
+            generated_challenges=challenges,
+            candidates=[],
+            next_cycle=2,
+            next_constraint="DUTY",
+            active_specialists=["deontological", "care"],
+        )
+
+        self.assertEqual(len(agenda), 2)
+        self.assertEqual(
+            {item["target_specialists"][0] for item in agenda},
+            {"deontological", "care"},
+        )
+        self.assertTrue(all(item["status"] == "UNTESTED" for item in retained))
+        self.assertTrue(all(item["status"] == "ASSIGNED" for item in agenda))
+        self.assertTrue(all(
+            item["generated_by"] == "WORKSPACE_ARGUMENT_AUDITOR"
+            and item["about_specialist"] == item["target_specialists"][0]
+            for item in agenda
+        ))
+
+    def test_unanswered_challenge_survives_while_new_questions_are_added(self):
+        previous = [{
+            "issue_id": "CHALLENGE:old0000000000001",
+            "generated_by": "WORKSPACE_ARGUMENT_AUDITOR",
+            "about_specialist": "virtue",
+            "raised_by": [],
+            "target_specialists": ["virtue"],
+            "question": "Which practical-wisdom principle resolves the conflict?",
+            "proposition": "Which practical-wisdom principle resolves the conflict?",
+            "challenge_kind": "VIRTUE_RANKING_GAP",
+            "grounded_in": ["PROP:WORLD:E1"],
+            "grounding_status": "PROPOSITION_GROUNDED",
+            "status": "ASSIGNED",
+            "priority": 0.96,
+            "assigned_cycle": 2,
+        }]
+        generated = [{
+            "issue_id": "CHALLENGE:new0000000000001",
+            "generated_by": "WORKSPACE_ARGUMENT_AUDITOR",
+            "about_specialist": "utilitarian",
+            "raised_by": [],
+            "target_specialists": ["utilitarian"],
+            "question": "Which comparison would resolve the welfare ranking?",
+            "proposition": "Which comparison would resolve the welfare ranking?",
+            "challenge_kind": "UTILITY_UNRESOLVED_COMPARISON",
+            "grounded_in": ["PROP:WORLD:E2"],
+            "grounding_status": "PROPOSITION_GROUNDED",
+            "status": "UNTESTED",
+            "priority": 0.97,
+        }]
+
+        retained, agenda = _advance_argument_challenge_agenda(
+            previous_challenges=previous,
+            generated_challenges=generated,
+            candidates=[],
+            next_cycle=3,
+            next_constraint="UNCERTAINTY",
+            active_specialists=["virtue", "utilitarian"],
+        )
+
+        self.assertEqual(
+            {item["issue_id"] for item in retained},
+            {"CHALLENGE:old0000000000001", "CHALLENGE:new0000000000001"},
+        )
+        self.assertEqual({item["issue_id"] for item in agenda}, {
+            "CHALLENGE:old0000000000001", "CHALLENGE:new0000000000001",
+        })
+
+    def test_challenge_agenda_is_suspended_during_protected_audits(self):
+        challenge = [{
+            "issue_id": "CHALLENGE:old0000000000001",
+            "generated_by": "WORKSPACE_ARGUMENT_AUDITOR",
+            "about_specialist": "care",
+            "raised_by": [],
+            "target_specialists": ["care"],
+            "question": "Would the relationship classification reverse?",
+            "proposition": "Would the relationship classification reverse?",
+            "challenge_kind": "CARE_RELATIONAL_GROUNDING",
+            "grounded_in": ["PROP:WORLD:E1"],
+            "grounding_status": "PROPOSITION_GROUNDED",
+            "status": "UNTESTED",
+            "priority": 0.95,
+        }]
+        for constraint in (
+            "VISIBILITY_AUDIT", "AUTONOMY_AUDIT", "COERCION_AUDIT",
+            "CONSENSUS_AUDIT", "PROBLEM_STATE_AUDIT", "REVERSAL_AUDIT",
+        ):
+            retained, agenda = _advance_argument_challenge_agenda(
+                previous_challenges=challenge,
+                generated_challenges=[],
+                candidates=[],
+                next_cycle=2,
+                next_constraint=constraint,
+                active_specialists=["care"],
+            )
+            self.assertEqual(agenda, [], constraint)
+            self.assertEqual(retained[0]["status"], "UNTESTED", constraint)
+
+    def test_refined_challenge_preserves_history_and_assigns_specialist_follow_up(self):
+        previous = [{
+            "issue_id": "CHALLENGE:old0000000000001",
+            "generated_by": "WORKSPACE_ARGUMENT_AUDITOR",
+            "about_specialist": "care",
+            "raised_by": [],
+            "target_specialists": ["care"],
+            "question": "Which dependency claim controls the care ranking?",
+            "proposition": "Which dependency claim controls the care ranking?",
+            "challenge_kind": "CARE_CLAIM_COVERAGE",
+            "grounded_in": ["PROP:WORLD:E1"],
+            "grounding_status": "PROPOSITION_GROUNDED",
+            "status": "UNTESTED",
+            "priority": 0.95,
+        }]
+        response = CandidateChunk(
+            specialist="care", constraint="CARE",
+            action_scores={"act": 0.7, "wait": 0.3},
+            surprise=0.2, friction=0.4, confidence=0.8,
+            recommended_action="act",
+            challenge_response={
+                "issue_id": "CHALLENGE:old0000000000001",
+                "disposition": "REFINED",
+                "effect": "UNRESOLVED",
+                "answer": "The dependency is relevant but its comparative severity remains open.",
+                "follow_up_question": "Which dependency is least substitutable for the affected parties?",
+            },
+        )
+
+        retained, agenda = _advance_argument_challenge_agenda(
+            previous_challenges=previous,
+            generated_challenges=[],
+            candidates=[response],
+            next_cycle=3,
+            next_constraint="CARE",
+            active_specialists=["care"],
+        )
+
+        original = next(item for item in retained if item["issue_id"] == previous[0]["issue_id"])
+        follow_up = next(item for item in retained if item["issue_id"] != previous[0]["issue_id"])
+        self.assertEqual(original["status"], "REFINED")
+        self.assertEqual(original["last_response"]["specialist"], "care")
+        self.assertEqual(follow_up["generated_by"], "CARE_SPECIALIST")
+        self.assertEqual(follow_up["raised_by"], ["care"])
+        self.assertEqual(follow_up["about_specialist"], "care")
+        self.assertEqual([item["issue_id"] for item in agenda], [follow_up["issue_id"]])
+
+    def test_resolved_argument_challenge_is_not_selected_for_problem_state_audit(self):
+        _signals, _question, payload = _problem_state_audit_probe({
+            "argument_challenge_candidates": [{
+                "issue_id": "CHALLENGE:resolved0000001",
+                "question": "What grounds the duty claim?",
+                "proposition": "What grounds the duty claim?",
+                "grounded_in": ["PROP:WORLD:E1"],
+                "grounding_status": "PROPOSITION_GROUNDED",
+                "target_specialists": ["deontological"],
+                "status": "RESOLVED",
+                "priority": 0.99,
+            }],
+        }, "act")
+        self.assertEqual(payload, {})
+
     def test_argument_challenges_detect_utilitarian_comparison_gaps(self):
         actions = ["choose immediate relief", "choose delayed resources"]
         graph = compile_scenario_graph(
@@ -5099,6 +5713,146 @@ class BridgeTests(unittest.TestCase):
             if "maintain course" in action.casefold()
         )
         self.assertIn(f"Casualties under {unlogged_id} are unlogged", normalized_first)
+
+    def test_presentation_mapping_preserves_original_labels_after_canonicalization(self):
+        scenario = (
+            "A hospital must choose. Option A: power the NICU for eight infants. "
+            "Option B: power water treatment for tens of thousands."
+        )
+        source_legend = extract_labeled_action_legend(scenario)
+        canonical = canonicalize_action_order(list(source_legend.values()))
+
+        mapping = build_presentation_action_mapping(
+            scenario,
+            source_legend,
+            canonical,
+            source_labels_explicit=True,
+        )
+
+        self.assertEqual(
+            [entry["source_label"] for entry in mapping],
+            ["Original Option A", "Original Option B"],
+        )
+        for source_index, source_id in enumerate(("A0", "A1")):
+            expected_id = f"A{canonical.index(source_legend[source_id])}"
+            self.assertEqual(mapping[source_index]["canonical_action_id"], expected_id)
+            self.assertEqual(mapping[source_index]["source_action"], source_legend[source_id])
+
+    def test_presentation_mapping_is_passive_under_option_permutation(self):
+        first = (
+            "Option A: power the NICU for eight infants. "
+            "Option B: power water treatment for tens of thousands."
+        )
+        reversed_problem = (
+            "Option A: power water treatment for tens of thousands. "
+            "Option B: power the NICU for eight infants."
+        )
+        first_legend = extract_labeled_action_legend(first)
+        reversed_legend = extract_labeled_action_legend(reversed_problem)
+        canonical = canonicalize_action_order(list(first_legend.values()))
+
+        first_mapping = build_presentation_action_mapping(
+            first, first_legend, canonical, source_labels_explicit=True,
+        )
+        reversed_mapping = build_presentation_action_mapping(
+            reversed_problem, reversed_legend, canonical, source_labels_explicit=True,
+        )
+
+        self.assertEqual(
+            {entry["source_action"]: entry["canonical_action_id"] for entry in first_mapping},
+            {entry["source_action"]: entry["canonical_action_id"] for entry in reversed_mapping},
+        )
+        self.assertNotEqual(first_mapping, reversed_mapping)
+
+    def test_unlabeled_actions_get_neutral_presentation_labels(self):
+        presented = ["continue treatment", "withdraw treatment"]
+        source_legend = {"A0": presented[0], "A1": presented[1]}
+        canonical = canonicalize_action_order(presented)
+
+        mapping = build_presentation_action_mapping(
+            "The clinician must choose between two courses.",
+            source_legend,
+            canonical,
+            source_labels_explicit=False,
+        )
+
+        self.assertEqual(
+            [entry["source_label"] for entry in mapping],
+            ["Presented option 1", "Presented option 2"],
+        )
+        self.assertEqual(len(mapping), 2)
+        self.assertEqual(
+            {entry["canonical_action"] for entry in mapping}, set(canonical)
+        )
+
+    def test_decision_brief_explains_only_an_actual_label_remap(self):
+        actions = ["power water treatment", "power the NICU"]
+        candidate = CandidateChunk(
+            "care", "CARE", {actions[0]: 0.4, actions[1]: 0.6}, 0.2, 0.3, 0.8,
+            recommended_action=actions[1], rationale="Protect the dependent infants.",
+        )
+        cycle = CycleRecord(
+            1, WorkspaceBroadcast(), [candidate], candidate, None,
+            {actions[0]: 0.4, actions[1]: 0.6}, 0.7, 1, 1.0,
+        )
+        result = WorkspaceResult(
+            "test", actions,
+            presentation_actions=list(reversed(actions)),
+            presentation_action_mapping=[
+                {
+                    "source_label": "Original Option A",
+                    "source_position": 0,
+                    "source_action": actions[1],
+                    "canonical_action_id": "A1",
+                    "canonical_action": actions[1],
+                    "mapping_basis": "EXACT_ACTION_IDENTITY",
+                },
+                {
+                    "source_label": "Original Option B",
+                    "source_position": 1,
+                    "source_action": actions[0],
+                    "canonical_action_id": "A0",
+                    "canonical_action": actions[0],
+                    "mapping_basis": "EXACT_ACTION_IDENTITY",
+                },
+            ],
+            cycles=[cycle], selected_action=actions[1], confidence=0.6,
+            current_plurality=actions[1], epistemic_confidence=0.7,
+        )
+
+        answer = render_public_judgment(result)
+
+        self.assertIn("## Action label mapping", answer)
+        self.assertIn("Original Option A → canonical A1", answer)
+        self.assertIn("Original Option B → canonical A0", answer)
+        self.assertIn("stable internal identifiers", answer)
+        self.assertEqual(
+            result.to_dict()["presentation_action_mapping"],
+            result.presentation_action_mapping,
+        )
+
+        identity_data = result.to_dict()
+        identity_data["presentation_action_mapping"] = [
+            {
+                "source_label": "Original Option A",
+                "source_position": 0,
+                "source_action": actions[0],
+                "canonical_action_id": "A0",
+                "canonical_action": actions[0],
+                "mapping_basis": "EXACT_ACTION_IDENTITY",
+            },
+            {
+                "source_label": "Original Option B",
+                "source_position": 1,
+                "source_action": actions[1],
+                "canonical_action_id": "A1",
+                "canonical_action": actions[1],
+                "mapping_basis": "EXACT_ACTION_IDENTITY",
+            },
+        ]
+        self.assertNotIn(
+            "## Action label mapping", render_public_judgment(identity_data)
+        )
 
     def test_graph_action_identity_matches_structural_paraphrases(self):
         maintain_a = (

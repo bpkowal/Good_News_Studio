@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import unittest
 from dataclasses import replace
+from unittest.mock import patch
 
 from global_workspace.scenario_semantics import (
     attach_typed_world_model, compile_scenario_graph,
@@ -38,7 +39,11 @@ from global_workspace.utilitarian_ledger import (
     EffectValuationProposal,
     apply_utilitarian_ledger_transaction,
 )
-from global_workspace.local_specialists import CompactLocalSpecialist, _candidate_from_data
+from global_workspace.local_specialists import (
+    CompactLocalSpecialist,
+    _candidate_from_data,
+    ground_actions_in_scenario,
+)
 from global_workspace.models import CandidateChunk, WorkspaceBroadcast
 from global_workspace.engine import WorkspaceConfig, WorkspaceEngine
 from global_workspace.epistemic_ledger import (
@@ -222,6 +227,99 @@ class ClauseRoleTests(unittest.TestCase):
 
 
 class WorldModelValidationTests(unittest.TestCase):
+    def test_action_effect_ids_are_derived_from_owned_effects(self):
+        raw = {
+            "parties": [
+                {"party_id": "P0", "label": "dispatcher", "kind": "SYSTEM", "clause_ids": ["C0"]},
+                {"party_id": "P1", "label": "engineer", "kind": "PERSON", "clause_ids": ["C0"]},
+                {"party_id": "P2", "label": "family", "kind": "GROUP", "clause_ids": ["C2"]},
+            ],
+            "actions": [
+                {
+                    "action_id": "A0", "intervention": "send crew to Site A",
+                    "actor_party_id": "P0", "recipient_party_ids": ["P1"],
+                    "effect_ids": ["STALE_ID"], "clause_ids": ["C0"],
+                },
+                {
+                    "action_id": "A1", "intervention": "send crew to Site B",
+                    "actor_party_id": "P0", "recipient_party_ids": ["P2"],
+                    "effect_ids": [], "clause_ids": ["C4"],
+                },
+            ],
+            "effects": [
+                {
+                    "effect_id": "E1", "action_id": "A0", "party_id": "P1",
+                    "outcome": "engineer receives assistance", "relation": "ASSISTED",
+                    "polarity": "BENEFICIAL", "directness": "DIRECT",
+                    "modality": "CERTAIN", "condition_ids": [], "quantities": [],
+                    "clause_ids": ["C0"],
+                },
+                {
+                    "effect_id": "E2", "action_id": "A1", "party_id": "P2",
+                    "outcome": "family receives assistance", "relation": "ASSISTED",
+                    "polarity": "BENEFICIAL", "directness": "DIRECT",
+                    "modality": "CERTAIN", "condition_ids": [], "quantities": [],
+                    "clause_ids": ["C2"],
+                },
+            ],
+            "conditions": [],
+            "causal_links": [],
+        }
+
+        model = parse_world_model(raw, clauses=CLAUSES, action_ids=["A0", "A1"])
+
+        self.assertEqual(model.actions[0].effect_ids, ("E1",))
+        self.assertEqual(model.actions[1].effect_ids, ("E2",))
+
+    def test_grounding_repair_receives_the_rejected_candidate(self):
+        rejected_candidate = {
+            "sentinel": "preserve this candidate",
+            "actions": {"A0": {}, "A1": {}},
+        }
+        committed = {
+            "status": "COMMITTED", "actions": {"A0": {}, "A1": {}},
+            "errors": [], "clauses": [], "world_contradictions": [],
+        }
+        rejected = {
+            "status": "REJECTED", "actions": {},
+            "errors": ["typed world model rejected: E1 omits qualifier 'broader'"],
+            "clauses": [], "world_contradictions": [],
+        }
+        prompts: list[str] = []
+
+        def fake_call(_llm, prompt, **_kwargs):
+            prompts.append(prompt)
+            return {"choices": [{"text": __import__("json").dumps(rejected_candidate)}]}
+
+        with patch(
+            "global_workspace.local_specialists._call_json_llm",
+            side_effect=fake_call,
+        ), patch(
+            "global_workspace.local_specialists._admit_action_source_rows",
+            side_effect=[rejected, committed],
+        ):
+            result = ground_actions_in_scenario(
+                object(),
+                "Option A: send aid north. Option B: send aid south.",
+                ["send aid north", "send aid south"],
+                max_attempts=2,
+            )
+
+        self.assertEqual(result["status"], "COMMITTED")
+        self.assertEqual(result["repair_attempts"], 1)
+        self.assertEqual(
+            result["attempts"][0]["errors"],
+            ["typed world model rejected: E1 omits qualifier 'broader'"],
+        )
+        self.assertEqual(result["attempts"][1]["errors"], [])
+        self.assertEqual(len(prompts), 2)
+        self.assertIn('"sentinel": "preserve this candidate"', prompts[1])
+        self.assertIn("preserve every field not implicated", prompts[1].casefold())
+        self.assertLess(
+            prompts[1].index("Rejected candidate JSON"),
+            prompts[1].index("[/INST]"),
+        )
+
     @staticmethod
     def _qualified_population_model(*, omit_qualifiers: bool = False) -> ScenarioWorldModel:
         infant_ref = (SourceRef(

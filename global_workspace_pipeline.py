@@ -37,6 +37,7 @@ from global_workspace.presentation import (
 )
 from global_workspace.premise_audit import audit_side_premises
 from global_workspace.scenario_semantics import (
+    build_presentation_action_mapping,
     canonicalize_action_order,
     canonicalize_deliberation_scenario,
 )
@@ -355,6 +356,7 @@ def main() -> int:
     )
     print("Planning a shared action set...", flush=True)
     source_action_legend = extract_labeled_action_legend(scenario)
+    source_labels_explicit = bool(source_action_legend)
     if source_action_legend:
         _validate_lossless_action_set(list(source_action_legend.values()), scenario)
     try:
@@ -390,6 +392,12 @@ def main() -> int:
         }
     presentation_action_legend = dict(source_action_legend)
     actions = canonicalize_action_order(presentation_actions)
+    presentation_action_mapping = build_presentation_action_mapping(
+        scenario,
+        presentation_action_legend,
+        actions,
+        source_labels_explicit=source_labels_explicit,
+    )
     scenario = canonicalize_deliberation_scenario(
         scenario, presentation_action_legend, actions,
     )
@@ -782,6 +790,9 @@ def main() -> int:
         reset_model_call_budget(budget_token)
     result.source_testimonies = testimonies
     result.source_errors = source_errors
+    # Attach only after deliberation: this is explanatory output metadata, not
+    # an input to specialists, broadcasts, salience, scoring, or synthesis.
+    result.presentation_action_mapping = presentation_action_mapping
     result.framing_cache = {
         "lookup_status": framing_cache_lookup,
         "actions_reused": cached_actions_reused,

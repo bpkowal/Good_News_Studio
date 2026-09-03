@@ -843,6 +843,93 @@ def canonicalize_action_order(actions: Sequence[str]) -> list[str]:
     ]
 
 
+def _source_to_canonical_bindings(
+    source_action_legend: dict[str, str],
+    canonical_actions: Sequence[str],
+) -> tuple[dict[str, str], dict[str, str]] | None:
+    """Resolve source action IDs without using their presentation positions."""
+    canonical = list(canonical_actions)
+    bindings: dict[str, str] = {}
+    bases: dict[str, str] = {}
+    for source_id, action in source_action_legend.items():
+        exact_matches = [
+            index for index, candidate in enumerate(canonical)
+            if canonical_action_text(candidate) == canonical_action_text(action)
+        ]
+        graph_matches = [
+            index for index, candidate in enumerate(canonical)
+            if semantic_action_key(candidate) == semantic_action_key(action)
+        ]
+        matches = exact_matches or graph_matches
+        if len(matches) != 1:
+            return None
+        bindings[source_id] = f"A{matches[0]}"
+        bases[source_id] = (
+            "EXACT_ACTION_IDENTITY" if exact_matches else "SEMANTIC_ACTION_IDENTITY"
+        )
+    if len(set(bindings.values())) != len(bindings):
+        return None
+    return bindings, bases
+
+
+def build_presentation_action_mapping(
+    scenario: str,
+    source_action_legend: dict[str, str],
+    canonical_actions: Sequence[str],
+    *,
+    source_labels_explicit: bool,
+) -> list[dict[str, object]]:
+    """Build passive display provenance for source labels and canonical IDs.
+
+    This metadata is intentionally not part of the canonical scenario or any
+    specialist input. It explains an already-completed normalization without
+    allowing presentation order to influence deliberation.
+    """
+    resolved = _source_to_canonical_bindings(
+        source_action_legend, canonical_actions,
+    )
+    if resolved is None:
+        return []
+    bindings, bases = resolved
+    canonical = list(canonical_actions)
+    source_ids = sorted(
+        source_action_legend,
+        key=lambda value: (
+            (0, int(value[1:])) if value[1:].isdigit() else (1, value)
+        ),
+    )
+    alpha_option = all(
+        re.search(rf"\boption\s+{letter}\b", scenario, re.IGNORECASE)
+        for letter in ("A", "B")
+    )
+    alpha_action = all(
+        re.search(rf"\baction\s+{letter}\b", scenario, re.IGNORECASE)
+        for letter in ("A", "B")
+    )
+
+    mapping: list[dict[str, object]] = []
+    for source_position, source_id in enumerate(source_ids):
+        if not source_labels_explicit:
+            source_label = f"Presented option {source_position + 1}"
+        elif alpha_option and source_position < 26:
+            source_label = f"Original Option {chr(ord('A') + source_position)}"
+        elif alpha_action and source_position < 26:
+            source_label = f"Original Action {chr(ord('A') + source_position)}"
+        else:
+            source_label = f"Original {source_id}"
+        canonical_id = bindings[source_id]
+        canonical_index = int(canonical_id[1:])
+        mapping.append({
+            "source_label": source_label,
+            "source_position": source_position,
+            "source_action": source_action_legend[source_id],
+            "canonical_action_id": canonical_id,
+            "canonical_action": canonical[canonical_index],
+            "mapping_basis": bases[source_id],
+        })
+    return mapping
+
+
 def canonicalize_deliberation_scenario(
     scenario: str,
     source_action_legend: dict[str, str],
@@ -860,22 +947,10 @@ def canonicalize_deliberation_scenario(
     if len(canonical) != 2 or set(source_action_legend) != {"A0", "A1"}:
         return str(scenario)
 
-    source_to_canonical: dict[str, str] = {}
-    for source_id, action in source_action_legend.items():
-        exact_matches = [
-            index for index, candidate in enumerate(canonical)
-            if canonical_action_text(candidate) == canonical_action_text(action)
-        ]
-        graph_matches = [
-            index for index, candidate in enumerate(canonical)
-            if semantic_action_key(candidate) == semantic_action_key(action)
-        ]
-        matches = exact_matches or graph_matches
-        if len(matches) != 1:
-            return str(scenario)
-        source_to_canonical[source_id] = f"A{matches[0]}"
-    if len(set(source_to_canonical.values())) != 2:
+    resolved = _source_to_canonical_bindings(source_action_legend, canonical)
+    if resolved is None:
         return str(scenario)
+    source_to_canonical, _ = resolved
 
     text = " ".join(normalize_action_labels(str(scenario)).split())
 

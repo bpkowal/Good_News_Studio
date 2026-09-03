@@ -9,7 +9,7 @@ contradictory facts from the same prose.
 from __future__ import annotations
 
 import re
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from typing import Any, Iterable, Sequence
 
 
@@ -406,7 +406,7 @@ def parse_world_model(
     action_ids: Sequence[str],
     action_texts: dict[str, str] | None = None,
 ) -> ScenarioWorldModel:
-    """Parse the compact grounding payload without silently repairing it."""
+    """Parse grounding claims, deriving redundant indexes without altering facts."""
     if not isinstance(raw, dict):
         raise ValueError("world_model must be an object")
     schema_version = _clean(raw.get("schema_version"), 16) or "1.0"
@@ -473,6 +473,16 @@ def parse_world_model(
         )),
         provenance=_refs(row.get("clause_ids", []), lookup),
     ) for row in raw.get("effects", []) if isinstance(row, dict))
+    # ``effect.action_id`` owns the relationship. ``action.effect_ids`` is only
+    # a redundant lookup index, so derive it transactionally instead of letting
+    # stale model-authored bookkeeping reject an otherwise coherent world model.
+    effects_by_action: dict[str, list[str]] = {action_id: [] for action_id in action_ids}
+    for effect in effects:
+        effects_by_action.setdefault(effect.action_id, []).append(effect.effect_id)
+    actions = tuple(
+        replace(action, effect_ids=tuple(effects_by_action.get(action.action_id, ())))
+        for action in actions
+    )
     effect_by_id = {effect.effect_id: effect for effect in effects}
     parsed_links: list[CausalLink] = []
     migrated_counterfactuals: list[CounterfactualLink] = []

@@ -13,6 +13,7 @@ import re
 from typing import Any, Sequence
 
 from .models import CandidateChunk, SynthesisProposal
+from .framework_native_projection import committed_native_reasoning
 from .resolved_questions import question_resolution_index
 from .scenario_semantics import segment_scenario_clauses
 
@@ -56,6 +57,10 @@ class WorkspaceContribution:
     update_type: str
     constraint: str
     choice_status: str
+    # Framework-attributed cases for every action. These are deliberative
+    # counterpositions, never facts or cross-framework priority rules.
+    action_cases: dict[str, str] = field(default_factory=dict)
+    native_reasoning: dict[str, Any] = field(default_factory=dict)
     preservation_transitions: tuple[dict[str, str], ...] = ()
     retained_issue_visibility: str = "NOT_APPLICABLE"
     visible_retained_issue: str = ""
@@ -244,6 +249,12 @@ def _workspace_contribution(candidate: CandidateChunk) -> WorkspaceContribution:
         update_type=update_type,
         constraint=candidate.constraint,
         choice_status=_position(candidate).choice_status,
+        action_cases={
+            str(action): " ".join(str(case).split())[:240]
+            for action, case in candidate.framework_action_map.items()
+            if " ".join(str(case).split())
+        },
+        native_reasoning=committed_native_reasoning(candidate),
     )
 
 
@@ -377,6 +388,16 @@ def _reconcile_workspace_contribution(
         unresolved=reconciled["unresolved"],
         defeat_conditions=reconciled["defeat_conditions"],
         new_considerations=reconciled["new_considerations"],
+        action_cases=(
+            dict(current.action_cases)
+            if current.action_cases
+            else dict(previous.get("action_cases", {}) or {})
+        ),
+        native_reasoning=(
+            dict(current.native_reasoning)
+            if current.native_reasoning
+            else dict(previous.get("native_reasoning", {}) or {})
+        ),
         preservation_transitions=tuple(transitions),
         retained_issue_visibility=visibility,
         visible_retained_issue=visible_issue,

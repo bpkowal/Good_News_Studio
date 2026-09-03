@@ -1,0 +1,370 @@
+{
+  "stage": "cycle_1_structured_framework_representation",
+  "reasoning": {
+    "recommended_action": "dispatch the city’s only mobile generator to the municipal water-treatment plant, preserving safe water for tens of thousands while leaving the neonatal ICU without backup power and exposing eight premature infants to near-certain equipment failure deaths",
+    "rationale": "outcome hinges on sanitation risk",
+    "decision_rule": "Prefer A0 when expected sanitation deaths exceed eight lives; otherwise prefer A1.",
+    "framework_action_map": {},
+    "framework_internal_conflicts": [
+      "Probability of sanitation failure deaths unknown"
+    ],
+    "framework_specific_open_questions": [
+      "What is estimated mortality if water plant remains offline?"
+    ],
+    "framework_insights": [],
+    "unsupported_assumption": "Magnitude/probability of sanitation-failure deaths remains unresolved, so expected lives saved comparison undetermined.",
+    "reversal_condition": "Magnitude/probability of sanitation-failure deaths remains unresolved, so expected lives saved comparison undetermined.",
+    "factual_reversal_threshold": "NONE",
+    "normative_reversal_threshold": "Greater moral weight per infant life would flip preference to A1.",
+    "supporting_proposition_ids": [
+      "PROP:WORLD:E1",
+      "PROP:WORLD:E3",
+      "PROP:WORLD:E6",
+      "PROP:WORLD:E8",
+      "PROP:HYPOTHESIS:0bdef1583ca6050f",
+      "PROP:WORLD:E2",
+      "PROP:WORLD:E7",
+      "PROP:WORLD:E9"
+    ],
+    "decision_critical_proposition_ids": [
+      "PROP:WORLD:E8"
+    ],
+    "material_empirical_claims": [
+      {
+        "claim": "safe water preserved; affected subject: tens of thousands of residents",
+        "proposition_id": "PROP:WORLD:E1",
+        "decision_critical": false
+      },
+      {
+        "claim": "equipment failure leads to death; affected subject: eight premature infants",
+        "proposition_id": "PROP:WORLD:E3",
+        "decision_critical": false
+      },
+      {
+        "claim": "immediate deaths prevented; affected subject: eight premature infants",
+        "proposition_id": "PROP:WORLD:E6",
+        "decision_critical": false
+      },
+      {
+        "claim": "sanitation failure risk; affected subject: tens of thousands of residents",
+        "proposition_id": "PROP:WORLD:E8",
+        "decision_critical": true
+      }
+    ],
+    "unresolved": "DECISION_BOUNDARY",
+    "assumption_status": "UNDERDETERMINED",
+    "adjudication_status": "CONDITIONAL_SUPPORTS",
+    "landscape_cases": {
+      "dispatch the city’s only mobile generator to the municipal water-treatment plant, preserving safe water for tens of thousands while leaving the neonatal ICU without backup power and exposing eight premature infants to near-certain equipment failure deaths": "Saves many if sanitation collapse would kill >8; generator at plant prevents wide outbreak.",
+      "dispatch the city’s only mobile generator to the neonatal intensive-care unit, keeping eight premature infants alive while leaving the water-treatment plant without power and risking a sanitation failure for the wider population": "Certainly saves 8 infants; harms only occur if sanitation failure becomes deadly."
+    },
+    "landscape_decisive_axis": "aggregate expected lives saved",
+    "landscape_tiebreaker": "expected deaths comparison",
+    "landscape_tiebreaker_failure": "Risk data absent, leaving rule unresolved"
+  },
+  "framework_ledgers": {
+    "utilitarian_ledger_proposal": {
+      "actions": [
+        {
+          "action_id": "A0",
+          "valuations": [
+            {
+              "effect_id": "E1",
+              "importance": "HIGH",
+              "reason": "prevents potentially many deaths"
+            },
+            {
+              "effect_id": "E2",
+              "importance": "HIGH",
+              "reason": "NICU loses power"
+            },
+            {
+              "effect_id": "E3",
+              "importance": "CRITICAL",
+              "reason": "8 infants die"
+            },
+            {
+              "effect_id": "E4",
+              "importance": "CRITICAL",
+              "reason": "life-saving opportunity lost"
+            },
+            {
+              "effect_id": "E0",
+              "importance": "LOW",
+              "reason": "resource reallocation itself"
+            }
+          ]
+        },
+        {
+          "action_id": "A1",
+          "valuations": [
+            {
+              "effect_id": "E6",
+              "importance": "CRITICAL",
+              "reason": "saves 8 infants immediately"
+            },
+            {
+              "effect_id": "E8",
+              "importance": "HIGH",
+              "reason": "risk of widespread disease"
+            },
+            {
+              "effect_id": "E7",
+              "importance": "LOW",
+              "reason": "plant loses power"
+            },
+            {
+              "effect_id": "E9",
+              "importance": "HIGH",
+              "reason": "water safety opportunity lost"
+            },
+            {
+              "effect_id": "E5",
+              "importance": "LOW",
+              "reason": "resource reallocation itself"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "committed_framework_state": {
+    "constraint": "UNCERTAINTY",
+    "action_scores": {
+      "dispatch the city’s only mobile generator to the municipal water-treatment plant, preserving safe water for tens of thousands while leaving the neonatal ICU without backup power and exposing eight premature infants to near-certain equipment failure deaths": 0.5175000000000001,
+      "dispatch the city’s only mobile generator to the neonatal intensive-care unit, keeping eight premature infants alive while leaving the water-treatment plant without power and risking a sanitation failure for the wider population": 0.4825
+    },
+    "recommended_action": "dispatch the city’s only mobile generator to the municipal water-treatment plant, preserving safe water for tens of thousands while leaving the neonatal ICU without backup power and exposing eight premature infants to near-certain equipment failure deaths",
+    "rationale": "outcome hinges on sanitation risk",
+    "decision_rule": "Prefer A0 when expected sanitation deaths exceed eight lives; otherwise prefer A1.",
+    "framework_action_map": {},
+    "framework_numerical_role": "NOT_APPLICABLE",
+    "framework_numerical_justification": "",
+    "action_admissibility": {
+      "dispatch the city’s only mobile generator to the municipal water-treatment plant, preserving safe water for tens of thousands while leaving the neonatal ICU without backup power and exposing eight premature infants to near-certain equipment failure deaths": "PERMISSIBLE",
+      "dispatch the city’s only mobile generator to the neonatal intensive-care unit, keeping eight premature infants alive while leaving the water-treatment plant without power and risking a sanitation failure for the wider population": "PERMISSIBLE"
+    },
+    "comparison_complete": false,
+    "evidence_sufficient_for_action": false,
+    "interim_action": "",
+    "factual_reversal_threshold": "NONE",
+    "normative_reversal_threshold": "Greater moral weight per infant life would flip preference to A1.",
+    "utilitarian_consequence_table": {
+      "dispatch the city’s only mobile generator to the municipal water-treatment plant, preserving safe water for tens of thousands while leaving the neonatal ICU without backup power and exposing eight premature infants to near-certain equipment failure deaths": [
+        {
+          "effect_id": "E1",
+          "outcome": "safe water preserved",
+          "scope": "tens of thousands of residents",
+          "direction": "BENEFIT",
+          "polarity": "BENEFICIAL",
+          "probability": "CERTAIN",
+          "magnitude": "UNKNOWN",
+          "duration": "UNKNOWN",
+          "reversibility": "UNKNOWN",
+          "support": "STATED",
+          "importance": "HIGH",
+          "valuation_reason": "prevents potentially many deaths"
+        },
+        {
+          "effect_id": "E2",
+          "outcome": "loses backup power",
+          "scope": "neonatal intensive-care unit",
+          "direction": "HARM",
+          "polarity": "ADVERSE",
+          "probability": "CERTAIN",
+          "magnitude": "UNKNOWN",
+          "duration": "UNKNOWN",
+          "reversibility": "UNKNOWN",
+          "support": "STATED",
+          "importance": "HIGH",
+          "valuation_reason": "NICU loses power"
+        },
+        {
+          "effect_id": "E3",
+          "outcome": "equipment failure leads to death",
+          "scope": "eight premature infants",
+          "direction": "HARM",
+          "polarity": "ADVERSE",
+          "probability": "CERTAIN",
+          "magnitude": "UNKNOWN",
+          "duration": "UNKNOWN",
+          "reversibility": "UNKNOWN",
+          "support": "STATED",
+          "importance": "CRITICAL",
+          "valuation_reason": "8 infants die"
+        },
+        {
+          "effect_id": "E4",
+          "outcome": "survival of infants foregone",
+          "scope": "eight premature infants",
+          "direction": "OPPORTUNITY_COST",
+          "polarity": "FOREGONE",
+          "probability": "CERTAIN",
+          "magnitude": "UNKNOWN",
+          "duration": "UNKNOWN",
+          "reversibility": "UNKNOWN",
+          "support": "STATED",
+          "importance": "CRITICAL",
+          "valuation_reason": "life-saving opportunity lost"
+        },
+        {
+          "effect_id": "E0",
+          "outcome": "receives mobile generator",
+          "scope": "municipal water-treatment plant",
+          "direction": "UNKNOWN",
+          "polarity": "NEUTRAL",
+          "probability": "CERTAIN",
+          "magnitude": "UNKNOWN",
+          "duration": "UNKNOWN",
+          "reversibility": "UNKNOWN",
+          "support": "STATED",
+          "importance": "LOW",
+          "valuation_reason": "resource reallocation itself"
+        }
+      ],
+      "dispatch the city’s only mobile generator to the neonatal intensive-care unit, keeping eight premature infants alive while leaving the water-treatment plant without power and risking a sanitation failure for the wider population": [
+        {
+          "effect_id": "E6",
+          "outcome": "immediate deaths prevented",
+          "scope": "eight premature infants",
+          "direction": "BENEFIT",
+          "polarity": "BENEFICIAL",
+          "probability": "CERTAIN",
+          "magnitude": "UNKNOWN",
+          "duration": "UNKNOWN",
+          "reversibility": "UNKNOWN",
+          "support": "STATED",
+          "importance": "CRITICAL",
+          "valuation_reason": "saves 8 infants immediately"
+        },
+        {
+          "effect_id": "E8",
+          "outcome": "sanitation failure risk",
+          "scope": "tens of thousands of residents",
+          "direction": "HARM",
+          "polarity": "ADVERSE",
+          "probability": "UNKNOWN",
+          "magnitude": "UNKNOWN",
+          "duration": "UNKNOWN",
+          "reversibility": "UNKNOWN",
+          "support": "STATED",
+          "importance": "HIGH",
+          "valuation_reason": "risk of widespread disease"
+        },
+        {
+          "effect_id": "E7",
+          "outcome": "loses power",
+          "scope": "municipal water-treatment plant",
+          "direction": "HARM",
+          "polarity": "ADVERSE",
+          "probability": "CERTAIN",
+          "magnitude": "UNKNOWN",
+          "duration": "UNKNOWN",
+          "reversibility": "UNKNOWN",
+          "support": "STATED",
+          "importance": "LOW",
+          "valuation_reason": "plant loses power"
+        },
+        {
+          "effect_id": "E9",
+          "outcome": "safe water benefit foregone",
+          "scope": "tens of thousands of residents",
+          "direction": "OPPORTUNITY_COST",
+          "polarity": "FOREGONE",
+          "probability": "CERTAIN",
+          "magnitude": "UNKNOWN",
+          "duration": "UNKNOWN",
+          "reversibility": "UNKNOWN",
+          "support": "STATED",
+          "importance": "HIGH",
+          "valuation_reason": "water safety opportunity lost"
+        },
+        {
+          "effect_id": "E5",
+          "outcome": "receives mobile generator",
+          "scope": "neonatal intensive-care unit",
+          "direction": "UNKNOWN",
+          "polarity": "NEUTRAL",
+          "probability": "CERTAIN",
+          "magnitude": "UNKNOWN",
+          "duration": "UNKNOWN",
+          "reversibility": "UNKNOWN",
+          "support": "STATED",
+          "importance": "LOW",
+          "valuation_reason": "resource reallocation itself"
+        }
+      ]
+    },
+    "utilitarian_ledger_proposal": {
+      "actions": [
+        {
+          "action_id": "A0",
+          "valuations": [
+            {
+              "effect_id": "E1",
+              "importance": "HIGH",
+              "reason": "prevents potentially many deaths"
+            },
+            {
+              "effect_id": "E2",
+              "importance": "HIGH",
+              "reason": "NICU loses power"
+            },
+            {
+              "effect_id": "E3",
+              "importance": "CRITICAL",
+              "reason": "8 infants die"
+            },
+            {
+              "effect_id": "E4",
+              "importance": "CRITICAL",
+              "reason": "life-saving opportunity lost"
+            },
+            {
+              "effect_id": "E0",
+              "importance": "LOW",
+              "reason": "resource reallocation itself"
+            }
+          ]
+        },
+        {
+          "action_id": "A1",
+          "valuations": [
+            {
+              "effect_id": "E6",
+              "importance": "CRITICAL",
+              "reason": "saves 8 infants immediately"
+            },
+            {
+              "effect_id": "E8",
+              "importance": "HIGH",
+              "reason": "risk of widespread disease"
+            },
+            {
+              "effect_id": "E7",
+              "importance": "LOW",
+              "reason": "plant loses power"
+            },
+            {
+              "effect_id": "E9",
+              "importance": "HIGH",
+              "reason": "water safety opportunity lost"
+            },
+            {
+              "effect_id": "E5",
+              "importance": "LOW",
+              "reason": "resource reallocation itself"
+            }
+          ]
+        }
+      ]
+    },
+    "rawls_position_proposal": {},
+    "deontological_ledger_proposal": {},
+    "virtue_character_proposal": {},
+    "care_ledger_proposal": {},
+    "care_relational_map": {},
+    "care_numerical_role": "NOT_APPLICABLE",
+    "care_numerical_justification": ""
+  }
+}

@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import math
 import re
+import textwrap
 import time
 from dataclasses import dataclass, replace
 from typing import Callable, Protocol, Sequence
@@ -256,6 +257,23 @@ def _framework_state_projection(candidate: CandidateChunk) -> dict[str, object]:
     }
 
 
+def _record_committed_native_ledger(
+    candidate: CandidateChunk,
+    *,
+    ledger_kind: str,
+    transaction_status: str,
+    records: Sequence[dict[str, object]],
+) -> None:
+    """Attach only graph-committed native records to the operative candidate."""
+    if not str(transaction_status).startswith("COMMITTED") or not records:
+        return
+    candidate.committed_native_ledger = {
+        "ledger_kind": ledger_kind,
+        "transaction_status": str(transaction_status),
+        "records": copy.deepcopy(list(records)),
+    }
+
+
 def _merge_unique(values: Sequence[object], additions: Sequence[object], limit: int) -> list:
     merged: list = []
     for value in [*values, *additions]:
@@ -366,6 +384,9 @@ def _preserve_current_cycle_components(
         ],
         3,
     )
+    if candidate.challenge_response:
+        restored.challenge_response = copy.deepcopy(candidate.challenge_response)
+        preserved.append("CHALLENGE_RESPONSE")
     restored.landscape_validation_errors = _merge_unique(
         restored.landscape_validation_errors,
         candidate.landscape_validation_errors,
@@ -453,6 +474,11 @@ def _operative_framework_candidates(
             if remember:
                 last_valid[restored.specialist] = copy.deepcopy(restored)
             continue
+        previous = last_valid.get(candidate.specialist)
+        if not candidate.committed_native_ledger and previous is not None:
+            candidate.committed_native_ledger = copy.deepcopy(
+                previous.committed_native_ledger
+            )
         operative.append(candidate)
         state = _framework_state_projection(candidate)
         candidate.proposed_framework_state = copy.deepcopy(state)
@@ -911,6 +937,10 @@ def _problem_state_audit_probe(
     }
     ranked: list[tuple[int, dict[str, object]]] = []
     for question in questions:
+        if str(question.get("status", "")).upper() in {
+            "RESOLVED", "REFINED", "SUPERSEDED", "WITHDRAWN",
+        }:
+            continue
         issue_id = str(
             question.get("issue_id", question.get("question_key", "")) or ""
         ).strip()
@@ -1520,6 +1550,479 @@ def _argument_challenge_candidates(
         [item for item in challenges if str(item.get("issue_id", "")) not in settled],
         key=lambda item: (-float(item.get("priority", 0.0)), str(item.get("issue_id", ""))),
     )[:12]
+
+
+_CHALLENGE_AGENDA_PROTECTED_CONSTRAINTS = {
+    "VISIBILITY_AUDIT", "AUTONOMY_AUDIT", "COERCION_AUDIT",
+    "CONSENSUS_AUDIT", "PROBLEM_STATE_AUDIT", "REVERSAL_AUDIT",
+    "CONTINGENCY_REVIEW", "PROBLEM_REFORMULATION", "PROPOSAL_REVIEW",
+    "PLANNING_REVIEW", "SYNTHESIS_REVIEW",
+}
+_ACTIVE_CHALLENGE_STATUSES = {
+    "UNTESTED", "ASSIGNED", "UNANSWERED", "UNRESOLVED",
+}
+
+
+def _challenge_resolution_supported(
+    candidate: CandidateChunk,
+    challenge: dict[str, object],
+    response: dict[str, object],
+) -> tuple[bool, str]:
+    """Verify a self-reported resolution against the operative native ledger."""
+    kind = str(challenge.get("challenge_kind", "")).upper()
+    current_effect = str(
+        response.get("current_position_effect", response.get("effect", "UNRESOLVED"))
+    ).upper()
+    boundary_effect = str(response.get("boundary_effect", "NOT_APPLICABLE")).upper()
+
+    # Defeater questions ask for a counterfactual decision boundary, not an
+    # immediate change of view. A typed answer can settle that question without
+    # mutating the current framework ledger.
+    if kind in {"FACTUAL_DEFEATER", "NORMATIVE_DEFEATER"}:
+        if boundary_effect in {"NO_SWITCH", "MAY_SWITCH", "SWITCHES"}:
+            return True, "counterfactual boundary was explicitly classified"
+        return False, "counterfactual boundary remains unclassified"
+
+    native = dict(candidate.committed_native_ledger or {})
+    records = [
+        dict(item) for item in native.get("records", []) or []
+        if isinstance(item, dict)
+    ]
+    if not records:
+        return False, "no operative graph-committed framework ledger is available"
+
+    action_ids = {
+        str(item.get("canonical_action_id", "")) for item in records
+        if str(item.get("canonical_action_id", ""))
+    }
+    if kind == "UTILITY_UNRESOLVED_COMPARISON":
+        resolved = bool(
+            not candidate.utilitarian_decision_depends_on_unknown
+            and candidate.comparison_complete
+            and candidate.evidence_sufficient_for_action
+        )
+        return (
+            resolved,
+            "utilitarian comparison is complete"
+            if resolved else "the operative utilitarian comparison remains underdetermined",
+        )
+    if kind == "DUTY_PERFECTION_BASIS":
+        relevant = [
+            item for item in records
+            if str(item.get("duty_type", "")).startswith("PERFECT_POSITIVE")
+            or str(item.get("duty_type", "")) == "RIGHT_CORRELATIVE"
+        ]
+        unsupported = any(
+            "perfect positive duty lacks" in str(error).casefold()
+            for item in relevant
+            for error in item.get("calibration_errors", []) or []
+        )
+        supported = bool(relevant and not unsupported)
+        return (
+            supported,
+            "perfect-duty basis survives ledger calibration"
+            if supported else "perfect-duty basis remains unestablished after calibration",
+        )
+    if kind == "MEANS_CAUSAL_PATH":
+        unsupported = any(
+            "causal path" in str(error).casefold()
+            for item in records
+            for error in item.get("calibration_errors", []) or []
+        )
+        return (
+            not unsupported,
+            "means relation survives causal-path calibration"
+            if not unsupported else "means classification still lacks a causal path",
+        )
+    if kind == "CARE_CLAIM_COVERAGE":
+        complete = bool(
+            len(action_ids) >= 2
+            and all(
+                str(item.get("affected_party", "")).strip()
+                and str(item.get("relationship_type", "")).strip()
+                and str(item.get("dependency_source", "")).strip()
+                and str(item.get("competing_care_claim", "")).strip()
+                for item in records
+            )
+        )
+        return (
+            complete,
+            "both actions retain parties, dependencies, and competing Care claims"
+            if complete else "the committed Care comparison still omits a relational claim",
+        )
+    if kind == "POSITION_COVERAGE":
+        complete = bool(
+            len(action_ids) >= 2
+            and all(
+                str(item.get("subject", item.get("affected_subject", ""))).strip()
+                and str(item.get("dimension", "")).strip()
+                and str(item.get("institutional_relation", "")).strip()
+                for item in records
+            )
+        )
+        return (
+            complete,
+            "committed Rawlsian positions cover both actions"
+            if complete else "the committed Rawlsian position comparison is incomplete",
+        )
+
+    rejected = candidate.framework_retention_status in {
+        "UPDATE_REJECTED", "PRESERVED_AFTER_REJECTED_UPDATE",
+    }
+    if rejected:
+        return False, "the proposed framework update was rejected"
+    if current_effect == "UNRESOLVED":
+        return False, "the answer reports an unresolved effect"
+    return True, "answer is backed by an operative graph-committed ledger"
+
+
+def _verification_follow_up(
+    candidate: CandidateChunk,
+    challenge: dict[str, object],
+    reason: str,
+) -> dict[str, object]:
+    diagnostic = next((
+        " ".join(str(value).split())
+        for value in candidate.framework_validation_errors
+        if " ".join(str(value).split())
+    ), reason)
+    question = (
+        "What additional framework-specific ground would resolve this validation "
+        f"result: {diagnostic}"
+    )[:240]
+    return ArgumentChallenge(
+        challenge_kind="VALIDATION_FOLLOW_UP",
+        question=question,
+        about_specialist=candidate.specialist,
+        target_specialists=(candidate.specialist,),
+        grounded_in=tuple(challenge.get("grounded_in", []) or []),
+        trigger_fields=tuple(challenge.get("trigger_fields", []) or []),
+        focus_action=str(challenge.get("focus_action", "")),
+        priority=max(0.6, float(challenge.get("priority", 0.5)) - 0.01),
+        generated_by="FRAMEWORK_LEDGER_VALIDATOR",
+        raised_by=(candidate.specialist,),
+        grounding_status=str(challenge.get("grounding_status", "UNGROUNDED")),
+    ).as_dict()
+
+
+def _render_deliberation_progress(
+    progress: Callable[[str], None] | None,
+    *,
+    cycle: int,
+    actions: Sequence[str],
+    candidates: Sequence[CandidateChunk],
+    received_challenges: Sequence[dict[str, object]],
+    next_agenda: Sequence[dict[str, object]],
+) -> None:
+    """Render new deliberative events; collapse unchanged framework state."""
+    if progress is None:
+        return
+    action_ids = {action: f"A{index}" for index, action in enumerate(actions)}
+    questions = {
+        str(item.get("issue_id", "")): " ".join(
+            str(item.get("question", item.get("proposition", ""))).split()
+        )
+        for item in received_challenges
+    }
+    progress(f"  Deliberation updates — cycle {cycle}")
+
+    def native_lines(candidate: CandidateChunk) -> list[str]:
+        records = [
+            dict(item)
+            for item in (candidate.committed_native_ledger or {}).get("records", []) or []
+            if isinstance(item, dict)
+        ]
+        if candidate.specialist == "utilitarian":
+            material = [
+                item for item in records
+                if str(item.get("importance", "")).upper() in {"HIGH", "CRITICAL"}
+            ]
+            by_action: dict[str, list[dict[str, object]]] = {}
+            for item in material:
+                by_action.setdefault(str(item.get("canonical_action_id", "?")), []).append(item)
+            return [
+                f"{action_id}: " + "; ".join(
+                    f"{item.get('outcome', 'effect')} [{item.get('direction', 'UNKNOWN')}, "
+                    f"{item.get('probability', 'UNKNOWN')}] — {item.get('valuation_reason', '')}"
+                    for item in values[:3]
+                )
+                for action_id, values in sorted(by_action.items())
+            ]
+        if candidate.specialist == "deontological":
+            return [
+                f"{item.get('canonical_action_id', '?')}: {item.get('verdict', 'UNKNOWN')} — "
+                f"{item.get('norm', 'unnamed norm')}; duty={item.get('duty_type', 'UNRESOLVED')}; "
+                f"relation={item.get('relation', 'UNCERTAIN')}; {item.get('reason', '')}"
+                for item in records
+            ]
+        if candidate.specialist == "virtue":
+            return [
+                f"{item.get('canonical_action_id', '?')}: {item.get('verdict', 'UNKNOWN')} — "
+                f"virtues={item.get('virtues', '')}; vice risk={item.get('vice_risk', '')}; "
+                f"judgment={item.get('reason', '')}"
+                for item in records
+            ]
+        if candidate.specialist == "care":
+            return [
+                f"{item.get('canonical_action_id', '?')}: {item.get('verdict', 'UNKNOWN')} — "
+                f"{item.get('affected_party', '')}; relation={item.get('relationship_type', '')}; "
+                f"dependency={item.get('dependency_source', '')}; {item.get('reason', '')}"
+                for item in records
+            ]
+        if candidate.specialist == "rawlsian":
+            return [
+                f"{item.get('canonical_action_id', '?')}: {item.get('effect', 'UNCERTAIN')} — "
+                f"subject={item.get('subject', '')}; dimension={item.get('dimension', '')}; "
+                f"relation={item.get('institutional_relation', '')}; {item.get('reason', '')}"
+                for item in records
+            ]
+        return []
+
+    for candidate in candidates:
+        action_id = action_ids.get(candidate.recommended_action, "?")
+        response = dict(candidate.challenge_response or {})
+        if not response:
+            reason = " ".join(
+                value for value in (candidate.decision_rule, candidate.rationale)
+                if value and value.casefold() != "none"
+            )
+            progress(
+                f"    {candidate.specialist}: {action_id} "
+                f"[{candidate.adjudication_status}] — {reason or 'no reason supplied'}"
+            )
+            for line in native_lines(candidate):
+                progress(f"      Framework analysis: {line}")
+            continue
+        issue_id = str(response.get("issue_id", ""))
+        progress(
+            f"    {candidate.specialist}: {action_id} "
+            f"[{candidate.adjudication_status}]"
+        )
+        progress(f"      Question: {questions.get(issue_id, issue_id)}")
+        answer_lines = textwrap.wrap(str(response.get("answer", "")), width=100)
+        for line_index, line in enumerate(answer_lines):
+            progress(
+                f"      Answer: {line}"
+                if line_index == 0 else f"              {line}"
+            )
+        progress(
+            "      Outcome: "
+            f"{response.get('operative_disposition', response.get('disposition', 'UNRESOLVED'))}; "
+            f"current={response.get('current_position_effect', response.get('effect', 'UNRESOLVED'))}; "
+            f"boundary={response.get('boundary_effect', 'NOT_APPLICABLE')}; "
+            f"verification={response.get('verification_status', 'NOT_VERIFIED')}"
+        )
+        verification_reason = str(response.get("verification_reason", ""))
+        if verification_reason:
+            progress(f"      Ledger: {verification_reason}")
+        if candidate.framework_retention_status in {
+            "UPDATE_REJECTED", "PRESERVED_AFTER_REJECTED_UPDATE",
+        }:
+            progress("      Operative framework state: unchanged from previous cycle")
+        else:
+            reason = " ".join(
+                value for value in (candidate.decision_rule, candidate.rationale)
+                if value and value.casefold() != "none"
+            )
+            progress(f"      Position rationale: {reason or 'no reason supplied'}")
+            for line in native_lines(candidate):
+                progress(f"      Framework analysis: {line}")
+    if next_agenda:
+        progress("  Next-cycle agenda")
+        for item in next_agenda:
+            targets = ",".join(str(value) for value in item.get("target_specialists", []))
+            progress(
+                f"    {targets or 'unassigned'}: "
+                + " ".join(str(item.get("question", "")).split())
+            )
+
+
+def _advance_argument_challenge_agenda(
+    *,
+    previous_challenges: Sequence[dict[str, object]],
+    generated_challenges: Sequence[dict[str, object]],
+    candidates: Sequence[CandidateChunk],
+    next_cycle: int,
+    next_constraint: str,
+    active_specialists: Sequence[str],
+    settled_issue_ids: Sequence[str] = (),
+) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
+    """Retain challenge history and assign one live question per framework."""
+    settled = {str(value) for value in settled_issue_ids}
+    retained: dict[str, dict[str, object]] = {}
+    for raw in previous_challenges:
+        item = copy.deepcopy(dict(raw))
+        issue_id = str(item.get("issue_id", ""))
+        if not issue_id.startswith("CHALLENGE:"):
+            continue
+        if issue_id in settled:
+            item["status"] = "RESOLVED"
+        if str(item.get("status", "")).upper() == "ASSIGNED":
+            item["status"] = "UNANSWERED"
+        retained[issue_id] = item
+
+    followups: list[dict[str, object]] = []
+    for candidate in candidates:
+        response = dict(getattr(candidate, "challenge_response", {}) or {})
+        issue_id = str(response.get("issue_id", ""))
+        if issue_id not in retained:
+            continue
+        item = retained[issue_id]
+        targets = {
+            str(value).casefold()
+            for value in item.get("target_specialists", []) or []
+        }
+        if candidate.specialist.casefold() not in targets:
+            continue
+        reported_disposition = str(
+            response.get("disposition", "UNRESOLVED")
+        ).upper()
+        if reported_disposition not in {"RESOLVED", "REFINED", "UNRESOLVED"}:
+            reported_disposition = "UNRESOLVED"
+        reported_current_effect = str(
+            response.get("current_position_effect", response.get("effect", "UNRESOLVED"))
+        ).upper()
+        current_effect = reported_current_effect
+        boundary_effect = str(response.get("boundary_effect", "")).upper()
+        if not boundary_effect:
+            # Backward-compatible interpretation for older saved responses.
+            if str(item.get("challenge_kind", "")).upper() in {
+                "FACTUAL_DEFEATER", "NORMATIVE_DEFEATER",
+            }:
+                boundary_effect = {
+                    "REVERSES": "SWITCHES",
+                    "WEAKENS": "MAY_SWITCH",
+                    "NO_CHANGE": "NO_SWITCH",
+                }.get(current_effect, "UNRESOLVED")
+                current_effect = "NO_CHANGE" if boundary_effect != "UNRESOLVED" else "UNRESOLVED"
+            else:
+                boundary_effect = "NOT_APPLICABLE"
+        # A current reversal is an observable state transition, not a label the
+        # specialist may assign to a merely hypothetical switch condition.
+        if candidate.position_changed:
+            current_effect = "REVERSES"
+        elif current_effect == "REVERSES":
+            current_effect = "NO_CHANGE"
+
+        verified, verification_reason = _challenge_resolution_supported(
+            candidate, item, {
+                **response,
+                "current_position_effect": current_effect,
+                "boundary_effect": boundary_effect,
+            },
+        )
+        operative_disposition = reported_disposition
+        verification_status = "ANSWER_RECORDED"
+        if reported_disposition == "RESOLVED":
+            if verified:
+                verification_status = "VERIFIED_RESOLVED"
+            else:
+                # The attempted answer remains in history, while a validator-
+                # authored narrower question becomes the live continuation.
+                operative_disposition = "REFINED"
+                verification_status = "RESOLUTION_REJECTED"
+                followups.append(_verification_follow_up(
+                    candidate, item, verification_reason,
+                ))
+        elif reported_disposition == "REFINED":
+            verification_status = "VERIFIED_REFINED"
+        else:
+            verification_status = "VERIFIED_UNRESOLVED"
+
+        response.update({
+            "reported_disposition": reported_disposition,
+            "reported_current_position_effect": reported_current_effect,
+            "operative_disposition": operative_disposition,
+            "current_position_effect": current_effect,
+            "effect": current_effect,
+            "boundary_effect": boundary_effect,
+            "verification_status": verification_status,
+            "verification_reason": verification_reason,
+        })
+        candidate.challenge_response = response
+        item["status"] = operative_disposition
+        item["last_response"] = {
+            "specialist": candidate.specialist,
+            "reported_disposition": reported_disposition,
+            "reported_current_position_effect": reported_current_effect,
+            "operative_disposition": operative_disposition,
+            "current_position_effect": current_effect,
+            "boundary_effect": boundary_effect,
+            "verification_status": verification_status,
+            "verification_reason": verification_reason,
+            "answer": " ".join(str(response.get("answer", "")).split())[:900],
+            "cycle": max(1, next_cycle - 1),
+        }
+        follow_up = " ".join(
+            str(response.get("follow_up_question", "")).split()
+        )[:240]
+        if (
+            operative_disposition == "REFINED"
+            and follow_up and follow_up.upper() != "NONE"
+        ):
+            followups.append(ArgumentChallenge(
+                challenge_kind="SPECIALIST_FOLLOW_UP",
+                question=follow_up,
+                about_specialist=candidate.specialist,
+                target_specialists=(candidate.specialist,),
+                grounded_in=tuple(item.get("grounded_in", []) or []),
+                trigger_fields=tuple(item.get("trigger_fields", []) or []),
+                focus_action=str(item.get("focus_action", "")),
+                priority=max(0.5, float(item.get("priority", 0.5)) - 0.01),
+                generated_by=f"{candidate.specialist.upper()}_SPECIALIST",
+                raised_by=(candidate.specialist,),
+                grounding_status=str(item.get("grounding_status", "UNGROUNDED")),
+            ).as_dict())
+
+    for raw in [*generated_challenges, *followups]:
+        item = copy.deepcopy(dict(raw))
+        issue_id = str(item.get("issue_id", ""))
+        if not issue_id.startswith("CHALLENGE:"):
+            continue
+        prior = retained.get(issue_id)
+        if prior is None:
+            item["status"] = str(item.get("status", "UNTESTED")).upper()
+            item["first_seen_cycle"] = max(1, next_cycle - 1)
+            retained[issue_id] = item
+        else:
+            prior["priority"] = max(
+                float(prior.get("priority", 0.0)),
+                float(item.get("priority", 0.0)),
+            )
+            prior["last_seen_cycle"] = max(1, next_cycle - 1)
+
+    ordered = sorted(
+        retained.values(),
+        key=lambda item: (
+            str(item.get("status", "")).upper() == "RESOLVED",
+            -float(item.get("priority", 0.0)),
+            int(item.get("first_seen_cycle", next_cycle)),
+            str(item.get("issue_id", "")),
+        ),
+    )[:40]
+    if str(next_constraint).upper() in _CHALLENGE_AGENDA_PROTECTED_CONSTRAINTS:
+        return ordered, []
+
+    active = {str(name).casefold() for name in active_specialists}
+    assigned_targets: set[str] = set()
+    agenda: list[dict[str, object]] = []
+    for item in ordered:
+        if str(item.get("status", "UNTESTED")).upper() not in _ACTIVE_CHALLENGE_STATUSES:
+            continue
+        targets = [
+            str(value).casefold()
+            for value in item.get("target_specialists", []) or []
+            if str(value).casefold() in active
+        ]
+        target = next((value for value in targets if value not in assigned_targets), "")
+        if not target:
+            continue
+        assigned_targets.add(target)
+        assigned = copy.deepcopy(item)
+        assigned["status"] = "ASSIGNED"
+        assigned["assigned_cycle"] = max(1, next_cycle)
+        agenda.append(assigned)
+    return ordered, agenda
 
 
 def _commit_access_variable_node(
@@ -2739,6 +3242,12 @@ class WorkspaceEngine:
                     result.utilitarian_consequence_ledger = (
                         committed_utilitarian_consequences(graph_store.graph)
                     )
+                    _record_committed_native_ledger(
+                        candidate,
+                        ledger_kind="UTILITARIAN_CONSEQUENCE_LEDGER",
+                        transaction_status=util_transaction.status,
+                        records=result.utilitarian_consequence_ledger,
+                    )
                     result.graph_transactions = graph_store.transaction_dicts()
                     result.semantic_graphs = [graph_store.graph_dict()]
                     if util_transaction.status == "COMMITTED_WITH_UNCERTAINTY":
@@ -2766,6 +3275,12 @@ class WorkspaceEngine:
                     )
                     result.deontological_duty_ledger = (
                         committed_deontological_assessments(graph_store.graph)
+                    )
+                    _record_committed_native_ledger(
+                        candidate,
+                        ledger_kind="DEONTOLOGICAL_DUTY_LEDGER",
+                        transaction_status=deon_transaction.status,
+                        records=result.deontological_duty_ledger,
                     )
                     result.graph_transactions = graph_store.transaction_dicts()
                     result.semantic_graphs = [graph_store.graph_dict()]
@@ -2908,6 +3423,12 @@ class WorkspaceEngine:
                     result.rawlsian_position_ledger = committed_rawls_positions(
                         graph_store.graph
                     )
+                    _record_committed_native_ledger(
+                        candidate,
+                        ledger_kind="RAWLSIAN_POSITION_LEDGER",
+                        transaction_status=rawls_transaction.status,
+                        records=result.rawlsian_position_ledger,
+                    )
                     if (
                         rawls_transaction.status.startswith("COMMITTED")
                         and hasattr(specialist, "previous_framework_state")
@@ -2983,6 +3504,12 @@ class WorkspaceEngine:
                     result.virtue_character_ledger = committed_virtue_assessments(
                         graph_store.graph
                     )
+                    _record_committed_native_ledger(
+                        candidate,
+                        ledger_kind="VIRTUE_CHARACTER_LEDGER",
+                        transaction_status=virtue_transaction.status,
+                        records=result.virtue_character_ledger,
+                    )
                     result.graph_transactions = graph_store.transaction_dicts()
                     result.semantic_graphs = [graph_store.graph_dict()]
                     if virtue_transaction.status == "REJECTED":
@@ -3031,6 +3558,12 @@ class WorkspaceEngine:
                     result.care_relationship_ledger = committed_care_assessments(
                         graph_store.graph
                     )
+                    _record_committed_native_ledger(
+                        candidate,
+                        ledger_kind="CARE_RELATIONSHIP_LEDGER",
+                        transaction_status=care_transaction.status,
+                        records=result.care_relationship_ledger,
+                    )
                     result.graph_transactions = graph_store.transaction_dicts()
                     result.semantic_graphs = [graph_store.graph_dict()]
                     if care_transaction.status == "REJECTED":
@@ -3078,53 +3611,16 @@ class WorkspaceEngine:
                             + " | ".join(care_transaction.errors[:2])
                         )
                 if progress:
-                    validation_note = (
-                        f"; error={candidate.validation_errors[0]}"
-                        if not candidate.schema_valid and candidate.validation_errors
-                        else ""
+                    returned_action = (
+                        f"A{cycle_actions.index(candidate.recommended_action)}"
+                        if candidate.recommended_action in cycle_actions else "?"
                     )
-                    if candidate.conformity_penalty:
-                        validation_note += (
-                            f"; conformity_penalty={candidate.conformity_penalty:.2f}; "
-                            f"previous={candidate.previous_action}"
-                        )
-                    if candidate.confidence_drift_penalty:
-                        validation_note += (
-                            f"; preference_drift_penalty={candidate.preference_drift_penalty:.2f}; "
-                            f"preference_drift={candidate.preference_drift:+.2f}; "
-                            f"epistemic={candidate.epistemic_confidence:.2f}"
-                        )
-                    if candidate.evidence_basis == "UNSTATED_FACTS":
-                        validation_note += (
-                            f"; speculative_claim={candidate.speculative_claim}; "
-                            f"evidence_tier={candidate.evidence_calibration_tier}; "
-                            f"retention={candidate.evidence_direction_retention:.2f}; "
-                            "vote_damped"
-                        )
-                    if candidate.coercion_surcharge:
-                        validation_note += (
-                            f"; coercion_surcharge={candidate.coercion_surcharge:.2f}; "
-                            f"tag={candidate.coercion_tag}"
-                        )
-                    if candidate.landscape_search_attempted and not candidate.landscape_semantic_valid:
-                        validation_note += (
-                            "; landscape_penalty="
-                            + " | ".join(candidate.landscape_validation_errors[:2])
-                        )
-                    if candidate.independence_bonus:
-                        validation_note += "; grounded_nonconsensus_bonus=1.00"
-                    if candidate.contingency_choice:
-                        validation_note += (
-                            f"; contingency_choice={candidate.contingency_choice}; "
-                            f"conditional_why={candidate.contingency_justification}"
-                        )
                     progress(
-                        f"  [{index}/{len(self.specialists)}] {specialist.name} returned "
-                        f"{candidate.constraint}; recommends={candidate.recommended_action or 'unknown'}; "
+                        f"  [{index}/{len(self.specialists)}] {specialist.name} returned; "
+                        f"position={returned_action}; constraint={candidate.constraint}; "
                         f"preference={candidate.preference_strength:.2f}; "
                         f"epistemic={candidate.epistemic_confidence:.2f}; "
-                        f"alignment={candidate.testimony_alignment}; "
-                        f"why={candidate.rationale}{validation_note} "
+                        f"status={candidate.adjudication_status} "
                         f"in {time.monotonic() - call_started:.1f}s"
                     )
                 if terminal_model_failure:
@@ -3558,7 +4054,33 @@ class WorkspaceEngine:
                 graph_store.graph,
                 selected_action,
             )
-            next_problem_state["argument_challenge_candidates"] = argument_challenges
+            retained_challenges, challenge_agenda = _advance_argument_challenge_agenda(
+                previous_challenges=(
+                    received_broadcast.problem_state.get(
+                        "argument_challenge_candidates", [],
+                    )
+                    if received_broadcast.problem_state else []
+                ),
+                generated_challenges=argument_challenges,
+                candidates=valid_candidates,
+                next_cycle=cycle_number + 1,
+                next_constraint=(
+                    winner.constraint
+                    if recorded_winner is not None
+                    else received_broadcast.constraint
+                ),
+                active_specialists=[specialist.name for specialist in self.specialists],
+                settled_issue_ids=settled_keys,
+            )
+            next_problem_state["argument_challenge_candidates"] = retained_challenges
+            _render_deliberation_progress(
+                progress,
+                cycle=cycle_number,
+                actions=clean_actions,
+                candidates=valid_candidates,
+                received_challenges=received_broadcast.challenge_agenda,
+                next_agenda=challenge_agenda,
+            )
             if not is_counterfactual:
                 result.shared_unresolved_dependencies = shared_dependencies
             next_broadcast = WorkspaceBroadcast(
@@ -3595,6 +4117,7 @@ class WorkspaceEngine:
                     if recorded_winner is not None else "REVIEW_MODEL_OUTPUT"
                 ),
                 focus_proposition_ids=cycle_focus_proposition_ids,
+                challenge_agenda=tuple(challenge_agenda),
                 problem_state=next_problem_state,
             )
             result.cycles.append(

@@ -1369,6 +1369,30 @@ def render_decision_brief(result: Any) -> str:
         f"**Judgment status:** {status}",
         f"**Convergence:** {_convergence_label(data)}",
     ])
+    presentation_mapping = list(data.get("presentation_action_mapping") or [])
+    remapped = any(
+        str(entry.get("canonical_action_id") or "")
+        != f"A{entry.get('source_position')}"
+        for entry in presentation_mapping
+    )
+    if presentation_mapping and remapped:
+        lines.extend([
+            "",
+            "## Action label mapping",
+            "",
+            "Canonical IDs are stable internal identifiers; they do not preserve "
+            "the original presentation order.",
+            "",
+        ])
+        for entry in presentation_mapping:
+            source_label = str(entry.get("source_label") or "Presented option")
+            canonical_id = str(entry.get("canonical_action_id") or "")
+            action = str(
+                entry.get("canonical_action") or entry.get("source_action") or ""
+            )
+            lines.append(
+                f"- {source_label} → canonical {canonical_id}: {short_action(action)}"
+            )
     if status == DEGRADED_WORLD_STATE_RECOMMENDATION:
         quarantined = (
             (((data.get("action_source_grounding") or {}).get("world_model") or {})

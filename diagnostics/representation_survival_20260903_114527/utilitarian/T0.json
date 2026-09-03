@@ -1,0 +1,16 @@
+{
+  "stage": "original_specialist_testimony",
+  "testimony": "Action-Consequence Table  \n\nA1 → Send generator to NICU  \n1. 8 premature infants: life saved. Prob=1. Mag=+++, lifelong. Irrev. STATED  \n2. 10–100k residents: higher risk of sanitation failure (disease, deaths). Prob=UNKNOWN, likely>0.5? Mag=++ to +++, weeks-months, partly reversible. INFERRED  \n3. Same residents if failure occurs: economic/psych distress. Prob=UNKNOWN. Mag=+, months. INFERRED  \n\nA0 → Send generator to water plant  \n1. 8 infants: near-certain death. Prob=≈1. Mag=---, permanent. STATED  \n2. 10–100k residents: safe water maintained. Prob=1. Mag=++ to +++, weeks. REVERSIBLE, STATED  \n3. City healthcare system: avoids outbreak burden. Prob=UNKNOWN but linked to (2). Mag=+ to ++. INFERRED  \n\nImpact Ranking (prob×mag, highest first, sign indicates harm)  \n1. ± Water-supply outcome for tens-thousands (A0 +++, A1 –– to –––, prob UNKNOWN)  \n2. ± 8 infant lives (A1 +++, A0 –––, prob 1)  \n3. Secondary public-health costs (A0 +, A1 – to ––)\n\nAnalysis  \nFacts: eight deaths or lives are certain depending on allocation. Scale of wider harm and its probability are unspecified; generator absence “increases risk” but gives no numeric estimate. If sanitation failure kills ≥9 people with probability ≥1/9 (≈11%), expected deaths exceed eight; if lower, NICU maximizes welfare. Missing info about backup chlorination, bottled water, or repair time could reverse result.\n\nRecommendation (conditional)  \nUtilitarian Status: UNDERDETERMINED.  \nSend generator to the water-treatment plant (A0) if the expected additional deaths from a sanitation failure (population affected × probability) exceed eight; otherwise send it to the NICU (A1).",
+  "testimony_delivered_to_recurrent_prompt": "Action-Consequence Table A1 → Send generator to NICU 1. 8 premature infants: life saved. Prob=1. Mag=+++, lifelong. Irrev. STATED 2. 10–100k residents: higher risk of sanitation failure (disease, deaths). Prob=UNKNOWN, likely>0.5? Mag=++ to +++, weeks-months, partly reversible. INFERRED 3. Same residents if failure occurs: economic/psych distress. Prob=UNKNOWN. Mag=+, months. INFERRED A0 → Send generator to water plant 1. 8 infants: near-cer ... ple with probability ≥1/9 (≈11%), expected deaths exceed eight; if lower, NICU maximizes welfare. Missing info about backup chlorination, bottled water, or repair time could reverse result. Recommendation (conditional) Utilitarian Status: UNDERDETERMINED. Send generator to the water-treatment plant (A0) if the expected additional deaths from a sanitation failure (population affected × probability) exceed eight; otherwise send it to the NICU (A1).",
+  "frozen_baseline": {
+    "status": "CONDITIONAL",
+    "action_id": "NONE",
+    "provisional_action_id": "A0",
+    "preferred_extension": "",
+    "condition": "Choose A0 if the expected additional deaths from a sanitation failure exceed eight; otherwise choose A1",
+    "reason": "Recommends A0 when sanitation-failure deaths expected to exceed 8; otherwise A1",
+    "rejected_action_ids": [],
+    "framework_commitments": {},
+    "numerical_role": "UNASSESSED"
+  }
+}
