@@ -3,10 +3,11 @@ from __future__ import annotations
 import json
 import re
 import time
+from contextlib import contextmanager
 from contextvars import ContextVar, Token
 from dataclasses import dataclass, field
 from functools import lru_cache
-from typing import Any
+from typing import Any, Iterator
 
 
 class ModelCallBudgetExceeded(RuntimeError):
@@ -32,6 +33,7 @@ class ModelCallBudget:
     cycle: int = 0
     auxiliary_calls: int = 0
     epistemic_audit_calls: int = 0
+    paused_at: float | None = None
     cache: dict[str, Any] = field(default_factory=dict)
 
 
@@ -54,6 +56,31 @@ def start_model_call_budget(
 
 def reset_model_call_budget(token: Token) -> None:
     _CALL_BUDGET.reset(token)
+
+
+def pause_model_call_budget() -> None:
+    """Stop the wall clock during interactive waits or out-of-process RAG consults."""
+    budget = _CALL_BUDGET.get()
+    if budget is None or budget.paused_at is not None:
+        return
+    budget.paused_at = time.monotonic()
+
+
+def resume_model_call_budget() -> None:
+    budget = _CALL_BUDGET.get()
+    if budget is None or budget.paused_at is None:
+        return
+    budget.deadline += time.monotonic() - budget.paused_at
+    budget.paused_at = None
+
+
+@contextmanager
+def model_call_budget_paused() -> Iterator[None]:
+    pause_model_call_budget()
+    try:
+        yield
+    finally:
+        resume_model_call_budget()
 
 
 def begin_model_call_cycle(cycle: int) -> None:
@@ -94,6 +121,8 @@ def call_json_llm(
         if cache and cache_key in budget.cache:
             return budget.cache[cache_key]
         remaining = budget.deadline - time.monotonic()
+        if budget.paused_at is not None:
+            remaining += time.monotonic() - budget.paused_at
         if remaining <= budget.reserve_seconds:
             raise ModelCallBudgetExceeded(
                 f"model-call deadline reached ({remaining:.1f}s remaining; "

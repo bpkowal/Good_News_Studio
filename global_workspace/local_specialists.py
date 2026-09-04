@@ -4056,6 +4056,10 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                 "beneficiaries": list(record.get("beneficiaries", [])),
                 "harmed": list(record.get("harmed", [])),
                 "unresolved": list(record.get("unresolved", [])),
+                "at_risk": list(record.get("at_risk", [])),
+                "conditionally_benefited": list(
+                    record.get("conditionally_benefited", [])
+                ),
                 "mechanism": record.get("mechanism", ""),
                 "institutional_effect": record.get("institutional_effect", ""),
             }
@@ -5364,7 +5368,9 @@ You may cite IDs but may not change their status. Repetition, reformulation, con
 or broadcast salience is not evidence. Put any important unstated empirical premise
 in x; Python assigns its hypothesis ID and prevents it from gaining authority through
 recurrence. CLOSED-WORLD vs HYPOTHESIS: scores, r, and cc must reflect admitted /
-WORLD_ESTABLISHED consequences only. A HYPOTHESIS may create a reversal boundary in
+WORLD_ESTABLISHED consequences only. beneficiaries and harmed are those obtaining
+roles. at_risk and conditionally_benefited are reversal boundaries, not obtaining
+outcomes; they must not change closed-world action scores or set cd=true. A HYPOTHESIS may create a reversal boundary in
 ft, create an investigative question, and lower z as open-world confidence. It may
 not change closed-world action scores or set cd=true unless it is admitted or
 verified. If a decision-critical proposition is HYPOTHETICAL, keep the admitted
@@ -5381,7 +5387,7 @@ refines, or reinterprets them for an explicit reason in j/fa. Do not copy anothe
 framework's vocabulary merely to acknowledge the broadcast.
 Action IDs: {json.dumps(action_legend)}
 Reason from each action's canonical_semantic_action and structured fields
-(actor/beneficiaries/harmed/mechanism/institutional_effect/world_effects/causal_links).
+(actor/beneficiaries/harmed/at_risk/conditionally_benefited/mechanism/institutional_effect/world_effects/causal_links).
 short_label is display-only and must not be treated as the complete deliberative object.
 committed_world and causal_links are the admitted factual topology. Do not
 contradict them. A missing connection is a HYPOTHESIS until an approved
@@ -6996,9 +7002,11 @@ clause_ids must include at least one FACT clause or the confirmed action id
 be cited as context only and is never sufficient alone. Put population cardinality
 and scale phrases on the party they describe, even when an atomic effect outcome
 does not repeat them (for example "eight" for infants or "tens of thousands" for residents).
-Put resource, duration, monetary, percentage, and other effect-specific quantities
-on the effect. Copy only exact source spans and do not attach every quantity in a
-clause to every party or effect. Record exact source likelihood words such as
+If one clause names two population quantities, copy each span only onto the party
+whose label uniquely matches that quantity's local noun phrase; do not copy both
+counts onto one party. Put resource, duration, monetary, percentage, and other
+effect-specific quantities on the effect. Copy only exact source spans and do not
+attach every quantity in a clause to every party or effect. Record exact source likelihood words such as
 "near-certain" in likelihood_qualifiers, extent words such as "widespread" in
 scope_qualifiers, and timing words such as "immediate" in temporal_qualifiers when
 they modify that effect. Do not invent probabilities, QALYs, counts, or qualifiers.
@@ -7007,9 +7015,10 @@ and one causal stage per effect. An immediate action target, an intermediate sys
 state, and the people ultimately helped or harmed are distinct parties/effects.
 Named individuals use kind PERSON or HUMAN; crowds use GROUP or POPULATION;
 intermediate systems use FACILITY, INSTITUTION, or PROCESS. recipient_party_ids
-are only the parties the actor acts on (the named patient of a framing or
-killing, the person reached, the facility repaired). Do not list later
-beneficiaries, crowds, or process-bearers as recipients. For every
+are who or what the actor acts on: the named patient of a framing or killing,
+the person reached, or the immediate object of demolition, repair, diversion,
+or shutdown (a FACILITY, INFRASTRUCTURE, PROCESS, or RESOURCE). Later harmed
+or beneficiary crowds must not be recipients. For every
 recipient_party_id include an atomic DIRECT effect: RESOURCE_TRANSFER when a
 resource is transferred, INSTITUTIONAL_OUTCOME for a juridical act (frame,
 acquit, certify), and INTERVENTION for other actions. Represent resulting
@@ -7120,10 +7129,16 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
             "If a downstream health or welfare outcome has no path to this action's "
             "DIRECT intervention, transfer, or juridical act, add the missing causal "
             "link through the source-named intermediate process. DIRECT effects "
-            "belong only on the actor or a named recipient; do not list crowds or "
-            "process-bearers as recipients. Named patients may be PERSON or HUMAN. "
+            "belong only on the actor or a named recipient. The immediate object "
+            "of demolition, repair, diversion, or shutdown may be a recipient "
+            "(FACILITY, INFRASTRUCTURE, PROCESS, or RESOURCE); later crowds may "
+            "not. Named patients may be PERSON or HUMAN. "
             "A framing or false-attribution source still needs a DIRECT "
-            "INSTITUTIONAL_OUTCOME on that patient. FOREGONE rows use effect_kind "
+            "INSTITUTIONAL_OUTCOME on that patient. If two population quantities "
+            "appear in one clause, attach each only to the party that uniquely "
+            "matches that quantity's local noun phrase; do not copy both onto one "
+            "party, and do not retarget causal_links to satisfy quantity errors. "
+            "FOREGONE rows use effect_kind "
             "OPPORTUNITY_LOSS. If opposed stipulated welfare on a non-recipient "
             "party has no FOREGONE overlay, add only those FOREGONE rows and "
             "counterfactual_links; do not retarget causal_links or use FOREGONE "

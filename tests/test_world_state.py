@@ -36,6 +36,7 @@ from global_workspace.world_state import (
     explicit_quantity_spans,
     explicit_scope_spans,
     explicit_temporal_spans,
+    assigned_party_quantities,
     parse_world_model,
     project_world_action_roles,
     utilitarian_omits_foregone_dual,
@@ -463,6 +464,66 @@ class WorldModelValidationTests(unittest.TestCase):
         ))
         self.assertFalse(any(
             "P2 omits" in error and "eight" in error for error in errors
+        ))
+
+    def test_two_count_clause_assigns_each_span_to_one_party(self):
+        shared_ref = (SourceRef(
+            "C5",
+            "forty workers at the plant lose pay while six hundred households "
+            "downstream lose water.",
+        ),)
+        parties = (
+            WorldParty("P0", "allocator", "AUTOMATED_SYSTEM", REF),
+            WorldParty(
+                "P1", "plant workers", "GROUP", shared_ref, ("forty",),
+            ),
+            WorldParty(
+                "P2", "downstream households", "HOUSEHOLD", shared_ref,
+                ("six hundred",),
+            ),
+            WorldParty("P3", "people", "POPULATION", shared_ref, ()),
+        )
+        assigned = assigned_party_quantities(parties)
+        self.assertEqual(assigned["P1"], ("forty",))
+        self.assertEqual(assigned["P2"], ("six hundred",))
+        self.assertEqual(assigned["P3"], ())
+        effects = (
+            WorldEffect(
+                "E1", "A0", "P1", "workers unpaid", "CAUSES", "ADVERSE",
+                "DOWNSTREAM", "CERTAIN", "WELFARE_OUTCOME", (), (), shared_ref,
+            ),
+            WorldEffect(
+                "E2", "A1", "P2", "households lose water", "CAUSES", "ADVERSE",
+                "DOWNSTREAM", "CERTAIN", "WELFARE_OUTCOME", (), (), shared_ref,
+            ),
+        )
+        model = ScenarioWorldModel(
+            parties=parties,
+            actions=(
+                WorldAction("A0", "idle the plant", "P0", (), ("E1",), REF),
+                WorldAction("A1", "cut the main", "P0", (), ("E2",), REF),
+            ),
+            effects=effects,
+            schema_version="1.2",
+        )
+        errors, _ = validate_world_model(model, action_ids=["A0", "A1"])
+        self.assertFalse(any("P1 omits" in error for error in errors))
+        self.assertFalse(any("P2 omits" in error for error in errors))
+        self.assertFalse(any("P3 omits" in error for error in errors))
+
+        both_on_workers = (
+            parties[0],
+            replace(parties[1], quantities=("forty", "six hundred")),
+            parties[2],
+            parties[3],
+        )
+        assigned_wrong = assigned_party_quantities(both_on_workers)
+        self.assertEqual(assigned_wrong["P1"], ("forty",))
+        omitted_errors, _ = validate_world_model(
+            replace(model, parties=both_on_workers), action_ids=["A0", "A1"],
+        )
+        self.assertFalse(any(
+            "P1 omits" in error and "six hundred" in error for error in omitted_errors
         ))
 
     def test_schema_1_2_qualifiers_project_to_atomic_established_propositions(self):
@@ -2155,8 +2216,12 @@ class WorldModelCompletenessTests(unittest.TestCase):
         a1 = project_world_action_roles(model, "A1")
         self.assertEqual(a0.beneficiaries, ("innocent individual",))
         self.assertEqual(a0.harmed, ("city residents",))
+        self.assertEqual(a0.at_risk, ())
+        self.assertEqual(a0.conditionally_benefited, ())
         self.assertEqual(a1.harmed, ("innocent individual",))
         self.assertEqual(a1.beneficiaries, ("city residents",))
+        self.assertEqual(a1.at_risk, ())
+        self.assertEqual(a1.conditionally_benefited, ())
 
     def test_canonical_records_project_roles_and_framing(self):
         records = build_canonical_action_records(
@@ -2167,6 +2232,8 @@ class WorldModelCompletenessTests(unittest.TestCase):
         by_id = {record.action_id: record for record in records}
         self.assertEqual(by_id["A0"].beneficiaries, ("innocent individual",))
         self.assertEqual(by_id["A0"].harmed, ("city residents",))
+        self.assertEqual(by_id["A0"].at_risk, ())
+        self.assertEqual(by_id["A0"].conditionally_benefited, ())
         self.assertEqual(by_id["A1"].harmed, ("innocent individual",))
         self.assertEqual(by_id["A1"].beneficiaries, ("city residents",))
         self.assertIn("falsely framed", by_id["A1"].institutional_effect)
@@ -2351,6 +2418,7 @@ class CompactActionRoleTests(unittest.TestCase):
         )
         roles = project_world_action_roles(model, "A0")
         self.assertEqual(roles.harmed, ("trapped family",))
+        self.assertEqual(roles.at_risk, ())
         self.assertEqual(roles.unresolved, ())
 
     def test_unqualified_probabilistic_institutional_stays_unresolved(self):
@@ -2371,6 +2439,7 @@ class CompactActionRoleTests(unittest.TestCase):
         roles = project_world_action_roles(model, "A0")
         self.assertEqual(roles.harmed, ())
         self.assertEqual(roles.beneficiaries, ())
+        self.assertEqual(roles.at_risk, ("downstream residents",))
         self.assertEqual(roles.unresolved, ("downstream residents",))
 
     def test_settled_harm_outranks_weaker_unresolved_on_same_party(self):
@@ -2398,6 +2467,7 @@ class CompactActionRoleTests(unittest.TestCase):
         )
         roles = project_world_action_roles(model, "A0")
         self.assertEqual(roles.harmed, ("trapped family",))
+        self.assertEqual(roles.at_risk, ())
         self.assertEqual(roles.unresolved, ())
 
     def test_foregone_physical_state_stays_out_of_compact_roles(self):
@@ -2415,6 +2485,49 @@ class CompactActionRoleTests(unittest.TestCase):
         self.assertEqual(roles.beneficiaries, ())
         self.assertEqual(roles.harmed, ())
         self.assertEqual(roles.unresolved, ())
+
+    def test_expected_probabilistic_health_is_at_risk_not_harmed(self):
+        model = _model(
+            (
+                _effect(
+                    "E_h", "A0", "P3",
+                    outcome="severe long-term harm",
+                    polarity="ADVERSE",
+                    directness="DOWNSTREAM",
+                    modality="PROBABILISTIC",
+                    condition_ids=("COND2",),
+                    effect_kind="HEALTH_OUTCOME",
+                    likelihood_qualifiers=("expected",),
+                ),
+            ),
+            conditions=(WorldCondition("COND2", "exposure continues", provenance=REF),),
+        )
+        roles = project_world_action_roles(model, "A0")
+        self.assertEqual(roles.harmed, ())
+        self.assertEqual(roles.at_risk, ("downstream residents",))
+        self.assertEqual(roles.conditionally_benefited, ())
+        self.assertEqual(roles.unresolved, ("downstream residents",))
+
+    def test_stipulated_crowd_protection_is_conditionally_benefited(self):
+        model = _model(
+            (
+                _effect(
+                    "E_p", "A1", "P3",
+                    outcome="protected from harm",
+                    polarity="BENEFICIAL",
+                    directness="DOWNSTREAM",
+                    modality="STIPULATED_CONDITIONAL",
+                    condition_ids=("COND2",),
+                    effect_kind="HEALTH_OUTCOME",
+                ),
+            ),
+            conditions=(WorldCondition("COND2", "release ends", provenance=REF),),
+        )
+        roles = project_world_action_roles(model, "A1")
+        self.assertEqual(roles.beneficiaries, ())
+        self.assertEqual(roles.conditionally_benefited, ("downstream residents",))
+        self.assertEqual(roles.at_risk, ())
+        self.assertEqual(roles.unresolved, ("downstream residents",))
 
 
 ALLOCATOR_A0 = (
@@ -2562,6 +2675,17 @@ class CausalChainCompletenessTests(unittest.TestCase):
         with self.assertRaises(ValueError) as raised:
             _parse_allocator(raw)
         self.assertIn("neither the actor nor a named recipient", str(raised.exception))
+
+    def test_direct_intervention_on_recipient_facility_admits(self):
+        raw = _connected_allocator_raw()
+        raw["actions"][0]["recipient_party_ids"] = ["P1", "P4"]
+        for effect in raw["effects"]:
+            if effect["effect_id"] == "E1":
+                effect["directness"] = "DIRECT"
+                effect["effect_kind"] = "INTERVENTION"
+                effect["outcome"] = "spillway repaired"
+        model = _parse_allocator(raw)
+        self.assertEqual(validate_world_completeness(model, action_ids=["A0", "A1"]), [])
 
     def test_other_party_health_cannot_skip_the_process(self):
         raw = _connected_allocator_raw()

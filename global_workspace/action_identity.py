@@ -760,6 +760,9 @@ class CanonicalActionRecord:
     # Parties the action affects without settling the outcome. Kept separate so
     # a probabilistic harm is neither asserted as certain nor lost from view.
     unresolved: tuple[str, ...] = ()
+    # Unsettled polarity split. unresolved remains their union for old callers.
+    at_risk: tuple[str, ...] = ()
+    conditionally_benefited: tuple[str, ...] = ()
     unresolved_outcomes: tuple[dict[str, Any], ...] = ()
     # Cascade/foregone relations that are not compact harm/benefit roles.
     # Compact roles now include stipulated downstream health, welfare, and
@@ -1907,6 +1910,8 @@ def build_canonical_action_records(
                     beneficiaries=beneficiaries,
                     harmed=harmed,
                     unresolved=unresolved,
+                    at_risk=roles.at_risk,
+                    conditionally_benefited=roles.conditionally_benefited,
                     unresolved_outcomes=tuple(effect.as_dict() for effect in unresolved_effects),
                     grounded_effects=surrounding,
                     world_effects=tuple(

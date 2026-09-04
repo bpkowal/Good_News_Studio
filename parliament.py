@@ -43,6 +43,16 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--delegate-tokens", type=int, default=128)
     parser.add_argument("--accept-actions", action="store_true")
     parser.add_argument(
+        "--accept-world",
+        action="store_true",
+        help="Skip the post-world checkpoint and continue to expert agents",
+    )
+    parser.add_argument(
+        "--stop-after-world",
+        action="store_true",
+        help="Halt after the admitted world is printed; do not run expert agents",
+    )
+    parser.add_argument(
         "--no-framing-cache", action="store_true",
         help="Recompute action planning and action-source grounding",
     )
@@ -201,6 +211,10 @@ def workspace_command(args: argparse.Namespace, scenario_path: Path) -> list[str
         command.extend(normalize_agents(args.agents))
     if args.accept_actions:
         command.append("--accept-actions")
+    if args.accept_world:
+        command.append("--accept-world")
+    if args.stop_after_world:
+        command.append("--stop-after-world")
     if args.no_framing_cache:
         command.append("--no-framing-cache")
     if args.no_synthesis:

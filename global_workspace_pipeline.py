@@ -41,7 +41,12 @@ from global_workspace.scenario_semantics import (
     canonicalize_action_order,
     canonicalize_deliberation_scenario,
 )
-from global_workspace.structured_io import reset_model_call_budget, start_model_call_budget
+from global_workspace.structured_io import (
+    ModelCallBudgetExceeded,
+    model_call_budget_paused,
+    reset_model_call_budget,
+    start_model_call_budget,
+)
 from global_workspace.visibility import assess_visibility
 from dotenv import load_dotenv
 
@@ -241,6 +246,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--n-batch", type=int, default=32)
     parser.add_argument("--delegate-tokens", type=int, default=128)
     parser.add_argument("--accept-actions", action="store_true", help="Skip interactive action confirmation")
+    parser.add_argument(
+        "--accept-world",
+        action="store_true",
+        help="Skip the post-world checkpoint and continue to expert agents",
+    )
+    parser.add_argument(
+        "--stop-after-world",
+        action="store_true",
+        help="Halt after the admitted world is printed; do not run expert agents",
+    )
     parser.add_argument("--no-synthesis", action="store_true", help="Disable recurrent action synthesis")
     parser.add_argument("--no-planning", action="store_true", help="Disable selective implementation planning")
     parser.add_argument("--no-consensus-audit", action="store_true", help="Disable suspicious-consensus access gate")
@@ -254,6 +269,11 @@ def parse_args() -> argparse.Namespace:
 
 
 def confirm_actions(actions: list[str]) -> list[str] | None:
+    with model_call_budget_paused():
+        return _confirm_actions(actions)
+
+
+def _confirm_actions(actions: list[str]) -> list[str] | None:
     if not sys.stdin.isatty():
         print("Non-interactive input: accepting proposed actions.", flush=True)
         return actions
@@ -274,9 +294,153 @@ def confirm_actions(actions: list[str]) -> list[str] | None:
     return None
 
 
+def render_admitted_world(records: list[dict], grounding: dict[str, object]) -> str:
+    """Short inspectable projection of the committed world, not the full trace dump."""
+    lines = [
+        "",
+        "--- Admitted world ---",
+        f"status: {str(grounding.get('status') or 'UNKNOWN').upper()}",
+        f"repairs: {int(grounding.get('repair_attempts') or 0)}",
+    ]
+    for record in records:
+        action_id = str(record.get("action_id") or "")
+        label = str(
+            record.get("short_label")
+            or record.get("intervention")
+            or record.get("canonical_semantic_action")
+            or action_id
+        )
+        lines.append(f"\n{action_id}: {label}")
+        beneficiaries = ", ".join(record.get("beneficiaries") or []) or "none"
+        harmed = ", ".join(record.get("harmed") or []) or "none"
+        at_risk = ", ".join(record.get("at_risk") or []) or "none"
+        conditional = ", ".join(record.get("conditionally_benefited") or []) or "none"
+        lines.append(f"  benefits: {beneficiaries}")
+        lines.append(f"  harms: {harmed}")
+        lines.append(f"  at risk: {at_risk}")
+        lines.append(f"  conditionally benefited: {conditional}")
+        mechanism = str(record.get("mechanism") or "").strip()
+        if mechanism:
+            lines.append(f"  mechanism: {mechanism}")
+        for link in record.get("causal_links") or []:
+            lines.append(
+                f"  {link.get('source_id')} {link.get('relation')} {link.get('target_id')}"
+            )
+        for effect in record.get("world_effects") or []:
+            quantities = ", ".join(str(item) for item in (effect.get("quantities") or []) if item)
+            quantity = f" ({quantities})" if quantities else ""
+            lines.append(
+                f"  {effect.get('effect_id')} {effect.get('directness')} "
+                f"{effect.get('polarity')} {effect.get('outcome')} "
+                f"[{effect.get('party_id')}]{quantity}"
+            )
+        for row in record.get("counterfactual_effects") or []:
+            lines.append(
+                f"  FOREGONE {row.get('source_effect_id')} -> "
+                f"{row.get('alternative_action_id')} {row.get('alternative_effect_id')}"
+            )
+    return "\n".join(lines)
+
+
+def confirm_continue_after_world(
+    records: list[dict],
+    grounding: dict[str, object],
+    *,
+    accept_world: bool = False,
+    stop_after_world: bool = False,
+    input_fn=input,
+    output_fn=print,
+) -> bool:
+    """Ask whether to spend the rest of the run on original and compact experts."""
+    output_fn(render_admitted_world(records, grounding))
+    with model_call_budget_paused():
+        return _confirm_continue_after_world(
+            records, grounding,
+            accept_world=accept_world,
+            stop_after_world=stop_after_world,
+            input_fn=input_fn,
+            output_fn=output_fn,
+        )
+
+
+def _confirm_continue_after_world(
+    records: list[dict],
+    grounding: dict[str, object],
+    *,
+    accept_world: bool = False,
+    stop_after_world: bool = False,
+    input_fn=input,
+    output_fn=print,
+) -> bool:
+    """Inner prompt; the public function pauses the model-call budget first."""
+    del records, grounding
+    if stop_after_world:
+        output_fn("Stopping after admitted world (--stop-after-world).")
+        return False
+    if accept_world:
+        return True
+    if not sys.stdin.isatty():
+        output_fn("Non-interactive input: continuing to expert agents.")
+        return True
+    answer = input_fn(
+        "World state admitted. Continue to original and compact expert agents? [y/N]: "
+    ).strip().casefold()
+    if answer in {"y", "yes"}:
+        return True
+    output_fn(
+        "Stopping before expert agents. The admitted world remains in the framing "
+        "cache if it was saved."
+    )
+    return False
+
+
+def report_withheld_world(
+    records: list,
+    grounding: dict[str, object],
+    *,
+    tty: bool | None = None,
+    output_fn=print,
+) -> int:
+    """Print a rejected world and return the CLI exit code (0 on TTY, 2 otherwise)."""
+    if tty is None:
+        tty = sys.stdin.isatty()
+    detail = "; ".join(
+        f"{record.action_id} [{record.commitment_status}] "
+        + ", ".join(record.commitment_reasons or ("unspecified",))
+        for record in records
+        if str(getattr(record, "commitment_status", "")).upper() != "COMMITTED"
+    )
+    dumped = [
+        record.as_dict() if hasattr(record, "as_dict") else dict(record)
+        for record in records
+    ]
+    output_fn(
+        "World grounding did not reach COMMITTED. " + (detail or "no committed records")
+    )
+    grounding_errors = grounding.get("errors") or []
+    if grounding_errors:
+        output_fn("Grounding errors:")
+        for item in grounding_errors:
+            output_fn(f"  {item}")
+    output_fn(render_admitted_world(dumped, grounding))
+    if tty:
+        output_fn("World grounding was rejected; not running expert agents.")
+        return 0
+    output_fn(
+        "Refusing to deliberate: canonical action records did not reach "
+        "COMMITTED state."
+    )
+    return 2
+
+
 def prompt_cycle_extension(result, extension_cycles: int = 2) -> int:
     if not sys.stdin.isatty():
         return 0
+    with model_call_budget_paused():
+        return _prompt_cycle_extension(result, extension_cycles)
+
+
+def _prompt_cycle_extension(result, extension_cycles: int = 2) -> int:
     final = result.cycles[-1]
     synthesis = next(
         (proposal.action for proposal in result.synthesis_proposals if proposal.accepted),
@@ -513,16 +677,7 @@ def main() -> int:
     # Deliberating over a subset would silently pose a different dilemma than
     # the one the user asked about, so any withheld action halts the run.
     if withheld:
-        detail = "; ".join(
-            f"{record.action_id} [{record.commitment_status}] "
-            + ", ".join(record.commitment_reasons or ("unspecified",))
-            for record in withheld
-        )
-        raise SystemExit(
-            "Refusing to deliberate: "
-            f"{len(withheld)} of {len(records)} canonical action records did not "
-            f"reach COMMITTED state. {detail}"
-        )
+        return report_withheld_world(records, action_source_grounding)
     canonical_action_records = [record.as_dict() for record in admitted]
     if (
         not args.no_framing_cache and not grounding_reused
@@ -554,6 +709,13 @@ def main() -> int:
         + json.dumps(canonical_action_records, ensure_ascii=False, sort_keys=True),
         flush=True,
     )
+    if not confirm_continue_after_world(
+        canonical_action_records,
+        action_source_grounding,
+        accept_world=args.accept_world,
+        stop_after_world=args.stop_after_world,
+    ):
+        return 0
 
     # The original RAG agents are part of the same experimental treatment. Give
     # them the canonical mapping too; otherwise order bias can enter through the
@@ -562,15 +724,16 @@ def main() -> int:
         testimonies: dict[str, str] = {}
         source_errors = {name: "skipped by request" for name in selected_agents}
     else:
-        consultation = consult_original_agents(
-            scenario_path,
-            agents=tuple(selected_agents),
-            timeout_seconds=max(1.0, args.agent_timeout),
-            backend=args.backend,
-            openai_model=args.openai_model,
-            canonical_actions=tuple(actions),
-            canonical_scenario=scenario,
-        )
+        with model_call_budget_paused():
+            consultation = consult_original_agents(
+                scenario_path,
+                agents=tuple(selected_agents),
+                timeout_seconds=max(1.0, args.agent_timeout),
+                backend=args.backend,
+                openai_model=args.openai_model,
+                canonical_actions=tuple(actions),
+                canonical_scenario=scenario,
+            )
         testimonies = consultation.testimonies
         source_errors = consultation.errors
         for name, error in source_errors.items():
@@ -607,13 +770,26 @@ def main() -> int:
             }
             continue
         print(f"Freezing {name} testimony baseline...", flush=True)
-        stance = infer_testimony_stance(
-            llm,
-            name,
-            testimonies[name],
-            actions,
-            source_action_legend=source_action_legend,
-        )
+        try:
+            stance = infer_testimony_stance(
+                llm,
+                name,
+                testimonies[name],
+                actions,
+                source_action_legend=source_action_legend,
+            )
+        except ModelCallBudgetExceeded as exc:
+            print(
+                f"Model-call budget exhausted while freezing {name} testimony "
+                f"baseline: {exc}",
+                flush=True,
+            )
+            print(
+                "The admitted world remains in the framing cache if it was saved. "
+                "Rerun with --accept-world and a larger --time-budget.",
+                flush=True,
+            )
+            return 2
         baselines[name] = stance.as_dict()
         stance_target = stance.action_id if stance.status == "DIRECT" else stance.provisional_action_id
         print(

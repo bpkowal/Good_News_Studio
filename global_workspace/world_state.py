@@ -233,6 +233,13 @@ _PARTY_MATCH_STOPWORDS = {
     "affected", "city", "group", "people", "person", "population", "relying",
     "the", "their", "those",
 }
+_PARTY_GENERIC_NOUNS = {
+    "community", "communities", "group", "household", "households",
+    "people", "person", "persons", "population", "resident", "residents",
+}
+_PARTY_QUANTITY_KINDS = {
+    "COMMUNITY", "GROUP", "HOUSEHOLD", "POPULATION", "POPULATION_GROUP",
+}
 _EFFECT_MATCH_STOPWORDS = {
     "affected", "cause", "caused", "causes", "effect", "failure", "outcome",
     "prevent", "prevented", "prevents", "risk", "the", "their", "would",
@@ -246,31 +253,76 @@ def _match_words(text: str, *, stopwords: set[str]) -> set[str]:
     }
 
 
-def _party_expected_quantities(party: WorldParty) -> tuple[str, ...]:
-    """Find source cardinalities locally modifying a population party."""
-    if party.kind not in {"POPULATION", "GROUP", "HOUSEHOLD", "COMMUNITY"}:
-        return ()
-    party_words = {
+def _quantity_local_window(text: str, quantity: str) -> str:
+    """Quantity plus the following noun phrase, stopping before the next clause."""
+    match = re.search(re.escape(quantity), str(text or ""), re.IGNORECASE)
+    if match is None:
+        return ""
+    tail = str(text)[match.end():]
+    tail = re.split(
+        r"[,;.]|\b(?:and|but|or|while|whereas)\b",
+        tail, maxsplit=1, flags=re.IGNORECASE,
+    )[0]
+    return str(text)[match.start():match.end()] + tail
+
+
+def _party_quantity_score(party: WorldParty, window: str) -> int:
+    """Prefer distinctive label tokens; generic crowd nouns are weak ties."""
+    label_tokens = {
         word for word in re.findall(r"[a-z0-9]+", party.label.casefold())
         if len(word) > 2 and word not in _PARTY_MATCH_STOPWORDS
     }
-    found: list[str] = []
-    for ref in party.provenance:
-        text = ref.excerpt
-        for quantity in explicit_quantity_spans(text):
-            match = re.search(re.escape(quantity), text, re.IGNORECASE)
-            if match is None:
-                continue
-            tail = text[match.end():match.end() + 90]
-            tail = re.split(
-                r"[,;.]|\b(?:and|but|or|while|whereas)\b",
-                tail, maxsplit=1, flags=re.IGNORECASE,
-            )[0]
-            local = text[match.start():match.end()] + tail
-            local_words = set(re.findall(r"[a-z0-9]+", local.casefold()))
-            if party_words & local_words:
-                found.append(quantity)
-    return tuple(dict.fromkeys(found))
+    window_tokens = {
+        word for word in re.findall(r"[a-z0-9]+", window.casefold())
+        if len(word) > 2 and word not in _PARTY_MATCH_STOPWORDS
+    }
+    distinctive = (label_tokens - _PARTY_GENERIC_NOUNS) & (
+        window_tokens - _PARTY_GENERIC_NOUNS
+    )
+    generic = (label_tokens & _PARTY_GENERIC_NOUNS) & window_tokens
+    return 10 * len(distinctive) + len(generic)
+
+
+def assigned_party_quantities(
+    parties: Sequence[WorldParty],
+) -> dict[str, tuple[str, ...]]:
+    """Bind each provenance quantity span to at most one uniquely matching party."""
+    population = [
+        party for party in parties if party.kind in _PARTY_QUANTITY_KINDS
+    ]
+    assigned: dict[str, list[str]] = {party.party_id: [] for party in parties}
+    seen: set[tuple[str, str]] = set()
+    for party in population:
+        for ref in party.provenance:
+            text = ref.excerpt
+            for quantity in explicit_quantity_spans(text):
+                job = (text, quantity.casefold())
+                if job in seen:
+                    continue
+                seen.add(job)
+                window = _quantity_local_window(text, quantity)
+                scored = [
+                    (_party_quantity_score(other, window), other.party_id)
+                    for other in population
+                    if any(item.excerpt == text for item in other.provenance)
+                ]
+                if not scored:
+                    continue
+                best = max(score for score, _party_id in scored)
+                winners = [
+                    party_id for score, party_id in scored if score == best
+                ]
+                if best > 0 and len(winners) == 1:
+                    assigned[winners[0]].append(quantity)
+    return {
+        party_id: tuple(dict.fromkeys(values))
+        for party_id, values in assigned.items()
+    }
+
+
+def _party_expected_quantities(party: WorldParty) -> tuple[str, ...]:
+    """Single-party view; unique assignment needs the full party list."""
+    return assigned_party_quantities((party,)).get(party.party_id, ())
 
 
 def _effect_expected_qualifiers(
@@ -488,6 +540,8 @@ _REFUSED_HARM = re.compile(
 class ProjectedActionRoles:
     beneficiaries: tuple[str, ...] = ()
     harmed: tuple[str, ...] = ()
+    at_risk: tuple[str, ...] = ()
+    conditionally_benefited: tuple[str, ...] = ()
     unresolved: tuple[str, ...] = ()
 
 
@@ -587,15 +641,21 @@ def project_world_action_roles(
     party_by_id = {party.party_id: party for party in model.parties}
     beneficiaries: list[str] = []
     harmed: list[str] = []
-    unresolved: list[str] = []
+    at_risk: list[str] = []
+    conditionally_benefited: list[str] = []
     for effect in model.effects_for(action_id):
         party = party_by_id.get(effect.party_id)
         if party is None or not _effect_counts_for_roles(effect, party):
             continue
         label = party.label
         if not _compact_role_is_settled(effect):
-            if label not in unresolved:
-                unresolved.append(label)
+            if effect.polarity == "ADVERSE" and label not in at_risk:
+                at_risk.append(label)
+            elif (
+                effect.polarity == "BENEFICIAL"
+                and label not in conditionally_benefited
+            ):
+                conditionally_benefited.append(label)
             continue
         if effect.polarity == "BENEFICIAL":
             if label not in beneficiaries and label not in harmed:
@@ -605,14 +665,18 @@ def project_world_action_roles(
                 harmed.append(label)
                 if label in beneficiaries:
                     beneficiaries.remove(label)
-    unresolved = [
-        label for label in unresolved
-        if label not in beneficiaries and label not in harmed
+    settled = set(beneficiaries) | set(harmed)
+    at_risk = [label for label in at_risk if label not in settled]
+    conditionally_benefited = [
+        label for label in conditionally_benefited if label not in settled
     ]
+    unresolved = tuple(dict.fromkeys((*at_risk, *conditionally_benefited)))
     return ProjectedActionRoles(
         beneficiaries=tuple(beneficiaries),
         harmed=tuple(harmed),
-        unresolved=tuple(unresolved),
+        at_risk=tuple(at_risk),
+        conditionally_benefited=tuple(conditionally_benefited),
+        unresolved=unresolved,
     )
 
 
@@ -939,10 +1003,12 @@ def validate_world_model(
                 errors.append(
                     f"{party.party_id} quantity {quantity!r} is not stated in its provenance"
                 )
-        if model.schema_version == "1.2":
+    if model.schema_version == "1.2":
+        expected_by_party = assigned_party_quantities(model.parties)
+        for party in model.parties:
             recorded = {value.casefold() for value in party.quantities}
             omitted = [
-                value for value in _party_expected_quantities(party)
+                value for value in expected_by_party.get(party.party_id, ())
                 if value.casefold() not in recorded
             ]
             if omitted:

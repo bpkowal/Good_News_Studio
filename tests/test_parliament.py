@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
@@ -9,6 +10,13 @@ from unittest.mock import patch
 
 import parliament
 import global_workspace_pipeline
+from global_workspace.structured_io import (
+    ModelCallBudgetExceeded,
+    call_json_llm,
+    model_call_budget_paused,
+    reset_model_call_budget,
+    start_model_call_budget,
+)
 
 
 class ParliamentLauncherTests(unittest.TestCase):
@@ -67,6 +75,22 @@ class ParliamentLauncherTests(unittest.TestCase):
         ])
         command = parliament.workspace_command(args, Path("scenario.json"))
         self.assertIn("--no-framing-cache", command)
+
+    def test_workspace_command_forwards_world_checkpoint_flags(self):
+        args = parliament.parse_args([
+            "--mode", "workspace",
+            "--question", "A sufficiently long ethical question",
+            "--stop-after-world",
+        ])
+        command = parliament.workspace_command(args, Path("scenario.json"))
+        self.assertIn("--stop-after-world", command)
+        args = parliament.parse_args([
+            "--mode", "workspace",
+            "--question", "A sufficiently long ethical question",
+            "--accept-world",
+        ])
+        command = parliament.workspace_command(args, Path("scenario.json"))
+        self.assertIn("--accept-world", command)
 
     def test_agent_aliases_are_normalized_in_canonical_order(self):
         self.assertEqual(
@@ -297,6 +321,147 @@ class ParliamentLauncherTests(unittest.TestCase):
             )],
         )
         self.assertEqual(global_workspace_pipeline.prompt_cycle_extension(result, 2), 2)
+
+    def test_world_checkpoint_summary_names_actual_and_foregone_rows(self):
+        text = global_workspace_pipeline.render_admitted_world(
+            [{
+                "action_id": "A0",
+                "short_label": "Refuse to frame",
+                "beneficiaries": ["innocent citizen"],
+                "harmed": ["city residents"],
+                "mechanism": "CONTINUES causes DIES",
+                "causal_links": [
+                    {"source_id": "E0_2", "relation": "CAUSES", "target_id": "E0_3"},
+                ],
+                "world_effects": [
+                    {
+                        "effect_id": "E0_3", "directness": "DOWNSTREAM",
+                        "polarity": "ADVERSE", "outcome": "DIES", "party_id": "P3",
+                        "quantities": ["over five hundred"],
+                    },
+                ],
+                "counterfactual_effects": [
+                    {
+                        "source_effect_id": "E0_4",
+                        "alternative_action_id": "A1",
+                        "alternative_effect_id": "E1_3",
+                    },
+                ],
+            }],
+            {"status": "COMMITTED", "repair_attempts": 0},
+        )
+        self.assertIn("A0: Refuse to frame", text)
+        self.assertIn("E0_2 CAUSES E0_3", text)
+        self.assertIn("over five hundred", text)
+        self.assertIn("FOREGONE E0_4 -> A1 E1_3", text)
+        self.assertIn("at risk:", text)
+        self.assertIn("conditionally benefited:", text)
+
+    @patch("global_workspace_pipeline.sys.stdin.isatty", return_value=True)
+    def test_world_checkpoint_stops_unless_user_continues(self, _isatty):
+        records = [{"action_id": "A0", "short_label": "wait", "world_effects": []}]
+        grounding = {"status": "COMMITTED"}
+        captured: list[str] = []
+        self.assertFalse(global_workspace_pipeline.confirm_continue_after_world(
+            records, grounding, input_fn=lambda _: "n", output_fn=captured.append,
+        ))
+        self.assertTrue(global_workspace_pipeline.confirm_continue_after_world(
+            records, grounding, input_fn=lambda _: "yes", output_fn=captured.append,
+        ))
+        self.assertFalse(global_workspace_pipeline.confirm_continue_after_world(
+            records, grounding, stop_after_world=True, output_fn=captured.append,
+        ))
+        self.assertTrue(global_workspace_pipeline.confirm_continue_after_world(
+            records, grounding, accept_world=True, output_fn=captured.append,
+        ))
+
+    @patch("global_workspace_pipeline.sys.stdin.isatty", return_value=False)
+    def test_noninteractive_world_checkpoint_continues(self, _isatty):
+        self.assertTrue(global_workspace_pipeline.confirm_continue_after_world(
+            [{"action_id": "A0", "short_label": "wait", "world_effects": []}],
+            {"status": "COMMITTED"},
+            output_fn=lambda _message: None,
+        ))
+        self.assertFalse(global_workspace_pipeline.confirm_continue_after_world(
+            [{"action_id": "A0", "short_label": "wait", "world_effects": []}],
+            {"status": "COMMITTED"},
+            stop_after_world=True,
+            output_fn=lambda _message: None,
+        ))
+
+    def test_rejected_world_exits_zero_on_tty(self):
+        record = SimpleNamespace(
+            action_id="A0",
+            commitment_status="REJECTED",
+            commitment_reasons=("incomplete",),
+            as_dict=lambda: {
+                "action_id": "A0", "short_label": "wait", "world_effects": [],
+            },
+        )
+        captured: list[str] = []
+        code = global_workspace_pipeline.report_withheld_world(
+            [record],
+            {"status": "REJECTED", "repair_attempts": 3},
+            tty=True,
+            output_fn=captured.append,
+        )
+        self.assertEqual(code, 0)
+        self.assertTrue(any("REJECTED" in message for message in captured))
+        self.assertTrue(any("not running expert agents" in message for message in captured))
+
+    def test_rejected_world_exits_two_when_not_a_tty(self):
+        record = SimpleNamespace(
+            action_id="A0",
+            commitment_status="REJECTED",
+            commitment_reasons=("incomplete",),
+            as_dict=lambda: {
+                "action_id": "A0", "short_label": "wait", "world_effects": [],
+            },
+        )
+        code = global_workspace_pipeline.report_withheld_world(
+            [record],
+            {"status": "REJECTED"},
+            tty=False,
+            output_fn=lambda _message: None,
+        )
+        self.assertEqual(code, 2)
+
+    def test_paused_budget_survives_a_wait_longer_than_the_deadline(self):
+        token = start_model_call_budget(0.05, reserve_seconds=0.0)
+        try:
+            with model_call_budget_paused():
+                time.sleep(0.12)
+
+            class _LLM:
+                def complete_json(self, *_args, **_kwargs):
+                    return {"ok": True}
+
+            self.assertEqual(
+                call_json_llm(
+                    _LLM(), "prompt", max_tokens=8, temperature=0.0,
+                    schema={"type": "object"},
+                ),
+                {"ok": True},
+            )
+        finally:
+            reset_model_call_budget(token)
+
+    def test_unpaused_budget_expires_during_a_wait(self):
+        token = start_model_call_budget(0.05, reserve_seconds=0.0)
+        try:
+            time.sleep(0.12)
+
+            class _LLM:
+                def complete_json(self, *_args, **_kwargs):
+                    return {"ok": True}
+
+            with self.assertRaises(ModelCallBudgetExceeded):
+                call_json_llm(
+                    _LLM(), "prompt", max_tokens=8, temperature=0.0,
+                    schema={"type": "object"},
+                )
+        finally:
+            reset_model_call_budget(token)
 
 
 if __name__ == "__main__":
