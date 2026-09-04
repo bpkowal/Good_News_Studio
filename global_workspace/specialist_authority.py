@@ -207,7 +207,7 @@ def _is_conditional_state(candidate: Any) -> bool:
         return True
     if str(
         getattr(candidate, "weakest_decision_critical_status", "ESTABLISHED")
-    ).upper() in {"REJECTED", "HYPOTHETICAL", "UNRESOLVED"}:
+    ).upper() in {"REJECTED", "UNRESOLVED"}:
         return True
     if _open_condition_text(candidate) and assumption in {
         "CONDITIONAL", "UNDERDETERMINED",
@@ -351,6 +351,142 @@ def governing_eligible_for(status: str, *, conditional_rule_retained: bool = Fal
         return True
     if normalized == CONDITIONAL_SUPPORTS:
         return bool(conditional_rule_retained)
+    return False
+
+
+_REJECTED_VALIDATOR_RESOLUTION = "RESOLUTION_REJECTED"
+_ACTIVE_CHALLENGE_STATUSES = {
+    "UNTESTED", "ASSIGNED", "UNANSWERED", "UNRESOLVED",
+}
+_NON_ACTIONS = {
+    "INCONCLUSIVE", "UNDERDETERMINED", "CONDITIONAL", "NONE", "UNRESOLVED", "",
+}
+
+
+def latest_validator_resolution(candidate: Any) -> str:
+    response = dict(getattr(candidate, "challenge_response", {}) or {})
+    return str(response.get("verification_status") or "").strip().upper()
+
+
+def validator_resolution_rejected(candidate: Any) -> bool:
+    return latest_validator_resolution(candidate) == _REJECTED_VALIDATOR_RESOLUTION
+
+
+def apply_validator_governance_gate(candidate: Any) -> None:
+    """Keep a rejected repair in memory, but do not let it govern until repaired."""
+    if validator_resolution_rejected(candidate):
+        candidate.governing_eligible = False
+        if str(getattr(candidate, "broadcast_authority", "")).upper() == "GOVERNING_CANDIDATE":
+            candidate.broadcast_authority = "INVESTIGATIVE"
+    if str(getattr(candidate, "assumption_status", "") or "").upper() == "UNDERDETERMINED":
+        candidate.governing_eligible = False
+
+
+def can_supply_governing_basis(candidate: Any, plurality: str = "") -> bool:
+    """True when a specialist may supply a validator-eligible governing basis."""
+    if not getattr(candidate, "schema_valid", True):
+        return False
+    if validator_resolution_rejected(candidate):
+        return False
+    if str(getattr(candidate, "assumption_status", "") or "").upper() == "UNDERDETERMINED":
+        return False
+    status = normalize_specialist_status(
+        getattr(candidate, "adjudication_status", SUPPORTS)
+    )
+    if status not in {SUPPORTS, CONDITIONAL_SUPPORTS}:
+        return False
+    if not getattr(candidate, "governing_eligible", False):
+        return False
+    if plurality and str(getattr(candidate, "recommended_action", "") or "") != plurality:
+        return False
+    return bool(str(getattr(candidate, "decision_rule", "") or "").strip())
+
+
+def has_unique_policy_leader(
+    plurality: str,
+    policy: dict[str, float] | None = None,
+) -> bool:
+    direction = " ".join(str(plurality or "").split())
+    if not direction or direction.upper() in _NON_ACTIONS:
+        return False
+    scores = dict(policy or {})
+    lead = float(scores.get(direction, 0.0) or 0.0)
+    if lead <= 0.0:
+        return False
+    rival = max(
+        (float(value or 0.0) for key, value in scores.items() if key != direction),
+        default=-1.0,
+    )
+    return lead > rival
+
+
+def _recommended_action(candidate: Any) -> str:
+    recommended = str(getattr(candidate, "recommended_action", "") or "").strip()
+    if recommended:
+        return recommended
+    scores = dict(getattr(candidate, "action_scores", {}) or {})
+    if not scores:
+        return ""
+    return str(max(scores, key=scores.get))
+
+
+def _has_meaningful_dissent(candidates: Sequence[Any], plurality: str) -> bool:
+    for candidate in candidates:
+        if not getattr(candidate, "schema_valid", True):
+            continue
+        recommended = _recommended_action(candidate)
+        if not recommended or recommended == plurality:
+            continue
+        preference = float(getattr(candidate, "preference_strength", 0.0) or 0.0)
+        if preference >= _MIN_LEANING_PREFERENCE:
+            return True
+    return False
+
+
+def _has_unresolved_validation_residue(
+    candidates: Sequence[Any], plurality: str,
+) -> bool:
+    for candidate in candidates:
+        if not getattr(candidate, "schema_valid", True):
+            continue
+        if validator_resolution_rejected(candidate):
+            return True
+        if _recommended_action(candidate) != plurality:
+            continue
+        status = normalize_specialist_status(
+            getattr(candidate, "adjudication_status", SUPPORTS)
+        )
+        if status in {PROVISIONAL_LEANING, CONTESTED_NO_LEANING}:
+            return True
+    return False
+
+
+def _governing_has_blocking_challenge(
+    governing: Any | None,
+    problem_state: dict[str, Any] | None,
+) -> bool:
+    if governing is None:
+        return False
+    specialist = str(getattr(governing, "specialist", "") or "").casefold()
+    if not specialist:
+        return False
+    for item in (problem_state or {}).get("argument_challenge_candidates", []) or []:
+        if not isinstance(item, dict):
+            continue
+        status = str(item.get("status", "")).upper()
+        verification = str(
+            (item.get("last_response") or {}).get("verification_status", "")
+        ).upper()
+        active = status in _ACTIVE_CHALLENGE_STATUSES or verification == _REJECTED_VALIDATOR_RESOLUTION
+        if not active:
+            continue
+        targets = {
+            str(value).casefold()
+            for value in item.get("target_specialists", []) or []
+        }
+        about = str(item.get("about_specialist", "")).casefold()
+        if specialist in targets or about == specialist:
+            return True
     return False
 
 
@@ -783,40 +919,75 @@ def classify_terminal_judgment(
     candidates: Sequence[Any],
     halted_by: str = "",
     has_stable_plurality: bool = True,
+    problem_state: dict[str, Any] | None = None,
+    policy: dict[str, float] | None = None,
 ) -> TerminalJudgment:
-    """Map policy plurality + governing eligibility onto canonical terminal status."""
+    """Map a stable leader and validator-eligible basis onto terminal status.
+
+    GOVERNED_RECOMMENDATION: unique leader, validator-eligible governing claim,
+    and no blocking unresolved challenge, dissent, or validation residue.
+    CONTESTED_RECOMMENDATION: unique leader plus at least one validator-eligible
+    basis, but dissent, residue, or a blocking challenge remains.
+    UNRESOLVED: no unique leader, or no validated basis capable of governing.
+    """
+    del halted_by
     direction = " ".join(str(plurality or "").split())
-    if not has_stable_plurality or not direction or direction in {
-        "INCONCLUSIVE", "UNDERDETERMINED", "CONDITIONAL", "NONE",
-    }:
+    stable = bool(has_stable_plurality)
+    if policy is not None:
+        stable = has_unique_policy_leader(direction, policy)
+    if not stable or not direction or direction.upper() in _NON_ACTIONS:
         return TerminalJudgment(
             status=UNRESOLVED,
             policy_direction="",
             governing_rule="",
             governing_justification_status="NONE",
         )
-    under_attack, attack_reason = governing_claim_under_attack(governing, candidates)
-    if governing is not None and getattr(governing, "governing_eligible", False):
-        rule = " ".join(str(getattr(governing, "decision_rule", "") or "").split())
-        if under_attack:
-            return TerminalJudgment(
-                status=CONTESTED_RECOMMENDATION,
-                policy_direction=direction,
-                governing_rule=rule,
-                governing_justification_status="UNDER_ATTACK",
-                governing_attack_reason=attack_reason,
-            )
+    eligible_governing = governing if (
+        governing is not None and can_supply_governing_basis(governing, direction)
+    ) else None
+    if eligible_governing is None:
+        eligible_governing = select_governing_claim(candidates, direction)
+    if eligible_governing is None:
+        return TerminalJudgment(
+            status=UNRESOLVED,
+            policy_direction="",
+            governing_rule="",
+            governing_justification_status="NONE",
+        )
+    under_attack, attack_reason = governing_claim_under_attack(
+        eligible_governing, candidates,
+    )
+    blocking = under_attack or _governing_has_blocking_challenge(
+        eligible_governing, problem_state,
+    )
+    dissent = _has_meaningful_dissent(candidates, direction)
+    residue = _has_unresolved_validation_residue(candidates, direction)
+    rule = " ".join(
+        str(getattr(eligible_governing, "decision_rule", "") or "").split()
+    ) if eligible_governing is not None else ""
+    if eligible_governing is not None and not blocking and not dissent and not residue:
         return TerminalJudgment(
             status=GOVERNED_RECOMMENDATION,
             policy_direction=direction,
             governing_rule=rule,
             governing_justification_status="ADMISSIBLE",
         )
+    if eligible_governing is not None and under_attack:
+        return TerminalJudgment(
+            status=CONTESTED_RECOMMENDATION,
+            policy_direction=direction,
+            governing_rule=rule,
+            governing_justification_status="UNDER_ATTACK",
+            governing_attack_reason=attack_reason,
+        )
     return TerminalJudgment(
         status=CONTESTED_RECOMMENDATION,
         policy_direction=direction,
-        governing_rule="",
-        governing_justification_status="NONE",
+        governing_rule=rule,
+        governing_justification_status=(
+            "CONTESTED" if eligible_governing is not None else "NONE"
+        ),
+        governing_attack_reason=attack_reason,
     )
 
 
@@ -846,6 +1017,7 @@ def apply_specialist_authority(candidate: Any) -> SpecialistAuthorityProfile:
             getattr(candidate, "rationale", ""), profile.adjudication_status,
         )
         candidate.governing_eligible = False
+    apply_validator_governance_gate(candidate)
     return profile
 
 
@@ -865,6 +1037,10 @@ def select_governing_claim(
         if status not in {SUPPORTS, CONDITIONAL_SUPPORTS}:
             continue
         if not getattr(candidate, "governing_eligible", False):
+            continue
+        if validator_resolution_rejected(candidate):
+            continue
+        if str(getattr(candidate, "assumption_status", "") or "").upper() == "UNDERDETERMINED":
             continue
         if getattr(candidate, "recommended_action", "") != plurality:
             continue

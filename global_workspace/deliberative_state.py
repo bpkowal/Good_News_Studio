@@ -153,6 +153,7 @@ class DeliberativeProblemState:
     salient_position: dict[str, Any] = field(default_factory=dict)
     problem_delta: ProblemDelta | None = None
     state_role: str = "DESCRIPTIVE_DELIBERATIVE_PROJECTION"
+    committed_world: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -188,6 +189,7 @@ class DeliberativeProblemState:
             "problem_delta": (
                 self.problem_delta.to_dict() if self.problem_delta is not None else {}
             ),
+            "committed_world": dict(self.committed_world),
         }
 
 
@@ -268,6 +270,122 @@ def _structure_overlap(left: str, right: str) -> float:
     if not left_tokens or not right_tokens:
         return 0.0
     return len(left_tokens & right_tokens) / len(left_tokens | right_tokens)
+
+
+_CHALLENGE_SUPERSESSION_MARKERS = {
+    "DOING_ALLOWING_CLASSIFICATION": frozenset({"omission", "right", "correlative"}),
+    "DUTY_PERFECTION_BASIS": frozenset({"perfect", "imperfect"}),
+    "MEANS_CAUSAL_PATH": frozenset({"causal", "path"}),
+}
+_ACTIVE_FRAMEWORK_ISSUE_STATUSES = {"UNRESOLVED", "OPEN", "SUSPENDED"}
+
+
+def _verified_challenge_targets(challenge: dict[str, Any]) -> set[str]:
+    targets = {
+        str(challenge.get("about_specialist", "")).casefold(),
+        *(
+            str(value).casefold()
+            for value in challenge.get("target_specialists", []) or []
+        ),
+    }
+    targets.discard("")
+    return targets
+
+
+def _challenge_supersedes_issue(challenge: dict[str, Any], specialist: str, text: str) -> bool:
+    if specialist.casefold() not in _verified_challenge_targets(challenge):
+        return False
+    structure = set(_normalized_structure(text).split())
+    if not structure:
+        return False
+    kind = str(challenge.get("challenge_kind", "")).upper()
+    markers = _CHALLENGE_SUPERSESSION_MARKERS.get(kind)
+    if markers and markers <= structure:
+        return True
+    question = " ".join(str(challenge.get("question", challenge.get("proposition", ""))).split())
+    return bool(question) and _structure_overlap(text, question) >= 0.35
+
+
+def apply_verified_challenge_supersession(
+    problem_state: dict[str, Any],
+    challenges: Sequence[dict[str, Any]],
+) -> None:
+    """Retire live framework issues whose matching challenge is VERIFIED_RESOLVED.
+
+    A verified repair must mutate the operative issue, not sit beside it:
+    old_issue.status becomes SUPERSEDED rather than remaining UNRESOLVED or
+    SUSPENDED while the repair is also recorded.
+    """
+    verified = [
+        dict(item)
+        for item in challenges
+        if isinstance(item, dict)
+        and str(
+            (item.get("last_response") or {}).get("verification_status", "")
+        ).upper() == "VERIFIED_RESOLVED"
+    ]
+    if not verified:
+        return
+
+    for collection, text_field in (
+        ("framework_internal_conflicts", "conflict"),
+        ("framework_specific_open_questions", "question"),
+    ):
+        for issue in problem_state.get(collection, []) or []:
+            if not isinstance(issue, dict):
+                continue
+            if str(issue.get("status", "")).upper() not in _ACTIVE_FRAMEWORK_ISSUE_STATUSES:
+                continue
+            text = " ".join(str(issue.get(text_field, "")).split())
+            specialist = str(issue.get("source_specialist", ""))
+            if any(
+                _challenge_supersedes_issue(challenge, specialist, text)
+                for challenge in verified
+            ):
+                issue["status"] = "SUPERSEDED"
+
+    for contribution in problem_state.get("workspace_contributions", []) or []:
+        if not isinstance(contribution, dict):
+            continue
+        agent = str(contribution.get("agent", ""))
+        unresolved = [
+            str(item) for item in contribution.get("unresolved", []) or []
+            if str(item).strip()
+        ]
+        transitions = [
+            dict(item)
+            for item in contribution.get("preservation_transitions", []) or []
+            if isinstance(item, dict)
+        ]
+        kept: list[str] = []
+        superseded_visible = False
+        visible = " ".join(str(contribution.get("visible_retained_issue", "")).split())
+        for item in unresolved:
+            if any(
+                _challenge_supersedes_issue(challenge, agent, item)
+                for challenge in verified
+            ):
+                transitions.append({
+                    "category": "unresolved",
+                    "prior_item": item,
+                    "status": "SUPERSEDED",
+                    "replacement": "",
+                })
+                if visible and _normalized_structure(item) == _normalized_structure(visible):
+                    superseded_visible = True
+            else:
+                kept.append(item)
+        contribution["unresolved"] = kept
+        contribution["preservation_transitions"] = transitions
+        if superseded_visible or (
+            visible
+            and any(
+                _challenge_supersedes_issue(challenge, agent, visible)
+                for challenge in verified
+            )
+        ):
+            contribution["visible_retained_issue"] = ""
+            contribution["retained_issue_visibility"] = "NOT_APPLICABLE"
 
 
 def _reconcile_workspace_contribution(
@@ -988,6 +1106,7 @@ def opening_problem_state(
     actions: Sequence[str],
     scenario_text: str = "",
     graph: Any | None = None,
+    world_model: Any | None = None,
 ) -> dict[str, Any]:
     """Frame the shared problem before any delegate has spoken.
 
@@ -1001,8 +1120,10 @@ def opening_problem_state(
     scenario clauses, and the already-compiled graph identities, and it carries
     no preference, no salient claim, and no framework verdict, so the opening
     cycle stays an independent read of a shared world rather than a reaction to
-    a preselected answer.
+    a preselected answer. ``committed_world`` is the admitted typed model when
+    one exists; it is scenario evidence and is copied forward every cycle.
     """
+    from .world_state import compact_committed_world
     state = DeliberativeProblemState(
         cycle=0,
         live_actions=tuple(
@@ -1022,6 +1143,7 @@ def opening_problem_state(
         primary_unresolved="ASSESS_FACTS",
         unresolved_categories=("ASSESS_FACTS",),
         state_role="OPENING_PROBLEM_FRAME",
+        committed_world=compact_committed_world(world_model),
     )
     data = state.to_dict()
     data["scenario_clauses"] = [
@@ -1262,6 +1384,10 @@ def build_deliberative_problem_state(
     for prior in (previous_state or {}).get("framework_internal_conflicts", []):
         if not isinstance(prior, dict):
             continue
+        if str(prior.get("status", "")).upper() in {
+            "SUPERSEDED", "RESOLVED", "WITHDRAWN", "REFINED",
+        }:
+            continue
         agent = str(prior.get("source_specialist", ""))
         text = " ".join(str(prior.get("conflict", "")).split())
         contribution = contribution_by_agent.get(agent)
@@ -1293,6 +1419,10 @@ def build_deliberative_problem_state(
             current_conflict_keys.add(key)
     for prior in (previous_state or {}).get("framework_specific_open_questions", []):
         if not isinstance(prior, dict):
+            continue
+        if str(prior.get("status", "")).upper() in {
+            "SUPERSEDED", "RESOLVED", "WITHDRAWN", "REFINED",
+        }:
             continue
         agent = str(prior.get("source_specialist", ""))
         text = " ".join(str(prior.get("question", "")).split())
@@ -1624,6 +1754,7 @@ def build_deliberative_problem_state(
         primary_unresolved=primary_unresolved,
         proposals=proposal_projection,
         salient_position=salient,
+        committed_world=dict((previous_state or {}).get("committed_world") or {}),
     )
     return replace(
         state,

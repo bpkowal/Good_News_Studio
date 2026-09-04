@@ -28,6 +28,7 @@ from .scenario_semantics import (
     project_grounded_action_effects,
     segment_scenario_clauses,
 )
+from .utilitarian_ledger import utilitarian_scored_grounded_effects
 
 _PROBLEM_AUDIT_CONSTRAINTS = {"CONSENSUS_AUDIT", "PROBLEM_STATE_AUDIT"}
 _AUDIT_DIRECT_INVERT_CONSTRAINTS = _PROBLEM_AUDIT_CONSTRAINTS | {
@@ -656,10 +657,12 @@ def _parse_probability_mass(text: str) -> float | None:
     raw = " ".join(str(text).split())
     if not raw or raw.upper() == "UNKNOWN":
         return None
+    folded = raw.casefold()
+    if folded in {"certain", "certainty", "definite", "definitely", "sure"}:
+        return 1.0
     literals = _numeric_literals(raw)
     if not literals:
         return None
-    folded = raw.casefold()
     if "%" in raw or "percent" in folded:
         pct = max(literals)
         return max(0.0, min(1.0, pct / 100.0 if pct > 1.0 else pct))
@@ -703,6 +706,123 @@ def _consequence_table_nets(
             return None
         nets[action] = sum(values)
     return nets
+
+
+def _row_is_admitted_consequence(row: dict[str, Any]) -> bool:
+    """World-copied or stated rows count as closed-world; extra unknown rows do not."""
+    if not isinstance(row, dict):
+        return False
+    if str(row.get("effect_id", "")).strip():
+        return True
+    return str(row.get("support", "")).strip().upper() == "STATED"
+
+
+def admitted_utilitarian_consequence_table(
+    table: dict[str, list[dict[str, Any]]] | None,
+) -> dict[str, list[dict[str, Any]]]:
+    """Return consequence rows that may enter a closed-world utilitarian ranking."""
+    admitted: dict[str, list[dict[str, Any]]] = {}
+    for action, rows in dict(table or {}).items():
+        admitted[action] = [
+            dict(row) for row in (rows or [])
+            if _row_is_admitted_consequence(row)
+        ]
+    return admitted
+
+
+def _row_admitted_numeric_welfare(row: dict[str, Any]) -> float | None:
+    """Signed welfare only when probability and magnitude are both numeric."""
+    direction = str(row.get("direction", "")).strip().upper()
+    if direction not in {"BENEFIT", "HARM"}:
+        return None
+    probability = _parse_probability_mass(row.get("probability", ""))
+    if probability is None:
+        return None
+    numbers = _numeric_literals(row.get("magnitude", ""))
+    if not numbers:
+        return None
+    signed = probability * max(numbers)
+    return signed if direction == "BENEFIT" else -signed
+
+
+def _admitted_numeric_nets(
+    table: dict[str, list[dict[str, Any]]],
+    actions: Sequence[str],
+) -> dict[str, float] | None:
+    """Net admitted welfare when every remaining row has a numeric magnitude."""
+    admitted = admitted_utilitarian_consequence_table(table)
+    nets: dict[str, float] = {}
+    for action in actions:
+        rows = admitted.get(action) or []
+        values = [_row_admitted_numeric_welfare(row) for row in rows]
+        if not rows or any(value is None for value in values):
+            return None
+        nets[action] = sum(values)
+    return nets
+
+
+def _unique_extreme_action(
+    values: dict[str, float], *, prefer_higher: bool,
+) -> str | None:
+    if not values:
+        return None
+    best = max(values, key=values.get) if prefer_higher else min(values, key=values.get)
+    if list(values.values()).count(values[best]) != 1:
+        return None
+    return best
+
+
+def _ev_closed_world_leader(
+    expected_values: dict[str, dict[str, Any]] | None,
+    actions: Sequence[str],
+) -> str | None:
+    items = [dict((expected_values or {}).get(action) or {}) for action in actions]
+    if not items or not all(item.get("grounded") for item in items):
+        return None
+    directions = {str(item.get("direction", "")).upper() for item in items}
+    units = {str(item.get("unit", "")).upper() for item in items}
+    if directions not in ({"HARM"}, {"BENEFIT"}):
+        return None
+    if len(units) != 1 or "" in units or "NONE" in units:
+        return None
+    try:
+        numeric = {
+            action: float(((expected_values or {}).get(action) or {}).get("value", 0.0))
+            for action in actions
+        }
+    except (TypeError, ValueError):
+        return None
+    return _unique_extreme_action(numeric, prefer_higher=directions == {"BENEFIT"})
+
+
+def closed_world_utilitarian_leader(
+    actions: Sequence[str],
+    table: dict[str, list[dict[str, Any]]] | None = None,
+    expected_values: dict[str, dict[str, Any]] | None = None,
+) -> str | None:
+    """Unique utilitarian winner on admitted numeric consequences, or None."""
+    if not actions:
+        return None
+    nets = _admitted_numeric_nets(table or {}, actions)
+    if nets is not None:
+        return _unique_extreme_action(nets, prefer_higher=True)
+    return _ev_closed_world_leader(expected_values, actions)
+
+
+def align_action_scores_to_leader(
+    scores: dict[str, float], leader: str,
+) -> dict[str, float]:
+    """Keep score margins, but make the admitted leader the unique maximum."""
+    aligned = {str(action): float(score) for action, score in dict(scores or {}).items()}
+    if leader not in aligned:
+        return aligned
+    current = max(aligned, key=aligned.get)
+    if current != leader:
+        aligned[leader], aligned[current] = aligned[current], aligned[leader]
+    rivals = [score for action, score in aligned.items() if action != leader]
+    if rivals and aligned[leader] <= max(rivals):
+        aligned[leader] = min(1.0, max(rivals) + 0.01)
+    return aligned
 
 
 def _ev_prefers_recommended(
@@ -753,7 +873,10 @@ def _ledger_justifies_direct_invert(
         return False
     recommended_action = actions[action_ids.index(recommended_id)]
     baseline_action = actions[action_ids.index(baseline_id)]
-    nets = _consequence_table_nets(consequence_table, actions)
+    nets = _consequence_table_nets(
+        admitted_utilitarian_consequence_table(consequence_table),
+        actions,
+    )
     if nets is not None:
         return nets[recommended_action] > nets[baseline_action]
     return bool(_ev_prefers_recommended(
@@ -1192,6 +1315,8 @@ def _candidate_from_data(
     utilitarian_depends_on_unknown = False
     utilitarian_missing_comparison = ""
     utilitarian_ledger_proposal: dict[str, Any] = {}
+    closed_world_leader: str | None = None
+    closed_world_reversal_note = ""
     deontological_ledger_proposal: dict[str, Any] = {}
     care_ledger_proposal: dict[str, Any] = {}
     utilitarian_fields_present = specialist == "utilitarian" and any(
@@ -1304,6 +1429,14 @@ def _candidate_from_data(
                 utilitarian_consequence_table[action] = rows
         utilitarian_depends_on_unknown = data.get("cd") is True
         utilitarian_missing_comparison = " ".join(str(data.get("cm", "")).split())[:180]
+        closed_world_leader = closed_world_utilitarian_leader(
+            actions, utilitarian_consequence_table,
+        )
+        if closed_world_leader is not None and utilitarian_depends_on_unknown:
+            if _semantic_word_count(utilitarian_missing_comparison) >= 3:
+                closed_world_reversal_note = utilitarian_missing_comparison
+            utilitarian_depends_on_unknown = False
+            utilitarian_missing_comparison = "NONE"
         table_errors = (
             [] if valuation_mode else _utilitarian_table_errors(
                 actions,
@@ -2100,19 +2233,25 @@ def _candidate_from_data(
             evidence_basis = "STATED_FACTS"
             if unresolved == "VERIFY_FACTS":
                 unresolved = "NONE"
-        damping = apply_symmetric_claim_damping(
-            id_scores,
-            evidence_basis,
-            unresolved,
-            retention=calibration_retention,
-        )
-        id_scores = damping.scores
-        unresolved = damping.unresolved
-        claim_direction_damped = damping.applied
-        scores = {
-            action: id_scores[action_id]
-            for action_id, action in zip(action_ids, actions)
-        }
+        if closed_world_leader is not None:
+            # Extra unstated predictions become reversal boundaries; they must
+            # not contract the admitted closed-world ranking toward neutrality.
+            if not closed_world_reversal_note and _semantic_word_count(speculative_claim) >= 3:
+                closed_world_reversal_note = speculative_claim
+        else:
+            damping = apply_symmetric_claim_damping(
+                id_scores,
+                evidence_basis,
+                unresolved,
+                retention=calibration_retention,
+            )
+            id_scores = damping.scores
+            unresolved = damping.unresolved
+            claim_direction_damped = damping.applied
+            scores = {
+                action: id_scores[action_id]
+                for action_id, action in zip(action_ids, actions)
+            }
 
     raw_landscape = data.get("l", {})
     landscape_search_attempted = any(key in data for key in ("l", "da", "t", "tf"))
@@ -2237,6 +2376,28 @@ def _candidate_from_data(
         for action_id, value in raw_ev.items()
         if action_id in action_ids and isinstance(value, dict)
     } if isinstance(raw_ev, dict) else {}
+    if specialist == "utilitarian":
+        closed_world_leader = closed_world_utilitarian_leader(
+            actions, utilitarian_consequence_table, expected_values,
+        ) or closed_world_leader
+        if closed_world_leader is not None and utilitarian_depends_on_unknown:
+            if (
+                not closed_world_reversal_note
+                and _semantic_word_count(utilitarian_missing_comparison) >= 3
+            ):
+                closed_world_reversal_note = utilitarian_missing_comparison
+            utilitarian_depends_on_unknown = False
+            utilitarian_missing_comparison = "NONE"
+        if (
+            closed_world_leader is not None
+            and closed_world_reversal_note
+            and factual_threshold.casefold() == "none"
+        ):
+            factual_threshold = (
+                "Reverse the admitted ranking if this unestablished consequence "
+                f"is verified and exceeds the admitted welfare margin: "
+                f"{closed_world_reversal_note}"
+            )[:180]
     if (
         broadcast.constraint in _AUDIT_DIRECT_INVERT_CONSTRAINTS
         and baseline_status == "DIRECT"
@@ -2869,6 +3030,26 @@ def _candidate_from_data(
         selection_status = "PROVISIONAL"
         evidence_sufficient = False
         comparison_complete = False
+    if specialist == "utilitarian" and closed_world_leader is not None:
+        scores = align_action_scores_to_leader(scores, closed_world_leader)
+        id_scores = {
+            action_id: scores[action]
+            for action_id, action in zip(action_ids, actions)
+        }
+        recommended_action = closed_world_leader
+        recommended_id = action_ids[actions.index(closed_world_leader)]
+        ordered = sorted(id_scores.values(), reverse=True)
+        preference_strength = max(
+            0.0,
+            min(1.0, ordered[0] - ordered[1] if len(ordered) > 1 else ordered[0]),
+        )
+        friction = preference_strength
+        comparison_complete = True
+        if (
+            closed_world_reversal_note
+            or factual_threshold.casefold() != "none"
+        ) and unresolved in {"NONE", "VERIFY_FACTS"}:
+            unresolved = "DECISION_BOUNDARY"
     interim_id = str(data.get("ia", recommended_id)).strip().upper()
     interim_action = actions[action_ids.index(interim_id)] if interim_id in action_ids else ""
     proposition_response = str(data.get("wp", "NOT_APPLICABLE")).strip().upper()
@@ -3880,6 +4061,7 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
             }
             if world_effects:
                 row["world_effects"] = world_effects
+                row["causal_links"] = list(record.get("causal_links", []))
                 row["counterfactual_effects"] = list(
                     record.get("counterfactual_effects", [])
                 )
@@ -3917,7 +4099,12 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
             }
         grounded_effect_context: list[dict[str, Any]] = []
         if self.scenario_graph is not None:
-            for effect in project_grounded_action_effects(self.scenario_graph):
+            projected_effects = (
+                utilitarian_scored_grounded_effects(self.scenario_graph)
+                if self.name == "utilitarian"
+                else project_grounded_action_effects(self.scenario_graph)
+            )
+            for effect in projected_effects:
                 consequence = self.scenario_graph.nodes.get(effect.consequence_id)
                 grounded_effect_context.append({
                     "effect_id": effect.effect_id,
@@ -4847,7 +5034,11 @@ Before assigning categorical priority, classify four independent premises. dt sa
 whether the governing claim is a PERFECT_NEGATIVE, PERFECT_POSITIVE, IMPERFECT,
 RIGHT_CORRELATIVE, SPECIAL_OBLIGATION, or UNRESOLVED duty. hr distinguishes DOING_HARM,
 ALLOWING_HARM, PREVENTING_HARM, WITHHOLDING_BENEFIT, MIXED, and cases where the
-distinction is not applicable. so and sob state whether a special obligation is
+distinction is not applicable. hr must follow the admitted action graph: DOING_HARM
+requires a DIRECT adverse effect on the protected party. Harm that the graph records
+only as DOWNSTREAM is ALLOWING_HARM or WITHHOLDING_BENEFIT, not doing. Do not relabel
+an omission as doing in order to keep a perfect-negative prohibition. so and sob state
+whether a special obligation is
 established and by what role, undertaking, relationship, or prior act; urgency alone
 does not create one. mr distinguishes INTENDED_AS_MEANS from FORESEEN_SIDE_EFFECT and
 NO_INSTRUMENTALIZATION. A foreseen burden is not automatically use merely as a means.
@@ -5057,10 +5248,16 @@ factual polarity, probability, or support. Those facts are immutable and Python
 will copy them from the grounded world effect. wi is only the effect's utilitarian
 importance: NEGLIGIBLE, LOW, MEDIUM, HIGH, CRITICAL, or UNKNOWN. vr briefly explains
 that welfare valuation without changing the effect's factual direction. A FOREGONE
-effect remains an OPPORTUNITY_COST; do not rewrite it as an adverse event.
-cd=true exactly when the ranking depends on an unresolved comparison among these
-effects; then cm must name it, use ss=PROVISIONAL, cc=false, esa=false, and preserve
-uncertainty. Do not add hypothetical consequences to ct.
+effect remains an OPPORTUNITY_COST; do not rewrite it as an adverse event. If a
+FOREGONE overlay is omitted from this list, it is the counterfactual dual of an
+actual harm or benefit already listed for that action and party; do not add it
+back or the welfare sum double-counts the same mutually exclusive outcome.
+cd=true exactly when the ranking among ADMITTED / WORLD_ESTABLISHED effects is
+unresolved; then cm must name that admitted comparison, use ss=PROVISIONAL,
+cc=false, and esa=false. A HYPOTHESIS or unverified downstream effect is not an
+unresolved admitted comparison: keep scores and r on the admitted ranking, keep
+cd=false and cc=true, put the extra claim in ft as a reversal boundary, and lower
+z as open-world confidence. Do not add hypothetical consequences to ct.
 """
             else:
                 framework_example = (
@@ -5077,9 +5274,12 @@ UTILITARIAN CONSEQUENCE ACCOUNTING: ct must contain 1-3 material consequence row
 for EVERY action. o=outcome; s=affected scope; d=BENEFIT/HARM; p=stated probability
 or UNKNOWN; m=magnitude; h=duration; rv=reversibility; g=STATED, INFERRED, or
 UNKNOWN support. Do not place assumptions in STATED rows and do not omit the losing
-action. cd=true exactly when the ranking depends on an unknown consequence or
-comparison; then cm must name it, use ss=PROVISIONAL, cc=false, esa=false, and
-preserve uncertainty. A compact table is more important than listing remote effects.
+action. cd=true exactly when the ranking among admitted / STATED consequences is
+unresolved; then cm must name that admitted comparison, use ss=PROVISIONAL,
+cc=false, and esa=false. A HYPOTHESIS does not make the current ranking unknown:
+keep scores and r on admitted consequences, keep cd=false and cc=true, and put the
+unverified downstream effect in ft as a reversal boundary, lowering z as open-world
+confidence. A compact table is more important than listing remote effects.
 """
         proposition_example_fields = ""
         if available_proposition_ids:
@@ -5120,9 +5320,11 @@ when no narrower question remains. Agenda answers direct attention but cannot pr
 a proposition's epistemic status.
 DELIBERATIVE STATE RULE: problem_state is a read-only description of attributed
 agent positions, confidences, constraints, conflicts, unresolved questions, and
-dissent. problem_delta describes attributed changes since the state received by
-the previous cycle; disappearance marked WITHDRAWN is not a solved question. The
-state is not scenario evidence and does not establish any framework's
+dissent. committed_world is the admitted typed world model copied every cycle;
+its parties, effects, and causal_links are scenario evidence. problem_delta
+describes attributed changes since the state received by the previous cycle;
+disappearance marked WITHDRAWN is not a solved question. The rest of
+problem_state is not scenario evidence and does not establish any framework's
 priority for another framework. Use it to notice neglected questions and actions;
 evaluate every attributed position independently under YOUR assigned framework.
 FRAMEWORK-NATIVE PAYLOAD RULE: each framework capsule may include a tagged
@@ -5146,20 +5348,28 @@ PROPOSITION DEPENDENCY CONTRACT: sps lists the existing proposition IDs supporti
 your ranking; dcp lists the subset whose truth could materially change that ranking.
 ep must inventory EVERY material empirical premise used anywhere in your rationale,
 decision rule, action cases, or framework-specific fields. For a grounded premise,
-copy the ledger claim EXACTLY into ep.c and cite its ID in ep.p. If your wording adds
+copy the ledger claim EXACTLY into ep.c and cite its ID in ep.p. Ordinary paraphrases
+of WORLD_ESTABLISHED effects, causal consequences, or existing hypotheses are the
+same proposition: Python rebinds them to that canonical ID. If your wording adds
 an outcome, severity, probability, actor, exclusivity, mechanism, or other factual
-content not contained in that exact ledger claim, split the content into atomic ep
+content not contained in that ledger claim, split the content into atomic ep
 rows: retain the established ledger claim as its own exact row, then put ONLY the
 smallest unsupported addition in another row with ep.p=HYPOTHESIS. Set ep.dc=true
 when that atom could change the ranking. Never turn a mixed sentence such as an
 established medical emergency plus an unestablished fatality inference into one
 all-or-nothing premise. Do not use an established proposition as support for a
-stronger paraphrase.
+stronger paraphrase. FRAMEWORK_DERIVED is for framework-native relations derived
+from established roles, not for restated world facts.
 You may cite IDs but may not change their status. Repetition, reformulation, consensus,
 or broadcast salience is not evidence. Put any important unstated empirical premise
 in x; Python assigns its hypothesis ID and prevents it from gaining authority through
-recurrence. If a decision-critical proposition is HYPOTHETICAL or UNRESOLVED, keep
-the recommendation conditional/provisional and retain the open factual condition.
+recurrence. CLOSED-WORLD vs HYPOTHESIS: scores, r, and cc must reflect admitted /
+WORLD_ESTABLISHED consequences only. A HYPOTHESIS may create a reversal boundary in
+ft, create an investigative question, and lower z as open-world confidence. It may
+not change closed-world action scores or set cd=true unless it is admitted or
+verified. If a decision-critical proposition is HYPOTHETICAL, keep the admitted
+ranking and state the reversal boundary; do not treat the current ranking as
+uncertain.
 Previous graph-committed framework state: {json.dumps(self.previous_framework_state)}
 Your preserved private framework contribution: {json.dumps(self.private_framework_contribution, sort_keys=True)}
 PRESERVATION CONTRACT: On a recurrent call, reconsider every item in your preserved
@@ -5171,8 +5381,11 @@ refines, or reinterprets them for an explicit reason in j/fa. Do not copy anothe
 framework's vocabulary merely to acknowledge the broadcast.
 Action IDs: {json.dumps(action_legend)}
 Reason from each action's canonical_semantic_action and structured fields
-(actor/beneficiaries/harmed/mechanism/institutional_effect). short_label is
-display-only and must not be treated as the complete deliberative object.
+(actor/beneficiaries/harmed/mechanism/institutional_effect/world_effects/causal_links).
+short_label is display-only and must not be treated as the complete deliberative object.
+committed_world and causal_links are the admitted factual topology. Do not
+contradict them. A missing connection is a HYPOTHESIS until an approved
+world-model extension admits it.
 Original testimony source labels: {json.dumps(self.source_action_legend or {
             str(record.get("action_id")): str(record.get("canonical_semantic_action", ""))
             for record in record_rows
@@ -6649,7 +6862,7 @@ def ground_actions_in_scenario(
     scenario: str,
     actions: Sequence[str],
     max_tokens: int = 160,
-    max_attempts: int = 2,
+    max_attempts: int = 3,
 ) -> dict[str, Any]:
     """Map every canonical action to explicit scenario clauses for graph provenance.
 
@@ -6705,8 +6918,9 @@ def ground_actions_in_scenario(
             }, "required": ["action_id", "intervention", "actor_party_id", "recipient_party_ids", "effect_ids", "clause_ids"], "additionalProperties": False}},
             "effects": {"type": "array", "items": {"type": "object", "properties": {
                 "effect_id": {"type": "string"}, "action_id": {"type": "string", "enum": action_ids},
-                "party_id": {"type": "string"}, "outcome": {"type": "string"},
-                "relation": {"type": "string"},
+                "party_id": {"type": "string"},
+                "outcome": {"type": "string", "minLength": 1, "maxLength": 240},
+                "predicate": {"type": "string", "minLength": 1, "maxLength": 64},
                 "polarity": {"type": "string", "enum": ["BENEFICIAL", "ADVERSE", "NEUTRAL", "UNRESOLVED", "FOREGONE"]},
                 "directness": {"type": "string", "enum": ["DIRECT", "DOWNSTREAM", "FOREGONE", "INSTITUTIONAL"]},
                 "modality": {"type": "string", "enum": ["CERTAIN", "STIPULATED_CONDITIONAL", "PROBABILISTIC", "POSSIBLE", "UNKNOWN"]},
@@ -6716,7 +6930,7 @@ def ground_actions_in_scenario(
                 "scope_qualifiers": string_list,
                 "temporal_qualifiers": string_list,
                 "clause_ids": effect_source_ids_schema,
-            }, "required": ["effect_id", "action_id", "party_id", "outcome", "relation", "polarity", "directness", "modality", "effect_kind", "condition_ids", "quantities", "likelihood_qualifiers", "scope_qualifiers", "temporal_qualifiers", "clause_ids"], "additionalProperties": False}},
+            }, "required": ["effect_id", "action_id", "party_id", "outcome", "predicate", "polarity", "directness", "modality", "effect_kind", "condition_ids", "quantities", "likelihood_qualifiers", "scope_qualifiers", "temporal_qualifiers", "clause_ids"], "additionalProperties": False}},
             "conditions": {"type": "array", "items": {"type": "object", "properties": {
                 "condition_id": {"type": "string"}, "description": {"type": "string"},
                 "value_status": {"type": "string"}, "decision_relevance": {"type": "string"},
@@ -6724,20 +6938,21 @@ def ground_actions_in_scenario(
             }, "required": ["condition_id", "description", "value_status", "decision_relevance", "clause_ids"], "additionalProperties": False}},
             "causal_links": {"type": "array", "items": {"type": "object", "properties": {
                 "action_id": {"type": "string", "enum": action_ids},
-                "source_id": {"type": "string"}, "relation": {"type": "string"},
+                "source_id": {"type": "string"},
+                "link_relation": {"type": "string", "enum": ["ENABLES", "CAUSES", "ACCELERATES", "PREVENTS"]},
                 "target_id": {"type": "string"},
                 "modality": {"type": "string", "enum": ["CERTAIN", "STIPULATED_CONDITIONAL", "PROBABILISTIC", "POSSIBLE", "UNKNOWN"]},
                 "condition_ids": string_list, "clause_ids": source_ids_schema,
-            }, "required": ["action_id", "source_id", "relation", "target_id", "modality", "condition_ids", "clause_ids"], "additionalProperties": False}},
+            }, "required": ["action_id", "source_id", "link_relation", "target_id", "modality", "condition_ids", "clause_ids"], "additionalProperties": False}},
             "counterfactual_links": {"type": "array", "items": {"type": "object", "properties": {
                 "action_id": {"type": "string", "enum": action_ids},
                 "source_effect_id": {"type": "string"},
-                "relation": {"type": "string", "enum": ["FOREGOES_ALTERNATIVE_EFFECT", "PRECLUDES_ALTERNATIVE_EFFECT", "REPLACES_ALTERNATIVE_EFFECT"]},
+                "counterfactual_relation": {"type": "string", "enum": ["FOREGOES_ALTERNATIVE_EFFECT", "PRECLUDES_ALTERNATIVE_EFFECT", "REPLACES_ALTERNATIVE_EFFECT"]},
                 "alternative_action_id": {"type": "string", "enum": action_ids},
                 "alternative_effect_id": {"type": "string"},
                 "modality": {"type": "string", "enum": ["CERTAIN", "STIPULATED_CONDITIONAL", "PROBABILISTIC", "POSSIBLE", "UNKNOWN"]},
                 "condition_ids": string_list, "clause_ids": effect_source_ids_schema,
-            }, "required": ["action_id", "source_effect_id", "relation", "alternative_action_id", "alternative_effect_id", "modality", "condition_ids", "clause_ids"], "additionalProperties": False}},
+            }, "required": ["action_id", "source_effect_id", "counterfactual_relation", "alternative_action_id", "alternative_effect_id", "modality", "condition_ids", "clause_ids"], "additionalProperties": False}},
         },
         "required": ["schema_version", "parties", "actions", "effects", "conditions", "causal_links", "counterfactual_links"],
         "additionalProperties": False,
@@ -6774,8 +6989,8 @@ research opportunity may be certain while the success and population benefit of
 that research remain STIPULATED_CONDITIONAL, PROBABILISTIC, POSSIBLE, or UNKNOWN.
 Every non-certain effect must name a condition. CERTAIN effects and CERTAIN causal
 links must not list condition_ids; put the condition only on the non-certain
-effect that depends on it. Foregone effects use directness FOREGONE and polarity
-FOREGONE. Do not score a missed opportunity as ADVERSE or BENEFICIAL. Effect
+effect that depends on it. Foregone effects use directness FOREGONE, polarity
+FOREGONE, and effect_kind OPPORTUNITY_LOSS. Do not score a missed opportunity as ADVERSE or BENEFICIAL. Effect
 clause_ids must include at least one FACT clause or the confirmed action id
 (A0, A1, …) that states the claim. A choose-between or interrogative clause may
 be cited as context only and is never sufficient alone. Put population cardinality
@@ -6789,18 +7004,53 @@ scope_qualifiers, and timing words such as "immediate" in temporal_qualifiers wh
 they modify that effect. Do not invent probabilities, QALYs, counts, or qualifiers.
 Return schema_version="1.2". Effects must be atomic: one affected party, one outcome,
 and one causal stage per effect. An immediate action target, an intermediate system
-state, and the people ultimately helped or harmed are distinct parties/effects. For
-every recipient_party_id include an atomic DIRECT effect: use RESOURCE_TRANSFER when
-a resource is transferred and INTERVENTION for other actions. Represent resulting
-health, welfare, or institutional outcomes separately and connect the stages.
-Use causal_links only for within-action ENABLES, CAUSES, ACCELERATES, or PREVENTS
-relationships. Every causal link must name action_id, and both endpoints must belong
-to that same action. Never point a causal link at another action's effect. Represent
-cross-action foreclosure only in counterfactual_links: its source_effect_id must be
-a FOREGONE effect owned by action_id and alternative_effect_id must be the matching
-effect owned by alternative_action_id. Clause IDs are provenance only; effects must
-explicitly name their action_id and must not be copied wholesale from a clause
-describing both choices.
+state, and the people ultimately helped or harmed are distinct parties/effects.
+Named individuals use kind PERSON or HUMAN; crowds use GROUP or POPULATION;
+intermediate systems use FACILITY, INSTITUTION, or PROCESS. recipient_party_ids
+are only the parties the actor acts on (the named patient of a framing or
+killing, the person reached, the facility repaired). Do not list later
+beneficiaries, crowds, or process-bearers as recipients. For every
+recipient_party_id include an atomic DIRECT effect: RESOURCE_TRANSFER when a
+resource is transferred, INSTITUTIONAL_OUTCOME for a juridical act (frame,
+acquit, certify), and INTERVENTION for other actions. Represent resulting
+health, welfare, or process states separately and connect the stages.
+If the action refuses a named framing, execution, or killing, that named patient is
+still a recipient: record their spared juridical or bodily status as a BENEFICIAL
+effect (not-framed, not-executed, survives). Do not model a refusal as an actor-only
+intervention with no effect on the patient. If the source states both a false
+attribution (frame, falsely accuse) and an execution or other physical harm, record
+the juridical act as a DIRECT INSTITUTIONAL_OUTCOME on the human patient, distinct
+from the later health outcome. Never link an actor's intervention, or one party's
+health outcome, directly to a different party's death or survival; insert the
+source-named intermediate process (riot continues, grid fails, train is diverted,
+and so on) and causally connect intervention → intermediate state → human health
+outcome. The intermediate may be PHYSICAL_STATE, OTHER, or INSTITUTIONAL_OUTCOME
+on a PROCESS, FACILITY, or INSTITUTION party. INSTITUTIONAL_OUTCOME on the human
+patient is the act, not the intermediate. DIRECT effects attach only to the actor or a named recipient. A process,
+population, or institution that is not a recipient is DOWNSTREAM or FOREGONE. A
+downstream health or welfare outcome on a different party must be causally
+reachable from this action's DIRECT INTERVENTION, RESOURCE_TRANSFER, or
+INSTITUTIONAL_OUTCOME through that intermediate process. Do not leave the
+intervention and the process as disconnected siblings. FOREGONE effects use
+directness FOREGONE, polarity FOREGONE, and effect_kind OPPORTUNITY_LOSS.
+Copy only the longest source quantity span: "over five hundred" not also "five"
+or "five hundred". Each effect needs a non-empty outcome and a non-empty
+predicate such as IS, SURVIVES, PERFORMS, SUBJECT_TO, STATE_CHANGE, or
+EXPERIENCES. Do not use a field named relation on effects. Causal links use
+link_relation ENABLES, CAUSES, ACCELERATES, or PREVENTS. Every causal link must
+name action_id, and both endpoints must belong to that same action. Never point
+a causal link at another action's effect. Represent cross-action foreclosure only
+in counterfactual_links with counterfactual_relation FOREGOES_ALTERNATIVE_EFFECT,
+PRECLUDES_ALTERNATIVE_EFFECT, or REPLACES_ALTERNATIVE_EFFECT: source_effect_id
+must be a FOREGONE effect owned by action_id and alternative_effect_id must be
+the matching effect owned by alternative_action_id. When two actions stipulate
+opposed health or welfare for the same non-recipient party (one lives, the other
+dies), each action must also record that alternative as a FOREGONE
+OPPORTUNITY_LOSS and a counterfactual_link to the other action's actual effect
+on that party. Do not attach FOREGONE effects to causal_links; keep causal_links
+as the within-action actual chain. Clause IDs are provenance
+only; effects must explicitly name their action_id and must not be copied
+wholesale from a clause describing both choices.
 
 Canonical actions: {json.dumps(dict(zip(action_ids, actions)), sort_keys=True)}
 Scenario clauses: {json.dumps(clauses, ensure_ascii=False)}
@@ -6818,7 +7068,7 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                 else prompt.replace("\n[/INST]", repair_note + "\n[/INST]", 1)
             )
             output = _call_json_llm(
-                llm, call_prompt, max_tokens=max(2200, max_tokens),
+                llm, call_prompt, max_tokens=max(4096, max_tokens),
                 temperature=0.0, schema=schema,
             )
             raw = (
@@ -6857,6 +7107,27 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
             "cites. Shared background clauses are still permitted alongside it. "
             "For contradictory direct effects, re-read the cited clauses and remove "
             "the incorrectly assigned effect rather than weakening its modality. "
+            "If a downstream health or welfare outcome is caused directly by another "
+            "person's framing, execution, or death, reparent it: the immediate parent "
+            "must be a PROCESS, FACILITY, or INSTITUTION state (riot halted or "
+            "continues). That intermediate may be PHYSICAL_STATE, OTHER, or "
+            "INSTITUTIONAL_OUTCOME on the process bearer; INSTITUTIONAL_OUTCOME on "
+            "the human patient is not the intermediate. Keep the person's act on "
+            "the path to that process, not as the parent of the crowd's health. "
+            "If a downstream health or welfare outcome has no path to this action's "
+            "DIRECT intervention, transfer, or juridical act, add the missing causal "
+            "link through the source-named intermediate process. DIRECT effects "
+            "belong only on the actor or a named recipient; do not list crowds or "
+            "process-bearers as recipients. Named patients may be PERSON or HUMAN. "
+            "A framing or false-attribution source still needs a DIRECT "
+            "INSTITUTIONAL_OUTCOME on that patient. FOREGONE rows use effect_kind "
+            "OPPORTUNITY_LOSS. If opposed stipulated welfare on a non-recipient "
+            "party has no FOREGONE overlay, add only those FOREGONE rows and "
+            "counterfactual_links; do not retarget causal_links or use FOREGONE "
+            "effects as causal endpoints. Effects need a non-empty outcome and "
+            "predicate. Causal links use link_relation, not relation. Copy a "
+            "qualifier only when it modifies that atomic outcome; delete invented "
+            "words such as widespread. "
             "Correct exactly these problems and return the mapping again."
             + "\nRejected candidate JSON:\n"
             + json.dumps(rejected_candidate, ensure_ascii=False, sort_keys=True)

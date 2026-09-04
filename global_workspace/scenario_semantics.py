@@ -1370,8 +1370,28 @@ def attach_grounded_world_effects(
         ))
 
 
+def _graph_has_edge(
+    graph: SemanticGraph, source: str, relation: str, target: str,
+) -> bool:
+    return any(
+        edge.source == source and edge.relation == relation and edge.target == target
+        for edge in graph.edges
+    )
+
+
+def _add_unique_edge(graph: SemanticGraph, edge: SemanticEdge) -> None:
+    if _graph_has_edge(graph, edge.source, edge.relation, edge.target):
+        return
+    graph.add_edge(edge)
+
+
 def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
-    """Compile an admitted typed world model without re-reading source prose."""
+    """Compile an admitted typed world model without re-reading source prose.
+
+    Re-applying the same model, or applying an approved extension of it, is
+    idempotent: existing consequence nodes are reused and duplicate edges are
+    not added.
+    """
     party_by_id = {party.party_id: party for party in model.parties}
     admitted = set(model.admission.admitted_effect_ids)
     filter_admission = bool(admitted) or model.admission.status in {
@@ -1389,7 +1409,7 @@ def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
             intervention_id, "INTERVENTION", action.intervention, provenance,
             {"world_state_typed": True},
         ))
-        graph.add_edge(SemanticEdge(
+        _add_unique_edge(graph, SemanticEdge(
             action.action_id, "HAS_INTERVENTION", intervention_id,
             provenance=provenance,
         ))
@@ -1402,7 +1422,7 @@ def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
                     {"party_id": actor.party_id, "party_kind": actor.kind,
                      "quantities": list(actor.quantities), "world_state_typed": True},
                 ))
-            graph.add_edge(SemanticEdge(
+            _add_unique_edge(graph, SemanticEdge(
                 action.action_id, "HAS_ACTOR", actor_id, provenance=provenance,
             ))
         for recipient_id in action.recipient_party_ids:
@@ -1416,7 +1436,7 @@ def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
                     {"party_id": recipient.party_id, "party_kind": recipient.kind,
                      "quantities": list(recipient.quantities), "world_state_typed": True},
                 ))
-            graph.add_edge(SemanticEdge(
+            _add_unique_edge(graph, SemanticEdge(
                 action.action_id, "TARGETS", target_id, provenance=provenance,
             ))
     for condition in model.conditions:
@@ -1473,7 +1493,7 @@ def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
                 "world_effect_id": effect.effect_id,
             },
         ))
-        graph.add_edge(SemanticEdge(
+        _add_unique_edge(graph, SemanticEdge(
             effect.action_id, "HAS_CONSEQUENCE", consequence_id,
             provenance=provenance,
         ))
@@ -1491,19 +1511,19 @@ def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
                     "world_state_typed": True,
                 },
             ))
-        graph.add_edge(SemanticEdge(
+        _add_unique_edge(graph, SemanticEdge(
             consequence_id, "AFFECTS", target_id, provenance=provenance,
         ))
         for condition_id in effect.condition_ids:
             if condition_id in graph.nodes:
-                graph.add_edge(SemanticEdge(
+                _add_unique_edge(graph, SemanticEdge(
                     consequence_id, "CONDITIONAL_ON", condition_id,
                     provenance=provenance,
                 ))
         for ref in effect.provenance:
             evidence_id = f"ACTION_SOURCE:{effect.action_id}:{ref.clause_id}"
             if evidence_id in graph.nodes:
-                graph.add_edge(SemanticEdge(
+                _add_unique_edge(graph, SemanticEdge(
                     consequence_id, "SUPPORTED_BY", evidence_id,
                     provenance=provenance,
                 ))
@@ -1523,7 +1543,7 @@ def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
         from .semantic_graph import EDGE_RELATIONS
         if relation not in EDGE_RELATIONS:
             relation = "CAUSES"
-        graph.add_edge(SemanticEdge(
+        _add_unique_edge(graph, SemanticEdge(
             source, relation, target,
             justification=(
                 f"typed_relation={link.relation}; modality={link.modality}"
@@ -1542,7 +1562,7 @@ def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
             "PRECLUDES_ALTERNATIVE_EFFECT": "COUNTERFACTUALLY_PRECLUDES",
             "REPLACES_ALTERNATIVE_EFFECT": "COUNTERFACTUALLY_REPLACES",
         }.get(link.relation, "COUNTERFACTUALLY_FOREGOES")
-        graph.add_edge(SemanticEdge(
+        _add_unique_edge(graph, SemanticEdge(
             source, relation, alternative,
             justification=f"modality={link.modality}", provenance=provenance,
         ))

@@ -15,6 +15,11 @@ from global_workspace.scenario_semantics import (
     attach_typed_world_model, compile_scenario_graph,
     project_grounded_action_effects,
 )
+from global_workspace.utilitarian_ledger import (
+    EffectValuationProposal,
+    apply_utilitarian_ledger_transaction,
+    utilitarian_scored_grounded_effects,
+)
 from global_workspace.world_state import (
     CausalLink,
     CounterfactualLink,
@@ -24,21 +29,22 @@ from global_workspace.world_state import (
     WorldEffect,
     WorldParty,
     ScenarioWorldModel,
+    admit_world_model_extension,
     classify_clause_role,
+    compact_committed_world,
     explicit_likelihood_spans,
     explicit_quantity_spans,
     explicit_scope_spans,
     explicit_temporal_spans,
     parse_world_model,
+    project_world_action_roles,
+    utilitarian_omits_foregone_dual,
+    validate_world_completeness,
     validate_world_model,
     world_model_from_dict,
 )
 from global_workspace.action_identity import build_canonical_action_records
 from global_workspace.graph_transactions import SemanticGraphStore
-from global_workspace.utilitarian_ledger import (
-    EffectValuationProposal,
-    apply_utilitarian_ledger_transaction,
-)
 from global_workspace.local_specialists import (
     CompactLocalSpecialist,
     _candidate_from_data,
@@ -46,10 +52,18 @@ from global_workspace.local_specialists import (
 )
 from global_workspace.models import CandidateChunk, WorkspaceBroadcast
 from global_workspace.engine import WorkspaceConfig, WorkspaceEngine
+from global_workspace.deliberative_state import (
+    build_deliberative_problem_state,
+    opening_problem_state,
+)
 from global_workspace.epistemic_ledger import (
     apply_side_premise_audit,
     attach_candidate_dependencies,
     ledger_projection,
+    PropositionRecord,
+    register_framework_derived_proposition,
+    register_hypothesis,
+    resolve_proposition,
     seed_proposition_ledger,
 )
 from global_workspace.semantic_graph import SemanticEdge, SemanticGraph, SemanticNode
@@ -103,6 +117,8 @@ def _effect(
     condition_ids: tuple[str, ...] = (),
     quantities: tuple[str, ...] = (),
     provenance: tuple[SourceRef, ...] = REF,
+    effect_kind: str = "OTHER",
+    likelihood_qualifiers: tuple[str, ...] = (),
 ) -> WorldEffect:
     return WorldEffect(
         effect_id=effect_id,
@@ -113,9 +129,11 @@ def _effect(
         polarity=polarity,
         directness=directness,
         modality=modality,
+        effect_kind=effect_kind,
         condition_ids=condition_ids,
         quantities=quantities,
         provenance=provenance,
+        likelihood_qualifiers=likelihood_qualifiers,
     )
 
 
@@ -124,12 +142,14 @@ def _model(
     *,
     conditions: tuple[WorldCondition, ...] = (),
     links: tuple[CausalLink, ...] = (),
+    extra_parties: tuple[WorldParty, ...] = (),
 ) -> ScenarioWorldModel:
     parties = (
         WorldParty("P0", "dispatcher", "SYSTEM", REF),
         WorldParty("P1", "engineer", "PERSON", REF),
         WorldParty("P2", "trapped family", "GROUP", REF),
         WorldParty("P3", "downstream residents", "POPULATION", SCALE_REF),
+        *extra_parties,
     )
     actions = (
         WorldAction(
@@ -211,6 +231,25 @@ class ExplicitQuantitySpanTests(unittest.TestCase):
             ("eight",),
         )
         self.assertEqual(explicit_quantity_spans("one repair crew"), ())
+
+    def test_longest_compound_span_wins_over_nested_cardinals(self):
+        self.assertEqual(
+            explicit_quantity_spans("over five hundred residents"),
+            ("over five hundred",),
+        )
+        self.assertEqual(
+            explicit_quantity_spans("five hundred residents"),
+            ("five hundred",),
+        )
+        self.assertEqual(
+            explicit_quantity_spans("five residents"),
+            ("five",),
+        )
+        self.assertEqual(explicit_quantity_spans("4 patients"), ("4",))
+        self.assertEqual(
+            explicit_quantity_spans("a hundred residents"),
+            ("a hundred",),
+        )
 
     def test_source_qualifier_extractors_keep_likelihood_scope_and_time_distinct(self):
         text = "an immediate, near-certain fatal failure creates widespread disruption"
@@ -846,6 +885,10 @@ class ActionScopedCausalityTests(unittest.TestCase):
         self.assertNotIn("facility produces supplies", a1.mechanism)
         self.assertEqual(len(a0.counterfactual_effects), 1)
         self.assertEqual(len(a1.counterfactual_effects), 1)
+        self.assertEqual(
+            validate_world_completeness(model, action_ids=["A0", "A1"]),
+            [],
+        )
 
     def test_cross_action_causal_link_is_rejected(self):
         model = self.atomic_model()
@@ -921,6 +964,52 @@ class ActionScopedCausalityTests(unittest.TestCase):
             for link in restored.counterfactual_links
         ))
 
+    def test_schema_1_2_cross_action_foregoes_migrates_instead_of_entering_the_causal_graph(self):
+        serialized = self.atomic_model().as_dict()
+        serialized["schema_version"] = "1.2"
+        serialized["counterfactual_links"] = []
+        serialized["causal_links"] = [*serialized["causal_links"], {
+            "action_id": "A0",
+            "source_id": "A0_FOREGONE",
+            "relation": "FOREGOES_ALTERNATIVE_EFFECT",
+            "target_id": "A1_RELIEF",
+            "modality": "CERTAIN",
+            "condition_ids": (),
+            "provenance": tuple(ref.as_dict() for ref in REF),
+        }]
+        restored = world_model_from_dict(serialized)
+        self.assertIsNotNone(restored)
+        assert restored is not None
+        self.assertFalse(any(
+            {link.source_id, link.target_id} == {"A0_FOREGONE", "A1_RELIEF"}
+            for link in restored.causal_links
+        ))
+        self.assertTrue(any(
+            link.action_id == "A0"
+            and link.source_effect_id == "A0_FOREGONE"
+            and link.alternative_effect_id == "A1_RELIEF"
+            for link in restored.counterfactual_links
+        ))
+
+    def test_foregone_effect_cannot_be_a_causal_endpoint(self):
+        model = self.atomic_model()
+        invalid = ScenarioWorldModel(
+            parties=model.parties, actions=model.actions, effects=model.effects,
+            causal_links=model.causal_links + (
+                CausalLink(
+                    "A0_RESOURCE", "CAUSES", "A0_FOREGONE", "CERTAIN", (), REF, "A0",
+                ),
+            ),
+            counterfactual_links=model.counterfactual_links,
+            schema_version="1.2",
+        )
+        errors, _ = validate_world_model(invalid, action_ids=["A0", "A1"])
+        self.assertTrue(any("FOREGONE effect" in error for error in errors), errors)
+        self.assertEqual(
+            validate_world_completeness(invalid, action_ids=["A0", "A1"]),
+            [],
+        )
+
     def test_utilitarian_valuation_inherits_world_polarity_by_effect_id(self):
         model = self.atomic_model()
         graph = compile_scenario_graph(
@@ -969,6 +1058,23 @@ class ActionScopedCausalityTests(unittest.TestCase):
         )
         self.assertNotIn("proposed_direction", by_world_id["A0_FOREGONE"])
         self.assertFalse(any("contradicts" in error for error in transaction.errors))
+
+    def test_utilitarian_keeps_foregone_when_the_party_has_no_actual_outcome(self):
+        model = self.atomic_model()
+        self.assertFalse(utilitarian_omits_foregone_dual(
+            next(effect for effect in model.effects if effect.effect_id == "A0_FOREGONE"),
+            model,
+        ))
+        graph = compile_scenario_graph(
+            "A system routes one resource between two recipients.",
+            ["route resource to facility", "route resource to urgent recipients"],
+            world_model=model.as_dict(),
+        )
+        scored_ids = {
+            effect.effect_id for effect in utilitarian_scored_grounded_effects(graph)
+        }
+        self.assertIn("A0_FOREGONE", scored_ids)
+        self.assertIn("A1_FOREGONE", scored_ids)
 
     def test_utilitarian_valuation_cannot_override_direction(self):
         graph = compile_scenario_graph(
@@ -1167,7 +1273,7 @@ class EpistemicPropositionLedgerTests(unittest.TestCase):
         self.assertIn(hypothesis_ids[0], final.supporting_proposition_ids)
         self.assertIn(hypothesis_ids[0], final.decision_critical_proposition_ids)
         self.assertEqual(final.side_premise_audit_status, "FINDINGS")
-        self.assertEqual(final.adjudication_status, "CONDITIONAL_SUPPORTS")
+        self.assertEqual(final.adjudication_status, "SUPPORTS")
         self.assertTrue(result.shared_unresolved_dependencies)
 
     def test_presentation_qualifies_domain_general_specific_hypotheses(self):
@@ -1183,7 +1289,8 @@ class EpistemicPropositionLedgerTests(unittest.TestCase):
         }
         qualification = _candidate_epistemic_qualification(data, candidate)
         self.assertIn("supplier will default within a week", qualification)
-        self.assertIn("conditional on the unestablished proposition", qualification)
+        self.assertIn("Admitted ranking stands", qualification)
+        self.assertIn("Reversal boundary", qualification)
         self.assertIn("hypothetical", qualification)
 
     def test_presentation_does_not_qualify_established_specific_claims(self):
@@ -1224,6 +1331,7 @@ class EpistemicPropositionLedgerTests(unittest.TestCase):
         ledger = seed_proposition_ledger(_epistemic_grounded_graph())
         proposition = ledger["PROP:WORLD:E1"]
         self.assertEqual(proposition.epistemic_status, "ESTABLISHED")
+        self.assertEqual(proposition.epistemic_type, "WORLD_ESTABLISHED")
         self.assertEqual(proposition.support_ids, ["E1"])
         self.assertIn("affected subject: affected residents", proposition.claim)
 
@@ -1323,7 +1431,7 @@ class EpistemicPropositionLedgerTests(unittest.TestCase):
         self.assertEqual(properties["ep"]["type"], "array")
         self.assertTrue({"dp", "dcp", "ep", "sps"} <= set(captured["required"]))
 
-    def test_decision_critical_hypothesis_caps_candidate_authority(self):
+    def test_decision_critical_hypothesis_does_not_unsettle_closed_world_ranking(self):
         ledger = seed_proposition_ledger(_epistemic_grounded_graph())
         candidate = _epistemic_candidate(
             claim="the medical emergencies carry substantial mortality risk",
@@ -1333,11 +1441,106 @@ class EpistemicPropositionLedgerTests(unittest.TestCase):
         attach_candidate_dependencies(ledger, candidate)
         profile = apply_specialist_authority(candidate)
         self.assertEqual(candidate.weakest_decision_critical_status, "HYPOTHETICAL")
-        self.assertEqual(profile.adjudication_status, "CONDITIONAL_SUPPORTS")
-        self.assertEqual(candidate.selection_status, "PROVISIONAL")
+        self.assertEqual(profile.adjudication_status, "SUPPORTS")
+        self.assertEqual(candidate.selection_status, "SELECTED")
+        self.assertTrue(candidate.comparison_complete)
+        self.assertLessEqual(candidate.epistemic_confidence, 0.70)
+        self.assertGreater(candidate.action_scores["provide treatment"], 0.5)
+        self.assertEqual(candidate.unresolved, "DECISION_BOUNDARY")
+        self.assertNotEqual(candidate.factual_reversal_threshold.casefold(), "none")
+        self.assertTrue(candidate.governing_eligible)
+        self.assertNotIn("provided that", candidate.decision_rule.casefold())
+
+    def test_unverified_downstream_hypothesis_does_not_move_closed_world_scores(self):
+        actions = ["open the spillway", "keep the spillway closed"]
+        ledger = seed_proposition_ledger(_epistemic_grounded_graph())
+        hypothesis_id = register_hypothesis(
+            ledger,
+            "opening the spillway later causes more downstream deaths than the admitted margin",
+            specialist="utilitarian",
+            decision_critical=True,
+        )
+        candidate = CandidateChunk(
+            specialist="utilitarian", constraint="WELFARE",
+            action_scores={actions[0]: 0.25, actions[1]: 0.75},
+            surprise=0.4, friction=0.5, confidence=0.9,
+            epistemic_confidence=0.9, recommended_action=actions[1],
+            rationale="Unverified later deaths appear to outweigh the admitted flood.",
+            decision_rule="Prefer keeping the spillway closed if later deaths dominate.",
+            adjudication_status="SUPPORTS", governing_eligible=True,
+            comparison_complete=True, selection_status="SELECTED",
+            utilitarian_decision_depends_on_unknown=True,
+            utilitarian_missing_comparison="later downstream deaths versus the admitted flood margin",
+            utilitarian_consequence_table={
+                actions[0]: [{
+                    "outcome": "one operator is injured", "scope": "operator",
+                    "direction": "HARM", "probability": "100%", "magnitude": "1",
+                    "duration": "immediate", "reversibility": "IRREVERSIBLE",
+                    "support": "STATED",
+                }],
+                actions[1]: [{
+                    "outcome": "five hundred residents drown", "scope": "residents",
+                    "direction": "HARM", "probability": "100%", "magnitude": "500",
+                    "duration": "immediate", "reversibility": "IRREVERSIBLE",
+                    "support": "STATED",
+                }],
+            },
+            supporting_proposition_ids=["PROP:WORLD:E1", hypothesis_id],
+            decision_critical_proposition_ids=[hypothesis_id],
+            material_empirical_claims=[{
+                "claim": "opening the spillway later causes more downstream deaths than the admitted margin",
+                "proposition_id": hypothesis_id,
+                "decision_critical": True,
+            }],
+        )
+        attach_candidate_dependencies(ledger, candidate)
+        profile = apply_specialist_authority(candidate)
+        self.assertEqual(candidate.recommended_action, actions[0])
+        self.assertGreater(
+            candidate.action_scores[actions[0]], candidate.action_scores[actions[1]],
+        )
+        self.assertFalse(candidate.utilitarian_decision_depends_on_unknown)
+        self.assertTrue(candidate.comparison_complete)
+        self.assertNotEqual(candidate.assumption_status, "UNDERDETERMINED")
+        self.assertEqual(candidate.unresolved, "DECISION_BOUNDARY")
+        self.assertEqual(profile.adjudication_status, "SUPPORTS")
+        self.assertTrue(candidate.governing_eligible)
+        self.assertIn("unestablished", candidate.factual_reversal_threshold.casefold())
+        qualification = _candidate_epistemic_qualification(
+            {
+                "proposition_ledger": ledger_projection(ledger),
+            },
+            {
+                "specialist": "utilitarian",
+                "comparison_complete": candidate.comparison_complete,
+                "decision_critical_proposition_ids": candidate.decision_critical_proposition_ids,
+                "supporting_proposition_ids": candidate.supporting_proposition_ids,
+            },
+        )
+        self.assertIn("Admitted ranking stands", qualification)
+        self.assertIn("Reversal boundary", qualification)
+
+    def test_unknown_parameter_still_blocks_closed_world_comparison(self):
+        ledger = seed_proposition_ledger(_epistemic_grounded_graph())
+        ledger["PROP:WORLD:CONDITION:failure-odds"] = PropositionRecord(
+            proposition_id="PROP:WORLD:CONDITION:failure-odds",
+            claim="the probability of pump failure remains unknown",
+            proposition_type="DESCRIPTIVE",
+            epistemic_status="UNRESOLVED",
+            support_ids=["failure-odds"],
+            introduced_by="WORLD_MODEL",
+            epistemic_type="UNKNOWN_PARAMETER",
+        )
+        candidate = _epistemic_candidate()
+        candidate.supporting_proposition_ids = ["PROP:WORLD:CONDITION:failure-odds"]
+        candidate.decision_critical_proposition_ids = ["PROP:WORLD:CONDITION:failure-odds"]
+        attach_candidate_dependencies(ledger, candidate)
+        profile = apply_specialist_authority(candidate)
+        self.assertEqual(candidate.weakest_decision_critical_status, "UNRESOLVED")
+        self.assertEqual(candidate.assumption_status, "UNDERDETERMINED")
         self.assertFalse(candidate.comparison_complete)
-        self.assertLessEqual(candidate.epistemic_confidence, 0.5)
-        self.assertIn("provided that", candidate.decision_rule)
+        self.assertEqual(candidate.selection_status, "PROVISIONAL")
+        self.assertEqual(profile.adjudication_status, "CONDITIONAL_SUPPORTS")
 
     def test_recurrence_increases_attention_but_never_status(self):
         ledger = seed_proposition_ledger(_epistemic_grounded_graph())
@@ -1388,7 +1591,8 @@ class EpistemicPropositionLedgerTests(unittest.TestCase):
         )
         self.assertEqual(candidate.weakest_decision_critical_status, "HYPOTHETICAL")
         self.assertTrue(candidate.epistemic_binding_notes)
-        self.assertLessEqual(candidate.epistemic_confidence, 0.5)
+        self.assertLessEqual(candidate.epistemic_confidence, 0.70)
+        self.assertTrue(candidate.comparison_complete)
 
     def test_canonical_component_restatement_remains_established(self):
         ledger = seed_proposition_ledger(_epistemic_grounded_graph())
@@ -1455,7 +1659,8 @@ class EpistemicPropositionLedgerTests(unittest.TestCase):
         self.assertEqual(proposition.derived_from, ["PROP:WORLD:E1"])
         self.assertEqual(candidate.side_premise_audit_status, "FINDINGS")
         self.assertEqual(candidate.weakest_decision_critical_status, "HYPOTHETICAL")
-        self.assertLessEqual(candidate.epistemic_confidence, 0.5)
+        self.assertLessEqual(candidate.epistemic_confidence, 0.70)
+        self.assertTrue(candidate.comparison_complete)
 
     def test_side_audit_reuses_semantically_matching_existing_hypothesis(self):
         ledger = seed_proposition_ledger(_epistemic_grounded_graph())
@@ -1576,7 +1781,7 @@ class EpistemicPropositionLedgerTests(unittest.TestCase):
             2,
         )
         self.assertTrue(all(
-            candidate.adjudication_status == "CONDITIONAL_SUPPORTS"
+            candidate.adjudication_status == "SUPPORTS"
             for candidate in result.cycles[0].candidates
         ))
         self.assertIn(
@@ -1629,7 +1834,7 @@ class EpistemicPropositionLedgerTests(unittest.TestCase):
         candidates = result.cycles[0].candidates
         self.assertEqual(result.active_specialists, ["duty", "care"])
         self.assertTrue(all(
-            candidate.adjudication_status == "CONDITIONAL_SUPPORTS"
+            candidate.adjudication_status == "SUPPORTS"
             for candidate in candidates
         ))
         self.assertTrue(all(
@@ -1645,7 +1850,1241 @@ class EpistemicPropositionLedgerTests(unittest.TestCase):
         self.assertIn("organ failure", brief)
         self.assertIn("unestablished proposition", brief)
         self.assertIn("Status: hypothetical", brief)
-        self.assertIn("Conditional on [hypothetical:", brief)
+        self.assertIn("Reversal boundary [hypothetical:", brief)
+
+
+MAGISTRATE_CLAUSES = [
+    {
+        "clause_id": "C0",
+        "text": (
+            "A city magistrate must decide whether to frame and execute an "
+            "innocent person to quell an escalating riot during a severe "
+            "municipal crisis."
+        ),
+    },
+    {
+        "clause_id": "C1",
+        "text": (
+            "A0 refuses to execute the innocent individual, strictly upholding "
+            "the inviolable duty against framing and killing an innocent citizen, "
+            "but allowing the riot to spread and predictably result in the deaths "
+            "of over five hundred residents."
+        ),
+    },
+    {
+        "clause_id": "C2",
+        "text": (
+            "A1 frames and executes the innocent individual, satisfying the mob's "
+            "demand for retribution, immediately halting the violence, and "
+            "preserving the lives of over five hundred citizens at the cost of one."
+        ),
+    },
+]
+A0_TEXT = (
+    "refuse to frame and execute the innocent individual, allowing the riot "
+    "to spread and predictably kill over five hundred residents"
+)
+A1_TEXT = (
+    "frame and execute the innocent individual to satisfy the mob, immediately "
+    "halting the riot and preserving the lives of over five hundred residents"
+)
+
+
+def _raw_effect(**fields: object) -> dict[str, object]:
+    row: dict[str, object] = {
+        "condition_ids": [],
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "clause_ids": ["C1"],
+        "relation": "EXPERIENCES",
+        "modality": "CERTAIN",
+    }
+    row.update(fields)
+    return row
+
+
+def _raw_link(
+    action_id: str, source: str, target: str, clause: str = "C1",
+) -> dict[str, object]:
+    return {
+        "action_id": action_id,
+        "source_id": source,
+        "relation": "CAUSES",
+        "target_id": target,
+        "modality": "CERTAIN",
+        "condition_ids": [],
+        "clause_ids": [clause],
+    }
+
+
+def _complete_magistrate_raw() -> dict[str, object]:
+    return {
+        "schema_version": "1.2",
+        "parties": [
+            {
+                "party_id": "P0", "label": "city magistrate", "kind": "HUMAN",
+                "quantities": [], "clause_ids": ["C0"],
+            },
+            {
+                "party_id": "P1", "label": "innocent individual", "kind": "HUMAN",
+                "quantities": ["one"], "clause_ids": ["C0", "C1", "C2"],
+            },
+            {
+                "party_id": "P2", "label": "mob", "kind": "GROUP",
+                "quantities": [], "clause_ids": ["C0", "C2"],
+            },
+            {
+                "party_id": "P3", "label": "city public order", "kind": "INSTITUTION",
+                "quantities": [], "clause_ids": ["C0", "C1", "C2"],
+            },
+            {
+                "party_id": "P4", "label": "city residents", "kind": "GROUP",
+                "quantities": ["over five hundred"], "clause_ids": ["C1", "C2"],
+            },
+        ],
+        "actions": [
+            {
+                "action_id": "A0",
+                "intervention": "refuse to frame and execute",
+                "actor_party_id": "P0",
+                "recipient_party_ids": ["P1"],
+                "effect_ids": ["E0", "E1", "E1f", "E2", "E3", "E4", "EF0"],
+                "clause_ids": ["C1"],
+            },
+            {
+                "action_id": "A1",
+                "intervention": "frame and execute innocent individual",
+                "actor_party_id": "P0",
+                "recipient_party_ids": ["P1"],
+                "effect_ids": ["E5", "E6", "E7", "E8", "E9", "E10", "EF1"],
+                "clause_ids": ["C2"],
+            },
+        ],
+        "effects": [
+            _raw_effect(
+                effect_id="E0", action_id="A0", party_id="P0",
+                outcome="refusal carried out", relation="PERFORMS",
+                polarity="NEUTRAL", directness="DIRECT",
+                effect_kind="INTERVENTION",
+            ),
+            _raw_effect(
+                effect_id="E1", action_id="A0", party_id="P1",
+                outcome="not executed", relation="IS",
+                polarity="BENEFICIAL", directness="DIRECT",
+                effect_kind="INTERVENTION",
+            ),
+            _raw_effect(
+                effect_id="E1f", action_id="A0", party_id="P1",
+                outcome="not framed", relation="IS",
+                polarity="BENEFICIAL", directness="DIRECT",
+                effect_kind="INSTITUTIONAL_OUTCOME",
+            ),
+            _raw_effect(
+                effect_id="E2", action_id="A0", party_id="P1",
+                outcome="survival", polarity="BENEFICIAL",
+                directness="DOWNSTREAM", effect_kind="HEALTH_OUTCOME",
+            ),
+            _raw_effect(
+                effect_id="E3", action_id="A0", party_id="P3",
+                outcome="riot continues", relation="IS",
+                polarity="ADVERSE", directness="DOWNSTREAM",
+                effect_kind="PHYSICAL_STATE",
+            ),
+            _raw_effect(
+                effect_id="E4", action_id="A0", party_id="P4",
+                outcome="killed", polarity="ADVERSE",
+                directness="DOWNSTREAM", effect_kind="HEALTH_OUTCOME",
+                quantities=["over five hundred"],
+            ),
+            _raw_effect(
+                effect_id="EF0", action_id="A0", party_id="P4",
+                outcome="lives preserved", relation="DOES_NOT_EXPERIENCE",
+                polarity="FOREGONE", directness="FOREGONE",
+                effect_kind="OPPORTUNITY_LOSS",
+                quantities=["over five hundred"], clause_ids=["C1", "A0"],
+            ),
+            _raw_effect(
+                effect_id="E5", action_id="A1", party_id="P0",
+                outcome="execution order carried out", relation="PERFORMS",
+                polarity="NEUTRAL", directness="DIRECT",
+                effect_kind="INTERVENTION", clause_ids=["C2"],
+            ),
+            _raw_effect(
+                effect_id="E6", action_id="A1", party_id="P1",
+                outcome="falsely framed", relation="IS",
+                polarity="ADVERSE", directness="DIRECT",
+                effect_kind="INSTITUTIONAL_OUTCOME", clause_ids=["C2"],
+            ),
+            _raw_effect(
+                effect_id="E7", action_id="A1", party_id="P1",
+                outcome="subjected to execution", relation="SUBJECT_TO",
+                polarity="NEUTRAL", directness="DIRECT",
+                effect_kind="INTERVENTION", clause_ids=["C2"],
+                quantities=["one"],
+            ),
+            _raw_effect(
+                effect_id="E8", action_id="A1", party_id="P1",
+                outcome="executed", relation="SUBJECT_TO",
+                polarity="ADVERSE", directness="DOWNSTREAM",
+                effect_kind="HEALTH_OUTCOME", clause_ids=["C2"],
+                quantities=["one"],
+            ),
+            _raw_effect(
+                effect_id="E9", action_id="A1", party_id="P3",
+                outcome="riot halted", relation="STATE_CHANGE",
+                polarity="BENEFICIAL", directness="DOWNSTREAM",
+                effect_kind="PHYSICAL_STATE", clause_ids=["C2"],
+                temporal_qualifiers=["immediately"],
+            ),
+            _raw_effect(
+                effect_id="E10", action_id="A1", party_id="P4",
+                outcome="lives preserved", relation="BENEFITS",
+                polarity="BENEFICIAL", directness="DOWNSTREAM",
+                effect_kind="HEALTH_OUTCOME", clause_ids=["C2"],
+                quantities=["over five hundred"],
+            ),
+            _raw_effect(
+                effect_id="EF1", action_id="A1", party_id="P4",
+                outcome="killed", relation="FOREGONE",
+                polarity="FOREGONE", directness="FOREGONE",
+                effect_kind="OPPORTUNITY_LOSS", clause_ids=["C2", "A1"],
+                quantities=["over five hundred"],
+            ),
+        ],
+        "conditions": [],
+        "causal_links": [
+            _raw_link("A0", "E0", "E3"),
+            _raw_link("A0", "E3", "E4"),
+            _raw_link("A0", "E0", "E1"),
+            _raw_link("A0", "E0", "E1f"),
+            _raw_link("A0", "E1", "E2"),
+            _raw_link("A1", "E5", "E6", "C2"),
+            _raw_link("A1", "E6", "E7", "C2"),
+            _raw_link("A1", "E7", "E8", "C2"),
+            _raw_link("A1", "E8", "E9", "C2"),
+            _raw_link("A1", "E9", "E10", "C2"),
+        ],
+        "counterfactual_links": [
+            {
+                "action_id": "A0", "source_effect_id": "EF0",
+                "relation": "FOREGOES_ALTERNATIVE_EFFECT",
+                "alternative_action_id": "A1", "alternative_effect_id": "E10",
+                "modality": "CERTAIN", "condition_ids": [],
+                "clause_ids": ["A0", "C2"],
+            },
+            {
+                "action_id": "A1", "source_effect_id": "EF1",
+                "relation": "FOREGOES_ALTERNATIVE_EFFECT",
+                "alternative_action_id": "A0", "alternative_effect_id": "E4",
+                "modality": "CERTAIN", "condition_ids": [],
+                "clause_ids": ["A1", "C1"],
+            },
+        ],
+    }
+
+
+def _parse_complete_magistrate():
+    return parse_world_model(
+        _complete_magistrate_raw(),
+        clauses=MAGISTRATE_CLAUSES,
+        action_ids=["A0", "A1"],
+        action_texts={"A0": A0_TEXT, "A1": A1_TEXT},
+    )
+
+
+class WorldModelCompletenessTests(unittest.TestCase):
+    def test_complete_magistrate_model_admits(self):
+        model = _parse_complete_magistrate()
+        errors, contradictions = validate_world_model(model, action_ids=["A0", "A1"])
+        self.assertEqual(errors, [])
+        self.assertEqual(contradictions, [])
+        self.assertEqual(validate_world_completeness(model, action_ids=["A0", "A1"]), [])
+
+    def test_roles_count_downstream_health_not_the_mob(self):
+        model = _parse_complete_magistrate()
+        a0 = project_world_action_roles(model, "A0")
+        a1 = project_world_action_roles(model, "A1")
+        self.assertEqual(a0.beneficiaries, ("innocent individual",))
+        self.assertEqual(a0.harmed, ("city residents",))
+        self.assertEqual(a1.harmed, ("innocent individual",))
+        self.assertEqual(a1.beneficiaries, ("city residents",))
+
+    def test_canonical_records_project_roles_and_framing(self):
+        records = build_canonical_action_records(
+            [A0_TEXT, A1_TEXT],
+            actor="city magistrate",
+            world_model=_parse_complete_magistrate().as_dict(),
+        )
+        by_id = {record.action_id: record for record in records}
+        self.assertEqual(by_id["A0"].beneficiaries, ("innocent individual",))
+        self.assertEqual(by_id["A0"].harmed, ("city residents",))
+        self.assertEqual(by_id["A1"].harmed, ("innocent individual",))
+        self.assertEqual(by_id["A1"].beneficiaries, ("city residents",))
+        self.assertIn("falsely framed", by_id["A1"].institutional_effect)
+
+    def test_refusal_without_patient_or_intermediate_is_incomplete(self):
+        raw = _complete_magistrate_raw()
+        raw["actions"][0]["recipient_party_ids"] = []
+        raw["effects"] = [
+            effect for effect in raw["effects"]
+            if not (
+                effect["action_id"] == "A0"
+                and effect["party_id"] in {"P1", "P3"}
+            )
+        ]
+        raw["causal_links"] = [
+            _raw_link("A0", "E0", "E4"),
+            _raw_link("A1", "E5", "E6", "C2"),
+            _raw_link("A1", "E6", "E7", "C2"),
+            _raw_link("A1", "E7", "E8", "C2"),
+            _raw_link("A1", "E8", "E9", "C2"),
+            _raw_link("A1", "E9", "E10", "C2"),
+        ]
+        with self.assertRaises(ValueError) as raised:
+            parse_world_model(
+                raw,
+                clauses=MAGISTRATE_CLAUSES,
+                action_ids=["A0", "A1"],
+                action_texts={"A0": A0_TEXT, "A1": A1_TEXT},
+            )
+        message = str(raised.exception)
+        self.assertIn("patient-status effect", message)
+        self.assertIn("intermediate", message)
+
+    def test_framing_predicate_requires_juridical_effect(self):
+        raw = _complete_magistrate_raw()
+        raw["effects"] = [
+            effect for effect in raw["effects"] if effect["effect_id"] != "E6"
+        ]
+        raw["causal_links"] = [
+            link for link in raw["causal_links"]
+            if link["source_id"] != "E5" and link["source_id"] != "E6"
+        ]
+        raw["causal_links"].insert(3, _raw_link("A1", "E5", "E7", "C2"))
+        with self.assertRaises(ValueError) as raised:
+            parse_world_model(
+                raw,
+                clauses=MAGISTRATE_CLAUSES,
+                action_ids=["A0", "A1"],
+                action_texts={"A0": A0_TEXT, "A1": A1_TEXT},
+            )
+        self.assertIn("INSTITUTIONAL_OUTCOME", str(raised.exception))
+
+    def test_refusal_requires_spared_juridical_effect(self):
+        raw = _complete_magistrate_raw()
+        raw["effects"] = [
+            effect for effect in raw["effects"] if effect["effect_id"] != "E1f"
+        ]
+        raw["causal_links"] = [
+            link for link in raw["causal_links"]
+            if link["source_id"] != "E1f" and link["target_id"] != "E1f"
+        ]
+        with self.assertRaises(ValueError) as raised:
+            parse_world_model(
+                raw,
+                clauses=MAGISTRATE_CLAUSES,
+                action_ids=["A0", "A1"],
+                action_texts={"A0": A0_TEXT, "A1": A1_TEXT},
+            )
+        self.assertIn("INSTITUTIONAL_OUTCOME", str(raised.exception))
+
+    def test_nested_five_is_rejected_on_admit(self):
+        raw = _complete_magistrate_raw()
+        raw["parties"][-1]["quantities"] = ["over five hundred", "five"]
+        with self.assertRaises(ValueError) as raised:
+            parse_world_model(
+                raw,
+                clauses=MAGISTRATE_CLAUSES,
+                action_ids=["A0", "A1"],
+                action_texts={"A0": A0_TEXT, "A1": A1_TEXT},
+            )
+        self.assertIn("nested quantity", str(raised.exception))
+
+    def test_neutral_intervention_does_not_contradict_survival(self):
+        model = _parse_complete_magistrate()
+        _errors, contradictions = validate_world_model(model, action_ids=["A0", "A1"])
+        self.assertEqual(contradictions, [])
+
+    def test_restore_skips_completeness(self):
+        raw = _complete_magistrate_raw()
+        raw["parties"][-1]["quantities"] = ["over five hundred", "five"]
+        model = parse_world_model(
+            raw,
+            clauses=MAGISTRATE_CLAUSES,
+            action_ids=["A0", "A1"],
+            action_texts={"A0": A0_TEXT, "A1": A1_TEXT},
+            require_completeness=False,
+        )
+        self.assertIn("five", model.parties[-1].quantities)
+
+    def test_restore_projects_downstream_roles_on_incomplete_a0(self):
+        raw = _complete_magistrate_raw()
+        raw["actions"][0]["recipient_party_ids"] = []
+        raw["effects"] = [
+            effect for effect in raw["effects"]
+            if not (
+                effect["action_id"] == "A0"
+                and effect["party_id"] in {"P1", "P3"}
+            )
+        ]
+        raw["causal_links"] = [
+            _raw_link("A0", "E0", "E4"),
+            _raw_link("A1", "E5", "E6", "C2"),
+            _raw_link("A1", "E6", "E7", "C2"),
+            _raw_link("A1", "E7", "E8", "C2"),
+            _raw_link("A1", "E8", "E9", "C2"),
+            _raw_link("A1", "E9", "E10", "C2"),
+        ]
+        model = parse_world_model(
+            raw,
+            clauses=MAGISTRATE_CLAUSES,
+            action_ids=["A0", "A1"],
+            action_texts={"A0": A0_TEXT, "A1": A1_TEXT},
+            require_completeness=False,
+        )
+        a0 = project_world_action_roles(model, "A0")
+        a1 = project_world_action_roles(model, "A1")
+        self.assertEqual(a0.beneficiaries, ())
+        self.assertEqual(a0.harmed, ("city residents",))
+        self.assertEqual(a1.harmed, ("innocent individual",))
+        self.assertEqual(a1.beneficiaries, ("city residents",))
+
+
+class CompactActionRoleTests(unittest.TestCase):
+    def test_certain_physical_state_on_population_is_compact_benefit(self):
+        model = _model((
+            _effect(
+                "E_w", "A0", "P3",
+                outcome="safe water preserved",
+                polarity="BENEFICIAL",
+                directness="DOWNSTREAM",
+                effect_kind="PHYSICAL_STATE",
+            ),
+        ))
+        roles = project_world_action_roles(model, "A0")
+        self.assertEqual(roles.beneficiaries, ("downstream residents",))
+        self.assertEqual(roles.harmed, ())
+        self.assertEqual(roles.unresolved, ())
+
+    def test_facility_physical_state_is_not_a_compact_role(self):
+        model = _model(
+            (
+                _effect(
+                    "E_f", "A0", "P4",
+                    outcome="left without backup power",
+                    polarity="ADVERSE",
+                    directness="DIRECT",
+                    effect_kind="PHYSICAL_STATE",
+                ),
+            ),
+            extra_parties=(WorldParty("P4", "field clinic", "FACILITY", REF),),
+        )
+        roles = project_world_action_roles(model, "A0")
+        self.assertEqual(roles.beneficiaries, ())
+        self.assertEqual(roles.harmed, ())
+        self.assertEqual(roles.unresolved, ())
+
+    def test_near_certain_probabilistic_health_is_compact_harm(self):
+        model = _model(
+            (
+                _effect(
+                    "E_h", "A0", "P2",
+                    outcome="fatal equipment failure causes death",
+                    polarity="ADVERSE",
+                    directness="DOWNSTREAM",
+                    modality="PROBABILISTIC",
+                    condition_ids=("COND1",),
+                    effect_kind="HEALTH_OUTCOME",
+                    likelihood_qualifiers=("near-certain",),
+                ),
+            ),
+            conditions=(WorldCondition("COND1", "equipment fails", provenance=REF),),
+        )
+        roles = project_world_action_roles(model, "A0")
+        self.assertEqual(roles.harmed, ("trapped family",))
+        self.assertEqual(roles.unresolved, ())
+
+    def test_unqualified_probabilistic_institutional_stays_unresolved(self):
+        model = _model(
+            (
+                _effect(
+                    "E_i", "A0", "P3",
+                    outcome="public-health crisis risk increased",
+                    polarity="ADVERSE",
+                    directness="DOWNSTREAM",
+                    modality="PROBABILISTIC",
+                    condition_ids=("COND2",),
+                    effect_kind="INSTITUTIONAL_OUTCOME",
+                ),
+            ),
+            conditions=(WorldCondition("COND2", "sanitation fails", provenance=REF),),
+        )
+        roles = project_world_action_roles(model, "A0")
+        self.assertEqual(roles.harmed, ())
+        self.assertEqual(roles.beneficiaries, ())
+        self.assertEqual(roles.unresolved, ("downstream residents",))
+
+    def test_settled_harm_outranks_weaker_unresolved_on_same_party(self):
+        model = _model(
+            (
+                _effect(
+                    "E_e", "A0", "P2",
+                    outcome="exposed to equipment failure",
+                    polarity="ADVERSE",
+                    directness="DOWNSTREAM",
+                    effect_kind="PHYSICAL_STATE",
+                ),
+                _effect(
+                    "E_h", "A0", "P2",
+                    outcome="later deaths remain possible",
+                    polarity="ADVERSE",
+                    directness="DOWNSTREAM",
+                    modality="PROBABILISTIC",
+                    condition_ids=("COND1",),
+                    effect_kind="HEALTH_OUTCOME",
+                    likelihood_qualifiers=("likely",),
+                ),
+            ),
+            conditions=(WorldCondition("COND1", "later deaths occur", provenance=REF),),
+        )
+        roles = project_world_action_roles(model, "A0")
+        self.assertEqual(roles.harmed, ("trapped family",))
+        self.assertEqual(roles.unresolved, ())
+
+    def test_foregone_physical_state_stays_out_of_compact_roles(self):
+        model = _model((
+            _effect(
+                "E_f", "A0", "P3",
+                outcome="safe water foregone",
+                relation="FOREGOES",
+                polarity="FOREGONE",
+                directness="FOREGONE",
+                effect_kind="OPPORTUNITY_LOSS",
+            ),
+        ))
+        roles = project_world_action_roles(model, "A0")
+        self.assertEqual(roles.beneficiaries, ())
+        self.assertEqual(roles.harmed, ())
+        self.assertEqual(roles.unresolved, ())
+
+
+ALLOCATOR_A0 = (
+    "send the crew to Site A, reach the engineer, and hold the spillway"
+)
+ALLOCATOR_A1 = (
+    "send the crew to Site B and reach the trapped family"
+)
+
+
+def _connected_allocator_raw() -> dict[str, object]:
+    return {
+        "schema_version": "1.2",
+        "parties": [
+            {
+                "party_id": "P0", "label": "dispatcher", "kind": "SYSTEM",
+                "quantities": [], "clause_ids": ["C0"],
+            },
+            {
+                "party_id": "P1", "label": "engineer", "kind": "PERSON",
+                "quantities": [], "clause_ids": ["C0"],
+            },
+            {
+                "party_id": "P2", "label": "trapped family", "kind": "GROUP",
+                "quantities": [], "clause_ids": ["C2"],
+            },
+            {
+                "party_id": "P3", "label": "downstream residents",
+                "kind": "POPULATION", "quantities": ["tens of thousands"],
+                "clause_ids": ["C1"],
+            },
+            {
+                "party_id": "P4", "label": "spillway", "kind": "FACILITY",
+                "quantities": [], "clause_ids": ["C1"],
+            },
+        ],
+        "actions": [
+            {
+                "action_id": "A0", "intervention": "send crew to Site A",
+                "actor_party_id": "P0", "recipient_party_ids": ["P1"],
+                "effect_ids": ["E0", "E1", "E2"], "clause_ids": ["C0"],
+            },
+            {
+                "action_id": "A1", "intervention": "send crew to Site B",
+                "actor_party_id": "P0", "recipient_party_ids": ["P2"],
+                "effect_ids": ["E3", "E4"], "clause_ids": ["C4"],
+            },
+        ],
+        "effects": [
+            _raw_effect(
+                effect_id="E0", action_id="A0", party_id="P1",
+                outcome="crew reaches engineer", relation="REACHES",
+                polarity="NEUTRAL", directness="DIRECT",
+                effect_kind="INTERVENTION", clause_ids=["C0", "A0"],
+            ),
+            _raw_effect(
+                effect_id="E1", action_id="A0", party_id="P4",
+                outcome="spillway held", relation="STATE_CHANGE",
+                polarity="BENEFICIAL", directness="DOWNSTREAM",
+                effect_kind="PHYSICAL_STATE", clause_ids=["C1"],
+            ),
+            _raw_effect(
+                effect_id="E2", action_id="A0", party_id="P3",
+                outcome="residents spared", relation="SURVIVES",
+                polarity="BENEFICIAL", directness="DOWNSTREAM",
+                effect_kind="HEALTH_OUTCOME",
+                modality="STIPULATED_CONDITIONAL",
+                condition_ids=["COND1"],
+                quantities=["tens of thousands"],
+                clause_ids=["C1"],
+            ),
+            _raw_effect(
+                effect_id="E3", action_id="A1", party_id="P2",
+                outcome="crew reaches family", relation="REACHES",
+                polarity="NEUTRAL", directness="DIRECT",
+                effect_kind="INTERVENTION", clause_ids=["C4", "A1"],
+            ),
+            _raw_effect(
+                effect_id="E4", action_id="A1", party_id="P2",
+                outcome="family lives", relation="SURVIVES",
+                polarity="BENEFICIAL", directness="DOWNSTREAM",
+                effect_kind="HEALTH_OUTCOME", clause_ids=["C2", "A1"],
+            ),
+        ],
+        "conditions": [
+            {
+                "condition_id": "COND1",
+                "description": "engineer is reached",
+                "value_status": "UNKNOWN",
+                "decision_relevance": "MATERIAL",
+                "clause_ids": ["C1"],
+            },
+        ],
+        "causal_links": [
+            _raw_link("A0", "E0", "E1", "C1"),
+            _raw_link("A0", "E1", "E2", "C1"),
+            _raw_link("A1", "E3", "E4", "C2"),
+        ],
+        "counterfactual_links": [],
+    }
+
+
+def _parse_allocator(raw: dict[str, object] | None = None):
+    return parse_world_model(
+        raw or _connected_allocator_raw(),
+        clauses=CLAUSES,
+        action_ids=["A0", "A1"],
+        action_texts={"A0": ALLOCATOR_A0, "A1": ALLOCATOR_A1},
+    )
+
+
+class CausalChainCompletenessTests(unittest.TestCase):
+    def test_connected_intervention_process_health_admits(self):
+        model = _parse_allocator()
+        self.assertEqual(validate_world_completeness(model, action_ids=["A0", "A1"]), [])
+        self.assertEqual(model.counterfactual_links, ())
+        records = {
+            record.action_id: record
+            for record in build_canonical_action_records(
+                [ALLOCATOR_A0, ALLOCATOR_A1],
+                world_model=model.as_dict(),
+            )
+        }
+        a0_links = {
+            (link["source_id"], link["target_id"])
+            for link in records["A0"].causal_links
+        }
+        self.assertEqual(a0_links, {("E0", "E1"), ("E1", "E2")})
+
+    def test_unconnected_process_health_is_incomplete(self):
+        raw = _connected_allocator_raw()
+        raw["causal_links"] = [
+            _raw_link("A0", "E1", "E2", "C1"),
+            _raw_link("A1", "E3", "E4", "C2"),
+        ]
+        with self.assertRaises(ValueError) as raised:
+            _parse_allocator(raw)
+        self.assertIn("ancestry never reaches a DIRECT act", str(raised.exception))
+
+    def test_direct_effect_cannot_attach_to_non_recipient_facility(self):
+        raw = _connected_allocator_raw()
+        for effect in raw["effects"]:
+            if effect["effect_id"] == "E1":
+                effect["directness"] = "DIRECT"
+        with self.assertRaises(ValueError) as raised:
+            _parse_allocator(raw)
+        self.assertIn("neither the actor nor a named recipient", str(raised.exception))
+
+    def test_other_party_health_cannot_skip_the_process(self):
+        raw = _connected_allocator_raw()
+        raw["effects"] = [
+            effect for effect in raw["effects"] if effect["effect_id"] != "E1"
+        ]
+        raw["effects"].append(_raw_effect(
+            effect_id="E_h", action_id="A0", party_id="P1",
+            outcome="engineer lives", relation="SURVIVES",
+            polarity="BENEFICIAL", directness="DOWNSTREAM",
+            effect_kind="HEALTH_OUTCOME", clause_ids=["C0", "A0"],
+        ))
+        raw["causal_links"] = [
+            _raw_link("A0", "E0", "E_h", "C0"),
+            _raw_link("A0", "E_h", "E2", "C1"),
+            _raw_link("A1", "E3", "E4", "C2"),
+        ]
+        with self.assertRaises(ValueError) as raised:
+            _parse_allocator(raw)
+        self.assertIn("intermediate", str(raised.exception))
+        self.assertIn("E_h", str(raised.exception))
+
+    def test_institutional_process_state_can_parent_other_party_health(self):
+        raw = _connected_allocator_raw()
+        for effect in raw["effects"]:
+            if effect["effect_id"] == "E1":
+                effect["effect_kind"] = "INSTITUTIONAL_OUTCOME"
+                effect["outcome"] = "spillway held under repair order"
+        model = _parse_allocator(raw)
+        self.assertEqual(validate_world_completeness(model, action_ids=["A0", "A1"]), [])
+
+    def test_person_institutional_act_cannot_parent_other_party_health(self):
+        raw = _complete_magistrate_raw()
+        raw["causal_links"] = [
+            link for link in raw["causal_links"]
+            if not (link["source_id"] == "E9" and link["target_id"] == "E10")
+        ]
+        raw["causal_links"].append(_raw_link("A1", "E6", "E10", "C2"))
+        with self.assertRaises(ValueError) as raised:
+            parse_world_model(
+                raw,
+                clauses=MAGISTRATE_CLAUSES,
+                action_ids=["A0", "A1"],
+                action_texts={"A0": A0_TEXT, "A1": A1_TEXT},
+            )
+        message = str(raised.exception)
+        self.assertIn("E10", message)
+        self.assertIn("E6", message)
+        self.assertIn("intermediate", message)
+
+    def test_person_kind_satisfies_juridical_patient_gate(self):
+        raw = _complete_magistrate_raw()
+        for party in raw["parties"]:
+            if party["party_id"] == "P1":
+                party["kind"] = "PERSON"
+        model = parse_world_model(
+            raw,
+            clauses=MAGISTRATE_CLAUSES,
+            action_ids=["A0", "A1"],
+            action_texts={"A0": A0_TEXT, "A1": A1_TEXT},
+        )
+        self.assertEqual(validate_world_completeness(model, action_ids=["A0", "A1"]), [])
+
+    def test_institutional_direct_on_recipient_is_an_atomic_act(self):
+        raw = _connected_allocator_raw()
+        for effect in raw["effects"]:
+            if effect["effect_id"] == "E0":
+                effect["effect_kind"] = "INSTITUTIONAL_OUTCOME"
+                effect["outcome"] = "engineer ordered to the spillway"
+        model = _parse_allocator(raw)
+        self.assertEqual(validate_world_completeness(model, action_ids=["A0", "A1"]), [])
+
+    def test_opposed_nonrecipient_welfare_requires_foregone_counterfactual_overlay(self):
+        raw = _complete_magistrate_raw()
+        raw["effects"] = [
+            effect for effect in raw["effects"]
+            if effect["effect_id"] not in {"EF0", "EF1"}
+        ]
+        raw["counterfactual_links"] = []
+        with self.assertRaises(ValueError) as raised:
+            parse_world_model(
+                raw,
+                clauses=MAGISTRATE_CLAUSES,
+                action_ids=["A0", "A1"],
+                action_texts={"A0": A0_TEXT, "A1": A1_TEXT},
+            )
+        message = str(raised.exception)
+        self.assertIn("opposed welfare", message)
+        self.assertIn("counterfactual_link", message)
+        self.assertIn("causal_links", message)
+
+    def test_foregone_kind_normalizes_to_opportunity_loss(self):
+        raw = _connected_allocator_raw()
+        raw["effects"].append(_raw_effect(
+            effect_id="EF", action_id="A0", party_id="P3",
+            outcome="lives not preserved", relation="FOREGONE",
+            polarity="FOREGONE", directness="FOREGONE",
+            effect_kind="HEALTH_OUTCOME",
+            quantities=["tens of thousands"],
+            clause_ids=["C1"],
+        ))
+        model = _parse_allocator(raw)
+        lost = next(effect for effect in model.effects if effect.effect_id == "EF")
+        self.assertEqual(lost.effect_kind, "OPPORTUNITY_LOSS")
+
+    def test_empty_predicate_defaults_when_outcome_is_present(self):
+        raw = _connected_allocator_raw()
+        for effect in raw["effects"]:
+            if effect["effect_id"] == "E0":
+                effect["relation"] = ""
+        model = _parse_allocator(raw)
+        e0 = next(effect for effect in model.effects if effect.effect_id == "E0")
+        self.assertEqual(e0.relation, "EXPERIENCES")
+        self.assertTrue(e0.outcome)
+
+    def test_parse_copies_local_qualifiers_and_strips_invented_ones(self):
+        clauses = [dict(row) for row in CLAUSES]
+        clauses[1] = {
+            "clause_id": "C1",
+            "text": (
+                "If the engineer is reached, immediately holding the spillway, "
+                "and sparing tens of thousands of downstream residents."
+            ),
+        }
+        raw = _connected_allocator_raw()
+        for effect in raw["effects"]:
+            if effect["effect_id"] == "E1":
+                effect["temporal_qualifiers"] = []
+                effect["clause_ids"] = ["C1"]
+            if effect["effect_id"] == "E2":
+                effect["scope_qualifiers"] = ["widespread"]
+                effect["clause_ids"] = ["C1"]
+        model = parse_world_model(
+            raw,
+            clauses=clauses,
+            action_ids=["A0", "A1"],
+            action_texts={"A0": ALLOCATOR_A0, "A1": ALLOCATOR_A1},
+        )
+        e1 = next(effect for effect in model.effects if effect.effect_id == "E1")
+        e2 = next(effect for effect in model.effects if effect.effect_id == "E2")
+        self.assertEqual(e1.temporal_qualifiers, ("immediately",))
+        self.assertEqual(e2.scope_qualifiers, ())
+
+    def test_temporal_qualifier_does_not_cross_list_conjuncts(self):
+        ref = (SourceRef(
+            "C1",
+            "Send the crew, immediately holding the spillway, and sparing residents.",
+        ),)
+        model = replace(
+            _model((
+                _effect(
+                    "E1", "A0", "P4",
+                    outcome="spillway held",
+                    polarity="BENEFICIAL",
+                    directness="DOWNSTREAM",
+                    effect_kind="PHYSICAL_STATE",
+                    provenance=ref,
+                ),
+                _effect(
+                    "E2", "A0", "P3",
+                    outcome="residents spared",
+                    polarity="BENEFICIAL",
+                    directness="DOWNSTREAM",
+                    effect_kind="HEALTH_OUTCOME",
+                    provenance=ref,
+                ),
+            ), extra_parties=(WorldParty("P4", "spillway", "FACILITY", ref),)),
+            schema_version="1.2",
+        )
+        errors, _ = validate_world_model(model, action_ids=["A0", "A1"])
+        self.assertTrue(any(
+            "E1 omits" in error and "immediately" in error for error in errors
+        ))
+        self.assertFalse(any(
+            "E2 omits" in error and "immediately" in error for error in errors
+        ))
+
+
+class WorldModelExtensionTests(unittest.TestCase):
+    def test_approved_extension_connects_downstream_health(self):
+        raw = _connected_allocator_raw()
+        raw["effects"] = [
+            effect for effect in raw["effects"] if effect["effect_id"] != "E2"
+        ]
+        raw["causal_links"] = [
+            _raw_link("A0", "E0", "E1", "C1"),
+            _raw_link("A1", "E3", "E4", "C2"),
+        ]
+        base = _parse_allocator(raw)
+        self.assertEqual(validate_world_completeness(base, action_ids=["A0", "A1"]), [])
+        updated = admit_world_model_extension(
+            base,
+            {
+                "effects": [
+                    _raw_effect(
+                        effect_id="E2", action_id="A0", party_id="P3",
+                        outcome="residents spared", relation="SURVIVES",
+                        polarity="BENEFICIAL", directness="DOWNSTREAM",
+                        effect_kind="HEALTH_OUTCOME",
+                        modality="STIPULATED_CONDITIONAL",
+                        condition_ids=["COND1"],
+                        quantities=["tens of thousands"],
+                        clause_ids=["C1"],
+                    ),
+                ],
+                "causal_links": [_raw_link("A0", "E1", "E2", "C1")],
+            },
+            clauses=CLAUSES,
+            action_ids=["A0", "A1"],
+            action_texts={"A0": ALLOCATOR_A0, "A1": ALLOCATOR_A1},
+        )
+        self.assertEqual(
+            validate_world_completeness(updated, action_ids=["A0", "A1"]), [],
+        )
+        self.assertIn("E2", {effect.effect_id for effect in updated.effects})
+        compact = compact_committed_world(updated)
+        self.assertIn(
+            ("E1", "E2"),
+            {(link["source_id"], link["target_id"]) for link in compact["causal_links"]},
+        )
+
+    def test_unconnected_health_extension_is_rejected(self):
+        raw = _connected_allocator_raw()
+        raw["effects"] = [
+            effect for effect in raw["effects"] if effect["effect_id"] != "E2"
+        ]
+        raw["causal_links"] = [
+            _raw_link("A0", "E0", "E1", "C1"),
+            _raw_link("A1", "E3", "E4", "C2"),
+        ]
+        base = _parse_allocator(raw)
+        with self.assertRaises(ValueError) as raised:
+            admit_world_model_extension(
+                base,
+                {
+                    "effects": [
+                        _raw_effect(
+                            effect_id="E2", action_id="A0", party_id="P3",
+                            outcome="residents spared", relation="SURVIVES",
+                            polarity="BENEFICIAL", directness="DOWNSTREAM",
+                            effect_kind="HEALTH_OUTCOME",
+                            modality="STIPULATED_CONDITIONAL",
+                            condition_ids=["COND1"],
+                            quantities=["tens of thousands"],
+                            clause_ids=["C1"],
+                        ),
+                    ],
+                },
+                clauses=CLAUSES,
+                action_ids=["A0", "A1"],
+                action_texts={"A0": ALLOCATOR_A0, "A1": ALLOCATOR_A1},
+            )
+        self.assertIn("downstream human outcome", str(raised.exception))
+
+    def test_extension_cannot_reuse_an_effect_id(self):
+        base = _parse_allocator()
+        with self.assertRaises(ValueError) as raised:
+            admit_world_model_extension(
+                base,
+                {
+                    "effects": [
+                        _raw_effect(
+                            effect_id="E0", action_id="A0", party_id="P1",
+                            outcome="duplicate", relation="IS",
+                            polarity="NEUTRAL", directness="DIRECT",
+                            effect_kind="INTERVENTION", clause_ids=["C0"],
+                        ),
+                    ],
+                },
+                clauses=CLAUSES,
+                action_ids=["A0", "A1"],
+                action_texts={"A0": ALLOCATOR_A0, "A1": ALLOCATOR_A1},
+            )
+        self.assertIn("append-only", str(raised.exception))
+
+    def test_reattach_is_idempotent_and_extension_adds_one_edge(self):
+        base = _parse_allocator()
+        graph = compile_scenario_graph(
+            " ".join(clause["text"] for clause in CLAUSES),
+            [ALLOCATOR_A0, ALLOCATOR_A1],
+            world_model=base.as_dict(),
+        )
+        before = len(graph.edges)
+        attach_typed_world_model(graph, base)
+        self.assertEqual(len(graph.edges), before)
+        raw = _connected_allocator_raw()
+        raw["effects"] = [
+            effect for effect in raw["effects"] if effect["effect_id"] != "E2"
+        ]
+        raw["causal_links"] = [
+            _raw_link("A0", "E0", "E1", "C1"),
+            _raw_link("A1", "E3", "E4", "C2"),
+        ]
+        incomplete = _parse_allocator(raw)
+        graph = compile_scenario_graph(
+            " ".join(clause["text"] for clause in CLAUSES),
+            [ALLOCATOR_A0, ALLOCATOR_A1],
+            world_model=incomplete.as_dict(),
+        )
+        before = len(graph.edges)
+        updated = admit_world_model_extension(
+            incomplete,
+            {
+                "effects": [
+                    _raw_effect(
+                        effect_id="E2", action_id="A0", party_id="P3",
+                        outcome="residents spared", relation="SURVIVES",
+                        polarity="BENEFICIAL", directness="DOWNSTREAM",
+                        effect_kind="HEALTH_OUTCOME",
+                        modality="STIPULATED_CONDITIONAL",
+                        condition_ids=["COND1"],
+                        quantities=["tens of thousands"],
+                        clause_ids=["C1"],
+                    ),
+                ],
+                "causal_links": [_raw_link("A0", "E1", "E2", "C1")],
+            },
+            clauses=CLAUSES,
+            action_ids=["A0", "A1"],
+            action_texts={"A0": ALLOCATOR_A0, "A1": ALLOCATOR_A1},
+        )
+        attach_typed_world_model(graph, updated)
+        self.assertGreater(len(graph.edges), before)
+        self.assertTrue(any(
+            "WORLD_EFFECT:E2" in edge.target and edge.relation == "CAUSES"
+            for edge in graph.edges
+        ))
+
+
+class PromulgatedWorldTests(unittest.TestCase):
+    def test_opening_and_later_cycles_copy_committed_causal_links(self):
+        model = _parse_allocator()
+        opening = opening_problem_state(
+            [ALLOCATOR_A0, ALLOCATOR_A1],
+            " ".join(clause["text"] for clause in CLAUSES),
+            world_model=model,
+        )
+        links = {
+            (link["source_id"], link["target_id"])
+            for link in opening["committed_world"]["causal_links"]
+            if link["action_id"] == "A0"
+        }
+        self.assertEqual(links, {("E0", "E1"), ("E1", "E2")})
+        winner = CandidateChunk(
+            specialist="duty", constraint="DUTY",
+            action_scores={ALLOCATOR_A0: 0.7, ALLOCATOR_A1: 0.3},
+            surprise=0.1, friction=0.1, confidence=0.8,
+            recommended_action=ALLOCATOR_A0, schema_valid=True,
+        )
+        rival = CandidateChunk(
+            specialist="care", constraint="CARE",
+            action_scores={ALLOCATOR_A0: 0.4, ALLOCATOR_A1: 0.6},
+            surprise=0.1, friction=0.1, confidence=0.7,
+            recommended_action=ALLOCATOR_A1, schema_valid=True,
+        )
+        later = build_deliberative_problem_state(
+            1, [ALLOCATOR_A0, ALLOCATOR_A1], [winner, rival],
+            ALLOCATOR_A0, winner, previous_state=opening,
+        )
+        self.assertEqual(
+            later.committed_world["causal_links"],
+            opening["committed_world"]["causal_links"],
+        )
+
+    def test_committed_world_promulgates_counterfactual_links(self):
+        model = _parse_complete_magistrate()
+        opening = opening_problem_state(
+            [A0_TEXT, A1_TEXT],
+            " ".join(clause["text"] for clause in MAGISTRATE_CLAUSES),
+            world_model=model,
+        )
+        links = {
+            (
+                row["action_id"],
+                row["source_effect_id"],
+                row["alternative_effect_id"],
+            )
+            for row in opening["committed_world"]["counterfactual_links"]
+        }
+        self.assertEqual(links, {("A0", "EF0", "E10"), ("A1", "EF1", "E4")})
+        causal_endpoints = {
+            endpoint
+            for row in opening["committed_world"]["causal_links"]
+            for endpoint in (row["source_id"], row["target_id"])
+        }
+        self.assertNotIn("EF0", causal_endpoints)
+        self.assertNotIn("EF1", causal_endpoints)
+
+    def test_utilitarian_drops_foregone_duals_of_actual_party_welfare(self):
+        model = _parse_complete_magistrate()
+        omitted = {
+            effect.effect_id
+            for effect in model.effects
+            if utilitarian_omits_foregone_dual(effect, model)
+        }
+        self.assertEqual(omitted, {"EF0", "EF1"})
+        innocent_foregone = replace(
+            next(effect for effect in model.effects if effect.effect_id == "E2"),
+            effect_id="EF_INNOCENT",
+            polarity="FOREGONE",
+            directness="FOREGONE",
+            effect_kind="OPPORTUNITY_LOSS",
+        )
+        self.assertTrue(utilitarian_omits_foregone_dual(innocent_foregone, model))
+        graph = compile_scenario_graph(
+            " ".join(clause["text"] for clause in MAGISTRATE_CLAUSES),
+            [A0_TEXT, A1_TEXT],
+            world_model=model.as_dict(),
+        )
+        projected = {effect.effect_id for effect in project_grounded_action_effects(graph)}
+        scored = {
+            effect.effect_id for effect in utilitarian_scored_grounded_effects(graph)
+        }
+        self.assertTrue({"EF0", "EF1"} <= projected)
+        self.assertNotIn("EF0", scored)
+        self.assertNotIn("EF1", scored)
+        self.assertIn("E4", scored)
+        self.assertIn("E10", scored)
+        proposal = {"actions": [
+            {
+                "action_id": action_id,
+                "valuations": [
+                    {
+                        "effect_id": effect_id,
+                        "importance": "HIGH",
+                        "reason": "material aggregate welfare contribution",
+                    }
+                    for effect_id in (
+                        item.effect_id
+                        for item in utilitarian_scored_grounded_effects(graph)
+                        if item.action_id == action_id
+                    )
+                ],
+            }
+            for action_id in ("A0", "A1")
+        ]}
+        transaction = apply_utilitarian_ledger_transaction(
+            SemanticGraphStore(graph), proposal, cycle=1, specialist="utilitarian",
+            allowed_actions=(A0_TEXT, A1_TEXT),
+        )
+        self.assertEqual(transaction.status, "COMMITTED", transaction.errors)
+        committed_ids = {
+            row["world_effect_id"]
+            for row in transaction.proposal["committed_consequences"]
+        }
+        self.assertNotIn("EF0", committed_ids)
+        self.assertNotIn("EF1", committed_ids)
+
+
+class PropositionIdentityTests(unittest.TestCase):
+    def _ledger(self):
+        model = _parse_complete_magistrate()
+        graph = compile_scenario_graph(
+            " ".join(clause["text"] for clause in MAGISTRATE_CLAUSES),
+            [A0_TEXT, A1_TEXT],
+            world_model=model.as_dict(),
+        )
+        return seed_proposition_ledger(graph)
+
+    def test_world_paraphrases_bind_to_canonical_effects(self):
+        ledger = self._ledger()
+        killed = resolve_proposition(ledger, "refusing will kill 500+")
+        executed = resolve_proposition(ledger, "the innocent is executed")
+        halted = resolve_proposition(
+            ledger, "execution immediately halts the riot",
+        )
+        self.assertEqual(killed, "PROP:WORLD:E4")
+        self.assertEqual(executed, "PROP:WORLD:E8")
+        self.assertEqual(halted, "PROP:WORLD:E9")
+        self.assertEqual(ledger[killed].epistemic_status, "ESTABLISHED")
+        self.assertEqual(ledger[killed].epistemic_type, "WORLD_ESTABLISHED")
+
+    def test_hypothesis_registration_aliases_world_facts(self):
+        ledger = self._ledger()
+        bound = register_hypothesis(
+            ledger, "refusing will kill 500+",
+            specialist="utilitarian", decision_critical=True,
+        )
+        self.assertEqual(bound, "PROP:WORLD:E4")
+        self.assertIn(
+            "refusing will kill 500+",
+            ledger["PROP:WORLD:E4"].aliases,
+        )
+        self.assertFalse(any(
+            record.proposition_type == "HYPOTHESIS" for record in ledger.values()
+        ))
+
+    def test_candidate_premise_rebinds_instead_of_duplicating(self):
+        ledger = self._ledger()
+        candidate = _epistemic_candidate()
+        candidate.material_empirical_claims = [{
+            "claim": "refusing will kill 500+",
+            "proposition_id": "HYPOTHESIS",
+            "decision_critical": True,
+        }]
+        attach_candidate_dependencies(ledger, candidate)
+        self.assertEqual(
+            candidate.decision_critical_proposition_ids, ["PROP:WORLD:E4"],
+        )
+        self.assertEqual(candidate.weakest_decision_critical_status, "ESTABLISHED")
+        self.assertEqual(
+            candidate.material_empirical_claims[0]["canonical_proposition"],
+            "PROP:WORLD:E4",
+        )
+        self.assertFalse(any(
+            record.proposition_type == "HYPOTHESIS" for record in ledger.values()
+        ))
+
+    def test_side_audit_cannot_mint_duplicate_world_paraphrase(self):
+        ledger = self._ledger()
+        candidate = _epistemic_candidate()
+        apply_side_premise_audit(ledger, [candidate], {
+            "status": "FINDINGS",
+            "findings": [{
+                "specialist": "deontological",
+                "claim": "the innocent is executed",
+                "binding": "NEW_HYPOTHESIS",
+                "derived_from": ["PROP:WORLD:E8"],
+                "decision_critical": True,
+                "source_field": "rationale",
+                "reason": "auditor restated an admitted world effect",
+            }],
+            "error": "",
+        })
+        self.assertEqual(
+            candidate.decision_critical_proposition_ids, ["PROP:WORLD:E8"],
+        )
+        self.assertEqual(candidate.weakest_decision_critical_status, "ESTABLISHED")
+        self.assertFalse(any(
+            record.proposition_type == "HYPOTHESIS" for record in ledger.values()
+        ))
+
+    def test_framework_derived_does_not_duplicate_world_facts(self):
+        ledger = self._ledger()
+        bound = register_framework_derived_proposition(
+            ledger, "execution immediately halts the riot",
+            specialist="care",
+            derived_from=["PROP:WORLD:E9"],
+        )
+        self.assertEqual(bound, "PROP:WORLD:E9")
+        relation = register_framework_derived_proposition(
+            ledger,
+            "magistrate has a special relation to a citizen under judicial authority",
+            specialist="care",
+            derived_from=["PROP:WORLD:E1"],
+        )
+        self.assertEqual(ledger[relation].epistemic_type, "FRAMEWORK_DERIVED")
+        self.assertEqual(ledger[relation].epistemic_status, "DERIVED")
+        self.assertNotEqual(relation, bound)
+
+    def test_presentation_does_not_qualify_rebound_world_paraphrase(self):
+        data = {
+            "proposition_ledger": [{
+                "proposition_id": "PROP:WORLD:E4",
+                "claim": "killed; affected subject: city residents; magnitude or qualifier: over five hundred",
+                "proposition_type": "DESCRIPTIVE",
+                "epistemic_status": "ESTABLISHED",
+                "epistemic_type": "WORLD_ESTABLISHED",
+                "outcome": "killed",
+                "polarity": "ADVERSE",
+                "party_labels": ["city residents"],
+                "quantities": ["over five hundred"],
+                "aliases": ["refusing will kill 500+"],
+            }]
+        }
+        candidate = {
+            "supporting_proposition_ids": ["PROP:WORLD:E4"],
+            "decision_critical_proposition_ids": ["PROP:WORLD:E4"],
+        }
+        self.assertEqual(_candidate_epistemic_qualification(data, candidate), "")
 
 
 if __name__ == "__main__":

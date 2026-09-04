@@ -24,6 +24,36 @@ _MIN_LEANING_PREFERENCE = 0.10
 # Deprecated alias retained for one migration cycle of importers.
 CONFLICTED_NO_LEANING_POLICY_FACTOR = CONTESTED_NO_LEANING_POLICY_FACTOR
 
+OMISSION_PERFECT_NEGATIVE_VIOLATION = "OMISSION_PERFECT_NEGATIVE_VIOLATION"
+PERFECT_POSITIVE_LACKS_BASIS = "PERFECT_POSITIVE_LACKS_BASIS"
+INTENDED_AS_MEANS_LACKS_PATH = "INTENDED_AS_MEANS_LACKS_PATH"
+HARM_RELATION_GRAPH_MISALIGN = "HARM_RELATION_GRAPH_MISALIGN"
+_OMISSION_HARM_RELATIONS = {"ALLOWING_HARM", "WITHHOLDING_BENEFIT"}
+_DOING_HARM_LACKS_DIRECT = (
+    "doing-harm classification lacks a direct adverse effect on the protected party"
+)
+_ALLOWING_HARM_HAS_DIRECT = (
+    "allowing-harm classification is inconsistent with a direct adverse effect "
+    "on the protected party"
+)
+_ESTABLISHED_COERCION_KINDS = {
+    "PUBLIC", "PRIVATE", "INSTITUTIONAL", "INTERPERSONAL",
+}
+_CHALLENGE_CALIBRATION_KIND = {
+    "DOING_ALLOWING_CLASSIFICATION": OMISSION_PERFECT_NEGATIVE_VIOLATION,
+    "DUTY_PERFECTION_BASIS": PERFECT_POSITIVE_LACKS_BASIS,
+    "MEANS_CAUSAL_PATH": INTENDED_AS_MEANS_LACKS_PATH,
+}
+_CALIBRATION_KIND_NEEDLES = {
+    OMISSION_PERFECT_NEGATIVE_VIOLATION: "perfect negative-duty violation",
+    PERFECT_POSITIVE_LACKS_BASIS: "perfect positive duty lacks",
+    INTENDED_AS_MEANS_LACKS_PATH: "intended-as-means classification lacks",
+    HARM_RELATION_GRAPH_MISALIGN: "direct adverse effect on the protected party",
+}
+_OMISSION_VIOLATION_MESSAGE = (
+    "omission was classified as a perfect negative-duty violation without a separate basis"
+)
+
 
 class DutyAssessmentProposal(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
@@ -174,6 +204,234 @@ def _words(text: str) -> set[str]:
         value for value in re.findall(r"[a-z0-9]+", str(text).casefold())
         if len(value) >= 3 and value not in ignored
     }
+
+
+def _assessment_field(item: Any, name: str, default: str = "") -> str:
+    if isinstance(item, dict):
+        return str(item.get(name, default) or default)
+    return str(getattr(item, name, default) or default)
+
+
+def omission_classified_as_perfect_negative_violation(item: Any) -> bool:
+    """True only when an omission is claimed to violate a perfect negative duty.
+
+    SATISFIES plus ALLOWING_HARM is coherent: the negative duty can be kept
+    while other parties' harm raises a separate positive claim. Calibration
+    asks for a right-correlative basis only when the assessment itself claims
+    a violation, or a closed-class coercive relation against that
+    right-holder.
+    """
+    if _assessment_field(item, "duty_type") != "PERFECT_NEGATIVE":
+        return False
+    if _assessment_field(item, "harm_relation") not in _OMISSION_HARM_RELATIONS:
+        return False
+    if _assessment_field(item, "relation") == "VIOLATES":
+        return True
+    coercion_kind = _assessment_field(item, "coercion_kind", "NONE")
+    if coercion_kind not in _ESTABLISHED_COERCION_KINDS:
+        return False
+    return bool(
+        _words(_assessment_field(item, "coerced_party"))
+        & _words(_assessment_field(item, "protected_party"))
+    )
+
+
+def _typed_action_consequences(graph: SemanticGraph, action: SemanticNode) -> list[SemanticNode]:
+    """Consequences that carry admitted world-model directness for this action."""
+    found: list[SemanticNode] = []
+    for edge in graph.outgoing(action.id, "HAS_CONSEQUENCE"):
+        node = graph.nodes.get(edge.target)
+        if node is None or node.kind != "CONSEQUENCE":
+            continue
+        directness = str(node.attributes.get("directness", "") or "").strip().upper()
+        if not directness and not node.attributes.get("world_state_typed"):
+            continue
+        found.append(node)
+    return found
+
+
+def _consequence_party_labels(graph: SemanticGraph, node: SemanticNode) -> list[str]:
+    labels = [
+        str(value)
+        for value in (
+            *(node.attributes.get("affected_subjects") or ()),
+            *(node.attributes.get("targets") or ()),
+        )
+        if str(value).strip()
+    ]
+    for edge in graph.outgoing(node.id, "AFFECTS"):
+        target = graph.nodes.get(edge.target)
+        if target is not None and target.label.strip():
+            labels.append(target.label)
+    return labels
+
+
+def _direct_adverse_on_protected_party(
+    graph: SemanticGraph,
+    action: SemanticNode,
+    item: Any,
+) -> tuple[bool, bool]:
+    """Return (has_typed_topology, has_direct_adverse_on_protected_party).
+
+    Typed topology is the only signal this check trusts. Prose-only graphs
+    have neither, so doing/allowing remains the specialist's classification.
+    """
+    protected = _assessment_field(item, "protected_party")
+    protected_words = _words(protected)
+    typed = _typed_action_consequences(graph, action)
+    if not typed or not protected_words:
+        return False, False
+    for node in typed:
+        polarity = str(node.attributes.get("polarity", "") or "").upper()
+        directness = str(node.attributes.get("directness", "") or "").upper()
+        if polarity != "ADVERSE" or directness != "DIRECT":
+            continue
+        party_words = {
+            word
+            for label in _consequence_party_labels(graph, node)
+            for word in _words(label)
+        }
+        if party_words & protected_words:
+            return True, True
+    return True, False
+
+
+def harm_relation_conflicts_with_graph(
+    graph: SemanticGraph | None,
+    item: Any,
+    *,
+    action: SemanticNode | None = None,
+) -> str:
+    """Error text when hr contradicts admitted directness; empty if silent.
+
+    DOING_HARM requires a DIRECT adverse effect on the named protected party.
+    ALLOWING_HARM / WITHHOLDING_BENEFIT cannot be used when that direct
+    adverse exists. Downstream-only harm is allowing, not doing. The check
+    never infers a verdict; it only blocks a relabel that the graph cannot
+    support.
+    """
+    if graph is None:
+        return ""
+    harm_relation = _assessment_field(item, "harm_relation")
+    if harm_relation not in {"DOING_HARM", *_OMISSION_HARM_RELATIONS}:
+        return ""
+    if action is None:
+        action_id = _assessment_field(item, "action_id") or _assessment_field(
+            item, "canonical_action_id",
+        )
+        action = _resolve_action(graph, action_id) if action_id else None
+    if action is None:
+        return ""
+    has_topology, has_direct = _direct_adverse_on_protected_party(graph, action, item)
+    if not has_topology:
+        return ""
+    if harm_relation == "DOING_HARM" and not has_direct:
+        return _DOING_HARM_LACKS_DIRECT
+    if harm_relation in _OMISSION_HARM_RELATIONS and has_direct:
+        return _ALLOWING_HARM_HAS_DIRECT
+    return ""
+
+
+def calibration_issue_kinds_for_challenge(challenge_kind: str) -> tuple[str, ...]:
+    kind = str(challenge_kind).strip().upper()
+    mapped = _CHALLENGE_CALIBRATION_KIND.get(kind, "")
+    extra = (
+        (HARM_RELATION_GRAPH_MISALIGN,)
+        if kind == "DOING_ALLOWING_CLASSIFICATION" else ()
+    )
+    return tuple(dict.fromkeys(item for item in (mapped, *extra) if item))
+
+
+def calibration_issue_kind_for_challenge(challenge_kind: str) -> str:
+    kinds = calibration_issue_kinds_for_challenge(challenge_kind)
+    return kinds[0] if kinds else ""
+
+
+def _calibration_issue_kind(message: str) -> str:
+    lowered = str(message).casefold()
+    for kind, needle in _CALIBRATION_KIND_NEEDLES.items():
+        if needle in lowered:
+            return kind
+    return "CALIBRATION"
+
+
+def calibration_issues_from_errors(errors: Sequence[str]) -> list[dict[str, str]]:
+    issues: list[dict[str, str]] = []
+    for error in errors:
+        message = str(error).strip()
+        if not message:
+            continue
+        issues.append({
+            "kind": _calibration_issue_kind(message),
+            "message": message,
+            "status": "ACTIVE",
+        })
+    return issues
+
+
+def active_calibration_errors(assessment: dict[str, Any]) -> list[str]:
+    issues = assessment.get("calibration_issues")
+    if isinstance(issues, list) and issues:
+        return [
+            str(item.get("message", "")).strip()
+            for item in issues
+            if isinstance(item, dict)
+            and str(item.get("status", "ACTIVE")).upper() == "ACTIVE"
+            and str(item.get("message", "")).strip()
+        ]
+    return [
+        str(error).strip()
+        for error in assessment.get("calibration_errors", []) or []
+        if str(error).strip()
+    ]
+
+
+def supersede_calibration_issues(
+    graph: SemanticGraph,
+    *,
+    kinds: Sequence[str],
+) -> bool:
+    """Mark matching calibration complaints SUPERSEDED on the operative ledger."""
+    wanted = {str(kind).strip().upper() for kind in kinds if str(kind).strip()}
+    if not wanted:
+        return False
+    mutated = False
+    for node in graph.nodes.values():
+        if (
+            node.kind != "ASSESSMENT"
+            or node.attributes.get("framework") != "DEONTOLOGICAL"
+            or node.attributes.get("assessment_role") == "COMPETING"
+        ):
+            continue
+        issues = node.attributes.get("calibration_issues")
+        if not isinstance(issues, list):
+            issues = calibration_issues_from_errors(
+                node.attributes.get("calibration_errors", []) or [],
+            )
+        changed = False
+        updated: list[dict[str, str]] = []
+        for raw in issues:
+            issue = dict(raw) if isinstance(raw, dict) else {
+                "kind": _calibration_issue_kind(str(raw)),
+                "message": str(raw),
+                "status": "ACTIVE",
+            }
+            kind = str(issue.get("kind", "")).upper()
+            if kind in wanted and str(issue.get("status", "ACTIVE")).upper() != "SUPERSEDED":
+                issue["status"] = "SUPERSEDED"
+                changed = True
+            updated.append(issue)
+        if not changed:
+            continue
+        node.attributes["calibration_issues"] = updated
+        node.attributes["calibration_errors"] = [
+            str(issue.get("message", ""))
+            for issue in updated
+            if str(issue.get("status", "")).upper() == "ACTIVE"
+            and str(issue.get("message", "")).strip()
+        ]
+        mutated = True
+    return mutated
 
 
 def _action_parties(graph: SemanticGraph, action_id: str) -> list[SemanticNode]:
@@ -380,6 +638,9 @@ def calibrate_deontological_adjudication(
             errors.append("duty type remains unestablished")
         if item.harm_relation == "UNRESOLVED":
             errors.append("doing-versus-allowing relation remains unestablished")
+        graph_conflict = harm_relation_conflicts_with_graph(graph, item, action=action)
+        if graph_conflict:
+            errors.append(graph_conflict)
         if item.special_obligation_status in {"UNKNOWN", "CONTESTED"}:
             errors.append("special-obligation status remains unestablished")
         if item.means_relation == "UNRESOLVED":
@@ -402,13 +663,8 @@ def calibrate_deontological_adjudication(
             errors.append(
                 "perfect positive duty lacks a right-correlative, undertaking, or grounded emergency basis"
             )
-        if (
-            item.duty_type == "PERFECT_NEGATIVE"
-            and item.harm_relation in {"ALLOWING_HARM", "WITHHOLDING_BENEFIT"}
-        ):
-            errors.append(
-                "omission was classified as a perfect negative-duty violation without a separate basis"
-            )
+        if omission_classified_as_perfect_negative_violation(item):
+            errors.append(_OMISSION_VIOLATION_MESSAGE)
         if item.means_relation == "INTENDED_AS_MEANS":
             means_supported, means_support = _means_path_support(graph, action, item)
             support.extend(means_support)
@@ -506,7 +762,7 @@ def latest_assessment_by_action(
 
 def _unresolved_premises(assessment: dict[str, Any]) -> list[str]:
     """Name the premises the calibration found unestablished."""
-    errors = [str(value) for value in assessment.get("calibration_errors", [])]
+    errors = active_calibration_errors(assessment)
     unresolved: list[str] = []
     if any("necessity" in error for error in errors):
         unresolved.append("whether a less restrictive route can secure the protected claim")
@@ -526,6 +782,11 @@ def _unresolved_premises(assessment: dict[str, Any]) -> list[str]:
         unresolved.append("whether the asserted duty is perfect, imperfect, right-correlative, or special")
     if any("doing-versus-allowing" in error for error in errors):
         unresolved.append("whether the action does harm, allows harm, prevents harm, or withholds a benefit")
+    if any("direct adverse effect" in error for error in errors):
+        unresolved.append(
+            "whether the harm-relation follows the admitted graph's directness "
+            "rather than a relabel chosen to fit the verdict"
+        )
     if any("special-obligation" in error or "special duty" in error for error in errors):
         unresolved.append("whether a role, undertaking, relationship, or prior act establishes a special obligation")
     if any("means-versus-side-effect" in error or "merely-as-means" in error for error in errors):
@@ -802,6 +1063,7 @@ def apply_deontological_ledger_transaction(
             store.graph, action, proposed_item,
         )
         item = calibration.assessment
+        calibration_issues = calibration_issues_from_errors(calibration.errors)
         warnings.extend(
             f"{item.action_id} ADJUDICATION_CALIBRATION: {error}"
             for error in calibration.errors
@@ -926,6 +1188,7 @@ def apply_deontological_ledger_transaction(
                 "derivation": item.derivation,
                 "resolution_status": item.resolution_status,
                 "calibration_errors": list(calibration.errors),
+                "calibration_issues": list(calibration_issues),
                 "calibration_support_node_ids": list(calibration.support_node_ids),
                 "evidence_basis": item.evidence_basis,
                 "epistemic_status": epistemic_status, "reason": item.reason,
@@ -1080,6 +1343,7 @@ def apply_deontological_ledger_transaction(
             "derivation": item.derivation,
             "resolution_status": item.resolution_status,
             "calibration_errors": list(calibration.errors),
+            "calibration_issues": list(calibration_issues),
             "calibration_support_node_ids": list(calibration.support_node_ids),
             "evidence_basis": item.evidence_basis,
             "epistemic_status": epistemic_status,

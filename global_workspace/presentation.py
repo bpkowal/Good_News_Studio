@@ -758,6 +758,9 @@ def _proposition_index(data: dict[str, Any]) -> dict[str, dict[str, Any]]:
 def _claim_is_established_component(
     claim: str, ledger: dict[str, dict[str, Any]],
 ) -> bool:
+    from .epistemic_ledger import claim_matches_established
+    if claim_matches_established(claim, ledger):
+        return True
     normalized = " ".join(str(claim).casefold().split()).strip(" .")
     if not normalized:
         return False
@@ -772,6 +775,12 @@ def _claim_is_established_component(
             if " ".join(value.split())
         }
         if normalized in components:
+            return True
+        aliases = row.get("aliases") or []
+        if any(
+            normalized == " ".join(str(alias).casefold().split()).strip(" .")
+            for alias in aliases
+        ):
             return True
     return False
 
@@ -857,14 +866,22 @@ def _candidate_epistemic_qualification(
             rendered.append(f"{status}: {claim}")
     if not rendered:
         return ""
-    prefix = "Conditional on" if critical else "Uses an unestablished premise"
+    prefix = "Reversal boundary" if (
+        critical and candidate.get("comparison_complete", True)
+    ) else ("Conditional on" if critical else "Uses an unestablished premise")
     if compact:
         qualification = f"{prefix} [{'; '.join(rendered)}]"
         if audit_unavailable:
             qualification += "; other premise coverage unverified"
         return qualification
     noun = "proposition" if len(rendered) == 1 else "propositions"
-    if critical:
+    if critical and candidate.get("comparison_complete", True):
+        verb = "exceeds" if len(rendered) == 1 else "exceed"
+        qualification = (
+            f"Admitted ranking stands. Reversal boundary if the unestablished "
+            f"{noun} {'; '.join(rendered)} {verb} the admitted welfare margin."
+        )
+    elif critical:
         qualification = (
             f"This conclusion is conditional on the unestablished {noun}: "
             f"{'; '.join(rendered)}."
@@ -1625,6 +1642,11 @@ def render_decision_brief(result: Any) -> str:
             governing_text = (
                 governing_text.rstrip(".")
                 + " (governing justification currently under attack)"
+            )
+        elif data.get("governing_justification_status") == "CONTESTED":
+            governing_text = (
+                governing_text.rstrip(".")
+                + " (available governing claim remains contested)"
             )
     if status == CONTESTED_RECOMMENDATION and not supporting:
         governing_text = "NONE"

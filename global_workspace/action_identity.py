@@ -761,14 +761,15 @@ class CanonicalActionRecord:
     # a probabilistic harm is neither asserted as certain nor lost from view.
     unresolved: tuple[str, ...] = ()
     unresolved_outcomes: tuple[dict[str, Any], ...] = ()
-    # Cascade/foregone relations for parties the action does not itself treat.
-    # Direct recipients stay in beneficiaries/harmed; this layer is surrounding
-    # world-state, not a second copy of those roles. Prefer world_effects when a
-    # typed ScenarioWorldModel is present; this field is the legacy non-DIRECT view.
+    # Cascade/foregone relations that are not compact harm/benefit roles.
+    # Compact roles now include stipulated downstream health, welfare, and
+    # liberty effects; this field remains the non-DIRECT remainder.
     grounded_effects: tuple[Any, ...] = ()
     # Complete admitted typed effects, including direct effects. Authoritative
     # when a ScenarioWorldModel was committed; beneficiaries/harmed are projections.
     world_effects: tuple[dict[str, Any], ...] = ()
+    # Within-action causal topology from the admitted world model.
+    causal_links: tuple[dict[str, Any], ...] = ()
     # Cross-action comparisons are not mechanisms. Keep them visible without
     # allowing them into the within-action causal chain.
     counterfactual_effects: tuple[dict[str, Any], ...] = ()
@@ -1832,7 +1833,7 @@ def build_canonical_action_records(
     world_model: dict[str, Any] | None = None,
 ) -> list[CanonicalActionRecord]:
     if world_model:
-        from .world_state import world_model_from_dict
+        from .world_state import project_world_action_roles, world_model_from_dict
         typed = world_model_from_dict(world_model)
         if typed is not None:
             party_by_id = {party.party_id: party for party in typed.parties}
@@ -1844,30 +1845,17 @@ def build_canonical_action_records(
                 if effect in typed.effects_for(effect.action_id)
             }
             for world_action in typed.actions:
-                direct = [
-                    effect for effect in typed.effects_for(world_action.action_id)
-                    if effect.directness == "DIRECT"
-                ]
-                beneficiaries = tuple(dict.fromkeys(
-                    party_by_id[effect.party_id].label for effect in direct
-                    if effect.polarity == "BENEFICIAL"
-                    and effect.modality == "CERTAIN"
-                    and effect.party_id in party_by_id
-                ))
-                harmed = tuple(dict.fromkeys(
-                    party_by_id[effect.party_id].label for effect in direct
-                    if effect.polarity == "ADVERSE"
-                    and effect.modality == "CERTAIN"
-                    and effect.party_id in party_by_id
-                ))
+                roles = project_world_action_roles(typed, world_action.action_id)
+                beneficiaries = roles.beneficiaries
+                harmed = roles.harmed
+                unresolved = roles.unresolved
                 unresolved_effects = [
-                    effect for effect in direct
-                    if effect.modality != "CERTAIN" or effect.polarity == "UNRESOLVED"
+                    effect for effect in typed.effects_for(world_action.action_id)
+                    if (
+                        effect.modality != "CERTAIN" or effect.polarity == "UNRESOLVED"
+                    )
+                    and effect.directness != "FOREGONE"
                 ]
-                unresolved = tuple(dict.fromkeys(
-                    party_by_id[effect.party_id].label for effect in unresolved_effects
-                    if effect.party_id in party_by_id
-                ))
                 surrounding = tuple(
                     effect.as_dict() for effect in typed.effects_for(world_action.action_id)
                     if effect.directness != "DIRECT"
@@ -1925,6 +1913,16 @@ def build_canonical_action_records(
                         effect.as_dict()
                         for effect in typed.effects_for(world_action.action_id)
                     ),
+                    causal_links=tuple(
+                        {
+                            "action_id": link.action_id,
+                            "source_id": link.source_id,
+                            "relation": link.relation,
+                            "target_id": link.target_id,
+                            "modality": link.modality,
+                        }
+                        for link in causal
+                    ),
                     counterfactual_effects=tuple(
                         link.as_dict() for link in typed.counterfactual_links
                         if link.action_id == world_action.action_id
@@ -1932,7 +1930,7 @@ def build_canonical_action_records(
                     mechanism=mechanism,
                     institutional_effect="; ".join(
                         effect.outcome for effect in typed.effects_for(world_action.action_id)
-                        if effect.directness == "INSTITUTIONAL"
+                        if effect.effect_kind == "INSTITUTIONAL_OUTCOME"
                     ),
                     source_clauses=sources,
                     completeness_status=(

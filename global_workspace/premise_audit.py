@@ -138,10 +138,12 @@ are established content and must not be reported as hypotheses.
 
 A specific outcome is allowed when it is established or explicitly treated as an
 unestablished condition. The error is silently using added specificity as though it
-were established. When an existing HYPOTHETICAL or UNRESOLVED proposition expresses
+were established. When an existing HYPOTHETICAL, UNRESOLVED, or WORLD_ESTABLISHED proposition expresses
 the added premise, set binding to that proposition ID even if wording differs. Use
 NEW_HYPOTHESIS only when no existing proposition is semantically equivalent, and
-cite the closest supporting propositions in derived_from. decision_critical=true
+cite the closest supporting propositions in derived_from. A restatement of an
+admitted world effect, causal link, or counterfactual foreclosure is not a new
+hypothesis. decision_critical=true
 when changing or removing the premise could materially weaken, reverse, or remove
 the candidate's stated ranking or normative classification. Do not infer factual
 authority from repetition, agreement, salience, or moral importance.

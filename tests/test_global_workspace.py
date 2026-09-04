@@ -47,7 +47,10 @@ from global_workspace.rawls_ledger import apply_rawls_ledger_transaction
 from global_workspace.deontology_ledger import (
     DutyAssessmentProposal, apply_deontological_ledger_transaction,
     calibrate_deontological_adjudication, committed_deontological_assessments,
-    render_deontological_adjudication, _party_grounding,
+    harm_relation_conflicts_with_graph,
+    omission_classified_as_perfect_negative_violation,
+    render_deontological_adjudication, supersede_calibration_issues,
+    OMISSION_PERFECT_NEGATIVE_VIOLATION, _party_grounding,
 )
 from global_workspace.utilitarian_ledger import (
     _best_evidence, apply_utilitarian_ledger_transaction,
@@ -72,6 +75,7 @@ from global_workspace.contingency_graph import (
 )
 from global_workspace.contingency_feasibility import verify_contingency_feasibility
 from global_workspace.deliberative_state import (
+    apply_verified_challenge_supersession,
     build_deliberative_problem_state,
     observe_broadcast_influence,
     opening_problem_state,
@@ -81,6 +85,9 @@ from global_workspace.landscape_validation import _comparative_claim_errors
 from global_workspace.middleware.moral_residue import collect_moral_residue
 from global_workspace.trace_health import audit_trace_health
 from global_workspace.graph_transactions import SemanticGraphStore
+from global_workspace.world_state import (
+    ScenarioWorldModel, SourceRef, WorldAction, WorldEffect, WorldParty,
+)
 from global_workspace.invariance import compare_label_permutation_traces
 from global_workspace.openai_backend import OpenAIWorkspaceLLM
 from global_workspace.presentation import render_public_judgment, _support_reason
@@ -97,6 +104,7 @@ from global_workspace.scenario_semantics import (
     segment_scenario_clauses,
 )
 from global_workspace.scenario_semantics import (
+    attach_typed_world_model,
     compile_action_burdens, compile_execution_obstacles,
     compile_observability_facts,
     classify_planning_failure_grounding,
@@ -693,6 +701,458 @@ class WorkspaceEngineTests(unittest.TestCase):
             "intended-as-means" in error for error in calibration.errors
         ), calibration.errors)
 
+    def _omission_duty_proposal(self, **overrides):
+        payload = {
+            "action_id": "A0", "verdict": "PERMISSIBLE",
+            "norm_kind": "DUTY", "norm": "do not take a neighbor's property",
+            "relation": "SATISFIES", "duty_bearer": "operator",
+            "protected_party": "neighbor",
+            "competing_norm": "protect the occupied storerooms",
+            "competing_norm_kind": "DUTY", "competing_relation": "CONFLICTS",
+            "competing_protected_party": "occupants",
+            "competing_reason": "the continuing flood still threatens occupants",
+            "duty_type": "PERFECT_NEGATIVE", "harm_relation": "ALLOWING_HARM",
+            "special_obligation_status": "NOT_REQUIRED",
+            "special_obligation_basis": "the negative duty applies generally",
+            "means_relation": "NO_INSTRUMENTALIZATION",
+            "governing_norm": "PRIMARY", "priority_basis": "PERFECT_DUTY",
+            "priority_rule": "the negative duty remains the governing constraint",
+            "protected_standing": "BODILY_INTEGRITY",
+            "competing_protected_standing": "OTHER",
+            "coercion_kind": "NONE", "coercive_actor": "NONE", "coerced_party": "NONE",
+            "public_justification": "no coercion requires authorization",
+            "reciprocity_status": "UNKNOWN", "necessity_status": "UNKNOWN",
+            "authorization_status": "NOT_APPLICABLE", "derivation": "PERFECT_DUTY",
+            "resolution_status": "RESOLVED", "evidence_basis": "SCENARIO",
+            "reason": "refusing to take the pump keeps the neighbor's property intact",
+        }
+        payload.update(overrides)
+        return DutyAssessmentProposal.model_validate(payload)
+
+    def _omission_duty_graph(self):
+        actions = [
+            "refuse to take the neighbor's pump",
+            "take the neighbor's pump to divert the floodwater",
+        ]
+        graph = compile_scenario_graph(
+            "An operator may refuse to take a neighbor's pump, allowing floodwater "
+            "to continue toward five occupied storerooms, or take the neighbor's "
+            "pump to divert the water, damaging the neighbor's equipment.",
+            actions,
+        )
+        action = next(
+            node for node in graph.nodes.values()
+            if node.kind == "ACTION"
+            and node.attributes.get("canonical_action_id") == "A0"
+        )
+        return graph, action, actions
+
+    def _omission_typed_world(self) -> ScenarioWorldModel:
+        ref = (SourceRef(
+            "C0",
+            "An operator may refuse to take a neighbor's pump, allowing floodwater "
+            "to continue toward five occupied storerooms, or take the neighbor's "
+            "pump to divert the water, damaging the neighbor's equipment.",
+        ),)
+        return ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "operator", "HUMAN", ref),
+                WorldParty("P1", "neighbor", "HUMAN", ref),
+                WorldParty("P2", "occupants", "GROUP", ref),
+            ),
+            actions=(
+                WorldAction(
+                    "A0", "refuse to take the neighbor's pump", "P0", ("P1",),
+                    ("E0", "E1", "E2"), ref,
+                ),
+                WorldAction(
+                    "A1", "take the neighbor's pump", "P0", ("P1",),
+                    ("E3", "E4"), ref,
+                ),
+            ),
+            effects=(
+                WorldEffect(
+                    "E0", "A0", "P0", "refusal carried out", "PERFORMS",
+                    "NEUTRAL", "DIRECT", "CERTAIN", "INTERVENTION", provenance=ref,
+                ),
+                WorldEffect(
+                    "E1", "A0", "P1", "pump remains with neighbor", "PRESERVES",
+                    "BENEFICIAL", "DIRECT", "CERTAIN", "INTERVENTION", provenance=ref,
+                ),
+                WorldEffect(
+                    "E2", "A0", "P2", "floodwater continues toward storerooms",
+                    "EXPERIENCES", "ADVERSE", "DOWNSTREAM", "CERTAIN",
+                    "PHYSICAL_STATE", provenance=ref,
+                ),
+                WorldEffect(
+                    "E3", "A1", "P1", "equipment damaged", "EXPERIENCES",
+                    "ADVERSE", "DIRECT", "CERTAIN", "INTERVENTION", provenance=ref,
+                ),
+                WorldEffect(
+                    "E4", "A1", "P2", "floodwater diverted", "EXPERIENCES",
+                    "BENEFICIAL", "DOWNSTREAM", "CERTAIN", "PHYSICAL_STATE",
+                    provenance=ref,
+                ),
+            ),
+        )
+
+    def _omission_typed_graph(self):
+        graph, action, actions = self._omission_duty_graph()
+        attach_typed_world_model(graph, self._omission_typed_world())
+        a1 = next(
+            node for node in graph.nodes.values()
+            if node.kind == "ACTION"
+            and node.attributes.get("canonical_action_id") == "A1"
+        )
+        return graph, action, a1, actions
+
+    def test_satisfying_negative_duty_may_allow_other_harm(self):
+        graph, action, _actions = self._omission_duty_graph()
+        proposed = self._omission_duty_proposal()
+
+        self.assertFalse(omission_classified_as_perfect_negative_violation(proposed))
+        calibration = calibrate_deontological_adjudication(graph, action, proposed)
+
+        self.assertTrue(calibration.calibrated, calibration.errors)
+        self.assertFalse(any(
+            "perfect negative-duty violation" in error
+            for error in calibration.errors
+        ))
+        self.assertEqual(calibration.assessment.verdict, "PERMISSIBLE")
+        self.assertEqual(calibration.assessment.resolution_status, "RESOLVED")
+
+    def test_omission_violation_claim_still_requires_a_separate_basis(self):
+        graph, action, _actions = self._omission_duty_graph()
+        proposed = self._omission_duty_proposal(
+            verdict="PROHIBITED", relation="VIOLATES",
+            reason="refusing to take the pump violates the negative duty",
+        )
+
+        self.assertTrue(omission_classified_as_perfect_negative_violation(proposed))
+        calibration = calibrate_deontological_adjudication(graph, action, proposed)
+
+        self.assertFalse(calibration.calibrated)
+        self.assertTrue(any(
+            "perfect negative-duty violation" in error
+            for error in calibration.errors
+        ), calibration.errors)
+
+    def test_coercion_of_the_right_holder_still_counts_as_infringement(self):
+        graph, action, _actions = self._omission_duty_graph()
+        proposed = self._omission_duty_proposal(
+            coercion_kind="PRIVATE", coercive_actor="operator",
+            coerced_party="neighbor", authorization_status="UNJUSTIFIED",
+        )
+
+        self.assertTrue(omission_classified_as_perfect_negative_violation(proposed))
+        calibration = calibrate_deontological_adjudication(graph, action, proposed)
+        self.assertTrue(any(
+            "perfect negative-duty violation" in error
+            for error in calibration.errors
+        ), calibration.errors)
+
+    def test_verified_omission_repair_supersedes_the_operative_issue(self):
+        graph, _action, actions = self._omission_duty_graph()
+        store = SemanticGraphStore(graph)
+        violated = self._omission_duty_proposal(
+            verdict="PROHIBITED", relation="VIOLATES",
+            reason="refusing to take the pump violates the negative duty",
+        )
+        rival = self._omission_duty_proposal(
+            action_id="A1", verdict="PROHIBITED", relation="VIOLATES",
+            harm_relation="DOING_HARM",
+            competing_relation="SATISFIES",
+            reason="taking the pump uses the neighbor as a tool",
+        )
+        apply_deontological_ledger_transaction(
+            store,
+            {"assessments": [violated.model_dump(), rival.model_dump()]},
+            cycle=1, specialist="deontological", allowed_actions=tuple(actions),
+        )
+        committed = committed_deontological_assessments(store.graph)
+        a0 = next(item for item in committed if item.get("canonical_action_id") == "A0")
+        self.assertTrue(any(
+            issue.get("kind") == OMISSION_PERFECT_NEGATIVE_VIOLATION
+            and issue.get("status") == "ACTIVE"
+            for issue in a0.get("calibration_issues", [])
+        ), a0.get("calibration_issues"))
+
+        challenge = ArgumentChallenge(
+            challenge_kind="DOING_ALLOWING_CLASSIFICATION",
+            question=(
+                "Does the classified omission under A0 violate a perfect negative "
+                "duty, or does that conclusion require a separate right-correlative "
+                "premise?"
+            ),
+            about_specialist="deontological",
+            target_specialists=("deontological",),
+            grounded_in=("PROP:WORLD:E0",),
+            trigger_fields=("dp.*.dt", "dp.*.hr", "dp.*.pb"),
+            grounding_status="PROPOSITION_GROUNDED",
+            status="ASSIGNED",
+        ).as_dict()
+        repaired = CandidateChunk(
+            specialist="deontological", constraint="DUTY",
+            action_scores={actions[0]: 0.7, actions[1]: 0.3},
+            surprise=0.2, friction=0.4, confidence=0.8,
+            recommended_action=actions[0],
+            committed_native_ledger={
+                "ledger_kind": "DEONTOLOGICAL_DUTY_LEDGER",
+                "transaction_status": "COMMITTED",
+                "records": [{
+                    "canonical_action_id": "A0",
+                    "duty_type": "PERFECT_NEGATIVE",
+                    "harm_relation": "ALLOWING_HARM",
+                    "relation": "SATISFIES",
+                    "coercion_kind": "NONE",
+                    "protected_party": "neighbor",
+                    "coerced_party": "NONE",
+                    "calibration_errors": [],
+                }],
+            },
+            challenge_response={
+                "issue_id": challenge["issue_id"],
+                "disposition": "RESOLVED",
+                "current_position_effect": "NO_CHANGE",
+                "answer": (
+                    "a separate right-correlative premise would be required; "
+                    "the scenario supplies none"
+                ),
+            },
+        )
+
+        retained, _agenda = _advance_argument_challenge_agenda(
+            previous_challenges=[challenge],
+            generated_challenges=[],
+            candidates=[repaired],
+            next_cycle=3,
+            next_constraint="DUTY",
+            active_specialists=["deontological"],
+        )
+        verified = next(item for item in retained if item["issue_id"] == challenge["issue_id"])
+        self.assertEqual(verified["status"], "RESOLVED")
+        self.assertEqual(
+            verified["last_response"]["verification_status"], "VERIFIED_RESOLVED",
+        )
+
+        self.assertTrue(supersede_calibration_issues(
+            store.graph, kinds=(OMISSION_PERFECT_NEGATIVE_VIOLATION,),
+        ))
+        superseded = committed_deontological_assessments(store.graph)
+        a0_after = next(
+            item for item in superseded if item.get("canonical_action_id") == "A0"
+        )
+        self.assertTrue(any(
+            issue.get("kind") == OMISSION_PERFECT_NEGATIVE_VIOLATION
+            and issue.get("status") == "SUPERSEDED"
+            for issue in a0_after.get("calibration_issues", [])
+        ))
+        self.assertFalse(any(
+            "perfect negative-duty violation" in str(error)
+            for error in a0_after.get("calibration_errors", [])
+        ))
+
+        problem_state = {
+            "framework_specific_open_questions": [{
+                "issue_key": "FRAMEWORK_ISSUE:omission",
+                "issue_type": "OPEN_QUESTION",
+                "question_key": "FRAMEWORK_ISSUE:omission",
+                "source_specialist": "deontological",
+                "question": (
+                    "whether the omission violates a separate right-correlative "
+                    "prohibition"
+                ),
+                "status": "UNRESOLVED",
+                "source_type": "FRAMEWORK_ATTRIBUTED_OPEN_QUESTION",
+            }],
+            "workspace_contributions": [{
+                "agent": "deontological",
+                "unresolved": [
+                    "whether the omission violates a separate right-correlative prohibition",
+                ],
+                "visible_retained_issue": (
+                    "whether the omission violates a separate right-correlative prohibition"
+                ),
+                "retained_issue_visibility": "OMITTED",
+                "preservation_transitions": [],
+            }],
+        }
+        apply_verified_challenge_supersession(problem_state, retained)
+        self.assertEqual(
+            problem_state["framework_specific_open_questions"][0]["status"],
+            "SUPERSEDED",
+        )
+        self.assertEqual(
+            problem_state["workspace_contributions"][0]["unresolved"], [],
+        )
+        self.assertEqual(
+            problem_state["workspace_contributions"][0]["retained_issue_visibility"],
+            "NOT_APPLICABLE",
+        )
+        later = CandidateChunk(
+            specialist="deontological", constraint="DUTY",
+            action_scores={actions[0]: 0.7, actions[1]: 0.3},
+            surprise=0.2, friction=0.4, confidence=0.8,
+            recommended_action=actions[0],
+        )
+        carried = build_deliberative_problem_state(
+            3, actions, [later], actions[0], later, problem_state,
+        ).to_dict()
+        self.assertFalse(any(
+            "right-correlative" in str(item.get("question", ""))
+            and str(item.get("status", "")).upper() in {"UNRESOLVED", "OPEN", "SUSPENDED"}
+            for item in carried.get("framework_specific_open_questions", [])
+        ))
+
+    def test_doing_harm_without_direct_adverse_fails_calibration(self):
+        graph, action, _a1, _actions = self._omission_typed_graph()
+        proposed = self._omission_duty_proposal(
+            verdict="PROHIBITED", relation="VIOLATES",
+            harm_relation="DOING_HARM",
+            protected_party="occupants",
+            reason="refusing to take the pump does harm to the occupants",
+        )
+
+        self.assertFalse(omission_classified_as_perfect_negative_violation(proposed))
+        self.assertIn(
+            "direct adverse effect",
+            harm_relation_conflicts_with_graph(graph, proposed, action=action),
+        )
+        calibration = calibrate_deontological_adjudication(graph, action, proposed)
+        self.assertFalse(calibration.calibrated)
+        self.assertTrue(any(
+            "direct adverse effect" in error for error in calibration.errors
+        ), calibration.errors)
+
+    def test_doing_harm_with_direct_adverse_survives_calibration(self):
+        graph, _a0, action, _actions = self._omission_typed_graph()
+        proposed = self._omission_duty_proposal(
+            action_id="A1", verdict="PROHIBITED", relation="VIOLATES",
+            harm_relation="DOING_HARM",
+            protected_party="neighbor",
+            competing_relation="SATISFIES",
+            reason="taking the pump damages the neighbor's equipment",
+        )
+
+        self.assertEqual(
+            harm_relation_conflicts_with_graph(graph, proposed, action=action),
+            "",
+        )
+        calibration = calibrate_deontological_adjudication(graph, action, proposed)
+        self.assertFalse(any(
+            "direct adverse effect" in error for error in calibration.errors
+        ), calibration.errors)
+
+    def test_allowing_harm_is_inconsistent_with_direct_adverse(self):
+        graph, _a0, action, _actions = self._omission_typed_graph()
+        proposed = self._omission_duty_proposal(
+            action_id="A1", verdict="PERMISSIBLE", relation="SATISFIES",
+            harm_relation="ALLOWING_HARM",
+            protected_party="neighbor",
+            competing_relation="CONFLICTS",
+            reason="taking the pump is classified as merely allowing harm",
+        )
+
+        calibration = calibrate_deontological_adjudication(graph, action, proposed)
+        self.assertFalse(calibration.calibrated)
+        self.assertTrue(any(
+            "inconsistent with a direct adverse effect" in error
+            for error in calibration.errors
+        ), calibration.errors)
+
+    def test_relabeling_omission_as_doing_still_raises_doing_allowing_challenge(self):
+        graph, _action, _a1, actions = self._omission_typed_graph()
+        ledger = seed_proposition_ledger(graph)
+        candidate = CandidateChunk(
+            specialist="deontological", constraint="DUTY",
+            action_scores={actions[0]: 0.2, actions[1]: 0.8},
+            surprise=0.2, friction=0.4, confidence=0.8,
+            recommended_action=actions[1],
+            rationale="The omission is relabeled as doing harm.",
+            decision_rule="A downstream harm is treated as a doing.",
+            supporting_proposition_ids=list(ledger),
+            deontological_ledger_proposal={"assessments": [{
+                "action_id": "A0", "resolution_status": "RESOLVED",
+                "norm": "do not kill occupants",
+                "duty_type": "PERFECT_NEGATIVE",
+                "relation": "VIOLATES",
+                "harm_relation": "DOING_HARM",
+                "coercion_kind": "NONE",
+                "protected_party": "occupants",
+                "coerced_party": "NONE",
+                "special_obligation_status": "NOT_REQUIRED",
+                "means_relation": "NO_INSTRUMENTALIZATION",
+                "priority_rule": "the negative duty remains governing",
+                "public_justification": "no coercion requires authorization",
+                "reason": "leaving the flood is classified as doing harm",
+            }]},
+        )
+
+        kinds = {
+            item["challenge_kind"]
+            for item in _argument_challenge_candidates(
+                [candidate], ledger, graph, actions[0],
+            )
+        }
+        self.assertIn("DOING_ALLOWING_CLASSIFICATION", kinds)
+
+    def test_relabeling_omission_as_doing_does_not_verify_resolution(self):
+        graph, _action, _a1, actions = self._omission_typed_graph()
+        challenge = ArgumentChallenge(
+            challenge_kind="DOING_ALLOWING_CLASSIFICATION",
+            question=(
+                "Does the classified omission under A0 violate a perfect negative "
+                "duty, or does that conclusion require a separate right-correlative "
+                "premise?"
+            ),
+            about_specialist="deontological",
+            target_specialists=("deontological",),
+            grounded_in=("PROP:WORLD:E0",),
+            trigger_fields=("dp.*.dt", "dp.*.hr", "dp.*.pb"),
+            grounding_status="PROPOSITION_GROUNDED",
+            status="ASSIGNED",
+        ).as_dict()
+        relabeled = CandidateChunk(
+            specialist="deontological", constraint="DUTY",
+            action_scores={actions[0]: 0.2, actions[1]: 0.8},
+            surprise=0.2, friction=0.4, confidence=0.8,
+            recommended_action=actions[1],
+            committed_native_ledger={
+                "ledger_kind": "DEONTOLOGICAL_DUTY_LEDGER",
+                "transaction_status": "COMMITTED",
+                "records": [{
+                    "canonical_action_id": "A0",
+                    "duty_type": "PERFECT_NEGATIVE",
+                    "harm_relation": "DOING_HARM",
+                    "relation": "VIOLATES",
+                    "coercion_kind": "NONE",
+                    "protected_party": "occupants",
+                    "coerced_party": "NONE",
+                    "calibration_errors": [],
+                }],
+            },
+            challenge_response={
+                "issue_id": challenge["issue_id"],
+                "disposition": "RESOLVED",
+                "current_position_effect": "NO_CHANGE",
+                "answer": "the omission is now classified as doing harm",
+            },
+        )
+
+        retained, _agenda = _advance_argument_challenge_agenda(
+            previous_challenges=[challenge],
+            generated_challenges=[],
+            candidates=[relabeled],
+            next_cycle=3,
+            next_constraint="DUTY",
+            active_specialists=["deontological"],
+            graph=graph,
+        )
+        verified = next(item for item in retained if item["issue_id"] == challenge["issue_id"])
+        self.assertEqual(
+            verified["last_response"]["verification_status"], "RESOLUTION_REJECTED",
+        )
+
     def test_calibrated_deontology_renderer_exposes_conflict_and_open_questions(self):
         rationale, rule, conflicts, questions = render_deontological_adjudication({
             "protected_party": "children",
@@ -936,7 +1396,7 @@ class WorkspaceEngineTests(unittest.TestCase):
                 "deliberative_consensus", "framework_warnings",
                 "audit_candidates", "resolved_questions",
                 "unresolved_categories", "primary_unresolved",
-                "proposals",
+                "proposals", "committed_world",
             },
         )
         rawls_contract = next(
@@ -3693,7 +4153,11 @@ class WorkspaceEngineTests(unittest.TestCase):
                     surprise=0.6,
                     friction=0.7,
                     confidence=0.9,
+                    recommended_action=preferred,
                     rationale="test",
+                    decision_rule=f"Prefer {preferred} under {self.constraint}.",
+                    adjudication_status="SUPPORTS",
+                    governing_eligible=True,
                 )
 
         preferred_action = "tell the truth compassionately"
@@ -3711,7 +4175,9 @@ class WorkspaceEngineTests(unittest.TestCase):
         result = engine.run("A general conflict", ["lie", "truth"], synthesize=synthesize)
         self.assertNotIn(preferred_action, result.actions)
         self.assertFalse(any(preferred_action in actions for actions in seen_actions))
-        self.assertIn(result.selected_action, {"lie", "truth"})
+        self.assertNotEqual(result.selected_action, preferred_action)
+        if result.selected_action != "UNRESOLVED":
+            self.assertIn(result.selected_action, {"lie", "truth"})
         self.assertTrue(result.synthesis_proposals[0].accepted)
         self.assertEqual(result.synthesis_proposals[0].proposal_id, "P0")
         self.assertEqual(result.synthesis_proposals[0].promotion_status, "UNDER_REVIEW")
@@ -3951,12 +4417,12 @@ class WorkspaceEngineTests(unittest.TestCase):
         )
         result = engine.run("A closed moral conflict.", ["pull", "do not pull"])
         self.assertEqual(result.halted_by, "cycle_budget")
-        self.assertEqual(result.judgment_status, "GOVERNED_RECOMMENDATION")
+        self.assertEqual(result.judgment_status, "CONTESTED_RECOMMENDATION")
         self.assertEqual(result.selected_action, "pull")
         self.assertEqual(result.current_plurality, "pull")
-        self.assertIn("prefer pull", result.compressed_rule.casefold())
+        self.assertIn("pull", result.compressed_rule.casefold())
         answer = render_public_judgment(result)
-        self.assertIn("**pull.**", answer)
+        self.assertIn("**pull — presently favored, but contested.**", answer)
         self.assertIn("## Why the Parliament currently favors this action", answer)
         self.assertIn("## Deliberation Map", answer)
         self.assertNotIn("judged overriding rather than the leading consideration", answer)
@@ -4317,6 +4783,96 @@ class WorkspaceEngineTests(unittest.TestCase):
         self.assertEqual(challenge["raised_by"], [])
         self.assertEqual(challenge["target_specialists"], ["deontological"])
         self.assertIn("dp.*.dt", challenge["trigger_fields"])
+
+    def test_satisfying_omission_does_not_raise_doing_allowing_challenge(self):
+        actions = [
+            "refuse to take the neighbor's pump",
+            "take the neighbor's pump to divert the floodwater",
+        ]
+        graph = compile_scenario_graph(
+            "An operator may refuse to take a neighbor's pump, allowing floodwater "
+            "to continue toward five occupied storerooms, or take the neighbor's "
+            "pump to divert the water, damaging the neighbor's equipment.",
+            actions,
+        )
+        ledger = seed_proposition_ledger(graph)
+        candidate = CandidateChunk(
+            specialist="deontological", constraint="DUTY",
+            action_scores={actions[0]: 0.8, actions[1]: 0.2},
+            surprise=0.2, friction=0.4, confidence=0.8,
+            recommended_action=actions[0],
+            rationale="The negative duty is satisfied by refusal.",
+            decision_rule="Keep the neighbor's property intact.",
+            supporting_proposition_ids=list(ledger),
+            deontological_ledger_proposal={"assessments": [{
+                "action_id": "A0", "resolution_status": "RESOLVED",
+                "norm": "do not take a neighbor's property",
+                "duty_type": "PERFECT_NEGATIVE",
+                "relation": "SATISFIES",
+                "harm_relation": "ALLOWING_HARM",
+                "coercion_kind": "NONE",
+                "protected_party": "neighbor",
+                "coerced_party": "NONE",
+                "special_obligation_status": "NOT_REQUIRED",
+                "means_relation": "NO_INSTRUMENTALIZATION",
+                "priority_rule": "the negative duty remains governing",
+                "public_justification": "no coercion requires authorization",
+                "reason": "refusal satisfies the negative duty while allowing flood harm",
+            }]},
+        )
+
+        kinds = {
+            item["challenge_kind"]
+            for item in _argument_challenge_candidates(
+                [candidate], ledger, graph, actions[0],
+            )
+        }
+        self.assertNotIn("DOING_ALLOWING_CLASSIFICATION", kinds)
+
+    def test_omission_violation_claim_still_raises_doing_allowing_challenge(self):
+        actions = [
+            "refuse to take the neighbor's pump",
+            "take the neighbor's pump to divert the floodwater",
+        ]
+        graph = compile_scenario_graph(
+            "An operator may refuse to take a neighbor's pump, allowing floodwater "
+            "to continue toward five occupied storerooms, or take the neighbor's "
+            "pump to divert the water, damaging the neighbor's equipment.",
+            actions,
+        )
+        ledger = seed_proposition_ledger(graph)
+        candidate = CandidateChunk(
+            specialist="deontological", constraint="DUTY",
+            action_scores={actions[0]: 0.2, actions[1]: 0.8},
+            surprise=0.2, friction=0.4, confidence=0.8,
+            recommended_action=actions[1],
+            rationale="The omission is classified as a negative-duty violation.",
+            decision_rule="An omission that allows harm is prohibited.",
+            supporting_proposition_ids=list(ledger),
+            deontological_ledger_proposal={"assessments": [{
+                "action_id": "A0", "resolution_status": "RESOLVED",
+                "norm": "do not take a neighbor's property",
+                "duty_type": "PERFECT_NEGATIVE",
+                "relation": "VIOLATES",
+                "harm_relation": "ALLOWING_HARM",
+                "coercion_kind": "NONE",
+                "protected_party": "neighbor",
+                "coerced_party": "NONE",
+                "special_obligation_status": "NOT_REQUIRED",
+                "means_relation": "NO_INSTRUMENTALIZATION",
+                "priority_rule": "the negative duty remains governing",
+                "public_justification": "no coercion requires authorization",
+                "reason": "allowing the flood is treated as violating the negative duty",
+            }]},
+        )
+
+        kinds = {
+            item["challenge_kind"]
+            for item in _argument_challenge_candidates(
+                [candidate], ledger, graph, actions[0],
+            )
+        }
+        self.assertIn("DOING_ALLOWING_CLASSIFICATION", kinds)
 
     def test_typed_argument_challenge_separates_author_from_audited_agent(self):
         challenge = ArgumentChallenge(
@@ -4906,7 +5462,7 @@ class WorkspaceEngineTests(unittest.TestCase):
         )
         result = engine.run("One dies if acting; five die otherwise.", ["pull", "wait"])
         self.assertEqual(result.halted_by, "convergence")
-        self.assertEqual(result.judgment_status, "GOVERNED_RECOMMENDATION")
+        self.assertEqual(result.judgment_status, "CONTESTED_RECOMMENDATION")
         self.assertEqual(result.selected_action, "pull")
         self.assertEqual(result.reopen_conditions, [])
         answer = render_public_judgment(result)
@@ -7984,6 +8540,48 @@ class BridgeTests(unittest.TestCase):
         self.assertFalse(chunk.evidence_sufficient_for_action)
         self.assertTrue(chunk.utilitarian_decision_depends_on_unknown)
 
+    def test_unverified_downstream_hypothesis_does_not_move_utilitarian_scores(self):
+        actions = ["open the spillway", "keep the spillway closed"]
+        data = {
+            "scores": {"A0": 0.25, "A1": 0.75}, "r": "A1",
+            "c": "IMMINENT_HARM", "u": "VERIFY_FACTS",
+            "w": "Later deaths might dominate", "j": "NONE",
+            "e": "UNSTATED_FACTS",
+            "x": "opening later causes more downstream deaths than the admitted margin",
+            "z": 0.8,
+            "ct": {
+                "A0": [{
+                    "o": "one operator is injured", "s": "operator",
+                    "d": "HARM", "p": "100%", "m": "1", "h": "immediate",
+                    "rv": "IRREVERSIBLE", "g": "STATED",
+                }],
+                "A1": [{
+                    "o": "five hundred residents drown", "s": "residents",
+                    "d": "HARM", "p": "100%", "m": "500", "h": "immediate",
+                    "rv": "IRREVERSIBLE", "g": "STATED",
+                }],
+            },
+            "cd": True,
+            "cm": "later downstream deaths versus the admitted flood margin",
+            "dr": "prefer opening the spillway when admitted deaths are lower",
+            "ft": "NONE", "nt": "NONE",
+        }
+        chunk = _candidate_from_data(
+            "utilitarian", actions, data, WorkspaceBroadcast(), "NONE", {},
+        )
+
+        self.assertEqual(chunk.recommended_action, actions[0])
+        self.assertGreater(
+            chunk.action_scores[actions[0]], chunk.action_scores[actions[1]],
+        )
+        self.assertFalse(chunk.utilitarian_decision_depends_on_unknown)
+        self.assertTrue(chunk.comparison_complete)
+        self.assertNotEqual(chunk.assumption_status, "UNDERDETERMINED")
+        self.assertEqual(chunk.unresolved, "DECISION_BOUNDARY")
+        self.assertIn("admitted", chunk.factual_reversal_threshold.casefold())
+        self.assertAlmostEqual(chunk.action_scores[actions[0]], 0.75)
+        self.assertAlmostEqual(chunk.action_scores[actions[1]], 0.25)
+
     def test_utilitarian_multi_clause_graph_updates_are_stripped(self):
         actions = ["evacuate the district", "keep the district open"]
         data = {
@@ -10852,6 +11450,7 @@ class OpeningProblemFrameTests(unittest.TestCase):
         self.assertEqual(frame["salient_position"], {})
         self.assertEqual(frame["agent_positions"], [])
         self.assertEqual(frame["current_plurality"], "")
+        self.assertEqual(frame["committed_world"], {})
 
     def test_engine_seeds_the_frame_and_records_no_influence_for_it(self):
         received: list[dict[str, object]] = []
@@ -11524,7 +12123,7 @@ class SpecialistAuthorityTests(unittest.TestCase):
         )
         self.assertFalse(kant.reopen_eligible)
 
-    def test_plurality_without_governing_claim_is_contested(self):
+    def test_plurality_without_governing_claim_is_unresolved(self):
         from global_workspace.specialist_authority import classify_terminal_judgment
 
         provisional = CandidateChunk(
@@ -11539,9 +12138,99 @@ class SpecialistAuthorityTests(unittest.TestCase):
             governing=None,
             candidates=[provisional],
         )
-        self.assertEqual(terminal.status, "CONTESTED_RECOMMENDATION")
+        self.assertEqual(terminal.status, "UNRESOLVED")
         self.assertEqual(terminal.governing_rule, "")
         self.assertEqual(terminal.governing_justification_status, "NONE")
+
+    def test_rejected_validator_resolution_cannot_govern(self):
+        from global_workspace.specialist_authority import (
+            apply_validator_governance_gate,
+            classify_terminal_judgment,
+            select_governing_claim,
+        )
+
+        care = CandidateChunk(
+            "care", "CARE", {"a": 0.8, "b": 0.2}, 0.2, 0.2, 0.8,
+            recommended_action="a",
+            adjudication_status="SUPPORTS",
+            governing_eligible=True,
+            decision_rule="Protect the entrusted dependent first.",
+            challenge_response={"verification_status": "RESOLUTION_REJECTED"},
+        )
+        rawls = CandidateChunk(
+            "rawlsian", "FAIRNESS", {"a": 0.7, "b": 0.3}, 0.2, 0.2, 0.8,
+            recommended_action="a",
+            adjudication_status="SUPPORTS",
+            governing_eligible=True,
+            decision_rule="A0 protects the least advantaged representative.",
+        )
+        utilitarian = CandidateChunk(
+            "utilitarian", "HARM", {"a": 0.3, "b": 0.7}, 0.2, 0.4, 0.8,
+            recommended_action="b",
+            adjudication_status="SUPPORTS",
+            governing_eligible=True,
+            decision_rule="A1 minimizes expected deaths.",
+        )
+        apply_validator_governance_gate(care)
+        self.assertFalse(care.governing_eligible)
+        governing = select_governing_claim(
+            [care, rawls, utilitarian], "a", preferred=care,
+        )
+        self.assertIs(governing, rawls)
+        terminal = classify_terminal_judgment(
+            plurality="a",
+            governing=care,
+            candidates=[care, rawls, utilitarian],
+            policy={"a": 0.79, "b": 0.21},
+        )
+        self.assertEqual(terminal.status, "CONTESTED_RECOMMENDATION")
+        self.assertEqual(terminal.policy_direction, "a")
+        self.assertIn("least advantaged", terminal.governing_rule)
+
+    def test_stable_leader_without_dissent_remains_governed(self):
+        from global_workspace.specialist_authority import classify_terminal_judgment
+
+        care = CandidateChunk(
+            "care", "CARE", {"a": 0.8, "b": 0.2}, 0.2, 0.2, 0.8,
+            recommended_action="a",
+            adjudication_status="SUPPORTS",
+            governing_eligible=True,
+            decision_rule="Protect the entrusted dependent first.",
+        )
+        rawls = CandidateChunk(
+            "rawlsian", "FAIRNESS", {"a": 0.7, "b": 0.3}, 0.2, 0.2, 0.8,
+            recommended_action="a",
+            adjudication_status="SUPPORTS",
+            governing_eligible=True,
+            decision_rule="A0 protects the least advantaged representative.",
+        )
+        terminal = classify_terminal_judgment(
+            plurality="a",
+            governing=care,
+            candidates=[care, rawls],
+            policy={"a": 0.8, "b": 0.2},
+        )
+        self.assertEqual(terminal.status, "GOVERNED_RECOMMENDATION")
+        self.assertEqual(terminal.governing_justification_status, "ADMISSIBLE")
+
+    def test_tied_policy_leader_is_unresolved(self):
+        from global_workspace.specialist_authority import classify_terminal_judgment
+
+        left = CandidateChunk(
+            "care", "CARE", {"a": 0.5, "b": 0.5}, 0.2, 0.2, 0.6,
+            recommended_action="a",
+            adjudication_status="SUPPORTS",
+            governing_eligible=True,
+            decision_rule="Protect a.",
+        )
+        terminal = classify_terminal_judgment(
+            plurality="a",
+            governing=left,
+            candidates=[left],
+            policy={"a": 0.5, "b": 0.5},
+        )
+        self.assertEqual(terminal.status, "UNRESOLVED")
+        self.assertEqual(terminal.policy_direction, "")
 
 
 class AuditCycleHygieneTests(unittest.TestCase):

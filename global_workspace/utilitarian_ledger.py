@@ -13,6 +13,7 @@ from .scenario_semantics import (
     query_grounded_action_effects,
 )
 from .semantic_graph import SemanticEdge, SemanticGraph, SemanticNode, merge_graphs, validate_graph
+from .world_state import counts_as_actual_welfare
 
 
 class ConsequenceProposal(BaseModel):
@@ -197,6 +198,49 @@ def _accounting_role(polarity: str) -> str:
     }.get(str(polarity).upper(), "UNKNOWN")
 
 
+def _node_is_foregone(node: SemanticNode | None) -> bool:
+    if node is None:
+        return False
+    polarity = str(node.attributes.get("polarity", "")).upper()
+    directness = str(node.attributes.get("directness", "")).upper()
+    return polarity == "FOREGONE" or directness == "FOREGONE"
+
+
+def utilitarian_scored_grounded_effects(graph: SemanticGraph):
+    """Grounded effects util should value, without FOREGONE duals of actual rows.
+
+    A FOREGONE row on party P remains an opportunity cost when this action has
+    no actual harm or benefit on P. If the action already records that party's
+    stipulated death, survival, or equivalent welfare, the FOREGONE overlay is
+    the counterfactual dual and must not enter the welfare sum.
+    """
+    projected = project_grounded_action_effects(graph)
+    actual_parties: dict[str, set[str]] = {}
+    for effect in projected:
+        node = graph.nodes.get(effect.consequence_id)
+        if node is None or _node_is_foregone(node):
+            continue
+        if not counts_as_actual_welfare(
+            polarity=str(node.attributes.get("polarity", "")).upper(),
+            directness=str(node.attributes.get("directness", "")).upper(),
+            effect_kind=str(node.attributes.get("effect_kind", "")).upper(),
+            party_kind=str(node.attributes.get("party_kind", "")).upper(),
+        ):
+            continue
+        party_id = str(node.attributes.get("party_id", ""))
+        if party_id:
+            actual_parties.setdefault(effect.action_id, set()).add(party_id)
+    scored = []
+    for effect in projected:
+        node = graph.nodes.get(effect.consequence_id)
+        if node is not None and _node_is_foregone(node):
+            party_id = str(node.attributes.get("party_id", ""))
+            if party_id and party_id in actual_parties.get(effect.action_id, set()):
+                continue
+        scored.append(effect)
+    return scored
+
+
 def _apply_effect_valuation_transaction(
     store: SemanticGraphStore,
     proposal: dict[str, Any],
@@ -237,7 +281,7 @@ def _apply_effect_valuation_transaction(
         return record
 
     projected_by_action: dict[str, dict[str, Any]] = {}
-    for effect in project_grounded_action_effects(store.graph):
+    for effect in utilitarian_scored_grounded_effects(store.graph):
         evidence = store.graph.nodes.get(effect.consequence_id)
         if evidence is None:
             continue

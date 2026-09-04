@@ -25,10 +25,13 @@ from .specialist_authority import (
     UNRESOLVED,
     apply_investigative_authority,
     apply_specialist_authority,
+    apply_validator_governance_gate,
+    can_supply_governing_basis,
     claim_ref,
     classify_terminal_judgment,
     derive_broadcast_authority,
     evidence_fingerprint_for,
+    has_unique_policy_leader,
     select_governing_claim,
 )
 from .semantic_invariants import (
@@ -44,6 +47,7 @@ from .scenario_semantics import (
 from .trace_health import audit_trace_health
 from .decision_boundaries import select_collective_reversal_boundary
 from .deliberative_state import (
+    apply_verified_challenge_supersession,
     build_deliberative_problem_state,
     observe_broadcast_influence,
     opening_problem_state,
@@ -72,10 +76,15 @@ from .utilitarian_ledger import (
     committed_utilitarian_consequences,
 )
 from .deontology_ledger import (
+    active_calibration_errors,
     apply_deontological_ledger_transaction,
+    calibration_issue_kinds_for_challenge,
     classify_deontological_authority,
     committed_deontological_assessments,
+    harm_relation_conflicts_with_graph,
     latest_assessment_by_action,
+    omission_classified_as_perfect_negative_violation,
+    supersede_calibration_issues,
 )
 from .virtue_ledger import (
     apply_virtue_ledger_transaction,
@@ -1273,14 +1282,20 @@ def _argument_challenge_candidates(
                         trigger_fields=("dp.*.dt", "dp.*.so", "dp.*.sob"),
                         priority=0.94,
                     )
-                if (
-                    item.get("harm_relation") in {"ALLOWING_HARM", "WITHHOLDING_BENEFIT"}
-                    and item.get("duty_type") == "PERFECT_NEGATIVE"
-                ):
+                if omission_classified_as_perfect_negative_violation(item):
                     add(
                         candidate.specialist,
                         "DOING_ALLOWING_CLASSIFICATION",
                         f"Does the classified omission under {item.get('action_id', 'this action')} violate a perfect negative duty, or does that conclusion require a separate right-correlative premise?",
+                        grounded_in=cited,
+                        trigger_fields=("dp.*.dt", "dp.*.hr", "dp.*.pb"),
+                        priority=0.96,
+                    )
+                elif harm_relation_conflicts_with_graph(graph, item):
+                    add(
+                        candidate.specialist,
+                        "DOING_ALLOWING_CLASSIFICATION",
+                        f"Does the harm under {item.get('action_id', 'this action')} follow the admitted graph's directness, or is doing-versus-allowing being relabeled to fit the verdict?",
                         grounded_in=cited,
                         trigger_fields=("dp.*.dt", "dp.*.hr", "dp.*.pb"),
                         priority=0.96,
@@ -1567,6 +1582,7 @@ def _challenge_resolution_supported(
     candidate: CandidateChunk,
     challenge: dict[str, object],
     response: dict[str, object],
+    graph: SemanticGraph | None = None,
 ) -> tuple[bool, str]:
     """Verify a self-reported resolution against the operative native ledger."""
     kind = str(challenge.get("challenge_kind", "")).upper()
@@ -1613,9 +1629,9 @@ def _challenge_resolution_supported(
             or str(item.get("duty_type", "")) == "RIGHT_CORRELATIVE"
         ]
         unsupported = any(
-            "perfect positive duty lacks" in str(error).casefold()
+            "perfect positive duty lacks" in error.casefold()
             for item in relevant
-            for error in item.get("calibration_errors", []) or []
+            for error in active_calibration_errors(item)
         )
         supported = bool(relevant and not unsupported)
         return (
@@ -1623,11 +1639,40 @@ def _challenge_resolution_supported(
             "perfect-duty basis survives ledger calibration"
             if supported else "perfect-duty basis remains unestablished after calibration",
         )
+    if kind == "DOING_ALLOWING_CLASSIFICATION":
+        still_claimed = any(
+            omission_classified_as_perfect_negative_violation(item)
+            for item in records
+        )
+        still_errored = any(
+            "perfect negative-duty violation" in error.casefold()
+            or "direct adverse effect" in error.casefold()
+            for item in records
+            for error in active_calibration_errors(item)
+        )
+        still_misaligned = any(
+            harm_relation_conflicts_with_graph(graph, item)
+            for item in records
+        ) if graph is not None else False
+        resolved = (
+            bool(records)
+            and not still_claimed
+            and not still_errored
+            and not still_misaligned
+        )
+        return (
+            resolved,
+            "omission is not committed as a perfect negative-duty violation"
+            if resolved else
+            "the operative ledger still treats the omission as a perfect negative-duty violation"
+            if still_claimed or still_errored else
+            "the operative ledger still relabels graph-supported allowing as doing",
+        )
     if kind == "MEANS_CAUSAL_PATH":
         unsupported = any(
-            "causal path" in str(error).casefold()
+            "causal path" in error.casefold()
             for item in records
-            for error in item.get("calibration_errors", []) or []
+            for error in active_calibration_errors(item)
         )
         return (
             not unsupported,
@@ -1837,6 +1882,41 @@ def _render_deliberation_progress(
             )
 
 
+def _apply_verified_resolution_to_native_ledgers(
+    retained_challenges: Sequence[dict[str, object]],
+    candidates: Sequence[CandidateChunk],
+    graph_store: SemanticGraphStore,
+    result: WorkspaceResult | None = None,
+) -> None:
+    """A verified repair must supersede the matching complaint on the ledger."""
+    kinds = [
+        kind
+        for item in retained_challenges
+        if str(
+            (dict(item.get("last_response") or {})).get("verification_status", "")
+        ).upper() == "VERIFIED_RESOLVED"
+        for kind in calibration_issue_kinds_for_challenge(
+            str(item.get("challenge_kind", ""))
+        )
+    ]
+    kinds = [kind for kind in dict.fromkeys(kinds) if kind]
+    if not kinds:
+        return
+    if not supersede_calibration_issues(graph_store.graph, kinds=kinds):
+        return
+    records = committed_deontological_assessments(graph_store.graph)
+    if result is not None:
+        result.deontological_duty_ledger = records
+    for candidate in candidates:
+        native = candidate.committed_native_ledger
+        if (
+            candidate.specialist == "deontological"
+            and isinstance(native, dict)
+            and str(native.get("ledger_kind", "")) == "DEONTOLOGICAL_DUTY_LEDGER"
+        ):
+            native["records"] = copy.deepcopy(records)
+
+
 def _advance_argument_challenge_agenda(
     *,
     previous_challenges: Sequence[dict[str, object]],
@@ -1846,6 +1926,7 @@ def _advance_argument_challenge_agenda(
     next_constraint: str,
     active_specialists: Sequence[str],
     settled_issue_ids: Sequence[str] = (),
+    graph: SemanticGraph | None = None,
 ) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
     """Retain challenge history and assign one live question per framework."""
     settled = {str(value) for value in settled_issue_ids}
@@ -1910,6 +1991,7 @@ def _advance_argument_challenge_agenda(
                 "current_position_effect": current_effect,
                 "boundary_effect": boundary_effect,
             },
+            graph=graph,
         )
         operative_disposition = reported_disposition
         verification_status = "ANSWER_RECORDED"
@@ -2954,6 +3036,7 @@ class WorkspaceEngine:
                 broadcast,
                 problem_state=opening_problem_state(
                     clean_actions, scenario, graph_store.graph,
+                    world_model=(action_source_grounding or {}).get("world_model"),
                 ),
             )
         visibility_multipliers = {action: 1.0 for action in clean_actions}
@@ -4071,8 +4154,65 @@ class WorkspaceEngine:
                 ),
                 active_specialists=[specialist.name for specialist in self.specialists],
                 settled_issue_ids=settled_keys,
+                graph=graph_store.graph,
             )
+            _apply_verified_resolution_to_native_ledgers(
+                retained_challenges, valid_candidates, graph_store, result,
+            )
+            apply_verified_challenge_supersession(
+                next_problem_state, retained_challenges,
+            )
+            if not is_counterfactual:
+                private_by_agent = {
+                    str(item.get("agent", "")): dict(item)
+                    for item in next_problem_state.get("workspace_contributions", []) or []
+                    if isinstance(item, dict) and str(item.get("agent", ""))
+                }
+                for specialist in self.specialists:
+                    if hasattr(specialist, "private_framework_contribution"):
+                        specialist.private_framework_contribution = copy.deepcopy(
+                            private_by_agent.get(specialist.name, {})
+                        )
             next_problem_state["argument_challenge_candidates"] = retained_challenges
+            for candidate in valid_candidates:
+                apply_validator_governance_gate(candidate)
+            prior_governing = governing_claim
+            if (
+                governing_claim is None
+                or not can_supply_governing_basis(governing_claim, selected_action)
+            ):
+                governing_claim = self._select_governing_candidate(
+                    valid_candidates, selected_action,
+                )
+            if (
+                not is_counterfactual
+                and claim_ref(prior_governing) != claim_ref(governing_claim)
+            ):
+                result.governing_authority_transitions.append({
+                    "cycle": cycle_number,
+                    "from_specialist": (
+                        prior_governing.specialist if prior_governing is not None else "NONE"
+                    ),
+                    "to_specialist": (
+                        governing_claim.specialist if governing_claim is not None else "NONE"
+                    ),
+                    "action": selected_action,
+                    "reason": "VALIDATOR_RESOLUTION_REJECTED",
+                    "trigger_constraint": received_broadcast.constraint,
+                    "argumentative_event": True,
+                })
+                incumbent_governing_specialist = (
+                    governing_claim.specialist if governing_claim is not None else ""
+                )
+            for candidate in valid_candidates:
+                candidate.broadcast_authority = derive_broadcast_authority(
+                    governing_eligible=candidate.governing_eligible,
+                    is_governing_focus=(
+                        governing_claim is not None and candidate is governing_claim
+                    ),
+                    reopen_eligible=candidate.reopen_eligible,
+                    investigative_priority=candidate.investigative_priority,
+                )
             _render_deliberation_progress(
                 progress,
                 cycle=cycle_number,
@@ -5344,9 +5484,15 @@ class WorkspaceEngine:
                     fired_keys=fired_reopen_keys,
                     settled_keys=list(settled_question_keys(graph_store.graph)),
                 )
+                apply_validator_governance_gate(candidate)
+            stored_governing = judgment_cycle.governing_claim
             governing_candidate = (
-                judgment_cycle.governing_claim
-                or self._select_governing_candidate(
+                stored_governing
+                if stored_governing is not None
+                and can_supply_governing_basis(
+                    stored_governing, result.current_plurality,
+                )
+                else self._select_governing_candidate(
                     valid_final,
                     result.current_plurality,
                     preferred=(
@@ -5368,13 +5514,8 @@ class WorkspaceEngine:
                     reopen_eligible=candidate.reopen_eligible,
                     investigative_priority=candidate.investigative_priority,
                 )
-            underdetermined_count = sum(
-                candidate.assumption_status == "UNDERDETERMINED"
-                for candidate in valid_final
-            )
-            has_stable_plurality = (
-                underdetermined_count / max(1, len(valid_final)) < 0.50
-                and bool(result.current_plurality)
+            has_stable_plurality = has_unique_policy_leader(
+                result.current_plurality, judgment_cycle.policy,
             )
             terminal = classify_terminal_judgment(
                 plurality=result.current_plurality,
@@ -5382,6 +5523,14 @@ class WorkspaceEngine:
                 candidates=valid_final,
                 halted_by=result.halted_by,
                 has_stable_plurality=has_stable_plurality,
+                problem_state=(
+                    judgment_cycle.broadcast.problem_state
+                    if judgment_cycle.broadcast is not None else {}
+                ) or (
+                    judgment_cycle.received_broadcast.problem_state
+                    if judgment_cycle.received_broadcast else {}
+                ),
+                policy=judgment_cycle.policy,
             )
             result.judgment_status = terminal.status
             result.governing_justification_status = terminal.governing_justification_status
@@ -5475,27 +5624,28 @@ class WorkspaceEngine:
             governing = (
                 governing_candidate.decision_rule
                 if governing_candidate is not None
-                and result.governing_justification_status == "ADMISSIBLE"
+                and result.governing_justification_status in {"ADMISSIBLE", "CONTESTED"}
                 else ""
             )
-            if result.judgment_status == CONTESTED_RECOMMENDATION:
-                # Plurality prose is allowed; a governing rule is not.
-                if result.governing_justification_status == "UNDER_ATTACK":
-                    result.compressed_rule = (
-                        f"Current plurality leans toward {result.selected_action}, but the "
-                        "available governing justification is under a live reopen-eligible "
-                        "attack and cannot yet finalize the recommendation."
+            if (
+                result.judgment_status == CONTESTED_RECOMMENDATION
+                and result.governing_justification_status == "UNDER_ATTACK"
+            ):
+                result.compressed_rule = (
+                    f"Current plurality leans toward {result.selected_action}, but the "
+                    "available governing justification is under a live reopen-eligible "
+                    "attack and cannot yet finalize the recommendation."
+                )
+                if result.governing_attack_reason:
+                    result.compressed_rule += (
+                        " Attack: " + result.governing_attack_reason
                     )
-                    if result.governing_attack_reason:
-                        result.compressed_rule += (
-                            " Attack: " + result.governing_attack_reason
-                        )
-                else:
-                    result.compressed_rule = (
-                        f"Current plurality leans toward {result.selected_action}, but no "
-                        "framework has yet supplied a sufficiently adjudicated governing "
-                        "justification. The recommendation therefore remains provisional."
-                    )
+            elif result.judgment_status == CONTESTED_RECOMMENDATION and not governing:
+                result.compressed_rule = (
+                    f"Current plurality leans toward {result.selected_action}, but no "
+                    "framework has yet supplied a sufficiently adjudicated governing "
+                    "justification. The recommendation therefore remains provisional."
+                )
             else:
                 preserved_constraints = set(result.moral_residue)
                 preserved_objections: list[str] = []
