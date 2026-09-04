@@ -1167,6 +1167,28 @@ def validate_world_model(
                     "opportunity-loss comparisons on counterfactual_links so "
                     "the actual-world causal chain stays action-local"
                 )
+        if (
+            model.schema_version != "1.0"
+            and link.relation == "PREVENTS"
+        ):
+            source = effect_by_id.get(link.source_id)
+            target = effect_by_id.get(link.target_id)
+            if (
+                source is not None
+                and target is not None
+                and source.directness != "FOREGONE"
+                and target.directness != "FOREGONE"
+                and source.polarity in {"BENEFICIAL", "ADVERSE"}
+                and source.polarity == target.polarity
+            ):
+                errors.append(
+                    f"{prefix} uses PREVENTS between actual {source.polarity} "
+                    f"effects {source.effect_id} and {target.effect_id}; both "
+                    "obtain under this action, so the parent produces the child. "
+                    "Change only link_relation to CAUSES, ENABLES, or ACCELERATES; "
+                    "keep the same endpoints. Averted opposites belong on FOREGONE "
+                    "counterfactual_links."
+                )
     for index, link in enumerate(model.counterfactual_links):
         prefix = f"counterfactual_link[{index}]"
         source = effect_by_id.get(link.source_effect_id)

@@ -890,6 +890,23 @@ class ActionScopedCausalityTests(unittest.TestCase):
             [],
         )
 
+    def test_same_sign_prevents_rejected_on_enables_chain(self):
+        model = self.atomic_model()
+        inverted = replace(model, causal_links=tuple(
+            replace(link, relation="PREVENTS")
+            if link.source_id == "A0_RESOURCE" and link.target_id == "A0_OUTPUT"
+            else link
+            for link in model.causal_links
+        ))
+        errors, _ = validate_world_model(inverted, action_ids=["A0", "A1"])
+        matching = [error for error in errors if "PREVENTS" in error]
+        self.assertEqual(len(matching), 1, errors)
+        self.assertIn("A0_RESOURCE", matching[0])
+        self.assertIn("A0_OUTPUT", matching[0])
+        self.assertIn("keep the same endpoints", matching[0])
+        admitted, _ = validate_world_model(model, action_ids=["A0", "A1"])
+        self.assertEqual(admitted, [])
+
     def test_cross_action_causal_link_is_rejected(self):
         model = self.atomic_model()
         invalid = ScenarioWorldModel(
@@ -2101,6 +2118,36 @@ class WorldModelCompletenessTests(unittest.TestCase):
         self.assertEqual(errors, [])
         self.assertEqual(contradictions, [])
         self.assertEqual(validate_world_completeness(model, action_ids=["A0", "A1"]), [])
+
+    def test_same_sign_prevents_is_a_verb_error(self):
+        model = _parse_complete_magistrate()
+        inverted = replace(model, causal_links=tuple(
+            replace(link, relation="PREVENTS")
+            if link.source_id == "E3" and link.target_id == "E4"
+            else link
+            for link in model.causal_links
+        ))
+        errors, _ = validate_world_model(inverted, action_ids=["A0", "A1"])
+        matching = [error for error in errors if "PREVENTS" in error]
+        self.assertEqual(len(matching), 1, errors)
+        self.assertIn("E3", matching[0])
+        self.assertIn("E4", matching[0])
+        self.assertIn("keep the same endpoints", matching[0])
+        self.assertEqual(
+            validate_world_completeness(inverted, action_ids=["A0", "A1"]),
+            [],
+        )
+
+    def test_neutral_prevents_is_not_same_sign_error(self):
+        model = _parse_complete_magistrate()
+        inverted = replace(model, causal_links=tuple(
+            replace(link, relation="PREVENTS")
+            if link.source_id == "E0" and link.target_id == "E1"
+            else link
+            for link in model.causal_links
+        ))
+        errors, _ = validate_world_model(inverted, action_ids=["A0", "A1"])
+        self.assertFalse(any("PREVENTS" in error for error in errors), errors)
 
     def test_roles_count_downstream_health_not_the_mob(self):
         model = _parse_complete_magistrate()

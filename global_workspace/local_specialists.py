@@ -7037,7 +7037,10 @@ Copy only the longest source quantity span: "over five hundred" not also "five"
 or "five hundred". Each effect needs a non-empty outcome and a non-empty
 predicate such as IS, SURVIVES, PERFORMS, SUBJECT_TO, STATE_CHANGE, or
 EXPERIENCES. Do not use a field named relation on effects. Causal links use
-link_relation ENABLES, CAUSES, ACCELERATES, or PREVENTS. Every causal link must
+link_relation ENABLES, CAUSES, ACCELERATES, or PREVENTS. PREVENTS is not for two
+obtaining actual effects that share BENEFICIAL or ADVERSE polarity; those stages
+already occur, so the parent produces the child with CAUSES, ENABLES, or
+ACCELERATES. Every causal link must
 name action_id, and both endpoints must belong to that same action. Never point
 a causal link at another action's effect. Represent cross-action foreclosure only
 in counterfactual_links with counterfactual_relation FOREGOES_ALTERNATIVE_EFFECT,
@@ -7124,7 +7127,11 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
             "OPPORTUNITY_LOSS. If opposed stipulated welfare on a non-recipient "
             "party has no FOREGONE overlay, add only those FOREGONE rows and "
             "counterfactual_links; do not retarget causal_links or use FOREGONE "
-            "effects as causal endpoints. Effects need a non-empty outcome and "
+            "effects as causal endpoints. If a causal_link uses PREVENTS between "
+            "two actual effects whose polarities are both BENEFICIAL or both "
+            "ADVERSE, change only link_relation to CAUSES; do not retarget "
+            "endpoints, add or remove effects, or move the edge onto "
+            "counterfactual_links. Effects need a non-empty outcome and "
             "predicate. Causal links use link_relation, not relation. Copy a "
             "qualifier only when it modifies that atomic outcome; delete invented "
             "words such as widespread. "
