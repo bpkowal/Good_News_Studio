@@ -784,6 +784,7 @@ class CanonicalActionRecord:
     structure_issues: tuple[str, ...] = ()
     commitment_status: str = "REJECTED"
     commitment_reasons: tuple[str, ...] = ()
+    source_label: str = ""
 
     @property
     def eligible_for_deliberation(self) -> bool:
@@ -1551,6 +1552,205 @@ def missing_decision_critical_claims(
     return tuple(missing)
 
 
+_WORD_CARDINALS = (
+    "one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"
+    "thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|"
+    "twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand"
+)
+_INVENTED_LETHAL = re.compile(
+    r"\b(?:kill|kills|killing|killed)\b",
+    re.IGNORECASE,
+)
+_INVENTED_LETHAL_COUNT = re.compile(
+    rf"\b(?:kill|kills|killing|killed)\b[^.;,]{{0,48}}?\b(?:\d+|{_WORD_CARDINALS})\b"
+    rf"|\b(?:\d+|{_WORD_CARDINALS})\b[^.;,]{{0,48}}?"
+    rf"\b(?:kill|kills|killing|killed|die|dies|dying|died|death|deaths)\b",
+    re.IGNORECASE,
+)
+_TOTAL_PARTY_DEPARTURE = re.compile(
+    rf"\b(?:all|every)\s+(?:the\s+)?(?:(?:\d+|{_WORD_CARDINALS})\s+)?\w+\s+"
+    r"(?:leave|leaves|leaving|left|depart|departs|departing)\b",
+    re.IGNORECASE,
+)
+_DEPARTURE_VERB = re.compile(
+    r"\b(?:leave|leaves|leaving|left|depart|departs|departing)\b",
+    re.IGNORECASE,
+)
+_STRICT_OUTCOME_CLAIM = re.compile(
+    r"\b(?:kill|kills|killing|killed|die|dies|dying|died|death|deaths|"
+    r"fail|fails|failed|failure|failing|conceal|concealed|concealing)\b",
+    re.IGNORECASE,
+)
+_PARTICIPANT_HEAD = re.compile(
+    rf"\b(?:all|every)\s+(?:the\s+)?(?:(?:\d+|{_WORD_CARDINALS})\s+)?"
+    r"(?:[a-z][a-z-]+\s+){0,2}"
+    r"(?P<head>[a-z][a-z-]{2,})\b"
+    rf"|\b(?<![,\d])(?:\d+|{_WORD_CARDINALS})\s+"
+    r"(?:[a-z][a-z-]+\s+){0,2}"
+    r"(?P<head2>[a-z][a-z-]{2,})\b",
+    re.IGNORECASE,
+)
+_PARTICIPANT_STOP = frozenset({
+    "chance", "chances", "percent", "percentage", "hour", "hours", "minute",
+    "minutes", "day", "days", "year", "years", "mile", "miles", "meter",
+    "meters", "and", "the", "for", "with", "from", "into", "onto", "that",
+    "this", "plan", "option", "side", "freezing", "standard", "covert",
+})
+
+
+@dataclass(frozen=True, slots=True)
+class ActionProposition:
+    """One outcome, quantity, or participant claim taken from action prose."""
+
+    kind: str
+    text: str
+    supported: bool = False
+
+
+def _quantity_identities(text: str) -> set[int]:
+    from .world_state import explicit_quantity_spans, quantity_magnitude
+
+    keys: set[int] = set()
+    for span in explicit_quantity_spans(text):
+        magnitude = quantity_magnitude(span)
+        if magnitude is not None:
+            keys.add(magnitude)
+    return keys
+
+
+def _source_covers_claim(claim: str, haystack: str, threshold: float) -> bool:
+    if _claim_coverage(claim, haystack) >= threshold:
+        return True
+    return any(
+        _claim_coverage(claim, other) >= threshold
+        or _claim_coverage(other, claim) >= threshold
+        for other in extract_decision_critical_claims(haystack)
+    )
+
+
+def decompose_action_propositions(
+    action: str,
+    source_texts: Sequence[str],
+    *,
+    coverage_threshold: float = 0.72,
+    user_authored: bool = False,
+) -> tuple[ActionProposition, ...]:
+    """Split an action into outcome, quantity, and participant claims.
+
+    User-authored provenance (CLI --actions or an explicit edit) attests the
+    claims. Confirmation of model prose does not.
+    """
+    action_text = " ".join(str(action or "").split())
+    haystack = " ".join(
+        " ".join(str(source or "").split()) for source in source_texts if source
+    )
+    if not action_text:
+        return ()
+    if user_authored:
+        attested = True
+    elif not haystack:
+        return ()
+    rows: list[ActionProposition] = []
+    seen: set[tuple[str, str]] = set()
+
+    def _add(kind: str, text: str, supported: bool) -> None:
+        normalized = " ".join(str(text).split()).strip(" ,;:.-")
+        if len(normalized) < 4:
+            return
+        key = (kind, normalized.casefold())
+        if key in seen:
+            return
+        seen.add(key)
+        rows.append(ActionProposition(kind=kind, text=normalized, supported=supported))
+
+    attested = bool(user_authored)
+    source_quantities = _quantity_identities(haystack) if haystack else set()
+    haystack_cf = haystack.casefold()
+
+    if _INVENTED_LETHAL.search(action_text):
+        lethal_supported = attested or bool(_INVENTED_LETHAL.search(haystack))
+        matched = False
+        for match in _INVENTED_LETHAL_COUNT.finditer(action_text):
+            matched = True
+            _add("outcome", match.group(0), lethal_supported)
+        if not matched:
+            _add("outcome", "kill", lethal_supported)
+    for match in _TOTAL_PARTY_DEPARTURE.finditer(action_text):
+        claim = match.group(0)
+        supported = attested or (
+            bool(_DEPARTURE_VERB.search(haystack))
+            and _claim_coverage(claim, haystack) >= coverage_threshold
+        )
+        _add("outcome", claim, supported)
+    for claim in extract_decision_critical_claims(action_text):
+        if not _STRICT_OUTCOME_CLAIM.search(claim):
+            continue
+        supported = attested or (
+            bool(haystack) and _source_covers_claim(claim, haystack, coverage_threshold)
+        )
+        _add("outcome", claim, supported)
+
+    from .world_state import explicit_quantity_spans, quantity_magnitude
+
+    for span in explicit_quantity_spans(action_text):
+        magnitude = quantity_magnitude(span)
+        supported = attested or span.casefold() in haystack_cf or (
+            magnitude is not None and magnitude in source_quantities
+        )
+        _add("quantity", span, supported)
+
+    for match in _PARTICIPANT_HEAD.finditer(action_text):
+        head = (match.group("head") or match.group("head2") or "").casefold()
+        if not head or head in _PARTICIPANT_STOP:
+            continue
+        if not (
+            head.endswith("s")
+            or head in {"crew", "staff", "people", "children", "personnel"}
+        ):
+            continue
+        span = match.group(0)
+        supported = attested or span.casefold() in haystack_cf or (
+            head in haystack_cf
+        ) or (
+            head.endswith("s") and head[:-1] in haystack_cf
+        ) or (not head.endswith("s") and f"{head}s" in haystack_cf)
+        _add("participant", span, supported)
+        magnitude = quantity_magnitude(span)
+        if magnitude is not None:
+            _add(
+                "quantity",
+                span,
+                attested or span.casefold() in haystack_cf
+                or magnitude in source_quantities,
+            )
+    return tuple(rows)
+
+
+def unsupported_action_claims(
+    action: str,
+    source_texts: Sequence[str],
+    *,
+    coverage_threshold: float = 0.72,
+    user_authored: bool = False,
+) -> tuple[str, ...]:
+    """Return action propositions that the source never stated.
+
+    Every new outcome, quantity, and participant claim needs supporting source
+    clauses or explicit user-authored provenance. Confirmation of model output
+    is not provenance.
+    """
+    return tuple(
+        row.text
+        for row in decompose_action_propositions(
+            action,
+            source_texts,
+            coverage_threshold=coverage_threshold,
+            user_authored=user_authored,
+        )
+        if not row.supported
+    )
+
+
 def render_short_label(semantic_action: str, intervention: str = "") -> str:
     """UI-facing label. May omit detail; never used as the reasoning object."""
     text = " ".join(str(semantic_action or "").split())
@@ -1836,7 +2036,7 @@ def build_canonical_action_records(
     world_model: dict[str, Any] | None = None,
 ) -> list[CanonicalActionRecord]:
     if world_model:
-        from .world_state import project_world_action_roles, world_model_from_dict
+        from .world_state import project_world_action_roles, source_plan_label, world_model_from_dict
         typed = world_model_from_dict(world_model)
         if typed is not None:
             party_by_id = {party.party_id: party for party in typed.parties}
@@ -1948,6 +2148,7 @@ def build_canonical_action_records(
                         ("user accepted world state with contradictory direct effects quarantined",)
                         if quarantined else ()
                     ),
+                    source_label=source_plan_label(world_action),
                 ))
             return records
     grounded = grounded_clause_texts_by_id or {}
@@ -1971,11 +2172,15 @@ def validate_action_set_completeness(
     *,
     scenario: str = "",
     grounded_clause_texts_by_id: dict[str, Sequence[str]] | None = None,
+    user_authored: bool = False,
 ) -> None:
     """Hard gate: every canonical action must preserve decision-critical content.
 
-    Checks (1) clause-shape completeness and (2), when source clauses are known,
+    Checks (1) clause-shape completeness, (2) that the action does not invent
+    source-unsupported propositions, and (3), when source clauses are known,
     that ranking-relevant effects from those clauses survive in the action text.
+    User-authored provenance (CLI --actions or an explicit edit) attests new
+    claims. Confirming model prose does not.
     """
     normalized = [str(action) for action in actions]
     if len(normalized) != 2:
@@ -1992,9 +2197,29 @@ def validate_action_set_completeness(
         raise ValueError(f"{prefix}: " + "; ".join(shape_problems))
 
     grounded = grounded_clause_texts_by_id or {}
+    extra_rows = []
+    source_corpus = [scenario] if scenario else []
+    for texts in grounded.values():
+        source_corpus.extend(texts)
+    for index, action in enumerate(normalized):
+        action_id = f"A{index}"
+        sources = source_corpus or list(grounded.get(action_id, ()))
+        extra = unsupported_action_claims(
+            action, sources, user_authored=user_authored,
+        )
+        if extra:
+            extra_rows.append(
+                f"{action_id} adds source-unsupported content: "
+                + "; ".join(extra[:4])
+            )
+    if extra_rows:
+        raise ValueError(
+            "canonical action(s) add propositions the source does not state: "
+            + " | ".join(extra_rows)
+        )
     if not grounded and scenario:
-        # Before grounding: ensure scenario-level critical claims are not dropped
-        # by *both* actions when the scenario states them in action clauses.
+        # Before grounding: invented claims are already rejected above.
+        # Rank-relevant source claims are checked once clauses are mapped.
         return
 
     actor = extract_scenario_actor(scenario) if scenario else ""

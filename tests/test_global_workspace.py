@@ -13,7 +13,7 @@ from global_workspace.engine import (
     WorkspaceConfig, WorkspaceEngine, _preserve_problem_state_after_invalid_cycle,
     _problem_state_audit_probe, _operative_framework_candidates,
     _advance_argument_challenge_agenda, _argument_challenge_candidates,
-    _record_committed_native_ledger,
+    _record_committed_native_ledger, _challenge_resolution_supported,
 )
 from global_workspace.epistemic_ledger import seed_proposition_ledger
 from global_workspace.action_identity import compile_action_identity
@@ -86,7 +86,8 @@ from global_workspace.middleware.moral_residue import collect_moral_residue
 from global_workspace.trace_health import audit_trace_health
 from global_workspace.graph_transactions import SemanticGraphStore
 from global_workspace.world_state import (
-    ScenarioWorldModel, SourceRef, WorldAction, WorldEffect, WorldParty,
+    CausalLink, ScenarioWorldModel, SourceRef, WorldAction, WorldCondition,
+    WorldEffect, WorldParty,
 )
 from global_workspace.invariance import compare_label_permutation_traces
 from global_workspace.openai_backend import OpenAIWorkspaceLLM
@@ -215,11 +216,91 @@ class WorkspaceEngineTests(unittest.TestCase):
             [rejected], {}, remember=True,
         )
         self.assertEqual(len(first_state), 1)
-        self.assertEqual(first_state[0].recommended_action, actions[1])
-        self.assertTrue(first_state[0].framework_constraint_retained)
         self.assertEqual(
             first_state[0].framework_retention_status,
-            "FIRST_STATE_ADMITTED_WITH_WARNINGS",
+            "FIRST_STATE_REJECTED_NOT_OPERATIVE",
+        )
+        self.assertEqual(first_state[0].adjudication_status, "CONTESTED_NO_LEANING")
+        self.assertEqual(first_state[0].policy_weight_factor, 0.0)
+        self.assertEqual(
+            first_state[0].proposed_framework_state["recommended_action"],
+            actions[1],
+        )
+
+    def test_position_coverage_rejects_cross_action_effect_transfer(self):
+        graph = SemanticGraph()
+        graph.add_node(SemanticNode(
+            "A0", "ACTION", "keep the crew at the clinic",
+            attributes={"canonical_action_id": "A0"},
+        ))
+        graph.add_node(SemanticNode(
+            "A1", "ACTION", "send the crew to the road",
+            attributes={"canonical_action_id": "A1"},
+        ))
+        graph.add_node(SemanticNode(
+            "A0:WORLD_EFFECT:E0_RISK", "CONSEQUENCE", "AT_MODERATE_RISK",
+            attributes={
+                "world_effect_id": "E0_RISK", "polarity": "ADVERSE",
+                "directness": "DOWNSTREAM", "scenario_grounded": True,
+            },
+        ))
+        graph.add_node(SemanticNode(
+            "PARTY:P3", "TARGET", "site crews",
+            attributes={"semantic_role": "AFFECTED_SUBJECT"},
+        ))
+        graph.add_node(SemanticNode(
+            "PARTY:P1", "TARGET", "eastern residents",
+            attributes={"semantic_role": "AFFECTED_SUBJECT"},
+        ))
+        graph.add_edge(SemanticEdge("A0", "HAS_CONSEQUENCE", "A0:WORLD_EFFECT:E0_RISK"))
+        graph.add_edge(SemanticEdge("A0:WORLD_EFFECT:E0_RISK", "AFFECTS", "PARTY:P3"))
+        candidate = CandidateChunk(
+            specialist="rawlsian", constraint="FAIRNESS",
+            action_scores={"keep the crew at the clinic": 0.4, "send the crew to the road": 0.6},
+            surprise=0.2, friction=0.2, confidence=0.7,
+            recommended_action="send the crew to the road",
+            committed_native_ledger={
+                "ledger_kind": "RAWLS_POSITION_LEDGER",
+                "transaction_status": "COMMITTED",
+                "records": [
+                    {
+                        "canonical_action_id": "A0",
+                        "subject": "immobile patients",
+                        "dimension": "BASIC_INTEREST_SECURITY",
+                        "institutional_relation": "NATURAL_CONTINGENCY",
+                        "effect": "MIXED",
+                    },
+                    {
+                        "canonical_action_id": "A1",
+                        "subject": "immobile patients",
+                        "dimension": "BASIC_INTEREST_SECURITY",
+                        "institutional_relation": "NATURAL_CONTINGENCY",
+                        "effect": "MIXED",
+                    },
+                ],
+            },
+        )
+        challenge = {
+            "challenge_kind": "POSITION_COVERAGE",
+            "question": (
+                "Does the Rawlsian comparison remain complete after representing "
+                "the materially affected position of eastern residents, site crews "
+                "over the same relevant horizon?"
+            ),
+        }
+        answer = (
+            "Yes. Eastern residents and site crews are represented: crews face "
+            "equal moderate risk under both plans."
+        )
+        verified, reason = _challenge_resolution_supported(
+            candidate, challenge,
+            {"answer": answer, "current_position_effect": "NO_CHANGE"},
+            graph=graph,
+        )
+        self.assertFalse(verified)
+        self.assertTrue(
+            "omit named parties" in reason or "transfers an action-scoped" in reason,
+            reason,
         )
 
     def test_rejected_normative_update_preserves_current_epistemic_audit(self):
@@ -1004,7 +1085,7 @@ class WorkspaceEngineTests(unittest.TestCase):
             for item in carried.get("framework_specific_open_questions", [])
         ))
 
-    def test_doing_harm_without_direct_adverse_fails_calibration(self):
+    def test_doing_harm_without_agent_caused_path_fails_calibration(self):
         graph, action, _a1, _actions = self._omission_typed_graph()
         proposed = self._omission_duty_proposal(
             verdict="PROHIBITED", relation="VIOLATES",
@@ -1015,13 +1096,13 @@ class WorkspaceEngineTests(unittest.TestCase):
 
         self.assertFalse(omission_classified_as_perfect_negative_violation(proposed))
         self.assertIn(
-            "direct adverse effect",
+            "agent-caused settled welfare harm",
             harm_relation_conflicts_with_graph(graph, proposed, action=action),
         )
         calibration = calibrate_deontological_adjudication(graph, action, proposed)
         self.assertFalse(calibration.calibrated)
         self.assertTrue(any(
-            "direct adverse effect" in error for error in calibration.errors
+            "agent-caused settled welfare harm" in error for error in calibration.errors
         ), calibration.errors)
 
     def test_doing_harm_with_direct_adverse_survives_calibration(self):
@@ -1040,7 +1121,7 @@ class WorkspaceEngineTests(unittest.TestCase):
         )
         calibration = calibrate_deontological_adjudication(graph, action, proposed)
         self.assertFalse(any(
-            "direct adverse effect" in error for error in calibration.errors
+            "agent-caused settled welfare harm" in error for error in calibration.errors
         ), calibration.errors)
 
     def test_allowing_harm_is_inconsistent_with_direct_adverse(self):
@@ -1056,7 +1137,7 @@ class WorkspaceEngineTests(unittest.TestCase):
         calibration = calibrate_deontological_adjudication(graph, action, proposed)
         self.assertFalse(calibration.calibrated)
         self.assertTrue(any(
-            "inconsistent with a direct adverse effect" in error
+            "inconsistent with an agent-caused" in error
             for error in calibration.errors
         ), calibration.errors)
 
@@ -10619,6 +10700,231 @@ class AuditDirectInvertTests(unittest.TestCase):
             )
 
 
+class DeonticGraphRelationTests(unittest.TestCase):
+    """Doing, allowing, and means follow causal topology, not world-DIRECTNESS."""
+
+    actions = (
+        "seal the conduit, flooding the service bay to protect the stored reserve",
+        "leave the conduit open, allowing the leak to continue into the service bay",
+    )
+
+    def _proposal(self, **overrides):
+        payload = {
+            "action_id": "A0", "verdict": "PROHIBITED",
+            "norm_kind": "DUTY", "norm": "do not injure the workers",
+            "relation": "VIOLATES", "duty_bearer": "operator",
+            "protected_party": "workers",
+            "competing_norm": "protect the stored reserve",
+            "competing_norm_kind": "DUTY", "competing_relation": "SATISFIES",
+            "competing_protected_party": "city residents",
+            "competing_reason": "sealing the conduit protects the stored reserve",
+            "duty_type": "PERFECT_NEGATIVE", "harm_relation": "DOING_HARM",
+            "special_obligation_status": "NOT_REQUIRED",
+            "special_obligation_basis": "the negative duty applies generally",
+            "means_relation": "FORESEEN_SIDE_EFFECT",
+            "governing_norm": "PRIMARY", "priority_basis": "PERFECT_DUTY",
+            "priority_rule": "the negative duty remains the governing constraint",
+            "protected_standing": "BODILY_INTEGRITY",
+            "competing_protected_standing": "OTHER",
+            "coercion_kind": "NONE", "coercive_actor": "NONE", "coerced_party": "NONE",
+            "public_justification": "no coercion requires authorization",
+            "reciprocity_status": "UNKNOWN", "necessity_status": "UNKNOWN",
+            "authorization_status": "NOT_APPLICABLE", "derivation": "PERFECT_DUTY",
+            "resolution_status": "RESOLVED", "evidence_basis": "ACTION_GRAPH",
+            "reason": "sealing the conduit injures the workers in the service bay",
+        }
+        payload.update(overrides)
+        return DutyAssessmentProposal.model_validate(payload)
+
+    def _world(
+        self,
+        *,
+        a0_to_harm: str = "CAUSES",
+        harm_to_end: str | None = None,
+        a1_to_harm: str = "ENABLES",
+        harm_modality: str = "CERTAIN",
+        harm_likelihood: tuple[str, ...] = (),
+    ) -> ScenarioWorldModel:
+        excerpt = (
+            "An operator may seal a conduit, flooding a service bay and injuring "
+            "the workers inside while protecting a stored reserve, or leave the "
+            "conduit open, enabling an advancing leak to injure those workers."
+        )
+        if harm_likelihood:
+            excerpt += " " + " ".join(harm_likelihood)
+        ref = (SourceRef("C0", excerpt),)
+        harm_conditions = () if harm_modality == "CERTAIN" else ("COND1",)
+        conditions = ()
+        if harm_conditions:
+            conditions = (
+                WorldCondition(
+                    "COND1", "workers remain in the service bay",
+                    provenance=ref,
+                ),
+            )
+        links = [
+            CausalLink("E0", a0_to_harm, "E1", "CERTAIN", provenance=ref, action_id="A0"),
+            CausalLink("E0", "CAUSES", "E2", "CERTAIN", provenance=ref, action_id="A0"),
+            CausalLink("E3", a1_to_harm, "E4", "CERTAIN", provenance=ref, action_id="A1"),
+        ]
+        if harm_to_end:
+            links.append(CausalLink(
+                "E1", harm_to_end, "E2", "CERTAIN", provenance=ref, action_id="A0",
+            ))
+        return ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "operator", "HUMAN", ref),
+                WorldParty("P1", "conduit", "INFRASTRUCTURE", ref),
+                WorldParty("P2", "workers", "GROUP", ref),
+                WorldParty("P3", "city residents", "POPULATION", ref),
+            ),
+            actions=(
+                WorldAction(
+                    "A0", self.actions[0], "P0", ("P1",),
+                    ("E0", "E1", "E2"), ref,
+                ),
+                WorldAction(
+                    "A1", self.actions[1], "P0", ("P1",),
+                    ("E3", "E4"), ref,
+                ),
+            ),
+            effects=(
+                WorldEffect(
+                    "E0", "A0", "P1", "SEALED", "PERFORMS",
+                    "NEUTRAL", "DIRECT", "CERTAIN", "INTERVENTION", provenance=ref,
+                ),
+                WorldEffect(
+                    "E1", "A0", "P2", "INJURED", "EXPERIENCES",
+                    "ADVERSE", "DOWNSTREAM", harm_modality, "HEALTH_OUTCOME",
+                    condition_ids=harm_conditions,
+                    provenance=ref, likelihood_qualifiers=harm_likelihood,
+                ),
+                WorldEffect(
+                    "E2", "A0", "P3", "RESERVE_PROTECTED", "EXPERIENCES",
+                    "BENEFICIAL", "DOWNSTREAM", "CERTAIN", "WELFARE_OUTCOME",
+                    provenance=ref,
+                ),
+                WorldEffect(
+                    "E3", "A1", "P1", "LEFT_OPEN", "PERFORMS",
+                    "NEUTRAL", "DIRECT", "CERTAIN", "INTERVENTION", provenance=ref,
+                ),
+                WorldEffect(
+                    "E4", "A1", "P2", "INJURED", "EXPERIENCES",
+                    "ADVERSE", "DOWNSTREAM", "CERTAIN", "HEALTH_OUTCOME",
+                    provenance=ref,
+                ),
+            ),
+            conditions=conditions,
+            causal_links=tuple(links),
+        )
+
+    def _graph(self, world: ScenarioWorldModel | None = None):
+        world = world or self._world()
+        graph = compile_scenario_graph(
+            "An operator may seal a conduit, flooding a service bay and injuring "
+            "the workers inside while protecting a stored reserve, or leave the "
+            "conduit open, enabling an advancing leak to injure those workers.",
+            self.actions,
+            world_model=world.as_dict(),
+        )
+        a0 = next(
+            node for node in graph.nodes.values()
+            if node.kind == "ACTION"
+            and node.attributes.get("canonical_action_id") == "A0"
+        )
+        a1 = next(
+            node for node in graph.nodes.values()
+            if node.kind == "ACTION"
+            and node.attributes.get("canonical_action_id") == "A1"
+        )
+        return graph, a0, a1
+
+    def test_downstream_caused_harm_licenses_doing(self):
+        graph, action, _a1 = self._graph()
+        proposed = self._proposal()
+        self.assertEqual(
+            harm_relation_conflicts_with_graph(graph, proposed, action=action),
+            "",
+        )
+        calibration = calibrate_deontological_adjudication(graph, action, proposed)
+        self.assertFalse(any(
+            "agent-caused settled welfare harm" in error for error in calibration.errors
+        ), calibration.errors)
+
+    def test_enables_without_causes_is_allowing_not_doing(self):
+        graph, _a0, action = self._graph()
+        doing = self._proposal(
+            action_id="A1",
+            reason="leaving the conduit open injures the workers",
+        )
+        allowing = self._proposal(
+            action_id="A1", verdict="PERMISSIBLE", relation="SATISFIES",
+            harm_relation="ALLOWING_HARM",
+            means_relation="NO_INSTRUMENTALIZATION",
+            reason="leaving the conduit open allows the leak to injure the workers",
+        )
+        self.assertIn(
+            "agent-caused settled welfare harm",
+            harm_relation_conflicts_with_graph(graph, doing, action=action),
+        )
+        self.assertEqual(
+            harm_relation_conflicts_with_graph(graph, allowing, action=action),
+            "",
+        )
+
+    def test_allowing_conflicts_when_intervention_causes_harm(self):
+        graph, action, _a1 = self._graph()
+        proposed = self._proposal(
+            verdict="PERMISSIBLE", relation="SATISFIES",
+            harm_relation="ALLOWING_HARM",
+            reason="sealing the conduit is classified as merely allowing harm",
+        )
+        self.assertIn(
+            "inconsistent with an agent-caused",
+            harm_relation_conflicts_with_graph(graph, proposed, action=action),
+        )
+
+    def test_near_certain_downstream_harm_licenses_doing(self):
+        graph, action, _a1 = self._graph(self._world(
+            harm_modality="PROBABILISTIC",
+            harm_likelihood=("almost no chance",),
+        ))
+        proposed = self._proposal()
+        self.assertEqual(
+            harm_relation_conflicts_with_graph(graph, proposed, action=action),
+            "",
+        )
+
+    def test_possible_downstream_harm_does_not_license_doing(self):
+        graph, action, _a1 = self._graph(self._world(
+            harm_modality="POSSIBLE",
+            harm_likelihood=("a chance",),
+        ))
+        proposed = self._proposal()
+        self.assertIn(
+            "agent-caused settled welfare harm",
+            harm_relation_conflicts_with_graph(graph, proposed, action=action),
+        )
+
+    def test_sibling_outcomes_are_not_a_means_path(self):
+        graph, action, _a1 = self._graph()
+        proposed = self._proposal(means_relation="INTENDED_AS_MEANS")
+        calibration = calibrate_deontological_adjudication(graph, action, proposed)
+        self.assertTrue(any(
+            "intended-as-means classification lacks" in error
+            for error in calibration.errors
+        ), calibration.errors)
+
+    def test_intermediate_burden_licenses_means(self):
+        graph, action, _a1 = self._graph(self._world(harm_to_end="CAUSES"))
+        proposed = self._proposal(means_relation="INTENDED_AS_MEANS")
+        calibration = calibrate_deontological_adjudication(graph, action, proposed)
+        self.assertFalse(any(
+            "intended-as-means classification lacks" in error
+            for error in calibration.errors
+        ), calibration.errors)
+
+
 class DeontologyAuditVoteTests(unittest.TestCase):
     """Cycle-3 o3 bug: a conditional audit must not drop a valid duty ranking."""
 
@@ -10887,6 +11193,705 @@ class UtilitarianDirectionGroundingTests(unittest.TestCase):
 
         self.assertIsNone(evidence)
         self.assertEqual(score, 0)
+
+
+class UnadmittedMagnitudeRankingTests(unittest.TestCase):
+    """Util may not mint a threshold or convert an unlicensed metric into a ranking."""
+
+    actions = (
+        "seal the conduit, flooding the service bay to protect the stored reserve",
+        "leave the conduit open so the workers can leave the service bay",
+    )
+    scenario = (
+        "An operator may seal a conduit, flooding a service bay and drowning "
+        "twelve workers while keeping the stored reserve uncontaminated for "
+        "tens of thousands of city residents, or leave the conduit open so the "
+        "twelve workers can escape while the leak contaminates the stored reserve."
+    )
+
+    def _unknown_row(self, outcome: str, scope: str, direction: str, **extra):
+        row = {
+            "outcome": outcome, "scope": scope, "direction": direction,
+            "probability": "CERTAIN", "magnitude": "UNKNOWN",
+            "duration": "UNKNOWN", "reversibility": "UNKNOWN",
+            "support": "STATED",
+        }
+        row.update(extra)
+        return row
+
+    def _unknown_table(self):
+        return {
+            self.actions[0]: [self._unknown_row(
+                "twelve workers drown", "workers", "HARM",
+            )],
+            self.actions[1]: [self._unknown_row(
+                "stored reserve becomes contaminated", "city residents", "HARM",
+            )],
+        }
+
+    def _util_payload(self, *, scores, recommended, decision_rule, table=None, **extra):
+        data = {
+            "scores": scores, "r": recommended,
+            "c": "IMMINENT_HARM", "u": "NONE",
+            "w": "Seal to protect the larger exposed population",
+            "j": "NONE", "e": "STATED_FACTS", "x": "NONE", "z": 0.8,
+            "ct": table or {
+                "A0": [{
+                    "o": "twelve workers drown", "s": "workers",
+                    "d": "HARM", "p": "CERTAIN", "m": "UNKNOWN",
+                    "h": "immediate", "rv": "IRREVERSIBLE", "g": "STATED",
+                }],
+                "A1": [{
+                    "o": "stored reserve becomes contaminated", "s": "city residents",
+                    "d": "HARM", "p": "CERTAIN", "m": "UNKNOWN",
+                    "h": "lasting", "rv": "UNKNOWN", "g": "STATED",
+                }],
+            },
+            "cd": False, "cm": "NONE",
+            "dr": decision_rule,
+            "ft": "NONE", "nt": "NONE",
+        }
+        data.update(extra)
+        return data
+
+    def _world_ledger(self):
+        from global_workspace.epistemic_ledger import PropositionRecord
+
+        drown = PropositionRecord(
+            proposition_id="PROP:WORLD:E1",
+            claim="workers drown; affected subject: workers",
+            proposition_type="DESCRIPTIVE",
+            epistemic_status="ESTABLISHED",
+            epistemic_type="WORLD_ESTABLISHED",
+            outcome="workers drown",
+            party_labels=["workers"],
+            quantities=["twelve"],
+            effect_kind="HEALTH_OUTCOME",
+            modality="CERTAIN",
+            directness="DOWNSTREAM",
+        )
+        contaminated = PropositionRecord(
+            proposition_id="PROP:WORLD:E5",
+            claim="stored reserve becomes contaminated; affected subject: city residents",
+            proposition_type="DESCRIPTIVE",
+            epistemic_status="ESTABLISHED",
+            epistemic_type="WORLD_ESTABLISHED",
+            outcome="stored reserve becomes contaminated",
+            party_labels=["city residents"],
+            quantities=["tens of thousands"],
+            effect_kind="WELFARE_OUTCOME",
+            modality="CERTAIN",
+            directness="DOWNSTREAM",
+        )
+        return {"PROP:WORLD:E1": drown, "PROP:WORLD:E5": contaminated}
+
+    def test_minted_numeric_threshold_cannot_decide_ranking(self):
+        chunk = _candidate_from_data(
+            "utilitarian", list(self.actions),
+            self._util_payload(
+                scores={"A0": 0.38, "A1": 0.62},
+                recommended="A1",
+                decision_rule=(
+                    "prefer leaving the conduit open unless the lethal "
+                    "contamination probability exceeds 0.12 percent"
+                ),
+            ),
+            WorkspaceBroadcast(), "NONE", {},
+            scenario_text=self.scenario,
+        )
+
+        self.assertEqual(chunk.adjudication_status, "CONTESTED_NO_LEANING")
+        self.assertEqual(chunk.recommended_action, "")
+        self.assertAlmostEqual(chunk.action_scores[self.actions[0]], 0.5)
+        self.assertAlmostEqual(chunk.action_scores[self.actions[1]], 0.5)
+        self.assertAlmostEqual(chunk.preference_strength, 0.0)
+        self.assertIn(
+            "Unadmitted magnitude cannot decide the ranking",
+            " ".join(chunk.epistemic_binding_notes),
+        )
+        from global_workspace.specialist_authority import apply_specialist_authority
+
+        profile = apply_specialist_authority(chunk)
+        self.assertEqual(profile.adjudication_status, "CONTESTED_NO_LEANING")
+        self.assertEqual(profile.policy_weight_factor, 0.0)
+
+    def test_ordinal_admitted_ranking_may_stand_without_minted_numbers(self):
+        chunk = _candidate_from_data(
+            "utilitarian", list(self.actions),
+            self._util_payload(
+                scores={"A0": 0.35, "A1": 0.65},
+                recommended="A1",
+                decision_rule=(
+                    "prefer leaving the conduit open because certain drowning "
+                    "of the workers outranks certain contamination of the reserve"
+                ),
+            ),
+            WorkspaceBroadcast(), "NONE", {},
+            scenario_text=self.scenario,
+        )
+
+        self.assertEqual(chunk.recommended_action, self.actions[1])
+        self.assertGreater(
+            chunk.action_scores[self.actions[1]],
+            chunk.action_scores[self.actions[0]],
+        )
+        self.assertNotEqual(chunk.adjudication_status, "CONTESTED_NO_LEANING")
+        self.assertFalse(any(
+            "Unadmitted magnitude cannot decide the ranking" in note
+            for note in chunk.epistemic_binding_notes
+        ))
+
+    def test_valuation_reason_cannot_convert_contamination_into_deaths(self):
+        data = self._util_payload(
+            scores={"A0": 0.40, "A1": 0.60},
+            recommended="A1",
+            decision_rule="prefer leaving the conduit open on aggregate welfare",
+            table={
+                "A0": [{"eid": "E1", "wi": "HIGH", "vr": "admitted drowning burden"}],
+                "A1": [{
+                    "eid": "E5", "wi": "CRITICAL",
+                    "vr": "potential mass fatality among city residents",
+                }],
+            },
+        )
+        chunk = _candidate_from_data(
+            "utilitarian", list(self.actions), data,
+            WorkspaceBroadcast(), "NONE", {},
+            scenario_text=self.scenario,
+            grounded_effects=[
+                {
+                    "effect_id": "E1", "action_id": "A0",
+                    "outcome": "workers drown", "subject": "workers",
+                    "direction": "WORSENS", "polarity": "ADVERSE",
+                    "modality": "CERTAIN", "qualifier": "STATED",
+                },
+                {
+                    "effect_id": "E5", "action_id": "A1",
+                    "outcome": "stored reserve becomes contaminated",
+                    "subject": "city residents",
+                    "direction": "WORSENS", "polarity": "ADVERSE",
+                    "modality": "CERTAIN", "qualifier": "STATED",
+                },
+            ],
+        )
+
+        self.assertEqual(chunk.adjudication_status, "CONTESTED_NO_LEANING")
+        self.assertEqual(chunk.recommended_action, "")
+        self.assertAlmostEqual(chunk.preference_strength, 0.0)
+
+    def test_decision_critical_hypothesis_converting_metric_is_bound(self):
+        from global_workspace.epistemic_ledger import (
+            PropositionRecord,
+            apply_side_premise_audit,
+            hypothesis_uses_unadmitted_magnitude,
+        )
+        from global_workspace.specialist_authority import apply_specialist_authority
+
+        ledger = self._world_ledger()
+        self.assertTrue(hypothesis_uses_unadmitted_magnitude(
+            PropositionRecord(
+                proposition_id="PROP:HYPOTHESIS:X",
+                claim=(
+                    "lethal contamination of the stored reserve would cause at "
+                    "least twelve deaths among city residents"
+                ),
+                proposition_type="HYPOTHESIS",
+                epistemic_status="HYPOTHETICAL",
+                epistemic_type="HYPOTHESIS",
+                derived_from=["PROP:WORLD:E5"],
+            ),
+            ledger,
+        ))
+        self.assertFalse(hypothesis_uses_unadmitted_magnitude(
+            PropositionRecord(
+                proposition_id="PROP:HYPOTHESIS:Y",
+                claim="twelve workers drown in the flooded service bay",
+                proposition_type="HYPOTHESIS",
+                epistemic_status="HYPOTHETICAL",
+                epistemic_type="HYPOTHESIS",
+                derived_from=["PROP:WORLD:E1"],
+            ),
+            ledger,
+        ))
+
+        chunk = CandidateChunk(
+            specialist="utilitarian",
+            constraint="IMMINENT_HARM",
+            action_scores={self.actions[0]: 0.38, self.actions[1]: 0.62},
+            surprise=0.1, friction=0.24, confidence=0.8,
+            recommended_action=self.actions[1],
+            preference_strength=0.24,
+            epistemic_confidence=0.8,
+            schema_valid=True,
+            utilitarian_consequence_table=self._unknown_table(),
+            decision_rule="prefer leaving the conduit open on aggregate welfare",
+        )
+        apply_side_premise_audit(ledger, [chunk], {
+            "status": "FINDINGS",
+            "findings": [{
+                "specialist": "utilitarian",
+                "claim": (
+                    "lethal contamination of the stored reserve would cause at "
+                    "least twelve deaths among city residents"
+                ),
+                "binding": "NEW_HYPOTHESIS",
+                "derived_from": ["PROP:WORLD:E5"],
+                "decision_critical": True,
+                "source_field": "decision_rule",
+                "reason": "converts admitted contamination into unadmitted deaths",
+            }],
+        })
+
+        self.assertEqual(chunk.adjudication_status, "CONTESTED_NO_LEANING")
+        self.assertEqual(chunk.recommended_action, "")
+        self.assertAlmostEqual(chunk.action_scores[self.actions[0]], 0.5)
+        self.assertEqual(chunk.unresolved, "DECISION_BOUNDARY")
+        self.assertIn(
+            "Unadmitted magnitude cannot decide the ranking",
+            " ".join(chunk.epistemic_binding_notes),
+        )
+        profile = apply_specialist_authority(chunk)
+        self.assertEqual(profile.policy_weight_factor, 0.0)
+
+    def test_admitted_numeric_nets_still_rank_despite_minted_hypothesis(self):
+        from global_workspace.epistemic_ledger import apply_side_premise_audit
+
+        table = {
+            self.actions[0]: [{
+                "outcome": "twelve workers drown", "scope": "workers",
+                "direction": "HARM", "probability": "CERTAIN", "magnitude": "12",
+                "duration": "immediate", "reversibility": "IRREVERSIBLE",
+                "support": "STATED",
+            }],
+            self.actions[1]: [{
+                "outcome": "stored reserve becomes contaminated",
+                "scope": "city residents",
+                "direction": "HARM", "probability": "CERTAIN", "magnitude": "10000",
+                "duration": "lasting", "reversibility": "UNKNOWN",
+                "support": "STATED",
+            }],
+        }
+        chunk = CandidateChunk(
+            specialist="utilitarian",
+            constraint="IMMINENT_HARM",
+            action_scores={self.actions[0]: 0.20, self.actions[1]: 0.80},
+            surprise=0.1, friction=0.6, confidence=0.8,
+            recommended_action=self.actions[1],
+            preference_strength=0.6,
+            epistemic_confidence=0.8,
+            schema_valid=True,
+            utilitarian_consequence_table=table,
+            decision_rule="prefer leaving the conduit open",
+        )
+        apply_side_premise_audit(self._world_ledger(), [chunk], {
+            "status": "FINDINGS",
+            "findings": [{
+                "specialist": "utilitarian",
+                "claim": (
+                    "lethal contamination probability among city residents "
+                    "exceeds 0.12 percent"
+                ),
+                "binding": "NEW_HYPOTHESIS",
+                "derived_from": ["PROP:WORLD:E5"],
+                "decision_critical": True,
+                "source_field": "decision_rule",
+                "reason": "minted threshold",
+            }],
+        })
+
+        self.assertEqual(chunk.recommended_action, self.actions[0])
+        self.assertGreater(
+            chunk.action_scores[self.actions[0]],
+            chunk.action_scores[self.actions[1]],
+        )
+        self.assertNotEqual(chunk.adjudication_status, "CONTESTED_NO_LEANING")
+        self.assertEqual(chunk.unresolved, "DECISION_BOUNDARY")
+
+
+class EpistemicHypothesisBindingTests(unittest.TestCase):
+    """Decision-critical hypotheses bind or quarantine; normative relations do not."""
+
+    actions = (
+        "seal the conduit, flooding the service bay to protect the stored reserve",
+        "leave the conduit open so the workers can leave the service bay",
+    )
+    scenario = (
+        "An operator may seal a conduit, flooding a service bay and drowning "
+        "twelve workers while keeping the stored reserve uncontaminated for "
+        "tens of thousands of city residents, or leave the conduit open so the "
+        "twelve workers can escape while the leak contaminates the stored reserve."
+    )
+
+    def _world_ledger(self, *, possible_survive: bool = False):
+        from global_workspace.epistemic_ledger import PropositionRecord
+
+        ledger = {
+            "PROP:WORLD:E1": PropositionRecord(
+                proposition_id="PROP:WORLD:E1",
+                claim="workers drown; affected subject: workers",
+                proposition_type="DESCRIPTIVE",
+                epistemic_status="ESTABLISHED",
+                epistemic_type="WORLD_ESTABLISHED",
+                outcome="workers drown",
+                polarity="ADVERSE",
+                party_labels=["workers"],
+                quantities=["twelve"],
+                effect_kind="HEALTH_OUTCOME",
+                modality="CERTAIN",
+                directness="DOWNSTREAM",
+            ),
+            "PROP:WORLD:E5": PropositionRecord(
+                proposition_id="PROP:WORLD:E5",
+                claim="stored reserve becomes contaminated; affected subject: city residents",
+                proposition_type="DESCRIPTIVE",
+                epistemic_status="ESTABLISHED",
+                epistemic_type="WORLD_ESTABLISHED",
+                outcome="stored reserve becomes contaminated",
+                polarity="ADVERSE",
+                party_labels=["city residents"],
+                quantities=["tens of thousands"],
+                effect_kind="WELFARE_OUTCOME",
+                modality="CERTAIN",
+                directness="DOWNSTREAM",
+            ),
+        }
+        if possible_survive:
+            ledger["PROP:WORLD:E6"] = PropositionRecord(
+                proposition_id="PROP:WORLD:E6",
+                claim="workers survive; affected subject: workers; modality: POSSIBLE",
+                proposition_type="DESCRIPTIVE",
+                epistemic_status="ESTABLISHED",
+                epistemic_type="WORLD_ESTABLISHED",
+                outcome="workers survive",
+                polarity="BENEFICIAL",
+                party_labels=["workers"],
+                effect_kind="HEALTH_OUTCOME",
+                modality="POSSIBLE",
+                directness="DOWNSTREAM",
+            )
+        return ledger
+
+    def _chunk(self, specialist, *, scores=None, recommended=None, **extra):
+        scores = scores or {self.actions[0]: 0.72, self.actions[1]: 0.28}
+        recommended = recommended if recommended is not None else self.actions[0]
+        payload = dict(
+            specialist=specialist,
+            constraint="DUTY" if specialist != "utilitarian" else "IMMINENT_HARM",
+            action_scores=scores,
+            surprise=0.1,
+            friction=0.44,
+            confidence=0.86,
+            recommended_action=recommended,
+            preference_strength=abs(list(scores.values())[0] - list(scores.values())[1]),
+            epistemic_confidence=0.86,
+            schema_valid=True,
+            decision_rule="prefer sealing the conduit on the stated ranking",
+        )
+        payload.update(extra)
+        return CandidateChunk(**payload)
+
+    def test_contradicting_certain_row_quarantines_candidate(self):
+        from global_workspace.epistemic_ledger import (
+            CERTAIN_CONTRADICTION_NOTE,
+            attach_candidate_dependencies,
+        )
+        from global_workspace.specialist_authority import apply_specialist_authority
+
+        ledger = self._world_ledger()
+        chunk = self._chunk(
+            "virtue",
+            supporting_proposition_ids=["PROP:WORLD:E5"],
+            material_empirical_claims=[{
+                "claim": (
+                    "the leak could be stopped short of the stored reserve "
+                    "without sealing the conduit"
+                ),
+                "proposition_id": "HYPOTHESIS",
+                "decision_critical": True,
+            }],
+        )
+        attach_candidate_dependencies(ledger, chunk)
+
+        self.assertTrue(chunk.schema_valid)
+        self.assertEqual(chunk.adjudication_status, "CONTESTED_NO_LEANING")
+        self.assertEqual(chunk.recommended_action, "")
+        self.assertAlmostEqual(chunk.action_scores[self.actions[0]], 0.5)
+        self.assertAlmostEqual(chunk.action_scores[self.actions[1]], 0.5)
+        self.assertTrue(any(
+            CERTAIN_CONTRADICTION_NOTE in note
+            for note in chunk.epistemic_binding_notes
+        ))
+        hyp_ids = [
+            proposition_id for proposition_id in chunk.decision_critical_proposition_ids
+            if ledger[proposition_id].epistemic_type == "HYPOTHESIS"
+        ]
+        self.assertTrue(hyp_ids)
+        profile = apply_specialist_authority(chunk)
+        self.assertEqual(profile.adjudication_status, "CONTESTED_NO_LEANING")
+        self.assertEqual(profile.policy_weight_factor, 0.0)
+
+    def test_certain_restatement_rebinds_without_quarantine(self):
+        from global_workspace.epistemic_ledger import (
+            CERTAIN_CONTRADICTION_NOTE,
+            attach_candidate_dependencies,
+        )
+
+        ledger = self._world_ledger()
+        chunk = self._chunk(
+            "virtue",
+            material_empirical_claims=[{
+                "claim": "stored reserve becomes contaminated",
+                "proposition_id": "HYPOTHESIS",
+                "decision_critical": True,
+            }],
+        )
+        attach_candidate_dependencies(ledger, chunk)
+
+        self.assertEqual(
+            chunk.material_empirical_claims[0]["proposition_id"],
+            "PROP:WORLD:E5",
+        )
+        self.assertNotEqual(chunk.adjudication_status, "CONTESTED_NO_LEANING")
+        self.assertEqual(chunk.recommended_action, self.actions[0])
+        self.assertFalse(any(
+            CERTAIN_CONTRADICTION_NOTE in note
+            for note in chunk.epistemic_binding_notes
+        ))
+        self.assertNotIn(
+            "HYPOTHESIS",
+            {ledger[value].epistemic_type for value in chunk.supporting_proposition_ids},
+        )
+
+    def test_agreeing_necessity_claim_does_not_quarantine(self):
+        from global_workspace.epistemic_ledger import (
+            CERTAIN_CONTRADICTION_NOTE,
+            attach_candidate_dependencies,
+        )
+
+        ledger = self._world_ledger()
+        chunk = self._chunk(
+            "virtue",
+            supporting_proposition_ids=["PROP:WORLD:E5"],
+            material_empirical_claims=[{
+                "claim": "only sealing the conduit can protect the stored reserve",
+                "proposition_id": "HYPOTHESIS",
+                "decision_critical": True,
+            }],
+        )
+        attach_candidate_dependencies(ledger, chunk)
+
+        self.assertNotEqual(chunk.adjudication_status, "CONTESTED_NO_LEANING")
+        self.assertFalse(any(
+            CERTAIN_CONTRADICTION_NOTE in note
+            for note in chunk.epistemic_binding_notes
+        ))
+
+    def test_possible_row_is_not_rebound_as_settled(self):
+        from global_workspace.epistemic_ledger import resolve_proposition
+
+        ledger = self._world_ledger(possible_survive=True)
+        survive = ledger["PROP:WORLD:E6"]
+        self.assertIn("modality: POSSIBLE", survive.claim)
+        self.assertEqual(resolve_proposition(ledger, "workers survive"), "")
+        self.assertEqual(resolve_proposition(ledger, survive.claim), "PROP:WORLD:E6")
+        self.assertEqual(
+            resolve_proposition(ledger, "workers might survive"),
+            "PROP:WORLD:E6",
+        )
+
+    def test_hypothesis_about_possible_row_is_not_certain_quarantine(self):
+        from global_workspace.epistemic_ledger import (
+            CERTAIN_CONTRADICTION_NOTE,
+            HYPOTHESIS_OPEN_WORLD_CONFIDENCE_CAP,
+            attach_candidate_dependencies,
+        )
+
+        ledger = self._world_ledger(possible_survive=True)
+        chunk = self._chunk(
+            "care",
+            scores={self.actions[0]: 0.30, self.actions[1]: 0.70},
+            recommended=self.actions[1],
+            supporting_proposition_ids=["PROP:WORLD:E6"],
+            material_empirical_claims=[{
+                "claim": "the workers cannot self-rescue from the service bay",
+                "proposition_id": "HYPOTHESIS",
+                "decision_critical": True,
+            }],
+        )
+        attach_candidate_dependencies(ledger, chunk)
+
+        self.assertNotEqual(chunk.adjudication_status, "CONTESTED_NO_LEANING")
+        self.assertEqual(chunk.recommended_action, self.actions[1])
+        self.assertLessEqual(
+            chunk.epistemic_confidence, HYPOTHESIS_OPEN_WORLD_CONFIDENCE_CAP,
+        )
+        self.assertFalse(any(
+            CERTAIN_CONTRADICTION_NOTE in note
+            for note in chunk.epistemic_binding_notes
+        ))
+        self.assertTrue(any(
+            ledger[value].epistemic_type == "HYPOTHESIS"
+            for value in chunk.decision_critical_proposition_ids
+        ))
+
+    def test_framework_derived_is_not_a_descriptive_hypothesis(self):
+        from global_workspace.epistemic_ledger import (
+            HYPOTHESIS_OPEN_WORLD_CONFIDENCE_CAP,
+            attach_candidate_dependencies,
+        )
+
+        ledger = self._world_ledger()
+        chunk = self._chunk(
+            "deontological",
+            material_empirical_claims=[{
+                "claim": "sealing the conduit is doing harm to the workers",
+                "proposition_id": "FRAMEWORK_DERIVED",
+                "decision_critical": True,
+            }],
+        )
+        attach_candidate_dependencies(ledger, chunk)
+
+        bound = chunk.material_empirical_claims[0]["proposition_id"]
+        record = ledger[bound]
+        self.assertEqual(record.epistemic_type, "FRAMEWORK_DERIVED")
+        self.assertEqual(record.proposition_type, "NORMATIVE")
+        self.assertNotEqual(record.epistemic_status, "HYPOTHETICAL")
+        self.assertGreater(chunk.epistemic_confidence, HYPOTHESIS_OPEN_WORLD_CONFIDENCE_CAP)
+        self.assertEqual(chunk.recommended_action, self.actions[0])
+        self.assertNotEqual(chunk.adjudication_status, "CONTESTED_NO_LEANING")
+
+    def test_audit_reclassifies_normative_new_hypothesis(self):
+        from global_workspace.epistemic_ledger import apply_side_premise_audit
+
+        ledger = self._world_ledger()
+        chunk = self._chunk("deontological")
+        apply_side_premise_audit(ledger, [chunk], {
+            "status": "FINDINGS",
+            "findings": [{
+                "specialist": "deontological",
+                "claim": "sealing the conduit is doing harm to the workers",
+                "binding": "NEW_HYPOTHESIS",
+                "derived_from": ["PROP:WORLD:E1"],
+                "decision_critical": True,
+                "source_field": "rationale",
+                "reason": "framework-native doing relation",
+            }],
+        })
+        bound = chunk.side_premise_audit_findings[0]["proposition_id"]
+        self.assertEqual(ledger[bound].epistemic_type, "FRAMEWORK_DERIVED")
+        self.assertNotEqual(chunk.adjudication_status, "CONTESTED_NO_LEANING")
+
+    def test_parse_accepts_framework_derived_premise(self):
+        chunk = _candidate_from_data(
+            "utilitarian", list(self.actions),
+            {
+                "scores": {"A0": 0.35, "A1": 0.65}, "r": "A1",
+                "c": "IMMINENT_HARM", "u": "NONE",
+                "w": "Prefer leaving the conduit open on admitted drowning",
+                "j": "NONE", "e": "STATED_FACTS", "x": "NONE", "z": 0.8,
+                "ct": {
+                    "A0": [{
+                        "o": "twelve workers drown", "s": "workers",
+                        "d": "HARM", "p": "CERTAIN", "m": "UNKNOWN",
+                        "h": "immediate", "rv": "IRREVERSIBLE", "g": "STATED",
+                    }],
+                    "A1": [{
+                        "o": "stored reserve becomes contaminated",
+                        "s": "city residents",
+                        "d": "HARM", "p": "CERTAIN", "m": "UNKNOWN",
+                        "h": "lasting", "rv": "UNKNOWN", "g": "STATED",
+                    }],
+                },
+                "cd": False, "cm": "NONE",
+                "dr": (
+                    "prefer leaving the conduit open because certain drowning "
+                    "of the workers outranks certain contamination of the reserve"
+                ),
+                "ft": "NONE", "nt": "NONE",
+                "ep": [{
+                    "c": "sealing the conduit is doing harm to the workers",
+                    "p": "FRAMEWORK_DERIVED",
+                    "dc": True,
+                }],
+            },
+            WorkspaceBroadcast(), "NONE", {},
+            scenario_text=self.scenario,
+        )
+        self.assertEqual(
+            chunk.material_empirical_claims[0]["proposition_id"],
+            "FRAMEWORK_DERIVED",
+        )
+
+    def test_seeded_possible_injury_keeps_modality_and_health_dimension(self):
+        from global_workspace.epistemic_ledger import resolve_proposition
+
+        fixture = DeonticGraphRelationTests()
+        graph, _, _ = fixture._graph(fixture._world(
+            harm_modality="POSSIBLE",
+            harm_likelihood=("a chance",),
+        ))
+        ledger = seed_proposition_ledger(graph)
+        injured = ledger["PROP:WORLD:E1"]
+        self.assertEqual(injured.modality, "POSSIBLE")
+        self.assertIn("modality: POSSIBLE", injured.claim)
+        self.assertNotEqual(
+            resolve_proposition(ledger, "INJURED", preferred="PROP:WORLD:E1"),
+            "PROP:WORLD:E1",
+        )
+        self.assertEqual(resolve_proposition(ledger, injured.claim), "PROP:WORLD:E1")
+        self.assertEqual(ledger["PROP:WORLD:E4"].modality, "CERTAIN")
+        self.assertEqual(resolve_proposition(ledger, "INJURED"), "PROP:WORLD:E4")
+        health = [
+            effect for effect in project_grounded_action_effects(graph)
+            if effect.consequence_id.endswith(":E1")
+        ]
+        self.assertTrue(health)
+        self.assertTrue(all(
+            effect.dimension == "BASIC_SECURITY" for effect in health
+        ))
+
+    def test_foregone_duals_are_not_outcome_equivalence(self):
+        from global_workspace.semantic_state import _action_signature
+
+        graph = SemanticGraph()
+        graph.add_node(SemanticNode(
+            "A0", "ACTION", self.actions[0],
+            attributes={"canonical_action_id": "A0"},
+        ))
+        graph.add_node(SemanticNode(
+            "A1", "ACTION", self.actions[1],
+            attributes={"canonical_action_id": "A1"},
+        ))
+        graph.add_node(SemanticNode(
+            "A0:C", "CONSEQUENCE", "workers drown",
+            attributes={"polarity": "ADVERSE", "directness": "DOWNSTREAM"},
+        ))
+        graph.add_node(SemanticNode(
+            "A0:F", "CONSEQUENCE", "workers survive",
+            attributes={"polarity": "FOREGONE", "directness": "FOREGONE"},
+        ))
+        graph.add_node(SemanticNode(
+            "A1:C", "CONSEQUENCE", "workers survive",
+            attributes={"polarity": "BENEFICIAL", "directness": "DOWNSTREAM"},
+        ))
+        graph.add_node(SemanticNode(
+            "A1:F", "CONSEQUENCE", "workers drown",
+            attributes={"polarity": "FOREGONE", "directness": "FOREGONE"},
+        ))
+        graph.add_edge(SemanticEdge("A0", "HAS_CONSEQUENCE", "A0:C"))
+        graph.add_edge(SemanticEdge("A0", "HAS_CONSEQUENCE", "A0:F"))
+        graph.add_edge(SemanticEdge("A1", "HAS_CONSEQUENCE", "A1:C"))
+        graph.add_edge(SemanticEdge("A1", "HAS_CONSEQUENCE", "A1:F"))
+
+        left = _action_signature(graph, "A0")
+        right = _action_signature(graph, "A1")
+        self.assertEqual(left["consequence_labels"], {"workers drown"})
+        self.assertEqual(right["consequence_labels"], {"workers survive"})
+        state = project_authoritative_semantic_state(graph, selected_action=self.actions[0])
+        self.assertFalse(any(
+            item.relation == "OUTCOME_EQUIVALENCE"
+            for item in state.problem_shape_relations
+        ))
 
 
 class RawlsMapReconciliationTests(unittest.TestCase):
@@ -12451,6 +13456,48 @@ class UncertaintyTypingMigrationTests(unittest.TestCase):
         self.assertEqual(chunk.unresolved, "DECISION_BOUNDARY")
 
 
+class ScenarioFactExtractionTests(unittest.TestCase):
+    def test_elliptical_survival_chance_still_binds(self):
+        scenario = (
+            "A hospital has one antidote and two dying patients: a child with an 80% "
+            "survival chance and a researcher with a 45% chance. Who should receive it?"
+        )
+        facts = extract_scenario_facts(scenario)
+        self.assertEqual(
+            facts.get("survival_chance"),
+            {"child": 0.8, "researcher": 0.45},
+        )
+        self.assertNotIn("chance_events", facts)
+
+    def test_process_chance_is_not_survival_chance(self):
+        scenario = (
+            "The eastern district must use a narrow road with a 10% chance of "
+            "blockage. There is a 20% chance the backup process fails."
+        )
+        facts = extract_scenario_facts(scenario)
+        self.assertNotIn("survival_chance", facts)
+        events = {item["predicate"]: item for item in facts.get("chance_events", [])}
+        self.assertEqual(events["blockage"]["probability"], 0.1)
+        self.assertEqual(events["blockage"]["polarity"], "ADVERSE")
+        self.assertEqual(events["fails"]["probability"], 0.2)
+        self.assertEqual(events["fails"]["polarity"], "ADVERSE")
+
+    def test_unbound_elliptical_chance_is_not_survival(self):
+        facts = extract_scenario_facts(
+            "A coordinator must choose whether to send a worker with a 45% "
+            "chance into the shaft."
+        )
+        self.assertNotIn("survival_chance", facts)
+
+    def test_elliptical_survival_does_not_cross_sentences(self):
+        facts = extract_scenario_facts(
+            "A child with an 80% survival chance waits. A researcher with a "
+            "45% chance waits too."
+        )
+        self.assertEqual(facts.get("survival_chance"), {"child": 0.8})
+        self.assertNotIn("researcher", facts.get("survival_chance") or {})
+
+
 class CanonicalActionCompletenessTests(unittest.TestCase):
     """Canonical actions are compressed state objects, not display labels."""
 
@@ -12870,6 +13917,73 @@ class CanonicalActionCompletenessTests(unittest.TestCase):
                     },
                 ],
             })
+
+    def test_invented_lethal_count_is_unsupported(self):
+        from global_workspace.action_identity import (
+            unsupported_action_claims,
+            validate_action_set_completeness,
+        )
+        scenario = (
+            "A dispatcher must send the crew to Site A, holding the spillway "
+            "for the downstream residents, or send the crew to Site B to reach "
+            "the trapped family. If the spillway is not held, about sixty "
+            "residents could be trapped."
+        )
+        a0 = (
+            "Send the crew to Site A and hold the spillway, which would "
+            "likely kill about sixty residents"
+        )
+        a1 = (
+            "Send the crew to Site B and reach the trapped family, leaving "
+            "the spillway unheld"
+        )
+        self.assertTrue(unsupported_action_claims(a0, [scenario]))
+        with self.assertRaisesRegex(ValueError, "source-unsupported"):
+            validate_action_set_completeness([a0, a1], scenario=scenario)
+
+    def test_invented_total_departure_is_unsupported(self):
+        from global_workspace.action_identity import (
+            unsupported_action_claims,
+            validate_action_set_completeness,
+        )
+        scenario = (
+            "A coordinator commands a crew of fifty workers. Plan A sends aid "
+            "to the clinic. Plan B sends aid east. Five workers stay to assist."
+        )
+        a0 = (
+            "Send aid to the clinic while all fifty workers leave with the evacuees"
+        )
+        a1 = "Send aid east and keep five workers to assist"
+        self.assertTrue(unsupported_action_claims(a0, [scenario]))
+        with self.assertRaisesRegex(ValueError, "source-unsupported"):
+            validate_action_set_completeness([a0, a1], scenario=scenario)
+
+    def test_invented_quantity_and_participant_are_unsupported(self):
+        from global_workspace.action_identity import (
+            unsupported_action_claims,
+            validate_action_set_completeness,
+        )
+        scenario = (
+            "A coordinator commands a crew. Plan A sends aid to the clinic. "
+            "Plan B sends aid east."
+        )
+        a0 = "Send aid to the clinic with eighty researchers"
+        a1 = "Send aid east"
+        self.assertTrue(unsupported_action_claims(a0, [scenario]))
+        with self.assertRaisesRegex(ValueError, "source-unsupported"):
+            validate_action_set_completeness([a0, a1], scenario=scenario)
+        validate_action_set_completeness(
+            [a0, a1], scenario=scenario, user_authored=True,
+        )
+
+    def test_user_authored_provenance_attests_new_claims(self):
+        from global_workspace.action_identity import unsupported_action_claims
+        scenario = "A coordinator may send the crew east or hold the spillway."
+        action = "Send the crew east and kill sixty residents"
+        self.assertTrue(unsupported_action_claims(action, [scenario]))
+        self.assertFalse(
+            unsupported_action_claims(action, [scenario], user_authored=True)
+        )
 
 
 if __name__ == "__main__":

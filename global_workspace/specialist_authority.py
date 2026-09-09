@@ -15,6 +15,7 @@ from dataclasses import dataclass
 import re
 from typing import Any, Sequence
 
+from .epistemic_ledger import UNSUPPORTED_HYPOTHESIS_GOVERNANCE_NOTE
 from .uncertainty_types import (
     DECISION_BOUNDARY,
     NORMATIVE_ADJUDICATION,
@@ -224,12 +225,35 @@ def _has_directional_lean(candidate: Any) -> bool:
     return bool(recommended)
 
 
+def _scores_tied_without_recommendation(candidate: Any) -> bool:
+    recommended = str(getattr(candidate, "recommended_action", "") or "").strip()
+    if recommended and recommended.upper() not in _NON_ACTIONS:
+        return False
+    scores = [
+        float(value)
+        for value in dict(getattr(candidate, "action_scores", {}) or {}).values()
+    ]
+    if len(scores) < 2:
+        return False
+    return max(scores) == min(scores)
+
+
 def derive_specialist_status(candidate: Any) -> str:
     """Derive framework-general status from candidate signals.
 
     Prefer an already-classified canonical status when present (e.g. Kantian
     ledger output). Otherwise map assumption / baseline / conflict signals.
     """
+    if not bool(getattr(candidate, "schema_valid", True)):
+        return CONTESTED_NO_LEANING
+    recommended = str(getattr(candidate, "recommended_action", "") or "").strip()
+    confidence = float(
+        getattr(candidate, "epistemic_confidence", None)
+        if getattr(candidate, "epistemic_confidence", None) not in (None, -1)
+        else getattr(candidate, "confidence", 1.0)
+    )
+    if recommended.upper() in _NON_ACTIONS and confidence <= 0.0:
+        return CONTESTED_NO_LEANING
     existing = str(getattr(candidate, "adjudication_status", "") or "").strip().upper()
     if existing in {
         SUPPORTS, CONDITIONAL_SUPPORTS, PROVISIONAL_LEANING, CONTESTED_NO_LEANING,
@@ -239,6 +263,8 @@ def derive_specialist_status(candidate: Any) -> str:
         # Re-check conditional overlay when the ledger said SUPPORTS but the
         # candidate still carries an open decision-critical condition.
         normalized = normalize_specialist_status(existing)
+        if normalized == SUPPORTS and _scores_tied_without_recommendation(candidate):
+            return CONTESTED_NO_LEANING
         if normalized == SUPPORTS and _is_conditional_state(candidate):
             return CONDITIONAL_SUPPORTS
         if normalized == SUPPORTS and _has_normative_contestation(candidate):
@@ -249,6 +275,8 @@ def derive_specialist_status(candidate: Any) -> str:
             )
         return normalized
 
+    if _scores_tied_without_recommendation(candidate):
+        return CONTESTED_NO_LEANING
     if _has_normative_contestation(candidate):
         return (
             PROVISIONAL_LEANING
@@ -360,6 +388,7 @@ _ACTIVE_CHALLENGE_STATUSES = {
 }
 _NON_ACTIONS = {
     "INCONCLUSIVE", "UNDERDETERMINED", "CONDITIONAL", "NONE", "UNRESOLVED", "",
+    "?",
 }
 
 
@@ -520,6 +549,9 @@ def classify_specialist_authority(candidate: Any) -> SpecialistAuthorityProfile:
             True if status == SUPPORTS else bool(conditional_rule)
         ),
     )
+    notes = getattr(candidate, "epistemic_binding_notes", []) or []
+    if any(UNSUPPORTED_HYPOTHESIS_GOVERNANCE_NOTE in str(note) for note in notes):
+        eligible = False
     investigative = ""
     if status == PROVISIONAL_LEANING:
         action = " ".join(
@@ -549,7 +581,7 @@ def classify_specialist_authority(candidate: Any) -> SpecialistAuthorityProfile:
         )
     broadcast = (
         "INVESTIGATIVE"
-        if status in {PROVISIONAL_LEANING, CONTESTED_NO_LEANING}
+        if (not eligible) or status in {PROVISIONAL_LEANING, CONTESTED_NO_LEANING}
         else "GOVERNING_CANDIDATE"
     )
     return SpecialistAuthorityProfile(

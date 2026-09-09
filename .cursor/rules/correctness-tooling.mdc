@@ -1,0 +1,32 @@
+---
+description: External correctness tools sit around Parliament; they never become it.
+alwaysApply: true
+---
+
+# Correctness tooling around Parliament
+
+Hypothesis, mutmut, CrossHair, and NetworkX are **not** Parliament architecture.
+World model, ledgers, governance, agent outputs, and JSON traces stay canonical.
+
+If adopting a tool requires redesigning a working subsystem to satisfy the tool, do not adopt it.
+
+## Layout
+
+```text
+Hypothesis → generated test worlds → existing validators → pytest → mutmut
+Current Parliament ─────────────────────────────────────────┘
+        └──► graph_queries.to_networkx ──► standard graph queries
+```
+
+- **Hypothesis** lives in `tests/strategies/` and `tests/invariants/`. Oracle is a declared case field. Production consumes fake worlds. Do not test live-dilemma nouns.
+- **NetworkX** is a calculator: `global_workspace/graph_queries.py` builds a temporary `DiGraph`, answers a query, discards it. Do not replace world state with NetworkX.
+- **mutmut** comes after the invariant suite is green. Scope it to modules those invariants protect. It automates comment-the-fix → tests must fail → restore.
+- **CrossHair** is an experiment on one pure validator. Never on `run_entire_parliament` or LLM calls. Drop it if it becomes a maintenance burden.
+
+## Do not change for these tools
+
+World-state schema, agent architecture, workspace recurrence, specialist prompts, framework ledgers, canonical actions, governance concepts, trace format.
+
+## Phase order
+
+Hypothesis (current methodology) → NetworkX means-path adapter → mutmut on invariant modules → CrossHair pilot on one small function.

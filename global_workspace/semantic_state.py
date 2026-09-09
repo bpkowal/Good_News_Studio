@@ -17,6 +17,11 @@ from .scenario_semantics import (
     semantic_action_key,
 )
 from .semantic_graph import SemanticGraph, validate_graph
+from .world_state import (
+    counts_as_obtained_outcome,
+    counts_as_settled_adverse,
+    is_averted_risk_not_obtained_benefit_consequence,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -509,14 +514,34 @@ def _action_signature(graph: SemanticGraph, action_node_id: str) -> dict[str, An
         "action_id": _action_identity(action)[0],
         "action_key": _action_identity(action)[1],
         "target_labels": {target.label.casefold() for target in targets if target.label.strip()},
-        "consequence_labels": {consequence.label.casefold() for consequence in consequences if consequence.label.strip()},
+        "consequence_labels": {
+            consequence.label.casefold()
+            for consequence in consequences
+            if consequence.label.strip()
+            and str(consequence.attributes.get("polarity", "")).upper() != "FOREGONE"
+            and str(consequence.attributes.get("directness", "")).upper() != "FOREGONE"
+        },
         "adverse_count": sum(
             1 for consequence in consequences
-            if str(consequence.attributes.get("polarity", "")).upper() == "ADVERSE"
+            if counts_as_settled_adverse(
+                polarity=str(consequence.attributes.get("polarity", "")),
+                modality=str(consequence.attributes.get("modality", "")),
+                likelihood_qualifiers=consequence.attributes.get(
+                    "likelihood_qualifiers", (),
+                ),
+            )
         ),
         "beneficial_count": sum(
             1 for consequence in consequences
             if str(consequence.attributes.get("polarity", "")).upper() == "BENEFICIAL"
+            and counts_as_obtained_outcome(
+                polarity=str(consequence.attributes.get("polarity", "")),
+                modality=str(consequence.attributes.get("modality", "")),
+                likelihood_qualifiers=consequence.attributes.get(
+                    "likelihood_qualifiers", (),
+                ),
+            )
+            and not is_averted_risk_not_obtained_benefit_consequence(graph, consequence)
         ),
         "support_nodes": tuple(
             node.id for node in [*targets, *consequences]
@@ -857,14 +882,17 @@ def project_authoritative_semantic_state(
             ):
                 more_costly = left_id if (left_adverse, -left_beneficial) > (right_adverse, -right_beneficial) else right_id
                 less_costly = right_id if more_costly == left_id else left_id
+                more_costly_id = str(
+                    (action_signatures.get(more_costly) or {}).get("action_id", more_costly)
+                )
+                less_costly_id = str(
+                    (action_signatures.get(less_costly) or {}).get("action_id", less_costly)
+                )
                 state.problem_shape_relations.append(ProblemShapeRelation(
                     relation="ASYMMETRIC_COST",
-                    source_action_ids=(
-                        str(left.get("action_id", "")),
-                        str(right.get("action_id", "")),
-                    ),
+                    source_action_ids=(more_costly_id, less_costly_id),
                     statement=(
-                        f"{more_costly} imposes more adverse consequence structure than {less_costly}"
+                        f"{more_costly_id} imposes more adverse consequence structure than {less_costly_id}"
                     ),
                     confidence=0.62,
                     support_node_ids=tuple(

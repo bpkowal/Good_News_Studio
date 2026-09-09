@@ -33,6 +33,7 @@ from global_workspace.world_state import (
     classify_clause_role,
     compact_committed_world,
     explicit_likelihood_spans,
+    explicit_likelihood_span_records,
     explicit_quantity_spans,
     explicit_scope_spans,
     explicit_temporal_spans,
@@ -43,6 +44,10 @@ from global_workspace.world_state import (
     validate_world_completeness,
     validate_world_model,
     world_model_from_dict,
+    _closed_class_qualifiers,
+    _condition_restates_outcome,
+    _effect_expected_qualifiers,
+    _unique_likelihood_spans,
 )
 from global_workspace.action_identity import build_canonical_action_records
 from global_workspace.graph_transactions import SemanticGraphStore
@@ -50,6 +55,7 @@ from global_workspace.local_specialists import (
     CompactLocalSpecialist,
     _candidate_from_data,
     ground_actions_in_scenario,
+    _preserve_stable_world_bookkeeping,
 )
 from global_workspace.models import CandidateChunk, WorkspaceBroadcast
 from global_workspace.engine import WorkspaceConfig, WorkspaceEngine
@@ -60,6 +66,7 @@ from global_workspace.deliberative_state import (
 from global_workspace.epistemic_ledger import (
     apply_side_premise_audit,
     attach_candidate_dependencies,
+    claim_changes_admitted_outcome_type,
     ledger_projection,
     PropositionRecord,
     register_framework_derived_proposition,
@@ -71,6 +78,7 @@ from global_workspace.semantic_graph import SemanticEdge, SemanticGraph, Semanti
 from global_workspace.specialist_authority import apply_specialist_authority
 from global_workspace.presentation import (
     _candidate_epistemic_qualification,
+    _factual_status_lines,
     render_decision_brief,
 )
 from global_workspace.premise_audit import audit_side_premises as run_side_premise_audit
@@ -212,7 +220,7 @@ class ExplicitQuantitySpanTests(unittest.TestCase):
         )
         self.assertEqual(
             explicit_quantity_spans(text),
-            ("tens of thousands", "3", "40 minutes", "40%"),
+            ("tens of thousands", "3", "40 minutes"),
         )
         self.assertNotIn("80", explicit_quantity_spans(text))
         self.assertEqual(explicit_quantity_spans("later expected value in QALYs"), ())
@@ -251,12 +259,1124 @@ class ExplicitQuantitySpanTests(unittest.TestCase):
             explicit_quantity_spans("a hundred residents"),
             ("a hundred",),
         )
+        self.assertEqual(
+            explicit_quantity_spans("as many as three hundred residents"),
+            ("as many as three hundred",),
+        )
+        self.assertEqual(
+            explicit_quantity_spans("up to three hundred residents"),
+            ("up to three hundred",),
+        )
+        self.assertEqual(
+            explicit_quantity_spans("at most three hundred residents"),
+            ("at most three hundred",),
+        )
+        self.assertEqual(
+            explicit_quantity_spans("no more than three hundred residents"),
+            ("no more than three hundred",),
+        )
+
+    def test_as_many_as_is_the_source_grounded_party_quantity(self):
+        text = (
+            "as many as three hundred residents could be killed"
+        )
+        party = WorldParty(
+            "P0", "district residents", "POPULATION",
+            (SourceRef("C1", text),),
+            quantities=("as many as three hundred",),
+        )
+        self.assertEqual(
+            assigned_party_quantities((party,))["P0"],
+            ("as many as three hundred",),
+        )
+        errors, _contradictions = validate_world_model(
+            ScenarioWorldModel(
+                parties=(party,),
+                actions=(),
+                effects=(),
+                schema_version="1.2",
+            ),
+            action_ids=(),
+        )
+        self.assertFalse(any("omits source-grounded" in item for item in errors))
+        self.assertFalse(any("nested quantity" in item for item in errors))
 
     def test_source_qualifier_extractors_keep_likelihood_scope_and_time_distinct(self):
         text = "an immediate, near-certain fatal failure creates widespread disruption"
         self.assertEqual(explicit_likelihood_spans(text), ("near-certain",))
         self.assertEqual(explicit_scope_spans(text), ("widespread",))
         self.assertEqual(explicit_temporal_spans(text), ("immediate",))
+
+    def test_chance_phrases_are_likelihood_spans_and_do_not_nest(self):
+        self.assertEqual(
+            explicit_likelihood_spans("subjects have a chance to escape"),
+            ("a chance",),
+        )
+        self.assertEqual(
+            explicit_likelihood_spans(
+                "subjects drown with almost no chance of survival"
+            ),
+            ("almost no chance",),
+        )
+        self.assertEqual(
+            explicit_likelihood_spans("the leak could contaminate the supply"),
+            ("could",),
+        )
+        self.assertEqual(
+            explicit_likelihood_spans("subjects have a remote chance of escape"),
+            ("remote chance",),
+        )
+        self.assertEqual(
+            explicit_likelihood_spans("subjects face nearly certain harm"),
+            ("nearly certain",),
+        )
+        self.assertEqual(
+            explicit_quantity_spans("a 30% chance the residents escape"),
+            (),
+        )
+        self.assertEqual(
+            explicit_likelihood_spans("a 30% chance the residents escape"),
+            ("30% chance",),
+        )
+        self.assertEqual(
+            explicit_quantity_spans("30% of the residents escape"),
+            ("30%",),
+        )
+
+
+class QualifierBindingTests(unittest.TestCase):
+    """Likelihood/scope/time attach to the modified outcome, not sibling rows."""
+
+    SHARED = (
+        "Disconnecting the device causes it to lose power and face "
+        "near-certain death of twelve subjects."
+    )
+
+    def _effect(
+        self,
+        effect_id: str,
+        outcome: str,
+        kind: str,
+        *,
+        excerpt: str | None = None,
+        modality: str = "PROBABILISTIC",
+        polarity: str = "ADVERSE",
+        likelihood: tuple[str, ...] = (),
+        scope: tuple[str, ...] = (),
+        temporal: tuple[str, ...] = (),
+        condition_ids: tuple[str, ...] = ("COND1",),
+    ) -> WorldEffect:
+        ref = (SourceRef("C2", excerpt or self.SHARED),)
+        return WorldEffect(
+            effect_id, "A0", "P1", outcome, "EXPERIENCES", polarity,
+            "DOWNSTREAM", modality, kind, condition_ids, (), ref,
+            likelihood, scope, temporal,
+        )
+
+    def test_near_certain_binds_to_death_not_to_same_clause_power_loss(self):
+        death = self._effect("E11", "death", "HEALTH_OUTCOME")
+        power = self._effect(
+            "E10", "power lost", "PHYSICAL_STATE",
+            modality="CERTAIN", condition_ids=(),
+        )
+        self.assertEqual(
+            _effect_expected_qualifiers(death, explicit_likelihood_spans),
+            ("near-certain",),
+        )
+        self.assertEqual(
+            _effect_expected_qualifiers(power, explicit_likelihood_spans),
+            (),
+        )
+
+    def test_closed_class_fill_does_not_copy_death_hedge_onto_power_loss(self):
+        power = self._effect(
+            "E10", "power lost", "PHYSICAL_STATE",
+            modality="CERTAIN", condition_ids=(),
+        )
+        filled = _closed_class_qualifiers(power)
+        self.assertEqual(filled.likelihood_qualifiers, ())
+
+    def test_closed_class_fill_still_copies_near_certain_onto_death(self):
+        death = self._effect("E11", "death", "HEALTH_OUTCOME")
+        filled = _closed_class_qualifiers(death)
+        self.assertEqual(filled.likelihood_qualifiers, ("near-certain",))
+
+    def test_closed_class_untypes_certain_when_source_is_almost_certain(self):
+        death = self._effect(
+            "E11", "death", "HEALTH_OUTCOME",
+            excerpt="Subjects face almost certain death.",
+            modality="CERTAIN", condition_ids=(),
+        )
+        filled = _closed_class_qualifiers(death)
+        self.assertEqual(filled.modality, "PROBABILISTIC")
+        self.assertEqual(filled.likelihood_qualifiers, ("almost certain",))
+        self.assertEqual(filled.condition_ids, ())
+
+    def test_certain_plus_chance_hedge_is_rejected(self):
+        ref = (SourceRef("C2", "Subjects face almost certain death."),)
+        death = self._effect(
+            "E11", "death", "HEALTH_OUTCOME", excerpt=ref[0].excerpt,
+            modality="CERTAIN", condition_ids=(),
+            likelihood=("almost certain",),
+        )
+        model = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "allocator", "AUTOMATED_SYSTEM", REF),
+                WorldParty("P1", "subjects", "POPULATION", ref),
+            ),
+            actions=(
+                WorldAction("A0", "disconnect the device", "P0", (), ("E11",), ref),
+            ),
+            effects=(death,),
+            schema_version="1.2",
+        )
+        errors, _ = validate_world_model(model, action_ids=["A0"])
+        self.assertTrue(any(
+            "E11" in error and "CERTAIN" in error and "chance hedge" in error
+            for error in errors
+        ), errors)
+
+    def test_duplicate_chance_identity_collapses(self):
+        self.assertEqual(
+            _unique_likelihood_spans(["20% chance", "20% chance", "20%chance"]),
+            ("20% chance",),
+        )
+
+    def test_validate_omits_near_certain_on_death_not_on_power_loss(self):
+        ref = (SourceRef("C2", self.SHARED),)
+        parties = (
+            WorldParty("P0", "allocator", "AUTOMATED_SYSTEM", REF),
+            WorldParty("P1", "device", "FACILITY", ref),
+            WorldParty(
+                "P2", "subjects", "POPULATION", ref, ("twelve",),
+            ),
+        )
+        death = self._effect("E11", "death", "HEALTH_OUTCOME", likelihood=())
+        power = self._effect(
+            "E10", "power lost", "PHYSICAL_STATE",
+            modality="CERTAIN", condition_ids=(), likelihood=(),
+        )
+        model = ScenarioWorldModel(
+            parties=parties,
+            actions=(
+                WorldAction("A0", "disconnect the device", "P0", ("P1",), ("E10", "E11"), ref),
+            ),
+            effects=(power, death),
+            conditions=(
+                WorldCondition("COND1", "device power is lost", "STATED", "MATERIAL", ref),
+            ),
+            schema_version="1.2",
+        )
+        errors, _ = validate_world_model(model, action_ids=["A0"])
+        self.assertTrue(any(
+            "E11 omits" in error and "near-certain" in error for error in errors
+        ))
+        self.assertFalse(any(
+            "E10 omits" in error and "near-certain" in error for error in errors
+        ))
+
+    def test_human_head_does_not_bind_via_shared_crowd_noun(self):
+        excerpt = (
+            "Twelve subjects lose device power and face near-certain death."
+        )
+        power = self._effect(
+            "E10", "subjects lose device power", "PHYSICAL_STATE",
+            excerpt=excerpt, modality="CERTAIN", condition_ids=(),
+        )
+        death = self._effect(
+            "E11", "subjects die", "HEALTH_OUTCOME", excerpt=excerpt,
+        )
+        self.assertEqual(
+            _effect_expected_qualifiers(power, explicit_likelihood_spans),
+            (),
+        )
+        self.assertEqual(
+            _effect_expected_qualifiers(death, explicit_likelihood_spans),
+            ("near-certain",),
+        )
+
+    def test_scope_still_binds_to_the_process_row_it_modifies(self):
+        excerpt = "The choice triggers widespread rolling blackouts across the grid."
+        blackouts = self._effect(
+            "E4", "rolling blackouts", "PHYSICAL_STATE",
+            excerpt=excerpt, modality="CERTAIN", condition_ids=(),
+            polarity="ADVERSE",
+        )
+        self.assertEqual(
+            _effect_expected_qualifiers(blackouts, explicit_scope_spans),
+            ("widespread",),
+        )
+
+    def test_stacked_adjectives_both_attach_to_the_modified_harm(self):
+        excerpt = "Subjects suffer immediate and prolonged harm."
+        harm = self._effect(
+            "E6", "harm", "WELFARE_OUTCOME", excerpt=excerpt,
+        )
+        self.assertEqual(
+            _effect_expected_qualifiers(harm, explicit_temporal_spans),
+            ("immediate", "prolonged"),
+        )
+
+    def test_clause_final_likely_attaches_to_the_preceding_noun(self):
+        excerpt = "The crop fails; famine is likely."
+        famine = self._effect(
+            "E2", "famine", "WELFARE_OUTCOME", excerpt=excerpt,
+        )
+        crop = self._effect(
+            "E1", "crop fails", "PHYSICAL_STATE",
+            excerpt=excerpt, modality="CERTAIN", condition_ids=(),
+        )
+        self.assertEqual(
+            _effect_expected_qualifiers(famine, explicit_likelihood_spans),
+            ("likely",),
+        )
+        self.assertEqual(
+            _effect_expected_qualifiers(crop, explicit_likelihood_spans),
+            (),
+        )
+
+    def test_chance_binds_to_escape_not_to_same_clause_spread(self):
+        excerpt = (
+            "Keeping the device connected allows twelve subjects a chance to "
+            "escape, but leaves an open route for the leak to spread."
+        )
+        escape = self._effect(
+            "E2", "subjects escape", "HEALTH_OUTCOME",
+            excerpt=excerpt, polarity="BENEFICIAL",
+        )
+        spread = self._effect(
+            "E1", "leak spreads", "PHYSICAL_STATE",
+            excerpt=excerpt, modality="CERTAIN", condition_ids=(),
+            polarity="NEUTRAL",
+        )
+        self.assertEqual(
+            _effect_expected_qualifiers(escape, explicit_likelihood_spans),
+            ("a chance",),
+        )
+        self.assertEqual(
+            _effect_expected_qualifiers(spread, explicit_likelihood_spans),
+            (),
+        )
+
+    def test_survive_is_the_same_head_family_as_escape(self):
+        excerpt = (
+            "Keeping the device connected allows twelve subjects a chance to "
+            "escape."
+        )
+        survive = self._effect(
+            "E2", "subjects survive", "HEALTH_OUTCOME",
+            excerpt=excerpt, polarity="BENEFICIAL",
+        )
+        self.assertEqual(
+            _effect_expected_qualifiers(survive, explicit_likelihood_spans),
+            ("a chance",),
+        )
+
+    def test_could_binds_to_contaminate_not_to_spread(self):
+        excerpt = "The leak could contaminate the supply used by residents."
+        contaminate = self._effect(
+            "E4", "supply contaminated", "WELFARE_OUTCOME", excerpt=excerpt,
+        )
+        spread = self._effect(
+            "E2", "leak spreads", "PHYSICAL_STATE",
+            excerpt=excerpt, modality="CERTAIN", condition_ids=(),
+            polarity="NEUTRAL",
+        )
+        self.assertEqual(
+            _effect_expected_qualifiers(contaminate, explicit_likelihood_spans),
+            ("could",),
+        )
+        self.assertEqual(
+            _effect_expected_qualifiers(spread, explicit_likelihood_spans),
+            (),
+        )
+
+    def test_almost_no_chance_binds_to_drowning_not_to_the_filled_chamber(self):
+        excerpt = (
+            "Sealing the chamber fills it, drowning twelve subjects with "
+            "almost no chance of survival."
+        )
+        death = self._effect(
+            "E11", "subjects drown", "HEALTH_OUTCOME", excerpt=excerpt,
+        )
+        filled = self._effect(
+            "E10", "chamber filled", "PHYSICAL_STATE",
+            excerpt=excerpt, modality="CERTAIN", condition_ids=(),
+            polarity="NEUTRAL",
+        )
+        self.assertEqual(
+            _effect_expected_qualifiers(death, explicit_likelihood_spans),
+            ("almost no chance",),
+        )
+        self.assertEqual(
+            _effect_expected_qualifiers(filled, explicit_likelihood_spans),
+            (),
+        )
+        filled_closed = _closed_class_qualifiers(filled)
+        death_closed = _closed_class_qualifiers(death)
+        self.assertEqual(filled_closed.likelihood_qualifiers, ())
+        self.assertEqual(death_closed.likelihood_qualifiers, ("almost no chance",))
+
+    def test_percent_chance_the_clause_binds_to_the_predicate(self):
+        excerpt = (
+            "There is a 20% chance the device fails, and the subjects face death."
+        )
+        fails = self._effect(
+            "E2", "FAILS", "PHYSICAL_STATE", excerpt=excerpt,
+            condition_ids=(), likelihood=("a 20% chance",),
+        )
+        intervention = self._effect(
+            "E0", "holding the device", "INTERVENTION",
+            excerpt=excerpt, modality="CERTAIN", condition_ids=(),
+            polarity="NEUTRAL",
+        )
+        death = self._effect(
+            "E3", "subjects die", "HEALTH_OUTCOME",
+            excerpt=excerpt, modality="CERTAIN", condition_ids=(),
+        )
+        self.assertEqual(
+            _effect_expected_qualifiers(fails, explicit_likelihood_spans),
+            ("20% chance",),
+        )
+        self.assertEqual(
+            _effect_expected_qualifiers(intervention, explicit_likelihood_spans),
+            (),
+        )
+        self.assertEqual(
+            _effect_expected_qualifiers(death, explicit_likelihood_spans),
+            (),
+        )
+        self.assertEqual(
+            _closed_class_qualifiers(fails).likelihood_qualifiers,
+            ("20% chance",),
+        )
+
+    def test_percent_chance_of_being_binds_to_the_participle(self):
+        excerpt = (
+            "There is a 10% chance of being blocked, and the subjects face death."
+        )
+        blocked = self._effect(
+            "E12", "BLOCKED", "PHYSICAL_STATE", excerpt=excerpt,
+            condition_ids=(), likelihood=("a 10% chance",),
+        )
+        intervention = self._effect(
+            "E0", "holding the device", "INTERVENTION",
+            excerpt=excerpt, modality="CERTAIN", condition_ids=(),
+            polarity="NEUTRAL",
+        )
+        self.assertEqual(
+            _effect_expected_qualifiers(blocked, explicit_likelihood_spans),
+            ("10% chance",),
+        )
+        self.assertEqual(
+            _effect_expected_qualifiers(intervention, explicit_likelihood_spans),
+            (),
+        )
+        self.assertEqual(
+            _closed_class_qualifiers(blocked).likelihood_qualifiers,
+            ("10% chance",),
+        )
+
+    def test_glued_percent_chance_keeps_literal_offsets_and_canonical(self):
+        excerpt = "There is a 20%chance the device fails."
+        records = explicit_likelihood_span_records(excerpt)
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0].literal, "20%chance")
+        self.assertEqual(records[0].canonical, "20% chance")
+        self.assertEqual(excerpt[records[0].start:records[0].end], "20%chance")
+        self.assertEqual(explicit_likelihood_spans(excerpt), ("20% chance",))
+        fails = self._effect(
+            "E2", "FAILS", "PHYSICAL_STATE", excerpt=excerpt,
+            condition_ids=(), likelihood=(),
+        )
+        filled = _closed_class_qualifiers(fails)
+        self.assertEqual(filled.likelihood_qualifiers, ("20%chance",))
+
+    def test_at_moderate_risk_on_exposure_is_certain_not_chance(self):
+        excerpt = "Five workers would stay to assist them at moderate risk."
+        exposed = self._effect(
+            "E9", "AT_MODERATE_RISK", "HEALTH_OUTCOME", excerpt=excerpt,
+            condition_ids=(), likelihood=("moderate risk",),
+        )
+        stay = self._effect(
+            "E10", "STAYS_TO_ASSIST", "INTERVENTION", excerpt=excerpt,
+            modality="CERTAIN", condition_ids=(), polarity="NEUTRAL",
+        )
+        self.assertEqual(explicit_likelihood_spans(excerpt), ("at moderate risk",))
+        self.assertEqual(
+            _effect_expected_qualifiers(exposed, explicit_likelihood_spans),
+            ("at moderate risk",),
+        )
+        self.assertEqual(
+            _effect_expected_qualifiers(stay, explicit_likelihood_spans),
+            (),
+        )
+        filled = _closed_class_qualifiers(exposed)
+        self.assertEqual(filled.likelihood_qualifiers, ("at moderate risk",))
+        self.assertEqual(filled.modality, "CERTAIN")
+        self.assertEqual(filled.condition_ids, ())
+
+    def test_at_high_risk_of_dying_is_a_chance_hedge_on_death(self):
+        excerpt = "The subjects are at high risk of dying."
+        death = self._effect(
+            "E8", "DIES", "HEALTH_OUTCOME", excerpt=excerpt,
+            condition_ids=(), likelihood=(),
+        )
+        self.assertEqual(explicit_likelihood_spans(excerpt), ("at high risk",))
+        self.assertEqual(
+            _effect_expected_qualifiers(death, explicit_likelihood_spans),
+            ("at high risk",),
+        )
+        filled = _closed_class_qualifiers(death)
+        self.assertEqual(filled.likelihood_qualifiers, ("at high risk",))
+        self.assertEqual(filled.modality, "PROBABILISTIC")
+
+
+class IndependentConditionTests(unittest.TestCase):
+    """Conditions must add an unknown, not restate a CERTAIN parent."""
+
+    EXCERPT = (
+        "The allocator keeps the device connected, preserving support for "
+        "twelve subjects."
+    )
+
+    def _chain(
+        self,
+        *,
+        child_modality: str = "POSSIBLE",
+        condition_text: str = "if the device remains powered",
+        child_outcome: str = "subjects survive",
+        child_likelihood: tuple[str, ...] = (),
+        excerpt: str | None = None,
+        include_condition: bool = True,
+        child_kind: str = "HEALTH_OUTCOME",
+    ) -> ScenarioWorldModel:
+        ref = (SourceRef("C1", excerpt or self.EXCERPT),)
+        cond = ()
+        conditions: tuple[WorldCondition, ...] = ()
+        if include_condition:
+            cond = ("COND0",)
+            conditions = (
+                WorldCondition("COND0", condition_text, "UNKNOWN", "MATERIAL", ref),
+            )
+        parties = (
+            WorldParty("P0", "allocator", "AUTOMATED_SYSTEM", REF),
+            WorldParty("P1", "device", "FACILITY", ref),
+            WorldParty("P2", "subjects", "POPULATION", ref, ("twelve",)),
+        )
+        effects = (
+            WorldEffect(
+                "E0", "A0", "P1", "device connected", "IS", "NEUTRAL",
+                "DIRECT", "CERTAIN", "INTERVENTION", (), (), ref,
+            ),
+            WorldEffect(
+                "E1", "A0", "P1", "powered", "STATE_CHANGE", "BENEFICIAL",
+                "DOWNSTREAM", "CERTAIN", "PHYSICAL_STATE", (), (), ref,
+            ),
+            WorldEffect(
+                "E2", "A0", "P2", child_outcome, "SURVIVES", "BENEFICIAL",
+                "DOWNSTREAM", child_modality, child_kind, cond, (), ref,
+                child_likelihood,
+            ),
+        )
+        links = (
+            CausalLink("E0", "ENABLES", "E1", "CERTAIN", (), ref, "A0"),
+            CausalLink("E1", "CAUSES", "E2", "CERTAIN", (), ref, "A0"),
+        )
+        return ScenarioWorldModel(
+            parties=parties,
+            actions=(
+                WorldAction("A0", "keep the device connected", "P0", ("P1",), ("E0", "E1", "E2"), ref),
+            ),
+            effects=effects,
+            conditions=conditions,
+            causal_links=links,
+            schema_version="1.2",
+        )
+
+    def test_parent_restatement_is_detected_on_stems(self):
+        self.assertTrue(
+            _condition_restates_outcome("if the device remains powered", "powered")
+        )
+        self.assertTrue(
+            _condition_restates_outcome("if device power is lost", "power lost")
+        )
+        self.assertFalse(
+            _condition_restates_outcome("if the attempt works", "attempt is made")
+        )
+        self.assertFalse(
+            _condition_restates_outcome("engineer is reached", "spillway held")
+        )
+
+    def test_survive_gated_on_certain_powered_is_rejected(self):
+        errors = validate_world_completeness(self._chain(), action_ids=["A0"])
+        self.assertTrue(any(
+            "E2" in error and "restates immediate parent E1" in error
+            for error in errors
+        ), errors)
+
+    def test_unhedged_possible_survival_is_rejected_even_with_a_novel_if(self):
+        errors = validate_world_completeness(
+            self._chain(condition_text="if the subjects remain clinically stable"),
+            action_ids=["A0"],
+        )
+        self.assertTrue(any(
+            "E2" in error and "unhedged indicative" in error for error in errors
+        ), errors)
+
+    def test_source_if_clause_keeps_a_real_stipulated_conditional(self):
+        excerpt = (
+            "If the attempt works, twelve subjects survive after the device "
+            "is powered."
+        )
+        model = self._chain(
+            child_modality="STIPULATED_CONDITIONAL",
+            condition_text="if the attempt works",
+            excerpt=excerpt,
+        )
+        self.assertEqual(validate_world_completeness(model, action_ids=["A0"]), [])
+
+    def test_attempt_made_then_attempt_works_is_not_a_restatement(self):
+        ref = (SourceRef(
+            "C1",
+            "The allocator funds the attempt. If the attempt works, twelve "
+            "subjects survive.",
+        ),)
+        model = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "allocator", "AUTOMATED_SYSTEM", REF),
+                WorldParty("P1", "program", "PROCESS", ref),
+                WorldParty("P2", "subjects", "POPULATION", ref, ("twelve",)),
+            ),
+            actions=(
+                WorldAction("A0", "fund the attempt", "P0", ("P1",), ("E0", "E1", "E2"), ref),
+            ),
+            effects=(
+                WorldEffect(
+                    "E0", "A0", "P1", "attempt is funded", "IS", "NEUTRAL",
+                    "DIRECT", "CERTAIN", "INTERVENTION", (), (), ref,
+                ),
+                WorldEffect(
+                    "E1", "A0", "P1", "attempt is made", "STATE_CHANGE", "NEUTRAL",
+                    "DOWNSTREAM", "CERTAIN", "PHYSICAL_STATE", (), (), ref,
+                ),
+                WorldEffect(
+                    "E2", "A0", "P2", "subjects survive", "SURVIVES", "BENEFICIAL",
+                    "DOWNSTREAM", "STIPULATED_CONDITIONAL", "HEALTH_OUTCOME",
+                    ("COND0",), (), ref,
+                ),
+            ),
+            conditions=(
+                WorldCondition("COND0", "if the attempt works", "UNKNOWN", "MATERIAL", ref),
+            ),
+            causal_links=(
+                CausalLink("E0", "ENABLES", "E1", "CERTAIN", (), ref, "A0"),
+                CausalLink("E1", "CAUSES", "E2", "CERTAIN", (), ref, "A0"),
+            ),
+            schema_version="1.2",
+        )
+        self.assertEqual(validate_world_completeness(model, action_ids=["A0"]), [])
+
+    def test_probabilistic_near_certain_need_not_invent_an_if(self):
+        excerpt = (
+            "Disconnecting the device causes twelve subjects to face "
+            "near-certain death."
+        )
+        model = self._chain(
+            child_modality="PROBABILISTIC",
+            child_outcome="death",
+            child_likelihood=("near-certain",),
+            excerpt=excerpt,
+            include_condition=False,
+            child_kind="HEALTH_OUTCOME",
+        )
+        errors, _ = validate_world_model(model, action_ids=["A0"])
+        self.assertFalse(any("E2" in error and "no condition" in error for error in errors), errors)
+        self.assertEqual(validate_world_completeness(model, action_ids=["A0"]), [])
+
+    def test_probabilistic_without_condition_or_likelihood_still_fails(self):
+        model = self._chain(
+            child_modality="PROBABILISTIC",
+            include_condition=False,
+        )
+        errors, _ = validate_world_model(model, action_ids=["A0"])
+        self.assertTrue(any("E2" in error and "no condition" in error for error in errors), errors)
+
+    def test_allocator_engineer_condition_is_not_a_spillway_restatement(self):
+        model = _parse_allocator()
+        self.assertEqual(validate_world_completeness(model, action_ids=["A0", "A1"]), [])
+
+    def test_chance_to_escape_allows_possible_without_a_parent_if(self):
+        excerpt = (
+            "Keeping the device connected allows twelve subjects a chance to "
+            "escape, but leaves an open route for the leak to spread."
+        )
+        model = self._chain(
+            child_modality="POSSIBLE",
+            child_outcome="subjects escape",
+            excerpt=excerpt,
+            include_condition=False,
+            child_likelihood=("a chance",),
+        )
+        errors, _ = validate_world_model(model, action_ids=["A0"])
+        self.assertFalse(
+            any("E2" in error and "no condition" in error for error in errors),
+            errors,
+        )
+        self.assertEqual(validate_world_completeness(model, action_ids=["A0"]), [])
+
+    def test_same_clause_unhedged_spread_possible_is_still_rejected(self):
+        excerpt = (
+            "Keeping the device connected allows twelve subjects a chance to "
+            "escape, but leaves an open route for the leak to spread."
+        )
+        ref = (SourceRef("C1", excerpt),)
+        model = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "allocator", "AUTOMATED_SYSTEM", REF),
+                WorldParty("P1", "device", "FACILITY", ref),
+                WorldParty("P2", "subjects", "POPULATION", ref, ("twelve",)),
+                WorldParty("P3", "leak", "PROCESS", ref),
+            ),
+            actions=(
+                WorldAction(
+                    "A0", "keep the device connected", "P0", ("P1",),
+                    ("E0", "E1", "E2"), ref,
+                ),
+            ),
+            effects=(
+                WorldEffect(
+                    "E0", "A0", "P1", "device connected", "IS", "NEUTRAL",
+                    "DIRECT", "CERTAIN", "INTERVENTION", (), (), ref,
+                ),
+                WorldEffect(
+                    "E1", "A0", "P3", "leak spreads", "STATE_CHANGE", "ADVERSE",
+                    "DOWNSTREAM", "POSSIBLE", "PHYSICAL_STATE", ("COND0",), (), ref,
+                ),
+                WorldEffect(
+                    "E2", "A0", "P2", "subjects escape", "SURVIVES", "BENEFICIAL",
+                    "DOWNSTREAM", "POSSIBLE", "HEALTH_OUTCOME", (), (), ref,
+                    ("a chance",),
+                ),
+            ),
+            conditions=(
+                WorldCondition(
+                    "COND0", "if the leak remains uncontained", "UNKNOWN",
+                    "MATERIAL", ref,
+                ),
+            ),
+            causal_links=(
+                CausalLink("E0", "ENABLES", "E1", "CERTAIN", (), ref, "A0"),
+                CausalLink("E0", "CAUSES", "E2", "CERTAIN", (), ref, "A0"),
+            ),
+            schema_version="1.2",
+        )
+        errors = validate_world_completeness(model, action_ids=["A0"])
+        self.assertTrue(
+            any("E1" in error and "unhedged indicative" in error for error in errors),
+            errors,
+        )
+        self.assertFalse(
+            any("E2" in error and "unhedged indicative" in error for error in errors),
+            errors,
+        )
+
+    def test_almost_no_chance_drowning_need_not_invent_an_if(self):
+        excerpt = (
+            "Sealing the chamber fills it, drowning twelve subjects with "
+            "almost no chance of survival."
+        )
+        model = self._chain(
+            child_modality="PROBABILISTIC",
+            child_outcome="subjects drown",
+            child_likelihood=("almost no chance",),
+            excerpt=excerpt,
+            include_condition=False,
+            child_kind="HEALTH_OUTCOME",
+        )
+        errors, _ = validate_world_model(model, action_ids=["A0"])
+        self.assertFalse(
+            any("E2" in error and "no condition" in error for error in errors),
+            errors,
+        )
+        self.assertEqual(validate_world_completeness(model, action_ids=["A0"]), [])
+
+    def test_drowning_gated_on_filled_parent_is_rejected(self):
+        excerpt = (
+            "Sealing the chamber fills it, drowning twelve subjects with "
+            "almost no chance of survival."
+        )
+        ref = (SourceRef("C1", excerpt),)
+        model = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "allocator", "AUTOMATED_SYSTEM", REF),
+                WorldParty("P1", "chamber", "FACILITY", ref),
+                WorldParty("P2", "subjects", "POPULATION", ref, ("twelve",)),
+            ),
+            actions=(
+                WorldAction(
+                    "A0", "seal the chamber", "P0", ("P1",),
+                    ("E0", "E1", "E2"), ref,
+                ),
+            ),
+            effects=(
+                WorldEffect(
+                    "E0", "A0", "P1", "chamber sealed", "IS", "NEUTRAL",
+                    "DIRECT", "CERTAIN", "INTERVENTION", (), (), ref,
+                ),
+                WorldEffect(
+                    "E1", "A0", "P1", "chamber filled", "STATE_CHANGE", "NEUTRAL",
+                    "DOWNSTREAM", "CERTAIN", "PHYSICAL_STATE", (), (), ref,
+                ),
+                WorldEffect(
+                    "E2", "A0", "P2", "subjects drown", "DIES", "ADVERSE",
+                    "DOWNSTREAM", "PROBABILISTIC", "HEALTH_OUTCOME",
+                    ("COND0",), (), ref, ("almost no chance",),
+                ),
+            ),
+            conditions=(
+                WorldCondition(
+                    "COND0", "if the chamber remains filled", "UNKNOWN",
+                    "MATERIAL", ref,
+                ),
+            ),
+            causal_links=(
+                CausalLink("E0", "ENABLES", "E1", "CERTAIN", (), ref, "A0"),
+                CausalLink("E1", "CAUSES", "E2", "CERTAIN", (), ref, "A0"),
+            ),
+            schema_version="1.2",
+        )
+        errors = validate_world_completeness(model, action_ids=["A0"])
+        self.assertTrue(
+            any(
+                "E2" in error and "restates immediate parent E1" in error
+                for error in errors
+            ),
+            errors,
+        )
+
+    def test_event_referenced_gate_admits(self):
+        excerpt = (
+            "The allocator keeps the device connected. There is a 20% chance "
+            "the backup process fails. If it fails, twelve subjects face "
+            "near-certain death."
+        )
+        ref = (SourceRef("C1", excerpt),)
+        model = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "allocator", "AUTOMATED_SYSTEM", REF),
+                WorldParty("P1", "device", "FACILITY", ref),
+                WorldParty("P2", "subjects", "POPULATION", ref, ("twelve",)),
+                WorldParty("P3", "backup", "PROCESS", ref),
+            ),
+            actions=(
+                WorldAction(
+                    "A0", "keep the device connected", "P0", ("P1",),
+                    ("E0", "E1", "E2", "E3"), ref,
+                ),
+            ),
+            effects=(
+                WorldEffect(
+                    "E0", "A0", "P1", "device connected", "IS", "NEUTRAL",
+                    "DIRECT", "CERTAIN", "INTERVENTION", provenance=ref,
+                ),
+                WorldEffect(
+                    "E1", "A0", "P1", "device held", "STATE_CHANGE", "NEUTRAL",
+                    "DOWNSTREAM", "CERTAIN", "PHYSICAL_STATE", provenance=ref,
+                ),
+                WorldEffect(
+                    "E2", "A0", "P3", "fails", "STATE_CHANGE", "NEUTRAL",
+                    "DOWNSTREAM", "PROBABILISTIC", "PHYSICAL_STATE",
+                    likelihood_qualifiers=("20% chance",), provenance=ref,
+                ),
+                WorldEffect(
+                    "E3", "A0", "P2", "subjects die", "DIES", "ADVERSE",
+                    "DOWNSTREAM", "STIPULATED_CONDITIONAL", "HEALTH_OUTCOME",
+                    ("COND0",), (), ref, ("near-certain",),
+                ),
+            ),
+            conditions=(
+                WorldCondition(
+                    "COND0", "the backup process fails", provenance=ref,
+                    event_effect_id="E2",
+                ),
+            ),
+            causal_links=(
+                CausalLink("E0", "ENABLES", "E1", "CERTAIN", (), ref, "A0"),
+                CausalLink("E1", "CAUSES", "E3", "CERTAIN", (), ref, "A0"),
+            ),
+            schema_version="1.2",
+        )
+        self.assertEqual(validate_world_completeness(model, action_ids=["A0"]), [])
+        errors, _ = validate_world_model(model, action_ids=["A0"])
+        self.assertEqual(errors, [])
+
+    def test_free_text_restating_independent_event_is_rejected(self):
+        excerpt = (
+            "The allocator keeps the device connected. There is a 20% chance "
+            "the backup process fails. If it fails, twelve subjects die."
+        )
+        ref = (SourceRef("C1", excerpt),)
+        model = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "allocator", "AUTOMATED_SYSTEM", REF),
+                WorldParty("P1", "device", "FACILITY", ref),
+                WorldParty("P2", "subjects", "POPULATION", ref, ("twelve",)),
+                WorldParty("P3", "backup", "PROCESS", ref),
+            ),
+            actions=(
+                WorldAction(
+                    "A0", "keep the device connected", "P0", ("P1",),
+                    ("E0", "E1", "E2", "E3"), ref,
+                ),
+            ),
+            effects=(
+                WorldEffect(
+                    "E0", "A0", "P1", "device connected", "IS", "NEUTRAL",
+                    "DIRECT", "CERTAIN", "INTERVENTION", provenance=ref,
+                ),
+                WorldEffect(
+                    "E1", "A0", "P1", "device held", "STATE_CHANGE", "NEUTRAL",
+                    "DOWNSTREAM", "CERTAIN", "PHYSICAL_STATE", provenance=ref,
+                ),
+                WorldEffect(
+                    "E2", "A0", "P3", "fails", "STATE_CHANGE", "NEUTRAL",
+                    "DOWNSTREAM", "PROBABILISTIC", "PHYSICAL_STATE",
+                    likelihood_qualifiers=("20% chance",), provenance=ref,
+                ),
+                WorldEffect(
+                    "E3", "A0", "P2", "subjects die", "DIES", "ADVERSE",
+                    "DOWNSTREAM", "STIPULATED_CONDITIONAL", "HEALTH_OUTCOME",
+                    ("COND0",), (), ref, ("near-certain",),
+                ),
+            ),
+            conditions=(
+                WorldCondition("COND0", "the backup process fails", provenance=ref),
+            ),
+            causal_links=(
+                CausalLink("E0", "ENABLES", "E1", "CERTAIN", (), ref, "A0"),
+                CausalLink("E1", "CAUSES", "E3", "CERTAIN", (), ref, "A0"),
+            ),
+            schema_version="1.2",
+        )
+        errors = validate_world_completeness(model, action_ids=["A0"])
+        self.assertTrue(any("event_effect_id" in error for error in errors), errors)
+
+    def test_independent_event_as_causal_parent_is_rejected(self):
+        excerpt = (
+            "The allocator keeps the device connected. There is a 20% chance "
+            "the backup process fails. If it fails, twelve subjects die."
+        )
+        ref = (SourceRef("C1", excerpt),)
+        model = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "allocator", "AUTOMATED_SYSTEM", REF),
+                WorldParty("P1", "device", "FACILITY", ref),
+                WorldParty("P2", "subjects", "POPULATION", ref, ("twelve",)),
+                WorldParty("P3", "backup", "PROCESS", ref),
+            ),
+            actions=(
+                WorldAction(
+                    "A0", "keep the device connected", "P0", ("P1",),
+                    ("E0", "E1", "E2", "E3"), ref,
+                ),
+            ),
+            effects=(
+                WorldEffect(
+                    "E0", "A0", "P1", "device connected", "IS", "NEUTRAL",
+                    "DIRECT", "CERTAIN", "INTERVENTION", provenance=ref,
+                ),
+                WorldEffect(
+                    "E1", "A0", "P1", "device held", "STATE_CHANGE", "NEUTRAL",
+                    "DOWNSTREAM", "CERTAIN", "PHYSICAL_STATE", provenance=ref,
+                ),
+                WorldEffect(
+                    "E2", "A0", "P3", "fails", "STATE_CHANGE", "NEUTRAL",
+                    "DOWNSTREAM", "PROBABILISTIC", "PHYSICAL_STATE",
+                    likelihood_qualifiers=("20% chance",), provenance=ref,
+                ),
+                WorldEffect(
+                    "E3", "A0", "P2", "subjects die", "DIES", "ADVERSE",
+                    "DOWNSTREAM", "POSSIBLE", "HEALTH_OUTCOME",
+                    provenance=ref, likelihood_qualifiers=("near-certain",),
+                ),
+            ),
+            causal_links=(
+                CausalLink("E0", "ENABLES", "E1", "CERTAIN", (), ref, "A0"),
+                CausalLink("E1", "CAUSES", "E3", "CERTAIN", (), ref, "A0"),
+                CausalLink("E2", "CAUSES", "E3", "CERTAIN", (), ref, "A0"),
+            ),
+            schema_version="1.2",
+        )
+        errors = validate_world_completeness(model, action_ids=["A0"])
+        self.assertTrue(any(
+            "independent stochastic" in error and "E2" in error
+            for error in errors
+        ), errors)
+
+
+class NeutralDirectInterventionTests(unittest.TestCase):
+    def _facility_act(self, *, polarity: str) -> ScenarioWorldModel:
+        ref = (SourceRef("C1", "The allocator connects the device."),)
+        return ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "allocator", "AUTOMATED_SYSTEM", REF),
+                WorldParty("P1", "device", "FACILITY", ref),
+            ),
+            actions=(
+                WorldAction("A0", "connect the device", "P0", ("P1",), ("E0",), ref),
+            ),
+            effects=(
+                WorldEffect(
+                    "E0", "A0", "P1", "connected", "IS", polarity,
+                    "DIRECT", "CERTAIN", "INTERVENTION", (), (), ref,
+                ),
+            ),
+            schema_version="1.2",
+        )
+
+    def test_beneficial_connect_on_a_facility_is_rejected(self):
+        errors, _ = validate_world_model(
+            self._facility_act(polarity="BENEFICIAL"), action_ids=["A0"],
+        )
+        self.assertTrue(any(
+            "E0" in error and "NEUTRAL" in error and "P1" in error for error in errors
+        ), errors)
+
+    def test_downstream_intervention_tells_the_repair_to_change_kind(self):
+        ref = (SourceRef("C1", "The allocator connects the device."),)
+        model = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "allocator", "AUTOMATED_SYSTEM", REF),
+                WorldParty("P1", "device", "FACILITY", ref),
+                WorldParty("P2", "workers", "POPULATION", ref),
+            ),
+            actions=(
+                WorldAction(
+                    "A0", "connect the device", "P0", ("P1",), ("E0", "E1"), ref,
+                ),
+            ),
+            effects=(
+                WorldEffect(
+                    "E0", "A0", "P1", "connected", "IS", "NEUTRAL",
+                    "DIRECT", "CERTAIN", "INTERVENTION", provenance=ref,
+                ),
+                WorldEffect(
+                    "E1", "A0", "P2", "workers assist", "PERFORMS", "NEUTRAL",
+                    "DOWNSTREAM", "CERTAIN", "INTERVENTION", provenance=ref,
+                ),
+            ),
+            schema_version="1.2",
+        )
+        errors, _ = validate_world_model(model, action_ids=["A0"])
+        joined = " ".join(errors)
+        self.assertIn("E1", joined)
+        self.assertIn("directness must be DIRECT", joined)
+        self.assertIn("change effect_kind", joined)
+        self.assertIn("do not add a later crowd as a recipient", joined)
+
+    def test_direct_intervention_on_a_non_recipient_crowd_does_not_add_them(self):
+        ref = (SourceRef("C1", "The allocator connects the device. Workers assist."),)
+        model = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "allocator", "AUTOMATED_SYSTEM", REF),
+                WorldParty("P1", "device", "FACILITY", ref),
+                WorldParty("P2", "workers", "POPULATION", ref),
+            ),
+            actions=(
+                WorldAction(
+                    "A0", "connect the device", "P0", ("P1",), ("E0", "E1"), ref,
+                ),
+            ),
+            effects=(
+                WorldEffect(
+                    "E0", "A0", "P1", "connected", "IS", "NEUTRAL",
+                    "DIRECT", "CERTAIN", "INTERVENTION", provenance=ref,
+                ),
+                WorldEffect(
+                    "E1", "A0", "P2", "workers assist", "PERFORMS", "NEUTRAL",
+                    "DIRECT", "CERTAIN", "INTERVENTION", provenance=ref,
+                ),
+            ),
+            schema_version="1.2",
+        )
+        errors = validate_world_completeness(model, action_ids=["A0"])
+        joined = " ".join(errors)
+        self.assertIn("E1", joined)
+        self.assertIn("neither the actor nor a named recipient", joined)
+        self.assertIn("do not add that party as a recipient", joined)
+        self.assertIn("DOWNSTREAM", joined)
+        self.assertIn("assigning or allocating", joined)
+
+    def test_assignment_recipient_then_downstream_conduct_admits(self):
+        ref = (SourceRef(
+            "C1",
+            "The allocator assigns workers to the site. Assigned workers assist. "
+            "The workers are at moderate risk.",
+        ),)
+        model = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "allocator", "AUTOMATED_SYSTEM", REF),
+                WorldParty("P1", "workers", "POPULATION", ref),
+            ),
+            actions=(
+                WorldAction(
+                    "A0", "assign workers to the site", "P0", ("P1",),
+                    ("E0", "E1", "E2"), ref,
+                ),
+            ),
+            effects=(
+                WorldEffect(
+                    "E0", "A0", "P1", "workers assigned", "PERFORMS", "NEUTRAL",
+                    "DIRECT", "CERTAIN", "INTERVENTION", provenance=ref,
+                ),
+                WorldEffect(
+                    "E1", "A0", "P1", "workers assist", "PERFORMS", "NEUTRAL",
+                    "DOWNSTREAM", "CERTAIN", "OTHER", provenance=ref,
+                ),
+                WorldEffect(
+                    "E2", "A0", "P1", "workers are at moderate risk", "AT_RISK",
+                    "ADVERSE", "DOWNSTREAM", "CERTAIN", "WELFARE_OUTCOME",
+                    provenance=ref, likelihood_qualifiers=("at moderate risk",),
+                ),
+            ),
+            causal_links=(
+                CausalLink("E0", "CAUSES", "E1", "CERTAIN", (), ref, "A0"),
+                CausalLink("E1", "CAUSES", "E2", "CERTAIN", (), ref, "A0"),
+            ),
+            schema_version="1.2",
+        )
+        errors, _ = validate_world_model(model, action_ids=["A0"])
+        complete = validate_world_completeness(model, action_ids=["A0"])
+        self.assertEqual(errors, [])
+        self.assertEqual(complete, [])
+
+    def test_neutral_connect_on_a_facility_is_allowed(self):
+        errors, _ = validate_world_model(
+            self._facility_act(polarity="NEUTRAL"), action_ids=["A0"],
+        )
+        self.assertFalse(any("E0" in error and "NEUTRAL" in error for error in errors), errors)
+
+    def test_beneficial_refusal_on_a_human_recipient_is_allowed(self):
+        ref = (SourceRef("C1", "The magistrate refuses to execute the prisoner."),)
+        model = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "magistrate", "HUMAN", REF),
+                WorldParty("P1", "prisoner", "PERSON", ref),
+            ),
+            actions=(
+                WorldAction("A0", "refuse to execute", "P0", ("P1",), ("E0",), ref),
+            ),
+            effects=(
+                WorldEffect(
+                    "E0", "A0", "P1", "not executed", "IS", "BENEFICIAL",
+                    "DIRECT", "CERTAIN", "INTERVENTION", (), (), ref,
+                ),
+            ),
+            schema_version="1.2",
+        )
+        errors, _ = validate_world_model(model, action_ids=["A0"])
+        self.assertFalse(any("E0" in error and "NEUTRAL" in error for error in errors), errors)
 
 
 class ClauseRoleTests(unittest.TestCase):
@@ -359,6 +1479,92 @@ class WorldModelValidationTests(unittest.TestCase):
             prompts[1].index("Rejected candidate JSON"),
             prompts[1].index("[/INST]"),
         )
+        self.assertIn("do not delete the downstream human row", prompts[1].casefold())
+        self.assertIn("keep counterfactual_links", prompts[1].casefold())
+        self.assertIn("transferred resource", prompts[1].casefold())
+
+    def test_repair_restores_dropped_counterfactual_overlays(self):
+        previous = {
+            "actions": {"A0": {}, "A1": {}},
+            "world_model": {
+                "effects": [
+                    {
+                        "effect_id": "E1", "action_id": "A0", "party_id": "P2",
+                        "directness": "DOWNSTREAM",
+                    },
+                    {
+                        "effect_id": "EF0", "action_id": "A0", "party_id": "P2",
+                        "directness": "FOREGONE", "effect_kind": "OPPORTUNITY_LOSS",
+                    },
+                ],
+                "actions": [
+                    {"action_id": "A0", "effect_ids": ["E1", "EF0"]},
+                ],
+                "counterfactual_links": [
+                    {
+                        "action_id": "A0",
+                        "source_effect_id": "EF0",
+                        "alternative_action_id": "A1",
+                        "alternative_effect_id": "E1",
+                    },
+                ],
+            },
+        }
+        candidate = {
+            "actions": {"A0": {}, "A1": {}},
+            "world_model": {
+                "effects": [
+                    {
+                        "effect_id": "E1", "action_id": "A0", "party_id": "P2",
+                        "directness": "DOWNSTREAM",
+                    },
+                ],
+                "actions": [
+                    {"action_id": "A0", "effect_ids": ["E1"]},
+                ],
+                "counterfactual_links": [],
+            },
+        }
+        merged = _preserve_stable_world_bookkeeping(previous, candidate)
+        world = merged["world_model"]
+        self.assertEqual(len(world["counterfactual_links"]), 1)
+        self.assertEqual(world["counterfactual_links"][0]["source_effect_id"], "EF0")
+        self.assertIn("EF0", {row["effect_id"] for row in world["effects"]})
+        self.assertIn("EF0", world["actions"][0]["effect_ids"])
+
+    def test_rejected_grounding_keeps_the_candidate(self):
+        rejected_candidate = {
+            "sentinel": "inspect this draft",
+            "actions": {"A0": {}, "A1": {}},
+            "world_model": {"schema_version": "1.2"},
+        }
+        rejected = {
+            "status": "REJECTED", "actions": {},
+            "errors": ["typed world model rejected: E2 has no causal parent"],
+            "clauses": [], "world_contradictions": [],
+            "world_model": {},
+        }
+
+        def fake_call(_llm, prompt, **_kwargs):
+            return {"choices": [{"text": __import__("json").dumps(rejected_candidate)}]}
+
+        with patch(
+            "global_workspace.local_specialists._call_json_llm",
+            side_effect=fake_call,
+        ), patch(
+            "global_workspace.local_specialists._admit_action_source_rows",
+            return_value=rejected,
+        ):
+            result = ground_actions_in_scenario(
+                object(),
+                "Option A: send aid north. Option B: send aid south.",
+                ["send aid north", "send aid south"],
+                max_attempts=1,
+            )
+
+        self.assertEqual(result["status"], "REJECTED")
+        self.assertEqual(result["world_model"], {})
+        self.assertEqual(result["rejected_candidate"]["sentinel"], "inspect this draft")
 
     @staticmethod
     def _qualified_population_model(*, omit_qualifiers: bool = False) -> ScenarioWorldModel:
@@ -545,7 +1751,7 @@ class WorldModelValidationTests(unittest.TestCase):
         ledger = seed_proposition_ledger(graph)
         established_claims = {
             row.claim for row in ledger.values()
-            if row.epistemic_status == "ESTABLISHED"
+            if row.epistemic_status in {"ESTABLISHED", "STIPULATED"}
         }
         self.assertIn("eight premature infants", established_claims)
         self.assertIn("tens of thousands residents", established_claims)
@@ -654,6 +1860,90 @@ class WorldModelValidationTests(unittest.TestCase):
             any("dozen" in item and "provenance" in item for item in errors),
             errors,
         )
+
+    def test_party_recorded_quantity_grounds_anaphoric_effect_row(self):
+        count_ref = (SourceRef("C5", "Twelve subjects remain on the device."),)
+        anaphor_ref = (SourceRef("C6", "The subjects lose support."),)
+        model = _model(
+            (
+                _effect("E1", "A0", "P1"),
+                _effect(
+                    "E2", "A0", "P5",
+                    outcome="the subjects lose support",
+                    relation="EXPERIENCES",
+                    polarity="ADVERSE",
+                    directness="DOWNSTREAM",
+                    quantities=("twelve",),
+                    provenance=anaphor_ref,
+                    effect_kind="HEALTH_OUTCOME",
+                ),
+                _effect("E3", "A1", "P2"),
+            ),
+            extra_parties=(
+                WorldParty("P5", "subjects", "POPULATION", count_ref, ("twelve",)),
+            ),
+        )
+        errors, _ = validate_world_model(model, action_ids=["A0", "A1"])
+        self.assertEqual(errors, [])
+
+    def test_party_quantity_does_not_license_a_different_party(self):
+        count_ref = (SourceRef("C5", "Twelve subjects remain on the device."),)
+        anaphor_ref = (SourceRef("C6", "The residents lose supply."),)
+        model = _model(
+            (
+                _effect("E1", "A0", "P1"),
+                _effect(
+                    "E2", "A0", "P3",
+                    outcome="the residents lose supply",
+                    relation="EXPERIENCES",
+                    polarity="ADVERSE",
+                    directness="DOWNSTREAM",
+                    quantities=("twelve",),
+                    provenance=anaphor_ref,
+                    effect_kind="WELFARE_OUTCOME",
+                ),
+                _effect("E3", "A1", "P2"),
+            ),
+            extra_parties=(
+                WorldParty("P5", "subjects", "POPULATION", count_ref, ("twelve",)),
+            ),
+        )
+        errors, _ = validate_world_model(model, action_ids=["A0", "A1"])
+        self.assertTrue(
+            any("E2" in item and "twelve" in item and "provenance" in item for item in errors),
+            errors,
+        )
+
+    def test_hyphenated_scale_matches_spaced_party_quantity(self):
+        count_ref = (SourceRef(
+            "C5",
+            "The plant serves more than fifty thousand residents.",
+        ),)
+        anaphor_ref = (SourceRef("C6", "The residents lose supply."),)
+        model = _model(
+            (
+                _effect("E1", "A0", "P1"),
+                _effect(
+                    "E2", "A0", "P5",
+                    outcome="the residents lose supply",
+                    relation="EXPERIENCES",
+                    polarity="ADVERSE",
+                    directness="DOWNSTREAM",
+                    quantities=("fifty-thousand",),
+                    provenance=anaphor_ref,
+                    effect_kind="WELFARE_OUTCOME",
+                ),
+                _effect("E3", "A1", "P2"),
+            ),
+            extra_parties=(
+                WorldParty(
+                    "P5", "served residents", "POPULATION",
+                    count_ref, ("more than fifty thousand",),
+                ),
+            ),
+        )
+        errors, _ = validate_world_model(model, action_ids=["A0", "A1"])
+        self.assertEqual(errors, [])
 
     def test_outcome_quantity_cannot_self_ground_even_when_quantities_empty(self):
         model = _model((
@@ -890,7 +2180,7 @@ class TypedWorldProjectionTests(unittest.TestCase):
             and "downstream residents" in item.affected_subject.casefold()
         ]
         self.assertTrue(downstream, effects)
-        self.assertEqual(downstream[0].direction, "IMPROVES")
+        self.assertEqual(downstream[0].direction, "UNCERTAIN")
         self.assertEqual(downstream[0].magnitude_or_qualifier, "tens of thousands")
 
 
@@ -2180,6 +3470,90 @@ class WorldModelCompletenessTests(unittest.TestCase):
         self.assertEqual(contradictions, [])
         self.assertEqual(validate_world_completeness(model, action_ids=["A0", "A1"]), [])
 
+    def test_transferred_resource_is_not_a_recipient(self):
+        ref = (SourceRef("C1", "The dispatcher sends the supply to the families."),)
+        model = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "dispatcher", "SYSTEM", REF),
+                WorldParty("P1", "families", "GROUP", ref),
+                WorldParty("P2", "supply", "RESOURCE", ref),
+            ),
+            actions=(
+                WorldAction(
+                    "A0", "send the supply to the families", "P0", ("P2",),
+                    ("E0", "E1"), ref,
+                ),
+            ),
+            effects=(
+                WorldEffect(
+                    "E0", "A0", "P2", "supply sent", "TRANSFERRED", "NEUTRAL",
+                    "DIRECT", "CERTAIN", "RESOURCE_TRANSFER", provenance=ref,
+                ),
+                WorldEffect(
+                    "E1", "A0", "P1", "families receive the supply", "RECEIVES",
+                    "BENEFICIAL", "DOWNSTREAM", "CERTAIN", "WELFARE_OUTCOME",
+                    provenance=ref,
+                ),
+            ),
+            causal_links=(
+                CausalLink("E0", "CAUSES", "E1", "CERTAIN", (), ref, "A0"),
+            ),
+            schema_version="1.2",
+        )
+        errors = validate_world_completeness(model, action_ids=["A0"])
+        joined = " ".join(errors)
+        self.assertIn("transferred resource P2", joined)
+        self.assertIn("P1 is the receiving group", joined)
+
+    def test_receiving_group_is_the_transfer_recipient(self):
+        ref = (SourceRef("C1", "The dispatcher sends the supply to the families."),)
+        model = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "dispatcher", "SYSTEM", REF),
+                WorldParty("P1", "families", "GROUP", ref),
+                WorldParty("P2", "supply", "RESOURCE", ref),
+            ),
+            actions=(
+                WorldAction(
+                    "A0", "send the supply to the families", "P0", ("P1",),
+                    ("E0",), ref,
+                ),
+            ),
+            effects=(
+                WorldEffect(
+                    "E0", "A0", "P1", "families receive the supply", "RECEIVES",
+                    "BENEFICIAL", "DIRECT", "CERTAIN", "RESOURCE_TRANSFER",
+                    provenance=ref,
+                ),
+            ),
+            schema_version="1.2",
+        )
+        errors = validate_world_completeness(model, action_ids=["A0"])
+        self.assertFalse(any("transferred resource" in error for error in errors), errors)
+        structural, _ = validate_world_model(model, action_ids=["A0"])
+        self.assertEqual(structural, [])
+
+    def test_demolished_resource_may_remain_a_recipient(self):
+        ref = (SourceRef("C1", "The allocator demolishes the depot."),)
+        model = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "allocator", "AUTOMATED_SYSTEM", REF),
+                WorldParty("P1", "depot", "RESOURCE", ref),
+            ),
+            actions=(
+                WorldAction("A0", "demolish the depot", "P0", ("P1",), ("E0",), ref),
+            ),
+            effects=(
+                WorldEffect(
+                    "E0", "A0", "P1", "depot demolished", "DESTROYED", "NEUTRAL",
+                    "DIRECT", "CERTAIN", "INTERVENTION", provenance=ref,
+                ),
+            ),
+            schema_version="1.2",
+        )
+        errors = validate_world_completeness(model, action_ids=["A0"])
+        self.assertFalse(any("transferred resource" in error for error in errors), errors)
+
     def test_same_sign_prevents_is_a_verb_error(self):
         model = _parse_complete_magistrate()
         inverted = replace(model, causal_links=tuple(
@@ -2304,17 +3678,16 @@ class WorldModelCompletenessTests(unittest.TestCase):
             )
         self.assertIn("INSTITUTIONAL_OUTCOME", str(raised.exception))
 
-    def test_nested_five_is_rejected_on_admit(self):
+    def test_nested_five_is_stripped_to_the_longest_span_on_parse(self):
         raw = _complete_magistrate_raw()
         raw["parties"][-1]["quantities"] = ["over five hundred", "five"]
-        with self.assertRaises(ValueError) as raised:
-            parse_world_model(
-                raw,
-                clauses=MAGISTRATE_CLAUSES,
-                action_ids=["A0", "A1"],
-                action_texts={"A0": A0_TEXT, "A1": A1_TEXT},
-            )
-        self.assertIn("nested quantity", str(raised.exception))
+        model = parse_world_model(
+            raw,
+            clauses=MAGISTRATE_CLAUSES,
+            action_ids=["A0", "A1"],
+            action_texts={"A0": A0_TEXT, "A1": A1_TEXT},
+        )
+        self.assertEqual(model.parties[-1].quantities, ("over five hundred",))
 
     def test_neutral_intervention_does_not_contradict_survival(self):
         model = _parse_complete_magistrate()
@@ -2331,7 +3704,8 @@ class WorldModelCompletenessTests(unittest.TestCase):
             action_texts={"A0": A0_TEXT, "A1": A1_TEXT},
             require_completeness=False,
         )
-        self.assertIn("five", model.parties[-1].quantities)
+        self.assertEqual(model.parties[-1].quantities, ("over five hundred",))
+        self.assertNotIn("five", model.parties[-1].quantities)
 
     def test_restore_projects_downstream_roles_on_incomplete_a0(self):
         raw = _complete_magistrate_raw()
@@ -2421,6 +3795,47 @@ class CompactActionRoleTests(unittest.TestCase):
         self.assertEqual(roles.at_risk, ())
         self.assertEqual(roles.unresolved, ())
 
+    def test_almost_no_chance_probabilistic_health_is_compact_harm(self):
+        model = _model(
+            (
+                _effect(
+                    "E_h", "A0", "P2",
+                    outcome="subjects drown",
+                    polarity="ADVERSE",
+                    directness="DOWNSTREAM",
+                    modality="PROBABILISTIC",
+                    condition_ids=("COND1",),
+                    effect_kind="HEALTH_OUTCOME",
+                    likelihood_qualifiers=("almost no chance",),
+                ),
+            ),
+            conditions=(WorldCondition("COND1", "chamber fills", provenance=REF),),
+        )
+        roles = project_world_action_roles(model, "A0")
+        self.assertEqual(roles.harmed, ("trapped family",))
+        self.assertEqual(roles.at_risk, ())
+
+    def test_a_chance_possible_health_is_conditionally_benefited(self):
+        model = _model(
+            (
+                _effect(
+                    "E_h", "A0", "P2",
+                    outcome="subjects escape",
+                    polarity="BENEFICIAL",
+                    directness="DOWNSTREAM",
+                    modality="POSSIBLE",
+                    condition_ids=("COND1",),
+                    effect_kind="HEALTH_OUTCOME",
+                    likelihood_qualifiers=("a chance",),
+                ),
+            ),
+            conditions=(WorldCondition("COND1", "escape succeeds", provenance=REF),),
+        )
+        roles = project_world_action_roles(model, "A0")
+        self.assertEqual(roles.beneficiaries, ())
+        self.assertEqual(roles.conditionally_benefited, ("trapped family",))
+        self.assertEqual(roles.harmed, ())
+
     def test_unqualified_probabilistic_institutional_stays_unresolved(self):
         model = _model(
             (
@@ -2447,10 +3862,10 @@ class CompactActionRoleTests(unittest.TestCase):
             (
                 _effect(
                     "E_e", "A0", "P2",
-                    outcome="exposed to equipment failure",
+                    outcome="subjects die",
                     polarity="ADVERSE",
                     directness="DOWNSTREAM",
-                    effect_kind="PHYSICAL_STATE",
+                    effect_kind="HEALTH_OUTCOME",
                 ),
                 _effect(
                     "E_h", "A0", "P2",
@@ -2528,6 +3943,72 @@ class CompactActionRoleTests(unittest.TestCase):
         self.assertEqual(roles.conditionally_benefited, ("downstream residents",))
         self.assertEqual(roles.at_risk, ())
         self.assertEqual(roles.unresolved, ("downstream residents",))
+
+    def test_near_certain_stipulated_conditional_is_at_risk(self):
+        gated = _model(
+            (
+                _effect(
+                    "E_g", "A0", "P5",
+                    outcome="fails",
+                    polarity="NEUTRAL",
+                    directness="DOWNSTREAM",
+                    modality="PROBABILISTIC",
+                    effect_kind="PHYSICAL_STATE",
+                    likelihood_qualifiers=("20% chance",),
+                ),
+                _effect(
+                    "E_h", "A0", "P2",
+                    outcome="subjects die",
+                    polarity="ADVERSE",
+                    directness="DOWNSTREAM",
+                    modality="STIPULATED_CONDITIONAL",
+                    condition_ids=("COND1",),
+                    effect_kind="HEALTH_OUTCOME",
+                    likelihood_qualifiers=("near-certain",),
+                ),
+            ),
+            conditions=(
+                WorldCondition(
+                    "COND1", "backup fails", provenance=REF, event_effect_id="E_g",
+                ),
+            ),
+            extra_parties=(WorldParty("P5", "backup", "PROCESS", REF),),
+        )
+        roles = project_world_action_roles(gated, "A0")
+        self.assertEqual(roles.harmed, ())
+        self.assertEqual(roles.at_risk, ("trapped family",))
+        self.assertEqual(roles.beneficiaries, ())
+
+    def test_certain_at_moderate_risk_is_at_risk_not_harmed(self):
+        model = _model((
+            _effect(
+                "E_r", "A0", "P2",
+                outcome="at moderate risk",
+                polarity="ADVERSE",
+                directness="DOWNSTREAM",
+                effect_kind="PHYSICAL_STATE",
+                likelihood_qualifiers=("at moderate risk",),
+            ),
+        ))
+        roles = project_world_action_roles(model, "A0")
+        self.assertEqual(roles.harmed, ())
+        self.assertEqual(roles.at_risk, ("trapped family",))
+        self.assertEqual(roles.unresolved, ("trapped family",))
+
+    def test_crowd_use_process_is_not_a_compact_role(self):
+        model = _model((
+            _effect(
+                "E_u", "A0", "P3",
+                outcome="residents use the access route",
+                polarity="NEUTRAL",
+                directness="DOWNSTREAM",
+                effect_kind="PHYSICAL_STATE",
+            ),
+        ))
+        roles = project_world_action_roles(model, "A0")
+        self.assertEqual(roles.beneficiaries, ())
+        self.assertEqual(roles.harmed, ())
+        self.assertEqual(roles.at_risk, ())
 
 
 ALLOCATOR_A0 = (
@@ -2676,14 +4157,319 @@ class CausalChainCompletenessTests(unittest.TestCase):
             _parse_allocator(raw)
         self.assertIn("neither the actor nor a named recipient", str(raised.exception))
 
+    def test_crowd_use_process_may_hang_off_another_party_transfer(self):
+        clauses = [
+            {
+                "clause_id": "C0",
+                "text": (
+                    "A dispatcher must send the supply to the families or "
+                    "keep it in reserve."
+                ),
+            },
+            {
+                "clause_id": "C1",
+                "text": (
+                    "Sending the supply to the families means the workers "
+                    "use the access route."
+                ),
+            },
+            {
+                "clause_id": "C2",
+                "text": "The workers are trapped.",
+            },
+            {
+                "clause_id": "C3",
+                "text": "Keeping the supply in reserve leaves the families without it.",
+            },
+        ]
+        raw = {
+            "schema_version": "1.2",
+            "parties": [
+                {
+                    "party_id": "P0", "label": "dispatcher", "kind": "SYSTEM",
+                    "quantities": [], "clause_ids": ["C0"],
+                },
+                {
+                    "party_id": "P1", "label": "families", "kind": "GROUP",
+                    "quantities": [], "clause_ids": ["C0"],
+                },
+                {
+                    "party_id": "P2", "label": "workers", "kind": "POPULATION",
+                    "quantities": [], "clause_ids": ["C1", "C2"],
+                },
+                {
+                    "party_id": "P3", "label": "supply", "kind": "RESOURCE",
+                    "quantities": [], "clause_ids": ["C0"],
+                },
+                {
+                    "party_id": "P4", "label": "access route",
+                    "kind": "INFRASTRUCTURE", "quantities": [],
+                    "clause_ids": ["C1"],
+                },
+            ],
+            "actions": [
+                {
+                    "action_id": "A0",
+                    "intervention": "send the supply to the families",
+                    "actor_party_id": "P0", "recipient_party_ids": ["P1"],
+                    "effect_ids": ["E0", "E1", "E2"], "clause_ids": ["C1"],
+                },
+                {
+                    "action_id": "A1",
+                    "intervention": "keep the supply in reserve",
+                    "actor_party_id": "P0", "recipient_party_ids": [],
+                    "effect_ids": ["E3"], "clause_ids": ["C3"],
+                },
+            ],
+            "effects": [
+                _raw_effect(
+                    effect_id="E0", action_id="A0", party_id="P1",
+                    outcome="families receive the supply", relation="RECEIVES",
+                    polarity="BENEFICIAL", directness="DIRECT",
+                    effect_kind="RESOURCE_TRANSFER",
+                    clause_ids=["C1", "A0"],
+                ),
+                _raw_effect(
+                    effect_id="E1", action_id="A0", party_id="P2",
+                    outcome="workers use the access route", relation="USES",
+                    polarity="NEUTRAL", directness="DOWNSTREAM",
+                    effect_kind="PHYSICAL_STATE", clause_ids=["C1"],
+                ),
+                _raw_effect(
+                    effect_id="E2", action_id="A0", party_id="P2",
+                    outcome="workers trapped", relation="EXPERIENCES",
+                    polarity="ADVERSE", directness="DOWNSTREAM",
+                    effect_kind="WELFARE_OUTCOME", clause_ids=["C2"],
+                ),
+                _raw_effect(
+                    effect_id="E3", action_id="A1", party_id="P0",
+                    outcome="supply kept in reserve", relation="PERFORMS",
+                    polarity="NEUTRAL", directness="DIRECT",
+                    effect_kind="INTERVENTION", clause_ids=["C3", "A1"],
+                ),
+            ],
+            "conditions": [],
+            "causal_links": [
+                _raw_link("A0", "E0", "E1", "C1"),
+                _raw_link("A0", "E1", "E2", "C2"),
+            ],
+            "counterfactual_links": [],
+        }
+        model = parse_world_model(
+            raw,
+            clauses=clauses,
+            action_ids=["A0", "A1"],
+            action_texts={
+                "A0": "send the supply to the families",
+                "A1": "keep the supply in reserve",
+            },
+        )
+        self.assertEqual(validate_world_completeness(model, action_ids=["A0", "A1"]), [])
+        errors, _ = validate_world_model(model, action_ids=["A0", "A1"])
+        self.assertEqual(errors, [])
+
+    def test_adverse_crowd_use_process_is_rejected(self):
+        clauses = [
+            {
+                "clause_id": "C0",
+                "text": "A dispatcher must send the supply to the families.",
+            },
+            {
+                "clause_id": "C1",
+                "text": "Sending the supply means the workers use the access route.",
+            },
+        ]
+        raw = {
+            "schema_version": "1.2",
+            "parties": [
+                {
+                    "party_id": "P0", "label": "dispatcher", "kind": "SYSTEM",
+                    "quantities": [], "clause_ids": ["C0"],
+                },
+                {
+                    "party_id": "P1", "label": "families", "kind": "GROUP",
+                    "quantities": [], "clause_ids": ["C0"],
+                },
+                {
+                    "party_id": "P2", "label": "workers", "kind": "POPULATION",
+                    "quantities": [], "clause_ids": ["C1"],
+                },
+                {
+                    "party_id": "P3", "label": "supply", "kind": "RESOURCE",
+                    "quantities": [], "clause_ids": ["C0"],
+                },
+            ],
+            "actions": [
+                {
+                    "action_id": "A0",
+                    "intervention": "send the supply to the families",
+                    "actor_party_id": "P0", "recipient_party_ids": ["P1"],
+                    "effect_ids": ["E0", "E1"], "clause_ids": ["C0", "C1"],
+                },
+                {
+                    "action_id": "A1",
+                    "intervention": "keep the supply in reserve",
+                    "actor_party_id": "P0", "recipient_party_ids": [],
+                    "effect_ids": ["E2"], "clause_ids": ["C0"],
+                },
+            ],
+            "effects": [
+                _raw_effect(
+                    effect_id="E0", action_id="A0", party_id="P1",
+                    outcome="families receive the supply", relation="RECEIVES",
+                    polarity="BENEFICIAL", directness="DIRECT",
+                    effect_kind="RESOURCE_TRANSFER",
+                    clause_ids=["C0", "C1", "A0"],
+                ),
+                _raw_effect(
+                    effect_id="E1", action_id="A0", party_id="P2",
+                    outcome="workers use the access route", relation="USES",
+                    polarity="ADVERSE", directness="DOWNSTREAM",
+                    effect_kind="PHYSICAL_STATE", clause_ids=["C1"],
+                ),
+                _raw_effect(
+                    effect_id="E2", action_id="A1", party_id="P0",
+                    outcome="supply kept in reserve", relation="PERFORMS",
+                    polarity="NEUTRAL", directness="DIRECT",
+                    effect_kind="INTERVENTION", clause_ids=["C0", "A1"],
+                ),
+            ],
+            "conditions": [],
+            "causal_links": [_raw_link("A0", "E0", "E1", "C1")],
+            "counterfactual_links": [],
+        }
+        with self.assertRaisesRegex(ValueError, "crowd process state"):
+            parse_world_model(
+                raw, clauses=clauses, action_ids=["A0", "A1"],
+                action_texts={
+                    "A0": "send the supply to the families",
+                    "A1": "keep the supply in reserve",
+                },
+            )
+
+    def test_does_not_increase_is_not_a_causal_parent(self):
+        excerpt = (
+            "The dispatcher sends the supply to the families. Using the supply "
+            "does not increase the chance the backup process fails. There is a "
+            "20% chance the backup process fails."
+        )
+        ref = (SourceRef("C1", excerpt),)
+        model = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "dispatcher", "SYSTEM", REF),
+                WorldParty("P1", "families", "GROUP", ref),
+                WorldParty("P2", "supply", "RESOURCE", ref),
+                WorldParty("P3", "backup", "PROCESS", ref),
+            ),
+            actions=(
+                WorldAction(
+                    "A0", "send the supply to the families", "P0", ("P1",),
+                    ("E0", "E1"), ref,
+                ),
+            ),
+            effects=(
+                WorldEffect(
+                    "E0", "A0", "P1", "families receive the supply", "RECEIVES",
+                    "BENEFICIAL", "DIRECT", "CERTAIN", "RESOURCE_TRANSFER",
+                    provenance=ref,
+                ),
+                WorldEffect(
+                    "E1", "A0", "P3", "fails", "STATE_CHANGE", "NEUTRAL",
+                    "DOWNSTREAM", "PROBABILISTIC", "PHYSICAL_STATE",
+                    likelihood_qualifiers=("20% chance",), provenance=ref,
+                ),
+            ),
+            causal_links=(
+                CausalLink(
+                    "E0", "DOES_NOT_INCREASE", "E1", "CERTAIN", (), ref, "A0",
+                ),
+            ),
+            schema_version="1.2",
+        )
+        self.assertEqual(validate_world_completeness(model, action_ids=["A0"]), [])
+
+    def test_direct_effect_clause_must_be_cited_by_the_action(self):
+        excerpt = "Five workers stay to assist at moderate risk."
+        background = "The dispatcher sends the supply to the families."
+        ref_a = (SourceRef("C0", background),)
+        ref_b = (SourceRef("C1", excerpt),)
+        model = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "dispatcher", "SYSTEM", ref_a),
+                WorldParty("P1", "families", "GROUP", ref_a),
+                WorldParty("P2", "workers", "POPULATION", ref_b, ("five",)),
+            ),
+            actions=(
+                WorldAction(
+                    "A0", "send the supply to the families", "P0", ("P1", "P2"),
+                    ("E0", "E1"), ref_a,
+                ),
+            ),
+            effects=(
+                WorldEffect(
+                    "E0", "A0", "P1", "families receive the supply", "RECEIVES",
+                    "BENEFICIAL", "DIRECT", "CERTAIN", "RESOURCE_TRANSFER",
+                    provenance=ref_a,
+                ),
+                WorldEffect(
+                    "E1", "A0", "P2", "workers assigned to assist", "ASSIGNED",
+                    "NEUTRAL", "DIRECT", "CERTAIN", "INTERVENTION",
+                    provenance=ref_b, quantities=("five",),
+                ),
+            ),
+            schema_version="1.2",
+        )
+        errors = validate_world_completeness(model, action_ids=["A0"])
+        self.assertTrue(any(
+            "omits source clauses" in error and "C1" in error for error in errors
+        ), errors)
+
+    def test_party_keeps_total_count_and_assignment_keeps_subgroup(self):
+        c0 = "A crew of fifty workers is available."
+        c1 = "Five workers stay to assist."
+        parties = (
+            WorldParty("P0", "dispatcher", "HUMAN", (SourceRef("C0", c0),)),
+            WorldParty(
+                "P1", "workers", "POPULATION",
+                (SourceRef("C0", c0), SourceRef("C1", c1)),
+            ),
+        )
+        assigned = assigned_party_quantities(parties)
+        self.assertIn("fifty", assigned["P1"])
+        effect = WorldEffect(
+            "E1", "A0", "P1", "five workers assigned", "ASSIGNED", "NEUTRAL",
+            "DIRECT", "CERTAIN", "INTERVENTION",
+            quantities=("five",),
+            provenance=(SourceRef("C1", c1),),
+        )
+        self.assertEqual(effect.quantities, ("five",))
+
     def test_direct_intervention_on_recipient_facility_admits(self):
         raw = _connected_allocator_raw()
         raw["actions"][0]["recipient_party_ids"] = ["P1", "P4"]
+        raw["actions"][0]["clause_ids"] = ["C0", "C1"]
         for effect in raw["effects"]:
             if effect["effect_id"] == "E1":
                 effect["directness"] = "DIRECT"
                 effect["effect_kind"] = "INTERVENTION"
                 effect["outcome"] = "spillway repaired"
+                effect["polarity"] = "NEUTRAL"
+        model = _parse_allocator(raw)
+        self.assertEqual(validate_world_completeness(model, action_ids=["A0", "A1"]), [])
+
+    def test_direct_intervention_on_recipient_infrastructure_admits(self):
+        raw = _connected_allocator_raw()
+        for party in raw["parties"]:
+            if party["party_id"] == "P4":
+                party["kind"] = "INFRASTRUCTURE"
+        raw["actions"][0]["recipient_party_ids"] = ["P1", "P4"]
+        raw["actions"][0]["clause_ids"] = ["C0", "C1"]
+        for effect in raw["effects"]:
+            if effect["effect_id"] == "E1":
+                effect["directness"] = "DIRECT"
+                effect["effect_kind"] = "INTERVENTION"
+                effect["outcome"] = "channel diverted"
+                effect["polarity"] = "NEUTRAL"
         model = _parse_allocator(raw)
         self.assertEqual(validate_world_completeness(model, action_ids=["A0", "A1"]), [])
 
@@ -2707,6 +4493,81 @@ class CausalChainCompletenessTests(unittest.TestCase):
             _parse_allocator(raw)
         self.assertIn("intermediate", str(raised.exception))
         self.assertIn("E_h", str(raised.exception))
+        self.assertIn("Do not delete E2", str(raised.exception))
+
+    def test_foreign_parent_error_names_existing_process_row(self):
+        raw = _connected_allocator_raw()
+        raw["effects"].append(_raw_effect(
+            effect_id="E_h", action_id="A0", party_id="P1",
+            outcome="engineer lives", relation="SURVIVES",
+            polarity="BENEFICIAL", directness="DOWNSTREAM",
+            effect_kind="HEALTH_OUTCOME", clause_ids=["C0", "A0"],
+        ))
+        raw["causal_links"] = [
+            _raw_link("A0", "E0", "E_h", "C0"),
+            _raw_link("A0", "E_h", "E2", "C1"),
+            _raw_link("A1", "E3", "E4", "C2"),
+        ]
+        with self.assertRaises(ValueError) as raised:
+            _parse_allocator(raw)
+        message = str(raised.exception)
+        self.assertIn("E2", message)
+        self.assertIn("E_h", message)
+        self.assertIn("E1", message)
+        self.assertNotIn("reparent onto existing", message)
+        self.assertIn("Do not delete E2", message)
+
+    def test_foreign_parent_error_names_unused_source_facility(self):
+        raw = _connected_allocator_raw()
+        raw["parties"].append({
+            "party_id": "P5", "label": "reservoir", "kind": "FACILITY",
+            "quantities": [], "clause_ids": ["C1"],
+        })
+        raw["effects"].append(_raw_effect(
+            effect_id="E_h", action_id="A0", party_id="P1",
+            outcome="engineer lives", relation="SURVIVES",
+            polarity="BENEFICIAL", directness="DOWNSTREAM",
+            effect_kind="HEALTH_OUTCOME", clause_ids=["C0", "A0"],
+        ))
+        raw["causal_links"] = [
+            _raw_link("A0", "E0", "E_h", "C0"),
+            _raw_link("A0", "E_h", "E2", "C1"),
+            _raw_link("A1", "E3", "E4", "C2"),
+        ]
+        clauses = [dict(row) for row in CLAUSES]
+        clauses[1] = {
+            "clause_id": "C1",
+            "text": (
+                "If the engineer is reached, reservoir holding would spare "
+                "tens of thousands of downstream residents."
+            ),
+        }
+        with self.assertRaises(ValueError) as raised:
+            parse_world_model(
+                raw,
+                clauses=clauses,
+                action_ids=["A0", "A1"],
+                action_texts={"A0": ALLOCATOR_A0, "A1": ALLOCATOR_A1},
+            )
+        message = str(raised.exception)
+        self.assertIn("E2", message)
+        self.assertIn("P5", message)
+        self.assertIn("reservoir", message)
+        self.assertIn("plausible", message)
+        self.assertNotIn("reparent onto existing", message)
+
+    def test_dropping_the_illegal_parent_still_leaves_an_orphan(self):
+        raw = _connected_allocator_raw()
+        raw["causal_links"] = [
+            _raw_link("A0", "E0", "E1", "C1"),
+            _raw_link("A1", "E3", "E4", "C2"),
+        ]
+        with self.assertRaises(ValueError) as raised:
+            _parse_allocator(raw)
+        message = str(raised.exception)
+        self.assertIn("E2", message)
+        self.assertIn("no causal parent", message)
+        self.assertIn("Do not drop E2", message)
 
     def test_institutional_process_state_can_parent_other_party_health(self):
         raw = _connected_allocator_raw()
@@ -3256,6 +5117,244 @@ class PropositionIdentityTests(unittest.TestCase):
             "decision_critical_proposition_ids": ["PROP:WORLD:E4"],
         }
         self.assertEqual(_candidate_epistemic_qualification(data, candidate), "")
+
+
+def _admitted_comparison_graph() -> SemanticGraph:
+    """Two-action world: gated trapping vs gated death, plus protective walls."""
+    wall_ref = (SourceRef(
+        "C4",
+        "Fire-resistant walls make deaths unlikely. Crews remaining on site "
+        "face moderate risk.",
+    ),)
+    trap_ref = (SourceRef(
+        "C5",
+        "The narrow road has a 10% chance of blockage. If blocked, about sixty "
+        "residents could be trapped. Remaining patients escape almost certainly.",
+    ),)
+    parties = (
+        WorldParty("P0", "coordinator", "INSTITUTION", REF),
+        WorldParty("P1", "eastern residents", "POPULATION", trap_ref, ("about sixty",)),
+        WorldParty("P2", "immobile patients", "POPULATION", trap_ref),
+        WorldParty("P3", "site crews", "POPULATION", wall_ref, ("five",)),
+        WorldParty("P4", "clinic", "FACILITY", wall_ref),
+        WorldParty("P5", "narrow road", "FACILITY", trap_ref),
+    )
+    effects = (
+        WorldEffect(
+            "E0_WALLS", "A0", "P4", "fire-resistant walls", "STATE_CHANGE",
+            "NEUTRAL", "DOWNSTREAM", "CERTAIN", "PHYSICAL_STATE", (), (), wall_ref,
+        ),
+        WorldEffect(
+            "E0_DEATH", "A0", "P2", "NEAR_CERTAIN_DEATH", "CAUSES",
+            "ADVERSE", "DOWNSTREAM", "STIPULATED_CONDITIONAL", "HEALTH_OUTCOME",
+            ("COND0",), (), wall_ref, ("near-certain",), (), (), "",
+            ("deaths unlikely",),
+        ),
+        WorldEffect(
+            "E0_RISK", "A0", "P3", "AT_MODERATE_RISK", "CAUSES",
+            "ADVERSE", "DOWNSTREAM", "CERTAIN", "HEALTH_OUTCOME", (), (), wall_ref,
+        ),
+        WorldEffect(
+            "E1_ESCAPE", "A1", "P2", "ESCAPE_SAFELY", "CAUSES",
+            "BENEFICIAL", "DOWNSTREAM", "PROBABILISTIC", "HEALTH_OUTCOME",
+            (), (), trap_ref, ("almost certain",),
+        ),
+        WorldEffect(
+            "E1_BLOCK", "A1", "P5", "BLOCKAGE", "CAUSES",
+            "ADVERSE", "DOWNSTREAM", "PROBABILISTIC", "PHYSICAL_STATE",
+            (), (), trap_ref, ("10% chance",),
+        ),
+        WorldEffect(
+            "E1_TRAP", "A1", "P1", "TRAPPED", "CAUSES",
+            "ADVERSE", "DOWNSTREAM", "STIPULATED_CONDITIONAL", "WELFARE_OUTCOME",
+            ("COND1",), ("about sixty",), trap_ref, ("could",),
+        ),
+    )
+    model = ScenarioWorldModel(
+        parties=parties,
+        actions=(
+            WorldAction("A0", "keep the crew at the clinic", "P0", (), ("E0_WALLS", "E0_DEATH", "E0_RISK"), wall_ref),
+            WorldAction("A1", "send the crew to the road", "P0", (), ("E1_ESCAPE", "E1_BLOCK", "E1_TRAP"), trap_ref),
+        ),
+        effects=effects,
+        conditions=(
+            WorldCondition("COND0", "clinic ventilation fails", "STATED", "MATERIAL", wall_ref),
+            WorldCondition("COND1", "the road is blocked", "STATED", "MATERIAL", trap_ref, "E1_BLOCK"),
+        ),
+        schema_version="1.2",
+    )
+    graph = SemanticGraph()
+    graph.add_node(SemanticNode(
+        "A0", "ACTION", "keep the crew at the clinic", ("scenario_action_set",),
+        {"canonical_action_id": "A0"},
+    ))
+    graph.add_node(SemanticNode(
+        "A1", "ACTION", "send the crew to the road", ("scenario_action_set",),
+        {"canonical_action_id": "A1"},
+    ))
+    attach_typed_world_model(graph, model)
+    return graph
+
+
+class AdmittedWorldGroundingTests(unittest.TestCase):
+    def test_admitted_alternative_action_facts_rebind_as_stipulated(self):
+        ledger = seed_proposition_ledger(_admitted_comparison_graph())
+        trapped = ledger["PROP:WORLD:E1_TRAP"]
+        self.assertEqual(trapped.epistemic_status, "STIPULATED")
+        self.assertEqual(
+            resolve_proposition(
+                ledger, "TRAPPED; affected subject: eastern residents; about sixty if road blocked",
+            ),
+            "PROP:WORLD:E1_TRAP",
+        )
+        bound = resolve_proposition(ledger, "10 % chance road blocked")
+        self.assertTrue(bound.startswith("PROP:WORLD:E1_BLOCK"))
+        self.assertEqual(ledger[bound].epistemic_status, "STIPULATED")
+        escape = resolve_proposition(
+            ledger, "ESCAPE_SAFELY; affected subject: immobile patients",
+        )
+        self.assertEqual(escape, "PROP:WORLD:E1_ESCAPE")
+        self.assertEqual(ledger[escape].epistemic_status, "STIPULATED")
+        candidate = _epistemic_candidate()
+        candidate.material_empirical_claims = [{
+            "claim": "TRAPPED; affected subject: eastern residents; about sixty if road blocked",
+            "proposition_id": "HYPOTHESIS",
+            "decision_critical": True,
+        }]
+        attach_candidate_dependencies(ledger, candidate)
+        self.assertEqual(
+            candidate.decision_critical_proposition_ids, ["PROP:WORLD:E1_TRAP"],
+        )
+        self.assertEqual(candidate.weakest_decision_critical_status, "STIPULATED")
+        self.assertFalse(any(
+            record.proposition_type == "HYPOTHESIS" for record in ledger.values()
+        ))
+
+    def test_expected_trapped_is_not_expected_deaths(self):
+        ledger = seed_proposition_ledger(_admitted_comparison_graph())
+        self.assertTrue(claim_changes_admitted_outcome_type(
+            "A1 entails roughly 6 expected deaths among the eastern residents",
+            ledger,
+            derived_from=["PROP:WORLD:E1_TRAP"],
+        ))
+        self.assertTrue(claim_changes_admitted_outcome_type(
+            "A0 entails roughly 4 expected deaths among the immobile patients",
+            ledger,
+        ))
+        self.assertFalse(claim_changes_admitted_outcome_type(
+            "TRAPPED; affected subject: eastern residents; about sixty",
+            ledger,
+            derived_from=["PROP:WORLD:E1_TRAP"],
+        ))
+        hypothesis_id = register_hypothesis(
+            ledger,
+            "A1 entails roughly 6 expected deaths among the eastern residents",
+            specialist="utilitarian",
+            derived_from=["PROP:WORLD:E1_TRAP"],
+            decision_critical=True,
+        )
+        data = {
+            "proposition_ledger": [record.to_dict() for record in ledger.values()],
+        }
+        candidate = {
+            "supporting_proposition_ids": [hypothesis_id],
+            "decision_critical_proposition_ids": [hypothesis_id],
+        }
+        self.assertEqual(_candidate_epistemic_qualification(data, candidate), "")
+        lines = _factual_status_lines(data, [candidate])
+        joined = "\n".join(lines)
+        self.assertNotIn("6 expected deaths", joined)
+        self.assertIn("Stipulated in the admitted world", joined)
+        self.assertIn("TRAPPED", joined)
+
+    def test_protective_walls_seed_a_relation_not_an_orphan_row(self):
+        ledger = seed_proposition_ledger(_admitted_comparison_graph())
+        relations = [
+            record for record in ledger.values()
+            if ":PROTECTS:" in record.proposition_id
+        ]
+        self.assertEqual(len(relations), 1)
+        self.assertIn("fire-resistant walls", relations[0].claim.casefold())
+        self.assertIn("unlikely", relations[0].claim.casefold())
+        lines = _factual_status_lines(
+            {"proposition_ledger": [record.to_dict() for record in ledger.values()]},
+            [],
+        )
+        established = "\n".join(lines)
+        self.assertIn("makes", established.casefold())
+        walls_lines = [
+            line for line in lines
+            if "fire-resistant walls" in line.casefold() and "makes" not in line.casefold()
+        ]
+        self.assertFalse(walls_lines)
+
+    def test_public_brief_uses_short_action_labels(self):
+        long_a0 = (
+            "Send the only buses east so nearly all 300 residents evacuate safely "
+            "while the 20 immobile patients remain behind protected by fire-resistant "
+            "walls but face a 20% chance of ventilation failure"
+        )
+        long_a1 = (
+            "Send the only buses to the hospital so the 20 immobile patients escape "
+            "almost certainly while the 300 eastern residents must flee via a narrow "
+            "road carrying a 10% blockage risk"
+        )
+        brief = render_decision_brief({
+            "judgment_status": "CONTESTED_RECOMMENDATION",
+            "selected_action": long_a0,
+            "current_plurality": long_a0,
+            "canonical_action_records": [
+                {
+                    "canonical_action_id": "A0",
+                    "canonical_semantic_action": long_a0,
+                    "short_label": "Send buses east to evacuate residents",
+                },
+                {
+                    "canonical_action_id": "A1",
+                    "canonical_semantic_action": long_a1,
+                    "short_label": "Send buses to hospital to evacuate patients",
+                },
+            ],
+            "cycles": [{
+                "candidates": [{
+                    "specialist": "utilitarian",
+                    "schema_valid": True,
+                    "recommended_action": long_a0,
+                    "adjudication_status": "SUPPORTS",
+                    "decision_rule": "prefer the larger rescue",
+                    "rationale": "fewer expected harms",
+                }],
+                "policy": {long_a0: 0.7, long_a1: 0.3},
+            }],
+        })
+        self.assertIn("Send buses east to evacuate residents", brief)
+        self.assertNotIn("Send the only buses east so nearly all 300", brief)
+
+    def test_malformed_empty_position_is_not_supports(self):
+        chunk = CandidateChunk(
+            specialist="utilitarian", constraint="NONE",
+            action_scores={"keep the crew at the clinic": 0.5, "send the crew to the road": 0.5},
+            surprise=0.0, friction=0.0, confidence=0.0, epistemic_confidence=0.0,
+            schema_valid=False, recommended_action="",
+            adjudication_status="SUPPORTS", governing_eligible=True,
+            policy_weight_factor=1.0,
+        )
+        profile = apply_specialist_authority(chunk)
+        self.assertEqual(profile.adjudication_status, "CONTESTED_NO_LEANING")
+        self.assertFalse(profile.governing_eligible)
+        self.assertEqual(profile.policy_weight_factor, 0.0)
+        self.assertEqual(chunk.adjudication_status, "CONTESTED_NO_LEANING")
+        abstention = CandidateChunk(
+            specialist="utilitarian", constraint="NONE",
+            action_scores={"keep the crew at the clinic": 0.5, "send the crew to the road": 0.5},
+            surprise=0.0, friction=0.0, confidence=0.0, epistemic_confidence=0.0,
+            schema_valid=True, recommended_action="?",
+            adjudication_status="SUPPORTS", governing_eligible=True,
+            policy_weight_factor=1.0,
+        )
+        abstention_profile = apply_specialist_authority(abstention)
+        self.assertEqual(abstention_profile.adjudication_status, "CONTESTED_NO_LEANING")
+        self.assertEqual(abstention_profile.policy_weight_factor, 0.0)
 
 
 if __name__ == "__main__":

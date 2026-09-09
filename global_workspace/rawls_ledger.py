@@ -566,12 +566,6 @@ def apply_rawls_ledger_transaction(
         rival_consequences, rival_targets = _grounded_consequences(
             store.graph, rival.id, effective_subject
         )
-        all_own_consequences = [
-            consequence for consequence, _targets in _action_consequences(store.graph, action.id)
-        ]
-        all_rival_consequences = [
-            consequence for consequence, _targets in _action_consequences(store.graph, rival.id)
-        ]
         own_action_targets = _action_targets(store.graph, action.id)
         rival_action_targets = _action_targets(store.graph, rival.id)
         comparison_action_targets = _comparison_action_targets(
@@ -588,11 +582,10 @@ def apply_rawls_ledger_transaction(
         action_graph_binding = False
         if not grounded_targets and action_graph_targets:
             grounded_targets = action_graph_targets[:]
-            if not own_consequences:
-                own_consequences = all_own_consequences
-            if not rival_consequences:
-                rival_consequences = all_rival_consequences
             action_graph_binding = True
+        # Do not copy every action consequence onto a subject that those
+        # consequences do not affect. That would transfer another party's
+        # effect across the comparison.
         # Binding requires a matching non-framework consequence target or a
         # separately typed scenario/projection target. Raw lexical action
         # objects and foreign-framework scopes cannot select the Rawls subject.

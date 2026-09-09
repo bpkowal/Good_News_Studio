@@ -24,6 +24,10 @@ from .semantic_roles import (
     RELATION_FOREGONE_BENEFIT,
     extract_grounded_effects,
 )
+from .world_state import (
+    counts_as_obtained_outcome,
+    is_averted_risk_not_obtained_benefit_consequence,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -44,6 +48,7 @@ class GroundedActionEffect:
     likelihood_qualifiers: tuple[str, ...] = ()
     scope_qualifiers: tuple[str, ...] = ()
     temporal_qualifiers: tuple[str, ...] = ()
+    overall_likelihood_qualifiers: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -63,6 +68,7 @@ class GroundedActionEffect:
             "likelihood_qualifiers": list(self.likelihood_qualifiers),
             "scope_qualifiers": list(self.scope_qualifiers),
             "temporal_qualifiers": list(self.temporal_qualifiers),
+            "overall_likelihood_qualifiers": list(self.overall_likelihood_qualifiers),
         }
 
 
@@ -230,6 +236,9 @@ def _grounded_effect_dimension(consequence: SemanticNode, targets: list[Semantic
     explicit = str(consequence.attributes.get("dimension") or "").strip()
     if explicit:
         return explicit
+    kind = str(consequence.attributes.get("effect_kind") or "").upper()
+    if kind == "HEALTH_OUTCOME":
+        return "BASIC_SECURITY"
     protected = [
         target.label for target in targets
         if target.attributes.get("semantic_role") == "PROTECTED_INTEREST"
@@ -336,11 +345,24 @@ def project_grounded_action_effects(graph: SemanticGraph) -> list[GroundedAction
             polarity = str(consequence.attributes.get("polarity", "")).upper()
             relation = str(consequence.attributes.get("relation", "")).upper()
             predicate = consequence.label.casefold()
+            obtained = counts_as_obtained_outcome(
+                polarity=polarity,
+                modality=str(consequence.attributes.get("modality", "")),
+                likelihood_qualifiers=consequence.attributes.get(
+                    "likelihood_qualifiers", (),
+                ),
+            )
+            if obtained and is_averted_risk_not_obtained_benefit_consequence(graph, consequence):
+                obtained = False
             direction = (
                 "FOREGOES" if polarity == "FOREGONE" or relation == RELATION_FOREGONE_BENEFIT
-                else "PRESERVES" if polarity == "BENEFICIAL" and predicate.startswith(("preserv", "protect"))
-                else "IMPROVES" if polarity == "BENEFICIAL"
-                else "WORSENS" if polarity == "ADVERSE"
+                else "PRESERVES" if (
+                    obtained
+                    and polarity == "BENEFICIAL"
+                    and predicate.startswith(("preserv", "protect"))
+                )
+                else "IMPROVES" if obtained and polarity == "BENEFICIAL"
+                else "WORSENS" if obtained and polarity == "ADVERSE"
                 else "UNCERTAIN"
             )
             quantities = [
@@ -401,6 +423,13 @@ def project_grounded_action_effects(graph: SemanticGraph) -> list[GroundedAction
                     temporal_qualifiers=tuple(dict.fromkeys(
                         str(value).strip()
                         for value in consequence.attributes.get("temporal_qualifiers", [])
+                        if str(value).strip()
+                    )),
+                    overall_likelihood_qualifiers=tuple(dict.fromkeys(
+                        str(value).strip()
+                        for value in consequence.attributes.get(
+                            "overall_likelihood_qualifiers", [],
+                        )
                         if str(value).strip()
                     )),
                 ))
@@ -1477,6 +1506,9 @@ def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
                 "condition_ids": list(effect.condition_ids),
                 "quantities": list(effect.quantities),
                 "likelihood_qualifiers": list(effect.likelihood_qualifiers),
+                "overall_likelihood_qualifiers": list(
+                    effect.overall_likelihood_qualifiers
+                ),
                 "scope_qualifiers": list(effect.scope_qualifiers),
                 "temporal_qualifiers": list(effect.temporal_qualifiers),
                 "targets": [party.label],

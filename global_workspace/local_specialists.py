@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Sequence
 
 from .action_identity import action_clause_looks_complete, compile_action_identity, _concepts
+from .core_quote_pack import format_core_dialect_contract
 from .evidence_calibration import EvidenceCalibration
 from .contingency_graph import compile_contingency_graph
 from .middleware.claim_damping import (
@@ -1176,7 +1177,7 @@ def _candidate_from_data(
             basis = str(row.get("p", "HYPOTHESIS")).strip()
             if len(claim.split()) < 2:
                 continue
-            if basis != "HYPOTHESIS" and basis not in proposition_ids:
+            if basis not in proposition_ids and basis not in {"HYPOTHESIS", "FRAMEWORK_DERIVED"}:
                 raise ValueError(f"empirical premise cites unknown proposition ID: {basis}")
             material_empirical_claims.append({
                 "claim": claim,
@@ -2307,7 +2308,11 @@ def _candidate_from_data(
             framework_validation_errors.append(
                 "utilitarian graph updates must use exactly one clause"
             )
-    grounded_numbers = _numeric_literals(" ".join([scenario_text, *actions]))
+    from .epistemic_ledger import grounded_numeric_literals
+
+    grounded_numbers = grounded_numeric_literals(
+        scenario_text, *actions, records=available_propositions or (),
+    )
     proposed_numbers = {
         float(clause.get("threshold"))
         for clause in graph_clauses
@@ -3104,7 +3109,7 @@ def _candidate_from_data(
         if looks_like_decision_boundary(proposition):
             unresolved = DECISION_BOUNDARY
 
-    return CandidateChunk(
+    candidate = CandidateChunk(
         specialist=specialist,
         constraint=constraint,
         action_scores=scores,
@@ -3214,6 +3219,15 @@ def _candidate_from_data(
         care_grounding_penalty=care_grounding_penalty,
         proposal_review=proposal_review,
     )
+    if specialist == "utilitarian":
+        from .epistemic_ledger import bind_unadmitted_magnitude_ranking
+
+        bind_unadmitted_magnitude_ranking(
+            candidate,
+            closed_world_leader=closed_world_leader,
+            grounded_numbers=grounded_numbers,
+        )
+    return candidate
 
 
 def _invalid_candidate(
@@ -3253,6 +3267,12 @@ def _invalid_candidate(
         unresolved="REVIEW_MODEL_OUTPUT",
         rationale="Delegate output failed semantic validation.",
         schema_valid=False,
+        recommended_action="",
+        adjudication_status="CONTESTED_NO_LEANING",
+        governing_eligible=False,
+        broadcast_authority="INVESTIGATIVE",
+        policy_weight_factor=0.0,
+        selection_status="UNSELECTED",
         delegate_status=delegate_status,
         error_type=error_type,
         exception_type=exception_type,
@@ -3296,6 +3316,7 @@ class CompactLocalSpecialist:
     # interpret these facts differently, but do not re-decide whether they exist.
     scenario_graph: Any | None = None
     canonical_action_records: list[dict[str, Any]] = field(default_factory=list)
+    core_quote_pack: dict[str, str] = field(default_factory=dict)
     # Read-only proposition identities supplied by the engine for this cycle.
     proposition_ledger: list[dict[str, Any]] = field(default_factory=list)
 
@@ -4334,7 +4355,11 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                             "c": {"type": "string", "minLength": 4, "maxLength": 240},
                             "p": {
                                 "type": "string",
-                                "enum": [*available_proposition_ids, "HYPOTHESIS"],
+                                "enum": [
+                                    *available_proposition_ids,
+                                    "HYPOTHESIS",
+                                    "FRAMEWORK_DERIVED",
+                                ],
                             },
                             "dc": {"type": "boolean"},
                         },
@@ -5038,14 +5063,23 @@ Before assigning categorical priority, classify four independent premises. dt sa
 whether the governing claim is a PERFECT_NEGATIVE, PERFECT_POSITIVE, IMPERFECT,
 RIGHT_CORRELATIVE, SPECIAL_OBLIGATION, or UNRESOLVED duty. hr distinguishes DOING_HARM,
 ALLOWING_HARM, PREVENTING_HARM, WITHHOLDING_BENEFIT, MIXED, and cases where the
-distinction is not applicable. hr must follow the admitted action graph: DOING_HARM
-requires a DIRECT adverse effect on the protected party. Harm that the graph records
-only as DOWNSTREAM is ALLOWING_HARM or WITHHOLDING_BENEFIT, not doing. Do not relabel
-an omission as doing in order to keep a perfect-negative prohibition. so and sob state
-whether a special obligation is
+distinction is not applicable. hr must follow the admitted action graph, not
+world-DIRECTNESS as such. DOING_HARM requires an actual settled welfare-adverse
+effect on the protected party that the action's DIRECT intervention produces:
+either that effect is itself DIRECT, or a CAUSES/ACCELERATES path runs from a
+DIRECT effect of the action to it. A NEUTRAL device or infrastructure
+intervention still counts as that DIRECT source. ENABLES without CAUSES does
+not: leaving a process uninterrupted is ALLOWING_HARM or WITHHOLDING_BENEFIT.
+Unsettled POSSIBLE/UNKNOWN outcomes and FOREGONE duals cannot license doing.
+Do not relabel an omission as doing in order to keep a perfect-negative prohibition.
+so and sob state whether a special obligation is
 established and by what role, undertaking, relationship, or prior act; urgency alone
 does not create one. mr distinguishes INTENDED_AS_MEANS from FORESEEN_SIDE_EFFECT and
-NO_INSTRUMENTALIZATION. A foreseen burden is not automatically use merely as a means.
+NO_INSTRUMENTALIZATION. INTENDED_AS_MEANS requires the protected party's burden to
+be an intermediate cause of another beneficial consequence of the same action.
+Sibling outcomes of one intervention (the act causes the burden and, separately,
+the end) are FORESEEN_SIDE_EFFECT, not means. A foreseen burden is not automatically
+use merely as a means.
 If any premise needed for priority remains unresolved, use res=CONTESTED, v=CONFLICTED,
 gv=UNRESOLVED, and pb=UNRESOLVED rather than applying categorical priority.
 Never reduce an explicitly stated autonomy or liberty burden to cn prose alone:
@@ -5261,7 +5295,13 @@ unresolved; then cm must name that admitted comparison, use ss=PROVISIONAL,
 cc=false, and esa=false. A HYPOTHESIS or unverified downstream effect is not an
 unresolved admitted comparison: keep scores and r on the admitted ranking, keep
 cd=false and cc=true, put the extra claim in ft as a reversal boundary, and lower
-z as open-world confidence. Do not add hypothetical consequences to ct.
+z as open-world confidence. Do not add hypothetical consequences to ct. Do not
+convert an admitted non-mortality outcome into deaths or another metric the world
+did not admit, and do not mint a numeric probability or magnitude absent from the
+world and scenario. Those claims may appear only as ft reversal boundaries; they
+cannot be why one action uniquely outranks the other. If admitted effects lack a
+shared numeric magnitude, rank only on admitted polarity and modality, or set
+cd=true.
 """
             else:
                 framework_example = (
@@ -5283,7 +5323,12 @@ unresolved; then cm must name that admitted comparison, use ss=PROVISIONAL,
 cc=false, and esa=false. A HYPOTHESIS does not make the current ranking unknown:
 keep scores and r on admitted consequences, keep cd=false and cc=true, and put the
 unverified downstream effect in ft as a reversal boundary, lowering z as open-world
-confidence. A compact table is more important than listing remote effects.
+confidence. Do not convert an admitted non-mortality outcome into deaths or another
+metric the world did not admit, and do not mint a numeric probability or magnitude
+absent from the scenario. Those claims may appear only as ft reversal boundaries;
+they cannot uniquely decide the ranking. If admitted rows lack a shared numeric
+magnitude, rank only on admitted polarity and modality, or set cd=true. A compact
+table is more important than listing remote effects.
 """
         proposition_example_fields = ""
         if available_proposition_ids:
@@ -5300,6 +5345,7 @@ You are the {self.name} specialist in a bandwidth-limited ethical workspace.
 Task: {role}
 Scenario: {' '.join(scenario.split())[:700]}
 Your original corpus-grounded testimony: {testimony}
+{format_core_dialect_contract(self.core_quote_pack if self.core_quote_pack.get("text") else None)}
 Frozen testimony baseline state: {json.dumps(baseline_state)}
 Previous cycle recommendation: {self.previous_recommendation_id or 'NONE'}
 Workspace: {broadcast.compact()}
@@ -5363,7 +5409,12 @@ when that atom could change the ranking. Never turn a mixed sentence such as an
 established medical emergency plus an unestablished fatality inference into one
 all-or-nothing premise. Do not use an established proposition as support for a
 stronger paraphrase. FRAMEWORK_DERIVED is for framework-native relations derived
-from established roles, not for restated world facts.
+from established roles — doing/allowing, means, duty of care, least-advantaged
+priority, practical wisdom — not for restated world facts and not for new
+descriptive outcomes. Do not mark a descriptive hypothesis as FRAMEWORK_DERIVED.
+Do not contradict an admitted CERTAIN world effect; treat that as a rejected
+factual replacement, not a live hypothesis. Unsettled POSSIBLE/UNKNOWN rows stay
+unsettled: do not rewrite them as established events.
 You may cite IDs but may not change their status. Repetition, reformulation, consensus,
 or broadcast salience is not evidence. Put any important unstated empirical premise
 in x; Python assigns its hypothesis ID and prevents it from gaining authority through
@@ -6060,10 +6111,17 @@ def extract_explicit_actions(scenario: str) -> list[str]:
     return actions if len(actions) == 2 else []
 
 
-def _validate_lossless_action_set(actions: Sequence[str], scenario: str = "") -> None:
+def _validate_lossless_action_set(
+    actions: Sequence[str],
+    scenario: str = "",
+    *,
+    user_authored: bool = False,
+) -> None:
     """Reject action sets that lose decision-critical meaning during admission."""
     from .action_identity import validate_action_set_completeness
-    validate_action_set_completeness(actions, scenario=scenario)
+    validate_action_set_completeness(
+        actions, scenario=scenario, user_authored=user_authored,
+    )
 
 
 def extract_allocation_actions(scenario: str) -> list[str]:
@@ -6116,15 +6174,75 @@ def extract_acceptability_actions(scenario: str) -> list[str]:
 
 
 def extract_scenario_facts(scenario: str) -> dict[str, Any]:
-    """Extract a deliberately small fact table used for contradiction checks."""
+    """Extract a small fact table used for contradiction checks.
+
+    Survival percentages bind only to explicit survival chance, or to an
+    elliptical 'NP with N% chance' whose sentence already supplies a survival
+    complement. An unbound percentage is not survival merely because the
+    entity is human.
+    """
     cleaned = " ".join(scenario.lower().split())
+    occupied: list[tuple[int, int]] = []
+    chance_events: list[dict[str, Any]] = []
+    process_chance = re.compile(
+        r"(?P<pct>\d{1,3})%\s+chance\s+"
+        r"(?:of\s+(?:being\s+)?(?P<pred_of>block(?:age|ed)?|fail(?:ure|ing)?|"
+        r"collaps\w*|trapp(?:ed|ing)?|death|dying)|"
+        r"(?:that\s+)?(?:the\s+)?(?P<sub>.{0,48}?)(?P<pred_that>fails?|"
+        r"blocks?|collapses?|breaks?))"
+    )
+    adverse_preds = {
+        "block", "blockage", "blocked", "fail", "fails", "failure", "failing",
+        "collapse", "collapses", "collapsed", "trapped", "trapping", "death",
+        "dying", "breaks", "break",
+    }
+    for match in process_chance.finditer(cleaned):
+        predicate = (match.group("pred_of") or match.group("pred_that") or "").strip()
+        if not predicate:
+            continue
+        occupied.append((match.start(), match.end()))
+        polarity = "ADVERSE" if predicate.split()[-1] in adverse_preds else "NEUTRAL"
+        chance_events.append({
+            "predicate": predicate,
+            "probability": int(match.group("pct")) / 100.0,
+            "polarity": polarity,
+        })
     survival: dict[str, float] = {}
-    for match in re.finditer(
-        r"\b(?:a|an|the)\s+([a-z][a-z-]*(?:\s+[a-z][a-z-]*){0,2})\s+with\s+(?:an?\s+)?(\d{1,3})%\s+(?:survival\s+)?chance",
-        cleaned,
-    ):
+    survival_re = re.compile(
+        r"\b(?:a|an|the)\s+([a-z][a-z-]*(?:\s+[a-z][a-z-]*){0,2})\s+"
+        r"with\s+(?:an?\s+)?(\d{1,3})%\s+survival\s+chance"
+    )
+    elliptical_re = re.compile(
+        r"\b(?:a|an|the)\s+([a-z][a-z-]*(?:\s+[a-z][a-z-]*){0,2})\s+"
+        r"with\s+(?:an?\s+)?(\d{1,3})%\s+chance\b(?!\s+of\b)(?!\s+that\b)"
+    )
+    for match in survival_re.finditer(cleaned):
+        occupied.append((match.start(), match.end()))
         survival[match.group(1)] = int(match.group(2)) / 100.0
-    return {"survival_chance": survival} if survival else {}
+
+    def _overlaps(start: int, end: int) -> bool:
+        return any(
+            not (end <= other_start or start >= other_end)
+            for other_start, other_end in occupied
+        )
+
+    for match in elliptical_re.finditer(cleaned):
+        if _overlaps(match.start(), match.end()):
+            continue
+        sentence_start = cleaned.rfind(".", 0, match.start()) + 1
+        sentence_end = cleaned.find(".", match.end())
+        if sentence_end < 0:
+            sentence_end = len(cleaned)
+        sentence = cleaned[sentence_start:sentence_end]
+        if not re.search(r"\bsurviv(?:e|es|ed|ing|al)\b", sentence):
+            continue
+        survival[match.group(1)] = int(match.group(2)) / 100.0
+    facts: dict[str, Any] = {}
+    if survival:
+        facts["survival_chance"] = survival
+    if chance_events:
+        facts["chance_events"] = chance_events
+    return facts
 
 
 _NEGATIVE_DECISION_BEFORE = re.compile(
@@ -6816,6 +6934,9 @@ Do not give several implementation methods pursuing the same side. Each action
 string is a compressed state object, not a display label: preserve every
 decision-critical consequence and constraint from the scenario (who is saved,
 who is harmed, by what mechanism, and any concealment/institutional effect).
+Do not add harms, deaths, killings, departures, or quantities the scenario
+does not state. A source trap, remain-behind, or risk is not a license to
+write that the action kills those people or that a whole party leaves.
 Do not truncate mid-clause. f is feasibility (0 to 1). e is
 true when the action is genuinely available without inventing facts. Do not invent
 waiting, authorities, escape, rescue, or resources. Preserve genuinely closed choices.
@@ -6933,19 +7054,22 @@ def ground_actions_in_scenario(
                 "effect_kind": {"type": "string", "enum": ["INTERVENTION", "RESOURCE_TRANSFER", "CAPABILITY_CHANGE", "PHYSICAL_STATE", "HEALTH_OUTCOME", "WELFARE_OUTCOME", "INSTITUTIONAL_OUTCOME", "OPPORTUNITY_LOSS", "OTHER"]},
                 "condition_ids": string_list, "quantities": string_list,
                 "likelihood_qualifiers": string_list,
+                "overall_likelihood_qualifiers": string_list,
                 "scope_qualifiers": string_list,
                 "temporal_qualifiers": string_list,
+                "condition_join": {"type": "string", "enum": ["AND", "OR"]},
                 "clause_ids": effect_source_ids_schema,
-            }, "required": ["effect_id", "action_id", "party_id", "outcome", "predicate", "polarity", "directness", "modality", "effect_kind", "condition_ids", "quantities", "likelihood_qualifiers", "scope_qualifiers", "temporal_qualifiers", "clause_ids"], "additionalProperties": False}},
+            }, "required": ["effect_id", "action_id", "party_id", "outcome", "predicate", "polarity", "directness", "modality", "effect_kind", "condition_ids", "quantities", "likelihood_qualifiers", "overall_likelihood_qualifiers", "scope_qualifiers", "temporal_qualifiers", "condition_join", "clause_ids"], "additionalProperties": False}},
             "conditions": {"type": "array", "items": {"type": "object", "properties": {
                 "condition_id": {"type": "string"}, "description": {"type": "string"},
+                "event_effect_id": {"type": "string"},
                 "value_status": {"type": "string"}, "decision_relevance": {"type": "string"},
                 "clause_ids": source_ids_schema,
-            }, "required": ["condition_id", "description", "value_status", "decision_relevance", "clause_ids"], "additionalProperties": False}},
+            }, "required": ["condition_id", "description", "event_effect_id", "value_status", "decision_relevance", "clause_ids"], "additionalProperties": False}},
             "causal_links": {"type": "array", "items": {"type": "object", "properties": {
                 "action_id": {"type": "string", "enum": action_ids},
                 "source_id": {"type": "string"},
-                "link_relation": {"type": "string", "enum": ["ENABLES", "CAUSES", "ACCELERATES", "PREVENTS"]},
+                "link_relation": {"type": "string", "enum": ["ENABLES", "CAUSES", "ACCELERATES", "PREVENTS", "DOES_NOT_INCREASE"]},
                 "target_id": {"type": "string"},
                 "modality": {"type": "string", "enum": ["CERTAIN", "STIPULATED_CONDITIONAL", "PROBABILISTIC", "POSSIBLE", "UNKNOWN"]},
                 "condition_ids": string_list, "clause_ids": source_ids_schema,
@@ -6988,14 +7112,34 @@ does not attach every consequence in that clause to every action that cites it.
 
 Also return world_model: a framework-neutral factual model. Identify every explicit
 actor, including automated systems and institutions. Use neutral interventions, not
-ethical conclusions. Give every stipulated direct survival, death, receipt, denial,
+ethical conclusions. DIRECT INTERVENTION on a FACILITY, PROCESS, RESOURCE,
+INSTITUTION, INFRASTRUCTURE, or other non-welfare-bearing party must have polarity
+NEUTRAL; put BENEFICIAL or ADVERSE on the later health, welfare, or liberty effect.
+A DIRECT INTERVENTION or INSTITUTIONAL_OUTCOME on a human recipient may be
+BENEFICIAL or ADVERSE. Give every stipulated direct survival, death, receipt, denial,
 or other immediate effect its own action-specific effect. Separate downstream and
 foregone effects. CERTAIN means the outcome itself is stipulated; foregoing a
 research opportunity may be certain while the success and population benefit of
 that research remain STIPULATED_CONDITIONAL, PROBABILISTIC, POSSIBLE, or UNKNOWN.
-Every non-certain effect must name a condition. CERTAIN effects and CERTAIN causal
-links must not list condition_ids; put the condition only on the non-certain
-effect that depends on it. Foregone effects use directness FOREGONE, polarity
+An unhedged indicative consequence is CERTAIN; do not invent a residual failure
+mode the source never states. A source chance hedge (almost certain, near-certain,
+a chance, 20% chance) on that outcome is not CERTAIN: type PROBABILISTIC or
+POSSIBLE and copy the hedge. Occupying an at-risk situation remains CERTAIN.
+A condition may not restate an immediate causal
+parent. A source likelihood hedge (near-certain, a chance, almost no chance,
+a remote chance, a 30% chance, could, might, probably) may replace a named condition: copy the
+longest span onto likelihood_qualifiers of the modified outcome only ("almost no
+chance", "remote chance", or "30% chance", not also "chance" or "30%"), and omit condition_ids.
+Copy a percent-chance hedge even when the source omits the space: retain the
+literal source span ("20%chance", with its offsets) and the normalized form
+("20% chance"). Do not copy the same chance identity twice. Do not copy a percent chance onto party or effect quantities[]; "30% of the residents" is a
+quantity, "30% chance" is not. "at risk", "at moderate risk", and "at high risk"
+are risk-magnitude phrases: on an AT_RISK or EXPOSED outcome they are CERTAIN
+situation qualifiers, not a reason to type the situation PROBABILISTIC. They are
+likelihood hedges only when they modify a distinct harm ("at high risk of dying").
+CERTAIN effects and CERTAIN
+causal links must not list condition_ids. Non-certain rows without a source
+likelihood hedge still need an independent condition. Foregone effects use directness FOREGONE, polarity
 FOREGONE, and effect_kind OPPORTUNITY_LOSS. Do not score a missed opportunity as ADVERSE or BENEFICIAL. Effect
 clause_ids must include at least one FACT clause or the confirmed action id
 (A0, A1, …) that states the claim. A choose-between or interrogative clause may
@@ -7004,24 +7148,39 @@ and scale phrases on the party they describe, even when an atomic effect outcome
 does not repeat them (for example "eight" for infants or "tens of thousands" for residents).
 If one clause names two population quantities, copy each span only onto the party
 whose label uniquely matches that quantity's local noun phrase; do not copy both
-counts onto one party. Put resource, duration, monetary, percentage, and other
+counts onto one party. Hyphenated or spaced cardinals (twenty-five, fifty thousand)
+are one count; do not also copy five or thousand. A count recorded on a party may appear on that party's
+effects even when a later clause refers to the same group without repeating the
+numeral; do not copy that count onto a different party. Put resource, duration, monetary, percentage, and other
 effect-specific quantities on the effect. Copy only exact source spans and do not
 attach every quantity in a clause to every party or effect. Record exact source likelihood words such as
 "near-certain" in likelihood_qualifiers, extent words such as "widespread" in
 scope_qualifiers, and timing words such as "immediate" in temporal_qualifiers when
-they modify that effect. Do not invent probabilities, QALYs, counts, or qualifiers.
+they modify that effect. A hedge that modifies a human outcome (near-certain death,
+a chance to escape) must not be copied onto a sibling process or facility row in
+the same clause, even if they share a crowd noun; a scope or time word that
+modifies the process stays on that process row. A chance/risk complement binds to
+the clause predicate (fails, blocked, escape), not the first following noun or a
+light verb (being); copy that percent-chance hedge onto the process or outcome
+row it modifies. Do not invent probabilities, QALYs, counts, or qualifiers.
 Return schema_version="1.2". Effects must be atomic: one affected party, one outcome,
 and one causal stage per effect. An immediate action target, an intermediate system
 state, and the people ultimately helped or harmed are distinct parties/effects.
 Named individuals use kind PERSON or HUMAN; crowds use GROUP or POPULATION;
 intermediate systems use FACILITY, INSTITUTION, or PROCESS. recipient_party_ids
-are who or what the actor acts on: the named patient of a framing or killing,
-the person reached, or the immediate object of demolition, repair, diversion,
-or shutdown (a FACILITY, INFRASTRUCTURE, PROCESS, or RESOURCE). Later harmed
-or beneficiary crowds must not be recipients. For every
+are who or what the actor acts on in this action: the named patient of a framing
+or killing, the person or crowd reached or assigned, the group that receives a
+transferred resource, or the immediate object of demolition, repair, diversion,
+or shutdown (a FACILITY, INFRASTRUCTURE, PROCESS, or RESOURCE). A transferred
+RESOURCE is a party, not a recipient; the receiving person or crowd is the
+recipient and gets the DIRECT RESOURCE_TRANSFER. Later harmed or beneficiary
+crowds — and a later party's own assist, remaining, or road use — must not be
+made recipients to force those rows DIRECT. The actor assigning or allocating a
+party may name them as recipient of that assignment (DIRECT INTERVENTION); their
+subsequent conduct and exposure are DOWNSTREAM, not INTERVENTION. For every
 recipient_party_id include an atomic DIRECT effect: RESOURCE_TRANSFER when a
-resource is transferred, INSTITUTIONAL_OUTCOME for a juridical act (frame,
-acquit, certify), and INTERVENTION for other actions. Represent resulting
+resource is transferred to them, INSTITUTIONAL_OUTCOME for a juridical act (frame,
+acquit, certify), and INTERVENTION for other actions including assignment. Represent resulting
 health, welfare, or process states separately and connect the stages.
 If the action refuses a named framing, execution, or killing, that named patient is
 still a recipient: record their spared juridical or bodily status as a BENEFICIAL
@@ -7033,31 +7192,85 @@ from the later health outcome. Never link an actor's intervention, or one party'
 health outcome, directly to a different party's death or survival; insert the
 source-named intermediate process (riot continues, grid fails, train is diverted,
 and so on) and causally connect intervention → intermediate state → human health
-outcome. The intermediate may be PHYSICAL_STATE, OTHER, or INSTITUTIONAL_OUTCOME
-on a PROCESS, FACILITY, or INSTITUTION party. INSTITUTIONAL_OUTCOME on the human
-patient is the act, not the intermediate. DIRECT effects attach only to the actor or a named recipient. A process,
+outcome. A crowd's use, remaining, occupancy, or travel is that mediated process,
+not the health outcome: it may hang off the DIRECT transfer even when the transfer
+recipient is a different group. Do not drop that link. Put trapped, death, or
+escape as a separate child of that process. Distinguish an action-mediated process (facility not served, road used,
+device held) from an independent background event using the source's causal
+structure, not the mere presence of a likelihood hedge. An explicitly
+action-caused stochastic process (the intervention may cause a collapse) must
+hang off this action's DIRECT intervention. An independent background event
+must not: do not add intervention → background failure to satisfy ancestry.
+If the source only associates them without attributing cause, do not invent
+that link; insert the missing action-mediated facility or resource branch.
+A human outcome must reach the DIRECT act through the mediated process.
+An independent event is not a second ordinary causal parent. Represent it as
+a condition with event_effect_id pointing at that event's effect_id, and gate
+the mediated path (road use → trapping gated by the blockage event; remaining
+→ deaths gated by the ventilation-failure event). Keep the probability on the
+referenced event. Type the gated human outcome STIPULATED_CONDITIONAL. Do not
+copy the event's percent chance onto the gated row or type that row CERTAIN.
+Compose 20% failure and near-certain conditional death once. If the source
+also says those deaths are overall unlikely because of protective or
+resistant walls, record the walls as a CERTAIN NEUTRAL PHYSICAL_STATE on the
+facility. Put the overall unlikely hedge on overall_likelihood_qualifiers of
+the gated death. Do not add a second BENEFICIAL survival or death-unlikely
+row. Do not overwrite near-certain if-failure with unlikely, or vice versa.
+When two or more
+conditions gate one outcome, set condition_join to AND or OR. event_effect_id
+must name an existing probabilistic process/facility event, not a human welfare
+row and not a FOREGONE overlay. Do not restate that event as disconnected
+free-text. event_effect_id is empty when
+the condition is not an existing event. A source 'does not increase' a
+background risk is link_relation DOES_NOT_INCREASE from this action's DIRECT
+act to that risk event; keep the event's baseline chance. It does not mean the
+risk cannot occur.
+A crowd's use, remaining, occupancy, or travel is a NEUTRAL process state;
+put ADVERSE on trapping, exposure, injury, or death. Occupying an at-risk
+situation remains CERTAIN on that exposure row; compact roles still treat it
+as at risk, not obtained harm. A near-certain conditional remains conditional.
+The intermediate may be PHYSICAL_STATE, OTHER, or INSTITUTIONAL_OUTCOME
+on a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE party.
+INSTITUTIONAL_OUTCOME on the human patient is the act, not the intermediate.
+Reparenting a crowd outcome means insert a process state on the source-named
+facility or resource; that unused party is a plausible missing row, not
+automatically the correct intermediary. Do not reparent onto an unrelated
+process already in the action. Keep the downstream human row; do not drop the causal_link without a
+replacement parent. The old human parent may remain an ancestor of the process,
+not of the crowd's health. DIRECT effects attach only to the actor or a named recipient. A later party's
+road use, remaining, or assist is DOWNSTREAM, not INTERVENTION. Do not add that
+crowd as a recipient to force DIRECT; recast that row as DOWNSTREAM PHYSICAL_STATE,
+OTHER, or WELFARE_OUTCOME. Assignment or allocation of that party may be a
+separate DIRECT INTERVENTION with them as recipient of the assignment. A process,
 population, or institution that is not a recipient is DOWNSTREAM or FOREGONE. A
 downstream health or welfare outcome on a different party must be causally
 reachable from this action's DIRECT INTERVENTION, RESOURCE_TRANSFER, or
-INSTITUTIONAL_OUTCOME through that intermediate process. Do not leave the
-intervention and the process as disconnected siblings. FOREGONE effects use
+INSTITUTIONAL_OUTCOME through that action-mediated process. Do not leave the
+intervention and the mediated process as disconnected siblings. FOREGONE effects use
 directness FOREGONE, polarity FOREGONE, and effect_kind OPPORTUNITY_LOSS.
-Copy only the longest source quantity span: "over five hundred" not also "five"
-or "five hundred". Each effect needs a non-empty outcome and a non-empty
+Copy only the longest source quantity span: "over five hundred", "as many as three hundred",
+or "at most three hundred", not also "five" or "three hundred". Each effect needs a non-empty outcome and a non-empty
 predicate such as IS, SURVIVES, PERFORMS, SUBJECT_TO, STATE_CHANGE, or
 EXPERIENCES. Do not use a field named relation on effects. Causal links use
-link_relation ENABLES, CAUSES, ACCELERATES, or PREVENTS. PREVENTS is not for two
+link_relation ENABLES, CAUSES, ACCELERATES, PREVENTS, or DOES_NOT_INCREASE.
+PREVENTS is not for two
 obtaining actual effects that share BENEFICIAL or ADVERSE polarity; those stages
 already occur, so the parent produces the child with CAUSES, ENABLES, or
-ACCELERATES. Every causal link must
+ACCELERATES. DOES_NOT_INCREASE is a negative constraint: this action's DIRECT
+act, the independent risk event, and that event's retained baseline chance.
+It is not a causal parent and does not mean the risk cannot occur. If one
+clause names a party total and a smaller assigned subset, put the total on the
+party and the subset on the DIRECT assignment effect; compact roles use the
+assigned subset. Every causal link must
 name action_id, and both endpoints must belong to that same action. Never point
 a causal link at another action's effect. Represent cross-action foreclosure only
 in counterfactual_links with counterfactual_relation FOREGOES_ALTERNATIVE_EFFECT,
 PRECLUDES_ALTERNATIVE_EFFECT, or REPLACES_ALTERNATIVE_EFFECT: source_effect_id
 must be a FOREGONE effect owned by action_id and alternative_effect_id must be
 the matching effect owned by alternative_action_id. When two actions stipulate
-opposed health or welfare for the same non-recipient party (one lives, the other
-dies), each action must also record that alternative as a FOREGONE
+opposed health or welfare for the same party (one lives, the other
+dies), including a crowd that is a recipient of a transfer but whose
+downstream trapping, escape, or death is opposed, each action must also record that alternative as a FOREGONE
 OPPORTUNITY_LOSS and a counterfactual_link to the other action's actual effect
 on that party. Do not attach FOREGONE effects to causal_links; keep causal_links
 as the within-action actual chain. Clause IDs are provenance
@@ -7074,6 +7287,7 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
     result: dict[str, Any] = {}
     rejected_candidate: Any = None
     for attempt in range(1, max(1, max_attempts) + 1):
+        repair_delta: dict[str, Any] = {}
         try:
             call_prompt = (
                 prompt if not repair_note
@@ -7088,10 +7302,26 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                 if isinstance(output, dict) else str(output)
             )
             candidate = _extract_json(raw)
+            previous_errors = list(attempts[-1]["errors"]) if attempts else []
+            repair_delta: dict[str, Any] = {}
+            if rejected_candidate is not None:
+                candidate = _preserve_stable_world_bookkeeping(
+                    rejected_candidate, candidate, previous_errors=previous_errors,
+                )
+                repair_delta = compute_repair_delta(
+                    rejected_candidate, candidate, previous_errors=previous_errors,
+                )
             rejected_candidate = candidate
             result = _admit_action_source_rows(
                 candidate, actions, action_ids, clauses,
             )
+            illegal = list(repair_delta.get("illegal_drops") or [])
+            if illegal:
+                result = {
+                    **result,
+                    "status": "REJECTED",
+                    "errors": list(result.get("errors") or []) + illegal,
+                }
         except Exception as exc:
             result = {
                 "status": "REJECTED", "actions": {},
@@ -7106,7 +7336,11 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                 "contradictory direct effects: " + ", ".join(group)
                 for group in result["world_contradictions"]
             )
-        attempts.append({"attempt": attempt, "errors": attempt_errors})
+        attempts.append({
+            "attempt": attempt,
+            "errors": attempt_errors,
+            "repair_delta": repair_delta,
+        })
         if result["status"] == "COMMITTED":
             break
         repair_note = (
@@ -7114,22 +7348,59 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
             + "; ".join(attempt_errors)
             + "\nRepair the rejected candidate below. Preserve every field not "
             "implicated by those validation errors; do not regenerate the model "
-            "from scratch. Keep existing IDs and already-valid records stable."
+            "from scratch. Keep existing IDs and already-valid records stable. "
+            "Unless a listed error names them, keep counterfactual_links and "
+            "FOREGONE OPPORTUNITY_LOSS rows unchanged; do not drop an already-valid "
+            "overlay to repair an unrelated DIRECT or recipient error. Unless a "
+            "listed error names them, keep probabilities, quantities, risk "
+            "effects, conditions, counterfactual overlays, and source citations. "
+            "Keep human "
+            "recipients of a transfer or assignment; do not replace them with the "
+            "transferred RESOURCE to satisfy the atomic DIRECT rule."
             + "\nEach action must cite at least one clause that no other action "
             "cites. Shared background clauses are still permitted alongside it. "
             "For contradictory direct effects, re-read the cited clauses and remove "
             "the incorrectly assigned effect rather than weakening its modality. "
             "If a downstream health or welfare outcome is caused directly by another "
             "person's framing, execution, or death, reparent it: the immediate parent "
-            "must be a PROCESS, FACILITY, or INSTITUTION state (riot halted or "
-            "continues). That intermediate may be PHYSICAL_STATE, OTHER, or "
+            "must be a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE "
+            "state. That intermediate may be PHYSICAL_STATE, OTHER, or "
             "INSTITUTIONAL_OUTCOME on the process bearer; INSTITUTIONAL_OUTCOME on "
             "the human patient is not the intermediate. Keep the person's act on "
             "the path to that process, not as the parent of the crowd's health. "
+            "If the source names a facility or resource with no process-state "
+            "effect, that party is a plausible missing intermediate — confirm "
+            "from the source before inserting; unused is not automatically "
+            "the correct parent. Do not reparent onto an unrelated existing "
+            "process. "
+            "Do not delete the downstream human row or drop its causal_link without "
+            "a replacement parent; insert or reuse a process state as the new parent. "
+            "A crowd's use, remaining, occupancy, or travel is the mediated process, "
+            "not a human outcome; keep the link from the DIRECT transfer to that "
+            "process even when the transfer recipient is a different group. "
             "If a downstream health or welfare outcome has no path to this action's "
-            "DIRECT intervention, transfer, or juridical act, add the missing causal "
-            "link through the source-named intermediate process. DIRECT effects "
-            "belong only on the actor or a named recipient. The immediate object "
+            "DIRECT intervention, transfer, or juridical act through an "
+            "action-mediated process, add that mediated link. If the source says "
+            "the intervention may cause a stochastic process, connect that process "
+            "from the DIRECT act. If the source stipulates an independent "
+            "background event, do not parent it from the intervention and do "
+            "not parent the human outcome from that event. Gate the "
+            "action-mediated path with a condition whose event_effect_id is "
+            "that event; keep the probability on the event; type the gated "
+            "outcome STIPULATED_CONDITIONAL. Do not restate the event as "
+            "disconnected free-text. A source 'does not increase' that risk "
+            "uses DOES_NOT_INCREASE. Crowd use/remain rows are NEUTRAL. "
+            "If the association is ambiguous, do not invent causation; generate the "
+            "missing mediated branch. DIRECT effects "
+            "belong only on the actor or a named recipient. A later party's "
+            "road use, remaining, or assist is DOWNSTREAM, not INTERVENTION; "
+            "do not add them as a recipient to make an INTERVENTION row DIRECT. "
+            "Recast that row as DOWNSTREAM PHYSICAL_STATE, OTHER, or "
+            "WELFARE_OUTCOME. Assignment or allocation of that party may be a "
+            "separate DIRECT INTERVENTION with them as recipient. A transferred "
+            "RESOURCE is not a recipient; name the receiving person or crowd and "
+            "give them DIRECT RESOURCE_TRANSFER. "
+            "The immediate object "
             "of demolition, repair, diversion, or shutdown may be a recipient "
             "(FACILITY, INFRASTRUCTURE, PROCESS, or RESOURCE); later crowds may "
             "not. Named patients may be PERSON or HUMAN. "
@@ -7138,17 +7409,44 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
             "appear in one clause, attach each only to the party that uniquely "
             "matches that quantity's local noun phrase; do not copy both onto one "
             "party, and do not retarget causal_links to satisfy quantity errors. "
+            "Hyphenated or spaced cardinals are one count; do not also copy the "
+            "inner five or thousand. "
+            "A count already recorded on a party may appear on that party's effects "
+            "when the cited clause refers to the group without repeating the numeral; "
+            "do not copy it onto a different party. "
+            "An unhedged indicative consequence is CERTAIN. Do not invent a residual "
+            "failure mode or a condition that restates an immediate parent. A source "
+            "chance hedge (almost certain, near-certain, 20% chance) means the row "
+            "is PROBABILISTIC or POSSIBLE, not CERTAIN. Occupying an at-risk "
+            "situation remains CERTAIN. A source "
+            "likelihood hedge may replace a named condition: copy the longest "
+            "span onto likelihood_qualifiers of the modified outcome only "
+            "('almost no chance', 'remote chance', or '30% chance', not also "
+            "'chance' or '30%'), including when the source omits the space in "
+            "'20%chance': keep the literal span and the normalized '20% chance'. "
+            "Do not copy the same chance identity twice. "
+            "Do not copy a percent chance onto quantities[]. "
+            "'at risk' / 'at moderate risk' on an AT_RISK or EXPOSED row is a "
+            "CERTAIN situation qualifier; it is a likelihood hedge only when it "
+            "modifies a distinct harm ('at high risk of dying'). "
             "FOREGONE rows use effect_kind "
             "OPPORTUNITY_LOSS. If opposed stipulated welfare on a non-recipient "
             "party has no FOREGONE overlay, add only those FOREGONE rows and "
             "counterfactual_links; do not retarget causal_links or use FOREGONE "
-            "effects as causal endpoints. If a causal_link uses PREVENTS between "
+            "effects as causal endpoints. If the overlays are already present and "
+            "valid, keep them. If a causal_link uses PREVENTS between "
             "two actual effects whose polarities are both BENEFICIAL or both "
             "ADVERSE, change only link_relation to CAUSES; do not retarget "
             "endpoints, add or remove effects, or move the edge onto "
-            "counterfactual_links. Effects need a non-empty outcome and "
+            "counterfactual_links. Cite every FACT clause of a DIRECT "
+            "assignment or transfer, including a named subgroup. "
+            "Effects need a non-empty outcome and "
             "predicate. Causal links use link_relation, not relation. Copy a "
-            "qualifier only when it modifies that atomic outcome; delete invented "
+            "qualifier only when it modifies that atomic outcome; a human-outcome "
+            "hedge must not land on a sibling process row in the same clause, "
+            "even if they share a crowd noun. A chance/risk complement binds to "
+            "the clause predicate, not the first noun or a light verb; keep the "
+            "percent-chance hedge on that process or outcome row. Delete invented "
             "words such as widespread. "
             "Correct exactly these problems and return the mapping again."
             + "\nRejected candidate JSON:\n"
@@ -7156,7 +7454,396 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
         )
     result["attempts"] = attempts
     result["repair_attempts"] = len(attempts) - 1
+    if result.get("status") != "COMMITTED" and rejected_candidate is not None:
+        result["rejected_candidate"] = rejected_candidate
     return result
+
+
+def _identifier_implicated(identifier: str, errors: Sequence[str]) -> bool:
+    blob = " ".join(str(item) for item in errors)
+    if not identifier or not blob:
+        return False
+    return bool(re.search(
+        rf"(?<![A-Za-z0-9_]){re.escape(str(identifier))}(?![A-Za-z0-9_])",
+        blob,
+    ))
+
+
+def _identifier_may_drop_row(identifier: str, errors: Sequence[str]) -> bool:
+    """Whole-row deletion is allowed only for mis-assigned contradictory rows."""
+    if not _identifier_implicated(identifier, errors):
+        return False
+    blob = " ".join(str(item) for item in errors)
+    return bool(re.search(
+        r"incorrectly assigned|contradictory direct",
+        blob,
+        re.IGNORECASE,
+    ))
+
+
+def _row_clause_ids(row: dict[str, Any]) -> list[str]:
+    if row.get("clause_ids"):
+        return [str(item) for item in row.get("clause_ids") or [] if item]
+    return [
+        str(ref.get("clause_id"))
+        for ref in row.get("provenance") or []
+        if isinstance(ref, dict) and ref.get("clause_id")
+    ]
+
+
+def _causal_link_key(row: dict[str, Any]) -> tuple[str, str, str, str]:
+    relation = str(row.get("link_relation") or row.get("relation") or "")
+    return (
+        str(row.get("source_id") or ""),
+        relation.upper(),
+        str(row.get("target_id") or ""),
+        str(row.get("action_id") or ""),
+    )
+
+
+def _causal_link_forbidden(row: dict[str, Any], errors: Sequence[str]) -> bool:
+    """True when listed errors name this edge as an illegal event parent."""
+    source = str(row.get("source_id") or "")
+    target = str(row.get("target_id") or "")
+    if not source or not target:
+        return False
+    blob = " ".join(str(item) for item in errors)
+    return bool(re.search(
+        rf"{re.escape(source)} is referenced by \S+ and must not also be an "
+        rf"ordinary causal parent of \[[^\]]*{re.escape(target)}"
+        rf"|{re.escape(source)} is an independent stochastic event; "
+        rf"do not parent {re.escape(target)} from it",
+        blob,
+        re.IGNORECASE,
+    ))
+
+
+def _world_structural_facts(world_model: Any) -> dict[str, set[tuple[str, ...]]]:
+    wm = world_model if isinstance(world_model, dict) else {}
+    facts: dict[str, set[tuple[str, ...]]] = {
+        "probabilities": set(),
+        "quantities": set(),
+        "risk_effects": set(),
+        "conditions": set(),
+        "overlays": set(),
+        "citations": set(),
+        "effects": set(),
+        "parties": set(),
+        "causal_links": set(),
+    }
+    for row in wm.get("effects") or []:
+        if not isinstance(row, dict):
+            continue
+        eid = str(row.get("effect_id") or "")
+        if not eid:
+            continue
+        facts["effects"].add((eid,))
+        for span in row.get("likelihood_qualifiers") or []:
+            if span:
+                facts["probabilities"].add((eid, str(span).casefold()))
+        for quantity in row.get("quantities") or []:
+            if quantity:
+                facts["quantities"].add(("effect", eid, str(quantity).casefold()))
+        if (
+            row.get("likelihood_qualifiers")
+            or str(row.get("modality") or "").upper() in {"PROBABILISTIC", "POSSIBLE"}
+            or str(row.get("directness") or "").upper() != "FOREGONE"
+            and re.search(
+                r"\b(?:fail|block|risk|expos|trapp)\w*\b",
+                str(row.get("outcome") or ""),
+                re.IGNORECASE,
+            )
+        ):
+            facts["risk_effects"].add((eid,))
+        for clause_id in _row_clause_ids(row):
+            facts["citations"].add(("effect", eid, clause_id))
+        for cond_id in row.get("condition_ids") or []:
+            if cond_id:
+                facts["conditions"].add(("gate", eid, str(cond_id).upper()))
+    for row in wm.get("parties") or []:
+        if not isinstance(row, dict):
+            continue
+        pid = str(row.get("party_id") or "")
+        for quantity in row.get("quantities") or []:
+            if pid and quantity:
+                facts["quantities"].add(("party", pid, str(quantity).casefold()))
+        for clause_id in _row_clause_ids(row):
+            facts["citations"].add(("party", pid, clause_id))
+        if pid:
+            facts["parties"].add((pid,))
+    for row in wm.get("causal_links") or []:
+        if not isinstance(row, dict):
+            continue
+        key = _causal_link_key(row)
+        if key[0] and key[2]:
+            facts["causal_links"].add((key[0], key[2], key[1]))
+    for row in wm.get("conditions") or []:
+        if not isinstance(row, dict):
+            continue
+        cid = str(row.get("condition_id") or "").upper()
+        if cid:
+            facts["conditions"].add(("condition", cid))
+            for clause_id in _row_clause_ids(row):
+                facts["citations"].add(("condition", cid, clause_id))
+    for row in wm.get("counterfactual_links") or []:
+        if not isinstance(row, dict):
+            continue
+        facts["overlays"].add((
+            str(row.get("action_id") or ""),
+            str(row.get("source_effect_id") or ""),
+            str(row.get("alternative_action_id") or ""),
+            str(row.get("alternative_effect_id") or ""),
+        ))
+    return facts
+
+
+def compute_repair_delta(
+    previous: Any,
+    candidate: Any,
+    *,
+    previous_errors: Sequence[str] = (),
+) -> dict[str, Any]:
+    """Structural drop/add between repair attempts, plus unimplicated losses."""
+    prev_wm = previous.get("world_model") if isinstance(previous, dict) else {}
+    new_wm = candidate.get("world_model") if isinstance(candidate, dict) else {}
+    before = _world_structural_facts(prev_wm)
+    after = _world_structural_facts(new_wm)
+    dropped = {
+        kind: sorted(
+            ["|".join(item) for item in before[kind] - after[kind]],
+        )
+        for kind in before
+    }
+    added = {
+        kind: sorted(
+            ["|".join(item) for item in after[kind] - before[kind]],
+        )
+        for kind in after
+    }
+    illegal: list[str] = []
+    for kind, items in dropped.items():
+        if kind == "effects":
+            continue
+        for item in items:
+            parts = item.split("|")
+            identifiers = [part for part in parts if part]
+            if any(_identifier_implicated(part, previous_errors) for part in identifiers):
+                continue
+            illegal.append(
+                f"repair dropped previously valid {kind.replace('_', ' ')} "
+                f"{item} that the listed errors did not name"
+            )
+    for item in dropped.get("effects") or []:
+        eid = item.split("|")[0]
+        if _identifier_may_drop_row(eid, previous_errors):
+            continue
+        illegal.append(
+            f"repair dropped previously valid effect {eid} that the listed "
+            "errors did not name"
+        )
+    return {
+        "dropped": {kind: values for kind, values in dropped.items() if values},
+        "added": {kind: values for kind, values in added.items() if values},
+        "illegal_drops": illegal,
+    }
+
+
+def _index_rows(rows: Any, key: str) -> dict[str, dict[str, Any]]:
+    indexed: dict[str, dict[str, Any]] = {}
+    for row in rows or []:
+        if not isinstance(row, dict):
+            continue
+        ident = str(row.get(key) or "")
+        if ident:
+            indexed[ident] = row
+    return indexed
+
+
+def _restore_emptied_list(
+    previous: dict[str, Any],
+    current: dict[str, Any],
+    field: str,
+    *,
+    implicated: bool,
+) -> dict[str, Any]:
+    if implicated:
+        return current
+    prev_values = list(previous.get(field) or [])
+    new_values = list(current.get(field) or [])
+    if prev_values and not new_values:
+        return {**current, field: prev_values}
+    return current
+
+
+def _preserve_stable_world_bookkeeping(
+    previous: Any,
+    candidate: Any,
+    *,
+    previous_errors: Sequence[str] = (),
+) -> Any:
+    """Keep already-valid facts when a repair empties or deletes them.
+
+    Repair must not drop probabilities, quantities, risk effects, conditions,
+    causal links, parties, counterfactual overlays, or source citations unless
+    the listed errors name them. Missing implicated endpoints stay unrestored.
+    """
+    if not isinstance(previous, dict) or not isinstance(candidate, dict):
+        return candidate
+    prev_wm = previous.get("world_model")
+    new_wm = candidate.get("world_model")
+    if not isinstance(prev_wm, dict) or not isinstance(new_wm, dict):
+        return candidate
+    prev_effects = _index_rows(prev_wm.get("effects"), "effect_id")
+    new_effects = _index_rows(new_wm.get("effects"), "effect_id")
+    restored_effects: list[dict[str, Any]] = []
+    new_ids = set(new_effects)
+    for eid, row in prev_effects.items():
+        if eid in new_ids:
+            current = new_effects[eid]
+            implicated = _identifier_implicated(eid, previous_errors)
+            current = _restore_emptied_list(
+                row, current, "likelihood_qualifiers", implicated=implicated,
+            )
+            current = _restore_emptied_list(
+                row, current, "quantities", implicated=implicated,
+            )
+            current = _restore_emptied_list(
+                row, current, "condition_ids", implicated=implicated,
+            )
+            current = _restore_emptied_list(
+                row, current, "clause_ids", implicated=implicated,
+            )
+            new_effects[eid] = current
+            continue
+        if _identifier_may_drop_row(eid, previous_errors):
+            continue
+        restored_effects.append(row)
+        new_ids.add(eid)
+    effects = [new_effects[eid] for eid in new_effects] + restored_effects
+    prev_parties = _index_rows(prev_wm.get("parties"), "party_id")
+    parties: list[Any] = []
+    for row in new_wm.get("parties") or []:
+        if not isinstance(row, dict):
+            parties.append(row)
+            continue
+        pid = str(row.get("party_id") or "")
+        previous_party = prev_parties.get(pid)
+        if previous_party is None:
+            parties.append(row)
+            continue
+        parties.append(_restore_emptied_list(
+            previous_party, row, "quantities",
+            implicated=_identifier_implicated(pid, previous_errors),
+        ))
+    new_party_ids = {
+        str(row.get("party_id") or "")
+        for row in parties if isinstance(row, dict) and row.get("party_id")
+    }
+    cited_parties = {
+        str(row.get("party_id") or "")
+        for row in effects
+        if isinstance(row, dict) and row.get("party_id")
+    }
+    for pid, row in prev_parties.items():
+        if not pid or pid in new_party_ids:
+            continue
+        if pid not in cited_parties:
+            continue
+        if _identifier_may_drop_row(pid, previous_errors):
+            continue
+        parties.append(row)
+        new_party_ids.add(pid)
+    prev_conditions = [
+        row for row in (prev_wm.get("conditions") or [])
+        if isinstance(row, dict)
+    ]
+    new_conditions = [
+        row for row in (new_wm.get("conditions") or [])
+        if isinstance(row, dict)
+    ]
+    new_cond_ids = {
+        str(row.get("condition_id") or "").upper() for row in new_conditions
+    }
+    for row in prev_conditions:
+        cid = str(row.get("condition_id") or "").upper()
+        if not cid or cid in new_cond_ids:
+            continue
+        if _identifier_implicated(cid, previous_errors):
+            continue
+        new_conditions.append(row)
+        new_cond_ids.add(cid)
+    prev_links = [
+        row for row in (prev_wm.get("counterfactual_links") or [])
+        if isinstance(row, dict)
+    ]
+    new_links = [
+        row for row in (new_wm.get("counterfactual_links") or [])
+        if isinstance(row, dict)
+    ]
+    if prev_links and not new_links:
+        effect_ids = {
+            str(row.get("effect_id") or "")
+            for row in effects
+            if row.get("effect_id")
+        }
+        keep_links = [
+            link for link in prev_links
+            if str(link.get("source_effect_id") or "") in effect_ids
+            and str(link.get("alternative_effect_id") or "") in effect_ids
+            and not _identifier_implicated(
+                str(link.get("source_effect_id") or ""), previous_errors,
+            )
+        ]
+        new_links = keep_links
+    prev_causal = [
+        row for row in (prev_wm.get("causal_links") or [])
+        if isinstance(row, dict)
+    ]
+    new_causal = [
+        row for row in (new_wm.get("causal_links") or [])
+        if isinstance(row, dict)
+    ]
+    if prev_causal and not new_causal:
+        effect_ids = {
+            str(row.get("effect_id") or "")
+            for row in effects
+            if row.get("effect_id")
+        }
+        new_causal = [
+            link for link in prev_causal
+            if str(link.get("source_id") or "") in effect_ids
+            and str(link.get("target_id") or "") in effect_ids
+            and not _causal_link_forbidden(link, previous_errors)
+        ]
+    extras: dict[str, list[str]] = {}
+    for row in restored_effects:
+        action_id = str(row.get("action_id") or "")
+        eid = str(row.get("effect_id") or "")
+        if action_id and eid:
+            extras.setdefault(action_id, []).append(eid)
+    actions: list[Any] = []
+    for action in new_wm.get("actions") or []:
+        if not isinstance(action, dict):
+            actions.append(action)
+            continue
+        extra = extras.get(str(action.get("action_id") or ""), [])
+        if not extra:
+            actions.append(action)
+            continue
+        ids = list(action.get("effect_ids") or [])
+        for eid in extra:
+            if eid not in ids:
+                ids.append(eid)
+        actions.append({**action, "effect_ids": ids})
+    updated = dict(new_wm)
+    updated["effects"] = effects
+    updated["parties"] = parties or updated.get("parties")
+    updated["conditions"] = new_conditions
+    updated["counterfactual_links"] = new_links
+    updated["causal_links"] = new_causal
+    if extras:
+        updated["actions"] = actions
+    return {**candidate, "world_model": updated}
 
 
 def _admit_action_source_rows(

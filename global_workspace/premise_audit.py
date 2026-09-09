@@ -88,6 +88,7 @@ def audit_side_premises(
                                 *proposition_ids,
                                 "DERIVED_ESTABLISHED",
                                 "NEW_HYPOTHESIS",
+                                "FRAMEWORK_DERIVED",
                             ],
                         },
                         "derived_from": {
@@ -143,7 +144,12 @@ the added premise, set binding to that proposition ID even if wording differs. U
 NEW_HYPOTHESIS only when no existing proposition is semantically equivalent, and
 cite the closest supporting propositions in derived_from. A restatement of an
 admitted world effect, causal link, or counterfactual foreclosure is not a new
-hypothesis. decision_critical=true
+hypothesis. Use FRAMEWORK_DERIVED, not NEW_HYPOTHESIS, for framework-native
+normative relations (doing/allowing, means, duty of care, least-advantaged
+priority, practical wisdom) that add no descriptive outcome. A claim that denies,
+reopens, or treats as avoidable an admitted CERTAIN world effect is still a
+descriptive NEW_HYPOTHESIS: report it so the system can quarantine that candidate.
+decision_critical=true
 when changing or removing the premise could materially weaken, reverse, or remove
 the candidate's stated ranking or normative classification. Do not infer factual
 authority from repetition, agreement, salience, or moral importance.

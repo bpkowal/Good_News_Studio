@@ -1825,6 +1825,8 @@ class WorkspaceResult:
     source_testimonies: dict[str, str] = field(default_factory=dict)
     source_errors: dict[str, str] = field(default_factory=dict)
     source_baselines: dict[str, dict[str, Any]] = field(default_factory=dict)
+    source_retrievals: dict[str, dict[str, Any]] = field(default_factory=dict)
+    core_quote_pack: dict[str, dict[str, Any]] = field(default_factory=dict)
     active_specialists: list[str] = field(default_factory=list)
     framing_cache: dict[str, Any] = field(default_factory=dict)
     scenario_facts: dict[str, Any] = field(default_factory=dict)

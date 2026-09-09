@@ -226,6 +226,24 @@ Evidence body.
         self.assertEqual(result.evidence[0].passage.text, "case-core")
         self.assertTrue(all(item.tier is EvidenceTier.CORE for item in result.evidence))
 
+        identity_first = retrieve_framework_evidence(
+            [first, second],
+            query="case facts",
+            embedder=DualScoreEmbedder(
+                {
+                    "generic-core": [0.90, 0.10, 0.0],
+                    "case-core": [0.80, 0.60, 0.0],
+                }
+            ),
+            query_lens="framework lens",
+            identity_tags={"deontology"},
+            core_evidence_roles={"kantian_core"},
+            thresholds=EvidenceThresholds(core=0.36, adjacent=0.25),
+            separate_identity_scoring=True,
+            framework_weight=1.0,
+        )
+        self.assertEqual(identity_first.evidence[0].passage.text, "generic-core")
+
     def test_deontology_corpus_has_explicit_framework_roles(self):
         documents = load_approved_documents(
             "deontological_corpus",

@@ -360,9 +360,11 @@ def retrieve_framework_evidence(
     limit: int = 3,
     prefer_direct_quotes: bool = False,
     separate_identity_scoring: bool = False,
+    framework_weight: float = 0.65,
 ) -> RetrievalResult:
     """Retrieve diverse evidence while bounding adjacent material's influence."""
 
+    mix = min(1.0, max(0.0, float(framework_weight)))
     expanded_query = f"{query_lens.strip()}\nCase: {query.strip()}".strip()
     if not passages:
         return RetrievalResult((), 0, 0, None, expanded_query)
@@ -386,7 +388,7 @@ def retrieve_framework_evidence(
                 0.0, _cosine_similarity(framework_embedding, embedding)
             )
             case_score = max(0.0, _cosine_similarity(case_embedding, embedding))
-            semantic_score = 0.65 * framework_score + 0.35 * case_score
+            semantic_score = mix * framework_score + (1.0 - mix) * case_score
             classification_score = framework_score
         else:
             framework_score = combined_score

@@ -729,6 +729,36 @@ def _short_action(action: str, limit: int = 72, records: list[dict[str, Any]] | 
     return cleaned[: limit - 1].rstrip() + "…"
 
 
+def _shorten_actions_in_text(
+    text: str, records: list[dict[str, Any]] | None = None,
+) -> str:
+    """Replace canonical action strings, including truncated prefixes, with short labels."""
+    cleaned = str(text or "")
+    if not cleaned or not records:
+        return cleaned
+    ordered = sorted(
+        records,
+        key=lambda row: len(" ".join(str(row.get("canonical_semantic_action", "")).split())),
+        reverse=True,
+    )
+    for record in ordered:
+        semantic = " ".join(str(record.get("canonical_semantic_action", "")).split())
+        short = " ".join(str(record.get("short_label", "")).split())
+        if not semantic or not short or short == semantic:
+            continue
+        if semantic in cleaned:
+            cleaned = cleaned.replace(semantic, short)
+            continue
+        for length in range(len(semantic), 47, -1):
+            prefix = semantic[:length].rstrip()
+            if len(prefix) < 48:
+                break
+            if prefix in cleaned:
+                cleaned = cleaned.replace(prefix, short)
+                break
+    return cleaned
+
+
 def _epistemic_status(candidate: dict[str, Any]) -> str:
     from global_workspace.specialist_authority import normalize_specialist_status
     raw = str(candidate.get("adjudication_status", "") or "").strip().upper()
@@ -766,7 +796,7 @@ def _claim_is_established_component(
         return False
     for row in ledger.values():
         if str(row.get("epistemic_status") or "").upper() not in {
-            "ESTABLISHED", "DERIVED",
+            "ESTABLISHED", "DERIVED", "STIPULATED",
         }:
             continue
         components = {
@@ -810,7 +840,11 @@ def _candidate_unestablished_dependencies(
         is_critical = proposition_id in critical_ids
         if status not in _UNESTABLISHED_PROPOSITION_STATUSES:
             continue
-        if _claim_is_established_component(str(row.get("claim") or ""), ledger):
+        claim = str(row.get("claim") or "")
+        if _claim_is_established_component(claim, ledger):
+            continue
+        from .epistemic_ledger import claim_changes_admitted_outcome_type
+        if claim_changes_admitted_outcome_type(claim, ledger, row.get("derived_from") or []):
             continue
         if critical_only and not is_critical:
             continue
@@ -832,6 +866,11 @@ def _candidate_unestablished_dependencies(
             continue
         claim = str(row.get("claim") or finding.get("claim") or "").strip()
         if claim and not _claim_is_established_component(claim, ledger):
+            from .epistemic_ledger import claim_changes_admitted_outcome_type
+            if claim_changes_admitted_outcome_type(
+                claim, ledger, row.get("derived_from") or finding.get("derived_from") or [],
+            ):
+                continue
             dependencies.append({
                 **row, "proposition_id": proposition_id, "claim": claim,
                 "epistemic_status": status, "decision_critical": is_critical,
@@ -893,15 +932,71 @@ def _candidate_epistemic_qualification(
     return qualification
 
 
+def _row_is_settled_world_fact(row: dict[str, Any]) -> bool:
+    """Matching ESTABLISHED on a chance or FOREGONE row is not an obtained event."""
+    status = str(row.get("epistemic_status") or "").upper()
+    proposition_type = str(row.get("proposition_type") or "").upper()
+    if status not in {"ESTABLISHED", "DERIVED"} or proposition_type != "DESCRIPTIVE":
+        return False
+    if not str(row.get("claim") or "").strip():
+        return False
+    polarity = str(row.get("polarity") or "").upper()
+    directness = str(row.get("directness") or "").upper()
+    if polarity == "FOREGONE" or directness == "FOREGONE":
+        return False
+    if polarity == "BENEFICIAL" and row.get("obtained_welfare") is False:
+        return False
+    modality = str(row.get("modality") or "").upper()
+    return modality not in {"POSSIBLE", "PROBABILISTIC", "UNKNOWN", "STIPULATED_CONDITIONAL"}
+
+
+def _row_is_stipulated_world_fact(row: dict[str, Any]) -> bool:
+    """Admitted chance or gated facts about an action, including alternatives."""
+    status = str(row.get("epistemic_status") or "").upper()
+    if status != "STIPULATED":
+        return False
+    if str(row.get("polarity") or "").upper() == "FOREGONE":
+        return False
+    if str(row.get("directness") or "").upper() == "FOREGONE":
+        return False
+    return bool(str(row.get("claim") or "").strip())
+
+
+def _prefer_protective_relations(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    protects = [
+        row for row in rows
+        if ":PROTECTS:" in str(row.get("proposition_id") or "")
+    ]
+    if not protects:
+        return rows
+    covered = {
+        str(value)
+        for row in protects
+        for value in (row.get("support_ids") or [])
+        if str(value).startswith("PROP:WORLD:")
+    }
+    return [
+        row for row in rows
+        if ":PROTECTS:" in str(row.get("proposition_id") or "")
+        or str(row.get("proposition_id") or "") not in covered
+    ]
+
+
 def _factual_status_lines(
     data: dict[str, Any], candidates: list[dict[str, Any]],
 ) -> list[str]:
     ledger = _proposition_index(data)
-    established = [
+    established = _prefer_protective_relations([
         row for row in ledger.values()
-        if str(row.get("epistemic_status") or "").upper() in {"ESTABLISHED", "DERIVED"}
-        and str(row.get("proposition_type") or "").upper() == "DESCRIPTIVE"
-        and str(row.get("claim") or "").strip()
+        if _row_is_settled_world_fact(row)
+    ])
+    stipulated = [
+        row for row in ledger.values()
+        if _row_is_stipulated_world_fact(row)
+        and not re.search(
+            r":(?:TEMPORAL|SCOPE|LIKELIHOOD|OVERALL_LIKELIHOOD):",
+            str(row.get("proposition_id") or ""),
+        )
     ]
     dependents: dict[str, set[str]] = {}
     relevant_ids: list[str] = []
@@ -916,7 +1011,7 @@ def _factual_status_lines(
             if specialist:
                 dependents.setdefault(proposition_id, set()).add(specialist)
     unestablished = [ledger[value] for value in relevant_ids if value in ledger]
-    if not established and not unestablished and not any(
+    if not established and not stipulated and not unestablished and not any(
         str(candidate.get("side_premise_audit_status") or "").upper() == "UNAVAILABLE"
         for candidate in candidates
     ):
@@ -928,6 +1023,21 @@ def _factual_status_lines(
         for row in established[:6]:
             status = str(row.get("epistemic_status") or "").lower()
             lines.append(f"- {_sentence(_public_claim(str(row.get('claim') or '')))} ({status})")
+        lines.append("")
+    if stipulated:
+        lines.extend([
+            "**Stipulated in the admitted world (including alternative-action facts):**",
+            "",
+        ])
+        for row in stipulated[:6]:
+            status = str(row.get("epistemic_status") or "").lower()
+            modality = str(row.get("modality") or "").replace("_", " ").lower()
+            suffix = f"{status}"
+            if modality:
+                suffix = f"{status}; {modality}"
+            lines.append(
+                f"- {_sentence(_public_claim(str(row.get('claim') or '')))} ({suffix})"
+            )
         lines.append("")
     if unestablished:
         lines.extend(["**Unestablished premises used in the deliberation:**", ""])
@@ -942,7 +1052,8 @@ def _factual_status_lines(
             )
         lines.extend([
             "",
-            "Repeated use can increase a premise's salience, but does not make it established.",
+            "Repeated use can increase a premise's salience, but does not make it established. "
+            "Hypothetical is reserved for agent-introduced propositions absent from the admitted world.",
             "",
         ])
     if any(
@@ -957,11 +1068,27 @@ def _factual_status_lines(
     return lines
 
 
-def _map_position_label(candidate: dict[str, Any], recommendation: str) -> str:
+def _map_position_label(
+    candidate: dict[str, Any], recommendation: str,
+    records: list[dict[str, Any]] | None = None,
+) -> str:
+    explicit = str(candidate.get("recommended_action") or "").strip()
+    confidence = float(
+        candidate.get("epistemic_confidence")
+        if candidate.get("epistemic_confidence") not in (None, -1)
+        else (candidate.get("confidence") or 0.0)
+    )
+    if not bool(candidate.get("schema_valid", True)):
+        return "No position"
+    if (
+        (not explicit or explicit.upper() in {"?", "NONE", "UNRESOLVED", "INCONCLUSIVE", "UNDERDETERMINED", "CONDITIONAL"})
+        and confidence <= 0.0
+    ):
+        return "No position"
     action = _candidate_recommendation(candidate)
     if not action:
         return "No position"
-    short = _short_action(action, 48)
+    short = _short_action(action, 48, records=records)
     alignment = str(candidate.get("testimony_alignment", "")).upper()
     if action == recommendation and alignment.startswith("RECONSIDER"):
         return f"{short} (reconsidered)"
@@ -985,6 +1112,7 @@ def _main_contribution(
     original_actions: list[str],
     *,
     qualify: bool = False,
+    records: list[dict[str, Any]] | None = None,
 ) -> str:
     status = _epistemic_status(candidate)
     claim = ""
@@ -1001,7 +1129,7 @@ def _main_contribution(
         claim = " ".join(part for part in (claim, landscape) if part)
     if not claim:
         claim = str(candidate.get("rationale") or candidate.get("decision_rule") or "").strip()
-    claim = _public_claim(_clean_fragment(claim))
+    claim = _public_claim(_clean_fragment(_shorten_actions_in_text(claim, records)))
     # Authority invariant: never upgrade provisional language into categorical
     # "REQUIRED" / "perfect duties require" slogans in the public map.
     if status in {"PROVISIONAL_LEANING", "CONTESTED_NO_LEANING"}:
@@ -1018,8 +1146,10 @@ def _main_contribution(
     return f"{qualification}: {claim}" if qualification else claim
 
 
-def _recommendation_headline(status: str, action: str) -> str:
-    short = _short_action(action) or "none"
+def _recommendation_headline(
+    status: str, action: str, records: list[dict[str, Any]] | None = None,
+) -> str:
+    short = _short_action(action, records=records) or "none"
     if status == "GOVERNED_RECOMMENDATION":
         return f"**{short}.**"
     if status == "CONTESTED_RECOMMENDATION":
@@ -1335,7 +1465,7 @@ def render_decision_brief(result: Any) -> str:
     ]
 
     lines: list[str] = ["# Ethical Parliament Judgment", "", "## Recommendation", ""]
-    lines.append(_recommendation_headline(status, recommendation))
+    lines.append(_recommendation_headline(status, recommendation, records=action_records))
     lines.append("")
 
     if actionable and supporting_names:
@@ -1438,7 +1568,9 @@ def render_decision_brief(result: Any) -> str:
     for name, candidate in ordered_specialists:
         if _candidate_recommendation(candidate) != recommendation:
             continue
-        reason = _main_contribution(data, candidate, recommendation, original_actions)
+        reason = _main_contribution(
+            data, candidate, recommendation, original_actions, records=action_records,
+        )
         if not reason:
             continue
         label = _framework_display_name(name)
@@ -1470,6 +1602,7 @@ def render_decision_brief(result: Any) -> str:
 
     # Most important unresolved issue
     focus_candidate, focus_text = _primary_investigative_focus(latest_by_specialist, data)
+    focus_text = _shorten_actions_in_text(focus_text, action_records)
     lines.extend(["## Most important unresolved issue", ""])
     if focus_text:
         if focus_candidate is not None:
@@ -1522,7 +1655,19 @@ def render_decision_brief(result: Any) -> str:
             lines.append("No primary investigative focus remains open in this run.")
     lines.append("")
 
-    shared_dependencies = list(data.get("shared_unresolved_dependencies") or [])
+    from .epistemic_ledger import claim_changes_admitted_outcome_type
+
+    ledger = _proposition_index(data)
+    shared_dependencies = [
+        dependency for dependency in list(data.get("shared_unresolved_dependencies") or [])
+        if isinstance(dependency, dict)
+        and not _claim_is_established_component(str(dependency.get("claim") or ""), ledger)
+        and not claim_changes_admitted_outcome_type(
+            str(dependency.get("claim") or ""),
+            ledger,
+            dependency.get("derived_from") or [],
+        )
+    ]
     if shared_dependencies:
         lines.extend(["## Shared epistemic dependencies", ""])
         for dependency in shared_dependencies[:3]:
@@ -1613,7 +1758,7 @@ def render_decision_brief(result: Any) -> str:
         "|---|---|---|---|",
     ])
     for name, candidate in ordered_specialists:
-        position = _map_position_label(candidate, recommendation)
+        position = _map_position_label(candidate, recommendation, records=action_records)
         epistemic_status = _epistemic_status(candidate)
         # Table may show RECONSIDERED_SUPPORT when the specialist changed from baseline.
         alignment = str(candidate.get("testimony_alignment", "")).upper()
@@ -1625,6 +1770,7 @@ def render_decision_brief(result: Any) -> str:
             epistemic_status = "RECONSIDERED_SUPPORT"
         contribution = _main_contribution(
             data, candidate, recommendation, original_actions, qualify=True,
+            records=action_records,
         ).replace("|", "/")
         if len(contribution) > 140:
             contribution = contribution[:137].rstrip() + "..."

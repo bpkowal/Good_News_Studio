@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_valida
 from .graph_transactions import GraphTransactionRecord, SemanticGraphStore
 from .scenario_semantics import query_grounded_action_effects
 from .semantic_graph import SemanticEdge, SemanticGraph, SemanticNode, merge_graphs, validate_graph
+from .world_state import counts_as_actual_welfare, modality_is_settled
 from .specialist_authority import (
     CONTESTED_NO_LEANING,
     CONTESTED_NO_LEANING_POLICY_FACTOR,
@@ -29,15 +30,23 @@ PERFECT_POSITIVE_LACKS_BASIS = "PERFECT_POSITIVE_LACKS_BASIS"
 INTENDED_AS_MEANS_LACKS_PATH = "INTENDED_AS_MEANS_LACKS_PATH"
 HARM_RELATION_GRAPH_MISALIGN = "HARM_RELATION_GRAPH_MISALIGN"
 _OMISSION_HARM_RELATIONS = {"ALLOWING_HARM", "WITHHOLDING_BENEFIT"}
-_DOING_HARM_LACKS_DIRECT = (
-    "doing-harm classification lacks a direct adverse effect on the protected party"
-)
-_ALLOWING_HARM_HAS_DIRECT = (
-    "allowing-harm classification is inconsistent with a direct adverse effect "
+_DOING_HARM_LACKS_AGENT_CAUSE = (
+    "doing-harm classification lacks an agent-caused settled welfare harm "
     "on the protected party"
+)
+_ALLOWING_HARM_HAS_AGENT_CAUSE = (
+    "allowing-harm classification is inconsistent with an agent-caused "
+    "settled welfare harm on the protected party"
 )
 _ESTABLISHED_COERCION_KINDS = {
     "PUBLIC", "PRIVATE", "INSTITUTIONAL", "INTERPERSONAL",
+}
+# CAUSES and ACCELERATES (compiled as INCREASES). ENABLES is not doing:
+# it leaves a process able to continue.
+_DOING_LINK_RELATIONS = {"CAUSES", "INCREASES", "ACCELERATES"}
+_MEANS_LINK_RELATIONS = {
+    "CAUSES", "ENABLES", "INCREASES", "ACCELERATES",
+    "NECESSARY_FOR", "MEANS_TO", "PRODUCES",
 }
 _CHALLENGE_CALIBRATION_KIND = {
     "DOING_ALLOWING_CLASSIFICATION": OMISSION_PERFECT_NEGATIVE_VIOLATION,
@@ -48,7 +57,7 @@ _CALIBRATION_KIND_NEEDLES = {
     OMISSION_PERFECT_NEGATIVE_VIOLATION: "perfect negative-duty violation",
     PERFECT_POSITIVE_LACKS_BASIS: "perfect positive duty lacks",
     INTENDED_AS_MEANS_LACKS_PATH: "intended-as-means classification lacks",
-    HARM_RELATION_GRAPH_MISALIGN: "direct adverse effect on the protected party",
+    HARM_RELATION_GRAPH_MISALIGN: "agent-caused settled welfare harm",
 }
 _OMISSION_VIOLATION_MESSAGE = (
     "omission was classified as a perfect negative-duty violation without a separate basis"
@@ -237,7 +246,7 @@ def omission_classified_as_perfect_negative_violation(item: Any) -> bool:
 
 
 def _typed_action_consequences(graph: SemanticGraph, action: SemanticNode) -> list[SemanticNode]:
-    """Consequences that carry admitted world-model directness for this action."""
+    """Consequences that carry admitted world-model typing for this action."""
     found: list[SemanticNode] = []
     for edge in graph.outgoing(action.id, "HAS_CONSEQUENCE"):
         node = graph.nodes.get(edge.target)
@@ -266,32 +275,85 @@ def _consequence_party_labels(graph: SemanticGraph, node: SemanticNode) -> list[
     return labels
 
 
-def _direct_adverse_on_protected_party(
+def _party_matches_protected(
+    graph: SemanticGraph, node: SemanticNode, protected_words: set[str],
+) -> bool:
+    if not protected_words:
+        return False
+    party_words = {
+        word
+        for label in _consequence_party_labels(graph, node)
+        for word in _words(label)
+    }
+    return bool(party_words & protected_words)
+
+
+def _consequence_is_actual_welfare(node: SemanticNode) -> bool:
+    return counts_as_actual_welfare(
+        polarity=str(node.attributes.get("polarity", "") or "").upper(),
+        directness=str(node.attributes.get("directness", "") or "").upper(),
+        effect_kind=str(node.attributes.get("effect_kind", "") or "").upper(),
+        party_kind=str(node.attributes.get("party_kind", "") or "").upper(),
+    )
+
+
+def _consequence_is_settled(node: SemanticNode) -> bool:
+    return modality_is_settled(
+        str(node.attributes.get("modality", "") or ""),
+        node.attributes.get("likelihood_qualifiers") or (),
+    )
+
+
+def _reachable_via(
+    graph: SemanticGraph,
+    starts: Sequence[str],
+    relations: set[str],
+) -> set[str]:
+    seen: set[str] = set()
+    stack = [node_id for node_id in starts if node_id]
+    while stack:
+        node_id = stack.pop()
+        if node_id in seen:
+            continue
+        seen.add(node_id)
+        for edge in graph.outgoing(node_id):
+            if edge.relation in relations and edge.target not in seen:
+                stack.append(edge.target)
+    return seen
+
+
+def _agent_caused_settled_harm_on_protected_party(
     graph: SemanticGraph,
     action: SemanticNode,
     item: Any,
 ) -> tuple[bool, bool]:
-    """Return (has_typed_topology, has_direct_adverse_on_protected_party).
+    """Return (has_typed_topology, has_agent_caused_settled_welfare_harm).
 
-    Typed topology is the only signal this check trusts. Prose-only graphs
-    have neither, so doing/allowing remains the specialist's classification.
+    Doing is not world-DIRECTNESS. A NEUTRAL DIRECT intervention on a device
+    still does harm when a CAUSES/ACCELERATES path reaches a settled welfare-
+    adverse row on the protected party. ENABLES without CAUSES is allowing a
+    process to continue, not doing. Prose-only graphs have no typed topology,
+    so doing/allowing remains the specialist's classification.
     """
-    protected = _assessment_field(item, "protected_party")
-    protected_words = _words(protected)
+    protected_words = _words(_assessment_field(item, "protected_party"))
     typed = _typed_action_consequences(graph, action)
     if not typed or not protected_words:
         return False, False
+    direct_ids = [
+        node.id for node in typed
+        if str(node.attributes.get("directness", "") or "").upper() == "DIRECT"
+        and str(node.attributes.get("polarity", "") or "").upper() != "FOREGONE"
+    ]
+    caused_ids = _reachable_via(graph, direct_ids, _DOING_LINK_RELATIONS)
     for node in typed:
-        polarity = str(node.attributes.get("polarity", "") or "").upper()
-        directness = str(node.attributes.get("directness", "") or "").upper()
-        if polarity != "ADVERSE" or directness != "DIRECT":
+        if not _party_matches_protected(graph, node, protected_words):
             continue
-        party_words = {
-            word
-            for label in _consequence_party_labels(graph, node)
-            for word in _words(label)
-        }
-        if party_words & protected_words:
+        if str(node.attributes.get("polarity", "") or "").upper() != "ADVERSE":
+            continue
+        if not _consequence_is_actual_welfare(node) or not _consequence_is_settled(node):
+            continue
+        directness = str(node.attributes.get("directness", "") or "").upper()
+        if directness == "DIRECT" or node.id in caused_ids:
             return True, True
     return True, False
 
@@ -302,13 +364,14 @@ def harm_relation_conflicts_with_graph(
     *,
     action: SemanticNode | None = None,
 ) -> str:
-    """Error text when hr contradicts admitted directness; empty if silent.
+    """Error text when hr contradicts admitted causal topology; empty if silent.
 
-    DOING_HARM requires a DIRECT adverse effect on the named protected party.
-    ALLOWING_HARM / WITHHOLDING_BENEFIT cannot be used when that direct
-    adverse exists. Downstream-only harm is allowing, not doing. The check
-    never infers a verdict; it only blocks a relabel that the graph cannot
-    support.
+    DOING_HARM requires an agent-caused settled welfare-adverse effect on the
+    named protected party. ALLOWING_HARM / WITHHOLDING_BENEFIT cannot be used
+    when that path exists. Downstream harm produced by the intervention is
+    doing; downstream harm the intervention only ENABLES, or never causes, is
+    allowing. The check never infers a verdict; it only blocks a relabel that
+    the graph cannot support.
     """
     if graph is None:
         return ""
@@ -322,13 +385,15 @@ def harm_relation_conflicts_with_graph(
         action = _resolve_action(graph, action_id) if action_id else None
     if action is None:
         return ""
-    has_topology, has_direct = _direct_adverse_on_protected_party(graph, action, item)
+    has_topology, has_doing = _agent_caused_settled_harm_on_protected_party(
+        graph, action, item,
+    )
     if not has_topology:
         return ""
-    if harm_relation == "DOING_HARM" and not has_direct:
-        return _DOING_HARM_LACKS_DIRECT
-    if harm_relation in _OMISSION_HARM_RELATIONS and has_direct:
-        return _ALLOWING_HARM_HAS_DIRECT
+    if harm_relation == "DOING_HARM" and not has_doing:
+        return _DOING_HARM_LACKS_AGENT_CAUSE
+    if harm_relation in _OMISSION_HARM_RELATIONS and has_doing:
+        return _ALLOWING_HARM_HAS_AGENT_CAUSE
     return ""
 
 
@@ -543,9 +608,6 @@ _PERFECT_POSITIVE_BASIS = re.compile(
     r"emergency threshold|universal law)\b",
     re.I,
 )
-_INSTRUMENTAL_EDGE_TYPES = {
-    "CAUSES", "ENABLES", "NECESSARY_FOR", "MEANS_TO", "PRODUCES",
-}
 
 
 def _graph_supporting_nodes(graph: SemanticGraph, pattern: re.Pattern[str]) -> list[str]:
@@ -592,20 +654,44 @@ def _means_path_support(
     action: SemanticNode,
     item: DutyAssessmentProposal,
 ) -> tuple[bool, list[str]]:
-    """Require an in-action causal path before classifying a burden as a means."""
-    burden_effects = query_grounded_action_effects(
-        graph, item.action_id, affected_subject=item.protected_party,
-    )
-    burden_ids = {effect.consequence_id for effect in burden_effects}
-    consequence_ids = {
-        edge.target for edge in graph.outgoing(action.id, "HAS_CONSEQUENCE")
-        if edge.target in graph.nodes
-    }
+    """True when the protected party's burden is an intermediate cause of the end.
+
+    Sibling outcomes of one intervention (the act causes the burden and,
+    separately, the beneficial end) are not a means path. ENABLES may count
+    here: using a party as the enabling condition of the chosen end is still
+    instrumental. Prose-only graphs fall back to one-hop HAS_CONSEQUENCE edges.
+    """
+    protected_words = _words(item.protected_party)
+    typed = _typed_action_consequences(graph, action)
+    if typed:
+        burden_ids = [
+            node.id for node in typed
+            if _party_matches_protected(graph, node, protected_words)
+            and str(node.attributes.get("polarity", "") or "").upper() == "ADVERSE"
+            and str(node.attributes.get("directness", "") or "").upper() != "FOREGONE"
+        ]
+        end_ids = {
+            node.id for node in typed
+            if str(node.attributes.get("polarity", "") or "").upper() == "BENEFICIAL"
+            and str(node.attributes.get("directness", "") or "").upper() != "FOREGONE"
+        }
+    else:
+        burden_ids = [
+            effect.consequence_id
+            for effect in query_grounded_action_effects(
+                graph, item.action_id, affected_subject=item.protected_party,
+            )
+        ]
+        end_ids = {
+            edge.target for edge in graph.outgoing(action.id, "HAS_CONSEQUENCE")
+            if edge.target in graph.nodes
+        }
     support: list[str] = []
     for burden_id in burden_ids:
-        for edge in graph.outgoing(burden_id):
-            if edge.relation in _INSTRUMENTAL_EDGE_TYPES and edge.target in consequence_ids:
-                support.extend((burden_id, edge.target))
+        reached = _reachable_via(graph, [burden_id], _MEANS_LINK_RELATIONS)
+        for end_id in end_ids:
+            if end_id != burden_id and end_id in reached:
+                support.extend((burden_id, end_id))
     return bool(support), list(dict.fromkeys(support))
 
 
@@ -782,9 +868,9 @@ def _unresolved_premises(assessment: dict[str, Any]) -> list[str]:
         unresolved.append("whether the asserted duty is perfect, imperfect, right-correlative, or special")
     if any("doing-versus-allowing" in error for error in errors):
         unresolved.append("whether the action does harm, allows harm, prevents harm, or withholds a benefit")
-    if any("direct adverse effect" in error for error in errors):
+    if any("agent-caused settled welfare harm" in error for error in errors):
         unresolved.append(
-            "whether the harm-relation follows the admitted graph's directness "
+            "whether the harm-relation follows the admitted graph's causal topology "
             "rather than a relabel chosen to fit the verdict"
         )
     if any("special-obligation" in error or "special duty" in error for error in errors):

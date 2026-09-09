@@ -199,7 +199,10 @@ def _apply_framework_ledger_uncertainty(
     state_status: str = "COMMITTED_WITH_UNCERTAINTY",
 ) -> None:
     """Damp one unsupported framework update without dropping its visible vote."""
-    if candidate.framework_grounding_penalty < penalty:
+    if (
+        state_status != "UPDATE_REJECTED"
+        and candidate.framework_grounding_penalty < penalty
+    ):
         retention = 1.0 - penalty
         candidate.action_scores = {
             action: 0.5 + (score - 0.5) * retention
@@ -457,6 +460,32 @@ def _operative_framework_candidates(
             previous = last_valid.get(candidate.specialist)
             if previous is None:
                 admitted = copy.deepcopy(candidate)
+                if candidate.framework_retention_status == "UPDATE_REJECTED":
+                    # A rejected first ledger is diagnostic only; it cannot
+                    # become this cycle's policy baseline.
+                    admitted.adjudication_status = "CONTESTED_NO_LEANING"
+                    admitted.governing_eligible = False
+                    admitted.broadcast_authority = "INVESTIGATIVE"
+                    admitted.policy_weight_factor = 0.0
+                    admitted.recommended_action = ""
+                    if admitted.action_scores:
+                        admitted.action_scores = {
+                            action: 0.5 for action in admitted.action_scores
+                        }
+                    admitted.preference_strength = 0.0
+                    admitted.framework_constraint_retained = True
+                    admitted.framework_retention_status = (
+                        "FIRST_STATE_REJECTED_NOT_OPERATIVE"
+                    )
+                    state = _framework_state_projection(admitted)
+                    admitted.proposed_framework_state = _framework_state_projection(
+                        candidate
+                    )
+                    admitted.committed_framework_state = copy.deepcopy(state)
+                    operative.append(admitted)
+                    if remember:
+                        last_valid[admitted.specialist] = copy.deepcopy(admitted)
+                    continue
                 admitted.framework_constraint_retained = True
                 admitted.framework_retention_status = (
                     "FIRST_STATE_ADMITTED_WITH_WARNINGS"
@@ -1295,7 +1324,7 @@ def _argument_challenge_candidates(
                     add(
                         candidate.specialist,
                         "DOING_ALLOWING_CLASSIFICATION",
-                        f"Does the harm under {item.get('action_id', 'this action')} follow the admitted graph's directness, or is doing-versus-allowing being relabeled to fit the verdict?",
+                        f"Does the harm under {item.get('action_id', 'this action')} follow the admitted graph's causal path, or is doing-versus-allowing being relabeled to fit the verdict?",
                         grounded_in=cited,
                         trigger_fields=("dp.*.dt", "dp.*.hr", "dp.*.pb"),
                         priority=0.96,
@@ -1578,6 +1607,148 @@ _ACTIVE_CHALLENGE_STATUSES = {
 }
 
 
+def _graph_party_labels(graph: SemanticGraph) -> list[str]:
+    return list(dict.fromkeys(
+        node.label
+        for node in graph.nodes.values()
+        if node.kind == "TARGET" and str(node.label or "").strip()
+    ))
+
+
+def _content_token_overlap(left: str, right: str) -> bool:
+    ignored = {"the", "and", "for", "with", "from", "that", "this", "group"}
+    left_words = {
+        word for word in re.findall(r"[a-z0-9]+", str(left or "").casefold())
+        if len(word) > 3 and word not in ignored
+    }
+    right_words = {
+        word for word in re.findall(r"[a-z0-9]+", str(right or "").casefold())
+        if len(word) > 3 and word not in ignored
+    }
+    return bool(left_words and right_words and (left_words & right_words))
+
+
+def _graph_parties_mentioned(text: str, graph: SemanticGraph) -> list[str]:
+    blob = str(text or "")
+    return [
+        label for label in _graph_party_labels(graph)
+        if _content_token_overlap(label, blob)
+    ]
+
+
+def _world_effect_rows(graph: SemanticGraph) -> list[dict[str, object]]:
+    rows: list[dict[str, object]] = []
+    incoming: dict[str, str] = {}
+    for edge in graph.edges:
+        if edge.relation != "HAS_CONSEQUENCE":
+            continue
+        source = graph.nodes.get(edge.source)
+        if source is None or source.kind != "ACTION":
+            continue
+        incoming[edge.target] = str(source.attributes.get("canonical_action_id", source.id))
+    for node in graph.nodes.values():
+        if node.kind != "CONSEQUENCE" or node.attributes.get("framework"):
+            continue
+        if not str(node.attributes.get("world_effect_id", "")).strip():
+            continue
+        parties = [
+            graph.nodes[edge.target].label
+            for edge in graph.outgoing(node.id, "AFFECTS")
+            if edge.target in graph.nodes
+        ]
+        quantities = []
+        for value in (
+            list(node.attributes.get("quantities", []) or [])
+            + list(node.attributes.get("party_quantities", []) or [])
+        ):
+            if isinstance(value, dict):
+                text = str(value.get("raw") or value.get("canonical") or "").strip()
+            else:
+                text = str(value).strip()
+            if text:
+                quantities.append(text)
+        rows.append({
+            "action_id": incoming.get(node.id, ""),
+            "outcome": node.label,
+            "parties": parties,
+            "polarity": str(node.attributes.get("polarity", "")).upper(),
+            "directness": str(node.attributes.get("directness", "")).upper(),
+            "quantities": quantities,
+        })
+    return rows
+
+
+def _answer_transfers_unshared_world_effect(
+    answer: str, graph: SemanticGraph,
+) -> str:
+    """Reject cross-action copies and mortality conversions of admitted effects."""
+    from .epistemic_ledger import _quantity_keys, _text_has_mortality
+
+    blob = str(answer or "")
+    if not blob.strip():
+        return ""
+    rows = _world_effect_rows(graph)
+    folded = blob.casefold()
+    both = bool(re.search(
+        r"\bboth\s+(?:plans|actions|options)\b|"
+        r"\bunder\s+both\b|"
+        r"\bequal\b[^.]{0,60}\bunder\s+both\b",
+        folded,
+    ))
+    actual = [
+        row for row in rows
+        if str(row.get("polarity") or "").upper() != "FOREGONE"
+        and str(row.get("directness") or "").upper() != "FOREGONE"
+    ]
+    if both:
+        by_party: dict[str, dict[str, list[str]]] = {}
+        for row in actual:
+            for party in row.get("parties") or []:
+                key = " ".join(str(party).casefold().split())
+                if not key:
+                    continue
+                by_party.setdefault(key, {}).setdefault(
+                    str(row.get("action_id") or ""), []
+                ).append(str(row.get("outcome") or ""))
+        for party, actions in by_party.items():
+            if not _content_token_overlap(party, blob):
+                continue
+            if len(actions) > 1:
+                continue
+            outcomes = next(iter(actions.values()), [])
+            if any(_content_token_overlap(outcome, blob) for outcome in outcomes if outcome):
+                return (
+                    "answer transfers an action-scoped world effect onto a plan "
+                    "that does not admit it"
+                )
+    if _text_has_mortality(blob):
+        answer_quantities = _quantity_keys(blob)
+        mentioned_actions = {
+            match.group(0).upper()
+            for match in re.finditer(r"\bA\d+\b", blob, re.IGNORECASE)
+        }
+        for row in actual:
+            action_id = str(row.get("action_id") or "").upper()
+            if mentioned_actions and action_id and action_id not in mentioned_actions:
+                continue
+            if _text_has_mortality(str(row.get("outcome") or "")):
+                continue
+            parties = [str(value) for value in row.get("parties") or []]
+            if not any(_content_token_overlap(party, blob) for party in parties):
+                continue
+            record_quantities = _quantity_keys(" ".join(
+                [str(row.get("outcome") or ""), *list(row.get("quantities") or [])]
+            ))
+            if answer_quantities and record_quantities and (
+                {value for value, _flag in answer_quantities}
+                & {value for value, _flag in record_quantities}
+            ):
+                return (
+                    "answer converts an admitted non-mortality outcome into deaths"
+                )
+    return ""
+
+
 def _challenge_resolution_supported(
     candidate: CandidateChunk,
     challenge: dict[str, object],
@@ -1646,7 +1817,7 @@ def _challenge_resolution_supported(
         )
         still_errored = any(
             "perfect negative-duty violation" in error.casefold()
-            or "direct adverse effect" in error.casefold()
+            or "agent-caused settled welfare harm" in error.casefold()
             for item in records
             for error in active_calibration_errors(item)
         )
@@ -1705,11 +1876,36 @@ def _challenge_resolution_supported(
                 for item in records
             )
         )
-        return (
-            complete,
-            "committed Rawlsian positions cover both actions"
-            if complete else "the committed Rawlsian position comparison is incomplete",
-        )
+        if not complete:
+            return (
+                False,
+                "the committed Rawlsian position comparison is incomplete",
+            )
+        if graph is not None:
+            named = _graph_parties_mentioned(
+                str(challenge.get("question") or challenge.get("proposition") or ""),
+                graph,
+            )
+            subjects = [
+                str(item.get("subject") or item.get("affected_subject") or "")
+                for item in records
+            ]
+            missing = [
+                party for party in named
+                if not any(_content_token_overlap(party, subject) for subject in subjects)
+            ]
+            if missing:
+                return (
+                    False,
+                    "committed Rawlsian positions omit named parties: "
+                    + ", ".join(missing[:3]),
+                )
+            transfer = _answer_transfers_unshared_world_effect(
+                str(response.get("answer") or ""), graph,
+            )
+            if transfer:
+                return False, transfer
+        return True, "committed Rawlsian positions cover both actions"
 
     rejected = candidate.framework_retention_status in {
         "UPDATE_REJECTED", "PRESERVED_AFTER_REJECTED_UPDATE",
@@ -3194,6 +3390,12 @@ class WorkspaceEngine:
                         unresolved="RETRY_MODEL_CALL",
                         rationale=f"Delegate unavailable after {exc.category} failure.",
                         schema_valid=False,
+                        recommended_action="",
+                        adjudication_status="CONTESTED_NO_LEANING",
+                        governing_eligible=False,
+                        broadcast_authority="INVESTIGATIVE",
+                        policy_weight_factor=0.0,
+                        selection_status="UNSELECTED",
                         delegate_status="MODEL_ERROR",
                         error_type="MODEL_ERROR",
                         validation_errors=[str(exc)[:300]],
@@ -3813,8 +4015,8 @@ class WorkspaceEngine:
                 )
             )
             for candidate in candidates:
+                apply_specialist_authority(candidate)
                 if candidate.schema_valid:
-                    apply_specialist_authority(candidate)
                     apply_investigative_authority(
                         candidate,
                         plurality=previous_action,

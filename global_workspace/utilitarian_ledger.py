@@ -13,7 +13,7 @@ from .scenario_semantics import (
     query_grounded_action_effects,
 )
 from .semantic_graph import SemanticEdge, SemanticGraph, SemanticNode, merge_graphs, validate_graph
-from .world_state import counts_as_actual_welfare
+from .world_state import counts_as_actual_welfare, is_averted_risk_not_obtained_benefit_consequence
 
 
 class ConsequenceProposal(BaseModel):
@@ -198,6 +198,23 @@ def _accounting_role(polarity: str) -> str:
     }.get(str(polarity).upper(), "UNKNOWN")
 
 
+def utilitarian_accounting(
+    graph: SemanticGraph, consequence_id: str,
+) -> tuple[str, str]:
+    """Direction and probability copied onto a util row from a grounded effect."""
+    evidence = graph.nodes[consequence_id]
+    polarity = str(evidence.attributes.get("polarity", "UNRESOLVED")).upper()
+    direction = _accounting_role(polarity)
+    modality = str(evidence.attributes.get("modality", "UNKNOWN")).upper()
+    probability = "CERTAIN" if modality == "CERTAIN" else "UNKNOWN"
+    if (
+        direction == "BENEFIT"
+        and is_averted_risk_not_obtained_benefit_consequence(graph, evidence)
+    ):
+        direction = "UNKNOWN"
+    return direction, probability
+
+
 def _node_is_foregone(node: SemanticNode | None) -> bool:
     if node is None:
         return False
@@ -322,13 +339,12 @@ def _apply_effect_valuation_transaction(
         for valuation in action_item.valuations:
             effect, evidence = projected_by_action[action_item.action_id][valuation.effect_id]
             polarity = str(evidence.attributes.get("polarity", "UNRESOLVED")).upper()
-            direction = _accounting_role(polarity)
+            direction, probability = utilitarian_accounting(store.graph, evidence.id)
             modality = str(evidence.attributes.get("modality", "UNKNOWN")).upper()
             quantities = [
                 str(value) for value in evidence.attributes.get("quantities", [])
                 if str(value).strip()
             ]
-            probability = "CERTAIN" if modality == "CERTAIN" else "UNKNOWN"
             magnitude = ", ".join(quantities)[:60] or "UNKNOWN"
             scope_label = " ".join(effect.affected_subject.casefold().split()).strip(" ,.;:")
             target_id = _stable_id("UTIL_SCOPE", scope_label)

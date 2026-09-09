@@ -12,7 +12,16 @@ from global_workspace.engine import WorkspaceConfig, WorkspaceEngine
 from global_workspace.autonomy_audit import assess_autonomy_and_coercion
 from global_workspace.evidence_calibration import calibrate_speculative_claim
 from global_workspace.contingency_feasibility import verify_contingency_feasibility
+from global_workspace.core_quote_pack import (
+    core_pack_for_specialists,
+    format_core_dialect_contract,
+)
 from global_workspace.legacy_bridge import AGENT_MODULES, consult_original_agents
+from global_workspace.retrieval_trace import (
+    annotate_retrieval_use,
+    skipped_retrieval_record,
+    specialist_cycle_text,
+)
 from global_workspace.landscape_validation import verify_landscape_alignment
 from global_workspace.local_specialists import (
     CompactLocalSpecialist,
@@ -232,6 +241,16 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Use ungrounded compact specialists (diagnostic/prototype mode only)",
     )
+    parser.add_argument(
+        "--no-rag-context",
+        action="store_true",
+        help="Consult original agents with corpus retrieval disabled",
+    )
+    parser.add_argument(
+        "--core-quote-pack",
+        action="store_true",
+        help="Give compact specialists one authored CORE dialect excerpt (no MiniLM)",
+    )
     parser.add_argument("--agent-timeout", type=float, default=600.0)
     parser.add_argument("--call-reserve-seconds", type=float, default=20.0)
     parser.add_argument("--max-auxiliary-calls-per-cycle", type=int, default=5)
@@ -279,6 +298,11 @@ def _confirm_actions(actions: list[str]) -> list[str] | None:
         return actions
     answer = input("Use these actions? [Y/n/edit]: ").strip().lower()
     if answer in {"", "y", "yes"}:
+        print(
+            "Confirmation does not attest model-invented claims; "
+            "source or user-authored provenance still required.",
+            flush=True,
+        )
         return actions
     if answer in {"n", "no"}:
         return None
@@ -536,14 +560,22 @@ def main() -> int:
         print(f"Action planning could not produce a safe feasible set: {exc}", flush=True)
         print("Rerun with explicit choices, for example: --actions \"first action\" \"second action\"", flush=True)
         return 2
-    _validate_lossless_action_set(actions, scenario)
+    user_authored_actions = bool(args.actions)
+    _validate_lossless_action_set(
+        actions, scenario, user_authored=user_authored_actions,
+    )
     print("Actions:", ", ".join(actions), flush=True)
     if not args.accept_actions:
         confirmed_actions = confirm_actions(actions)
         if confirmed_actions is None:
             print("Action set rejected; no deliberation was run.", flush=True)
             return 2
+        if confirmed_actions != actions:
+            user_authored_actions = True
         actions = confirmed_actions
+        _validate_lossless_action_set(
+            actions, scenario, user_authored=user_authored_actions,
+        )
         print("Confirmed actions:", ", ".join(actions), flush=True)
 
     # Preserve the author's/user's order solely as presentation provenance.
@@ -704,11 +736,35 @@ def main() -> int:
         str(record["action_id"]): str(record["canonical_semantic_action"])
         for record in canonical_action_records
     }
+    plan_legend = "; ".join(
+        f"{record['action_id']}={record['source_label']} (source)"
+        if record.get("source_label") else f"{record['action_id']}=unlabeled source"
+        for record in canonical_action_records
+    )
+    if any(record.get("source_label") for record in canonical_action_records):
+        print(f"Source plan labels: {plan_legend}", flush=True)
     print(
         "Canonical action records: "
         + json.dumps(canonical_action_records, ensure_ascii=False, sort_keys=True),
         flush=True,
     )
+    from global_workspace.semantic_preservation import (
+        build_semantic_preservation_trace,
+        render_semantic_preservation_trace,
+        write_semantic_preservation_trace,
+    )
+    preservation_trace = build_semantic_preservation_trace(
+        scenario=scenario,
+        clauses=list(action_source_grounding.get("clauses") or []),
+        actions=actions,
+        grounding=action_source_grounding,
+        records=canonical_action_records,
+        user_authored=user_authored_actions,
+    )
+    trace_path = args.output_dir / "semantic_preservation_trace.json"
+    write_semantic_preservation_trace(trace_path, preservation_trace)
+    print(render_semantic_preservation_trace(preservation_trace), flush=True)
+    print(f"Semantic preservation trace: {trace_path}", flush=True)
     if not confirm_continue_after_world(
         canonical_action_records,
         action_source_grounding,
@@ -723,6 +779,9 @@ def main() -> int:
     if args.skip_original_agents:
         testimonies: dict[str, str] = {}
         source_errors = {name: "skipped by request" for name in selected_agents}
+        source_retrievals = {
+            name: skipped_retrieval_record("skipped") for name in selected_agents
+        }
     else:
         with model_call_budget_paused():
             consultation = consult_original_agents(
@@ -733,9 +792,11 @@ def main() -> int:
                 openai_model=args.openai_model,
                 canonical_actions=tuple(actions),
                 canonical_scenario=scenario,
+                disable_rag=args.no_rag_context,
             )
         testimonies = consultation.testimonies
         source_errors = consultation.errors
+        source_retrievals = dict(consultation.retrievals)
         for name, error in source_errors.items():
             print(f"Original {name} agent unavailable: {error}")
         if len(testimonies) < 2:
@@ -798,6 +859,14 @@ def main() -> int:
             flush=True,
         )
     specialist_names = list(selected_agents)
+    core_quotes = (
+        core_pack_for_specialists(specialist_names) if args.core_quote_pack else {}
+    )
+    if core_quotes:
+        print(
+            "CORE dialect pack enabled for: " + ", ".join(sorted(core_quotes)),
+            flush=True,
+        )
     specialists = [
         CompactLocalSpecialist(
             name,
@@ -822,6 +891,7 @@ def main() -> int:
             evidence_calibrator=calibrate_speculative_claim,
             landscape_verifier=verify_landscape_alignment,
             canonical_action_records=[dict(record) for record in canonical_action_records],
+            core_quote_pack=dict(core_quotes.get(name) or {}),
             assumption_status=(
                 str(baselines.get(name, {}).get("status"))
                 if baselines.get(name, {}).get("status") in {
@@ -978,7 +1048,17 @@ def main() -> int:
     }
     result.source_action_legend = source_action_legend
     result.source_baselines = baselines
+    result.core_quote_pack = core_quotes
     result.scenario_facts = scenario_facts
+    cycle_blob = result.to_dict()
+    result.source_retrievals = {
+        name: annotate_retrieval_use(
+            record,
+            testimony=str(testimonies.get(name) or ""),
+            cycle_text=specialist_cycle_text(cycle_blob, name),
+        )
+        for name, record in source_retrievals.items()
+    }
 
     summary_path = output_path.with_suffix(".txt")
     answer_path = output_path.with_name(output_path.stem + "_answer.txt")

@@ -53,6 +53,29 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         help="Halt after the admitted world is printed; do not run expert agents",
     )
     parser.add_argument(
+        "--skip-original-agents",
+        action="store_true",
+        help="Skip the original-agent consult (diagnostic)",
+    )
+    parser.add_argument(
+        "--rag",
+        dest="use_rag",
+        action="store_true",
+        help="Original agents retrieve CORE/ADJACENT corpus quotes (MiniLM)",
+    )
+    parser.add_argument(
+        "--no-rag",
+        dest="use_rag",
+        action="store_false",
+        help="Original agents run without corpus retrieval",
+    )
+    parser.add_argument(
+        "--no-rag-context",
+        action="store_true",
+        help="Alias for --no-rag",
+    )
+    parser.set_defaults(use_rag=None)
+    parser.add_argument(
         "--no-framing-cache", action="store_true",
         help="Recompute action planning and action-source grounding",
     )
@@ -142,6 +165,36 @@ def prompt_agents() -> list[str]:
     return normalize_agents(answer.split(","))
 
 
+def prompt_use_rag(default: bool = False) -> bool:
+    """Ask whether original agents should retrieve corpus quotes this run."""
+    hint = "y" if default else "n"
+    answer = input(
+        "Corpus RAG for original agents? [y/N] "
+        "(quotes into the initial consult only; compact scoring does not use them) "
+        f"({hint}): "
+    ).strip().lower()
+    if not answer:
+        return default
+    if answer in {"y", "yes"}:
+        return True
+    if answer in {"n", "no"}:
+        return False
+    raise ValueError("Corpus RAG must be 'y' or 'n'")
+
+
+def resolve_use_rag(args: argparse.Namespace, *, interactive: bool) -> bool:
+    """CLI flags win; otherwise prompt on a TTY, else leave RAG off."""
+    if args.skip_original_agents or args.stop_after_world:
+        return False
+    if args.no_rag_context:
+        return False
+    if args.use_rag is not None:
+        return bool(args.use_rag)
+    if interactive:
+        return prompt_use_rag(default=False)
+    return False
+
+
 def resolve_max_cycles(args: argparse.Namespace, *, interactive: bool) -> int:
     """Use CLI value when set; otherwise prompt on a TTY, else default to 3."""
     if args.max_cycles is not None:
@@ -215,6 +268,13 @@ def workspace_command(args: argparse.Namespace, scenario_path: Path) -> list[str
         command.append("--accept-world")
     if args.stop_after_world:
         command.append("--stop-after-world")
+    if args.skip_original_agents:
+        command.append("--skip-original-agents")
+    # Default is off: MiniLM consult is opt-in per run.
+    if args.use_rag is True:
+        pass
+    else:
+        command.append("--no-rag-context")
     if args.no_framing_cache:
         command.append("--no-framing-cache")
     if args.no_synthesis:
@@ -299,6 +359,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         args.agents = prompt_agents()
     else:
         args.agents = list(AGENT_MODULES)
+    interactive = sys.stdin.isatty() and args.question is None
+    args.use_rag = resolve_use_rag(args, interactive=interactive)
+    args.no_rag_context = not args.use_rag
+    if args.skip_original_agents:
+        print("Original agents skipped; corpus RAG is off.", flush=True)
+    elif args.use_rag:
+        print("Corpus RAG: on (original-agent consult only).", flush=True)
+    else:
+        print("Corpus RAG: off.", flush=True)
     return run_workspace(args, question)
 
 

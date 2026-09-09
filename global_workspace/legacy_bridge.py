@@ -9,8 +9,18 @@ import re
 import subprocess
 import sys
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
+
+from global_workspace.framework_retrieval import RetrievalResult, retrieve_framework_evidence
+from global_workspace.retrieval_trace import (
+    RETRIEVAL_MARKER,
+    annotate_retrieval_use,
+    rag_cache_token,
+    serialize_retrieval_result,
+    skipped_retrieval_record,
+)
+from global_workspace.source_cache import build_source_cache_key
 
 
 AGENT_MODULES = {
@@ -27,6 +37,32 @@ RESPONSE_MARKER = "WORKSPACE_RESPONSE_B64="
 class LegacyConsultation:
     testimonies: dict[str, str]
     errors: dict[str, str]
+    retrievals: dict[str, dict] = field(default_factory=dict)
+
+
+def _install_retrieval_hooks(module, *, disable_rag: bool) -> None:
+    """Capture MiniLM hits in the child and keep RAG on/off out of the LLM cache key."""
+
+    def hooked_retrieve(*args, **kwargs):
+        if disable_rag:
+            query = str(kwargs.get("query") or "")
+            lens = str(kwargs.get("query_lens") or "")
+            empty = RetrievalResult(
+                (), 0, 0, None, f"{lens}\nCase: {query}".strip(),
+            )
+            module.LAST_RETRIEVAL = serialize_retrieval_result(empty, mode="disabled")
+            return empty
+        result = retrieve_framework_evidence(*args, **kwargs)
+        module.LAST_RETRIEVAL = serialize_retrieval_result(result, mode="retrieved")
+        return result
+
+    def hooked_cache_key(*args, **kwargs):
+        return build_source_cache_key(*args, **kwargs) + "\n" + rag_cache_token(
+            disabled=disable_rag
+        )
+
+    module.retrieve_framework_evidence = hooked_retrieve
+    module.build_source_cache_key = hooked_cache_key
 
 
 def _child_consult(
@@ -35,6 +71,7 @@ def _child_consult(
     max_tokens: int,
     backend: str = "local",
     openai_model: str = "o3",
+    disable_rag: bool = False,
 ) -> int:
     if agent not in AGENT_MODULES:
         raise ValueError(f"Unknown original agent: {agent}")
@@ -43,6 +80,7 @@ def _child_consult(
     if not question:
         raise ValueError("Scenario has no ethical_question")
     module = importlib.import_module(AGENT_MODULES[agent])
+    _install_retrieval_hooks(module, disable_rag=disable_rag)
     llm = None
     if backend == "openai":
         from .openai_backend import OpenAIWorkspaceLLM
@@ -66,15 +104,42 @@ def _child_consult(
     )
     encoded = base64.b64encode(str(response).encode("utf-8")).decode("ascii")
     print(f"{RESPONSE_MARKER}{encoded}")
+    retrieval = getattr(module, "LAST_RETRIEVAL", None)
+    if not isinstance(retrieval, dict):
+        retrieval = skipped_retrieval_record(
+            "disabled" if disable_rag else "cache_hit_untraced"
+        )
+    retrieval_encoded = base64.b64encode(
+        json.dumps(retrieval, ensure_ascii=False).encode("utf-8")
+    ).decode("ascii")
+    print(f"{RETRIEVAL_MARKER}{retrieval_encoded}")
     return 0
 
 
-def _decode_response(stdout: str) -> str:
+def _decode_marked_payload(stdout: str, marker: str) -> str | None:
     for line in reversed(stdout.splitlines()):
-        if line.startswith(RESPONSE_MARKER):
-            payload = line[len(RESPONSE_MARKER):]
+        if line.startswith(marker):
+            payload = line[len(marker):]
             return base64.b64decode(payload).decode("utf-8").strip()
-    raise ValueError("Original agent produced no bridge response marker")
+    return None
+
+
+def _decode_response(stdout: str) -> str:
+    payload = _decode_marked_payload(stdout, RESPONSE_MARKER)
+    if payload is None:
+        raise ValueError("Original agent produced no bridge response marker")
+    return payload
+
+
+def _decode_retrieval(stdout: str) -> dict:
+    payload = _decode_marked_payload(stdout, RETRIEVAL_MARKER)
+    if not payload:
+        return skipped_retrieval_record("untraced")
+    try:
+        data = json.loads(payload)
+    except json.JSONDecodeError:
+        return skipped_retrieval_record("untraced")
+    return data if isinstance(data, dict) else skipped_retrieval_record("untraced")
 
 
 def consult_original_agents(
@@ -87,9 +152,11 @@ def consult_original_agents(
     openai_model: str = "o3",
     canonical_actions: tuple[str, ...] = (),
     canonical_scenario: str = "",
+    disable_rag: bool = False,
 ) -> LegacyConsultation:
     testimonies: dict[str, str] = {}
     errors: dict[str, str] = {}
+    retrievals: dict[str, dict] = {}
     temporary_directory: tempfile.TemporaryDirectory[str] | None = None
     effective_scenario_path = scenario_path
     if canonical_actions:
@@ -139,6 +206,8 @@ def consult_original_agents(
                 "--openai-model",
                 openai_model,
             ]
+            if disable_rag:
+                command.append("--disable-rag")
             try:
                 child_env = os.environ.copy()
                 # Avoid remote HEAD requests when the embedding model is already cached.
@@ -146,6 +215,7 @@ def consult_original_agents(
                 child_env.setdefault("TRANSFORMERS_OFFLINE", "1")
                 child_env.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
                 child_env["ETHICS_LLM_BACKEND"] = backend
+                child_env["ETHICS_DISABLE_RAG"] = "1" if disable_rag else "0"
                 completed = subprocess.run(
                     command,
                     cwd=Path(__file__).resolve().parent.parent,
@@ -160,6 +230,10 @@ def consult_original_agents(
                     errors[agent] = detail[-1][:500] if detail else f"exit code {completed.returncode}"
                     continue
                 testimony = _decode_response(completed.stdout)
+                retrievals[agent] = annotate_retrieval_use(
+                    _decode_retrieval(completed.stdout),
+                    testimony=testimony,
+                )
                 if testimony:
                     testimonies[agent] = testimony
                 else:
@@ -169,7 +243,9 @@ def consult_original_agents(
     finally:
         if temporary_directory is not None:
             temporary_directory.cleanup()
-    return LegacyConsultation(testimonies=testimonies, errors=errors)
+    return LegacyConsultation(
+        testimonies=testimonies, errors=errors, retrievals=retrievals,
+    )
 
 
 def _parse_args() -> argparse.Namespace:
@@ -179,6 +255,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--max-tokens", type=int, default=180)
     parser.add_argument("--backend", choices=("local", "openai"), default="local")
     parser.add_argument("--openai-model", default="o3")
+    parser.add_argument("--disable-rag", action="store_true")
     return parser.parse_args()
 
 
@@ -190,4 +267,5 @@ if __name__ == "__main__":
         child_args.max_tokens,
         child_args.backend,
         child_args.openai_model,
+        child_args.disable_rag,
     ))

@@ -108,6 +108,9 @@ python parliament.py \
 ```
 
 Interactive workspace runs ask for the framework set; press Enter for all five.
+They then ask whether to run corpus RAG on the original-agent consult (MiniLM
+quotes from `*_corpus/`). Default is **off**; type `y` to enable, or pass
+`--rag` / `--no-rag` to skip the prompt. `--skip-original-agents` turns RAG off.
 Selection applies to original testimony, baseline extraction, recurrent delegate
 calls, and framework review, so unselected frameworks consume no model calls.
 At least two frameworks are required to preserve a deliberative quorum. The trace

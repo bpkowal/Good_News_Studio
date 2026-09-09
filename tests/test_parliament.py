@@ -42,7 +42,8 @@ class ParliamentLauncherTests(unittest.TestCase):
         command = parliament.workspace_command(args, Path("scenario.json"))
         self.assertEqual(command[0], parliament.sys.executable)
         self.assertIn("--actions", command)
-        self.assertEqual(command[-2:], ["act now", "wait"])
+        start = command.index("--actions") + 1
+        self.assertEqual(command[start:start + 2], ["act now", "wait"])
 
     def test_workspace_command_can_select_openai_backend(self):
         args = parliament.parse_args([
@@ -262,6 +263,7 @@ class ParliamentLauncherTests(unittest.TestCase):
         "openai",
         "7",
         "deon, rawls",
+        "",
     ])
     def test_interactive_startup_prompts_for_max_cycles(self, _input, _isatty, run_workspace):
         self.assertEqual(parliament.main([]), 0)
@@ -269,6 +271,7 @@ class ParliamentLauncherTests(unittest.TestCase):
         self.assertEqual(args.max_cycles, 7)
         self.assertEqual(args.backend, "openai")
         self.assertEqual(args.agents, ["deontological", "rawlsian"])
+        self.assertFalse(args.use_rag)
 
     @patch("parliament.run_workspace", return_value=0)
     @patch("parliament.sys.stdin.isatty", return_value=True)
@@ -278,12 +281,14 @@ class ParliamentLauncherTests(unittest.TestCase):
         "local",
         "",
         "",
+        "",
     ])
     def test_interactive_max_cycles_default_is_three(self, _input, _isatty, run_workspace):
         self.assertEqual(parliament.main([]), 0)
         args, _question = run_workspace.call_args.args
         self.assertEqual(args.max_cycles, 3)
         self.assertEqual(args.agents, list(parliament.AGENT_MODULES))
+        self.assertFalse(args.use_rag)
 
     def test_prompt_max_cycles_rejects_non_positive(self):
         with patch("builtins.input", return_value="0"):
@@ -300,6 +305,63 @@ class ParliamentLauncherTests(unittest.TestCase):
             parliament.resolve_max_cycles(args, interactive=True),
             10,
         )
+
+    def test_workspace_command_defaults_to_no_rag_context(self):
+        args = parliament.parse_args([
+            "--mode", "workspace",
+            "--question", "A sufficiently long ethical question",
+        ])
+        command = parliament.workspace_command(args, Path("scenario.json"))
+        self.assertIn("--no-rag-context", command)
+
+    def test_workspace_command_can_opt_in_to_rag(self):
+        args = parliament.parse_args([
+            "--mode", "workspace",
+            "--question", "A sufficiently long ethical question",
+            "--rag",
+        ])
+        command = parliament.workspace_command(args, Path("scenario.json"))
+        self.assertNotIn("--no-rag-context", command)
+
+    def test_cli_rag_skips_interactive_prompt(self):
+        args = parliament.parse_args([
+            "--mode", "workspace",
+            "--question", "A sufficiently long ethical question",
+            "--rag",
+        ])
+        self.assertTrue(parliament.resolve_use_rag(args, interactive=True))
+
+    def test_cli_no_rag_skips_interactive_prompt(self):
+        args = parliament.parse_args([
+            "--mode", "workspace",
+            "--question", "A sufficiently long ethical question",
+            "--no-rag",
+        ])
+        self.assertFalse(parliament.resolve_use_rag(args, interactive=True))
+
+    def test_skip_original_agents_forces_rag_off(self):
+        args = parliament.parse_args([
+            "--mode", "workspace",
+            "--question", "A sufficiently long ethical question",
+            "--rag",
+            "--skip-original-agents",
+        ])
+        self.assertFalse(parliament.resolve_use_rag(args, interactive=True))
+
+    @patch("parliament.run_workspace", return_value=0)
+    @patch("parliament.sys.stdin.isatty", return_value=True)
+    @patch("builtins.input", side_effect=[
+        "workspace",
+        "A sufficiently long ethical question for rag opt in",
+        "local",
+        "",
+        "",
+        "y",
+    ])
+    def test_interactive_startup_can_enable_corpus_rag(self, _input, _isatty, run_workspace):
+        self.assertEqual(parliament.main([]), 0)
+        args, _question = run_workspace.call_args.args
+        self.assertTrue(args.use_rag)
 
     @patch("global_workspace_pipeline.sys.stdin.isatty", return_value=True)
     @patch("builtins.input", side_effect=["edit", "give to child | give to researcher"])
