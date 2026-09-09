@@ -1,9 +1,15 @@
 import json
 import yaml
+from functools import lru_cache
 from pathlib import Path
-from sentence_transformers import SentenceTransformer, util
 
-model = SentenceTransformer("all-MiniLM-L6-v2", device="cpu")
+
+@lru_cache(maxsize=1)
+def _semantic_resources():
+    """Load the semantic tag model only when tag expansion is actually requested."""
+    from sentence_transformers import SentenceTransformer, util
+
+    return SentenceTransformer("all-MiniLM-L6-v2", device="cpu"), util
 
 def get_semantic_tag_weights(scenario_id: str, scenario_dir: Path, corpus_dir: Path) -> dict:
     """
@@ -20,6 +26,11 @@ def get_semantic_tag_weights(scenario_id: str, scenario_dir: Path, corpus_dir: P
         return {}
 
     print(f"\n🔍 Scenario Tags: {list(tag_expectations)}")
+
+    if not tag_expectations:
+        return {}
+
+    model, semantic_util = _semantic_resources()
 
     scenario_vecs = {
     tag: model.encode(
@@ -57,7 +68,7 @@ def get_semantic_tag_weights(scenario_id: str, scenario_dir: Path, corpus_dir: P
         for c_tag, c_desc in tag_descriptions.items():
             try:
                 c_vec = model.encode(c_desc, convert_to_tensor=True)
-                similarity = util.pytorch_cos_sim(s_vec, c_vec).item()
+                similarity = semantic_util.pytorch_cos_sim(s_vec, c_vec).item()
                 if similarity > 0.35:
                     if c_tag not in result_weights:
                         result_weights[c_tag] = 0.0

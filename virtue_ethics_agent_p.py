@@ -11,6 +11,9 @@ from global_workspace.framework_retrieval import (
     load_corpus_passages,
     retrieve_framework_evidence,
 )
+from global_workspace.retrieval_trace import (
+    disabled_retrieval_result, rag_is_disabled, serialize_retrieval_result,
+)
 LAST_QUERY_PATH = Path("agent_outputs/.last_query_virtue.txt")
 LAST_RESPONSE_PATH = Path("agent_outputs/.last_response_virtue.txt")
 VIRTUE_CORPUS_DIR = Path("virtue_ethics_corpus")
@@ -30,6 +33,7 @@ VIRTUE_QUERY_LENS = (
     "Virtue ethics evidence about the actor's role, practical wisdom, character, "
     "virtues and vices, moral perception, tragic conflict, habituation, and human flourishing."
 )
+LAST_RETRIEVAL = None
 import glob
 from datetime import datetime
 import os
@@ -98,6 +102,7 @@ def retrieve_virtue_ethics_quotes(
     return format_evidence_context(result), result.evidence, result
 
 def respond_to_query(query=None, scenario_id=None, scenario_path=None, temperature: float = 0.7, max_tokens: int = 300, llm=None) -> str:
+    global LAST_RETRIEVAL
     if scenario_path:
         try:
             with open(scenario_path, "r") as f:
@@ -111,7 +116,12 @@ def respond_to_query(query=None, scenario_id=None, scenario_path=None, temperatu
     if query is None or scenario_id is None:
         print("⚠️ No query or scenario ID provided to respond_to_query. Aborting.")
         return "[ERROR] Missing input."
-    retrieval_fingerprint = corpus_fingerprint(VIRTUE_CORPUS_DIR, framework="virtue")
+    rag_disabled = rag_is_disabled()
+    retrieval_fingerprint = (
+        "RAG_DISABLED"
+        if rag_disabled
+        else corpus_fingerprint(VIRTUE_CORPUS_DIR, framework="virtue")
+    )
     cache_key = build_source_cache_key(
         VIRTUE_PROMPT_VERSION,
         query,
@@ -129,20 +139,28 @@ def respond_to_query(query=None, scenario_id=None, scenario_path=None, temperatu
             print("⚡ Skipping LLM call — using cached virtue ethics response.")
             return LAST_RESPONSE_PATH.read_text().strip()
 
-    # Load RAG only after the source-testimony cache misses.
-    from langchain_huggingface import HuggingFaceEmbeddings
-    global embedder
-    embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    context, evidence, retrieval = retrieve_virtue_ethics_quotes(
-        query,
-        scenario_id,
-        embedder=embedder,
-        scenario_path=scenario_path,
-    )
+    if rag_disabled:
+        retrieval = disabled_retrieval_result(query, VIRTUE_QUERY_LENS)
+        LAST_RETRIEVAL = serialize_retrieval_result(retrieval, mode="disabled")
+        context = format_evidence_context(retrieval)
+        evidence = []
+    else:
+        # Load RAG only after the source-testimony cache misses.
+        from langchain_huggingface import HuggingFaceEmbeddings
+        global embedder
+        embedder = HuggingFaceEmbeddings(
+            model_name="sentence-transformers/all-MiniLM-L6-v2"
+        )
+        context, evidence, retrieval = retrieve_virtue_ethics_quotes(
+            query,
+            scenario_id,
+            embedder=embedder,
+            scenario_path=scenario_path,
+        )
 
-    # Cleanup RAG components
-    del embedder
-    gc.collect()
+        # Cleanup RAG components
+        del embedder
+        gc.collect()
 
     if llm is None:
         from llama_cpp import Llama  # Deferred import to avoid GPU crash during embeddings

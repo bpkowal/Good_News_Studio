@@ -2,15 +2,21 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from datetime import datetime, timezone
 from pathlib import Path
+from threading import Lock
 from typing import Any
 
 from .structured_io import ModelCallUnavailable
+from .performance import record_performance_event
 
 
 class OpenAIWorkspaceLLM:
     """Expose an OpenAI chat model through the small callable API used by delegates."""
+
+    supports_call_local_timeout = True
+    supports_concurrent_calls = True
 
     def __init__(self, model: str = "o3", *, timeout: float = 120.0, client: Any | None = None):
         if client is None:
@@ -25,6 +31,7 @@ class OpenAIWorkspaceLLM:
         self.client = client
         self.model = model
         self.timeout = timeout
+        self._usage_lock = Lock()
 
     @staticmethod
     def _plain(value: Any) -> Any:
@@ -59,9 +66,12 @@ class OpenAIWorkspaceLLM:
             "usage": usage,
         }
         path = Path(destination).expanduser()
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with path.open("a", encoding="utf-8") as handle:
-            handle.write(json.dumps(record, sort_keys=True) + "\n")
+        # Compact specialists share one OpenAI adapter during fan-out. Keep its
+        # optional telemetry line-oriented when several responses finish at once.
+        with self._usage_lock:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open("a", encoding="utf-8") as handle:
+                handle.write(json.dumps(record, sort_keys=True) + "\n")
 
     @staticmethod
     def _is_output_limit_error(error: Exception) -> bool:
@@ -86,10 +96,15 @@ class OpenAIWorkspaceLLM:
             return ModelCallUnavailable(
                 "OpenAI authentication failed", category="authentication", terminal=True,
             )
-        if status == 429 or "ratelimit" in name or "insufficient_quota" in message:
+        if "insufficient_quota" in message or "quota" in message:
             return ModelCallUnavailable(
-                "OpenAI rate limit or quota prevented the model call",
-                category="quota_or_rate_limit", terminal=True,
+                "OpenAI quota prevented the model call",
+                category="quota", terminal=True,
+            )
+        if status == 429 or "ratelimit" in name:
+            return ModelCallUnavailable(
+                "OpenAI rate limit prevented the model call",
+                category="rate_limit", terminal=False,
             )
         if status == 408 or "timeout" in name or "timed out" in message:
             return ModelCallUnavailable(
@@ -107,13 +122,33 @@ class OpenAIWorkspaceLLM:
         return None
 
     def _create(self, request: dict[str, Any]) -> Any:
+        started = time.monotonic()
         try:
-            return self.client.chat.completions.create(**request)
+            response = self.client.chat.completions.create(**request)
         except Exception as error:
             bounded = self._bounded_provider_failure(error)
+            record_performance_event(
+                "openai.chat.completions",
+                started,
+                category="provider_attempt",
+                status="ERROR",
+                metadata={
+                    "model": self.model,
+                    "exception_type": type(error).__name__,
+                    "error_category": bounded.category if bounded is not None else "request",
+                },
+            )
             if bounded is not None:
                 raise bounded from error
             raise
+        record_performance_event(
+            "openai.chat.completions",
+            started,
+            category="provider_attempt",
+            status="OK",
+            metadata={"model": self.model},
+        )
+        return response
 
     def complete_json(
         self,
@@ -122,12 +157,15 @@ class OpenAIWorkspaceLLM:
         schema: dict[str, Any],
         max_tokens: int,
         temperature: float,
+        timeout: float | None = None,
     ) -> dict[str, Any]:
         request: dict[str, Any] = {
             "model": self.model,
             "messages": [{"role": "user", "content": prompt}],
             "max_completion_tokens": max_tokens,
-            "timeout": self.timeout,
+            "timeout": (
+                self.timeout if timeout is None else max(0.1, float(timeout))
+            ),
             "response_format": {
                 "type": "json_schema",
                 "json_schema": {
@@ -191,7 +229,9 @@ class OpenAIWorkspaceLLM:
             "model": self.model,
             "messages": [{"role": "user", "content": prompt}],
             "max_completion_tokens": requested_tokens,
-            "timeout": self.timeout,
+            "timeout": max(
+                0.1, float(kwargs.get("timeout", self.timeout))
+            ),
         }
         if self.model.lower().startswith(("o1", "o3", "o4")):
             # This limit includes invisible reasoning tokens. The legacy agents'

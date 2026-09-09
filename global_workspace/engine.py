@@ -5,8 +5,10 @@ import math
 import re
 import textwrap
 import time
+from concurrent.futures import CancelledError, ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, replace
-from typing import Callable, Protocol, Sequence
+from threading import Event
+from typing import Any, Callable, Protocol, Sequence
 
 from .middleware.moral_residue import collect_moral_residue, collect_reopen_conditions
 from .construct_validity import (
@@ -54,6 +56,10 @@ from .deliberative_state import (
     update_broadcast_influence_persistence,
 )
 from .graph_transactions import SemanticGraphStore
+from .framework_vote_integrity import (
+    EXPECTED_LEDGER_KINDS,
+    apply_framework_vote_integrity,
+)
 from .epistemic_ledger import (
     apply_side_premise_audit,
     attach_candidate_dependencies,
@@ -103,7 +109,9 @@ from .contingency_graph import (
 )
 from .structured_io import (
     ModelCallBudgetExceeded, ModelCallUnavailable, begin_model_call_cycle,
+    submit_with_context,
 )
+from .performance import record_performance_event
 from .local_specialists import _invalid_candidate
 
 
@@ -189,6 +197,39 @@ class Specialist(Protocol):
         actions: Sequence[str],
         broadcast: WorkspaceBroadcast,
     ) -> CandidateChunk: ...
+
+
+@dataclass(frozen=True, slots=True)
+class PreparedCycleInput:
+    """System-owned snapshot shared by every evaluation in one cycle.
+
+    The nested graph and projections are never handed to specialists directly.
+    ``evaluate_specialist`` supplies an isolated deep copy to each delegate so a
+    mutable legacy specialist cannot change what a later delegate observes.
+    """
+
+    cycle: int
+    scenario: str
+    actions: tuple[str, ...]
+    broadcast: WorkspaceBroadcast
+    admitted_world_graph: SemanticGraph
+    proposition_projection: tuple[dict[str, Any], ...]
+    challenge_agenda: tuple[dict[str, Any], ...]
+    canonical_action_mapping: tuple[dict[str, Any], ...]
+    canonical_action_legend: tuple[tuple[str, str], ...]
+    is_counterfactual: bool = False
+
+
+@dataclass(slots=True)
+class SpecialistEvaluation:
+    """One uncommitted specialist result waiting at the cycle barrier."""
+
+    specialist_name: str
+    candidate: CandidateChunk | None
+    status: str
+    elapsed_seconds: float
+    halt_reason: str = ""
+    terminal_model_failure: bool = False
 
 
 def _apply_framework_ledger_uncertainty(
@@ -2022,6 +2063,11 @@ def _render_deliberation_progress(
     for candidate in candidates:
         action_id = action_ids.get(candidate.recommended_action, "?")
         response = dict(candidate.challenge_response or {})
+        vote_note = ""
+        if candidate.framework_vote_status != "NOT_APPLICABLE":
+            vote_note = f"; vote={candidate.framework_vote_status}"
+            if candidate.framework_vote_status != "FULL":
+                vote_note += f" ({candidate.framework_vote_reason})"
         if not response:
             reason = " ".join(
                 value for value in (candidate.decision_rule, candidate.rationale)
@@ -2029,7 +2075,8 @@ def _render_deliberation_progress(
             )
             progress(
                 f"    {candidate.specialist}: {action_id} "
-                f"[{candidate.adjudication_status}] — {reason or 'no reason supplied'}"
+                f"[{candidate.adjudication_status}{vote_note}] — "
+                f"{reason or 'no reason supplied'}"
             )
             for line in native_lines(candidate):
                 progress(f"      Framework analysis: {line}")
@@ -2037,7 +2084,7 @@ def _render_deliberation_progress(
         issue_id = str(response.get("issue_id", ""))
         progress(
             f"    {candidate.specialist}: {action_id} "
-            f"[{candidate.adjudication_status}]"
+            f"[{candidate.adjudication_status}{vote_note}]"
         )
         progress(f"      Question: {questions.get(issue_id, issue_id)}")
         answer_lines = textwrap.wrap(str(response.get("answer", "")), width=100)
@@ -2385,6 +2432,10 @@ class WorkspaceConfig:
     # Attention bonus for unresolved but consequential claims that may interrupt
     # without becoming governing rules. Tunable; starts conservative.
     investigative_attention_weight: float = 0.40
+    # OpenAI's HTTP client can safely overlap bounded independent calls. The
+    # engine still gates on the adapter capability, leaving llama.cpp and test
+    # doubles sequential unless they explicitly declare concurrency support.
+    openai_max_concurrency: int = 2
 
 
 class WorkspaceEngine:
@@ -3153,6 +3204,299 @@ class WorkspaceEngine:
             },
         )
 
+    def prepare_cycle_input(
+        self,
+        *,
+        cycle_number: int,
+        scenario: str,
+        actions: Sequence[str],
+        broadcast: WorkspaceBroadcast,
+        graph_store: SemanticGraphStore,
+        proposition_projection: Sequence[dict[str, Any]],
+        canonical_action_mapping: Sequence[dict[str, Any]],
+        canonical_action_legend: dict[str, str],
+        is_counterfactual: bool,
+    ) -> PreparedCycleInput:
+        """Freeze every shared input before any specialist is evaluated."""
+        # Populate the framework-neutral projection on the authoritative graph
+        # before it is copied for parallel workers. Deep-copied snapshots then
+        # reuse this immutable tuple instead of each specialist rebuilding it.
+        project_grounded_action_effects(graph_store.graph)
+        frozen_broadcast = copy.deepcopy(broadcast)
+        challenge_agenda = tuple(
+            copy.deepcopy(list(frozen_broadcast.challenge_agenda))
+        )
+        # Keep the explicit agenda snapshot and the copy embedded in the
+        # broadcast identical. This makes its provenance stable even when a
+        # legacy delegate mutates the object it receives.
+        frozen_broadcast.challenge_agenda = copy.deepcopy(challenge_agenda)
+        mapping = [dict(record) for record in canonical_action_mapping]
+        if not mapping:
+            from .action_identity import (
+                build_canonical_action_records, extract_scenario_actor,
+            )
+
+            mapping = [record.as_dict() for record in build_canonical_action_records(
+                actions,
+                actor=extract_scenario_actor(scenario),
+            )]
+        return PreparedCycleInput(
+            cycle=cycle_number,
+            scenario=str(scenario),
+            actions=tuple(str(action) for action in actions),
+            broadcast=frozen_broadcast,
+            admitted_world_graph=copy.deepcopy(graph_store.graph),
+            proposition_projection=tuple(
+                copy.deepcopy(list(proposition_projection))
+            ),
+            challenge_agenda=challenge_agenda,
+            canonical_action_mapping=tuple(
+                copy.deepcopy(mapping)
+            ),
+            canonical_action_legend=tuple(
+                (str(key), str(value))
+                for key, value in canonical_action_legend.items()
+            ),
+            is_counterfactual=bool(is_counterfactual),
+        )
+
+    def _specialist_worker_count(self) -> int:
+        configured = max(1, min(3, int(self.config.openai_max_concurrency)))
+        if configured <= 1 or len(self.specialists) <= 1:
+            return 1
+        if not all(
+            getattr(
+                getattr(specialist, "llm", None),
+                "supports_concurrent_calls",
+                False,
+            )
+            for specialist in self.specialists
+        ):
+            return 1
+        return min(configured, len(self.specialists))
+
+    def evaluate_specialist(
+        self,
+        specialist: Specialist,
+        cycle_input: PreparedCycleInput,
+        *,
+        progress: Callable[[str], None] | None = None,
+    ) -> SpecialistEvaluation:
+        """Evaluate one delegate against an isolated copy of the cycle snapshot."""
+        if hasattr(specialist, "scenario_graph"):
+            specialist.scenario_graph = copy.deepcopy(
+                cycle_input.admitted_world_graph
+            )
+        if hasattr(specialist, "proposition_ledger"):
+            specialist.proposition_ledger = copy.deepcopy(
+                list(cycle_input.proposition_projection)
+            )
+        if hasattr(specialist, "canonical_action_records"):
+            specialist.canonical_action_records = copy.deepcopy(
+                list(cycle_input.canonical_action_mapping)
+            )
+        if hasattr(specialist, "source_action_legend"):
+            specialist.source_action_legend = dict(
+                cycle_input.canonical_action_legend
+            )
+
+        call_started = time.monotonic()
+        evaluation_status = "OK"
+        halt_reason = ""
+        terminal_model_failure = False
+        candidate: CandidateChunk | None = None
+        try:
+            candidate = specialist.evaluate(
+                cycle_input.scenario,
+                cycle_input.actions,
+                copy.deepcopy(cycle_input.broadcast),
+            )
+        except ModelCallBudgetExceeded as exc:
+            evaluation_status = "BUDGET_BLOCKED"
+            halt_reason = "model_call_budget"
+            if progress:
+                progress(f"  halting before next model call: {exc}")
+        except ModelCallUnavailable as exc:
+            evaluation_status = "MODEL_UNAVAILABLE"
+            candidate = CandidateChunk(
+                specialist=specialist.name,
+                constraint="MODEL_UNAVAILABLE",
+                action_scores={action: 0.5 for action in cycle_input.actions},
+                surprise=0.0,
+                friction=0.0,
+                confidence=0.0,
+                unresolved="RETRY_MODEL_CALL",
+                rationale=f"Delegate unavailable after {exc.category} failure.",
+                schema_valid=False,
+                recommended_action="",
+                adjudication_status="CONTESTED_NO_LEANING",
+                governing_eligible=False,
+                broadcast_authority="INVESTIGATIVE",
+                policy_weight_factor=0.0,
+                selection_status="UNSELECTED",
+                delegate_status="MODEL_ERROR",
+                error_type="MODEL_ERROR",
+                validation_errors=[str(exc)[:300]],
+            )
+            terminal_model_failure = exc.terminal
+            if exc.terminal:
+                halt_reason = "model_backend_unavailable"
+        except Exception as exc:
+            evaluation_status = "SOFT_ERROR"
+            cause = getattr(exc, "cause", exc)
+            exception_type = type(cause).__name__
+            failure_stage = str(
+                getattr(exc, "stage", "SPECIALIST_EVALUATION")
+            ).strip().upper()
+            diagnostic = (
+                f"specialist evaluation failed at {failure_stage}: "
+                f"{exception_type}: {cause}"
+            )
+            candidate = _invalid_candidate(
+                specialist.name,
+                cycle_input.actions,
+                diagnostic,
+                delegate_status_override="SPECIALIST_INTERNAL_ERROR",
+                error_type_override="SPECIALIST_INTERNAL_ERROR",
+                exception_type=exception_type,
+                failure_stage=failure_stage,
+            )
+            if progress:
+                progress(
+                    f"    {specialist.name} delegate failed softly at "
+                    f"{failure_stage}: {exception_type}: {cause}"
+                )
+        finally:
+            elapsed = time.monotonic() - call_started
+            record_performance_event(
+                "specialist_evaluation",
+                call_started,
+                status=evaluation_status,
+                metadata={
+                    "cycle": cycle_input.cycle,
+                    "specialist": specialist.name,
+                    "counterfactual": cycle_input.is_counterfactual,
+                    "commit_started": False,
+                },
+            )
+        return SpecialistEvaluation(
+            specialist_name=specialist.name,
+            candidate=candidate,
+            status=evaluation_status,
+            elapsed_seconds=elapsed,
+            halt_reason=halt_reason,
+            terminal_model_failure=terminal_model_failure,
+        )
+
+    def evaluation_barrier(
+        self,
+        cycle_input: PreparedCycleInput,
+        evaluations: Sequence[SpecialistEvaluation],
+    ) -> bool:
+        """Open only when every configured specialist produced an observation."""
+        barrier_started = time.monotonic()
+        expected = [specialist.name for specialist in self.specialists]
+        observed = [evaluation.specialist_name for evaluation in evaluations]
+        complete = bool(
+            observed == expected
+            and all(evaluation.candidate is not None for evaluation in evaluations)
+        )
+        record_performance_event(
+            "specialist_evaluation_barrier",
+            barrier_started,
+            category="evaluation_barrier",
+            status="COMPLETE" if complete else "INCOMPLETE",
+            metadata={
+                "cycle": cycle_input.cycle,
+                "expected_specialists": expected,
+                "observed_specialists": observed,
+                "candidate_count": sum(
+                    evaluation.candidate is not None
+                    for evaluation in evaluations
+                ),
+            },
+        )
+        return complete
+
+    def commit_candidate(
+        self,
+        specialist: Specialist,
+        evaluation: SpecialistEvaluation,
+        cycle_input: PreparedCycleInput,
+        *,
+        base_actions: Sequence[str],
+        working_proposition_ledger: list,
+        result: WorkspaceResult,
+        autonomy: AutonomyAssessment | None,
+    ) -> CandidateChunk:
+        """Begin configured-order admission after the evaluation barrier.
+
+        This performs the candidate-level proposition, vote-integrity, and
+        coercion preparation. Graph and native-ledger subtransactions follow
+        immediately in the same configured-order commit loop; cycle-level
+        visibility, challenge, and policy aggregation run only after every
+        candidate has completed that loop.
+        """
+        candidate = evaluation.candidate
+        if candidate is None:
+            raise RuntimeError(
+                "evaluation barrier admitted a missing specialist candidate"
+            )
+        candidate.framework_vote_integrity_required = bool(
+            candidate.specialist in EXPECTED_LEDGER_KINDS
+            and hasattr(specialist, "previous_framework_state")
+            and hasattr(specialist, "canonical_action_records")
+        )
+        if (
+            cycle_input.broadcast.constraint == "CONTINGENCY_REVIEW"
+            and candidate.schema_valid
+        ):
+            contingency_errors = []
+            if candidate.contingency_choice not in cycle_input.actions:
+                contingency_errors.append(
+                    "contingency response did not select a typed fallback"
+                )
+            if candidate.recommended_action != candidate.contingency_choice:
+                contingency_errors.append(
+                    "contingency recommendation differs from typed fallback choice"
+                )
+            if len(candidate.contingency_justification.split()) < 3:
+                contingency_errors.append(
+                    "contingency response lacks conditional justification"
+                )
+            if contingency_errors:
+                candidate.schema_valid = False
+                candidate.contingency_response_valid = False
+                candidate.contingency_response_error = "; ".join(
+                    contingency_errors
+                )
+                candidate.validation_errors.extend(contingency_errors)
+        if autonomy is not None and autonomy.valid and candidate.schema_valid:
+            tag = autonomy.action_tags.get(candidate.recommended_action, "NONE")
+            candidate.coercion_tag = tag
+            action_tags = {
+                autonomy.action_tags.get(action, "NONE")
+                for action in base_actions
+            }
+            burden_discriminates = len(action_tags) > 1
+            if (
+                tag != "NONE"
+                and burden_discriminates
+                and not autonomy.catastrophic_harm_threshold.get(
+                    candidate.recommended_action, False
+                )
+            ):
+                candidate.coercion_surcharge = 1.0 - autonomy.surcharge_multiplier
+        if candidate.schema_valid:
+            attach_candidate_dependencies(
+                working_proposition_ledger, candidate,
+            )
+            if not cycle_input.is_counterfactual:
+                result.proposition_ledger = ledger_projection(
+                    working_proposition_ledger
+                )
+        return candidate
+
     def run(
         self,
         scenario: str,
@@ -3325,6 +3669,7 @@ class WorkspaceEngine:
 
         cycle_number = 1
         while cycle_number <= cycle_limit:
+            cycle_started = time.monotonic()
             begin_model_call_cycle(cycle_number)
             received_broadcast = broadcast
             is_planning_branch = received_broadcast.branch_kind == "PLANNING_CONTINGENCY"
@@ -3348,136 +3693,189 @@ class WorkspaceEngine:
             cycle_proposition_projection = ledger_projection(
                 working_proposition_ledger
             )
+            cycle_input_started = time.monotonic()
+            cycle_input = self.prepare_cycle_input(
+                cycle_number=cycle_number,
+                scenario=scenario,
+                actions=cycle_actions,
+                broadcast=received_broadcast,
+                graph_store=graph_store,
+                proposition_projection=cycle_proposition_projection,
+                canonical_action_mapping=result.canonical_action_records,
+                canonical_action_legend=result.source_action_legend,
+                is_counterfactual=is_counterfactual,
+            )
+            specialist_worker_count = self._specialist_worker_count()
+            record_performance_event(
+                "prepare_cycle_input",
+                cycle_input_started,
+                category="cycle_input",
+                status="FROZEN",
+                metadata={
+                    "cycle": cycle_number,
+                    "specialist_count": len(self.specialists),
+                    "action_count": len(cycle_input.actions),
+                    "proposition_count": len(
+                        cycle_input.proposition_projection
+                    ),
+                    "challenge_count": len(cycle_input.challenge_agenda),
+                    "evaluation_workers": specialist_worker_count,
+                },
+            )
             specialist_snapshot = (
                 self._snapshot_specialist_state(self.specialists) if is_counterfactual else []
+            )
+            failed_barrier_snapshot = self._snapshot_specialist_state(
+                self.specialists
             )
             if progress:
                 progress(
                     f"Cycle {cycle_number}/{cycle_limit} — broadcast {broadcast.trace_summary()}"
                 )
-            candidates = []
-            terminal_model_failure = False
-            for index, specialist in enumerate(self.specialists, start=1):
-                if hasattr(specialist, "scenario_graph"):
-                    specialist.scenario_graph = graph_store.graph
-                if hasattr(specialist, "proposition_ledger"):
-                    specialist.proposition_ledger = copy.deepcopy(
-                        cycle_proposition_projection
-                    )
-                call_started = time.monotonic()
-                if progress:
-                    progress(
-                        f"  [{index}/{len(self.specialists)}] {specialist.name} delegate thinking..."
-                    )
-                try:
-                    candidate = specialist.evaluate(scenario, cycle_actions, broadcast)
-                except ModelCallBudgetExceeded as exc:
-                    result.halted_by = "model_call_budget"
-                    if progress:
-                        progress(f"  halting before next model call: {exc}")
-                    break
-                except ModelCallUnavailable as exc:
-                    # Provider transport failure is a missing observation, not a
-                    # malformed moral judgment. Exclude only this response and
-                    # continue when later delegates may still provide quorum.
-                    candidate = CandidateChunk(
-                        specialist=specialist.name,
-                        constraint="MODEL_UNAVAILABLE",
-                        action_scores={action: 0.5 for action in cycle_actions},
-                        surprise=0.0,
-                        friction=0.0,
-                        confidence=0.0,
-                        unresolved="RETRY_MODEL_CALL",
-                        rationale=f"Delegate unavailable after {exc.category} failure.",
-                        schema_valid=False,
-                        recommended_action="",
-                        adjudication_status="CONTESTED_NO_LEANING",
-                        governing_eligible=False,
-                        broadcast_authority="INVESTIGATIVE",
-                        policy_weight_factor=0.0,
-                        selection_status="UNSELECTED",
-                        delegate_status="MODEL_ERROR",
-                        error_type="MODEL_ERROR",
-                        validation_errors=[str(exc)[:300]],
-                    )
-                    terminal_model_failure = exc.terminal
-                    if exc.terminal:
-                        result.halted_by = "model_backend_unavailable"
-                except Exception as exc:
-                    cause = getattr(exc, "cause", exc)
-                    exception_type = type(cause).__name__
-                    failure_stage = str(
-                        getattr(exc, "stage", "SPECIALIST_EVALUATION")
-                    ).strip().upper()
-                    diagnostic = (
-                        f"specialist evaluation failed at {failure_stage}: "
-                        f"{exception_type}: {cause}"
-                    )
-                    candidate = _invalid_candidate(
-                        specialist.name,
-                        cycle_actions,
-                        diagnostic,
-                        delegate_status_override="SPECIALIST_INTERNAL_ERROR",
-                        error_type_override="SPECIALIST_INTERNAL_ERROR",
-                        exception_type=exception_type,
-                        failure_stage=failure_stage,
-                    )
+            evaluations: list[SpecialistEvaluation] = []
+            if specialist_worker_count == 1:
+                for index, specialist in enumerate(self.specialists, start=1):
                     if progress:
                         progress(
-                            f"    {specialist.name} delegate failed softly at "
-                            f"{failure_stage}: {exception_type}: {cause}"
+                            f"  [{index}/{len(self.specialists)}] "
+                            f"{specialist.name} delegate thinking..."
                         )
-                if is_contingency_probe and candidate.schema_valid:
-                    contingency_errors = []
-                    if candidate.contingency_choice not in cycle_actions:
-                        contingency_errors.append(
-                            "contingency response did not select a typed fallback"
-                        )
-                    if candidate.recommended_action != candidate.contingency_choice:
-                        contingency_errors.append(
-                            "contingency recommendation differs from typed fallback choice"
-                        )
-                    if len(candidate.contingency_justification.split()) < 3:
-                        contingency_errors.append(
-                            "contingency response lacks conditional justification"
-                        )
-                    if contingency_errors:
-                        candidate.schema_valid = False
-                        candidate.contingency_response_valid = False
-                        candidate.contingency_response_error = "; ".join(
-                            contingency_errors
-                        )
-                        candidate.validation_errors.extend(contingency_errors)
-                if autonomy is not None and autonomy.valid and candidate.schema_valid:
-                    tag = autonomy.action_tags.get(candidate.recommended_action, "NONE")
-                    candidate.coercion_tag = tag
-                    action_tags = {
-                        autonomy.action_tags.get(action, "NONE")
-                        for action in clean_actions
-                    }
-                    burden_discriminates = len(action_tags) > 1
-                    if (
-                        tag != "NONE"
-                        and burden_discriminates
-                        and not autonomy.catastrophic_harm_threshold.get(
-                            candidate.recommended_action, False
-                        )
-                    ):
-                        candidate.coercion_surcharge = 1.0 - autonomy.surcharge_multiplier
-                        # Keep the normative surcharge separate from epistemic
-                        # confidence. The audit records that the action carries a
-                        # coercion/rights-breach burden, but the delegate's
-                        # epistemic reliability should only change when its own
-                        # reasoning is uncertain.
-                if candidate.schema_valid:
-                    attach_candidate_dependencies(
-                        working_proposition_ledger, candidate,
+                    evaluation = self.evaluate_specialist(
+                        specialist,
+                        cycle_input,
+                        progress=progress,
                     )
-                    if not is_counterfactual:
-                        result.proposition_ledger = ledger_projection(
-                            proposition_ledger
+                    evaluations.append(evaluation)
+                    if evaluation.halt_reason:
+                        result.halted_by = evaluation.halt_reason
+                    if (
+                        evaluation.halt_reason
+                        or evaluation.terminal_model_failure
+                    ):
+                        break
+            else:
+                evaluation_cancel = Event()
+                ordered_evaluations: list[SpecialistEvaluation | None] = [
+                    None for _specialist in self.specialists
+                ]
+
+                def evaluate_if_active(
+                    specialist: Specialist,
+                ) -> SpecialistEvaluation | None:
+                    if evaluation_cancel.is_set():
+                        return None
+                    evaluation = self.evaluate_specialist(
+                        specialist,
+                        cycle_input,
+                        progress=None,
+                    )
+                    if (
+                        evaluation.halt_reason
+                        or evaluation.terminal_model_failure
+                    ):
+                        evaluation_cancel.set()
+                    return evaluation
+
+                executor = ThreadPoolExecutor(
+                    max_workers=specialist_worker_count,
+                    thread_name_prefix="workspace-specialist",
+                )
+                future_indexes = {}
+                try:
+                    for index, specialist in enumerate(self.specialists):
+                        if progress:
+                            progress(
+                                f"  [{index + 1}/{len(self.specialists)}] "
+                                f"{specialist.name} delegate thinking..."
+                            )
+                        future = submit_with_context(
+                            executor, evaluate_if_active, specialist,
                         )
+                        future_indexes[future] = index
+                    for future in as_completed(future_indexes):
+                        index = future_indexes[future]
+                        try:
+                            evaluation = future.result()
+                        except CancelledError:
+                            continue
+                        except Exception as exc:
+                            specialist = self.specialists[index]
+                            evaluation = SpecialistEvaluation(
+                                specialist_name=specialist.name,
+                                candidate=_invalid_candidate(
+                                    specialist.name,
+                                    cycle_input.actions,
+                                    "parallel evaluation worker failed: "
+                                    f"{type(exc).__name__}: {exc}",
+                                    delegate_status_override=(
+                                        "SPECIALIST_INTERNAL_ERROR"
+                                    ),
+                                    error_type_override=(
+                                        "SPECIALIST_INTERNAL_ERROR"
+                                    ),
+                                    exception_type=type(exc).__name__,
+                                    failure_stage="PARALLEL_EVALUATION_WORKER",
+                                ),
+                                status="SOFT_ERROR",
+                                elapsed_seconds=0.0,
+                            )
+                        if evaluation is None:
+                            continue
+                        ordered_evaluations[index] = evaluation
+                        if evaluation.halt_reason:
+                            result.halted_by = evaluation.halt_reason
+                        if (
+                            evaluation.halt_reason
+                            or evaluation.terminal_model_failure
+                        ):
+                            evaluation_cancel.set()
+                            for remaining in future_indexes:
+                                if remaining is not future:
+                                    remaining.cancel()
+                finally:
+                    executor.shutdown(wait=True, cancel_futures=True)
+                evaluations = [
+                    evaluation for evaluation in ordered_evaluations
+                    if evaluation is not None
+                ]
+
+            if result.halted_by in {
+                "model_call_budget", "model_backend_unavailable",
+            }:
+                self._restore_specialist_state(failed_barrier_snapshot)
+                break
+            if not self.evaluation_barrier(cycle_input, evaluations):
+                self._restore_specialist_state(failed_barrier_snapshot)
+                result.halted_by = "evaluation_barrier_incomplete"
+                if progress:
+                    progress(
+                        "  evaluation barrier incomplete; no candidate was committed"
+                    )
+                break
+            if progress:
+                progress(
+                    "  evaluation barrier complete; committing in configured order"
+                )
+
+            candidates = []
+            for index, (specialist, evaluation) in enumerate(
+                zip(self.specialists, evaluations), start=1,
+            ):
+                ledger_commit_started = time.monotonic()
+                candidate = self.commit_candidate(
+                    specialist,
+                    evaluation,
+                    cycle_input,
+                    base_actions=clean_actions,
+                    working_proposition_ledger=working_proposition_ledger,
+                    result=result,
+                    autonomy=autonomy,
+                )
                 candidates.append(candidate)
+                # Transactions remain sequential by design. Timing begins only
+                # after every specialist response has crossed the evaluation
+                # barrier, so no delegate can observe a same-cycle transaction.
+                ledger_commit_operations: list[dict[str, str]] = []
                 if (
                     candidate.schema_valid
                     and candidate.graph_update_proposal
@@ -3497,15 +3895,15 @@ class WorkspaceEngine:
                             else "RETAIN_VOTE"
                         ),
                     )
+                    ledger_commit_operations.append({
+                        "ledger": "SEMANTIC_GRAPH",
+                        "status": transaction.status,
+                    })
                     if transaction.vote_disposition == "DROPPED":
                         candidate.schema_valid = False
                         candidate.validation_errors.append(
                             "decision-critical graph update rejected; vote dropped"
                         )
-                    result.graph_transactions = graph_store.transaction_dicts()
-                    result.semantic_graphs = (
-                        [graph_store.graph_dict()] if graph_store.graph.nodes else []
-                    )
                     if progress and transaction.status == "REJECTED":
                         progress(
                             f"    graph update rejected; previous state preserved: "
@@ -3524,6 +3922,10 @@ class WorkspaceEngine:
                         specialist=candidate.specialist,
                         allowed_actions=tuple(clean_actions),
                     )
+                    ledger_commit_operations.append({
+                        "ledger": "UTILITARIAN_CONSEQUENCE_LEDGER",
+                        "status": util_transaction.status,
+                    })
                     result.utilitarian_consequence_ledger = (
                         committed_utilitarian_consequences(graph_store.graph)
                     )
@@ -3533,8 +3935,6 @@ class WorkspaceEngine:
                         transaction_status=util_transaction.status,
                         records=result.utilitarian_consequence_ledger,
                     )
-                    result.graph_transactions = graph_store.transaction_dicts()
-                    result.semantic_graphs = [graph_store.graph_dict()]
                     if util_transaction.status == "COMMITTED_WITH_UNCERTAINTY":
                         _apply_framework_ledger_uncertainty(
                             candidate, util_transaction.errors
@@ -3558,6 +3958,10 @@ class WorkspaceEngine:
                         specialist=candidate.specialist,
                         allowed_actions=tuple(clean_actions),
                     )
+                    ledger_commit_operations.append({
+                        "ledger": "DEONTOLOGICAL_DUTY_LEDGER",
+                        "status": deon_transaction.status,
+                    })
                     result.deontological_duty_ledger = (
                         committed_deontological_assessments(graph_store.graph)
                     )
@@ -3567,8 +3971,6 @@ class WorkspaceEngine:
                         transaction_status=deon_transaction.status,
                         records=result.deontological_duty_ledger,
                     )
-                    result.graph_transactions = graph_store.transaction_dicts()
-                    result.semantic_graphs = [graph_store.graph_dict()]
                     if deon_transaction.status == "COMMITTED_WITH_UNCERTAINTY":
                         calibrated_contested = any(
                             item.get("calibration_errors")
@@ -3701,10 +4103,10 @@ class WorkspaceEngine:
                         specialist=candidate.specialist,
                         allowed_actions=tuple(clean_actions),
                     )
-                    result.graph_transactions = graph_store.transaction_dicts()
-                    result.semantic_graphs = (
-                        [graph_store.graph_dict()] if graph_store.graph.nodes else []
-                    )
+                    ledger_commit_operations.append({
+                        "ledger": "RAWLSIAN_POSITION_LEDGER",
+                        "status": rawls_transaction.status,
+                    })
                     result.rawlsian_position_ledger = committed_rawls_positions(
                         graph_store.graph
                     )
@@ -3786,6 +4188,10 @@ class WorkspaceEngine:
                         specialist=candidate.specialist,
                         allowed_actions=tuple(clean_actions),
                     )
+                    ledger_commit_operations.append({
+                        "ledger": "VIRTUE_CHARACTER_LEDGER",
+                        "status": virtue_transaction.status,
+                    })
                     result.virtue_character_ledger = committed_virtue_assessments(
                         graph_store.graph
                     )
@@ -3795,8 +4201,6 @@ class WorkspaceEngine:
                         transaction_status=virtue_transaction.status,
                         records=result.virtue_character_ledger,
                     )
-                    result.graph_transactions = graph_store.transaction_dicts()
-                    result.semantic_graphs = [graph_store.graph_dict()]
                     if virtue_transaction.status == "REJECTED":
                         _apply_framework_ledger_uncertainty(
                             candidate, virtue_transaction.errors,
@@ -3840,6 +4244,10 @@ class WorkspaceEngine:
                         specialist=candidate.specialist,
                         allowed_actions=tuple(clean_actions),
                     )
+                    ledger_commit_operations.append({
+                        "ledger": "CARE_RELATIONSHIP_LEDGER",
+                        "status": care_transaction.status,
+                    })
                     result.care_relationship_ledger = committed_care_assessments(
                         graph_store.graph
                     )
@@ -3849,8 +4257,6 @@ class WorkspaceEngine:
                         transaction_status=care_transaction.status,
                         records=result.care_relationship_ledger,
                     )
-                    result.graph_transactions = graph_store.transaction_dicts()
-                    result.semantic_graphs = [graph_store.graph_dict()]
                     if care_transaction.status == "REJECTED":
                         _apply_framework_ledger_uncertainty(
                             candidate, care_transaction.errors,
@@ -3895,21 +4301,50 @@ class WorkspaceEngine:
                             f"{care_transaction.status.lower()}: "
                             + " | ".join(care_transaction.errors[:2])
                         )
+                transaction_statuses = {
+                    item["status"] for item in ledger_commit_operations
+                }
+                record_performance_event(
+                    "sequential_ledger_commit",
+                    ledger_commit_started,
+                    category="ledger_commit",
+                    status=(
+                        "REJECTED"
+                        if "REJECTED" in transaction_statuses
+                        else "COMMITTED_WITH_UNCERTAINTY"
+                        if "COMMITTED_WITH_UNCERTAINTY" in transaction_statuses
+                        else "NO_TRANSACTION"
+                        if not ledger_commit_operations
+                        else "OK"
+                    ),
+                    metadata={
+                        "cycle": cycle_number,
+                        "specialist": candidate.specialist,
+                        "operations": ledger_commit_operations,
+                    },
+                )
                 if progress:
                     returned_action = (
                         f"A{cycle_actions.index(candidate.recommended_action)}"
                         if candidate.recommended_action in cycle_actions else "?"
                     )
                     progress(
-                        f"  [{index}/{len(self.specialists)}] {specialist.name} returned; "
+                        f"  [{index}/{len(self.specialists)}] {specialist.name} committed; "
                         f"position={returned_action}; constraint={candidate.constraint}; "
                         f"preference={candidate.preference_strength:.2f}; "
                         f"epistemic={candidate.epistemic_confidence:.2f}; "
-                        f"status={candidate.adjudication_status} "
-                        f"in {time.monotonic() - call_started:.1f}s"
+                        f"status={candidate.adjudication_status}; "
+                        f"evaluation={evaluation.elapsed_seconds:.1f}s; "
+                        f"commit={time.monotonic() - ledger_commit_started:.3f}s"
                     )
-                if terminal_model_failure:
-                    break
+            # Materialize the graph projection once after the ordered commit
+            # barrier. Delegate evaluations have already completed against the
+            # frozen pre-cycle graph, and no candidate needs an intermediate
+            # serialized graph from another framework's same-cycle commit.
+            result.graph_transactions = graph_store.transaction_dicts()
+            result.semantic_graphs = (
+                [graph_store.graph_dict()] if graph_store.graph.nodes else []
+            )
             if result.halted_by in {"model_call_budget", "model_backend_unavailable"}:
                 if specialist_snapshot:
                     self._restore_specialist_state(specialist_snapshot)
@@ -3970,6 +4405,7 @@ class WorkspaceEngine:
             if audit_side_premises is not None and any(
                 candidate.schema_valid for candidate in candidates
             ):
+                side_audit_started = time.monotonic()
                 try:
                     premise_audit = audit_side_premises(
                         ledger_projection(working_proposition_ledger), candidates,
@@ -3998,6 +4434,17 @@ class WorkspaceEngine:
                         f"{audit_record['status']}; findings="
                         f"{len(audit_record['findings'])}"
                     )
+                record_performance_event(
+                    "side_premise_audit",
+                    side_audit_started,
+                    category="side_premise_audit",
+                    status=audit_record["status"],
+                    metadata={
+                        "cycle": cycle_number,
+                        "counterfactual": is_counterfactual,
+                        "finding_count": len(audit_record["findings"]),
+                    },
+                )
 
             candidates = _operative_framework_candidates(
                 candidates,
@@ -4016,6 +4463,7 @@ class WorkspaceEngine:
             )
             for candidate in candidates:
                 apply_specialist_authority(candidate)
+                apply_framework_vote_integrity(candidate, cycle_actions)
                 if candidate.schema_valid:
                     apply_investigative_authority(
                         candidate,
@@ -4025,6 +4473,9 @@ class WorkspaceEngine:
                         fired_keys=fired_reopen_keys,
                         settled_keys=settled_keys,
                     )
+                    # Investigative typing may alter authority presentation;
+                    # the ledger gate remains the final policy boundary.
+                    apply_framework_vote_integrity(candidate, cycle_actions)
             minority_name = previous_dissent.specialist if previous_dissent else ""
             recommendation_counts: dict[str, int] = {}
             for candidate in candidates:
@@ -4111,6 +4562,7 @@ class WorkspaceEngine:
                     fired_keys=fired_reopen_keys,
                     settled_keys=settled_keys,
                 )
+                apply_framework_vote_integrity(candidate, cycle_actions)
             proposed_governing_claim = self._select_governing_candidate(
                 valid_candidates,
                 selected_action,
@@ -4483,6 +4935,19 @@ class WorkspaceEngine:
                     ),
                     broadcast_focus=recorded_winner,
                 )
+            )
+            record_performance_event(
+                "cycle_execution",
+                cycle_started,
+                metadata={
+                    "cycle": cycle_number,
+                    "counterfactual": is_counterfactual,
+                    "candidate_count": len(candidates),
+                    "abstention_count": sum(
+                        candidate.framework_vote_status == "ABSTAIN"
+                        for candidate in candidates
+                    ),
+                },
             )
             if checkpoint is not None:
                 checkpoint(result)
@@ -5687,6 +6152,7 @@ class WorkspaceEngine:
                     settled_keys=list(settled_question_keys(graph_store.graph)),
                 )
                 apply_validator_governance_gate(candidate)
+                apply_framework_vote_integrity(candidate, result.actions)
             stored_governing = judgment_cycle.governing_claim
             governing_candidate = (
                 stored_governing
@@ -5752,6 +6218,7 @@ class WorkspaceEngine:
                     candidate.recommended_action
                     or max(candidate.action_scores, key=candidate.action_scores.get)
                 ) == result.current_plurality
+                and candidate.policy_weight_factor > 0.0
             ]
             epistemic_weight = sum(
                 max(0.05, candidate.preference_strength)

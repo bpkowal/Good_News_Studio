@@ -1,9 +1,7 @@
-from langchain_huggingface import HuggingFaceEmbeddings
 import json
 from pathlib import Path
 from datetime import datetime
 import os
-from get_semantic_tag import get_semantic_tag_weights
 from pathlib import Path
 import gc
 import atexit
@@ -16,6 +14,9 @@ from global_workspace.framework_retrieval import (
     retrieve_framework_evidence,
 )
 from global_workspace.source_cache import build_source_cache_key
+from global_workspace.retrieval_trace import (
+    disabled_retrieval_result, rag_is_disabled, serialize_retrieval_result,
+)
 
 from horizon_aggregator import (
     horizon_limited_aggregate,
@@ -44,6 +45,7 @@ UTILITARIAN_QUERY_LENS = (
 
 vectorstore = None
 embedder = None
+LAST_RETRIEVAL = None
 
 LAST_QUERY_PATH = Path("agent_outputs/.last_query_util.txt")
 LAST_RESPONSE_PATH = Path("agent_outputs/.last_response_util.txt")
@@ -56,6 +58,8 @@ class Document:
         self.metadata = metadata or {}
 
 def load_scenario_weights(scenario_id):
+    from get_semantic_tag import get_semantic_tag_weights
+
     print(f"🧠 Expanding tag weights with semantic overlap for scenario: {scenario_id}")
     return get_semantic_tag_weights(scenario_id, scenario_dir=Path("scenarios"), corpus_dir=Path("utilitarian_corpus"))
 
@@ -72,6 +76,8 @@ def cosine_similarity(a, b):
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
 def retrieve_utilitarian_quotes(query: str, scenario_id: str, limit_per_quote: int = 250):
+    from langchain_huggingface import HuggingFaceEmbeddings
+
     tag_weights = load_scenario_weights(scenario_id)
     print(f"\U0001f527 Scenario Tag Weights: {tag_weights}")
 
@@ -135,6 +141,7 @@ def _compute_horizon_limited_summary(scenario_tags: list[str],
 
 
 def respond_to_query(query: str, scenario_id: str, temperature: float = 0.5, max_tokens: int = 300, llm=None, scenario_path=None) -> str:
+    global LAST_RETRIEVAL
    
     if scenario_path is None:
         scenario_path = Path(f"scenarios/{scenario_id}.json")
@@ -186,7 +193,13 @@ def respond_to_query(query: str, scenario_id: str, temperature: float = 0.5, max
             except Exception as e:
                 print(f"⚠️ Horizon summary skipped: {e}")
 
-    context, top_quotes = retrieve_utilitarian_quotes(query, scenario_id)
+    if rag_is_disabled():
+        retrieval = disabled_retrieval_result(query, UTILITARIAN_QUERY_LENS)
+        LAST_RETRIEVAL = serialize_retrieval_result(retrieval, mode="disabled")
+        context = format_evidence_context(retrieval)
+        top_quotes = []
+    else:
+        context, top_quotes = retrieve_utilitarian_quotes(query, scenario_id)
 
     prompt = f"""
 <s>[INST] You are a utilitarian ethics assistant. Your goal is to determine the action best aligned with utilitarian principles, using the corpus excerpts provided.

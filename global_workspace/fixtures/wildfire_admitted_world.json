@@ -1,0 +1,39 @@
+{
+  "fixture_version": 1,
+  "fixture_role": "frozen_admitted_world_for_specialist_governance",
+  "source_trace": "workspace_workspace_20260909_100009_927872_20260909_100427.json",
+  "world_model_status": "COMMITTED",
+  "scenario": "A wildfire approaches a mountain town with twenty hospital patients, three hundred eastern-district residents, and fifty firefighters. The emergency coordinator must choose one plan. Plan A sends the only buses to the hospital, making the patients' escape almost certain. The eastern district must use a narrow road with a 10% chance of being blocked by falling debris; if blocked, approximately sixty residents could be trapped. Using the buses does not increase that risk. Plan B sends the buses east, allowing nearly all three hundred residents to escape safely. The hospital patients remain behind, although its fire-resistant walls make their deaths unlikely. There is, however, a 20% chance the ventilation system fails; if it does, the patients who cannot be moved face near-certain death. Five firefighters would stay to assist them at moderate risk. The buses cannot be divided, reinforcements are unavailable, and the decision cannot be delayed.",
+  "actions": {
+    "A0": "Deploy the only buses to transport the 20 hospital patients directly to safety, leaving the eastern district to use the risky narrow road",
+    "A1": "Send the only buses to ferry as many of the 300 eastern-district residents as possible, leaving the hospital patients behind"
+  },
+  "effects": [
+    {"effect_id": "E0", "action_id": "A0", "outcome": "IS_TRANSPORTED_BY_BUS", "polarity": "BENEFICIAL", "modality": "CERTAIN", "conditions": [], "quantities": ["twenty"]},
+    {"effect_id": "E1", "action_id": "A0", "outcome": "ESCAPES_SAFELY", "polarity": "BENEFICIAL", "modality": "PROBABILISTIC", "conditions": [], "qualifiers": ["almost certain"]},
+    {"effect_id": "E2", "action_id": "A0", "outcome": "USES_NARROW_ROAD", "polarity": "NEUTRAL", "modality": "CERTAIN", "conditions": [], "quantities": ["three hundred"]},
+    {"effect_id": "E3", "action_id": "A0", "outcome": "BLOCKED_BY_DEBRIS", "polarity": "ADVERSE", "modality": "PROBABILISTIC", "conditions": [], "qualifiers": ["10% chance"]},
+    {"effect_id": "E4", "action_id": "A0", "outcome": "RESIDENTS_TRAPPED", "polarity": "ADVERSE", "modality": "STIPULATED_CONDITIONAL", "conditions": ["COND1"], "quantities": ["approximately sixty"], "qualifiers": ["could"]},
+    {"effect_id": "E5", "action_id": "A0", "outcome": "ESCAPES_SAFELY", "polarity": "FOREGONE", "modality": "CERTAIN", "conditions": []},
+    {"effect_id": "E6", "action_id": "A0", "outcome": "NEAR_CERTAIN_DEATH", "polarity": "FOREGONE", "modality": "PROBABILISTIC", "conditions": [], "quantities": ["twenty"], "qualifiers": ["near-certain"]},
+    {"effect_id": "E10", "action_id": "A1", "outcome": "IS_TRANSPORTED_BY_BUS", "polarity": "BENEFICIAL", "modality": "CERTAIN", "conditions": [], "quantities": ["three hundred"]},
+    {"effect_id": "E11", "action_id": "A1", "outcome": "ESCAPES_SAFELY", "polarity": "BENEFICIAL", "modality": "CERTAIN", "conditions": []},
+    {"effect_id": "E12", "action_id": "A1", "outcome": "REMAINS_IN_HOSPITAL", "polarity": "NEUTRAL", "modality": "CERTAIN", "conditions": [], "quantities": ["twenty"]},
+    {"effect_id": "E13", "action_id": "A1", "outcome": "VENTILATION_FAILS", "polarity": "ADVERSE", "modality": "PROBABILISTIC", "conditions": [], "qualifiers": ["20% chance"]},
+    {"effect_id": "E14", "action_id": "A1", "outcome": "NEAR_CERTAIN_DEATH", "polarity": "ADVERSE", "modality": "STIPULATED_CONDITIONAL", "conditions": ["COND2"], "quantities": ["twenty"], "qualifiers": ["near-certain"]},
+    {"effect_id": "E15", "action_id": "A1", "outcome": "ASSIGNED_TO_ASSIST", "polarity": "NEUTRAL", "modality": "CERTAIN", "conditions": [], "quantities": ["five"]},
+    {"effect_id": "E16", "action_id": "A1", "outcome": "AT_MODERATE_RISK", "polarity": "ADVERSE", "modality": "CERTAIN", "conditions": [], "quantities": ["five"], "qualifiers": ["at moderate risk"]},
+    {"effect_id": "E17", "action_id": "A1", "outcome": "ESCAPES_SAFELY", "polarity": "FOREGONE", "modality": "PROBABILISTIC", "conditions": [], "qualifiers": ["almost certain"]},
+    {"effect_id": "E18", "action_id": "A1", "outcome": "RESIDENTS_TRAPPED", "polarity": "FOREGONE", "modality": "POSSIBLE", "conditions": [], "quantities": ["approximately sixty"], "qualifiers": ["could"]},
+    {"effect_id": "A1_WALLS", "action_id": "A1", "outcome": "FIRE_RESISTANT_WALLS", "polarity": "NEUTRAL", "modality": "CERTAIN", "conditions": []}
+  ],
+  "conditions": [
+    {"condition_id": "COND1", "event_effect_id": "E3", "description": "road is blocked", "value_status": "UNKNOWN"},
+    {"condition_id": "COND2", "event_effect_id": "E13", "description": "ventilation system fails", "value_status": "UNKNOWN"}
+  ],
+  "forbidden_derivations": [
+    {"source_effect_id": "E4", "forbidden_outcome": "DEATH", "reason": "trapped is not dead"},
+    {"source_effect_id": "E14", "forbidden_probability": "100%", "reason": "near-certain is not exactly certain"},
+    {"source_effect_id": "E18", "forbidden_outcome": "DEATH", "reason": "a foregone possible trapping effect does not establish mortality"}
+  ]
+}

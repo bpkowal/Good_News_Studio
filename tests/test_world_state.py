@@ -31,28 +31,39 @@ from global_workspace.world_state import (
     ScenarioWorldModel,
     admit_world_model_extension,
     classify_clause_role,
+    compile_event_condition_bindings,
     compact_committed_world,
     explicit_likelihood_spans,
     explicit_likelihood_span_records,
     explicit_quantity_spans,
     explicit_scope_spans,
     explicit_temporal_spans,
+    normalize_redundant_link_gates,
+    normalize_event_probability_ownership,
     assigned_party_quantities,
     parse_world_model,
     project_world_action_roles,
     utilitarian_omits_foregone_dual,
     validate_world_completeness,
+    validate_effect_source_bindings,
     validate_world_model,
     world_model_from_dict,
     _closed_class_qualifiers,
     _condition_restates_outcome,
     _effect_expected_qualifiers,
+    _event_referenced_condition_errors,
     _unique_likelihood_spans,
 )
 from global_workspace.action_identity import build_canonical_action_records
+from global_workspace.world_validation import (
+    WorldModelValidationError,
+    repair_patch_contract,
+    validation_issues_from_messages,
+)
 from global_workspace.graph_transactions import SemanticGraphStore
 from global_workspace.local_specialists import (
     CompactLocalSpecialist,
+    _admit_action_source_rows,
     _candidate_from_data,
     ground_actions_in_scenario,
     _preserve_stable_world_bookkeeping,
@@ -735,6 +746,115 @@ class QualifierBindingTests(unittest.TestCase):
 class IndependentConditionTests(unittest.TestCase):
     """Conditions must add an unknown, not restate a CERTAIN parent."""
 
+    def test_redundant_certain_link_gate_is_owned_by_conditional_target(self):
+        effects = (
+            WorldEffect(
+                "E0", "A0", "P1", "facility exposed", "STATE_CHANGE",
+                "NEUTRAL", "DOWNSTREAM", "CERTAIN", "PHYSICAL_STATE",
+                provenance=REF,
+            ),
+            WorldEffect(
+                "E1", "A0", "P2", "water contaminated", "EXPERIENCES",
+                "ADVERSE", "DOWNSTREAM", "STIPULATED_CONDITIONAL",
+                "WELFARE_OUTCOME", ("COND0",), provenance=REF,
+            ),
+        )
+        normalized = normalize_redundant_link_gates((
+            CausalLink(
+                "E0", "CAUSES", "E1", "CERTAIN", ("COND0",), REF, "A0",
+            ),
+        ), effects)
+        self.assertEqual(normalized[0].condition_ids, ())
+        self.assertEqual(normalized[0].modality, "CERTAIN")
+        self.assertEqual(effects[1].condition_ids, ("COND0",))
+
+    def test_unique_link_gate_is_not_silently_rewritten(self):
+        effects = (
+            WorldEffect(
+                "E0", "A0", "P1", "facility exposed", "STATE_CHANGE",
+                "NEUTRAL", "DOWNSTREAM", "CERTAIN", "PHYSICAL_STATE",
+                provenance=REF,
+            ),
+            WorldEffect(
+                "E1", "A0", "P2", "water contaminated", "EXPERIENCES",
+                "ADVERSE", "DOWNSTREAM", "STIPULATED_CONDITIONAL",
+                "WELFARE_OUTCOME", ("COND0",), provenance=REF,
+            ),
+        )
+        normalized = normalize_redundant_link_gates((
+            CausalLink(
+                "E0", "CAUSES", "E1", "CERTAIN", ("COND1",), REF, "A0",
+            ),
+        ), effects)
+        self.assertEqual(normalized[0].condition_ids, ("COND1",))
+
+    def test_unique_branch_local_probability_event_is_bound_by_compiler(self):
+        ref = (SourceRef(
+            "C1", "There is a 20% chance the backup process fails.",
+        ),)
+        effects = (
+            WorldEffect(
+                "E2", "A0", "P3", "backup process fails", "STATE_CHANGE",
+                "NEUTRAL", "DOWNSTREAM", "PROBABILISTIC", "PHYSICAL_STATE",
+                likelihood_qualifiers=("20% chance",), provenance=ref,
+            ),
+            WorldEffect(
+                "E3", "A0", "P2", "subjects die", "DIES", "ADVERSE",
+                "DOWNSTREAM", "STIPULATED_CONDITIONAL", "HEALTH_OUTCOME",
+                ("COND0",), provenance=ref,
+            ),
+        )
+        compiled = compile_event_condition_bindings((
+            WorldCondition("COND0", "if the backup process fails", provenance=ref),
+        ), effects)
+        self.assertEqual(compiled[0].event_effect_id, "E2")
+
+    def test_event_binding_never_reaches_across_action_branches(self):
+        ref = (SourceRef("C1", "The backup process may fail."),)
+        effects = (
+            WorldEffect(
+                "E2", "A1", "P3", "backup process fails", "STATE_CHANGE",
+                "NEUTRAL", "DOWNSTREAM", "POSSIBLE", "PHYSICAL_STATE",
+                likelihood_qualifiers=("may",), provenance=ref,
+            ),
+            WorldEffect(
+                "E3", "A0", "P2", "subjects die", "DIES", "ADVERSE",
+                "DOWNSTREAM", "STIPULATED_CONDITIONAL", "HEALTH_OUTCOME",
+                ("COND0",), provenance=ref,
+            ),
+        )
+        compiled = compile_event_condition_bindings((
+            WorldCondition("COND0", "if the backup process fails", provenance=ref),
+        ), effects)
+        self.assertEqual(compiled[0].event_effect_id, "")
+
+    def test_event_probability_is_removed_from_gated_descendant(self):
+        ref = (SourceRef(
+            "C1", "There is a 20% chance the backup fails and subjects die.",
+        ),)
+        effects = (
+            WorldEffect(
+                "E2", "A0", "P3", "backup fails", "STATE_CHANGE",
+                "NEUTRAL", "DOWNSTREAM", "PROBABILISTIC", "PHYSICAL_STATE",
+                likelihood_qualifiers=("20% chance",), provenance=ref,
+            ),
+            WorldEffect(
+                "E3", "A0", "P2", "subjects die", "DIES", "ADVERSE",
+                "DOWNSTREAM", "PROBABILISTIC", "HEALTH_OUTCOME",
+                ("COND0",), provenance=ref,
+                likelihood_qualifiers=("20% chance",),
+            ),
+        )
+        conditions = (
+            WorldCondition(
+                "COND0", "backup fails", provenance=ref, event_effect_id="E2",
+            ),
+        )
+        normalized = normalize_event_probability_ownership(effects, conditions)
+        self.assertEqual(normalized[0].likelihood_qualifiers, ("20% chance",))
+        self.assertEqual(normalized[1].likelihood_qualifiers, ())
+        self.assertEqual(normalized[1].modality, "STIPULATED_CONDITIONAL")
+
     EXCERPT = (
         "The allocator keeps the device connected, preserving support for "
         "twelve subjects."
@@ -1111,6 +1231,55 @@ class IndependentConditionTests(unittest.TestCase):
         errors, _ = validate_world_model(model, action_ids=["A0"])
         self.assertEqual(errors, [])
 
+    def test_event_reference_ignores_other_action_foregone_mirror(self):
+        ref = (SourceRef(
+            "C1",
+            "There is a 25% chance the facility floods and residents lose water.",
+        ),)
+        model = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "allocator", "AUTOMATED_SYSTEM", REF),
+                WorldParty("P1", "facility", "FACILITY", ref),
+                WorldParty("P2", "residents", "POPULATION", ref),
+            ),
+            actions=(
+                WorldAction("A0", "protect facility", "P0", ("P1",), ("E8",), REF),
+                WorldAction(
+                    "A1", "leave facility exposed", "P0", ("P1",),
+                    ("E3B", "E4B"), ref,
+                ),
+            ),
+            effects=(
+                WorldEffect(
+                    "E8", "A0", "P1", "facility flooded", "STATE_CHANGE",
+                    "FOREGONE", "FOREGONE", "CERTAIN", "OPPORTUNITY_LOSS",
+                    provenance=ref,
+                ),
+                WorldEffect(
+                    "E3B", "A1", "P1", "facility flooded", "STATE_CHANGE",
+                    "ADVERSE", "DOWNSTREAM", "PROBABILISTIC", "PHYSICAL_STATE",
+                    likelihood_qualifiers=("25% chance",), provenance=ref,
+                ),
+                WorldEffect(
+                    "E4B", "A1", "P2", "residents lose water", "EXPERIENCES",
+                    "ADVERSE", "DOWNSTREAM", "STIPULATED_CONDITIONAL",
+                    "WELFARE_OUTCOME", ("CT2",), provenance=ref,
+                ),
+            ),
+            conditions=(
+                WorldCondition(
+                    "CT2", "facility flooded", provenance=ref,
+                    event_effect_id="E3B",
+                ),
+            ),
+            schema_version="1.2",
+        )
+        errors = _event_referenced_condition_errors(model)
+        self.assertFalse(
+            any("description restates E8" in error for error in errors),
+            errors,
+        )
+
     def test_free_text_restating_independent_event_is_rejected(self):
         excerpt = (
             "The allocator keeps the device connected. There is a 20% chance "
@@ -1387,6 +1556,244 @@ class ClauseRoleTests(unittest.TestCase):
 
 
 class WorldModelValidationTests(unittest.TestCase):
+    def test_schema_13_action_source_candidate_commits_end_to_end(self):
+        clauses = [
+            {"clause_id": "C0", "text": "An automated system controls two gates."},
+            {"clause_id": "C1", "text": "A0 opens north gate."},
+            {"clause_id": "C2", "text": "A1 opens south gate."},
+        ]
+        candidate = {
+            "actions": {
+                "A0": {"clause_ids": ["C1"], "reason": "C1 states A0."},
+                "A1": {"clause_ids": ["C2"], "reason": "C2 states A1."},
+            },
+            "world_model": {
+                "schema_version": "1.3",
+                "parties": [
+                    {"party_id": "P0", "label": "automated system", "kind": "AUTOMATED_SYSTEM", "quantities": [], "clause_ids": ["C0"]},
+                    {"party_id": "PN", "label": "north gate", "kind": "INFRASTRUCTURE", "quantities": [], "clause_ids": ["C1"]},
+                    {"party_id": "PS", "label": "south gate", "kind": "INFRASTRUCTURE", "quantities": [], "clause_ids": ["C2"]},
+                ],
+                "actions": [
+                    {"action_id": "A0", "intervention": "opens north gate", "actor_party_id": "P0", "recipient_party_ids": ["PN"], "effect_ids": ["E0"], "clause_ids": ["C1"]},
+                    {"action_id": "A1", "intervention": "opens south gate", "actor_party_id": "P0", "recipient_party_ids": ["PS"], "effect_ids": ["E1"], "clause_ids": ["C2"]},
+                ],
+                "effects": [
+                    {
+                        "effect_id": "E0", "action_id": "A0", "party_id": "PN",
+                        "outcome": "opens north gate", "predicate": "ACTS",
+                        "polarity": "NEUTRAL", "directness": "DIRECT",
+                        "modality": "CERTAIN", "effect_kind": "INTERVENTION",
+                        "condition_ids": [], "quantities": [],
+                        "likelihood_qualifiers": [], "overall_likelihood_qualifiers": [],
+                        "scope_qualifiers": [], "temporal_qualifiers": [],
+                        "condition_join": "AND", "source_proposition": "opens north gate",
+                        "source_effect_ids": [], "derivation_operation": "DIRECT_COPY",
+                        "derivation_explanation": "C1 states the action.",
+                        "derivation_assumptions": [], "outcome_type_transformation": "PRESERVED",
+                        "clause_ids": ["C1"],
+                    },
+                    {
+                        "effect_id": "E1", "action_id": "A1", "party_id": "PS",
+                        "outcome": "opens south gate", "predicate": "ACTS",
+                        "polarity": "NEUTRAL", "directness": "DIRECT",
+                        "modality": "CERTAIN", "effect_kind": "INTERVENTION",
+                        "condition_ids": [], "quantities": [],
+                        "likelihood_qualifiers": [], "overall_likelihood_qualifiers": [],
+                        "scope_qualifiers": [], "temporal_qualifiers": [],
+                        "condition_join": "AND", "source_proposition": "opens south gate",
+                        "source_effect_ids": [], "derivation_operation": "DIRECT_COPY",
+                        "derivation_explanation": "C2 states the action.",
+                        "derivation_assumptions": [], "outcome_type_transformation": "PRESERVED",
+                        "clause_ids": ["C2"],
+                    },
+                ],
+                "conditions": [], "causal_links": [], "counterfactual_links": [],
+            },
+        }
+        result = _admit_action_source_rows(
+            candidate,
+            ["opens north gate", "opens south gate"],
+            ["A0", "A1"],
+            clauses,
+        )
+        self.assertEqual(result["status"], "COMMITTED", result["errors"])
+        self.assertEqual(result["world_model"]["schema_version"], "1.3")
+        binding = result["world_model"]["effects"][0]
+        self.assertEqual(binding["source_proposition"], "opens north gate")
+        restored = world_model_from_dict(result["world_model"])
+        self.assertIsNotNone(restored)
+        self.assertEqual(restored.effects[0].source_proposition, "opens north gate")
+        compact = compact_committed_world(restored)
+        self.assertEqual(
+            compact["effects"][0]["source_binding"]["derivation_operation"],
+            "DIRECT_COPY",
+        )
+
+    def test_schema_13_explicit_source_proposition_binding_admits(self):
+        ref = (SourceRef("C1", "The action guarantees safe water."),)
+        effect = WorldEffect(
+            "E1", "A0", "P1", "safe water", "HAS", "BENEFICIAL",
+            "DIRECT", "CERTAIN", "RESOURCE_TRANSFER", provenance=ref,
+            source_proposition="guarantees safe water",
+            derivation_operation="DIRECT_COPY",
+            derivation_explanation="The source states the atomic outcome.",
+        )
+        model = ScenarioWorldModel(
+            parties=(WorldParty("P1", "residents", "POPULATION", ref),),
+            actions=(WorldAction("A0", "act", "P1", ("P1",), ("E1",), ref),),
+            effects=(effect,),
+            schema_version="1.3",
+        )
+        self.assertEqual(validate_effect_source_bindings(model), [])
+
+    def test_schema_13_rejects_outcome_leap_hidden_as_direct_copy(self):
+        ref = (SourceRef("C1", "Residents become trapped in the facility."),)
+        effect = WorldEffect(
+            "E1", "A0", "P1", "residents die", "DIES", "ADVERSE",
+            "DOWNSTREAM", "CERTAIN", "HEALTH_OUTCOME", provenance=ref,
+            source_proposition="Residents become trapped in the facility",
+            derivation_operation="DIRECT_COPY",
+            derivation_explanation="Claims trapping means death.",
+            outcome_type_transformation="MORTALITY",
+        )
+        model = ScenarioWorldModel(
+            parties=(WorldParty("P1", "residents", "POPULATION", ref),),
+            actions=(WorldAction("A0", "act", "P1", ("P1",), ("E1",), ref),),
+            effects=(effect,),
+            schema_version="1.3",
+        )
+        errors = validate_effect_source_bindings(model)
+        self.assertTrue(any("does not state its normalized outcome" in row for row in errors))
+        self.assertTrue(any("changes source outcome type" in row for row in errors))
+
+    def test_schema_13_causal_binding_requires_named_immediate_parent(self):
+        ref = (SourceRef(
+            "C1", "Opening the valve supplies safe water to residents.",
+        ),)
+        effects = (
+            WorldEffect(
+                "E0", "A0", "P0", "opening the valve", "ACTS", "NEUTRAL",
+                "DIRECT", "CERTAIN", "INTERVENTION", provenance=ref,
+                source_proposition="Opening the valve",
+                derivation_operation="DIRECT_COPY",
+                derivation_explanation="The source states the intervention.",
+            ),
+            WorldEffect(
+                "E1", "A0", "P1", "safe water", "HAS", "BENEFICIAL",
+                "DOWNSTREAM", "CERTAIN", "WELFARE_OUTCOME", provenance=ref,
+                source_proposition="supplies safe water to residents",
+                source_effect_ids=("E0",),
+                derivation_operation="SOURCE_STIPULATED_CAUSAL",
+                derivation_explanation="The source says opening supplies the water.",
+            ),
+        )
+        model = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "valve", "INFRASTRUCTURE", ref),
+                WorldParty("P1", "residents", "POPULATION", ref),
+            ),
+            actions=(WorldAction("A0", "open", "P0", ("P0",), ("E0", "E1"), ref),),
+            effects=effects,
+            causal_links=(
+                CausalLink("E0", "CAUSES", "E1", "CERTAIN", (), ref, "A0"),
+            ),
+            schema_version="1.3",
+        )
+        self.assertEqual(validate_effect_source_bindings(model), [])
+        broken = replace(model, causal_links=())
+        errors = validate_effect_source_bindings(broken)
+        self.assertTrue(any("not same-action immediate parents" in row for row in errors))
+
+    def test_structural_abstraction_cannot_smuggle_in_human_harm(self):
+        ref = (SourceRef("C1", "Residents are trapped after the gate closes."),)
+        effects = (
+            WorldEffect(
+                "E0", "A0", "P0", "gate closes", "ACTS", "NEUTRAL",
+                "DIRECT", "CERTAIN", "INTERVENTION", provenance=ref,
+                source_proposition="the gate closes",
+                derivation_operation="DIRECT_COPY",
+            ),
+            WorldEffect(
+                "E1", "A0", "P1", "trapped residents die", "DIES", "ADVERSE",
+                "DOWNSTREAM", "CERTAIN", "HEALTH_OUTCOME", provenance=ref,
+                source_proposition="Residents are trapped",
+                source_effect_ids=("E0",),
+                derivation_operation="STRUCTURAL_ABSTRACTION",
+                derivation_explanation="Attempts to turn trapping into death.",
+                outcome_type_transformation="MORTALITY",
+            ),
+        )
+        model = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "gate", "INFRASTRUCTURE", ref),
+                WorldParty("P1", "residents", "POPULATION", ref),
+            ),
+            actions=(WorldAction("A0", "close", "P0", ("P0",), ("E0", "E1"), ref),),
+            effects=effects,
+            causal_links=(
+                CausalLink("E0", "CAUSES", "E1", "CERTAIN", (), ref, "A0"),
+            ),
+            schema_version="1.3",
+        )
+        errors = validate_effect_source_bindings(model)
+        self.assertTrue(any("must be an actual NEUTRAL" in row for row in errors))
+        self.assertTrue(any("changes source outcome type" in row for row in errors))
+
+    def test_neutral_source_anchored_structural_abstraction_admits(self):
+        ref = (SourceRef("C1", "Opening the gate sends the surge along this path."),)
+        effects = (
+            WorldEffect(
+                "E0", "A0", "P0", "opening the gate", "ACTS", "NEUTRAL",
+                "DIRECT", "CERTAIN", "INTERVENTION", provenance=ref,
+                source_proposition="Opening the gate",
+                derivation_operation="DIRECT_COPY",
+            ),
+            WorldEffect(
+                "E1", "A0", "P1", "surge path exposure", "STATE_CHANGE",
+                "NEUTRAL", "DOWNSTREAM", "CERTAIN", "PHYSICAL_STATE",
+                provenance=ref,
+                source_proposition="sends the surge along this path",
+                source_effect_ids=("E0",),
+                derivation_operation="STRUCTURAL_ABSTRACTION",
+                derivation_explanation="Represents the stated surge path.",
+            ),
+        )
+        model = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "gate", "INFRASTRUCTURE", ref),
+                WorldParty("P1", "path", "PROCESS", ref),
+            ),
+            actions=(WorldAction("A0", "open", "P0", ("P0",), ("E0", "E1"), ref),),
+            effects=effects,
+            causal_links=(
+                CausalLink("E0", "CAUSES", "E1", "CERTAIN", (), ref, "A0"),
+            ),
+            schema_version="1.3",
+        )
+        self.assertEqual(validate_effect_source_bindings(model), [])
+
+    def test_validation_messages_have_stable_typed_repair_metadata(self):
+        issues = validation_issues_from_messages((
+            "E2 is a downstream human outcome with no causal parent",
+            "causal_link[7] is CERTAIN but lists conditions",
+        ))
+        self.assertEqual(issues[0].code, "MISSING_CAUSAL_PARENT")
+        self.assertEqual(issues[0].entity_id, "E2")
+        self.assertEqual(issues[0].field, "causal_links")
+        self.assertEqual(issues[1].code, "CERTAIN_ROW_HAS_CONDITIONS")
+        self.assertEqual(issues[1].entity_kind, "causal_link")
+        contract = repair_patch_contract(issues)
+        self.assertEqual(contract["allowed_operations"], ["add", "replace"])
+        self.assertIn("E2", contract["allowed_entity_ids"])
+
+    def test_world_model_validation_error_retains_typed_issues(self):
+        issue = validation_issues_from_messages(("E2 lacks source provenance",))[0]
+        error = WorldModelValidationError((issue.message,), (issue,))
+        self.assertIsInstance(error, ValueError)
+        self.assertEqual(error.issues[0].entity_id, "E2")
+        self.assertEqual(str(error), "E2 lacks source provenance")
+
     def test_action_effect_ids_are_derived_from_owned_effects(self):
         raw = {
             "parties": [
@@ -1443,12 +1850,19 @@ class WorldModelValidationTests(unittest.TestCase):
         rejected = {
             "status": "REJECTED", "actions": {},
             "errors": ["typed world model rejected: E1 omits qualifier 'broader'"],
+            "validation_issues": [
+                validation_issues_from_messages((
+                    "E1 omits source-grounded scope qualifier 'broader'",
+                ))[0].as_dict(),
+            ],
             "clauses": [], "world_contradictions": [],
         }
         prompts: list[str] = []
+        schemas: list[dict] = []
 
-        def fake_call(_llm, prompt, **_kwargs):
+        def fake_call(_llm, prompt, **kwargs):
             prompts.append(prompt)
+            schemas.append(kwargs["schema"])
             return {"choices": [{"text": __import__("json").dumps(rejected_candidate)}]}
 
         with patch(
@@ -1482,6 +1896,16 @@ class WorldModelValidationTests(unittest.TestCase):
         self.assertIn("do not delete the downstream human row", prompts[1].casefold())
         self.assertIn("keep counterfactual_links", prompts[1].casefold())
         self.assertIn("transferred resource", prompts[1].casefold())
+        self.assertIn("Typed validation issues", prompts[1])
+        self.assertIn("Transactional repair boundary", prompts[1])
+        self.assertIn('"allowed_entity_ids": ["E1"]', prompts[1])
+        world_schema = schemas[0]["properties"]["world_model"]
+        self.assertEqual(
+            world_schema["properties"]["schema_version"]["enum"], ["1.3"],
+        )
+        effect_required = world_schema["properties"]["effects"]["items"]["required"]
+        self.assertIn("source_proposition", effect_required)
+        self.assertIn("derivation_operation", effect_required)
 
     def test_repair_restores_dropped_counterfactual_overlays(self):
         previous = {

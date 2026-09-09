@@ -3,7 +3,6 @@ from pathlib import Path
 from global_workspace.source_cache import build_source_cache_key
 from datetime import datetime
 import os
-from get_semantic_tag import get_semantic_tag_weights
 import atexit
 import gc
 from global_workspace.framework_retrieval import (
@@ -12,6 +11,9 @@ from global_workspace.framework_retrieval import (
     format_evidence_context,
     load_corpus_passages,
     retrieve_framework_evidence,
+)
+from global_workspace.retrieval_trace import (
+    disabled_retrieval_result, rag_is_disabled, serialize_retrieval_result,
 )
 
 LAST_QUERY_PATH = Path("agent_outputs/.last_query_rawlsian.txt")
@@ -35,6 +37,7 @@ RAWLS_QUERY_LENS = (
     "ignorance, basic liberties, fair equality of opportunity, primary goods, and "
     "the least advantaged."
 )
+LAST_RETRIEVAL = None
 
 class Document:
     def __init__(self, content, metadata):
@@ -42,6 +45,8 @@ class Document:
         self.metadata = metadata or {}
 
 def load_scenario_weights(scenario_id):
+    from get_semantic_tag import get_semantic_tag_weights
+
     print(f"🧠 Expanding tag weights with semantic overlap for scenario: {scenario_id}")
     return get_semantic_tag_weights(scenario_id, scenario_dir=Path("scenarios"), corpus_dir=Path("rawlsian_ethics_corpus"))
 
@@ -98,6 +103,7 @@ def retrieve_rawlsian_ethics_quotes(query: str, scenario_id: str, limit_per_quot
     ]
 
 def respond_to_query(query: str, scenario_id: str, scenario_path=None, temperature: float = 0.7, max_tokens: int = 300, llm=None) -> str:
+    global LAST_RETRIEVAL
         # fallback if scenario_path not provided
     
     if scenario_path is None:
@@ -122,7 +128,13 @@ def respond_to_query(query: str, scenario_id: str, scenario_path=None, temperatu
             print("⚡ Skipping LLM call — using cached rawlsian ethics response.")
             return LAST_RESPONSE_PATH.read_text().strip()
 
-    context, top_quotes = retrieve_rawlsian_ethics_quotes(query, scenario_id)
+    if rag_is_disabled():
+        retrieval = disabled_retrieval_result(query, RAWLS_QUERY_LENS)
+        LAST_RETRIEVAL = serialize_retrieval_result(retrieval, mode="disabled")
+        context = format_evidence_context(retrieval)
+        top_quotes = []
+    else:
+        context, top_quotes = retrieve_rawlsian_ethics_quotes(query, scenario_id)
 
     if llm is None:
         from llama_cpp import Llama  # Deferred import to avoid GPU crash during embeddings

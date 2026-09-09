@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 import re
-from typing import Any, Mapping, Sequence
+from typing import Any, Iterable, Mapping, Sequence
 
 from global_workspace.framework_retrieval import RETRIEVAL_VERSION, RetrievalResult
 
@@ -22,6 +22,17 @@ def rag_cache_token(*, disabled: bool | None = None) -> str:
     if disabled is None:
         disabled = rag_is_disabled()
     return "rag=off" if disabled else "rag=on"
+
+
+def disabled_retrieval_result(query: str, query_lens: str) -> RetrievalResult:
+    """The authoritative typed RAG-off result used by bridge and source agents."""
+    return RetrievalResult(
+        (),
+        0,
+        0,
+        None,
+        f"{query_lens}\nCase: {query}".strip(),
+    )
 
 
 def serialize_retrieval_result(
@@ -144,6 +155,33 @@ def specialist_cycle_text(result: Mapping[str, Any], specialist: str) -> str:
                 "recommended_action",
             ):
                 value = candidate.get(key)
+                if value:
+                    chunks.append(str(value))
+    return "\n".join(chunks)
+
+
+def specialist_candidate_cycle_text(
+    cycles: Iterable[Any], specialist: str,
+) -> str:
+    """Collect retrieval-comparison text without serializing a whole result.
+
+    This deliberately projects only the five fields consumed by retrieval-use
+    annotation. It accepts live ``WorkspaceCycle``/``CandidateChunk`` objects,
+    so finalization no longer constructs a duplicate full audit dictionary.
+    """
+    chunks: list[str] = []
+    for cycle in cycles:
+        for candidate in getattr(cycle, "candidates", ()):
+            if str(getattr(candidate, "specialist", "")) != specialist:
+                continue
+            for field in (
+                "rationale",
+                "change_justification",
+                "constraint",
+                "unresolved",
+                "recommended_action",
+            ):
+                value = getattr(candidate, field, "")
                 if value:
                     chunks.append(str(value))
     return "\n".join(chunks)

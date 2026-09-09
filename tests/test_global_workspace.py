@@ -2,8 +2,14 @@ from __future__ import annotations
 
 import unittest
 import base64
+import concurrent.futures
+import importlib
 import json
+import os
 import tempfile
+import threading
+import time
+from contextlib import ExitStack, chdir
 from dataclasses import asdict
 from pathlib import Path
 from types import SimpleNamespace
@@ -18,7 +24,11 @@ from global_workspace.engine import (
 from global_workspace.epistemic_ledger import seed_proposition_ledger
 from global_workspace.action_identity import compile_action_identity
 from global_workspace.evidence_calibration import EvidenceCalibration
-from global_workspace.legacy_bridge import RESPONSE_MARKER, consult_original_agents
+from global_workspace.framework_vote_integrity import apply_framework_vote_integrity
+from global_workspace.framework_retrieval import format_evidence_context
+from global_workspace.legacy_bridge import (
+    PERFORMANCE_MARKER, RESPONSE_MARKER, consult_original_agents,
+)
 from global_workspace.local_specialists import (
     CompactLocalSpecialist,
     SpecialistEvaluationStageError,
@@ -87,13 +97,26 @@ from global_workspace.trace_health import audit_trace_health
 from global_workspace.graph_transactions import SemanticGraphStore
 from global_workspace.world_state import (
     CausalLink, ScenarioWorldModel, SourceRef, WorldAction, WorldCondition,
-    WorldEffect, WorldParty,
+    WorldEffect, WorldParty, WorldStateAdmission,
+)
+from global_workspace.frozen_world_replay import (
+    FrozenWorldReplayError, load_frozen_world_trace,
+)
+from global_workspace.performance import (
+    performance_stage, record_performance_duration,
+    reset_performance_trace, start_performance_trace,
+)
+from global_workspace.retrieval_trace import (
+    disabled_retrieval_result, serialize_retrieval_result,
 )
 from global_workspace.invariance import compare_label_permutation_traces
 from global_workspace.openai_backend import OpenAIWorkspaceLLM
 from global_workspace.presentation import render_public_judgment, _support_reason
 from global_workspace.semantic_state import (
     _derive_action_dimensions, project_authoritative_semantic_state,
+)
+from global_workspace.semantic_equivalence import (
+    compare_semantic_results, semantic_run_snapshot,
 )
 from global_workspace.semantic_graph import (
     SemanticGraph, SemanticNode, SemanticEdge, merge_graphs,
@@ -111,7 +134,12 @@ from global_workspace.scenario_semantics import (
     classify_planning_failure_grounding,
     project_grounded_action_effects,
 )
-from global_workspace.structured_io import ModelCallUnavailable
+from global_workspace.structured_io import (
+    _CALL_BUDGET, ModelCallBudgetExceeded, ModelCallUnavailable,
+    begin_model_call_cycle, call_json_llm, pause_model_call_budget,
+    reset_model_call_budget, resume_model_call_budget,
+    start_model_call_budget, submit_with_context,
+)
 from global_workspace_pipeline import _baseline_display_action, render_summary
 
 
@@ -147,6 +175,936 @@ class InvalidSpecialist(FixedSpecialist):
         chunk.validation_errors = ["invalid constraint"]
         chunk.confidence = 1.0
         return chunk
+
+
+class CycleEvaluationBarrierTests(unittest.TestCase):
+    def _config(self) -> WorkspaceConfig:
+        return WorkspaceConfig(
+            max_cycles=1,
+            stable_cycles_required=3,
+            min_valid_specialists=2,
+            enable_consensus_audit=False,
+            enable_problem_state_audit=False,
+            enable_reversal_audit=False,
+            enable_synthesis=False,
+            enable_planning=False,
+        )
+
+    def test_every_evaluation_finishes_before_configured_order_commit(self):
+        events: list[str] = []
+
+        class TracingEngine(WorkspaceEngine):
+            def evaluate_specialist(self, specialist, cycle_input, **kwargs):
+                events.append(f"evaluate:{specialist.name}")
+                return super().evaluate_specialist(
+                    specialist, cycle_input, **kwargs,
+                )
+
+            def commit_candidate(
+                self, specialist, evaluation, cycle_input, **kwargs,
+            ):
+                events.append(f"commit:{specialist.name}")
+                return super().commit_candidate(
+                    specialist, evaluation, cycle_input, **kwargs,
+                )
+
+        TracingEngine(
+            [
+                FixedSpecialist("first", "protect", "CARE"),
+                FixedSpecialist("second", "protect", "DUTY"),
+            ],
+            self._config(),
+        ).run("Choose protect or decline.", ["protect", "decline"])
+
+        self.assertEqual(events, [
+            "evaluate:first", "evaluate:second",
+            "commit:first", "commit:second",
+        ])
+
+    def test_cycle_inputs_are_isolated_from_legacy_delegate_mutation(self):
+        observations: list[dict[str, object]] = []
+
+        class SnapshotSpecialist(FixedSpecialist):
+            def __init__(self, name: str, mutate: bool = False):
+                super().__init__(name, "protect", "CARE")
+                self.mutate = mutate
+                self.scenario_graph = None
+                self.proposition_ledger = []
+                self.canonical_action_records = []
+                self.source_action_legend = {}
+
+            def evaluate(self, scenario, actions, broadcast):
+                observations.append({
+                    "specialist": self.name,
+                    "graph_nodes": tuple(sorted(self.scenario_graph.nodes)),
+                    "propositions": tuple(
+                        row.get("proposition_id", "")
+                        for row in self.proposition_ledger
+                    ),
+                    "agenda_question": broadcast.challenge_agenda[0]["question"],
+                    "problem_role": broadcast.problem_state.get("state_role"),
+                    "mapping": tuple(
+                        row.get("action_id", "")
+                        for row in self.canonical_action_records
+                    ),
+                    "legend": tuple(sorted(self.source_action_legend.items())),
+                })
+                if self.mutate:
+                    self.scenario_graph.add_node(SemanticNode(
+                        "SAME_CYCLE_LEAK", "CLAIM", "must remain private",
+                    ))
+                    self.proposition_ledger.append({
+                        "proposition_id": "SAME_CYCLE_LEAK",
+                    })
+                    self.canonical_action_records.append({
+                        "action_id": "SAME_CYCLE_LEAK",
+                    })
+                    self.source_action_legend["SAME_CYCLE_LEAK"] = "mutated"
+                    broadcast.challenge_agenda[0]["question"] = "mutated"
+                    broadcast.problem_state["state_role"] = "mutated"
+                return super().evaluate(scenario, actions, broadcast)
+
+        initial = WorkspaceBroadcast(challenge_agenda=({
+            "issue_id": "CHALLENGE:frozen-input",
+            "generated_by": "workspace_argument_auditor",
+            "about_specialist": "first",
+            "raised_by": ["workspace_argument_auditor"],
+            "target_specialists": ["first", "second"],
+            "challenge_kind": "BOUNDARY_TEST",
+            "question": "Which fact changes the ranking?",
+            "status": "UNTESTED",
+            "grounded_in": ["C0"],
+        },))
+        canonical_mapping = [
+            {"action_id": "A0", "canonical_semantic_action": "protect"},
+            {"action_id": "A1", "canonical_semantic_action": "decline"},
+        ]
+        WorkspaceEngine(
+            [SnapshotSpecialist("first", mutate=True), SnapshotSpecialist("second")],
+            self._config(),
+        ).run(
+            "Choose protect or decline.",
+            ["protect", "decline"],
+            initial_broadcast=initial,
+            canonical_action_records=canonical_mapping,
+            source_action_legend={"A0": "protect", "A1": "decline"},
+        )
+
+        self.assertEqual(len(observations), 2)
+        first, second = observations
+        self.assertEqual(first["graph_nodes"], second["graph_nodes"])
+        self.assertEqual(first["propositions"], second["propositions"])
+        self.assertEqual(first["agenda_question"], second["agenda_question"])
+        self.assertEqual(first["problem_role"], second["problem_role"])
+        self.assertEqual(first["mapping"], second["mapping"])
+        self.assertEqual(first["legend"], second["legend"])
+        self.assertNotIn("SAME_CYCLE_LEAK", second["graph_nodes"])
+
+    def test_incomplete_evaluation_barrier_commits_nothing(self):
+        commits: list[str] = []
+
+        class BudgetBlockedSpecialist:
+            name = "blocked"
+
+            def evaluate(self, scenario, actions, broadcast):
+                raise ModelCallBudgetExceeded("cycle budget exhausted")
+
+        class TracingEngine(WorkspaceEngine):
+            def commit_candidate(
+                self, specialist, evaluation, cycle_input, **kwargs,
+            ):
+                commits.append(specialist.name)
+                return super().commit_candidate(
+                    specialist, evaluation, cycle_input, **kwargs,
+                )
+
+        result = TracingEngine(
+            [
+                FixedSpecialist("first", "protect", "CARE"),
+                BudgetBlockedSpecialist(),
+            ],
+            self._config(),
+        ).run("Choose protect or decline.", ["protect", "decline"])
+
+        self.assertEqual(commits, [])
+        self.assertEqual(result.halted_by, "model_call_budget")
+        self.assertEqual(result.cycles, [])
+
+    def test_committed_graph_update_appears_only_in_next_cycle_snapshot(self):
+        observations: list[tuple[str, int]] = []
+
+        class GraphAwareSpecialist(FixedSpecialist):
+            def __init__(self, name: str, writes: bool = False):
+                super().__init__(name, "protect", "CARE")
+                self.writes = writes
+                self.scenario_graph = None
+                self.proposition_ledger = []
+                self.canonical_action_records = []
+
+            def evaluate(self, scenario, actions, broadcast):
+                observations.append((
+                    self.name,
+                    sum(
+                        node.kind == "CONDITION"
+                        for node in self.scenario_graph.nodes.values()
+                    ),
+                ))
+                candidate = super().evaluate(scenario, actions, broadcast)
+                if self.writes:
+                    candidate.factual_reversal_threshold = (
+                        "expected harm exceeds ten"
+                    )
+                    candidate.graph_update_proposal = typed_reversal_proposal(
+                        "protect", "decline",
+                    )
+                return candidate
+
+        config = self._config()
+        config.max_cycles = 2
+        config.stop_redundant_consensus_cycles = False
+        result = WorkspaceEngine(
+            [
+                GraphAwareSpecialist("writer", writes=True),
+                GraphAwareSpecialist("observer"),
+            ],
+            config,
+        ).run("Choose protect or decline.", ["protect", "decline"])
+
+        self.assertEqual(len(result.cycles), 2)
+        self.assertEqual([count for _name, count in observations[:2]], [0, 0])
+        self.assertTrue(all(count > 0 for _name, count in observations[2:4]))
+        self.assertTrue(any(
+            transaction.get("status") == "COMMITTED"
+            for transaction in result.graph_transactions
+        ))
+
+
+class BoundedOpenAIConcurrencyTests(unittest.TestCase):
+    class _ConcurrentAdapter:
+        supports_concurrent_calls = True
+        supports_call_local_timeout = True
+        timeout = 120.0
+
+        def complete_json(self, prompt, **kwargs):
+            return {"choices": [{"text": '{}'}]}
+
+    @staticmethod
+    def _config(concurrency: int = 2) -> WorkspaceConfig:
+        return WorkspaceConfig(
+            max_cycles=1,
+            stable_cycles_required=3,
+            min_valid_specialists=2,
+            enable_consensus_audit=False,
+            enable_problem_state_audit=False,
+            enable_reversal_audit=False,
+            enable_synthesis=False,
+            enable_planning=False,
+            openai_max_concurrency=concurrency,
+        )
+
+    def test_budget_context_and_auxiliary_allowance_are_shared_atomically(self):
+        adapter = self._ConcurrentAdapter()
+
+        def invoke():
+            return call_json_llm(
+                adapter,
+                "bounded call",
+                max_tokens=16,
+                temperature=0.0,
+                schema={"type": "object"},
+                call_kind="auxiliary",
+            )
+
+        token = start_model_call_budget(
+            30.0,
+            reserve_seconds=0.0,
+            max_auxiliary_calls_per_cycle=1,
+        )
+        try:
+            begin_model_call_cycle(1)
+            with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+                futures = [
+                    submit_with_context(executor, invoke) for _index in range(2)
+                ]
+                outcomes = []
+                for future in futures:
+                    try:
+                        future.result()
+                    except ModelCallBudgetExceeded:
+                        outcomes.append("BLOCKED")
+                    else:
+                        outcomes.append("CALLED")
+        finally:
+            reset_model_call_budget(token)
+
+        self.assertCountEqual(outcomes, ["CALLED", "BLOCKED"])
+
+    def test_nested_pauses_resume_the_shared_deadline_only_once(self):
+        token = start_model_call_budget(60.0, reserve_seconds=0.0)
+        try:
+            budget = _CALL_BUDGET.get()
+            self.assertIsNotNone(budget)
+            assert budget is not None
+            original_deadline = budget.deadline
+            with patch(
+                "global_workspace.structured_io.time.monotonic",
+                side_effect=[100.0, 105.0],
+            ):
+                pause_model_call_budget()
+                pause_model_call_budget()
+                resume_model_call_budget()
+                self.assertEqual(budget.pause_depth, 1)
+                self.assertEqual(budget.deadline, original_deadline)
+                resume_model_call_budget()
+            self.assertEqual(budget.pause_depth, 0)
+            self.assertIsNone(budget.paused_at)
+            self.assertAlmostEqual(budget.deadline, original_deadline + 5.0)
+        finally:
+            reset_model_call_budget(token)
+
+    def test_model_budget_passes_call_local_timeout_without_mutating_adapter(self):
+        observed: list[float] = []
+
+        class TimeoutAdapter(self._ConcurrentAdapter):
+            def complete_json(self, prompt, **kwargs):
+                observed.append(kwargs["timeout"])
+                return {"choices": [{"text": '{}'}]}
+
+        adapter = TimeoutAdapter()
+        token = start_model_call_budget(10.0, reserve_seconds=2.0)
+        try:
+            call_json_llm(
+                adapter,
+                "call-local timeout",
+                max_tokens=16,
+                temperature=0.0,
+                schema={"type": "object"},
+            )
+        finally:
+            reset_model_call_budget(token)
+
+        self.assertEqual(adapter.timeout, 120.0)
+        self.assertEqual(len(observed), 1)
+        self.assertGreater(observed[0], 0.0)
+        self.assertLessEqual(observed[0], 4.1)
+
+    def test_actual_openai_adapter_uses_budget_timeout_without_mutating_itself(self):
+        requests: list[dict] = []
+
+        class Completions:
+            def create(self, **request):
+                requests.append(dict(request))
+                return SimpleNamespace(
+                    choices=[SimpleNamespace(
+                        message=SimpleNamespace(content='{"ok":true}'),
+                        finish_reason="stop",
+                    )],
+                    usage=None,
+                )
+
+        client = SimpleNamespace(
+            chat=SimpleNamespace(completions=Completions())
+        )
+        llm = OpenAIWorkspaceLLM("o3", timeout=120.0, client=client)
+        token = start_model_call_budget(10.0, reserve_seconds=2.0)
+        try:
+            call_json_llm(
+                llm,
+                "return bounded json",
+                max_tokens=16,
+                temperature=0.0,
+                schema={
+                    "type": "object",
+                    "properties": {"ok": {"type": "boolean"}},
+                    "required": ["ok"],
+                    "additionalProperties": False,
+                },
+            )
+        finally:
+            reset_model_call_budget(token)
+
+        self.assertEqual(llm.timeout, 120.0)
+        self.assertEqual(len(requests), 1)
+        self.assertGreater(requests[0]["timeout"], 0.0)
+        self.assertLessEqual(requests[0]["timeout"], 4.1)
+
+    def test_compact_evaluations_are_bounded_and_committed_in_configured_order(self):
+        lock = threading.Lock()
+        active = 0
+        peak = 0
+        commits: list[str] = []
+        adapter = self._ConcurrentAdapter()
+
+        class ConcurrentSpecialist(FixedSpecialist):
+            def __init__(self, name: str):
+                super().__init__(name, "protect", "CARE")
+                self.llm = adapter
+
+            def evaluate(self, scenario, actions, broadcast):
+                nonlocal active, peak
+                with lock:
+                    active += 1
+                    peak = max(peak, active)
+                try:
+                    time.sleep(0.03)
+                    return super().evaluate(scenario, actions, broadcast)
+                finally:
+                    with lock:
+                        active -= 1
+
+        class OrderedCommitEngine(WorkspaceEngine):
+            def commit_candidate(
+                self, specialist, evaluation, cycle_input, **kwargs,
+            ):
+                commits.append(specialist.name)
+                return super().commit_candidate(
+                    specialist, evaluation, cycle_input, **kwargs,
+                )
+
+        names = ["first", "second", "third", "fourth"]
+        OrderedCommitEngine(
+            [ConcurrentSpecialist(name) for name in names],
+            self._config(concurrency=2),
+        ).run("Choose protect or decline.", ["protect", "decline"])
+
+        self.assertEqual(peak, 2)
+        self.assertEqual(commits, names)
+
+    def test_local_or_unmarked_adapter_remains_sequential(self):
+        lock = threading.Lock()
+        active = 0
+        peak = 0
+
+        class LocalAdapter:
+            pass
+
+        class LocalSpecialist(FixedSpecialist):
+            def __init__(self, name: str):
+                super().__init__(name, "protect", "CARE")
+                self.llm = LocalAdapter()
+
+            def evaluate(self, scenario, actions, broadcast):
+                nonlocal active, peak
+                with lock:
+                    active += 1
+                    peak = max(peak, active)
+                try:
+                    time.sleep(0.01)
+                    return super().evaluate(scenario, actions, broadcast)
+                finally:
+                    with lock:
+                        active -= 1
+
+        WorkspaceEngine(
+            [LocalSpecialist("first"), LocalSpecialist("second")],
+            self._config(concurrency=3),
+        ).run("Choose protect or decline.", ["protect", "decline"])
+
+        self.assertEqual(peak, 1)
+
+    def test_terminal_compact_failure_cancels_pending_work_and_all_commits(self):
+        adapter = self._ConcurrentAdapter()
+        started: list[str] = []
+        commits: list[str] = []
+        launch_pair = threading.Barrier(2)
+
+        class TerminalSpecialist(FixedSpecialist):
+            def __init__(self, name: str, terminal: bool = False):
+                super().__init__(name, "protect", "CARE")
+                self.llm = adapter
+                self.terminal = terminal
+
+            def evaluate(self, scenario, actions, broadcast):
+                started.append(self.name)
+                launch_pair.wait(timeout=1.0)
+                if self.terminal:
+                    raise ModelCallUnavailable(
+                        "authentication failed",
+                        category="authentication",
+                        terminal=True,
+                    )
+                time.sleep(0.05)
+                return super().evaluate(scenario, actions, broadcast)
+
+        class NoCommitEngine(WorkspaceEngine):
+            def commit_candidate(
+                self, specialist, evaluation, cycle_input, **kwargs,
+            ):
+                commits.append(specialist.name)
+                return super().commit_candidate(
+                    specialist, evaluation, cycle_input, **kwargs,
+                )
+
+        result = NoCommitEngine(
+            [
+                TerminalSpecialist("terminal", terminal=True),
+                TerminalSpecialist("in_flight"),
+                TerminalSpecialist("pending_one"),
+                TerminalSpecialist("pending_two"),
+            ],
+            self._config(concurrency=2),
+        ).run("Choose protect or decline.", ["protect", "decline"])
+
+        self.assertEqual(result.halted_by, "model_backend_unavailable")
+        self.assertEqual(commits, [])
+        self.assertCountEqual(started, ["terminal", "in_flight"])
+
+    def test_original_agent_fanout_is_bounded_and_order_preserving(self):
+        import global_workspace.legacy_bridge as bridge
+
+        lock = threading.Lock()
+        active = 0
+        peak = 0
+        completion_order: list[str] = []
+        agents = ("utilitarian", "deontological", "virtue", "care")
+
+        def consult(agent, **kwargs):
+            nonlocal active, peak
+            with lock:
+                active += 1
+                peak = max(peak, active)
+            try:
+                time.sleep({
+                    "utilitarian": 0.04,
+                    "deontological": 0.01,
+                    "virtue": 0.03,
+                    "care": 0.01,
+                }[agent])
+                completion_order.append(agent)
+                return bridge._OriginalAgentOutcome(
+                    agent=agent,
+                    testimony=f"{agent} testimony",
+                    retrieval={"mode": "disabled"},
+                )
+            finally:
+                with lock:
+                    active -= 1
+
+        with patch.object(bridge, "_consult_one_original_agent", side_effect=consult):
+            result = consult_original_agents(
+                Path("scenario.json"),
+                agents=agents,
+                backend="openai",
+                max_concurrency=2,
+            )
+
+        self.assertEqual(peak, 2)
+        self.assertNotEqual(completion_order, list(agents))
+        self.assertEqual(list(result.testimonies), list(agents))
+        self.assertEqual(
+            list(result.retrievals), list(agents),
+        )
+
+    def test_original_agent_sequential_and_concurrent_payloads_are_exactly_equal(self):
+        import global_workspace.legacy_bridge as bridge
+
+        agents = ("utilitarian", "deontological", "virtue", "care")
+
+        def consult(agent, **kwargs):
+            time.sleep({
+                "utilitarian": 0.02,
+                "deontological": 0.005,
+                "virtue": 0.015,
+                "care": 0.001,
+            }[agent])
+            return bridge._OriginalAgentOutcome(
+                agent=agent,
+                testimony=f"scripted {agent} testimony",
+                retrieval={
+                    "mode": "disabled",
+                    "evidence": [],
+                    "expanded_query": f"{agent} query",
+                },
+            )
+
+        with patch.object(bridge, "_consult_one_original_agent", side_effect=consult):
+            sequential = consult_original_agents(
+                Path("scenario.json"),
+                agents=agents,
+                backend="openai",
+                max_concurrency=1,
+            )
+        with patch.object(bridge, "_consult_one_original_agent", side_effect=consult):
+            concurrent = consult_original_agents(
+                Path("scenario.json"),
+                agents=agents,
+                backend="openai",
+                max_concurrency=3,
+            )
+
+        self.assertEqual(sequential.testimonies, concurrent.testimonies)
+        self.assertEqual(sequential.errors, concurrent.errors)
+        self.assertEqual(sequential.retrievals, concurrent.retrievals)
+        self.assertEqual(list(concurrent.testimonies), list(agents))
+
+    def test_terminal_original_agent_failure_cancels_remaining_fanout(self):
+        import global_workspace.legacy_bridge as bridge
+
+        agents = ("utilitarian", "deontological", "virtue", "care")
+        started: list[str] = []
+        launch_pair = threading.Barrier(2)
+
+        def consult(agent, **kwargs):
+            cancel_event = kwargs["cancel_event"]
+            if cancel_event.is_set():
+                return bridge._OriginalAgentOutcome(
+                    agent=agent,
+                    error="canceled after terminal provider failure",
+                )
+            started.append(agent)
+            launch_pair.wait(timeout=1.0)
+            if agent == "utilitarian":
+                cancel_event.set()
+                return bridge._OriginalAgentOutcome(
+                    agent=agent,
+                    error="OpenAI authentication failed",
+                    terminal_category="authentication",
+                )
+            while not cancel_event.wait(0.01):
+                pass
+            return bridge._OriginalAgentOutcome(
+                agent=agent,
+                error="canceled after terminal provider failure",
+            )
+
+        with patch.object(bridge, "_consult_one_original_agent", side_effect=consult):
+            result = consult_original_agents(
+                Path("scenario.json"),
+                agents=agents,
+                backend="openai",
+                max_concurrency=2,
+            )
+
+        self.assertCountEqual(started, ["utilitarian", "deontological"])
+        self.assertEqual(result.testimonies, {})
+        self.assertEqual(list(result.errors), list(agents))
+        self.assertIn("authentication", result.errors["utilitarian"].casefold())
+
+    def test_terminal_original_failure_stops_sequential_openai_launches(self):
+        import global_workspace.legacy_bridge as bridge
+
+        agents = ("utilitarian", "deontological", "virtue")
+        started: list[str] = []
+
+        def consult(agent, **kwargs):
+            started.append(agent)
+            return bridge._OriginalAgentOutcome(
+                agent=agent,
+                error="OpenAI quota prevented the model call",
+                terminal_category="quota",
+            )
+
+        with patch.object(bridge, "_consult_one_original_agent", side_effect=consult):
+            result = consult_original_agents(
+                Path("scenario.json"),
+                agents=agents,
+                backend="openai",
+                max_concurrency=1,
+            )
+
+        self.assertEqual(started, ["utilitarian"])
+        self.assertEqual(list(result.errors), list(agents))
+        self.assertIn("quota", result.errors["utilitarian"].casefold())
+        self.assertIn("canceled", result.errors["deontological"].casefold())
+
+
+class ConcurrentSemanticEquivalenceTests(unittest.TestCase):
+    """The scheduler may change wall time, never deliberative semantics."""
+
+    class ScriptedModel:
+        supports_concurrent_calls = True
+        supports_call_local_timeout = True
+        timeout = 30.0
+
+        def __init__(self, responses):
+            self.responses = responses
+
+        def complete_json(self, prompt, **kwargs):
+            request = json.loads(prompt)
+            specialist = request["specialist"]
+            # Force completion order to differ in concurrent mode. Responses
+            # remain functions of the request, never of call order.
+            time.sleep(0.025 if specialist == "care" else 0.005)
+            return {"choices": [{
+                "text": json.dumps(self.responses[specialist], sort_keys=True),
+            }]}
+
+    class ScriptedSpecialist:
+        def __init__(self, name, llm):
+            self.name = name
+            self.llm = llm
+            # These are the same state surfaces used by compact specialists;
+            # their presence activates framework vote-integrity admission.
+            self.scenario_graph = None
+            self.proposition_ledger = []
+            self.canonical_action_records = []
+            self.source_action_legend = {}
+            self.previous_framework_state = {}
+            self.private_framework_contribution = {}
+            self.previous_recommendation_id = ""
+            self.previous_confidence = None
+            self.previous_context = ""
+            self.assumption_status = "NOT_AUDITED"
+            self.unsupported_assumption = ""
+            self.reversal_condition = ""
+            self.epistemic_commitments = []
+
+        def evaluate(self, scenario, actions, broadcast):
+            response = call_json_llm(
+                self.llm,
+                json.dumps({
+                    "specialist": self.name,
+                    "cycle": broadcast.problem_state.get("cycle", 0),
+                }, sort_keys=True),
+                max_tokens=256,
+                temperature=0.0,
+                schema={"type": "object"},
+                call_kind="compact_primary",
+                call_metadata={"specialist": self.name},
+            )
+            return CandidateChunk(**json.loads(response["choices"][0]["text"]))
+
+    @staticmethod
+    def _fixed_world():
+        scenario = (
+            "An emergency coordinator must choose one shelter route. "
+            "Action A shelters the east residents. Action B shelters the west residents."
+        )
+        actions = (
+            "Shelter the east residents",
+            "Shelter the west residents",
+        )
+        ref = (SourceRef("C0", "An emergency coordinator must choose one shelter route."),)
+        east_ref = (SourceRef("C1", "Action A shelters the east residents."),)
+        west_ref = (SourceRef("C2", "Action B shelters the west residents."),)
+        effects = (
+            WorldEffect(
+                "E0", "A0", "P1", "east residents receive shelter",
+                "RECEIVES", "BENEFICIAL", "DIRECT", "CERTAIN",
+                "RESOURCE_TRANSFER", provenance=east_ref,
+            ),
+            WorldEffect(
+                "E1", "A1", "P2", "west residents receive shelter",
+                "RECEIVES", "BENEFICIAL", "DIRECT", "CERTAIN",
+                "RESOURCE_TRANSFER", provenance=west_ref,
+            ),
+        )
+        world = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "emergency coordinator", "PERSON", ref),
+                WorldParty("P1", "east residents", "GROUP", ref),
+                WorldParty("P2", "west residents", "GROUP", ref),
+            ),
+            actions=(
+                WorldAction("A0", actions[0], "P0", ("P1",), ("E0",), east_ref),
+                WorldAction("A1", actions[1], "P0", ("P2",), ("E1",), west_ref),
+            ),
+            effects=effects,
+            admission=WorldStateAdmission(
+                status="COMMITTED", admitted_effect_ids=("E0", "E1"),
+            ),
+        )
+        records = [{
+            "action_id": f"A{index}",
+            "canonical_semantic_action": action,
+            "world_effects": [effects[index].as_dict()],
+        } for index, action in enumerate(actions)]
+        grounding = {
+            "status": "COMMITTED",
+            "world_model_status": "COMMITTED",
+            "world_contradictions": [],
+            "actions": {"A0": {}, "A1": {}},
+            "clauses": [
+                {"clause_id": "C0", "text": ref[0].excerpt},
+                {"clause_id": "C1", "text": east_ref[0].excerpt},
+                {"clause_id": "C2", "text": west_ref[0].excerpt},
+            ],
+            "world_model": world.as_dict(),
+        }
+        return scenario, actions, records, grounding
+
+    @staticmethod
+    def _responses(actions):
+        derivation = [{
+            "claim": "Compare the two admitted shelter effects",
+            "proposition_id": "PROP:FRAMEWORK:SHELTER_COMPARISON",
+            "declared_basis": "FRAMEWORK_DERIVED",
+            "decision_critical": True,
+            "scope_action_id": "COMPARISON",
+            "source_effect_ids": ["E0", "E1"],
+            "derivation_operation": "QUALITATIVE_COMPARISON",
+            "calculation": "compare admitted shelter responsiveness",
+            "assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+        }]
+        common = {
+            "action_scores": {actions[0]: 0.8, actions[1]: 0.2},
+            "surprise": 0.4,
+            "friction": 0.5,
+            "confidence": 0.82,
+            "recommended_action": actions[0],
+            "adjudication_status": "SUPPORTS",
+            "governing_eligible": True,
+            "broadcast_authority": "GOVERNING_CANDIDATE",
+            "comparison_complete": True,
+            "evidence_sufficient_for_action": True,
+            "material_empirical_claims": derivation,
+        }
+        return {
+            "care": {
+                **common,
+                "specialist": "care",
+                "constraint": "CARE",
+                "rationale": "Acute dependency makes eastward shelter the responsive choice.",
+                "decision_rule": "Prefer the action that answers the established acute dependency.",
+                "factual_reversal_threshold": (
+                    "West residents have the only immediate dependency"
+                ),
+                "care_ledger_proposal": {
+                    "ranking_basis": "ACUTE_DEPENDENCY",
+                    "assessments": [
+                        {
+                            "action_id": "A0", "verdict": "RESPONSIVE",
+                            "affected_party": "east residents",
+                            "relationship_type": "DEPENDENCY",
+                            "dependency_source": "east residents receive shelter",
+                            "responsibility_basis": "coordinator allocates emergency shelter",
+                            "need_kind": "BASIC_NEED", "need_urgency": "IMMEDIATE",
+                            "trust_effect": "PRESERVES", "responsiveness": "DIRECT",
+                            "feasibility": "ESTABLISHED",
+                            "competing_care_claim": "west residents also need shelter",
+                            "resolution_status": "RESOLVED",
+                            "evidence_basis": "ACTION_GRAPH",
+                            "reason": "directly responds to the admitted east shelter need",
+                        },
+                        {
+                            "action_id": "A1", "verdict": "MIXED",
+                            "affected_party": "west residents",
+                            "relationship_type": "COMMUNITY_RELATION",
+                            "dependency_source": "west residents receive shelter",
+                            "responsibility_basis": "coordinator also serves west residents",
+                            "need_kind": "BASIC_NEED", "need_urgency": "NEAR_TERM",
+                            "trust_effect": "PRESERVES", "responsiveness": "DIRECT",
+                            "feasibility": "ESTABLISHED",
+                            "competing_care_claim": "east dependency is more urgent",
+                            "resolution_status": "RESOLVED",
+                            "evidence_basis": "ACTION_GRAPH",
+                            "reason": "responds to west while leaving acute east need unmet",
+                        },
+                    ],
+                },
+            },
+            "virtue": {
+                **common,
+                "specialist": "virtue",
+                "constraint": "CHARACTER",
+                "action_scores": {actions[0]: 0.72, actions[1]: 0.28},
+                "rationale": "Practical wisdom attends first to the acute shelter need.",
+                "decision_rule": "Exercise practical wisdom under the admitted circumstances.",
+                "normative_reversal_threshold": (
+                    "Role fidelity establishes equal priority for west residents"
+                ),
+                "virtue_character_proposal": {
+                    "ranking_basis": "PRACTICAL_WISDOM",
+                    "assessments": [
+                        {
+                            "action_id": "A0", "verdict": "EXEMPLIFIES",
+                            "actor_role": "emergency coordinator",
+                            "virtues": "practical wisdom and responsiveness",
+                            "vice_risk": "partiality toward one district",
+                            "circumstance": "east residents receive shelter",
+                            "evidence_basis": "ACTION_GRAPH",
+                            "reason": "fits the urgent circumstance with prudent action",
+                        },
+                        {
+                            "action_id": "A1", "verdict": "MIXED",
+                            "actor_role": "emergency coordinator",
+                            "virtues": "fair attention to west residents",
+                            "vice_risk": "neglect of the more urgent need",
+                            "circumstance": "west residents receive shelter",
+                            "evidence_basis": "ACTION_GRAPH",
+                            "reason": "shows care but does not best fit the urgency",
+                        },
+                    ],
+                },
+            },
+        }
+
+    def _run(self, concurrency):
+        scenario, actions, records, grounding = self._fixed_world()
+        model = self.ScriptedModel(self._responses(actions))
+        specialists = [
+            self.ScriptedSpecialist(name, model) for name in ("care", "virtue")
+        ]
+        result = WorkspaceEngine(
+            specialists,
+            WorkspaceConfig(
+                max_cycles=1,
+                stable_cycles_required=1,
+                min_valid_specialists=2,
+                enable_consensus_audit=False,
+                enable_problem_state_audit=False,
+                enable_reversal_audit=False,
+                enable_synthesis=False,
+                enable_planning=False,
+                enable_ev_dominance_breaker=False,
+                openai_max_concurrency=concurrency,
+            ),
+        ).run(
+            scenario,
+            actions,
+            source_action_legend={
+                f"A{index}": action for index, action in enumerate(actions)
+            },
+            action_source_grounding=grounding,
+            canonical_action_records=records,
+        )
+        return result
+
+    def test_sequential_and_concurrent_runs_are_exactly_semantically_equal(self):
+        sequential = self._run(1)
+        concurrent = self._run(2)
+        comparison = compare_semantic_results(sequential, concurrent)
+
+        self.assertTrue(
+            comparison.equivalent,
+            f"semantic mismatches: {comparison.mismatched_sections}",
+        )
+        self.assertEqual(comparison.mismatched_sections, ())
+        self.assertEqual(
+            comparison.sequential.to_dict(), comparison.concurrent.to_dict(),
+        )
+        snapshot = semantic_run_snapshot(concurrent)
+        self.assertEqual(
+            [row["framework_vote_status"] for row in snapshot.vote_admission_decisions[0]],
+            ["FULL", "FULL"],
+        )
+        self.assertEqual(
+            [item.specialist for item in concurrent.cycles[0].candidates],
+            ["care", "virtue"],
+        )
+        self.assertEqual(
+            [item["operation"] for item in concurrent.graph_transactions],
+            ["CARE_RELATIONSHIP_LEDGER", "VIRTUE_CHARACTER_LEDGER"],
+        )
+        self.assertTrue(snapshot.challenge_agenda[0]["next"])
+        self.assertEqual(
+            snapshot.final_report, render_public_judgment(concurrent),
+        )
+
+    def test_graph_is_serialized_once_after_commit_barrier_and_once_at_finalization(self):
+        original = SemanticGraphStore.graph_dict
+        calls = []
+
+        def counted(store):
+            calls.append(store.graph.revision)
+            return original(store)
+
+        with patch.object(SemanticGraphStore, "graph_dict", counted):
+            self._run(2)
+
+        self.assertEqual(len(calls), 2)
+        self.assertLessEqual(calls[0], calls[1])
 
 
 def typed_reversal_proposal(source: str, target: str) -> dict:
@@ -6279,6 +7237,44 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(command[command.index("--openai-model") + 1], "o3")
         self.assertEqual(child_env["ETHICS_LLM_BACKEND"], "openai")
         self.assertEqual(result.testimonies["care"], "Hosted testimony")
+
+    @patch("global_workspace.legacy_bridge.subprocess.run")
+    def test_original_agent_phase_timings_are_decoded_as_execution_metadata(self, run):
+        response = base64.b64encode(b"Timed testimony").decode("ascii")
+        timing = base64.b64encode(json.dumps({
+            "child_total_seconds": 1.0,
+            "module_startup_seconds": 0.1,
+            "model_startup_seconds": 0.2,
+            "retrieval_seconds": 0.25,
+            "model_seconds": 0.4,
+            "retrieval_call_count": 1,
+            "model_call_count": 1,
+            "timeout_count": 0,
+        }).encode("utf-8")).decode("ascii")
+        run.return_value = SimpleNamespace(
+            returncode=0,
+            stdout=(
+                f"{PERFORMANCE_MARKER}{timing}\n"
+                f"{RESPONSE_MARKER}{response}\n"
+            ),
+            stderr="",
+        )
+        recorder, token = start_performance_trace("original-agent-timing")
+        try:
+            result = consult_original_agents(
+                Path("scenario.json"), agents=("care",),
+            )
+            snapshot = recorder.snapshot()
+        finally:
+            reset_performance_trace(token)
+        self.assertEqual(result.testimonies["care"], "Timed testimony")
+        events = {item["name"]: item for item in snapshot["events"]}
+        self.assertIn("original_agent_startup", events)
+        self.assertEqual(
+            events["original_agent_retrieval"]["duration_seconds"], 0.25,
+        )
+        self.assertEqual(events["original_agent_model"]["duration_seconds"], 0.4)
+        self.assertEqual(snapshot["counts"]["original_agent_model_calls"], 1)
 
     @patch("global_workspace.legacy_bridge.subprocess.run")
     def test_original_agents_receive_canonical_order_not_presentation_order(self, run):
@@ -13984,6 +14980,706 @@ class CanonicalActionCompletenessTests(unittest.TestCase):
         self.assertFalse(
             unsupported_action_claims(action, [scenario], user_authored=True)
         )
+
+
+class FrameworkVoteIntegrityTests(unittest.TestCase):
+    actions = ("protect the hospital", "protect the evacuation route")
+
+    def _candidate(self, specialist: str, **updates):
+        values = {
+            "specialist": specialist,
+            "constraint": specialist.upper(),
+            "action_scores": {self.actions[0]: 0.9, self.actions[1]: 0.1},
+            "surprise": 0.2, "friction": 0.2, "confidence": 0.8,
+            "recommended_action": self.actions[0],
+            "rationale": "typed framework rationale",
+            "decision_rule": "typed framework rule",
+            "framework_vote_integrity_required": True,
+        }
+        values.update(updates)
+        return CandidateChunk(**values)
+
+    @staticmethod
+    def _native(kind, records, status="COMMITTED"):
+        return {
+            "ledger_kind": kind, "transaction_status": status, "records": records,
+        }
+
+    def test_missing_framework_ledger_abstains_without_policy_influence(self):
+        candidate = self._candidate("rawlsian")
+        decision = apply_framework_vote_integrity(candidate, self.actions)
+        self.assertEqual(decision.status, "ABSTAIN")
+        self.assertEqual(candidate.policy_weight_factor, 0.0)
+        self.assertFalse(candidate.governing_eligible)
+
+    def test_uncertain_framework_ledger_is_attenuated(self):
+        records = [{
+            "specialist": "utilitarian", "canonical_action_id": action_id,
+            "outcome": "grounded effect", "grounded_effect_ids": [f"E{action_id[-1]}"],
+        } for action_id in ("A0", "A1")]
+        candidate = self._candidate(
+            "utilitarian",
+            committed_native_ledger=self._native(
+                "UTILITARIAN_CONSEQUENCE_LEDGER", records,
+                "COMMITTED_WITH_UNCERTAINTY",
+            ),
+            material_empirical_claims=[{
+                "claim": "compare the two admitted welfare effects",
+                "proposition_id": "PROP:FRAMEWORK:UTILITY",
+                "declared_basis": "FRAMEWORK_DERIVED",
+                "decision_critical": True,
+                "scope_action_id": "COMPARISON",
+                "source_effect_ids": ["E0", "E1"],
+                "derivation_operation": "QUALITATIVE_COMPARISON",
+                "calculation": "compare admitted polarity and modality",
+                "assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+            }],
+        )
+        decision = apply_framework_vote_integrity(candidate, self.actions)
+        self.assertEqual(decision.status, "ATTENUATED")
+        self.assertEqual(candidate.policy_weight_factor, 0.5)
+        self.assertFalse(candidate.governing_eligible)
+
+    def test_deontology_cannot_turn_permissibility_into_priority(self):
+        records = [{
+            "specialist": "deontological", "canonical_action_id": action_id,
+            "verdict": "PERMISSIBLE", "duty_type": "IMPERFECT",
+        } for action_id in ("A0", "A1")]
+        candidate = self._candidate(
+            "deontological",
+            committed_native_ledger=self._native(
+                "DEONTOLOGICAL_DUTY_LEDGER", records,
+            ),
+        )
+        self.assertEqual(
+            apply_framework_vote_integrity(candidate, self.actions).status,
+            "ABSTAIN",
+        )
+
+    def test_unsupported_outcome_transformation_is_quarantined(self):
+        records = [
+            {
+                "specialist": "deontological", "canonical_action_id": "A0",
+                "verdict": "REQUIRED", "duty_type": "PERFECT",
+                "grounded_effect_ids": ["E4"],
+            },
+            {
+                "specialist": "deontological", "canonical_action_id": "A1",
+                "verdict": "PROHIBITED", "duty_type": "PERFECT",
+                "grounded_effect_ids": ["E14"],
+            },
+        ]
+        candidate = self._candidate(
+            "deontological",
+            committed_native_ledger=self._native(
+                "DEONTOLOGICAL_DUTY_LEDGER", records,
+            ),
+            material_empirical_claims=[{
+                "claim": "trapped residents will die",
+                "proposition_id": "PROP:FRAMEWORK:1",
+                "declared_basis": "FRAMEWORK_DERIVED",
+                "decision_critical": True,
+                "scope_action_id": "A0",
+                "source_effect_ids": ["E4"],
+                "derivation_operation": "CONDITIONAL_INFERENCE",
+                "calculation": "treat trapped as dead",
+                "assumptions": ["no later rescue"],
+                "outcome_type_transformation": "MORTALITY",
+            }],
+        )
+        decision = apply_framework_vote_integrity(candidate, self.actions)
+        self.assertEqual(decision.status, "ABSTAIN")
+        self.assertEqual(candidate.derived_claim_validation_status, "QUARANTINED")
+
+    def test_frozen_wildfire_world_preserves_qualifiers_and_negative_controls(self):
+        path = (
+            Path(__file__).parents[1]
+            / "global_workspace" / "fixtures" / "wildfire_admitted_world.json"
+        )
+        fixture = json.loads(path.read_text(encoding="utf-8"))
+        effects = {item["effect_id"]: item for item in fixture["effects"]}
+        self.assertEqual(fixture["world_model_status"], "COMMITTED")
+        self.assertEqual(effects["E4"]["outcome"], "RESIDENTS_TRAPPED")
+        self.assertEqual(effects["E4"]["modality"], "STIPULATED_CONDITIONAL")
+        self.assertEqual(effects["E14"]["qualifiers"], ["near-certain"])
+
+
+class WildfireGovernanceNegativeControlTests(FrameworkVoteIntegrityTests):
+    """Forbidden specialist transformations against one frozen admitted world."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.fixture_path = (
+            Path(__file__).parents[1]
+            / "global_workspace" / "fixtures" / "wildfire_admitted_world.json"
+        )
+        cls.fixture = json.loads(cls.fixture_path.read_text(encoding="utf-8"))
+        cls.effects = {
+            item["effect_id"]: item for item in cls.fixture["effects"]
+        }
+        cls.actions = (
+            cls.fixture["actions"]["A0"],
+            cls.fixture["actions"]["A1"],
+        )
+
+    def _effect_records(self, specialist, *effect_ids):
+        records = []
+        for effect_id in effect_ids:
+            effect = self.effects[effect_id]
+            qualifiers = list(effect.get("qualifiers", []))
+            records.append({
+                "specialist": specialist,
+                "canonical_action_id": effect["action_id"],
+                "grounded_effect_ids": [effect_id],
+                "outcome": effect["outcome"],
+                "modality": effect["modality"],
+                "probability": (
+                    qualifiers[0] if qualifiers else effect["modality"]
+                ),
+            })
+        return records
+
+    @staticmethod
+    def _derivation(
+        claim, source_effect_ids, scope, *, operation="CONDITIONAL_INFERENCE",
+        calculation="apply the stated conditional relation",
+        outcome_type="PRESERVED",
+    ):
+        return [{
+            "claim": claim,
+            "proposition_id": "PROP:FRAMEWORK:WILDFIRE_TEST",
+            "declared_basis": "FRAMEWORK_DERIVED",
+            "decision_critical": True,
+            "scope_action_id": scope,
+            "source_effect_ids": list(source_effect_ids),
+            "derivation_operation": operation,
+            "calculation": calculation,
+            "assumptions": [],
+            "outcome_type_transformation": outcome_type,
+        }]
+
+    def test_trapped_cannot_be_laundered_into_dead_as_a_preserved_outcome(self):
+        candidate = self._candidate(
+            "utilitarian",
+            committed_native_ledger=self._native(
+                "UTILITARIAN_CONSEQUENCE_LEDGER",
+                self._effect_records("utilitarian", "E4", "E14"),
+            ),
+            material_empirical_claims=self._derivation(
+                "Approximately sixty trapped residents will be dead",
+                ["E4"],
+                "A0",
+                calculation="infer deaths from the admitted trapping outcome",
+            ),
+        )
+        decision = apply_framework_vote_integrity(candidate, self.actions)
+        self.assertEqual(decision.status, "ABSTAIN")
+        self.assertEqual(candidate.derived_claim_validation_status, "QUARANTINED")
+        self.assertTrue(any(
+            "trapping outcome into mortality" in error
+            for error in candidate.derived_claim_validation_errors
+        ))
+
+    def test_near_certain_cannot_be_laundered_into_one_hundred_percent(self):
+        candidate = self._candidate(
+            "utilitarian",
+            recommended_action=self.actions[1],
+            action_scores={self.actions[0]: 0.1, self.actions[1]: 0.9},
+            committed_native_ledger=self._native(
+                "UTILITARIAN_CONSEQUENCE_LEDGER",
+                self._effect_records("utilitarian", "E4", "E14"),
+            ),
+            material_empirical_claims=self._derivation(
+                "The hospital-patient death probability is 100%",
+                ["E14"],
+                "A1",
+                operation="ARITHMETIC",
+                calculation="near-certain treated as 100% probability",
+            ),
+        )
+        decision = apply_framework_vote_integrity(candidate, self.actions)
+        self.assertEqual(decision.status, "ABSTAIN")
+        self.assertTrue(any(
+            "hedged or conditional likelihood to exact certainty" in error
+            for error in candidate.derived_claim_validation_errors
+        ))
+
+    def test_cross_action_effect_attachment_is_quarantined(self):
+        candidate = self._candidate(
+            "utilitarian",
+            committed_native_ledger=self._native(
+                "UTILITARIAN_CONSEQUENCE_LEDGER",
+                self._effect_records("utilitarian", "E4", "E14"),
+            ),
+            material_empirical_claims=self._derivation(
+                "A0 carries the A1 hospital equipment-failure effect",
+                ["E14"],
+                "A0",
+                calculation="attach the cited effect to the selected action",
+            ),
+        )
+        decision = apply_framework_vote_integrity(candidate, self.actions)
+        self.assertEqual(decision.status, "ABSTAIN")
+        self.assertTrue(any(
+            "cross-action effect" in error
+            for error in candidate.derived_claim_validation_errors
+        ))
+
+    def test_rawlsian_headcount_cannot_replace_the_classified_ranking_basis(self):
+        records = []
+        for action_id, effect_id in (("A0", "E4"), ("A1", "E14")):
+            records.append({
+                "specialist": "rawlsian",
+                "canonical_action_id": action_id,
+                "grounded_effect_ids": [effect_id],
+                "ranking_basis": "BASIC_INTEREST_SECURITY",
+                "dimension": "BASIC_INTEREST_SECURITY",
+                "institutional_relation": "NATURAL_CONTINGENCY",
+            })
+        candidate = self._candidate(
+            "rawlsian",
+            committed_native_ledger=self._native(
+                "RAWLSIAN_POSITION_LEDGER", records,
+            ),
+            framework_numerical_role="DECISIVE",
+            material_empirical_claims=self._derivation(
+                "The larger affected headcount determines the Rawlsian winner",
+                ["E4", "E14"],
+                "COMPARISON",
+                operation="ARITHMETIC",
+                calculation="compare sixty residents with twenty patients",
+            ),
+        )
+        decision = apply_framework_vote_integrity(candidate, self.actions)
+        self.assertEqual(decision.status, "ABSTAIN")
+        self.assertIn("decisive aggregation is not licensed", decision.reason)
+
+    def test_deontological_priority_requires_a_classified_duty(self):
+        records = [
+            {
+                "specialist": "deontological", "canonical_action_id": "A0",
+                "grounded_effect_ids": ["E4"], "verdict": "REQUIRED",
+                "duty_type": "UNRESOLVED",
+            },
+            {
+                "specialist": "deontological", "canonical_action_id": "A1",
+                "grounded_effect_ids": ["E14"], "verdict": "PROHIBITED",
+                "duty_type": "PERFECT_NEGATIVE",
+            },
+        ]
+        candidate = self._candidate(
+            "deontological",
+            committed_native_ledger=self._native(
+                "DEONTOLOGICAL_DUTY_LEDGER", records,
+            ),
+            material_empirical_claims=self._derivation(
+                "Compare the two admitted action effects before classifying duty",
+                ["E4", "E14"],
+                "COMPARISON",
+                operation="QUALITATIVE_COMPARISON",
+                calculation="compare admitted effects before duty priority",
+            ),
+        )
+        decision = apply_framework_vote_integrity(candidate, self.actions)
+        self.assertEqual(decision.status, "ABSTAIN")
+        self.assertIn("lacks a classified duty type", decision.reason)
+
+    def test_rejected_and_uncertain_ledgers_never_receive_full_vote_weight(self):
+        records = self._effect_records("utilitarian", "E4", "E14")
+        rejected = self._candidate(
+            "utilitarian",
+            committed_native_ledger=self._native(
+                "UTILITARIAN_CONSEQUENCE_LEDGER", records, "REJECTED",
+            ),
+        )
+        rejected_decision = apply_framework_vote_integrity(rejected, self.actions)
+        self.assertEqual(rejected_decision.status, "ABSTAIN")
+        self.assertEqual(rejected.policy_weight_factor, 0.0)
+        self.assertFalse(rejected.governing_eligible)
+
+        uncertain = self._candidate(
+            "utilitarian",
+            committed_native_ledger=self._native(
+                "UTILITARIAN_CONSEQUENCE_LEDGER", records,
+                "COMMITTED_WITH_UNCERTAINTY",
+            ),
+            material_empirical_claims=self._derivation(
+                "Compare the admitted trapping and hospital effects",
+                ["E4", "E14"],
+                "COMPARISON",
+                operation="QUALITATIVE_COMPARISON",
+                calculation="compare admitted polarity and conditional modality",
+            ),
+        )
+        uncertain_decision = apply_framework_vote_integrity(uncertain, self.actions)
+        self.assertEqual(uncertain_decision.status, "ATTENUATED")
+        self.assertEqual(uncertain.policy_weight_factor, 0.5)
+        self.assertFalse(uncertain.governing_eligible)
+
+
+class FrozenReplayAndPerformanceTests(unittest.TestCase):
+    def _trace_payload(self) -> dict[str, object]:
+        scenario = (
+            "A coordinator must choose one plan. Plan A sends help to the east. "
+            "Plan B sends help to the west."
+        )
+        actions = ["Help the east", "Help the west"]
+        ref = (SourceRef("C0", scenario),)
+        east_ref = (
+            SourceRef("C1", "Plan A sends help to the east."),
+            SourceRef("A0", actions[0]),
+        )
+        west_ref = (
+            SourceRef("C2", "Plan B sends help to the west."),
+            SourceRef("A1", actions[1]),
+        )
+        effects = (
+            WorldEffect(
+                "E0", "A0", "P1", "RECEIVES_HELP", "RECEIVES",
+                "BENEFICIAL", "DIRECT", "CERTAIN", "RESOURCE_TRANSFER",
+                provenance=east_ref,
+            ),
+            WorldEffect(
+                "E1", "A1", "P2", "RECEIVES_HELP", "RECEIVES",
+                "BENEFICIAL", "DIRECT", "CERTAIN", "RESOURCE_TRANSFER",
+                provenance=west_ref,
+            ),
+        )
+        world = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "coordinator", "PERSON", ref),
+                WorldParty("P1", "east", "GROUP", ref),
+                WorldParty("P2", "west", "GROUP", ref),
+            ),
+            actions=(
+                WorldAction("A0", actions[0], "P0", ("P1",), ("E0",), east_ref),
+                WorldAction("A1", actions[1], "P0", ("P2",), ("E1",), west_ref),
+            ),
+            effects=effects,
+            admission=WorldStateAdmission(
+                status="COMMITTED", admitted_effect_ids=("E0", "E1"),
+            ),
+        )
+        records = [
+            {
+                "action_id": f"A{index}",
+                "canonical_semantic_action": action,
+                "world_effects": [effects[index].as_dict()],
+            }
+            for index, action in enumerate(actions)
+        ]
+        return {
+            "scenario": scenario,
+            "presentation_actions": actions,
+            "actions": actions,
+            "source_action_legend": {"A0": actions[0], "A1": actions[1]},
+            "presentation_action_mapping": [],
+            "canonical_action_records": records,
+            "action_source_grounding": {
+                "status": "COMMITTED",
+                "world_model_status": "COMMITTED",
+                "world_contradictions": [],
+                "actions": {"A0": {}, "A1": {}},
+                "clauses": [{"clause_id": "C0", "text": scenario}],
+                "world_model": world.as_dict(),
+            },
+        }
+
+    def test_frozen_trace_loads_deterministically_and_rejects_scenario_drift(self):
+        payload = self._trace_payload()
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "trace.json"
+            path.write_text(json.dumps(payload), encoding="utf-8")
+            first = load_frozen_world_trace(
+                path, expected_scenario=str(payload["scenario"]),
+            )
+            second = load_frozen_world_trace(
+                path, expected_scenario=str(payload["scenario"]),
+            )
+            self.assertEqual(first.fingerprint, second.fingerprint)
+            self.assertEqual(first.metadata()["world_generation_calls"], 0)
+            with self.assertRaisesRegex(FrozenWorldReplayError, "exactly match"):
+                load_frozen_world_trace(
+                    path, expected_scenario=str(payload["scenario"]) + " ",
+                )
+
+    def test_frozen_trace_rejects_incomplete_effect_admission(self):
+        payload = self._trace_payload()
+        payload["action_source_grounding"]["world_model"]["admission"][
+            "admitted_effect_ids"
+        ] = ["E0"]
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "trace.json"
+            path.write_text(json.dumps(payload), encoding="utf-8")
+            with self.assertRaisesRegex(FrozenWorldReplayError, "exactly"):
+                load_frozen_world_trace(
+                    path, expected_scenario=str(payload["scenario"]),
+                )
+
+    def test_performance_trace_counts_calls_without_recording_content(self):
+        class StructuredLlm:
+            def complete_json(self, prompt, **kwargs):
+                return {"choices": [{"text": '{"ok":true}'}]}
+
+        recorder, token = start_performance_trace("test-run")
+        try:
+            with performance_stage("test_stage"):
+                call_json_llm(
+                    StructuredLlm(),
+                    "sensitive prompt",
+                    max_tokens=20,
+                    temperature=0.0,
+                    schema={"type": "object"},
+                    call_kind="test_call",
+                )
+            snapshot = recorder.snapshot()
+        finally:
+            reset_performance_trace(token)
+        self.assertEqual(snapshot["counts"]["logical_model_calls"], 1)
+        model_event = next(
+            item for item in snapshot["events"]
+            if item["category"] == "model_call"
+        )
+        self.assertEqual(model_event["metadata"]["parent_stage"], "test_stage")
+        self.assertNotIn("sensitive prompt", json.dumps(snapshot))
+        self.assertEqual(snapshot["content_recording"], "DISABLED")
+
+    def test_performance_summary_counts_repairs_timeouts_and_abstentions(self):
+        class StructuredLlm:
+            def complete_json(self, prompt, **kwargs):
+                return {"choices": [{"text": '{}'}]}
+
+        recorder, token = start_performance_trace("detailed-counts")
+        try:
+            for call_kind in ("compact_primary", "compact_repair"):
+                call_json_llm(
+                    StructuredLlm(),
+                    "content must not be retained",
+                    max_tokens=20,
+                    temperature=0.0,
+                    schema={"type": "object"},
+                    call_kind=call_kind,
+                    call_metadata={"specialist": "care"},
+                )
+            record_performance_duration(
+                "cycle_execution",
+                0.5,
+                metadata={"cycle": 1, "abstention_count": 2},
+            )
+            record_performance_duration(
+                "original_agent_process",
+                1.0,
+                category="original_agent",
+                status="TIMEOUT",
+                metadata={"agent": "rawlsian", "timeout_count": 1},
+            )
+            record_performance_duration(
+                "sequential_ledger_commit",
+                0.03,
+                category="ledger_commit",
+                metadata={"specialist": "care"},
+            )
+            snapshot = recorder.snapshot()
+        finally:
+            reset_performance_trace(token)
+        counts = snapshot["counts"]
+        self.assertEqual(counts["compact_primary_calls"], 1)
+        self.assertEqual(counts["compact_repair_calls"], 1)
+        self.assertEqual(counts["repair_count"], 1)
+        self.assertEqual(counts["timeout_count"], 1)
+        self.assertEqual(counts["abstention_count"], 2)
+        self.assertEqual(
+            snapshot["timings_by_name_seconds"]["sequential_ledger_commit"],
+            0.03,
+        )
+        self.assertNotIn("content must not be retained", json.dumps(snapshot))
+
+
+class RagOffShortCircuitTests(unittest.TestCase):
+    AGENTS = (
+        ("utilitarian_agent_p", "retrieve_utilitarian_quotes", "UTILITARIAN_QUERY_LENS"),
+        ("deontological_agent_p", "retrieve_deontological_quotes", "DEONTOLOGY_QUERY_LENS"),
+        ("virtue_ethics_agent_p", "retrieve_virtue_ethics_quotes", "VIRTUE_QUERY_LENS"),
+        ("care_ethics_agent_p", "retrieve_care_ethics_quotes", "CARE_QUERY_LENS"),
+        ("rawlsian_ethics_agent_p", "retrieve_rawlsian_ethics_quotes", "RAWLS_QUERY_LENS"),
+    )
+
+    def test_all_original_agents_skip_tags_corpora_and_embeddings_when_rag_is_off(self):
+        question = "A coordinator must choose Action A or Action B."
+
+        class CapturingLlm:
+            def __init__(self):
+                self.prompt = ""
+
+            def __call__(self, prompt, **kwargs):
+                self.prompt = prompt
+                return {"choices": [{"text": "stable testimony"}]}
+
+        with tempfile.TemporaryDirectory() as directory, chdir(directory):
+            scenario_path = Path(directory) / "rag_off_case.json"
+            scenario_path.write_text(
+                json.dumps({"ethical_question": question}), encoding="utf-8"
+            )
+            for module_name, retrieval_name, lens_name in self.AGENTS:
+                with self.subTest(agent=module_name):
+                    module = importlib.import_module(module_name)
+                    llm = CapturingLlm()
+                    with ExitStack() as stack:
+                        stack.enter_context(patch.dict(os.environ, {
+                            "ETHICS_DISABLE_RAG": "1",
+                            "ETHICS_LLM_BACKEND": "openai",
+                            "ETHICS_REUSE_SOURCE_TESTIMONY": "0",
+                        }))
+                        stack.enter_context(patch.object(
+                            module,
+                            "LAST_QUERY_PATH",
+                            Path(directory) / f"{module_name}.query",
+                        ))
+                        stack.enter_context(patch.object(
+                            module,
+                            "LAST_RESPONSE_PATH",
+                            Path(directory) / f"{module_name}.response",
+                        ))
+                        tag_loader = stack.enter_context(patch.object(
+                            module, "load_scenario_weights",
+                            side_effect=AssertionError("tag model must stay lazy"),
+                        ))
+                        corpus_loader = stack.enter_context(patch.object(
+                            module, "load_corpus_passages",
+                            side_effect=AssertionError("corpus must not load"),
+                        ))
+                        corpus_fingerprint = stack.enter_context(patch.object(
+                            module, "corpus_fingerprint",
+                            side_effect=AssertionError("corpus must not be fingerprinted"),
+                        ))
+                        retrieval = stack.enter_context(patch.object(
+                            module, retrieval_name,
+                            side_effect=AssertionError("retrieval path must short-circuit"),
+                        ))
+                        embedding_constructor = stack.enter_context(patch(
+                            "langchain_huggingface.HuggingFaceEmbeddings",
+                            side_effect=AssertionError("embedding constructor must not run"),
+                        ))
+                        testimony = module.respond_to_query(
+                            question,
+                            scenario_path.stem,
+                            scenario_path=scenario_path,
+                            llm=llm,
+                            max_tokens=32,
+                        )
+
+                    tag_loader.assert_not_called()
+                    corpus_loader.assert_not_called()
+                    corpus_fingerprint.assert_not_called()
+                    retrieval.assert_not_called()
+                    embedding_constructor.assert_not_called()
+                    expected_result = disabled_retrieval_result(
+                        question, getattr(module, lens_name),
+                    )
+                    self.assertEqual(
+                        module.LAST_RETRIEVAL,
+                        serialize_retrieval_result(expected_result, mode="disabled"),
+                    )
+                    self.assertIn(
+                        "[RAG_CONTEXT_UNAVAILABLE] No corpus passage met",
+                        llm.prompt,
+                    )
+                    # These are the pre-existing per-agent response wrappers;
+                    # the short-circuit changes no prompt testimony semantics.
+                    expected_testimony = (
+                        "stable testimony\n"
+                        if module_name == "virtue_ethics_agent_p"
+                        else "stable testimony\n[/INST]\n</s>"
+                        if module_name in {
+                            "care_ethics_agent_p", "rawlsian_ethics_agent_p",
+                        }
+                        else "stable testimony"
+                    )
+                    self.assertEqual(testimony, expected_testimony)
+
+    def test_semantic_tag_model_is_lazy_even_when_module_is_imported(self):
+        import get_semantic_tag
+
+        with patch("sentence_transformers.SentenceTransformer") as constructor:
+            importlib.reload(get_semantic_tag)
+        constructor.assert_not_called()
+
+    def test_short_circuit_preserves_legacy_rag_off_prompts_and_testimonies(self):
+        """Compare with the bridge hook's former typed-empty retrieval behavior."""
+        question = "A coordinator must choose Action A or Action B."
+
+        class CapturingLlm:
+            def __init__(self):
+                self.prompt = ""
+
+            def __call__(self, prompt, **kwargs):
+                self.prompt = prompt
+                return {"choices": [{"text": "stable testimony"}]}
+
+        with tempfile.TemporaryDirectory() as directory, chdir(directory):
+            scenario_path = Path(directory) / "rag_off_equivalence.json"
+            scenario_path.write_text(
+                json.dumps({"ethical_question": question}), encoding="utf-8"
+            )
+            for module_name, retrieval_name, lens_name in self.AGENTS:
+                with self.subTest(agent=module_name):
+                    module = importlib.import_module(module_name)
+                    expected_result = disabled_retrieval_result(
+                        question, getattr(module, lens_name),
+                    )
+                    expected_context = format_evidence_context(expected_result)
+                    disabled_llm = CapturingLlm()
+                    baseline_llm = CapturingLlm()
+                    common_environment = {
+                        "ETHICS_LLM_BACKEND": "openai",
+                        "ETHICS_REUSE_SOURCE_TESTIMONY": "0",
+                    }
+                    with patch.object(
+                        module, "LAST_QUERY_PATH",
+                        Path(directory) / f"{module_name}.query",
+                    ), patch.object(
+                        module, "LAST_RESPONSE_PATH",
+                        Path(directory) / f"{module_name}.response",
+                    ):
+                        with patch.dict(os.environ, {
+                            **common_environment, "ETHICS_DISABLE_RAG": "1",
+                        }):
+                            disabled_testimony = module.respond_to_query(
+                                question,
+                                scenario_path.stem,
+                                scenario_path=scenario_path,
+                                llm=disabled_llm,
+                                max_tokens=32,
+                            )
+
+                        legacy_retrieval = (
+                            (expected_context, [], expected_result)
+                            if module_name in {
+                                "deontological_agent_p", "virtue_ethics_agent_p",
+                            }
+                            else (expected_context, [])
+                        )
+                        with patch.dict(os.environ, {
+                            **common_environment, "ETHICS_DISABLE_RAG": "0",
+                        }), patch.object(
+                            module, "corpus_fingerprint", return_value="legacy-hook",
+                        ), patch.object(
+                            module, retrieval_name, return_value=legacy_retrieval,
+                        ), patch(
+                            "langchain_huggingface.HuggingFaceEmbeddings",
+                            return_value=object(),
+                        ):
+                            baseline_testimony = module.respond_to_query(
+                                question,
+                                scenario_path.stem,
+                                scenario_path=scenario_path,
+                                llm=baseline_llm,
+                                max_tokens=32,
+                            )
+
+                    self.assertEqual(disabled_llm.prompt, baseline_llm.prompt)
+                    self.assertEqual(disabled_testimony, baseline_testimony)
 
 
 if __name__ == "__main__":

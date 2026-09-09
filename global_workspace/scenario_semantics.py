@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
 import re
+import time
 from typing import Any, Sequence
 import unicodedata
 
@@ -19,6 +20,7 @@ from .action_identity import (
     graph_action_key,
 )
 from .semantic_graph import SemanticEdge, SemanticGraph, SemanticNode
+from .performance import record_performance_event
 from .semantic_roles import (
     RELATION_DOWNSTREAM_BENEFIT,
     RELATION_FOREGONE_BENEFIT,
@@ -274,6 +276,20 @@ def _plausible_affected_subject(label: str) -> bool:
 
 def project_grounded_action_effects(graph: SemanticGraph) -> list[GroundedActionEffect]:
     """Project canonical scenario facts before any framework interpretation."""
+    started = time.monotonic()
+    cached = graph.cached_projection("grounded_action_effects")
+    if cached is not None:
+        record_performance_event(
+            "grounded_effect_projection",
+            started,
+            category="projection",
+            status="CACHE_HIT",
+            metadata={
+                "graph_revision": graph.revision,
+                "effect_count": len(cached),
+            },
+        )
+        return list(cached)
     effects: list[GroundedActionEffect] = []
     for action in graph.nodes.values():
         if action.kind != "ACTION":
@@ -495,9 +511,21 @@ def project_grounded_action_effects(graph: SemanticGraph) -> list[GroundedAction
                     confidence=0.78,
                     epistemic_status="SYNTHESIS_GROUNDED",
                 ))
-    return sorted(effects, key=lambda effect: (
+    materialized = sorted(effects, key=lambda effect: (
         effect.action_id, effect.dimension, effect.affected_subject, effect.consequence_id,
     ))
+    graph.remember_projection("grounded_action_effects", materialized)
+    record_performance_event(
+        "grounded_effect_projection",
+        started,
+        category="projection",
+        status="MATERIALIZED",
+        metadata={
+            "graph_revision": graph.revision,
+            "effect_count": len(materialized),
+        },
+    )
+    return materialized
 
 
 def query_grounded_action_effects(

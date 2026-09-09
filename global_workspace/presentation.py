@@ -761,6 +761,11 @@ def _shorten_actions_in_text(
 
 def _epistemic_status(candidate: dict[str, Any]) -> str:
     from global_workspace.specialist_authority import normalize_specialist_status
+    vote_status = str(candidate.get("framework_vote_status", "")).upper()
+    if vote_status == "ABSTAIN":
+        return "ABSTAINS"
+    if vote_status == "ATTENUATED":
+        return "CONDITIONAL_SUPPORTS"
     raw = str(candidate.get("adjudication_status", "") or "").strip().upper()
     if raw:
         return normalize_specialist_status(raw)
@@ -1754,11 +1759,21 @@ def render_decision_brief(result: Any) -> str:
     lines.extend([
         "## Deliberation Map",
         "",
-        "| Framework | Current position | Epistemic status | Main contribution |",
-        "|---|---|---|---|",
+        "| Framework | Current position | Vote admission | Epistemic status | Main contribution |",
+        "|---|---|---|---|---|",
     ])
     for name, candidate in ordered_specialists:
         position = _map_position_label(candidate, recommendation, records=action_records)
+        vote_status = str(candidate.get("framework_vote_status", "NOT_APPLICABLE")).upper()
+        vote_reason = _sentence(_public_claim(str(
+            candidate.get("framework_vote_reason", "")
+        )))
+        vote_admission = vote_status.replace("_", " ")
+        if vote_status in {"ABSTAIN", "ATTENUATED"} and vote_reason:
+            vote_admission += f": {vote_reason}"
+        vote_admission = vote_admission.replace("|", "/")
+        if len(vote_admission) > 110:
+            vote_admission = vote_admission[:107].rstrip() + "..."
         epistemic_status = _epistemic_status(candidate)
         # Table may show RECONSIDERED_SUPPORT when the specialist changed from baseline.
         alignment = str(candidate.get("testimony_alignment", "")).upper()
@@ -1775,7 +1790,7 @@ def render_decision_brief(result: Any) -> str:
         if len(contribution) > 140:
             contribution = contribution[:137].rstrip() + "..."
         lines.append(
-            f"| {_framework_display_name(name)} | {position} | "
+            f"| {_framework_display_name(name)} | {position} | {vote_admission} | "
             f"{epistemic_status} | {contribution} |"
         )
     lines.append("")

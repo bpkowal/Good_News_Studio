@@ -12,6 +12,11 @@ import re
 from dataclasses import asdict, dataclass, field, replace
 from typing import Any, Iterable, Sequence
 
+from .world_validation import (
+    WorldModelValidationError,
+    validation_issues_from_messages,
+)
+
 
 DIRECTNESSES = {"DIRECT", "DOWNSTREAM", "FOREGONE", "INSTITUTIONAL"}
 EFFECT_KINDS = {
@@ -1183,6 +1188,12 @@ class WorldEffect:
     temporal_qualifiers: tuple[str, ...] = ()
     condition_join: str = ""
     overall_likelihood_qualifiers: tuple[str, ...] = ()
+    source_proposition: str = ""
+    source_effect_ids: tuple[str, ...] = ()
+    derivation_operation: str = "UNSPECIFIED"
+    derivation_explanation: str = ""
+    derivation_assumptions: tuple[str, ...] = ()
+    outcome_type_transformation: str = "PRESERVED"
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -1224,6 +1235,37 @@ class CounterfactualLink:
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+
+def normalize_redundant_link_gates(
+    links: Sequence[CausalLink],
+    effects: Sequence[WorldEffect],
+) -> tuple[CausalLink, ...]:
+    """Remove only gates already owned by a conditional target effect.
+
+    A link's modality describes the causal relationship.  Whether its target
+    is activated belongs to the target effect.  Models sometimes duplicate the
+    target's gate on an otherwise CERTAIN incoming link; that representation is
+    both redundant and rejected by the schema.  Removing the duplicate does
+    not weaken or invent a proposition because the same condition remains on
+    the target.  Conditions unique to a link are left untouched for validation
+    or semantic repair.
+    """
+    effect_by_id = {effect.effect_id: effect for effect in effects}
+    normalized: list[CausalLink] = []
+    for link in links:
+        target = effect_by_id.get(link.target_id)
+        duplicated = (
+            link.modality == "CERTAIN"
+            and bool(link.condition_ids)
+            and target is not None
+            and target.modality != "CERTAIN"
+            and set(link.condition_ids).issubset(set(target.condition_ids))
+        )
+        normalized.append(
+            replace(link, condition_ids=()) if duplicated else link
+        )
+    return tuple(normalized)
 
 
 @dataclass(frozen=True, slots=True)
@@ -2465,6 +2507,28 @@ def parse_world_model(
             overall_likelihood_qualifiers=_unique_likelihood_spans(
                 row.get("overall_likelihood_qualifiers", [])
             ),
+            source_proposition=_clean(row.get("source_proposition"), 500),
+            source_effect_ids=tuple(dict.fromkeys(
+                _clean(value, 80)
+                for value in row.get("source_effect_ids", [])
+                if _clean(value, 80)
+            )),
+            derivation_operation=(
+                _clean(row.get("derivation_operation"), 48).upper()
+                or "UNSPECIFIED"
+            ),
+            derivation_explanation=_clean(
+                row.get("derivation_explanation"), 500,
+            ),
+            derivation_assumptions=tuple(dict.fromkeys(
+                _clean(value, 240)
+                for value in row.get("derivation_assumptions", [])
+                if _clean(value, 240)
+            )),
+            outcome_type_transformation=(
+                _clean(row.get("outcome_type_transformation"), 48).upper()
+                or "PRESERVED"
+            ),
             provenance=_refs(row.get("clause_ids", []), lookup),
         )
         if schema_version != "1.0":
@@ -2472,6 +2536,8 @@ def parse_world_model(
         parsed_effects.append(effect)
     effects = tuple(parsed_effects)
     if schema_version != "1.0":
+        conditions = compile_event_condition_bindings(conditions, effects)
+        effects = normalize_event_probability_ownership(effects, conditions)
         effects = _fill_protective_overall_context(
             effects, parties, conditions, lookup,
         )
@@ -2569,6 +2635,8 @@ def parse_world_model(
         )),
         provenance=_refs(row.get("clause_ids", []), lookup),
     ) for row in raw.get("counterfactual_links", []) if isinstance(row, dict))
+    if schema_version != "1.0":
+        parsed_links = list(normalize_redundant_link_gates(parsed_links, effects))
     model = ScenarioWorldModel(
         parties=parties, actions=actions, effects=effects,
         conditions=conditions, causal_links=tuple(parsed_links),
@@ -2583,7 +2651,10 @@ def parse_world_model(
     if require_completeness:
         errors.extend(validate_world_completeness(model, action_ids=action_ids))
     if errors:
-        raise ValueError("; ".join(errors))
+        raise WorldModelValidationError(
+            errors,
+            validation_issues_from_messages(errors),
+        )
     return model
 
 
@@ -2621,7 +2692,7 @@ def validate_world_model(
                 errors.append(
                     f"{party.party_id} quantity {quantity!r} is not stated in its provenance"
                 )
-    if model.schema_version == "1.2":
+    if model.schema_version in {"1.2", "1.3"}:
         expected_by_party = assigned_party_quantities(model.parties)
         owned_by_party = assignment_owned_quantities(model.effects)
         for party in model.parties:
@@ -2847,7 +2918,7 @@ def validate_world_model(
                         f"{prefix} {qualifier_kind} qualifier {value!r} is not stated "
                         "in its provenance"
                     )
-            if model.schema_version == "1.2":
+            if model.schema_version in {"1.2", "1.3"}:
                 required = list(effect_expected_qualifiers(effect, extractor))
                 missing = [
                     value for value in required
@@ -2968,6 +3039,8 @@ def validate_world_model(
             errors.append(f"{prefix} cites unknown conditions")
         if not link.provenance:
             errors.append(f"{prefix} lacks source provenance")
+    if model.schema_version == "1.3":
+        errors.extend(validate_effect_source_bindings(model))
     contradictions: list[tuple[str, ...]] = []
     direct = [effect for effect in model.effects if effect.directness == "DIRECT"]
     for index, left in enumerate(direct):
@@ -3722,6 +3795,269 @@ def _condition_restates_outcome(description: str, outcome: str) -> bool:
     return bool(distinctive) and len(shared) / len(union) >= 0.6
 
 
+def canonical_probability_event_effects(
+    effects: Sequence[WorldEffect],
+) -> tuple[WorldEffect, ...]:
+    """Return actual non-welfare effects that canonically own uncertainty."""
+    return tuple(
+        effect for effect in effects
+        if effect.directness != "FOREGONE"
+        and effect.effect_kind not in _ROLE_WELFARE_KINDS
+        and (
+            effect.modality in {"PROBABILISTIC", "POSSIBLE", "UNKNOWN"}
+            or bool(effect.likelihood_qualifiers)
+        )
+    )
+
+
+def compile_event_condition_bindings(
+    conditions: Sequence[WorldCondition],
+    effects: Sequence[WorldEffect],
+) -> tuple[WorldCondition, ...]:
+    """Bind an unbound event alias when exactly one branch-local event matches.
+
+    The source proposition and its probability stay on the event effect.  A
+    condition is only a gate referencing that event.  Ambiguous or unmatched
+    descriptions remain untouched so validation can fail closed rather than
+    guessing.
+    """
+    events = canonical_probability_event_effects(effects)
+    compiled: list[WorldCondition] = []
+    for condition in conditions:
+        if condition.event_effect_id:
+            compiled.append(condition)
+            continue
+        consumer_actions = {
+            effect.action_id
+            for effect in effects
+            if (
+                condition.condition_id in effect.condition_ids
+                and effect.directness != "FOREGONE"
+            )
+        }
+        matches = [
+            event for event in events
+            if (
+                not consumer_actions or event.action_id in consumer_actions
+            )
+            and _condition_restates_outcome(
+                condition.description, event.outcome,
+            )
+        ]
+        if len(matches) == 1:
+            compiled.append(replace(
+                condition,
+                event_effect_id=matches[0].effect_id,
+                provenance=condition.provenance or matches[0].provenance,
+            ))
+        else:
+            compiled.append(condition)
+    return tuple(compiled)
+
+
+def normalize_event_probability_ownership(
+    effects: Sequence[WorldEffect],
+    conditions: Sequence[WorldCondition],
+) -> tuple[WorldEffect, ...]:
+    """Keep each event probability on its event, never on gated descendants."""
+    effect_by_id = {effect.effect_id: effect for effect in effects}
+    condition_by_id = {
+        condition.condition_id: condition for condition in conditions
+    }
+    normalized: list[WorldEffect] = []
+    for effect in effects:
+        event_ids = {
+            condition_by_id[condition_id].event_effect_id
+            for condition_id in effect.condition_ids
+            if condition_id in condition_by_id
+            and condition_by_id[condition_id].event_effect_id
+            and condition_by_id[condition_id].event_effect_id != effect.effect_id
+        }
+        events = [
+            effect_by_id[event_id]
+            for event_id in event_ids if event_id in effect_by_id
+        ]
+        if not events:
+            normalized.append(effect)
+            continue
+        event_probability_keys = {
+            _likelihood_identity_key(span)
+            for event in events for span in event.likelihood_qualifiers
+        }
+        retained_likelihood = tuple(
+            span for span in effect.likelihood_qualifiers
+            if _likelihood_identity_key(span) not in event_probability_keys
+        )
+        modality = effect.modality
+        if modality in {"PROBABILISTIC", "POSSIBLE", "UNKNOWN"}:
+            modality = "STIPULATED_CONDITIONAL"
+        normalized.append(replace(
+            effect,
+            modality=modality,
+            likelihood_qualifiers=retained_likelihood,
+        ))
+    return tuple(normalized)
+
+
+_WORLD_DERIVATION_OPERATIONS = {
+    "DIRECT_COPY", "SOURCE_STIPULATED_CAUSAL", "STRUCTURAL_ABSTRACTION",
+    "COUNTERFACTUAL_PROJECTION",
+}
+
+
+def _normalized_proposition_text(text: str) -> str:
+    return " ".join(str(text or "").casefold().split())
+
+
+def _source_proposition_supports_outcome(
+    effect: WorldEffect,
+    party: WorldParty | None = None,
+) -> bool:
+    outcome_stems = _condition_content_stems(effect.outcome)
+    if party is not None:
+        outcome_stems -= _condition_content_stems(party.label)
+    outcome_stems -= {
+        _stem_word(word) for word in _PARTY_GENERIC_NOUNS
+    }
+    proposition_stems = _condition_content_stems(effect.source_proposition)
+    if not outcome_stems or not proposition_stems:
+        return False
+    shared = outcome_stems & proposition_stems
+    return bool(shared) and len(shared) / len(outcome_stems) >= 0.5
+
+
+def validate_effect_source_bindings(model: ScenarioWorldModel) -> list[str]:
+    """Validate schema-1.3 effect-level proposition and derivation bindings."""
+    effect_by_id = {effect.effect_id: effect for effect in model.effects}
+    party_by_id = {party.party_id: party for party in model.parties}
+    errors: list[str] = []
+    for effect in model.effects:
+        prefix = effect.effect_id
+        proposition = _normalized_proposition_text(effect.source_proposition)
+        source_texts = [
+            _normalized_proposition_text(ref.excerpt)
+            for ref in effect.provenance if ref.excerpt
+        ]
+        if not proposition:
+            errors.append(f"{prefix} lacks a bound source_proposition")
+        elif not any(proposition in source for source in source_texts):
+            errors.append(
+                f"{prefix} source_proposition is not an exact span of its provenance"
+            )
+        elif (
+            effect.derivation_operation != "STRUCTURAL_ABSTRACTION"
+            and not _source_proposition_supports_outcome(
+                effect, party_by_id.get(effect.party_id),
+            )
+        ):
+            errors.append(
+                f"{prefix} source_proposition does not state its normalized outcome; "
+                "bind the explicit source proposition or omit the derived world effect"
+            )
+        operation = effect.derivation_operation
+        if operation not in _WORLD_DERIVATION_OPERATIONS:
+            errors.append(
+                f"{prefix} has inadmissible derivation_operation {operation!r}"
+            )
+        if effect.derivation_assumptions:
+            errors.append(
+                f"{prefix} depends on unestablished derivation assumptions; "
+                "quarantine it as a hypothesis instead of a world effect"
+            )
+        if effect.outcome_type_transformation != "PRESERVED":
+            errors.append(
+                f"{prefix} changes source outcome type to "
+                f"{effect.outcome_type_transformation}; quarantine the transformation"
+            )
+        unknown_sources = set(effect.source_effect_ids) - set(effect_by_id)
+        if unknown_sources:
+            errors.append(
+                f"{prefix} derives from unknown source effects: {sorted(unknown_sources)}"
+            )
+        if operation == "DIRECT_COPY" and effect.source_effect_ids:
+            errors.append(
+                f"{prefix} is DIRECT_COPY but lists source_effect_ids"
+            )
+        if operation == "SOURCE_STIPULATED_CAUSAL":
+            if not effect.source_effect_ids:
+                errors.append(
+                    f"{prefix} is SOURCE_STIPULATED_CAUSAL but lists no source_effect_ids"
+                )
+            if not effect.derivation_explanation:
+                errors.append(
+                    f"{prefix} is SOURCE_STIPULATED_CAUSAL but lacks a derivation explanation"
+                )
+            immediate_parents = {
+                link.source_id for link in model.causal_links
+                if link.action_id == effect.action_id
+                and link.target_id == effect.effect_id
+                and _link_parents_target(link)
+            }
+            invalid_parents = set(effect.source_effect_ids) - immediate_parents
+            if invalid_parents:
+                errors.append(
+                    f"{prefix} source_effect_ids are not same-action immediate parents: "
+                    f"{sorted(invalid_parents)}"
+                )
+        if operation == "STRUCTURAL_ABSTRACTION":
+            proposition_stems = _condition_content_stems(
+                effect.source_proposition,
+            )
+            outcome_stems = _condition_content_stems(effect.outcome)
+            immediate_parents = {
+                link.source_id for link in model.causal_links
+                if link.action_id == effect.action_id
+                and link.target_id == effect.effect_id
+                and _link_parents_target(link)
+            }
+            if (
+                effect.effect_kind not in _PROCESS_EFFECT_KINDS
+                or effect.polarity != "NEUTRAL"
+                or effect.directness == "FOREGONE"
+            ):
+                errors.append(
+                    f"{prefix} STRUCTURAL_ABSTRACTION must be an actual NEUTRAL "
+                    "process or physical-state effect"
+                )
+            if not outcome_stems & proposition_stems:
+                errors.append(
+                    f"{prefix} STRUCTURAL_ABSTRACTION has no lexical anchor in "
+                    "its source proposition"
+                )
+            if not effect.source_effect_ids:
+                errors.append(
+                    f"{prefix} STRUCTURAL_ABSTRACTION lists no source_effect_ids"
+                )
+            invalid_parents = set(effect.source_effect_ids) - immediate_parents
+            if invalid_parents:
+                errors.append(
+                    f"{prefix} structural source_effect_ids are not same-action "
+                    f"immediate parents: {sorted(invalid_parents)}"
+                )
+        if operation == "COUNTERFACTUAL_PROJECTION":
+            matching = {
+                link.alternative_effect_id
+                for link in model.counterfactual_links
+                if link.source_effect_id == effect.effect_id
+                and link.action_id == effect.action_id
+            }
+            if effect.directness != "FOREGONE":
+                errors.append(
+                    f"{prefix} uses COUNTERFACTUAL_PROJECTION but is not FOREGONE"
+                )
+            if not effect.source_effect_ids or not set(effect.source_effect_ids) <= matching:
+                errors.append(
+                    f"{prefix} counterfactual source_effect_ids do not match its "
+                    "alternative_effect_id"
+                )
+        elif effect.directness == "FOREGONE":
+            errors.append(
+                f"{prefix} is FOREGONE so derivation_operation must be "
+                "COUNTERFACTUAL_PROJECTION"
+            )
+    return errors
+
+
 def _immediate_causal_parents(
     model: ScenarioWorldModel, effect_id: str,
 ) -> tuple[WorldEffect, ...]:
@@ -3850,9 +4186,31 @@ def _event_referenced_condition_errors(model: ScenarioWorldModel) -> list[str]:
     action_by_id = {action.action_id: action for action in model.actions}
     errors: list[str] = []
     for condition in model.conditions:
+        # Conditions are branch-local.  A lexical match in another action (and
+        # especially in a derived FOREGONE mirror) is not an alternative event
+        # identity for this condition.  Without this scope, counterfactual
+        # projections can make an otherwise valid actual-world event look
+        # ambiguously referenced.
+        condition_action_ids = {
+            effect.action_id
+            for effect in model.effects
+            if (
+                condition.condition_id in effect.condition_ids
+                and effect.directness != "FOREGONE"
+            )
+        }
+        condition_action_ids.update(
+            link.action_id
+            for link in model.causal_links
+            if condition.condition_id in link.condition_ids and link.action_id
+        )
         event_id = str(condition.event_effect_id or "").strip()
         if not event_id:
             for effect in model.effects:
+                if effect.directness == "FOREGONE":
+                    continue
+                if condition_action_ids and effect.action_id not in condition_action_ids:
+                    continue
                 action = action_by_id.get(effect.action_id)
                 if action is None:
                     continue
@@ -3876,6 +4234,13 @@ def _event_referenced_condition_errors(model: ScenarioWorldModel) -> list[str]:
                 f"{condition.condition_id} event_effect_id {event_id} is unknown"
             )
             continue
+        if not _condition_restates_outcome(
+            condition.description, event.outcome,
+        ):
+            errors.append(
+                f"{condition.condition_id} description does not identify "
+                f"referenced event {event_id} ({event.outcome!r})"
+            )
         event_party = party_by_id.get(event.party_id)
         if event.directness == "FOREGONE" or event.effect_kind == "OPPORTUNITY_LOSS":
             errors.append(
@@ -3914,6 +4279,10 @@ def _event_referenced_condition_errors(model: ScenarioWorldModel) -> list[str]:
             )
         for effect in model.effects:
             if effect.effect_id == event_id:
+                continue
+            if effect.directness == "FOREGONE":
+                continue
+            if effect.action_id != event.action_id:
                 continue
             if _condition_restates_outcome(condition.description, effect.outcome):
                 errors.append(
@@ -4586,6 +4955,16 @@ def compact_committed_world(model: Any) -> dict[str, Any]:
                     effect.overall_likelihood_qualifiers
                 ),
                 "quantities": recorded_quantity_payload(effect.quantities),
+                **({
+                    "source_binding": {
+                        "source_proposition": effect.source_proposition,
+                        "source_effect_ids": list(effect.source_effect_ids),
+                        "derivation_operation": effect.derivation_operation,
+                        "derivation_explanation": effect.derivation_explanation,
+                        "derivation_assumptions": list(effect.derivation_assumptions),
+                        "outcome_type_transformation": effect.outcome_type_transformation,
+                    },
+                } if typed.schema_version == "1.3" else {}),
             }
             for effect in effects
         ],

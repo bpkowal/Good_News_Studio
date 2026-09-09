@@ -194,7 +194,8 @@ class CompoundDecisionBoundary:
             atom = clause.graph(include_switch=False, index=index)
             for node in atom.nodes.values():
                 graph.add_node(node)
-            graph.edges.extend(atom.edges)
+            for edge in atom.edges:
+                graph.add_edge(edge)
             atom_condition = next(
                 node.id for node in atom.nodes.values() if node.kind == "CONDITION"
             )

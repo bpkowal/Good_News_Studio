@@ -5,6 +5,7 @@ import copy
 import json
 import re
 import sys
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -17,11 +18,16 @@ from global_workspace.core_quote_pack import (
     format_core_dialect_contract,
 )
 from global_workspace.legacy_bridge import AGENT_MODULES, consult_original_agents
+from global_workspace.frozen_world_replay import (
+    FrozenWorldReplayError,
+    load_frozen_world_trace,
+)
 from global_workspace.retrieval_trace import (
     annotate_retrieval_use,
     skipped_retrieval_record,
-    specialist_cycle_text,
+    specialist_candidate_cycle_text,
 )
+from global_workspace.serialization import atomic_write_json
 from global_workspace.landscape_validation import verify_landscape_alignment
 from global_workspace.local_specialists import (
     CompactLocalSpecialist,
@@ -39,6 +45,13 @@ from global_workspace.local_specialists import (
 from global_workspace.memory import EpisodicMemory, summarize_specialist_contributions
 from global_workspace.models import WorkspaceBroadcast
 from global_workspace.openai_backend import OpenAIWorkspaceLLM
+from global_workspace.performance import (
+    PerformanceRecorder,
+    performance_stage,
+    record_performance_event,
+    reset_performance_trace,
+    start_performance_trace,
+)
 from global_workspace.presentation import (
     render_decision_brief,
     render_public_judgment,
@@ -237,6 +250,19 @@ def parse_args() -> argparse.Namespace:
         help="Recompute action planning and action-source grounding",
     )
     parser.add_argument(
+        "--frozen-world-trace",
+        type=Path,
+        help=(
+            "Reuse the exact committed scenario/actions/world from a saved trace; "
+            "any mismatch fails closed"
+        ),
+    )
+    parser.add_argument(
+        "--performance-output",
+        type=Path,
+        help="Optional path for structured timing and model-call telemetry",
+    )
+    parser.add_argument(
         "--skip-original-agents",
         action="store_true",
         help="Use ungrounded compact specialists (diagnostic/prototype mode only)",
@@ -252,6 +278,12 @@ def parse_args() -> argparse.Namespace:
         help="Give compact specialists one authored CORE dialect excerpt (no MiniLM)",
     )
     parser.add_argument("--agent-timeout", type=float, default=600.0)
+    parser.add_argument(
+        "--openai-concurrency",
+        type=int,
+        default=2,
+        help="Maximum concurrent OpenAI original-agent or specialist calls (1-3)",
+    )
     parser.add_argument("--call-reserve-seconds", type=float, default=20.0)
     parser.add_argument("--max-auxiliary-calls-per-cycle", type=int, default=5)
     parser.add_argument(
@@ -318,12 +350,45 @@ def _confirm_actions(actions: list[str]) -> list[str] | None:
     return None
 
 
+def render_rejected_world(records: list[dict], grounding: dict[str, object]) -> str:
+    """Identity-only projection for a world that failed admission.
+
+    Canonical records may contain heuristic roles derived from action prose when
+    no typed model was committed.  Those roles are useful neither as facts nor
+    as diagnostics, so a rejected projection must never print them.
+    """
+    lines = [
+        "",
+        "--- World grounding rejected ---",
+        f"status: {str(grounding.get('status') or 'REJECTED').upper()}",
+        f"repairs: {int(grounding.get('repair_attempts') or 0)}",
+    ]
+    for record in records:
+        action_id = str(record.get("action_id") or "")
+        label = str(
+            record.get("short_label")
+            or record.get("intervention")
+            or record.get("canonical_semantic_action")
+            or action_id
+        )
+        lines.append(f"\n{action_id}: {label}")
+    lines.append(
+        "\nNo beneficiary, harm, risk, or causal-role classifications were admitted."
+    )
+    if grounding.get("rejected_candidate"):
+        lines.append("The rejected candidate is retained in the audit trace only.")
+    return "\n".join(lines)
+
+
 def render_admitted_world(records: list[dict], grounding: dict[str, object]) -> str:
     """Short inspectable projection of the committed world, not the full trace dump."""
+    status = str(grounding.get("status") or "UNKNOWN").upper()
+    if status not in {"COMMITTED", "COMMITTED_WITH_QUARANTINE"}:
+        return render_rejected_world(records, grounding)
     lines = [
         "",
         "--- Admitted world ---",
-        f"status: {str(grounding.get('status') or 'UNKNOWN').upper()}",
+        f"status: {status}",
         f"repairs: {int(grounding.get('repair_attempts') or 0)}",
     ]
     for record in records:
@@ -446,7 +511,7 @@ def report_withheld_world(
         output_fn("Grounding errors:")
         for item in grounding_errors:
             output_fn(f"  {item}")
-    output_fn(render_admitted_world(dumped, grounding))
+    output_fn(render_rejected_world(dumped, grounding))
     if tty:
         output_fn("World grounding was rejected; not running expert agents.")
         return 0
@@ -487,8 +552,7 @@ def _prompt_cycle_extension(result, extension_cycles: int = 2) -> int:
     return extension_cycles if answer in {"y", "yes"} else 0
 
 
-def main() -> int:
-    args = parse_args()
+def run_pipeline(args: argparse.Namespace, recorder: PerformanceRecorder) -> int:
     selected_agents = [
         name for name in AGENT_MODULES
         if name in set(args.agents or AGENT_MODULES)
@@ -503,8 +567,33 @@ def main() -> int:
     if not scenario:
         raise ValueError("Scenario JSON must contain a non-empty ethical_question")
     ethical_problem = scenario
+    if args.frozen_world_trace and args.actions:
+        raise ValueError("--frozen-world-trace cannot be combined with --actions")
+    if args.frozen_world_trace and args.no_framing_cache:
+        raise ValueError(
+            "--frozen-world-trace cannot be combined with --no-framing-cache"
+        )
+    frozen_replay = None
+    if args.frozen_world_trace:
+        try:
+            with performance_stage("frozen_world_validation"):
+                frozen_replay = load_frozen_world_trace(
+                    args.frozen_world_trace,
+                    expected_scenario=ethical_problem,
+                )
+        except FrozenWorldReplayError as exc:
+            print(f"Frozen-world replay rejected: {exc}", flush=True)
+            return 2
+        print(
+            "Frozen-world replay validated: "
+            f"{frozen_replay.fingerprint[:16]} from {frozen_replay.source_path}",
+            flush=True,
+        )
     framing_cache_path = args.output_dir / FRAMING_CACHE_FILENAME
-    if args.no_framing_cache:
+    if frozen_replay is not None:
+        cached_framing = None
+        framing_cache_lookup = "FROZEN_REPLAY"
+    elif args.no_framing_cache:
         cached_framing = None
         framing_cache_lookup = "DISABLED"
     else:
@@ -542,30 +631,39 @@ def main() -> int:
         reserve_seconds=max(0.0, args.call_reserve_seconds),
         max_auxiliary_calls_per_cycle=max(0, args.max_auxiliary_calls_per_cycle),
     )
-    print("Planning a shared action set...", flush=True)
-    source_action_legend = extract_labeled_action_legend(scenario)
-    source_labels_explicit = bool(source_action_legend)
-    if source_action_legend:
-        _validate_lossless_action_set(list(source_action_legend.values()), scenario)
-    try:
-        actions, cached_actions_reused = choose_initial_actions(
-            args.actions, cached_framing, lambda: propose_actions(llm, scenario),
+    if frozen_replay is not None:
+        actions = list(frozen_replay.presentation_actions)
+        cached_actions_reused = True
+        user_authored_actions = False
+        source_action_legend = dict(frozen_replay.source_action_legend)
+        source_labels_explicit = bool(source_action_legend)
+        print("Using frozen presentation action set; planner was not called.", flush=True)
+    else:
+        print("Planning a shared action set...", flush=True)
+        source_action_legend = extract_labeled_action_legend(scenario)
+        source_labels_explicit = bool(source_action_legend)
+        if source_action_legend:
+            _validate_lossless_action_set(list(source_action_legend.values()), scenario)
+        try:
+            with performance_stage("action_planning"):
+                actions, cached_actions_reused = choose_initial_actions(
+                    args.actions, cached_framing, lambda: propose_actions(llm, scenario),
+                )
+            if cached_actions_reused:
+                print(
+                    "Framing cache hit: reusing the last action set for this exact problem.",
+                    flush=True,
+                )
+        except ValueError as exc:
+            print(f"Action planning could not produce a safe feasible set: {exc}", flush=True)
+            print("Rerun with explicit choices, for example: --actions \"first action\" \"second action\"", flush=True)
+            return 2
+        user_authored_actions = bool(args.actions)
+        _validate_lossless_action_set(
+            actions, scenario, user_authored=user_authored_actions,
         )
-        if cached_actions_reused:
-            print(
-                "Framing cache hit: reusing the last action set for this exact problem.",
-                flush=True,
-            )
-    except ValueError as exc:
-        print(f"Action planning could not produce a safe feasible set: {exc}", flush=True)
-        print("Rerun with explicit choices, for example: --actions \"first action\" \"second action\"", flush=True)
-        return 2
-    user_authored_actions = bool(args.actions)
-    _validate_lossless_action_set(
-        actions, scenario, user_authored=user_authored_actions,
-    )
     print("Actions:", ", ".join(actions), flush=True)
-    if not args.accept_actions:
+    if not args.accept_actions and frozen_replay is None:
         confirmed_actions = confirm_actions(actions)
         if confirmed_actions is None:
             print("Action set rejected; no deliberation was run.", flush=True)
@@ -582,21 +680,28 @@ def main() -> int:
     # Delegates receive a stable hash-ordered internal mapping so swapping the
     # displayed alternatives cannot by itself swap the meanings of A0 and A1.
     presentation_actions = list(actions)
-    if not source_action_legend:
-        source_action_legend = {
-            f"A{index}": action for index, action in enumerate(presentation_actions)
-        }
-    presentation_action_legend = dict(source_action_legend)
-    actions = canonicalize_action_order(presentation_actions)
-    presentation_action_mapping = build_presentation_action_mapping(
-        scenario,
-        presentation_action_legend,
-        actions,
-        source_labels_explicit=source_labels_explicit,
-    )
-    scenario = canonicalize_deliberation_scenario(
-        scenario, presentation_action_legend, actions,
-    )
+    if frozen_replay is not None:
+        actions = list(frozen_replay.canonical_actions)
+        scenario = frozen_replay.scenario
+        presentation_action_mapping = [
+            dict(item) for item in frozen_replay.presentation_action_mapping
+        ]
+    else:
+        if not source_action_legend:
+            source_action_legend = {
+                f"A{index}": action for index, action in enumerate(presentation_actions)
+            }
+        presentation_action_legend = dict(source_action_legend)
+        actions = canonicalize_action_order(presentation_actions)
+        presentation_action_mapping = build_presentation_action_mapping(
+            scenario,
+            presentation_action_legend,
+            actions,
+            source_labels_explicit=source_labels_explicit,
+        )
+        scenario = canonicalize_deliberation_scenario(
+            scenario, presentation_action_legend, actions,
+        )
     # Original agents now receive the canonical mapping, so any A0/A1 labels in
     # their testimony refer to this legend—not to the user's display order.
     source_action_legend = {
@@ -607,24 +712,33 @@ def main() -> int:
         + "; ".join(f"A{index}={action}" for index, action in enumerate(actions)),
         flush=True,
     )
-    cached_actions_match = cached_framing_matches(
-        cached_framing,
-        presentation_actions=presentation_actions,
-        canonical_actions=actions,
-        canonical_scenario=scenario,
-    )
-    action_source_grounding, grounding_reused = choose_action_source_grounding(
-        cached_framing,
-        cache_matches=cached_actions_match,
-        grounder=lambda: ground_actions_in_scenario(
-            llm, scenario, actions, max_tokens=max(128, args.delegate_tokens),
-        ),
-    )
-    if grounding_reused:
-        print(
-            "Framing cache hit: reusing committed action-source grounding.",
-            flush=True,
+    if frozen_replay is not None:
+        action_source_grounding = copy.deepcopy(
+            frozen_replay.action_source_grounding
         )
+        grounding_reused = True
+        print("Using frozen committed world; world generator was not called.", flush=True)
+    else:
+        cached_actions_match = cached_framing_matches(
+            cached_framing,
+            presentation_actions=presentation_actions,
+            canonical_actions=actions,
+            canonical_scenario=scenario,
+        )
+        with performance_stage("world_grounding"):
+            action_source_grounding, grounding_reused = choose_action_source_grounding(
+                cached_framing,
+                cache_matches=cached_actions_match,
+                grounder=lambda: ground_actions_in_scenario(
+                    llm, scenario, actions, max_tokens=max(128, args.delegate_tokens),
+                ),
+            )
+    if grounding_reused:
+        if frozen_replay is None:
+            print(
+                "Framing cache hit: reusing committed action-source grounding.",
+                flush=True,
+            )
     else:
         if cached_framing is not None:
             framing_cache_lookup = "MISS_ACTION_SET_CHANGED"
@@ -632,11 +746,19 @@ def main() -> int:
                 "Cached actions changed; recomputing action-source grounding.",
                 flush=True,
             )
-    print(
-        "Action-source grounding: "
-        + json.dumps(action_source_grounding, ensure_ascii=False, sort_keys=True),
-        flush=True,
-    )
+    if frozen_replay is not None:
+        frozen_world = action_source_grounding.get("world_model") or {}
+        print(
+            "Action-source grounding: FROZEN COMMITTED "
+            f"({len(frozen_world.get('effects') or [])} admitted effects)",
+            flush=True,
+        )
+    else:
+        print(
+            "Action-source grounding: "
+            + json.dumps(action_source_grounding, ensure_ascii=False, sort_keys=True),
+            flush=True,
+        )
     if action_source_grounding.get("world_contradictions"):
         if not resolve_world_state_contradictions(action_source_grounding):
             print("Run abandoned because the direct world state remained contradictory.")
@@ -712,7 +834,8 @@ def main() -> int:
         return report_withheld_world(records, action_source_grounding)
     canonical_action_records = [record.as_dict() for record in admitted]
     if (
-        not args.no_framing_cache and not grounding_reused
+        frozen_replay is None
+        and not args.no_framing_cache and not grounding_reused
         and str(action_source_grounding.get("status") or "").upper() == "COMMITTED"
     ):
         try:
@@ -768,7 +891,7 @@ def main() -> int:
     if not confirm_continue_after_world(
         canonical_action_records,
         action_source_grounding,
-        accept_world=args.accept_world,
+        accept_world=(args.accept_world or frozen_replay is not None),
         stop_after_world=args.stop_after_world,
     ):
         return 0
@@ -783,17 +906,19 @@ def main() -> int:
             name: skipped_retrieval_record("skipped") for name in selected_agents
         }
     else:
-        with model_call_budget_paused():
-            consultation = consult_original_agents(
-                scenario_path,
-                agents=tuple(selected_agents),
-                timeout_seconds=max(1.0, args.agent_timeout),
-                backend=args.backend,
-                openai_model=args.openai_model,
-                canonical_actions=tuple(actions),
-                canonical_scenario=scenario,
-                disable_rag=args.no_rag_context,
-            )
+        with performance_stage("original_agent_consultation"):
+            with model_call_budget_paused():
+                consultation = consult_original_agents(
+                    scenario_path,
+                    agents=tuple(selected_agents),
+                    timeout_seconds=max(1.0, args.agent_timeout),
+                    backend=args.backend,
+                    openai_model=args.openai_model,
+                    canonical_actions=tuple(actions),
+                    canonical_scenario=scenario,
+                    disable_rag=args.no_rag_context,
+                    max_concurrency=max(1, min(3, args.openai_concurrency)),
+                )
         testimonies = consultation.testimonies
         source_errors = consultation.errors
         source_retrievals = dict(consultation.retrievals)
@@ -832,13 +957,17 @@ def main() -> int:
             continue
         print(f"Freezing {name} testimony baseline...", flush=True)
         try:
-            stance = infer_testimony_stance(
-                llm,
-                name,
-                testimonies[name],
-                actions,
-                source_action_legend=source_action_legend,
-            )
+            with performance_stage(
+                "testimony_baseline",
+                metadata={"specialist": name},
+            ):
+                stance = infer_testimony_stance(
+                    llm,
+                    name,
+                    testimonies[name],
+                    actions,
+                    source_action_legend=source_action_legend,
+                )
         except ModelCallBudgetExceeded as exc:
             print(
                 f"Model-call budget exhausted while freezing {name} testimony "
@@ -921,6 +1050,10 @@ def main() -> int:
             ),
             enable_ev_dominance_breaker=not args.no_ev_dominance_breaker,
             ev_dominance_ratio=max(1.0, args.ev_dominance_ratio),
+            openai_max_concurrency=(
+                max(1, min(3, args.openai_concurrency))
+                if args.backend == "openai" else 1
+            ),
         ),
     )
     args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -929,10 +1062,23 @@ def main() -> int:
     checkpoint_path = args.output_dir / f"checkpoint_{scenario_path.stem}_{stamp}.json"
 
     def save_checkpoint(current_result) -> None:
-        checkpoint_path.write_text(
-            json.dumps(current_result.to_dict(), indent=2), encoding="utf-8"
-        )
+        checkpoint_metadata = {
+            "cycle_count": len(current_result.cycles),
+            "format": "compact",
+            "atomic": True,
+        }
+        with performance_stage(
+            "checkpoint_serialization",
+            metadata=checkpoint_metadata,
+        ):
+            checkpoint_metadata["bytes_written"] = atomic_write_json(
+                checkpoint_path,
+                current_result.to_dict(),
+                pretty=False,
+            )
 
+    deliberation_started = time.monotonic()
+    deliberation_status = "OK"
     try:
         result = engine.run(
         scenario,
@@ -1032,7 +1178,16 @@ def main() -> int:
             )
         ),
         )
+    except Exception:
+        deliberation_status = "ERROR"
+        raise
     finally:
+        record_performance_event(
+            "workspace_deliberation",
+            deliberation_started,
+            status=deliberation_status,
+            metadata={"specialist_count": len(specialists)},
+        )
         reset_model_call_budget(budget_token)
     result.source_testimonies = testimonies
     result.source_errors = source_errors
@@ -1046,27 +1201,38 @@ def main() -> int:
         "cache_written": framing_cache_written,
         "cache_version": FRAMING_CACHE_VERSION,
     }
+    result.frozen_world_replay = (
+        frozen_replay.metadata() if frozen_replay is not None else {}
+    )
     result.source_action_legend = source_action_legend
     result.source_baselines = baselines
     result.core_quote_pack = core_quotes
     result.scenario_facts = scenario_facts
-    cycle_blob = result.to_dict()
     result.source_retrievals = {
         name: annotate_retrieval_use(
             record,
             testimony=str(testimonies.get(name) or ""),
-            cycle_text=specialist_cycle_text(cycle_blob, name),
+            cycle_text=specialist_candidate_cycle_text(result.cycles, name),
         )
         for name, record in source_retrievals.items()
     }
 
     summary_path = output_path.with_suffix(".txt")
     answer_path = output_path.with_name(output_path.stem + "_answer.txt")
-    result_data = result.to_dict()
-    output_path.write_text(json.dumps(result_data, indent=2), encoding="utf-8")
-    summary = render_summary(result)
-    summary_path.write_text(summary, encoding="utf-8")
-    answer_path.write_text(render_public_judgment(result), encoding="utf-8")
+    with performance_stage("final_report_serialization"):
+        summary = render_summary(result)
+        summary_path.write_text(summary, encoding="utf-8")
+        answer_path.write_text(render_public_judgment(result), encoding="utf-8")
+    trace_metadata = {"format": "pretty", "atomic": True}
+    with performance_stage("trace_serialization", metadata=trace_metadata):
+        # Snapshot after the public reports so their serialization time is part
+        # of the audit's execution metadata. Trace-write timing itself remains
+        # available in the complete performance sidecar written by ``main``.
+        result.performance_trace = recorder.snapshot()
+        result_data = result.to_dict()
+        trace_metadata["bytes_written"] = atomic_write_json(
+            output_path, result_data, pretty=True,
+        )
     episodic_memory.append({
         "scenario_id": scenario_path.stem,
         "judgment_status": result.judgment_status,
@@ -1094,6 +1260,41 @@ def main() -> int:
     print(f"Saved summary: {summary_path}")
     print(f"Saved final answer: {answer_path}")
     return 0
+
+
+def main() -> int:
+    args = parse_args()
+    run_id = f"{args.scenario.stem}_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}"
+    recorder, performance_token = start_performance_trace(run_id)
+    pipeline_started = time.monotonic()
+    pipeline_status = "OK"
+    try:
+        exit_code = run_pipeline(args, recorder)
+        if exit_code != 0:
+            pipeline_status = "NONZERO_EXIT"
+        return exit_code
+    except Exception:
+        pipeline_status = "ERROR"
+        raise
+    finally:
+        recorder.record(
+            "pipeline_total",
+            pipeline_started,
+            status=pipeline_status,
+        )
+        destination = args.performance_output or (
+            args.output_dir / f"performance_{run_id}.json"
+        )
+        try:
+            atomic_write_json(
+                destination,
+                recorder.snapshot(),
+                pretty=True,
+            )
+            print(f"Saved performance trace: {destination}", flush=True)
+        except OSError as exc:
+            print(f"Performance trace could not be saved: {exc}", flush=True)
+        reset_performance_trace(performance_token)
 
 
 if __name__ == "__main__":

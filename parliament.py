@@ -37,6 +37,12 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         help="Run only the selected ethical frameworks (at least two)",
     )
     parser.add_argument("--agent-timeout", type=float, default=600.0)
+    parser.add_argument(
+        "--openai-concurrency",
+        type=int,
+        default=2,
+        help="Maximum concurrent OpenAI calls (1-3)",
+    )
     parser.add_argument("--n-ctx", type=int, default=768)
     parser.add_argument("--n-gpu-layers", type=int, default=8)
     parser.add_argument("--n-batch", type=int, default=32)
@@ -78,6 +84,16 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--no-framing-cache", action="store_true",
         help="Recompute action planning and action-source grounding",
+    )
+    parser.add_argument(
+        "--frozen-world-trace",
+        type=Path,
+        help="Reuse an exactly matching committed world from a saved workspace trace",
+    )
+    parser.add_argument(
+        "--performance-output",
+        type=Path,
+        help="Optional path for structured timing and model-call telemetry",
     )
     parser.add_argument("--no-synthesis", action="store_true")
     parser.add_argument("--extension-cycles", type=int, default=2)
@@ -244,6 +260,7 @@ def workspace_command(args: argparse.Namespace, scenario_path: Path) -> list[str
         "--max-cycles", str(max(1, args.max_cycles if args.max_cycles is not None else 3)),
         "--time-budget", str(max(1.0, args.time_budget)),
         "--agent-timeout", str(max(1.0, args.agent_timeout)),
+        "--openai-concurrency", str(max(1, min(3, args.openai_concurrency))),
         "--n-ctx", str(max(512, args.n_ctx)),
         "--n-gpu-layers", str(max(0, args.n_gpu_layers)),
         "--n-batch", str(max(8, args.n_batch)),
@@ -277,6 +294,10 @@ def workspace_command(args: argparse.Namespace, scenario_path: Path) -> list[str
         command.append("--no-rag-context")
     if args.no_framing_cache:
         command.append("--no-framing-cache")
+    if args.frozen_world_trace:
+        command.extend(["--frozen-world-trace", str(args.frozen_world_trace)])
+    if args.performance_output:
+        command.extend(["--performance-output", str(args.performance_output)])
     if args.no_synthesis:
         command.append("--no-synthesis")
     if args.no_cycle_extension:

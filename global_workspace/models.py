@@ -804,6 +804,15 @@ class CandidateChunk:
     broadcast_authority: str = "GOVERNING_CANDIDATE"
     governing_eligible: bool = True
     policy_weight_factor: float = 1.0
+    # System-owned admission result for the framework's directional vote.
+    # Specialists cannot self-certify these fields.
+    framework_vote_integrity_required: bool = False
+    framework_vote_status: str = "NOT_APPLICABLE"
+    framework_vote_reason: str = ""
+    framework_ledger_kind: str = ""
+    framework_ledger_status: str = ""
+    derived_claim_validation_status: str = "NOT_RUN"
+    derived_claim_validation_errors: list[str] = field(default_factory=list)
     investigative_claim: str = ""
     investigative_priority: float = 0.0
     reopen_eligible: bool = False
@@ -1125,6 +1134,35 @@ class CandidateChunk:
             if self.broadcast_authority == "GOVERNING_CANDIDATE":
                 self.broadcast_authority = "INVESTIGATIVE"
         self.policy_weight_factor = clamp(float(self.policy_weight_factor))
+        self.framework_vote_integrity_required = bool(
+            self.framework_vote_integrity_required
+        )
+        vote_status = str(self.framework_vote_status).strip().upper()
+        self.framework_vote_status = (
+            vote_status
+            if vote_status in {"NOT_APPLICABLE", "FULL", "ATTENUATED", "ABSTAIN"}
+            else "NOT_APPLICABLE"
+        )
+        self.framework_vote_reason = " ".join(
+            str(self.framework_vote_reason).split()
+        )[:240]
+        self.framework_ledger_kind = str(
+            self.framework_ledger_kind
+        ).strip().upper()[:64]
+        self.framework_ledger_status = str(
+            self.framework_ledger_status
+        ).strip().upper()[:64]
+        derivation_status = str(self.derived_claim_validation_status).strip().upper()
+        self.derived_claim_validation_status = (
+            derivation_status
+            if derivation_status in {"NOT_RUN", "PASSED", "QUARANTINED"}
+            else "NOT_RUN"
+        )
+        self.derived_claim_validation_errors = list(dict.fromkeys(
+            " ".join(str(value).split())[:240]
+            for value in self.derived_claim_validation_errors
+            if " ".join(str(value).split())
+        ))[:12]
         self.investigative_claim = " ".join(self.investigative_claim.split())[:240]
         self.investigative_priority = clamp(float(self.investigative_priority))
         self.reopen_eligible = bool(self.reopen_eligible)
@@ -1829,6 +1867,8 @@ class WorkspaceResult:
     core_quote_pack: dict[str, dict[str, Any]] = field(default_factory=dict)
     active_specialists: list[str] = field(default_factory=list)
     framing_cache: dict[str, Any] = field(default_factory=dict)
+    frozen_world_replay: dict[str, Any] = field(default_factory=dict)
+    performance_trace: dict[str, Any] = field(default_factory=dict)
     scenario_facts: dict[str, Any] = field(default_factory=dict)
     cycles: list[CycleRecord] = field(default_factory=list)
     selected_action: str = ""

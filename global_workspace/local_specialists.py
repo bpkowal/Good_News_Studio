@@ -30,6 +30,12 @@ from .scenario_semantics import (
     segment_scenario_clauses,
 )
 from .utilitarian_ledger import utilitarian_scored_grounded_effects
+from .world_validation import (
+    WorldModelValidationError,
+    issue_mentions_identifier,
+    repair_patch_contract,
+    validation_issues_from_messages,
+)
 
 _PROBLEM_AUDIT_CONSTRAINTS = {"CONSENSUS_AUDIT", "PROBLEM_STATE_AUDIT"}
 _AUDIT_DIRECT_INVERT_CONSTRAINTS = _PROBLEM_AUDIT_CONSTRAINTS | {
@@ -1182,7 +1188,25 @@ def _candidate_from_data(
             material_empirical_claims.append({
                 "claim": claim,
                 "proposition_id": basis,
+                "declared_basis": basis,
                 "decision_critical": row.get("dc") is True,
+                "scope_action_id": str(row.get("a", "GLOBAL")).strip().upper(),
+                "source_effect_ids": list(dict.fromkeys(
+                    str(value).strip() for value in row.get("se", [])
+                    if str(value).strip()
+                )) if isinstance(row.get("se", []), list) else [],
+                "derivation_operation": str(
+                    row.get("op", "DIRECT_COPY")
+                ).strip().upper(),
+                "calculation": " ".join(str(row.get("calc", "")).split())[:180],
+                "assumptions": [
+                    " ".join(str(value).split())[:140]
+                    for value in row.get("asm", [])
+                    if " ".join(str(value).split())
+                ][:4] if isinstance(row.get("asm", []), list) else [],
+                "outcome_type_transformation": str(
+                    row.get("ot", "PRESERVED")
+                ).strip().upper(),
             })
     raw_scores = data.get("scores")
     if not isinstance(raw_scores, dict) or set(raw_scores) != set(action_ids):
@@ -4015,6 +4039,12 @@ framework remains operative. Do not restate the base case without applying failu
             output = _call_json_llm(
                 self.llm, prompt, max_tokens=max(80, min(self.max_tokens, 112)),
                 temperature=0.0, schema=schema,
+                call_kind="compact_primary",
+                call_metadata={
+                    "specialist": self.name,
+                    "constraint": broadcast.constraint,
+                    "response_kind": "contingency",
+                },
             )
             raw = output["choices"][0]["text"] if isinstance(output, dict) else str(output)
             return parse(raw)
@@ -4030,6 +4060,12 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                     self.llm, repair_prompt,
                     max_tokens=max(80, min(self.max_tokens, 112)),
                     temperature=0.0, schema=schema,
+                    call_kind="compact_repair",
+                    call_metadata={
+                        "specialist": self.name,
+                        "constraint": broadcast.constraint,
+                        "response_kind": "contingency",
+                    },
                 )
                 repaired_raw = (
                     repaired["choices"][0]["text"]
@@ -4362,8 +4398,39 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                                 ],
                             },
                             "dc": {"type": "boolean"},
+                            "a": {
+                                "type": "string",
+                                "enum": [*action_ids, "COMPARISON", "GLOBAL"],
+                            },
+                            "se": {
+                                "type": "array", "minItems": 0, "maxItems": 8,
+                                "items": {"type": "string"},
+                            },
+                            "op": {
+                                "type": "string",
+                                "enum": [
+                                    "DIRECT_COPY", "FRAMEWORK_CLASSIFICATION",
+                                    "QUALITATIVE_COMPARISON", "ARITHMETIC",
+                                    "CONDITIONAL_INFERENCE", "OTHER",
+                                ],
+                            },
+                            "calc": {"type": "string", "minLength": 4, "maxLength": 180},
+                            "asm": {
+                                "type": "array", "minItems": 0, "maxItems": 4,
+                                "items": {"type": "string", "maxLength": 140},
+                            },
+                            "ot": {
+                                "type": "string",
+                                "enum": [
+                                    "PRESERVED", "NORMATIVE_CLASSIFICATION",
+                                    "MORTALITY", "HEALTH", "WELFARE", "LIBERTY",
+                                    "RESOURCE", "OTHER",
+                                ],
+                            },
                         },
-                        "required": ["c", "p", "dc"],
+                        "required": [
+                            "c", "p", "dc", "a", "se", "op", "calc", "asm", "ot",
+                        ],
                         "additionalProperties": False,
                     },
                 },
@@ -5338,7 +5405,9 @@ table is more important than listing remote effects.
             proposition_example_fields = (
                 f',"sps":[{json.dumps(example_id)}],"dcp":[],'
                 f'"ep":[{{"c":{json.dumps(example_claim)},'
-                f'"p":{json.dumps(example_id)},"dc":false}}]'
+                f'"p":{json.dumps(example_id)},"dc":false,"a":"GLOBAL",'
+                f'"se":[],"op":"DIRECT_COPY","calc":"exact proposition copy",'
+                f'"asm":[],"ot":"PRESERVED"}}]'
             )
         prompt = f"""[INST]
 You are the {self.name} specialist in a bandwidth-limited ethical workspace.
@@ -5412,6 +5481,16 @@ stronger paraphrase. FRAMEWORK_DERIVED is for framework-native relations derived
 from established roles — doing/allowing, means, duty of care, least-advantaged
 priority, practical wisdom — not for restated world facts and not for new
 descriptive outcomes. Do not mark a descriptive hypothesis as FRAMEWORK_DERIVED.
+Every ep row must expose its derivation: a is the action scope (or COMPARISON /
+GLOBAL); se lists the world effect IDs it uses; op names the operation; calc states
+the actual inference or calculation; asm lists assumptions, including an empty list
+when none are needed; and ot states whether the admitted outcome type was PRESERVED.
+Use NORMATIVE_CLASSIFICATION only for framework-native classification that leaves
+the descriptive outcome unchanged. A move such as trapped to dead, risk to
+certainty, or a qualitative group description to a numeric total must declare the
+changed ot and cannot support the current vote. For cross-action reasoning use
+a=COMPARISON and op=QUALITATIVE_COMPARISON or ARITHMETIC; never attach one action's
+effect to the other.
 Do not contradict an admitted CERTAIN world effect; treat that as a rejected
 factual replacement, not a live hypothesis. Unsettled POSSIBLE/UNKNOWN rows stay
 unsettled: do not rewrite them as established events.
@@ -5640,6 +5719,12 @@ range, population size, or claim that the hidden harm cannot approach a threshol
             max_tokens=response_token_budget,
             temperature=0.2,
             schema=schema,
+            call_kind="compact_primary",
+            call_metadata={
+                "specialist": self.name,
+                "constraint": broadcast.constraint,
+                "response_kind": "deliberation",
+            },
         )
         raw = output["choices"][0]["text"] if isinstance(output, dict) else str(output)
         try:
@@ -5717,6 +5802,12 @@ c must be one of: {', '.join(allowed_constraints)}. No prose.
                 max_tokens=max(128, response_token_budget),
                 temperature=0.0,
                 schema=schema,
+                call_kind="compact_repair",
+                call_metadata={
+                    "specialist": self.name,
+                    "constraint": broadcast.constraint,
+                    "response_kind": "deliberation",
+                },
             )
             repaired_raw = repaired["choices"][0]["text"] if isinstance(repaired, dict) else str(repaired)
             try:
@@ -6947,6 +7038,7 @@ waiting, authorities, escape, rescue, or resources. Preserve genuinely closed ch
         max_tokens=max_tokens,
         temperature=0.2,
         schema=action_schema,
+        call_kind="action_planning_primary",
     )
     raw = output["choices"][0]["text"] if isinstance(output, dict) else str(output)
     try:
@@ -6971,6 +7063,7 @@ the recurrent workspace may generate one later if disagreement warrants synthesi
             max_tokens=max_tokens,
             temperature=0.0,
             schema=action_schema,
+            call_kind="action_planning_repair",
         )
         repaired_raw = repaired["choices"][0]["text"] if isinstance(repaired, dict) else str(repaired)
         try:
@@ -7031,7 +7124,7 @@ def ground_actions_in_scenario(
     world_model_schema = {
         "type": "object",
         "properties": {
-            "schema_version": {"type": "string", "enum": ["1.2"]},
+            "schema_version": {"type": "string", "enum": ["1.3"]},
             "parties": {"type": "array", "items": {"type": "object", "properties": {
                 "party_id": {"type": "string"}, "label": {"type": "string"},
                 "kind": {"type": "string"}, "quantities": string_list,
@@ -7058,8 +7151,29 @@ def ground_actions_in_scenario(
                 "scope_qualifiers": string_list,
                 "temporal_qualifiers": string_list,
                 "condition_join": {"type": "string", "enum": ["AND", "OR"]},
+                "source_proposition": {"type": "string", "minLength": 4, "maxLength": 240},
+                "source_effect_ids": string_list,
+                "derivation_operation": {
+                    "type": "string",
+                    "enum": [
+                        "DIRECT_COPY", "SOURCE_STIPULATED_CAUSAL",
+                        "STRUCTURAL_ABSTRACTION", "COUNTERFACTUAL_PROJECTION",
+                    ],
+                },
+                "derivation_explanation": {"type": "string", "maxLength": 240},
+                "derivation_assumptions": {
+                    "type": "array", "minItems": 0, "maxItems": 4,
+                    "items": {"type": "string", "maxLength": 140},
+                },
+                "outcome_type_transformation": {
+                    "type": "string",
+                    "enum": [
+                        "PRESERVED", "MORTALITY", "HEALTH", "WELFARE",
+                        "LIBERTY", "RESOURCE", "OTHER",
+                    ],
+                },
                 "clause_ids": effect_source_ids_schema,
-            }, "required": ["effect_id", "action_id", "party_id", "outcome", "predicate", "polarity", "directness", "modality", "effect_kind", "condition_ids", "quantities", "likelihood_qualifiers", "overall_likelihood_qualifiers", "scope_qualifiers", "temporal_qualifiers", "condition_join", "clause_ids"], "additionalProperties": False}},
+            }, "required": ["effect_id", "action_id", "party_id", "outcome", "predicate", "polarity", "directness", "modality", "effect_kind", "condition_ids", "quantities", "likelihood_qualifiers", "overall_likelihood_qualifiers", "scope_qualifiers", "temporal_qualifiers", "condition_join", "source_proposition", "source_effect_ids", "derivation_operation", "derivation_explanation", "derivation_assumptions", "outcome_type_transformation", "clause_ids"], "additionalProperties": False}},
             "conditions": {"type": "array", "items": {"type": "object", "properties": {
                 "condition_id": {"type": "string"}, "description": {"type": "string"},
                 "event_effect_id": {"type": "string"},
@@ -7143,7 +7257,22 @@ likelihood hedge still need an independent condition. Foregone effects use direc
 FOREGONE, and effect_kind OPPORTUNITY_LOSS. Do not score a missed opportunity as ADVERSE or BENEFICIAL. Effect
 clause_ids must include at least one FACT clause or the confirmed action id
 (A0, A1, …) that states the claim. A choose-between or interrogative clause may
-be cited as context only and is never sufficient alone. Put population cardinality
+be cited as context only and is never sufficient alone. For every effect,
+source_proposition must be one exact contiguous proposition span from one of that
+effect's cited sources. Use DIRECT_COPY only when the proposition states the atomic
+outcome without relying on another effect; then source_effect_ids is empty. Use
+SOURCE_STIPULATED_CAUSAL for a source-stated downstream consequence, list its
+same-action immediate causal parents in source_effect_ids, and explain the
+source-stated inference in derivation_explanation. STRUCTURAL_ABSTRACTION is only
+for a NEUTRAL non-welfare intermediate needed to preserve the source's causal
+topology; it must retain a lexical anchor from the quoted proposition and list its
+same-action immediate parent. Use COUNTERFACTUAL_PROJECTION
+only for a FOREGONE row and list the alternative actual effect named by its
+counterfactual_link. derivation_assumptions must be empty and
+outcome_type_transformation must be PRESERVED. If reaching an outcome requires an
+unstated assumption, a new outcome type (for example trapped to dead), or an
+unsupported calculation, omit it from the admitted world rather than disguising it
+as a source fact. Put population cardinality
 and scale phrases on the party they describe, even when an atomic effect outcome
 does not repeat them (for example "eight" for infants or "tens of thousands" for residents).
 If one clause names two population quantities, copy each span only onto the party
@@ -7163,7 +7292,7 @@ modifies the process stays on that process row. A chance/risk complement binds t
 the clause predicate (fails, blocked, escape), not the first following noun or a
 light verb (being); copy that percent-chance hedge onto the process or outcome
 row it modifies. Do not invent probabilities, QALYs, counts, or qualifiers.
-Return schema_version="1.2". Effects must be atomic: one affected party, one outcome,
+Return schema_version="1.3". Effects must be atomic: one affected party, one outcome,
 and one causal stage per effect. An immediate action target, an intermediate system
 state, and the people ultimately helped or harmed are distinct parties/effects.
 Named individuals use kind PERSON or HUMAN; crowds use GROUP or POPULATION;
@@ -7294,8 +7423,13 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                 else prompt.replace("\n[/INST]", repair_note + "\n[/INST]", 1)
             )
             output = _call_json_llm(
-                llm, call_prompt, max_tokens=max(4096, max_tokens),
+                llm, call_prompt, max_tokens=max(6144, max_tokens),
                 temperature=0.0, schema=schema,
+                call_kind=(
+                    "world_grounding_primary"
+                    if attempt == 1 else "world_grounding_repair"
+                ),
+                call_metadata={"attempt": attempt},
             )
             raw = (
                 output["choices"][0]["text"]
@@ -7303,13 +7437,20 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
             )
             candidate = _extract_json(raw)
             previous_errors = list(attempts[-1]["errors"]) if attempts else []
+            previous_issues = list(
+                attempts[-1].get("validation_issues") or []
+            ) if attempts else []
             repair_delta: dict[str, Any] = {}
             if rejected_candidate is not None:
                 candidate = _preserve_stable_world_bookkeeping(
-                    rejected_candidate, candidate, previous_errors=previous_errors,
+                    rejected_candidate, candidate,
+                    previous_errors=previous_errors,
+                    previous_issues=previous_issues,
                 )
                 repair_delta = compute_repair_delta(
-                    rejected_candidate, candidate, previous_errors=previous_errors,
+                    rejected_candidate, candidate,
+                    previous_errors=previous_errors,
+                    previous_issues=previous_issues,
                 )
             rejected_candidate = candidate
             result = _admit_action_source_rows(
@@ -7339,6 +7480,7 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
         attempts.append({
             "attempt": attempt,
             "errors": attempt_errors,
+            "validation_issues": list(result.get("validation_issues") or []),
             "repair_delta": repair_delta,
         })
         if result["status"] == "COMMITTED":
@@ -7346,6 +7488,18 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
         repair_note = (
             "\n\nA previous attempt was rejected by deterministic validation for: "
             + "; ".join(attempt_errors)
+            + "\nTyped validation issues:\n"
+            + json.dumps(
+                result.get("validation_issues") or [],
+                ensure_ascii=False,
+                sort_keys=True,
+            )
+            + "\nTransactional repair boundary:\n"
+            + json.dumps(
+                repair_patch_contract(result.get("validation_issues") or []),
+                ensure_ascii=False,
+                sort_keys=True,
+            )
             + "\nRepair the rejected candidate below. Preserve every field not "
             "implicated by those validation errors; do not regenerate the model "
             "from scratch. Keep existing IDs and already-valid records stable. "
@@ -7459,7 +7613,15 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
     return result
 
 
-def _identifier_implicated(identifier: str, errors: Sequence[str]) -> bool:
+def _identifier_implicated(
+    identifier: str,
+    errors: Sequence[str],
+    issues: Sequence[dict[str, Any]] = (),
+) -> bool:
+    if identifier and any(
+        issue_mentions_identifier(issue, identifier) for issue in issues
+    ):
+        return True
     blob = " ".join(str(item) for item in errors)
     if not identifier or not blob:
         return False
@@ -7469,8 +7631,17 @@ def _identifier_implicated(identifier: str, errors: Sequence[str]) -> bool:
     ))
 
 
-def _identifier_may_drop_row(identifier: str, errors: Sequence[str]) -> bool:
+def _identifier_may_drop_row(
+    identifier: str,
+    errors: Sequence[str],
+    issues: Sequence[dict[str, Any]] = (),
+) -> bool:
     """Whole-row deletion is allowed only for mis-assigned contradictory rows."""
+    matching_issues = [
+        issue for issue in issues if issue_mentions_identifier(issue, identifier)
+    ]
+    if matching_issues:
+        return any(bool(issue.get("permits_removal")) for issue in matching_issues)
     if not _identifier_implicated(identifier, errors):
         return False
     blob = " ".join(str(item) for item in errors)
@@ -7501,12 +7672,25 @@ def _causal_link_key(row: dict[str, Any]) -> tuple[str, str, str, str]:
     )
 
 
-def _causal_link_forbidden(row: dict[str, Any], errors: Sequence[str]) -> bool:
+def _causal_link_forbidden(
+    row: dict[str, Any],
+    errors: Sequence[str],
+    issues: Sequence[dict[str, Any]] = (),
+) -> bool:
     """True when listed errors name this edge as an illegal event parent."""
     source = str(row.get("source_id") or "")
     target = str(row.get("target_id") or "")
     if not source or not target:
         return False
+    for issue in issues:
+        if str(issue.get("code") or "") != "INDEPENDENT_EVENT_AS_CAUSAL_PARENT":
+            continue
+        identifiers = {
+            str(issue.get("entity_id") or ""),
+            *[str(value) for value in issue.get("related_ids", ())],
+        }
+        if {source, target}.issubset(identifiers):
+            return True
     blob = " ".join(str(item) for item in errors)
     return bool(re.search(
         rf"{re.escape(source)} is referenced by \S+ and must not also be an "
@@ -7602,6 +7786,7 @@ def compute_repair_delta(
     candidate: Any,
     *,
     previous_errors: Sequence[str] = (),
+    previous_issues: Sequence[dict[str, Any]] = (),
 ) -> dict[str, Any]:
     """Structural drop/add between repair attempts, plus unimplicated losses."""
     prev_wm = previous.get("world_model") if isinstance(previous, dict) else {}
@@ -7627,7 +7812,10 @@ def compute_repair_delta(
         for item in items:
             parts = item.split("|")
             identifiers = [part for part in parts if part]
-            if any(_identifier_implicated(part, previous_errors) for part in identifiers):
+            if any(
+                _identifier_implicated(part, previous_errors, previous_issues)
+                for part in identifiers
+            ):
                 continue
             illegal.append(
                 f"repair dropped previously valid {kind.replace('_', ' ')} "
@@ -7635,7 +7823,7 @@ def compute_repair_delta(
             )
     for item in dropped.get("effects") or []:
         eid = item.split("|")[0]
-        if _identifier_may_drop_row(eid, previous_errors):
+        if _identifier_may_drop_row(eid, previous_errors, previous_issues):
             continue
         illegal.append(
             f"repair dropped previously valid effect {eid} that the listed "
@@ -7680,6 +7868,7 @@ def _preserve_stable_world_bookkeeping(
     candidate: Any,
     *,
     previous_errors: Sequence[str] = (),
+    previous_issues: Sequence[dict[str, Any]] = (),
 ) -> Any:
     """Keep already-valid facts when a repair empties or deletes them.
 
@@ -7700,7 +7889,9 @@ def _preserve_stable_world_bookkeeping(
     for eid, row in prev_effects.items():
         if eid in new_ids:
             current = new_effects[eid]
-            implicated = _identifier_implicated(eid, previous_errors)
+            implicated = _identifier_implicated(
+                eid, previous_errors, previous_issues,
+            )
             current = _restore_emptied_list(
                 row, current, "likelihood_qualifiers", implicated=implicated,
             )
@@ -7715,7 +7906,7 @@ def _preserve_stable_world_bookkeeping(
             )
             new_effects[eid] = current
             continue
-        if _identifier_may_drop_row(eid, previous_errors):
+        if _identifier_may_drop_row(eid, previous_errors, previous_issues):
             continue
         restored_effects.append(row)
         new_ids.add(eid)
@@ -7733,7 +7924,9 @@ def _preserve_stable_world_bookkeeping(
             continue
         parties.append(_restore_emptied_list(
             previous_party, row, "quantities",
-            implicated=_identifier_implicated(pid, previous_errors),
+            implicated=_identifier_implicated(
+                pid, previous_errors, previous_issues,
+            ),
         ))
     new_party_ids = {
         str(row.get("party_id") or "")
@@ -7749,7 +7942,7 @@ def _preserve_stable_world_bookkeeping(
             continue
         if pid not in cited_parties:
             continue
-        if _identifier_may_drop_row(pid, previous_errors):
+        if _identifier_may_drop_row(pid, previous_errors, previous_issues):
             continue
         parties.append(row)
         new_party_ids.add(pid)
@@ -7768,7 +7961,7 @@ def _preserve_stable_world_bookkeeping(
         cid = str(row.get("condition_id") or "").upper()
         if not cid or cid in new_cond_ids:
             continue
-        if _identifier_implicated(cid, previous_errors):
+        if _identifier_implicated(cid, previous_errors, previous_issues):
             continue
         new_conditions.append(row)
         new_cond_ids.add(cid)
@@ -7791,7 +7984,9 @@ def _preserve_stable_world_bookkeeping(
             if str(link.get("source_effect_id") or "") in effect_ids
             and str(link.get("alternative_effect_id") or "") in effect_ids
             and not _identifier_implicated(
-                str(link.get("source_effect_id") or ""), previous_errors,
+                str(link.get("source_effect_id") or ""),
+                previous_errors,
+                previous_issues,
             )
         ]
         new_links = keep_links
@@ -7813,7 +8008,9 @@ def _preserve_stable_world_bookkeeping(
             link for link in prev_causal
             if str(link.get("source_id") or "") in effect_ids
             and str(link.get("target_id") or "") in effect_ids
-            and not _causal_link_forbidden(link, previous_errors)
+            and not _causal_link_forbidden(
+                link, previous_errors, previous_issues,
+            )
         ]
     extras: dict[str, list[str]] = {}
     for row in restored_effects:
@@ -7855,6 +8052,7 @@ def _admit_action_source_rows(
     """Validate a proposed action-to-clause mapping and report why it fails."""
     rows = data.get("actions", {}) if isinstance(data, dict) else {}
     errors: list[str] = []
+    validation_issues: list[dict[str, Any]] = []
     admitted: dict[str, dict[str, Any]] = {}
     clause_lookup = {clause["clause_id"]: clause for clause in clauses}
     if not isinstance(rows, dict) or set(rows) != set(action_ids):
@@ -7892,14 +8090,34 @@ def _admit_action_source_rows(
             _, contradictions = validate_world_model(parsed_world, action_ids=action_ids)
             world_contradictions = [list(group) for group in contradictions]
             world_model_status = "CONTRADICTORY" if contradictions else "COMMITTED"
+        except WorldModelValidationError as exc:
+            errors.append(f"typed world model rejected: {exc}")
+            validation_issues.extend(issue.as_dict() for issue in exc.issues)
+            world_model_status = "REJECTED"
         except ValueError as exc:
             errors.append(f"typed world model rejected: {exc}")
+            validation_issues.extend(
+                issue.as_dict()
+                for issue in validation_issues_from_messages((str(exc),))
+            )
             world_model_status = "REJECTED"
     status = (
         "REJECTED" if errors else
         "CONTRADICTORY" if world_contradictions else
         "COMMITTED"
     )
+    typed_messages = {
+        str(issue.get("message") or "") for issue in validation_issues
+    }
+    untyped_errors = [
+        error for error in errors
+        if not any(message and message in error for message in typed_messages)
+    ]
+    if untyped_errors:
+        validation_issues.extend(
+            issue.as_dict()
+            for issue in validation_issues_from_messages(untyped_errors)
+        )
     return {
         "status": status,
         "actions": admitted if not errors else {},
@@ -7907,6 +8125,7 @@ def _admit_action_source_rows(
         "world_model_status": world_model_status,
         "world_contradictions": world_contradictions,
         "errors": errors,
+        "validation_issues": validation_issues,
         "clauses": list(clauses),
     }
 

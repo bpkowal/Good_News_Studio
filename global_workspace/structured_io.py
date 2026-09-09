@@ -4,10 +4,16 @@ import json
 import re
 import time
 from contextlib import contextmanager
-from contextvars import ContextVar, Token
+from contextvars import ContextVar, Token, copy_context
 from dataclasses import dataclass, field
 from functools import lru_cache
+from threading import Event, RLock
 from typing import Any, Iterator
+
+from .performance import record_performance_event
+
+
+_CACHE_MISS = object()
 
 
 class ModelCallBudgetExceeded(RuntimeError):
@@ -34,7 +40,10 @@ class ModelCallBudget:
     auxiliary_calls: int = 0
     epistemic_audit_calls: int = 0
     paused_at: float | None = None
+    pause_depth: int = 0
     cache: dict[str, Any] = field(default_factory=dict)
+    lock: RLock = field(default_factory=RLock, repr=False)
+    terminal_event: Event = field(default_factory=Event, repr=False)
 
 
 _CALL_BUDGET: ContextVar[ModelCallBudget | None] = ContextVar(
@@ -61,17 +70,28 @@ def reset_model_call_budget(token: Token) -> None:
 def pause_model_call_budget() -> None:
     """Stop the wall clock during interactive waits or out-of-process RAG consults."""
     budget = _CALL_BUDGET.get()
-    if budget is None or budget.paused_at is not None:
+    if budget is None:
         return
-    budget.paused_at = time.monotonic()
+    with budget.lock:
+        if budget.pause_depth == 0:
+            budget.paused_at = time.monotonic()
+        budget.pause_depth += 1
 
 
 def resume_model_call_budget() -> None:
     budget = _CALL_BUDGET.get()
-    if budget is None or budget.paused_at is None:
+    if budget is None:
         return
-    budget.deadline += time.monotonic() - budget.paused_at
-    budget.paused_at = None
+    with budget.lock:
+        if budget.pause_depth <= 0:
+            return
+        budget.pause_depth -= 1
+        if budget.pause_depth > 0:
+            return
+        if budget.paused_at is None:
+            return
+        budget.deadline += time.monotonic() - budget.paused_at
+        budget.paused_at = None
 
 
 @contextmanager
@@ -85,10 +105,23 @@ def model_call_budget_paused() -> Iterator[None]:
 
 def begin_model_call_cycle(cycle: int) -> None:
     budget = _CALL_BUDGET.get()
-    if budget is not None and budget.cycle != cycle:
-        budget.cycle = cycle
-        budget.auxiliary_calls = 0
-        budget.epistemic_audit_calls = 0
+    if budget is not None:
+        with budget.lock:
+            if budget.cycle != cycle:
+                budget.cycle = cycle
+                budget.auxiliary_calls = 0
+                budget.epistemic_audit_calls = 0
+
+
+def submit_with_context(executor: Any, callback: Any, /, *args: Any, **kwargs: Any):
+    """Submit a worker with an independent copy of the current context.
+
+    Context values such as the run budget and performance recorder are thereby
+    available in the worker. The budget object itself is intentionally shared;
+    its lock protects counters and cache across those copied contexts.
+    """
+    context = copy_context()
+    return executor.submit(context.run, callback, *args, **kwargs)
 
 
 @lru_cache(maxsize=8)
@@ -111,60 +144,136 @@ def call_json_llm(
     schema: dict[str, Any],
     call_kind: str = "primary",
     cache: bool = False,
+    call_metadata: dict[str, Any] | None = None,
 ) -> Any:
     """Call either the OpenAI structured backend or llama.cpp compatibility API."""
+    call_started = time.monotonic()
     budget = _CALL_BUDGET.get()
+    if budget is not None:
+        with budget.lock:
+            budget_cycle = int(budget.cycle)
+    else:
+        budget_cycle = 0
+    event_metadata = {
+        "call_kind": call_kind,
+        "backend": type(llm).__name__,
+        "max_tokens": int(max_tokens),
+        "structured": True,
+        "cycle": budget_cycle,
+        **dict(call_metadata or {}),
+    }
     cache_key = json.dumps(
         [prompt, schema, max_tokens, temperature], sort_keys=True, separators=(",", ":")
     )
-    if budget is not None:
-        if cache and cache_key in budget.cache:
-            return budget.cache[cache_key]
-        remaining = budget.deadline - time.monotonic()
-        if budget.paused_at is not None:
-            remaining += time.monotonic() - budget.paused_at
-        if remaining <= budget.reserve_seconds:
-            raise ModelCallBudgetExceeded(
-                f"model-call deadline reached ({remaining:.1f}s remaining; "
-                f"{budget.reserve_seconds:.1f}s reserved for finalization)"
-            )
-        if call_kind == "auxiliary":
-            if budget.auxiliary_calls >= budget.max_auxiliary_calls_per_cycle:
-                raise ModelCallBudgetExceeded(
-                    "auxiliary model-call allowance exhausted for this cycle"
-                )
-            budget.auxiliary_calls += 1
-        elif call_kind == "epistemic_audit":
-            if budget.epistemic_audit_calls >= 1:
-                raise ModelCallBudgetExceeded(
-                    "epistemic side-audit allowance exhausted for this cycle"
-                )
-            budget.epistemic_audit_calls += 1
-        # The OpenAI adapter may retry a length-limited response once. Bound each
-        # attempt to half the usable remainder so retries cannot consume the
-        # finalization reserve. Local llama.cpp backends have no timeout attribute.
-        if hasattr(llm, "timeout"):
-            usable = max(1.0, remaining - budget.reserve_seconds)
-            llm.timeout = min(float(llm.timeout), max(1.0, usable / 2.0))
-    if hasattr(llm, "complete_json"):
-        result = llm.complete_json(
-            prompt,
-            schema=schema,
-            max_tokens=max_tokens,
-            temperature=temperature,
-        )
-    else:
-        kwargs = {
-            "max_tokens": max_tokens,
-            "temperature": temperature,
-            "stream": False,
-        }
-        grammar = json_grammar(json.dumps(schema, sort_keys=True))
-        if grammar is not None:
-            kwargs["grammar"] = grammar
-        result = llm(prompt, **kwargs)
     if budget is not None and cache:
-        budget.cache[cache_key] = result
+        with budget.lock:
+            cached = budget.cache.get(cache_key, _CACHE_MISS)
+        if cached is not _CACHE_MISS:
+            record_performance_event(
+                call_kind,
+                call_started,
+                category="model_call",
+                status="CACHE_HIT",
+                metadata=event_metadata,
+            )
+            return cached
+    call_timeout: float | None = None
+    try:
+        if budget is not None:
+            with budget.lock:
+                if budget.terminal_event.is_set():
+                    raise ModelCallUnavailable(
+                        "model call canceled after a terminal provider failure",
+                        category="canceled",
+                        terminal=True,
+                    )
+                remaining = budget.deadline - time.monotonic()
+                if budget.paused_at is not None:
+                    remaining += time.monotonic() - budget.paused_at
+                if remaining <= budget.reserve_seconds:
+                    raise ModelCallBudgetExceeded(
+                        f"model-call deadline reached ({remaining:.1f}s remaining; "
+                        f"{budget.reserve_seconds:.1f}s reserved for finalization)"
+                    )
+                if call_kind == "auxiliary":
+                    if (
+                        budget.auxiliary_calls
+                        >= budget.max_auxiliary_calls_per_cycle
+                    ):
+                        raise ModelCallBudgetExceeded(
+                            "auxiliary model-call allowance exhausted for this cycle"
+                        )
+                    budget.auxiliary_calls += 1
+                elif call_kind == "epistemic_audit":
+                    if budget.epistemic_audit_calls >= 1:
+                        raise ModelCallBudgetExceeded(
+                            "epistemic side-audit allowance exhausted for this cycle"
+                        )
+                    budget.epistemic_audit_calls += 1
+                # A reasoning-model adapter may retry once. Reserve half of the
+                # usable wall clock per attempt without mutating the shared LLM.
+                if getattr(llm, "supports_call_local_timeout", False):
+                    usable = max(1.0, remaining - budget.reserve_seconds)
+                    configured_timeout = float(getattr(llm, "timeout", usable))
+                    call_timeout = min(
+                        configured_timeout, max(1.0, usable / 2.0)
+                    )
+        if hasattr(llm, "complete_json"):
+            call_kwargs = {
+                "schema": schema,
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+            }
+            if call_timeout is not None:
+                call_kwargs["timeout"] = call_timeout
+            result = llm.complete_json(
+                prompt,
+                **call_kwargs,
+            )
+        else:
+            kwargs = {
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+                "stream": False,
+            }
+            grammar = json_grammar(json.dumps(schema, sort_keys=True))
+            if grammar is not None:
+                kwargs["grammar"] = grammar
+            result = llm(prompt, **kwargs)
+    except Exception as exc:
+        if (
+            budget is not None
+            and isinstance(exc, ModelCallUnavailable)
+            and exc.terminal
+        ):
+            budget.terminal_event.set()
+        error_category = str(getattr(exc, "category", "") or "")
+        record_performance_event(
+            call_kind,
+            call_started,
+            category="model_call",
+            status=(
+                "BUDGET_BLOCKED"
+                if isinstance(exc, ModelCallBudgetExceeded)
+                else "ERROR"
+            ),
+            metadata={
+                **event_metadata,
+                "exception_type": type(exc).__name__,
+                **({"error_category": error_category} if error_category else {}),
+            },
+        )
+        raise
+    if budget is not None and cache:
+        with budget.lock:
+            budget.cache[cache_key] = result
+    record_performance_event(
+        call_kind,
+        call_started,
+        category="model_call",
+        status="OK",
+        metadata=event_metadata,
+    )
     return result
 
 

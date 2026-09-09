@@ -18,11 +18,15 @@ from global_workspace.framework_retrieval import (
     load_explicit_tag_weights,
     retrieve_framework_evidence,
 )
+from global_workspace.retrieval_trace import (
+    disabled_retrieval_result, rag_is_disabled, serialize_retrieval_result,
+)
 import json
 from datetime import datetime
 import os
 
 embedder = None
+LAST_RETRIEVAL = None
 DEONTOLOGY_EVIDENCE_THRESHOLDS = EvidenceThresholds(core=0.36, adjacent=0.25)
 DEONTOLOGY_IDENTITY_TAGS = {
     "deontology",
@@ -103,15 +107,21 @@ def retrieve_deontological_quotes(
     return format_evidence_context(result), result.evidence, result
 
 def respond_to_query(query: str, scenario_id: str, temperature: float = 0.4, max_tokens: int = 300, llm=None, scenario_path=None) -> str:
+    global LAST_RETRIEVAL
     if scenario_path is None:
         scenario_path = Path(f"scenarios/{scenario_id}.json")
 
     if not query or not scenario_id:
         raise ValueError("Both 'query' and 'scenario_id' must be provided.")
 
-    retrieval_fingerprint = corpus_fingerprint(
-        DEONTOLOGY_CORPUS_DIR,
-        framework="deontological",
+    rag_disabled = rag_is_disabled()
+    retrieval_fingerprint = (
+        "RAG_DISABLED"
+        if rag_disabled
+        else corpus_fingerprint(
+            DEONTOLOGY_CORPUS_DIR,
+            framework="deontological",
+        )
     )
     cache_key = build_source_cache_key(
         DEONTOLOGY_PROMPT_VERSION,
@@ -130,21 +140,27 @@ def respond_to_query(query: str, scenario_id: str, temperature: float = 0.4, max
             print("⚡ Skipping LLM call — using cached deontological response.")
             return LAST_RESPONSE_PATH.read_text().strip()
 
-    from langchain_huggingface import HuggingFaceEmbeddings
+    if rag_disabled:
+        retrieval = disabled_retrieval_result(query, DEONTOLOGY_QUERY_LENS)
+        LAST_RETRIEVAL = serialize_retrieval_result(retrieval, mode="disabled")
+        context = format_evidence_context(retrieval)
+        evidence = []
+    else:
+        from langchain_huggingface import HuggingFaceEmbeddings
 
-    global embedder
-    embedder = HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-MiniLM-L6-v2"
-    )
-    context, evidence, retrieval = retrieve_deontological_quotes(
-        query,
-        scenario_id,
-        embedder=embedder,
-        scenario_path=scenario_path,
-    )
-    del embedder
-    embedder = None
-    gc.collect()
+        global embedder
+        embedder = HuggingFaceEmbeddings(
+            model_name="sentence-transformers/all-MiniLM-L6-v2"
+        )
+        context, evidence, retrieval = retrieve_deontological_quotes(
+            query,
+            scenario_id,
+            embedder=embedder,
+            scenario_path=scenario_path,
+        )
+        del embedder
+        embedder = None
+        gc.collect()
 
     if llm is None:
         from llama_cpp import Llama

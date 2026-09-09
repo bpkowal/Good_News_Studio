@@ -51,11 +51,27 @@ class ParliamentLauncherTests(unittest.TestCase):
             "--question", "A sufficiently long ethical question",
             "--backend", "openai",
             "--openai-model", "o3",
+            "--openai-concurrency", "3",
         ])
         command = parliament.workspace_command(args, Path("scenario.json"))
         self.assertIn("--backend", command)
         self.assertEqual(command[command.index("--backend") + 1], "openai")
         self.assertEqual(command[command.index("--openai-model") + 1], "o3")
+        self.assertEqual(
+            command[command.index("--openai-concurrency") + 1], "3",
+        )
+
+    def test_workspace_command_caps_openai_concurrency_at_three(self):
+        args = parliament.parse_args([
+            "--mode", "workspace",
+            "--question", "A sufficiently long ethical question",
+            "--backend", "openai",
+            "--openai-concurrency", "20",
+        ])
+        command = parliament.workspace_command(args, Path("scenario.json"))
+        self.assertEqual(
+            command[command.index("--openai-concurrency") + 1], "3",
+        )
 
     def test_workspace_command_runs_only_selected_frameworks(self):
         args = parliament.parse_args([
@@ -470,6 +486,27 @@ class ParliamentLauncherTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertTrue(any("REJECTED" in message for message in captured))
         self.assertTrue(any("not running expert agents" in message for message in captured))
+        rendered = "\n".join(captured)
+        self.assertIn("World grounding rejected", rendered)
+        self.assertNotIn("Admitted world", rendered)
+        self.assertNotIn("benefits:", rendered)
+
+    def test_rejected_world_never_prints_fallback_role_inferences(self):
+        text = global_workspace_pipeline.render_admitted_world(
+            [{
+                "action_id": "A1",
+                "short_label": "Leave facility exposed",
+                "beneficiaries": ["residents named in a conditional harm"],
+                "harmed": ["another fallback guess"],
+                "at_risk": [],
+            }],
+            {"status": "REJECTED", "rejected_candidate": {"world_model": {}}},
+        )
+        self.assertIn("World grounding rejected", text)
+        self.assertIn("A1: Leave facility exposed", text)
+        self.assertIn("No beneficiary, harm, risk", text)
+        self.assertNotIn("residents named in a conditional harm", text)
+        self.assertNotIn("another fallback guess", text)
 
     def test_rejected_world_exits_two_when_not_a_tty(self):
         record = SimpleNamespace(

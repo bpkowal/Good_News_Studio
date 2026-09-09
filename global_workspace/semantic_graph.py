@@ -82,6 +82,28 @@ class SemanticEdge:
 class SemanticGraph:
     nodes: dict[str, SemanticNode] = field(default_factory=dict)
     edges: list[SemanticEdge] = field(default_factory=list)
+    _revision: int = field(default=0, init=False, repr=False, compare=False)
+    _projection_cache: dict[str, tuple[int, tuple[Any, ...]]] = field(
+        default_factory=dict, init=False, repr=False, compare=False,
+    )
+
+    @property
+    def revision(self) -> int:
+        """Monotonic in-memory version for derived projection caches."""
+        return self._revision
+
+    def _touch(self) -> None:
+        self._revision += 1
+        self._projection_cache.clear()
+
+    def cached_projection(self, name: str) -> tuple[Any, ...] | None:
+        cached = self._projection_cache.get(name)
+        if cached is None or cached[0] != self._revision:
+            return None
+        return cached[1]
+
+    def remember_projection(self, name: str, values: Iterable[Any]) -> None:
+        self._projection_cache[name] = (self._revision, tuple(values))
 
     def add_node(self, node: SemanticNode) -> None:
         existing = self.nodes.get(node.id)
@@ -96,9 +118,11 @@ class SemanticGraph:
                 {**existing.attributes, **node.attributes},
             )
         self.nodes[node.id] = node
+        self._touch()
 
     def add_edge(self, edge: SemanticEdge) -> None:
         self.edges.append(edge)
+        self._touch()
 
     def outgoing(self, node_id: str, relation: str = "") -> list[SemanticEdge]:
         return [
@@ -298,5 +322,6 @@ def merge_graphs(graphs: Iterable[SemanticGraph]) -> SemanticGraph:
     for graph in graphs:
         for node in graph.nodes.values():
             combined.add_node(node)
-        combined.edges.extend(graph.edges)
+        for edge in graph.edges:
+            combined.add_edge(edge)
     return combined
