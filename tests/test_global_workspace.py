@@ -34,6 +34,7 @@ from global_workspace.local_specialists import (
     SpecialistEvaluationStageError,
     _admitted_audit_variable,
     _candidate_from_data,
+    closed_world_utilitarian_leader,
     _construct_map_errors,
     _landscape_semantic_errors,
     _scenario_closes_action_set,
@@ -60,7 +61,9 @@ from global_workspace.deontology_ledger import (
     harm_relation_conflicts_with_graph,
     omission_classified_as_perfect_negative_violation,
     render_deontological_adjudication, supersede_calibration_issues,
-    OMISSION_PERFECT_NEGATIVE_VIOLATION, _party_grounding,
+    ANTECEDENT_AUTONOMY_NOT_SETTLED, KANTIAN_ANALOGICAL_CANNOT_SETTLE,
+    OMISSION_PERFECT_NEGATIVE_VIOLATION, POSTHUMOUS_NOT_COERCION,
+    _party_grounding,
 )
 from global_workspace.utilitarian_ledger import (
     _best_evidence, apply_utilitarian_ledger_transaction,
@@ -527,6 +530,47 @@ class BoundedOpenAIConcurrencyTests(unittest.TestCase):
         self.assertEqual(len(requests), 1)
         self.assertGreater(requests[0]["timeout"], 0.0)
         self.assertLessEqual(requests[0]["timeout"], 4.1)
+
+    def test_gpt56_sol_uses_hidden_reasoning_budget(self):
+        from global_workspace.openai_backend import uses_hidden_reasoning
+
+        self.assertTrue(uses_hidden_reasoning("gpt-5.6-sol"))
+        self.assertTrue(uses_hidden_reasoning("gpt-5.6"))
+        self.assertTrue(uses_hidden_reasoning("o3"))
+        self.assertFalse(uses_hidden_reasoning("gpt-4o"))
+
+        requests: list[dict] = []
+
+        class Completions:
+            def create(self, **request):
+                requests.append(dict(request))
+                return SimpleNamespace(
+                    choices=[SimpleNamespace(
+                        message=SimpleNamespace(content='{"ok":true}'),
+                        finish_reason="stop",
+                    )],
+                    usage=None,
+                )
+
+        llm = OpenAIWorkspaceLLM(
+            "gpt-5.6-sol",
+            timeout=120.0,
+            client=SimpleNamespace(chat=SimpleNamespace(completions=Completions())),
+        )
+        llm.complete_json(
+            "return json",
+            schema={
+                "type": "object",
+                "properties": {"ok": {"type": "boolean"}},
+                "required": ["ok"],
+                "additionalProperties": False,
+            },
+            max_tokens=192,
+            temperature=0.0,
+        )
+        self.assertEqual(len(requests), 1)
+        self.assertEqual(requests[0]["reasoning_effort"], "low")
+        self.assertNotIn("temperature", requests[0])
 
     def test_compact_evaluations_are_bounded_and_committed_in_configured_order(self):
         lock = threading.Lock()
@@ -9586,6 +9630,75 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(chunk.framework_grounding_penalty, 0.0)
         self.assertFalse(chunk.utilitarian_decision_depends_on_unknown)
 
+    def test_utilitarian_may_cite_admitted_grounded_effect_as_world_proposition(self):
+        actions = ["leave the gate", "divert the surge"]
+        data = {
+            "scores": {"A0": 0.5, "A1": 0.5}, "r": "A0",
+            "c": "IMMINENT_HARM", "u": "NONE",
+            "w": "Admitted rows do not uniquely rank", "j": "NONE",
+            "e": "STATED_FACTS", "x": "NONE", "z": 0.7,
+            "dr": "rank on admitted polarity until a shared magnitude exists",
+            "sps": ["PROP:WORLD:E0"],
+            "ep": [{
+                "c": "left in default position; affected subject: Flood-control gate",
+                "p": "PROP:WORLD:E0", "dc": False, "a": "A0",
+                "se": ["E0"], "op": "DIRECT_COPY", "calc": "exact world effect",
+                "asm": [], "ot": "PRESERVED",
+            }],
+            "ct": {
+                "A0": [{
+                    "o": "farms spared", "s": "township residents",
+                    "d": "BENEFIT", "p": "CERTAIN", "m": "300", "h": "long",
+                    "rv": "REVERSIBLE", "g": "STATED",
+                }],
+                "A1": [{
+                    "o": "livelihoods ruined", "s": "township residents",
+                    "d": "HARM", "p": "CERTAIN", "m": "300", "h": "long",
+                    "rv": "IRREVERSIBLE", "g": "STATED",
+                }],
+            },
+            "cd": True,
+            "cm": "weeks of contaminated water versus certain livelihood loss",
+        }
+        chunk = _candidate_from_data(
+            "utilitarian", actions, data, WorkspaceBroadcast(), "NONE", {},
+            grounded_effects=[{
+                "effect_id": "E0",
+                "action_id": "A0",
+                "outcome": "left in default position",
+                "subject": "Flood-control gate",
+            }],
+        )
+        self.assertTrue(chunk.schema_valid)
+        self.assertEqual(
+            chunk.material_empirical_claims[0]["proposition_id"], "PROP:WORLD:E0",
+        )
+
+    def test_utilitarian_unknown_world_proposition_still_fails_validation(self):
+        actions = ["leave the gate", "divert the surge"]
+        data = {
+            "scores": {"A0": 0.6, "A1": 0.4}, "r": "A0",
+            "c": "IMMINENT_HARM", "u": "NONE",
+            "w": "Cites a missing world row", "j": "NONE",
+            "e": "STATED_FACTS", "x": "NONE", "z": 0.7,
+            "dr": "prefer the action that spares farms",
+            "ep": [{
+                "c": "an invented world fact",
+                "p": "PROP:WORLD:EZ9", "dc": True, "a": "A0",
+                "se": ["EZ9"], "op": "DIRECT_COPY", "calc": "missing row",
+                "asm": [], "ot": "PRESERVED",
+            }],
+        }
+        with self.assertRaisesRegex(ValueError, "unknown proposition ID"):
+            _candidate_from_data(
+                "utilitarian", actions, data, WorkspaceBroadcast(), "NONE", {},
+                grounded_effects=[{
+                    "effect_id": "E0",
+                    "action_id": "A0",
+                    "outcome": "left in default position",
+                }],
+            )
+
     def test_utilitarian_unknown_decisive_comparison_stays_provisional(self):
         actions = ["fund prevention", "fund treatment"]
         data = {
@@ -9652,7 +9765,7 @@ class BridgeTests(unittest.TestCase):
             chunk.action_scores[actions[0]], chunk.action_scores[actions[1]],
         )
         self.assertFalse(chunk.utilitarian_decision_depends_on_unknown)
-        self.assertTrue(chunk.comparison_complete)
+        self.assertFalse(chunk.comparison_complete)
         self.assertNotEqual(chunk.assumption_status, "UNDERDETERMINED")
         self.assertEqual(chunk.unresolved, "DECISION_BOUNDARY")
         self.assertIn("admitted", chunk.factual_reversal_threshold.casefold())
@@ -11921,6 +12034,161 @@ class DeonticGraphRelationTests(unittest.TestCase):
         ), calibration.errors)
 
 
+class PosthumousDirectiveKantianTests(unittest.TestCase):
+    """A prior will about remains is analogical, not living-agent coercion."""
+
+    def _proposal(self, **overrides):
+        payload = {
+            "action_id": "A1", "verdict": "PROHIBITED",
+            "norm_kind": "RESPECT_PERSONS",
+            "norm": "do not use the deceased patient's body merely as a means",
+            "relation": "VIOLATES", "duty_bearer": "physician",
+            "protected_party": "deceased patient",
+            "competing_norm": "rescue the five waiting patients",
+            "competing_norm_kind": "DUTY", "competing_relation": "SATISFIES",
+            "competing_protected_party": "five waiting patients",
+            "competing_reason": "harvesting would supply organs tonight",
+            "duty_type": "PERFECT_NEGATIVE", "harm_relation": "DOING_HARM",
+            "special_obligation_status": "NOT_REQUIRED",
+            "special_obligation_basis": "the negative duty applies generally",
+            "means_relation": "INTENDED_AS_MEANS",
+            "governing_norm": "UNRESOLVED", "priority_basis": "UNRESOLVED",
+            "priority_rule": "whether remains instantiate humanity remains open",
+            "protected_standing": "BODILY_INTEGRITY",
+            "competing_protected_standing": "SPECIAL_OBLIGATION",
+            "coercion_kind": "NONE",
+            "coercive_actor": "NONE",
+            "coerced_party": "NONE",
+            "public_justification": "no living agent's external freedom is restricted",
+            "reciprocity_status": "UNKNOWN", "necessity_status": "UNKNOWN",
+            "authorization_status": "NOT_APPLICABLE",
+            "derivation": "KANTIAN_ANALOGICAL",
+            "resolution_status": "CONTESTED", "evidence_basis": "ACTION_GRAPH",
+            "reason": "organs are used because they can save the five patients",
+        }
+        payload.update(overrides)
+        return DutyAssessmentProposal.model_validate(payload)
+
+    def _world(self) -> tuple[str, tuple[str, ...], ScenarioWorldModel]:
+        will = (
+            "The deceased patient willed that their body not be touched "
+            "after death and left a signed directive prohibiting organ donation."
+        )
+        harvest = (
+            "Harvesting the organs of the deceased patient supplies those organs "
+            "so the five waiting patients survive tonight."
+        )
+        a0 = "uphold the deceased patient's signed directive"
+        a1 = "harvest the organs of the deceased patient"
+        will_ref = (SourceRef("C0", will),)
+        harvest_ref = (SourceRef("C1", harvest),)
+        world = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "emergency physician", "HUMAN", will_ref),
+                WorldParty("P1", "deceased patient", "PERSON", will_ref),
+                WorldParty("P2", "five waiting patients", "GROUP", harvest_ref, quantities=("five",)),
+            ),
+            actions=(
+                WorldAction("A0", a0, "P0", ("P1",), ("E0",), will_ref),
+                WorldAction("A1", a1, "P0", ("P1", "P2"), ("E3", "E4"), harvest_ref),
+            ),
+            effects=(
+                WorldEffect(
+                    "E0", "A0", "P1",
+                    "the deceased patient's body is not to be touched after death",
+                    "RECEIVES", "BENEFICIAL", "DIRECT", "CERTAIN", "OTHER",
+                    provenance=will_ref,
+                ),
+                WorldEffect(
+                    "E3", "A1", "P1", "organs harvested", "EXPERIENCES",
+                    "ADVERSE", "DIRECT", "CERTAIN", "INTERVENTION",
+                    provenance=harvest_ref,
+                ),
+                WorldEffect(
+                    "E4", "A1", "P2", "five waiting patients survive tonight",
+                    "EXPERIENCES", "BENEFICIAL", "DOWNSTREAM", "CERTAIN",
+                    "HEALTH_OUTCOME", provenance=harvest_ref, quantities=("five",),
+                ),
+            ),
+            causal_links=(
+                CausalLink(
+                    "E3", "CAUSES", "E4", "CERTAIN",
+                    provenance=harvest_ref, action_id="A1",
+                ),
+            ),
+            admission=WorldStateAdmission(
+                status="COMMITTED", admitted_effect_ids=("E0", "E3", "E4"),
+            ),
+        )
+        return f"{will} {harvest}", (a0, a1), world
+
+    def _harvest_action(self):
+        excerpt, actions, world = self._world()
+        graph = compile_scenario_graph(
+            excerpt, actions, world_model=world.as_dict(),
+        )
+        action = next(
+            node for node in graph.nodes.values()
+            if node.kind == "ACTION"
+            and node.attributes.get("canonical_action_id") == "A1"
+        )
+        return graph, action
+
+    def test_posthumous_directive_is_not_living_agent_coercion(self):
+        graph, action = self._harvest_action()
+        calibration = calibrate_deontological_adjudication(
+            graph, action, self._proposal(
+                coercion_kind="INTERPERSONAL",
+                coercive_actor="physician",
+                coerced_party="deceased patient",
+                authorization_status="CONTESTED",
+            ),
+        )
+        self.assertIn(POSTHUMOUS_NOT_COERCION, calibration.errors)
+
+    def test_using_organs_as_rescue_means_licenses_intended_as_means(self):
+        graph, action = self._harvest_action()
+        calibration = calibrate_deontological_adjudication(
+            graph, action, self._proposal(),
+        )
+        self.assertFalse(any(
+            "intended-as-means classification lacks" in error
+            for error in calibration.errors
+        ), calibration.errors)
+        self.assertNotIn(POSTHUMOUS_NOT_COERCION, calibration.errors)
+        self.assertNotIn(KANTIAN_ANALOGICAL_CANNOT_SETTLE, calibration.errors)
+        self.assertEqual(calibration.assessment.derivation, "KANTIAN_ANALOGICAL")
+        self.assertEqual(calibration.assessment.resolution_status, "CONTESTED")
+
+    def test_analogical_derivation_cannot_resolve_a_perfect_duty(self):
+        graph, action = self._harvest_action()
+        calibration = calibrate_deontological_adjudication(
+            graph, action, self._proposal(
+                resolution_status="RESOLVED",
+                governing_norm="PRIMARY",
+                priority_basis="RESPECT_PERSONS",
+                priority_rule="the analogical extension settles the conflict",
+            ),
+        )
+        self.assertIn(KANTIAN_ANALOGICAL_CANNOT_SETTLE, calibration.errors)
+        self.assertEqual(calibration.assessment.resolution_status, "CONTESTED")
+
+    def test_antecedent_autonomy_is_not_a_settled_kantian_derivation(self):
+        graph, action = self._harvest_action()
+        calibration = calibrate_deontological_adjudication(
+            graph, action, self._proposal(
+                derivation="CONSENT",
+                priority_basis="AUTONOMY",
+                resolution_status="RESOLVED",
+                governing_norm="PRIMARY",
+                priority_rule="the signed directive is morally supreme because it was chosen",
+            ),
+        )
+        self.assertIn(ANTECEDENT_AUTONOMY_NOT_SETTLED, calibration.errors)
+        self.assertEqual(calibration.assessment.derivation, "KANTIAN_ANALOGICAL")
+        self.assertEqual(calibration.assessment.resolution_status, "CONTESTED")
+
+
 class DeontologyAuditVoteTests(unittest.TestCase):
     """Cycle-3 o3 bug: a conditional audit must not drop a valid duty ranking."""
 
@@ -12502,6 +12770,227 @@ class UnadmittedMagnitudeRankingTests(unittest.TestCase):
         )
         self.assertNotEqual(chunk.adjudication_status, "CONTESTED_NO_LEANING")
         self.assertEqual(chunk.unresolved, "DECISION_BOUNDARY")
+
+
+class UtilitarianSettledWelfareRankingTests(unittest.TestCase):
+    """Admitted same-unit lives still rank; leftovers and hypotheses do not veto."""
+
+    actions = (
+        "uphold the signed no-donation directive",
+        "harvest the organs of the deceased patient",
+    )
+
+    def _row(self, outcome, scope, direction, magnitude):
+        return {
+            "o": outcome, "s": scope, "d": direction,
+            "p": "CERTAIN", "m": magnitude, "h": "tonight",
+            "rv": "IRREVERSIBLE", "g": "STATED",
+        }
+
+    def _settled_table(self, *, remainder=False):
+        table = {
+            "A0": [self._row(
+                "waiting patients die tonight", "waiting patients", "HARM", "five",
+            )],
+            "A1": [self._row(
+                "waiting patients survive tonight", "waiting patients",
+                "BENEFIT", "five",
+            )],
+        }
+        if remainder:
+            table["A1"].append(self._row(
+                "institutional trust erodes", "hospital community", "HARM", "UNKNOWN",
+            ))
+        return table
+
+    def _payload(self, table, *, scores=None, recommended="A1", cd=True, **extra):
+        data = {
+            "scores": scores or {"A0": 0.50, "A1": 0.50},
+            "r": recommended,
+            "c": "IMMINENT_HARM",
+            "u": "NONE",
+            "w": "compare admitted lives tonight",
+            "j": "NONE",
+            "e": "STATED_FACTS",
+            "x": "NONE",
+            "z": 0.7,
+            "ct": table,
+            "cd": cd,
+            "cm": (
+                "NONE" if not cd else
+                "later discovery deaths cancel the five admitted saves"
+            ),
+            "dr": "prefer the action that saves five lives tonight",
+            "ft": extra.pop("ft", "NONE"),
+            "nt": "NONE",
+        }
+        data.update(extra)
+        return data
+
+    def _chunk(self, table, **extra):
+        return _candidate_from_data(
+            "utilitarian", list(self.actions),
+            self._payload(table, **extra),
+            WorkspaceBroadcast(), "NONE", {},
+        )
+
+    def _vote(self, chunk):
+        chunk.framework_vote_integrity_required = True
+        chunk.committed_native_ledger = {
+            "ledger_kind": "UTILITARIAN_CONSEQUENCE_LEDGER",
+            "transaction_status": "COMMITTED",
+            "records": [
+                {
+                    "specialist": "utilitarian",
+                    "canonical_action_id": "A0",
+                    "outcome": "waiting patients die tonight",
+                    "grounded_effect_ids": ["E_DIE"],
+                },
+                {
+                    "specialist": "utilitarian",
+                    "canonical_action_id": "A1",
+                    "outcome": "waiting patients survive tonight",
+                    "grounded_effect_ids": ["E_SAVE"],
+                },
+            ],
+        }
+        return apply_framework_vote_integrity(chunk, self.actions)
+
+    def test_unknown_magnitudes_do_not_invent_a_leader(self):
+        table = {
+            "A0": [self._row(
+                "waiting patients die tonight", "waiting patients", "HARM", "UNKNOWN",
+            )],
+            "A1": [self._row(
+                "waiting patients survive tonight", "waiting patients",
+                "BENEFIT", "UNKNOWN",
+            )],
+        }
+        self.assertIsNone(closed_world_utilitarian_leader(self.actions, {
+            self.actions[0]: [{
+                "outcome": "waiting patients die tonight",
+                "direction": "HARM", "probability": "CERTAIN",
+                "magnitude": "UNKNOWN", "support": "STATED",
+            }],
+            self.actions[1]: [{
+                "outcome": "waiting patients survive tonight",
+                "direction": "BENEFIT", "probability": "CERTAIN",
+                "magnitude": "UNKNOWN", "support": "STATED",
+            }],
+        }))
+        chunk = self._chunk(table, cd=True)
+        self.assertTrue(chunk.utilitarian_decision_depends_on_unknown)
+        self.assertFalse(chunk.evidence_sufficient_for_action)
+
+    def test_settled_same_unit_comparison_can_vote_full(self):
+        chunk = self._chunk(self._settled_table(), cd=False)
+        self.assertEqual(chunk.recommended_action, self.actions[1])
+        self.assertGreater(
+            chunk.action_scores[self.actions[1]],
+            chunk.action_scores[self.actions[0]],
+        )
+        self.assertFalse(chunk.utilitarian_decision_depends_on_unknown)
+        self.assertTrue(chunk.evidence_sufficient_for_action)
+        self.assertTrue(chunk.comparison_complete)
+        self.assertFalse(chunk.utilitarian_incommensurable_remainder)
+        decision = self._vote(chunk)
+        self.assertEqual(decision.status, "FULL")
+
+    def test_incommensurable_remainder_attenuates_without_erasing_the_five_saves(self):
+        chunk = self._chunk(
+            self._settled_table(remainder=True),
+            cd=True,
+            ft="later discovery deaths exceed the admitted five-life margin",
+        )
+        self.assertEqual(chunk.recommended_action, self.actions[1])
+        self.assertGreater(
+            chunk.action_scores[self.actions[1]],
+            chunk.action_scores[self.actions[0]],
+        )
+        self.assertFalse(chunk.utilitarian_decision_depends_on_unknown)
+        self.assertTrue(chunk.evidence_sufficient_for_action)
+        self.assertFalse(chunk.comparison_complete)
+        self.assertTrue(chunk.utilitarian_incommensurable_remainder)
+        self.assertEqual(chunk.unresolved, "DECISION_BOUNDARY")
+        decision = self._vote(chunk)
+        self.assertEqual(decision.status, "ATTENUATED")
+        self.assertFalse(chunk.governing_eligible)
+
+    def test_hypothesis_does_not_veto_admitted_five_life_comparison(self):
+        chunk = self._chunk(
+            self._settled_table(),
+            cd=True,
+            ft="later discovery deaths exceed the admitted five-life margin",
+        )
+        self.assertEqual(chunk.recommended_action, self.actions[1])
+        self.assertGreater(
+            chunk.action_scores[self.actions[1]],
+            chunk.action_scores[self.actions[0]],
+        )
+        self.assertFalse(chunk.utilitarian_decision_depends_on_unknown)
+        self.assertTrue(chunk.evidence_sufficient_for_action)
+        self.assertFalse(chunk.comparison_complete)
+        self.assertEqual(chunk.unresolved, "DECISION_BOUNDARY")
+        self.assertIn("admitted", chunk.factual_reversal_threshold.casefold())
+        decision = self._vote(chunk)
+        self.assertEqual(decision.status, "ATTENUATED")
+        self.assertFalse(chunk.governing_eligible)
+
+    def test_party_quantity_five_enters_valuation_magnitude(self):
+        data = self._payload(
+            {
+                "A0": [{"eid": "E_DIE", "wi": "CRITICAL", "vr": "five certain deaths tonight"}],
+                "A1": [
+                    {"eid": "E_SAVE", "wi": "CRITICAL", "vr": "five certain survivals tonight"},
+                    {"eid": "E_TAKE", "wi": "MEDIUM", "vr": "bodily taking without a shared unit"},
+                ],
+            },
+            cd=True,
+        )
+        chunk = _candidate_from_data(
+            "utilitarian", list(self.actions), data,
+            WorkspaceBroadcast(), "NONE", {},
+            grounded_effects=[
+                {
+                    "effect_id": "E_DIE", "action_id": "A0",
+                    "outcome": "waiting patients die tonight",
+                    "subject": "waiting patients",
+                    "direction": "WORSENS", "polarity": "ADVERSE",
+                    "modality": "CERTAIN", "qualifier": "STATED",
+                    "quantities": [],
+                    "affected_subject_quantities": ["five"],
+                },
+                {
+                    "effect_id": "E_SAVE", "action_id": "A1",
+                    "outcome": "waiting patients survive tonight",
+                    "subject": "waiting patients",
+                    "direction": "IMPROVES", "polarity": "BENEFICIAL",
+                    "modality": "CERTAIN", "qualifier": "STATED",
+                    "quantities": ["five"],
+                    "affected_subject_quantities": ["five"],
+                },
+                {
+                    "effect_id": "E_TAKE", "action_id": "A1",
+                    "outcome": "organs harvested",
+                    "subject": "deceased patient",
+                    "direction": "WORSENS", "polarity": "ADVERSE",
+                    "modality": "CERTAIN", "qualifier": "STATED",
+                    "quantities": [],
+                    "affected_subject_quantities": [],
+                },
+            ],
+        )
+        self.assertEqual(chunk.recommended_action, self.actions[1])
+        self.assertFalse(chunk.utilitarian_decision_depends_on_unknown)
+        self.assertTrue(chunk.evidence_sufficient_for_action)
+        self.assertFalse(chunk.comparison_complete)
+        die = chunk.utilitarian_consequence_table[self.actions[0]][0]
+        save = next(
+            row for row in chunk.utilitarian_consequence_table[self.actions[1]]
+            if row.get("effect_id") == "E_SAVE"
+        )
+        self.assertEqual(die["magnitude"], "five")
+        self.assertEqual(save["magnitude"], "five")
 
 
 class EpistemicHypothesisBindingTests(unittest.TestCase):
@@ -15052,10 +15541,106 @@ class FrameworkVoteIntegrityTests(unittest.TestCase):
                 "DEONTOLOGICAL_DUTY_LEDGER", records,
             ),
         )
-        self.assertEqual(
-            apply_framework_vote_integrity(candidate, self.actions).status,
-            "ABSTAIN",
+        decision = apply_framework_vote_integrity(candidate, self.actions)
+        self.assertEqual(decision.status, "ABSTAIN")
+        self.assertIn("does not rank it above its rivals", decision.reason)
+        self.assertNotIn("derived claim", decision.reason.casefold())
+
+    def test_direct_copy_of_admitted_world_facts_is_not_a_missing_derivation(self):
+        records = [{
+            "specialist": "deontological",
+            "canonical_action_id": action_id,
+            "verdict": "REQUIRED" if action_id == "A0" else "PROHIBITED",
+            "duty_type": "PERFECT_NEGATIVE",
+            "grounded_effect_ids": ["E0" if action_id == "A0" else "E3"],
+        } for action_id in ("A0", "A1")]
+        candidate = self._candidate(
+            "deontological",
+            committed_native_ledger=self._native(
+                "DEONTOLOGICAL_DUTY_LEDGER", records,
+            ),
+            material_empirical_claims=[
+                {
+                    "claim": "the signed no-donation directive is upheld",
+                    "proposition_id": "PROP:WORLD:E0",
+                    "declared_basis": "PROP:WORLD:E0",
+                    "decision_critical": True,
+                    "scope_action_id": "A0",
+                    "source_effect_ids": ["E0"],
+                    "derivation_operation": "DIRECT_COPY",
+                    "calculation": "exact admitted world effect",
+                    "assumptions": [],
+                    "outcome_type_transformation": "PRESERVED",
+                },
+                {
+                    "claim": "organs harvested from the deceased patient",
+                    "proposition_id": "PROP:WORLD:E3",
+                    "declared_basis": "PROP:WORLD:E3",
+                    "decision_critical": True,
+                    "scope_action_id": "A1",
+                    "source_effect_ids": ["E3"],
+                    "derivation_operation": "DIRECT_COPY",
+                    "calculation": "exact admitted world effect",
+                    "assumptions": [],
+                    "outcome_type_transformation": "PRESERVED",
+                },
+            ],
         )
+        decision = apply_framework_vote_integrity(candidate, self.actions)
+        self.assertEqual(decision.status, "FULL")
+        self.assertEqual(candidate.derived_claim_validation_status, "PASSED")
+        self.assertEqual(candidate.derived_claim_validation_errors, [])
+
+    def test_incomplete_comparison_with_full_ledger_is_attenuated(self):
+        records = [{
+            "specialist": "deontological",
+            "canonical_action_id": action_id,
+            "verdict": "REQUIRED" if action_id == "A0" else "PROHIBITED",
+            "duty_type": "PERFECT_NEGATIVE",
+            "grounded_effect_ids": [f"E{action_id[-1]}"],
+        } for action_id in ("A0", "A1")]
+        candidate = self._candidate(
+            "deontological",
+            comparison_complete=False,
+            committed_native_ledger=self._native(
+                "DEONTOLOGICAL_DUTY_LEDGER", records,
+            ),
+            material_empirical_claims=[{
+                "claim": "compare the two admitted duty-bearing effects",
+                "proposition_id": "PROP:FRAMEWORK:DUTY",
+                "declared_basis": "FRAMEWORK_DERIVED",
+                "decision_critical": True,
+                "scope_action_id": "COMPARISON",
+                "source_effect_ids": ["E0", "E1"],
+                "derivation_operation": "QUALITATIVE_COMPARISON",
+                "calculation": "compare admitted doing versus allowing",
+                "assumptions": [],
+                "outcome_type_transformation": "NORMATIVE_CLASSIFICATION",
+            }],
+        )
+        decision = apply_framework_vote_integrity(candidate, self.actions)
+        self.assertEqual(decision.status, "ATTENUATED")
+        self.assertEqual(candidate.policy_weight_factor, 0.5)
+        self.assertFalse(candidate.governing_eligible)
+        self.assertIn("residual uncertainty", decision.reason)
+
+    def test_incomplete_comparison_without_ledger_row_still_abstains(self):
+        records = [{
+            "specialist": "deontological",
+            "canonical_action_id": "A0",
+            "verdict": "REQUIRED",
+            "duty_type": "PERFECT_NEGATIVE",
+        }]
+        candidate = self._candidate(
+            "deontological",
+            comparison_complete=False,
+            committed_native_ledger=self._native(
+                "DEONTOLOGICAL_DUTY_LEDGER", records,
+            ),
+        )
+        decision = apply_framework_vote_integrity(candidate, self.actions)
+        self.assertEqual(decision.status, "ABSTAIN")
+        self.assertEqual(candidate.policy_weight_factor, 0.0)
 
     def test_unsupported_outcome_transformation_is_quarantined(self):
         records = [

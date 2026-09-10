@@ -626,8 +626,12 @@ _CLAUSE_COMPLEMENT_START = re.compile(
     r"^(?:that|the|of|to)\b",
     re.IGNORECASE,
 )
+_COMPLEMENT_RESULT_TAIL = re.compile(r",\s+[A-Za-z]+ing\b")
 _LIGHT_COMPLEMENT_VERBS = frozenset({
     "be", "been", "being", "get", "gets", "getting", "got",
+})
+_UNINFLECTED_COMPLEMENT_VERBS = frozenset({
+    "block", "choke", "collapse", "die", "drown", "fail", "flood", "foul",
 })
 _DEATH_WORDS = frozenset({
     "death", "die", "died", "dies", "dying",
@@ -859,14 +863,33 @@ def _qualifier_modified_words(text: str, start: int, end: int) -> set[str]:
     return _match_words(before_chunk, stopwords=_QUALIFIER_HEAD_STOPWORDS)
 
 
+def _looks_like_complement_predicate(word: str) -> bool:
+    """True for a verbal complement head, not the object noun of an SVO clause."""
+    folded = str(word or "").casefold()
+    if not folded or folded in _LIGHT_COMPLEMENT_VERBS:
+        return False
+    if folded in _UNINFLECTED_COMPLEMENT_VERBS:
+        return True
+    return folded.endswith(("ing", "ied", "ed", "es"))
+
+
 def _clause_complement_focus(after_chunk: str, ordered: list[str]) -> set[str]:
     """Predicate of a chance/that/of/to complement, not the first following noun.
 
     'a 20% chance the device fails' modifies fails, not device.
+    'a 25% chance that residue chokes the catchment, inundating the works'
+    modifies chokes, not catchment or the result participle.
     'a 10% chance of being blocked' modifies blocked, not being.
     Attributive hedges ('near-certain death') do not use this path.
     """
-    match = _CLAUSE_COMPLEMENT_START.match(after_chunk.strip())
+    chunk = str(after_chunk or "")
+    split = _COMPLEMENT_RESULT_TAIL.split(chunk, maxsplit=1)
+    if split:
+        chunk = split[0]
+        ordered = _ordered_content_words(
+            chunk, stopwords=_QUALIFIER_HEAD_STOPWORDS,
+        )
+    match = _CLAUSE_COMPLEMENT_START.match(chunk.strip())
     if match is None:
         return set()
     leader = match.group(0).casefold()
@@ -874,7 +897,10 @@ def _clause_complement_focus(after_chunk: str, ordered: list[str]) -> set[str]:
     if not content:
         return set()
     if leader in {"the", "that"}:
-        focus = content[-1]
+        verbal = [
+            word for word in content if _looks_like_complement_predicate(word)
+        ]
+        focus = verbal[-1] if verbal else content[-1]
     else:
         focus = next(
             (word for word in content if word not in _LIGHT_COMPLEMENT_VERBS),
@@ -1396,7 +1422,24 @@ def counts_as_actual_welfare(
     return False
 
 
-def _effect_counts_for_roles(effect: WorldEffect, party: WorldParty | None) -> bool:
+def _party_has_actual_welfare_kind(
+    model: ScenarioWorldModel, party_id: str,
+) -> bool:
+    """True when any action already records a real welfare/health row on party."""
+    return any(
+        item.party_id == party_id
+        and item.effect_kind in _ROLE_WELFARE_KINDS
+        and item.directness != "FOREGONE"
+        and item.polarity not in {"FOREGONE", "NEUTRAL"}
+        for item in model.effects
+    )
+
+
+def _effect_counts_for_roles(
+    effect: WorldEffect,
+    party: WorldParty | None,
+    model: ScenarioWorldModel | None = None,
+) -> bool:
     """True when an admitted effect should populate compact harm/benefit roles.
 
     Foregone counterfactuals stay out so they are not double-counted against
@@ -1404,16 +1447,27 @@ def _effect_counts_for_roles(effect: WorldEffect, party: WorldParty | None) -> b
     Crowd use/remain process states are not welfare claims. Directness is not
     required: stipulated downstream deaths and survivals are the point of
     these roles. Facilities and institutions are intermediate process-bearers,
-    not compact harmed/beneficiary parties.
+    not compact harmed/beneficiary parties, unless the same party already
+    bears an actual welfare or health row somewhere in the model.
     """
     if _crowd_mediated_process(effect, party):
         return False
-    return counts_as_actual_welfare(
+    if counts_as_actual_welfare(
         polarity=effect.polarity,
         directness=effect.directness,
         effect_kind=effect.effect_kind,
         party_kind=party.kind if party is not None else "",
-    )
+    ):
+        return True
+    if (
+        model is None
+        or party is None
+        or effect.directness == "FOREGONE"
+        or effect.polarity not in {"BENEFICIAL", "ADVERSE"}
+        or effect.effect_kind not in _ROLE_PHYSICAL_WELFARE_KINDS
+    ):
+        return False
+    return _party_has_actual_welfare_kind(model, party.party_id)
 
 
 def utilitarian_omits_foregone_dual(
@@ -1424,7 +1478,9 @@ def utilitarian_omits_foregone_dual(
     Opportunity cost is the right utilitarian row when choosing this action
     merely forgoes another action's benefit on party P. It is a double count
     when this action also has its own admitted harm or benefit on P: that
-    actual row already is the welfare consequence of the choice.
+    actual row already is the welfare consequence of the choice. Overlays on
+    intermediate process-bearers (no compact welfare party) stay on the graph
+    for completeness and are not a second welfare term.
     """
     if effect.directness != "FOREGONE" and effect.polarity != "FOREGONE":
         return False
@@ -1432,11 +1488,18 @@ def utilitarian_omits_foregone_dual(
         (item for item in model.parties if item.party_id == effect.party_id),
         None,
     )
-    return any(
+    if any(
         other.effect_id != effect.effect_id
         and other.party_id == effect.party_id
-        and _effect_counts_for_roles(other, party)
+        and _effect_counts_for_roles(other, party, model)
         for other in model.effects_for(effect.action_id)
+    ):
+        return True
+    return not (
+        _party_bears_welfare(party) or (
+            party is not None
+            and _party_has_actual_welfare_kind(model, party.party_id)
+        )
     )
 
 
@@ -1616,6 +1679,112 @@ def _has_opposed_unsettled_adverse(
             continue
         return True
     return False
+
+
+def _same_action_ancestor_party_ids(
+    effect: WorldEffect, model: ScenarioWorldModel,
+) -> set[str]:
+    """Party IDs on the same-action causal ancestry of this effect."""
+    by_id = {item.effect_id: item for item in model.effects}
+    seen: set[str] = set()
+    parties: set[str] = set()
+    stack = [effect.effect_id]
+    while stack:
+        current_id = stack.pop()
+        if current_id in seen:
+            continue
+        seen.add(current_id)
+        current = by_id.get(current_id)
+        if current is None:
+            continue
+        if current.effect_id != effect.effect_id and current.party_id:
+            parties.add(current.party_id)
+        for link in model.causal_links:
+            if link.action_id != effect.action_id or link.target_id != current_id:
+                continue
+            if not _link_parents_target(link):
+                continue
+            stack.append(link.source_id)
+    return parties
+
+
+def _projected_averted_conditional_roles(
+    model: ScenarioWorldModel,
+    action_id: str,
+    *,
+    assigned: dict[str, tuple[str, ...]],
+    already: set[str],
+) -> tuple[tuple[str, str, str], ...]:
+    """Crowd labels averted by CERTAIN intermediate protection on this action.
+
+    If party P has unsettled ADVERSE under another action, and this action
+    certainly benefits an intermediate bearer that is a same-action ancestor
+    of that harm, P is conditionally_benefited here. Do not invent a welfare
+    row or treat the averted crowd as an obtained beneficiary.
+    """
+    party_by_id = {party.party_id: party for party in model.parties}
+    protected: set[str] = set()
+    protectors: dict[str, str] = {}
+    for effect in model.effects_for(action_id):
+        party = party_by_id.get(effect.party_id)
+        if party is None or party.kind not in _INTERMEDIATE_BEARER_KINDS:
+            continue
+        if str(effect.directness or "").upper() == "FOREGONE":
+            continue
+        if str(effect.polarity or "").upper() != "BENEFICIAL":
+            continue
+        if not counts_as_obtained_outcome(
+            polarity=effect.polarity,
+            modality=effect.modality,
+            likelihood_qualifiers=effect.likelihood_qualifiers,
+        ):
+            continue
+        protected.add(party.party_id)
+        protectors.setdefault(party.party_id, effect.effect_id)
+    if not protected:
+        return ()
+    rows: list[tuple[str, str, str]] = []
+    seen_labels: set[str] = set()
+    for other in model.effects:
+        if other.action_id == action_id:
+            continue
+        if str(other.directness or "").upper() == "FOREGONE":
+            continue
+        if str(other.polarity or "").upper() != "ADVERSE":
+            continue
+        victim = party_by_id.get(other.party_id)
+        if victim is None or not _party_bears_welfare(victim):
+            continue
+        if not _effect_counts_for_roles(other, victim, model):
+            continue
+        if counts_as_obtained_outcome(
+            polarity=other.polarity,
+            modality=other.modality,
+            likelihood_qualifiers=other.likelihood_qualifiers,
+        ):
+            continue
+        ancestors = _same_action_ancestor_party_ids(other, model)
+        overlap = ancestors & protected
+        if not overlap:
+            continue
+        label = _compact_role_label(
+            other, victim,
+            assignment_quantities=assigned.get(victim.party_id, ()),
+        )
+        if not label or label in already or label in seen_labels:
+            continue
+        seen_labels.add(label)
+        protector = protectors[next(iter(overlap))]
+        rows.append((
+            label,
+            other.effect_id,
+            (
+                f"CERTAIN intermediate protection {protector} averts "
+                f"opposed unsettled {other.effect_id}; compact "
+                f"conditionally_benefited, not obtained benefit"
+            ),
+        ))
+    return tuple(rows)
 
 
 def is_averted_risk_not_obtained_benefit_effect(
@@ -1889,7 +2058,7 @@ def project_world_action_roles(
     conditionally_benefited: list[str] = []
     for effect in model.effects_for(action_id):
         party = party_by_id.get(effect.party_id)
-        if party is None or not _effect_counts_for_roles(effect, party):
+        if party is None or not _effect_counts_for_roles(effect, party, model):
             continue
         label = _compact_role_label(
             effect, party, assignment_quantities=assigned.get(party.party_id, ()),
@@ -1919,6 +2088,12 @@ def project_world_action_roles(
     conditionally_benefited = [
         label for label in conditionally_benefited if label not in settled
     ]
+    already = set(beneficiaries) | set(harmed) | set(conditionally_benefited)
+    for label, _effect_id, _reason in _projected_averted_conditional_roles(
+        model, action_id, assigned=assigned, already=already,
+    ):
+        if label not in conditionally_benefited and label not in settled:
+            conditionally_benefited.append(label)
     unresolved = tuple(dict.fromkeys((*at_risk, *conditionally_benefited)))
     return ProjectedActionRoles(
         beneficiaries=tuple(beneficiaries),
@@ -1939,7 +2114,7 @@ def explain_compact_role_assignments(
     seen: set[tuple[str, str, str]] = set()
     for effect in model.effects_for(action_id):
         party = party_by_id.get(effect.party_id)
-        if party is None or not _effect_counts_for_roles(effect, party):
+        if party is None or not _effect_counts_for_roles(effect, party, model):
             continue
         label = _compact_role_label(
             effect, party, assignment_quantities=assigned.get(party.party_id, ()),
@@ -1973,6 +2148,21 @@ def explain_compact_role_assignments(
             reason=_compact_role_reason(
                 effect, model, settled=settled, bucket=bucket,
             ),
+        ))
+    already = {row.label for row in rows}
+    for label, effect_id, reason in _projected_averted_conditional_roles(
+        model, action_id, assigned=assigned, already=already,
+    ):
+        key = ("conditionally_benefited", label, effect_id)
+        if key in seen:
+            continue
+        seen.add(key)
+        rows.append(CompactRoleExplanation(
+            action_id=action_id,
+            bucket="conditionally_benefited",
+            label=label,
+            effect_id=effect_id,
+            reason=reason,
         ))
     return tuple(rows)
 
@@ -2647,6 +2837,8 @@ def parse_world_model(
         ),
         schema_version=schema_version,
     )
+    if schema_version != "1.0":
+        model = compile_chance_gated_world(model)
     errors, _ = validate_world_model(model, action_ids=action_ids)
     if require_completeness:
         errors.extend(validate_world_completeness(model, action_ids=action_ids))
@@ -2835,8 +3027,27 @@ def validate_world_model(
                 f"{prefix} uses polarity FOREGONE but directness is {effect.directness}"
             )
         if effect.modality != "CERTAIN" and not effect.condition_ids:
+            independent_event = (
+                model.schema_version != "1.0"
+                and _stochastic_process_role(
+                    effect,
+                    next(
+                        (
+                            action for action in model.actions
+                            if action.action_id == effect.action_id
+                        ),
+                        None,
+                    ),
+                    party,
+                    {item.party_id: item for item in model.parties},
+                ) == "INDEPENDENT"
+            )
             if not (
-                model.schema_version != "1.0" and effect.likelihood_qualifiers
+                (
+                    model.schema_version != "1.0"
+                    and effect.likelihood_qualifiers
+                )
+                or independent_event
             ):
                 errors.append(f"{prefix} is {effect.modality} but has no condition")
         if effect.modality == "CERTAIN" and effect.condition_ids:
@@ -3410,6 +3621,30 @@ def _foreign_parent_error(
     return message
 
 
+def _effect_counts_for_foregone_overlays(
+    effect: WorldEffect,
+    party: WorldParty | None,
+    model: ScenarioWorldModel,
+) -> bool:
+    """True when a row can participate in an opposed-welfare FOREGONE pair.
+
+    Compact role-counting rows are the usual pair. Opposed PHYSICAL states on
+    the same intermediate bearer (facility, resource, process) are the same
+    stipulated swap even when those states are not compact welfare parties.
+    """
+    if _effect_counts_for_roles(effect, party, model):
+        return True
+    if (
+        party is None
+        or effect.directness == "FOREGONE"
+        or effect.polarity not in {"BENEFICIAL", "ADVERSE"}
+        or party.kind not in _INTERMEDIATE_BEARER_KINDS
+        or effect.effect_kind not in _INTERMEDIATE_STATE_KINDS
+    ):
+        return False
+    return True
+
+
 def _actual_nonrecipient_role_effects(
     model: ScenarioWorldModel,
 ) -> dict[tuple[str, str], tuple[WorldEffect, ...]]:
@@ -3425,7 +3660,7 @@ def _actual_nonrecipient_role_effects(
         if effect.directness == "FOREGONE" or effect.polarity == "FOREGONE":
             continue
         party = party_by_id.get(effect.party_id)
-        if not _effect_counts_for_roles(effect, party):
+        if not _effect_counts_for_foregone_overlays(effect, party, model):
             continue
         action = action_by_id.get(effect.action_id)
         if action is None:
@@ -3596,6 +3831,8 @@ def _is_stochastic_intermediate(
     if effect.directness != "DOWNSTREAM":
         return False
     if effect.effect_kind not in {"PHYSICAL_STATE", "OTHER"}:
+        return False
+    if str(effect.modality or "").upper() == "STIPULATED_CONDITIONAL":
         return False
     return bool(effect.likelihood_qualifiers) or effect.modality != "CERTAIN"
 
@@ -3795,6 +4032,106 @@ def _condition_restates_outcome(description: str, outcome: str) -> bool:
     return bool(distinctive) and len(shared) / len(union) >= 0.6
 
 
+# Schema predicate tags are not the source verb. Grounders often put IS /
+# STATE_CHANGE in outcome or relation and the real verb in the other field.
+_SCHEMA_PREDICATE_TAGS = frozenset({
+    "ACTS", "DIES", "EXPERIENCES", "IS", "PERFORMS", "STATE_CHANGE",
+    "STATE_REMAINS", "SUBJECT_TO", "SURVIVES", "WELFARE_LOSS",
+    "WELFARE_PRESERVED",
+})
+_SCHEMA_PREDICATE_STEMS = frozenset({
+    "act", "change", "die", "experienc", "experiences", "is", "loss",
+    "perform", "preserv", "remain", "state", "subject", "surviv",
+    "survive", "welfare",
+})
+_IDENTITY_STOPWORDS = frozenset({
+    "after", "against", "before", "for", "from", "into", "onto", "over",
+    "under",
+})
+_OUTCOME_PP_TAIL = re.compile(
+    r"\b(?:from|of|for|against|onto|into)\s+\S.*$",
+    re.IGNORECASE,
+)
+_BENEFICIAL_IDENTITY_STEMS = frozenset({
+    "avert", "escape", "guard", "preserv", "protect", "retain", "safe",
+    "save", "spare", "surviv",
+})
+_ADVERSE_IDENTITY_STEMS = frozenset({
+    "block", "choke", "contamin", "contaminat", "destroy", "die", "fail",
+    "flood", "foul", "harm", "inund", "injur", "kill", "lose", "ruin",
+    "submerg",
+})
+_PROPOSITION_ELLIPSIS = re.compile(r"\s*(?:\.\.\.|…)\s*")
+_CHANCE_HEDGE_PREFIX = re.compile(
+    r"^\s*(?:there\s+is\s+)?(?:a\s+)?\d+(?:,\d{3})*(?:\.\d+)?\s*"
+    r"(?:%|percent)\s*chance\s+(?:that\s+)?",
+    re.IGNORECASE,
+)
+
+
+def _identity_head_text(effect: WorldEffect) -> str:
+    """Outcome verb, ignoring schema tags and a trailing from/of complement."""
+    outcome = _OUTCOME_PP_TAIL.sub("", str(effect.outcome or "")).strip()
+    relation = str(effect.relation or "").strip()
+    if relation.upper() in _SCHEMA_PREDICATE_TAGS:
+        relation = ""
+    if outcome.casefold() in {"", "is", "are"}:
+        return relation
+    return f"{outcome} {relation}".strip()
+
+
+def _deverbal_identity_stems(stems: set[str]) -> set[str]:
+    """Expand protect/protection and contaminate/contamination pairs."""
+    expanded = set(_binder_stems(stems))
+    for word in list(stems | expanded):
+        for suffix in ("tion", "sion", "ment", "ance", "ence"):
+            if word.endswith(suffix) and len(word) > len(suffix) + 2:
+                root = word[: -len(suffix)]
+                expanded.add(root)
+                expanded.add(_stem_word(root))
+                if root.endswith("c"):
+                    expanded.add(root + "t")
+    return expanded
+
+
+def _effect_identity_stems(
+    effect: WorldEffect,
+    party: WorldParty | None = None,
+) -> set[str]:
+    """Content stems that name this effect: outcome plus non-tag predicate."""
+    stems = _condition_content_stems(_identity_head_text(effect))
+    stems -= _IDENTITY_STOPWORDS
+    stems -= _SCHEMA_PREDICATE_STEMS
+    stems -= {_stem_word(token) for token in _SCHEMA_PREDICATE_STEMS}
+    stems -= {_stem_word(word) for word in _PARTY_GENERIC_NOUNS}
+    if party is not None:
+        stems -= _condition_content_stems(party.label)
+    return stems
+
+
+def _condition_identifies_event(
+    description: str,
+    effect: WorldEffect,
+    party: WorldParty | None = None,
+) -> bool:
+    """True when an event-referenced if-clause names that event's verb.
+
+    Dummy copula outcomes (IS) have no content stems. Identify the event
+    from the stated predicate or source proposition instead of requiring
+    the description to restates 'IS'.
+    """
+    description_stems = _condition_content_stems(description)
+    event_stems = _effect_identity_stems(effect, party)
+    event_stems |= _condition_content_stems(effect.source_proposition)
+    event_stems -= _condition_content_stems("chance percent % however")
+    if not description_stems or not event_stems:
+        return False
+    identity = _effect_identity_stems(effect, party)
+    if identity and identity <= description_stems:
+        return True
+    return bool(description_stems & event_stems)
+
+
 def canonical_probability_event_effects(
     effects: Sequence[WorldEffect],
 ) -> tuple[WorldEffect, ...]:
@@ -3899,6 +4236,579 @@ def normalize_event_probability_ownership(
     return tuple(normalized)
 
 
+def _allocate_prefixed_id(prefix: str, existing: set[str]) -> str:
+    nums = [
+        int(match.group(1))
+        for identifier in existing
+        for match in [re.fullmatch(rf"{re.escape(prefix)}(\d+)", identifier)]
+        if match
+    ]
+    next_n = (max(nums) + 1) if nums else 0
+    candidate = f"{prefix}{next_n}"
+    while candidate in existing:
+        next_n += 1
+        candidate = f"{prefix}{next_n}"
+    return candidate
+
+
+def _reindex_world_action_effects(model: ScenarioWorldModel) -> ScenarioWorldModel:
+    by_action: dict[str, list[str]] = {
+        action.action_id: [] for action in model.actions
+    }
+    for effect in model.effects:
+        by_action.setdefault(effect.action_id, []).append(effect.effect_id)
+    actions = tuple(
+        replace(action, effect_ids=tuple(by_action.get(action.action_id, ())))
+        for action in model.actions
+    )
+    return replace(
+        model,
+        actions=actions,
+        admission=replace(
+            model.admission,
+            admitted_effect_ids=tuple(
+                effect.effect_id for effect in model.effects
+            ),
+        ),
+    )
+
+
+def _action_direct_effect(
+    model: ScenarioWorldModel, action_id: str,
+) -> WorldEffect | None:
+    for effect in model.effects:
+        if effect.action_id == action_id and effect.directness == "DIRECT":
+            return effect
+    return None
+
+
+def _event_gate_description(effect: WorldEffect) -> str:
+    outcome = str(effect.outcome or "").strip()
+    if outcome and outcome.casefold() not in {"is", "are"}:
+        return outcome
+    proposition = _CHANCE_HEDGE_PREFIX.sub(
+        "", str(effect.source_proposition or "").strip(),
+    )
+    return proposition or outcome
+
+
+def _independent_event_ids(model: ScenarioWorldModel) -> set[str]:
+    party_by_id = {party.party_id: party for party in model.parties}
+    action_by_id = {action.action_id: action for action in model.actions}
+    found: set[str] = set()
+    for effect in model.effects:
+        role = _stochastic_process_role(
+            effect,
+            action_by_id.get(effect.action_id),
+            party_by_id.get(effect.party_id),
+            party_by_id,
+        )
+        if role == "INDEPENDENT":
+            found.add(effect.effect_id)
+    return found
+
+
+def compile_independent_event_gates(
+    model: ScenarioWorldModel,
+) -> ScenarioWorldModel:
+    """Rewrite independent-event parenting into an event-referenced gate.
+
+    Live grounders often hang the chance event off the intervention and then
+    parent the flood/harm chain from that event. The independent-event rule
+    still rejects that graph. This compiler detaches the event, reparents
+    its children onto the action's DIRECT act, and synthesizes a condition
+    whose event_effect_id is the chance event.
+    """
+    independent_ids = _independent_event_ids(model)
+    if not independent_ids:
+        return model
+    effect_by_id = {effect.effect_id: effect for effect in model.effects}
+    conditions = list(model.conditions)
+    condition_ids = {condition.condition_id for condition in conditions}
+    existing_by_event = {
+        condition.event_effect_id: condition.condition_id
+        for condition in conditions
+        if condition.event_effect_id
+    }
+    gate_for_event: dict[str, str] = dict(existing_by_event)
+    updated_effects = {
+        effect.effect_id: effect for effect in model.effects
+    }
+    kept_links: list[CausalLink] = []
+    for link in model.causal_links:
+        if not _link_parents_target(link):
+            kept_links.append(link)
+            continue
+        if link.target_id in independent_ids:
+            child = updated_effects.get(link.target_id)
+            if child is not None and child.source_effect_ids:
+                updated_effects[child.effect_id] = replace(
+                    child, source_effect_ids=(),
+                )
+            continue
+        if link.source_id not in independent_ids:
+            kept_links.append(link)
+            continue
+        event = updated_effects.get(link.source_id)
+        child = updated_effects.get(link.target_id)
+        if event is None or child is None:
+            continue
+        other_parents = [
+            other.source_id
+            for other in model.causal_links
+            if (
+                other.target_id == child.effect_id
+                and _link_parents_target(other)
+                and other.source_id != event.effect_id
+                and other.source_id in effect_by_id
+            )
+        ]
+        direct = _action_direct_effect(model, child.action_id)
+        parent_id = other_parents[0] if other_parents else (
+            direct.effect_id if direct is not None else ""
+        )
+        if not parent_id:
+            continue
+        cond_id = gate_for_event.get(event.effect_id)
+        if not cond_id:
+            cond_id = _allocate_prefixed_id("COND", condition_ids)
+            condition_ids.add(cond_id)
+            gate_for_event[event.effect_id] = cond_id
+            conditions.append(WorldCondition(
+                cond_id,
+                _event_gate_description(event),
+                provenance=event.provenance or child.provenance,
+                event_effect_id=event.effect_id,
+            ))
+        if not other_parents:
+            kept_links.append(CausalLink(
+                parent_id,
+                "CAUSES",
+                child.effect_id,
+                "CERTAIN",
+                (),
+                link.provenance or child.provenance,
+                child.action_id,
+            ))
+        gates = tuple(dict.fromkeys((*child.condition_ids, cond_id)))
+        modality = child.modality
+        if modality in {"CERTAIN", "POSSIBLE", "PROBABILISTIC", "UNKNOWN"}:
+            modality = "STIPULATED_CONDITIONAL"
+        updated_effects[child.effect_id] = replace(
+            child,
+            condition_ids=gates,
+            modality=modality,
+            source_effect_ids=(parent_id,),
+        )
+    for effect in tuple(updated_effects.values()):
+        if effect.effect_id in independent_ids:
+            continue
+        parents = [
+            link.source_id
+            for link in kept_links
+            if link.target_id == effect.effect_id and _link_parents_target(link)
+        ]
+        inherited = [
+            gate_for_event[parent_id]
+            for parent_id in parents
+            if parent_id in gate_for_event
+        ]
+        inherited.extend(
+            cond_id
+            for parent_id in parents
+            for cond_id in updated_effects.get(parent_id, effect).condition_ids
+            if parent_id in updated_effects
+        )
+        if not inherited:
+            continue
+        gates = tuple(dict.fromkeys((*effect.condition_ids, *inherited)))
+        if gates == effect.condition_ids:
+            continue
+        modality = effect.modality
+        if modality == "CERTAIN":
+            modality = "STIPULATED_CONDITIONAL"
+        updated_effects[effect.effect_id] = replace(
+            effect, condition_ids=gates, modality=modality,
+        )
+    return replace(
+        model,
+        effects=tuple(updated_effects[effect.effect_id] for effect in model.effects),
+        conditions=tuple(conditions),
+        causal_links=tuple(kept_links),
+    )
+
+
+def compile_gated_link_certainty(
+    model: ScenarioWorldModel,
+) -> ScenarioWorldModel:
+    """Incoming links are CERTAIN when the target already owns the gate."""
+    effect_by_id = {effect.effect_id: effect for effect in model.effects}
+    links: list[CausalLink] = []
+    for link in model.causal_links:
+        target = effect_by_id.get(link.target_id)
+        if (
+            link.modality != "CERTAIN"
+            and not link.condition_ids
+            and target is not None
+            and target.condition_ids
+        ):
+            links.append(replace(link, modality="CERTAIN"))
+        else:
+            links.append(link)
+    return replace(model, causal_links=tuple(links))
+
+
+def compile_missing_parent_links(
+    model: ScenarioWorldModel,
+) -> ScenarioWorldModel:
+    """Materialize same-action source_effect_ids that lack a causal_link."""
+    independent_ids = _independent_event_ids(model)
+    effect_by_id = {effect.effect_id: effect for effect in model.effects}
+    existing = {
+        (link.source_id, link.target_id)
+        for link in model.causal_links
+        if _link_parents_target(link)
+    }
+    added: list[CausalLink] = []
+    for effect in model.effects:
+        if effect.directness == "FOREGONE":
+            continue
+        for parent_id in effect.source_effect_ids:
+            parent = effect_by_id.get(parent_id)
+            if parent is None or parent.action_id != effect.action_id:
+                continue
+            if parent_id in independent_ids:
+                continue
+            if (parent_id, effect.effect_id) in existing:
+                continue
+            added.append(CausalLink(
+                parent_id,
+                "CAUSES",
+                effect.effect_id,
+                "CERTAIN",
+                (),
+                effect.provenance,
+                effect.action_id,
+            ))
+            existing.add((parent_id, effect.effect_id))
+    if not added:
+        return model
+    return replace(model, causal_links=(*model.causal_links, *added))
+
+
+def _snap_ellipsis_span(proposition: str, excerpts: Sequence[str]) -> str:
+    parts = _PROPOSITION_ELLIPSIS.split(str(proposition or ""), maxsplit=1)
+    if len(parts) != 2:
+        return ""
+    left, right = parts[0].strip(), parts[1].strip()
+    if not left or not right:
+        return ""
+    for excerpt in excerpts:
+        folded = excerpt.casefold()
+        start = folded.find(left.casefold())
+        if start < 0:
+            continue
+        end = folded.find(right.casefold(), start + len(left))
+        if end < 0:
+            continue
+        return excerpt[start:end + len(right)]
+    return ""
+
+
+def _proposition_is_exact_span(effect: WorldEffect) -> bool:
+    proposition = _normalized_proposition_text(effect.source_proposition)
+    if not proposition:
+        return False
+    return any(
+        proposition in _normalized_proposition_text(ref.excerpt)
+        for ref in effect.provenance if ref.excerpt
+    )
+
+
+def compile_source_proposition_spans(
+    model: ScenarioWorldModel,
+) -> ScenarioWorldModel:
+    """Replace ellipsis paraphrases with the exact provenance span they omit."""
+    updated: list[WorldEffect] = []
+    changed = False
+    for effect in model.effects:
+        excerpts = [ref.excerpt for ref in effect.provenance if ref.excerpt]
+        if not excerpts or _proposition_is_exact_span(effect):
+            updated.append(effect)
+            continue
+        snapped = _snap_ellipsis_span(effect.source_proposition, excerpts)
+        if not snapped:
+            updated.append(effect)
+            continue
+        updated.append(replace(effect, source_proposition=snapped))
+        changed = True
+    if not changed:
+        return model
+    return replace(model, effects=tuple(updated))
+
+
+def compile_grounded_quantities(
+    model: ScenarioWorldModel,
+) -> ScenarioWorldModel:
+    """Drop effect quantities that neither provenance nor the party licenses."""
+    party_by_id = {party.party_id: party for party in model.parties}
+    updated: list[WorldEffect] = []
+    changed = False
+    for effect in model.effects:
+        party = party_by_id.get(effect.party_id)
+        provenance_text = _provenance_text(effect)
+        kept = tuple(
+            quantity for quantity in effect.quantities
+            if (
+                _quantity_grounded_in_text(quantity, provenance_text)
+                or _party_licenses_quantity(party, quantity)
+            )
+        )
+        if kept != effect.quantities:
+            updated.append(replace(effect, quantities=kept))
+            changed = True
+        else:
+            updated.append(effect)
+    if not changed:
+        return model
+    return replace(model, effects=tuple(updated))
+
+
+def compile_counterfactual_source_bindings(
+    model: ScenarioWorldModel,
+) -> ScenarioWorldModel:
+    """FOREGONE source_effect_ids are the linked alternative actual effect."""
+    alternatives = {
+        link.source_effect_id: link.alternative_effect_id
+        for link in model.counterfactual_links
+        if link.source_effect_id and link.alternative_effect_id
+    }
+    updated: list[WorldEffect] = []
+    changed = False
+    for effect in model.effects:
+        alternative = alternatives.get(effect.effect_id)
+        if (
+            effect.directness != "FOREGONE"
+            or effect.derivation_operation != "COUNTERFACTUAL_PROJECTION"
+            or not alternative
+        ):
+            updated.append(effect)
+            continue
+        if effect.source_effect_ids == (alternative,):
+            updated.append(effect)
+            continue
+        updated.append(replace(effect, source_effect_ids=(alternative,)))
+        changed = True
+    if not changed:
+        return model
+    return replace(model, effects=tuple(updated))
+
+
+def compile_foregone_overlays(
+    model: ScenarioWorldModel,
+) -> ScenarioWorldModel:
+    """Add the missing FOREGONE duals for opposed stipulated welfare."""
+    grouped = _actual_nonrecipient_role_effects(model)
+    action_ids = [action.action_id for action in model.actions]
+    working = model
+    effects = list(model.effects)
+    links = list(model.counterfactual_links)
+    existing_ids = {effect.effect_id for effect in effects}
+    added = False
+    for party_id in sorted({party for party, _ in grouped}):
+        for index, left_id in enumerate(action_ids):
+            for right_id in action_ids[index + 1:]:
+                left_effects = grouped.get((party_id, left_id), ())
+                right_effects = grouped.get((party_id, right_id), ())
+                left_polarities = {item.polarity for item in left_effects}
+                right_polarities = {item.polarity for item in right_effects}
+                opposed = (
+                    "BENEFICIAL" in left_polarities
+                    and "ADVERSE" in right_polarities
+                ) or (
+                    "ADVERSE" in left_polarities
+                    and "BENEFICIAL" in right_polarities
+                )
+                if not opposed:
+                    continue
+                pairs = (
+                    (left_id, right_id, right_effects),
+                    (right_id, left_id, left_effects),
+                )
+                for action_id, alternative_id, alternatives in pairs:
+                    if _has_counterfactual_foreclosure(
+                        working,
+                        action_id=action_id,
+                        party_id=party_id,
+                        alternative_action_id=alternative_id,
+                        alternative_effect_ids={
+                            item.effect_id for item in alternatives
+                        },
+                    ):
+                        continue
+                    if not alternatives:
+                        continue
+                    preferred = next(
+                        (
+                            item for item in alternatives
+                            if item.effect_kind in _ROLE_WELFARE_KINDS
+                        ),
+                        alternatives[0],
+                    )
+                    overlay_id = _allocate_prefixed_id("F", existing_ids)
+                    existing_ids.add(overlay_id)
+                    effects.append(WorldEffect(
+                        overlay_id,
+                        action_id,
+                        party_id,
+                        preferred.outcome,
+                        preferred.relation,
+                        "FOREGONE",
+                        "FOREGONE",
+                        preferred.modality,
+                        "OPPORTUNITY_LOSS",
+                        condition_ids=preferred.condition_ids,
+                        quantities=preferred.quantities,
+                        provenance=preferred.provenance,
+                        likelihood_qualifiers=preferred.likelihood_qualifiers,
+                        scope_qualifiers=preferred.scope_qualifiers,
+                        temporal_qualifiers=preferred.temporal_qualifiers,
+                        source_proposition=preferred.source_proposition,
+                        source_effect_ids=(preferred.effect_id,),
+                        derivation_operation="COUNTERFACTUAL_PROJECTION",
+                        derivation_explanation=(
+                            f"Counterfactual dual of {preferred.effect_id} "
+                            f"under {alternative_id}"
+                        ),
+                    ))
+                    links.append(CounterfactualLink(
+                        action_id,
+                        overlay_id,
+                        "FOREGOES_ALTERNATIVE_EFFECT",
+                        alternative_id,
+                        preferred.effect_id,
+                        "CERTAIN",
+                        (),
+                        preferred.provenance,
+                    ))
+                    working = replace(
+                        working,
+                        effects=tuple(effects),
+                        counterfactual_links=tuple(links),
+                    )
+                    added = True
+    if not added:
+        return model
+    return working
+
+
+def compile_omit_unbound_derived_effects(
+    model: ScenarioWorldModel,
+) -> ScenarioWorldModel:
+    """Omit SOURCE_STIPULATED_CAUSAL rows the cited span does not state."""
+    party_by_id = {party.party_id: party for party in model.parties}
+    independent_ids = _independent_event_ids(model)
+    dropped: set[str] = set()
+    changed = True
+    while changed:
+        changed = False
+        for effect in model.effects:
+            if effect.effect_id in dropped:
+                continue
+            if effect.directness in {"DIRECT", "FOREGONE"}:
+                continue
+            if effect.effect_id in independent_ids:
+                continue
+            if (
+                model.schema_version != "1.3"
+                or effect.derivation_operation != "SOURCE_STIPULATED_CAUSAL"
+                or not effect.source_proposition
+            ):
+                continue
+            supports = (
+                _proposition_is_exact_span(effect)
+                and _source_proposition_supports_outcome(
+                    effect, party_by_id.get(effect.party_id),
+                )
+            )
+            orphaned = bool(
+                effect.source_effect_ids
+                and set(effect.source_effect_ids) <= dropped
+            )
+            if supports and not orphaned:
+                continue
+            dropped.add(effect.effect_id)
+            changed = True
+        for link in model.counterfactual_links:
+            if (
+                link.alternative_effect_id in dropped
+                and link.source_effect_id not in dropped
+            ):
+                dropped.add(link.source_effect_id)
+                changed = True
+    if not dropped:
+        return model
+    effects = tuple(
+        effect for effect in model.effects if effect.effect_id not in dropped
+    )
+    links = tuple(
+        link for link in model.causal_links
+        if link.source_id not in dropped and link.target_id not in dropped
+    )
+    counterfactuals = tuple(
+        link for link in model.counterfactual_links
+        if (
+            link.source_effect_id not in dropped
+            and link.alternative_effect_id not in dropped
+        )
+    )
+    remaining = {effect.effect_id for effect in effects}
+    conditions = tuple(
+        condition for condition in model.conditions
+        if (
+            not condition.event_effect_id
+            or condition.event_effect_id in remaining
+        )
+    )
+    return replace(
+        model,
+        effects=effects,
+        causal_links=links,
+        counterfactual_links=counterfactuals,
+        conditions=conditions,
+    )
+
+
+def compile_chance_gated_world(
+    model: ScenarioWorldModel,
+) -> ScenarioWorldModel:
+    """Deterministic repairs that do not invent source facts."""
+    compiled = compile_independent_event_gates(model)
+    compiled = compile_gated_link_certainty(compiled)
+    compiled = compile_missing_parent_links(compiled)
+    compiled = compile_source_proposition_spans(compiled)
+    compiled = compile_grounded_quantities(compiled)
+    compiled = compile_omit_unbound_derived_effects(compiled)
+    compiled = compile_counterfactual_source_bindings(compiled)
+    compiled = compile_foregone_overlays(compiled)
+    compiled = replace(
+        compiled,
+        conditions=compile_event_condition_bindings(
+            compiled.conditions, compiled.effects,
+        ),
+    )
+    compiled = replace(
+        compiled,
+        effects=normalize_event_probability_ownership(
+            compiled.effects, compiled.conditions,
+        ),
+        causal_links=normalize_redundant_link_gates(
+            compiled.causal_links, compiled.effects,
+        ),
+    )
+    return _reindex_world_action_effects(compiled)
+
+
 _WORLD_DERIVATION_OPERATIONS = {
     "DIRECT_COPY", "SOURCE_STIPULATED_CAUSAL", "STRUCTURAL_ABSTRACTION",
     "COUNTERFACTUAL_PROJECTION",
@@ -3913,23 +4823,33 @@ def _source_proposition_supports_outcome(
     effect: WorldEffect,
     party: WorldParty | None = None,
 ) -> bool:
-    outcome_stems = _condition_content_stems(effect.outcome)
-    if party is not None:
-        outcome_stems -= _condition_content_stems(party.label)
-    outcome_stems -= {
-        _stem_word(word) for word in _PARTY_GENERIC_NOUNS
-    }
-    proposition_stems = _condition_content_stems(effect.source_proposition)
-    if not outcome_stems or not proposition_stems:
+    outcome_stems = _deverbal_identity_stems(_effect_identity_stems(effect, party))
+    proposition_stems = _deverbal_identity_stems(
+        _condition_content_stems(effect.source_proposition)
+    )
+    if outcome_stems and proposition_stems:
+        shared = outcome_stems & proposition_stems
+        if shared and len(shared) / len(outcome_stems) >= 0.5:
+            return True
+    if party is None or not proposition_stems:
         return False
-    shared = outcome_stems & proposition_stems
-    return bool(shared) and len(shared) / len(outcome_stems) >= 0.5
+    party_stems = _condition_content_stems(party.label)
+    if not (party_stems & proposition_stems):
+        return False
+    polarity = str(effect.polarity or "").upper()
+    verbs = proposition_stems | outcome_stems
+    if polarity in {"BENEFICIAL", "FOREGONE"} and verbs & _BENEFICIAL_IDENTITY_STEMS:
+        return True
+    if polarity in {"ADVERSE", "FOREGONE"} and verbs & _ADVERSE_IDENTITY_STEMS:
+        return True
+    return False
 
 
 def validate_effect_source_bindings(model: ScenarioWorldModel) -> list[str]:
     """Validate schema-1.3 effect-level proposition and derivation bindings."""
     effect_by_id = {effect.effect_id: effect for effect in model.effects}
     party_by_id = {party.party_id: party for party in model.parties}
+    action_by_id = {action.action_id: action for action in model.actions}
     errors: list[str] = []
     for effect in model.effects:
         prefix = effect.effect_id
@@ -3979,7 +4899,15 @@ def validate_effect_source_bindings(model: ScenarioWorldModel) -> list[str]:
                 f"{prefix} is DIRECT_COPY but lists source_effect_ids"
             )
         if operation == "SOURCE_STIPULATED_CAUSAL":
-            if not effect.source_effect_ids:
+            independent_event = (
+                _stochastic_process_role(
+                    effect,
+                    action_by_id.get(effect.action_id),
+                    party_by_id.get(effect.party_id),
+                    party_by_id,
+                ) == "INDEPENDENT"
+            )
+            if not effect.source_effect_ids and not independent_event:
                 errors.append(
                     f"{prefix} is SOURCE_STIPULATED_CAUSAL but lists no source_effect_ids"
                 )
@@ -4219,7 +5147,9 @@ def _event_referenced_condition_errors(model: ScenarioWorldModel) -> list[str]:
                 )
                 if role != "INDEPENDENT":
                     continue
-                if not _condition_restates_outcome(condition.description, effect.outcome):
+                if not _condition_identifies_event(
+                    condition.description, effect, party_by_id.get(effect.party_id),
+                ):
                     continue
                 errors.append(
                     f"{condition.condition_id} restates existing event "
@@ -4234,14 +5164,14 @@ def _event_referenced_condition_errors(model: ScenarioWorldModel) -> list[str]:
                 f"{condition.condition_id} event_effect_id {event_id} is unknown"
             )
             continue
-        if not _condition_restates_outcome(
-            condition.description, event.outcome,
+        event_party = party_by_id.get(event.party_id)
+        if not _condition_identifies_event(
+            condition.description, event, event_party,
         ):
             errors.append(
                 f"{condition.condition_id} description does not identify "
                 f"referenced event {event_id} ({event.outcome!r})"
             )
-        event_party = party_by_id.get(event.party_id)
         if event.directness == "FOREGONE" or event.effect_kind == "OPPORTUNITY_LOSS":
             errors.append(
                 f"{condition.condition_id} references FOREGONE overlay {event_id}; "

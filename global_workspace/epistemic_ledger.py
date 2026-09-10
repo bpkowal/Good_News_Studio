@@ -1775,13 +1775,16 @@ def _restore_closed_world_utilitarian_ranking(candidate: Any) -> bool:
     from .local_specialists import (
         align_action_scores_to_leader,
         closed_world_utilitarian_leader,
+        utilitarian_has_settled_residual,
+        _admitted_numeric_remainder,
     )
 
     scores = dict(getattr(candidate, "action_scores", {}) or {})
     actions = list(scores)
+    table = dict(getattr(candidate, "utilitarian_consequence_table", {}) or {})
     leader = closed_world_utilitarian_leader(
         actions,
-        dict(getattr(candidate, "utilitarian_consequence_table", {}) or {}),
+        table,
         dict(getattr(candidate, "expected_value_estimates", {}) or {}),
     )
     if leader is None or leader not in scores:
@@ -1796,7 +1799,19 @@ def _restore_closed_world_utilitarian_ranking(candidate: Any) -> bool:
     )
     candidate.friction = candidate.preference_strength
     candidate.utilitarian_decision_depends_on_unknown = False
-    candidate.comparison_complete = True
+    candidate.evidence_sufficient_for_action = True
+    remainder = list(getattr(candidate, "utilitarian_incommensurable_remainder", []) or [])
+    if not remainder:
+        remainder = _admitted_numeric_remainder(table, actions)
+        candidate.utilitarian_incommensurable_remainder = remainder
+    residual = utilitarian_has_settled_residual(
+        remainder=remainder,
+        factual_threshold=str(getattr(candidate, "factual_reversal_threshold", "") or ""),
+        weakest_decision_critical_status=str(
+            getattr(candidate, "weakest_decision_critical_status", "") or ""
+        ),
+    )
+    candidate.comparison_complete = not residual
     notes = list(getattr(candidate, "epistemic_binding_notes", []) or [])
     note = (
         "Closed-world ranking uses admitted consequences only; unestablished "

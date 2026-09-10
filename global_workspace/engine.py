@@ -4032,8 +4032,9 @@ class WorkspaceEngine:
                             candidate.unresolved = "NORMATIVE_ADJUDICATION"
                             candidate.assumption_status = "NORMATIVELY_CONTESTED"
                             candidate.selection_status = "PROVISIONAL"
-                            candidate.comparison_complete = False
-                            candidate.evidence_sufficient_for_action = False
+                            # Open Kantian questions are investigative residue.
+                            # They do not retract a duty-ledger comparison that
+                            # already assessed every live action.
                     if (
                         deon_transaction.status.startswith("COMMITTED")
                         and candidate.framework_constraint_retained

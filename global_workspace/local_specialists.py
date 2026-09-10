@@ -30,6 +30,7 @@ from .scenario_semantics import (
     segment_scenario_clauses,
 )
 from .utilitarian_ledger import utilitarian_scored_grounded_effects
+from .world_state import quantity_magnitude
 from .world_validation import (
     WorldModelValidationError,
     issue_mentions_identifier,
@@ -737,6 +738,15 @@ def admitted_utilitarian_consequence_table(
     return admitted
 
 
+def _magnitude_numbers(text: str) -> set[float]:
+    """Digits plus admitted word-cardinals such as 'five' or 'twelve'."""
+    numbers = set(_numeric_literals(text))
+    parsed = quantity_magnitude(text)
+    if parsed is not None:
+        numbers.add(float(parsed))
+    return numbers
+
+
 def _row_admitted_numeric_welfare(row: dict[str, Any]) -> float | None:
     """Signed welfare only when probability and magnitude are both numeric."""
     direction = str(row.get("direction", "")).strip().upper()
@@ -745,24 +755,59 @@ def _row_admitted_numeric_welfare(row: dict[str, Any]) -> float | None:
     probability = _parse_probability_mass(row.get("probability", ""))
     if probability is None:
         return None
-    numbers = _numeric_literals(row.get("magnitude", ""))
+    numbers = _magnitude_numbers(row.get("magnitude", ""))
     if not numbers:
         return None
     signed = probability * max(numbers)
     return signed if direction == "BENEFIT" else -signed
 
 
+def _row_is_closed_world_welfare(row: dict[str, Any]) -> bool:
+    """True when a row is a benefit or harm, not a process or unknown polarity."""
+    return str(row.get("direction", "")).strip().upper() in {"BENEFIT", "HARM"}
+
+
+def _admitted_numeric_remainder(
+    table: dict[str, list[dict[str, Any]]],
+    actions: Sequence[str],
+) -> list[str]:
+    """Admitted benefits/harms that share no numeric unit with the settled sum."""
+    admitted = admitted_utilitarian_consequence_table(table)
+    leftovers: list[str] = []
+    for action in actions:
+        for row in admitted.get(action) or []:
+            if not _row_is_closed_world_welfare(row):
+                continue
+            if _magnitude_numbers(row.get("magnitude", "")):
+                continue
+            label = " ".join((
+                str(row.get("effect_id", "") or ""),
+                str(row.get("outcome", "") or ""),
+                str(row.get("scope", "") or ""),
+            )).strip()
+            if label:
+                leftovers.append(label)
+    return list(dict.fromkeys(leftovers))[:8]
+
+
 def _admitted_numeric_nets(
     table: dict[str, list[dict[str, Any]]],
     actions: Sequence[str],
 ) -> dict[str, float] | None:
-    """Net admitted welfare when every remaining row has a numeric magnitude."""
+    """Net admitted welfare on rows that share a numeric magnitude.
+
+    Neutral process rows and incommensurable leftover harms do not veto the
+    comparison. An action with no numeric welfare row still cannot rank.
+    """
     admitted = admitted_utilitarian_consequence_table(table)
     nets: dict[str, float] = {}
     for action in actions:
-        rows = admitted.get(action) or []
-        values = [_row_admitted_numeric_welfare(row) for row in rows]
-        if not rows or any(value is None for value in values):
+        values = [
+            value
+            for row in admitted.get(action) or []
+            if (value := _row_admitted_numeric_welfare(row)) is not None
+        ]
+        if not values:
             return None
         nets[action] = sum(values)
     return nets
@@ -814,6 +859,46 @@ def closed_world_utilitarian_leader(
     if nets is not None:
         return _unique_extreme_action(nets, prefer_higher=True)
     return _ev_closed_world_leader(expected_values, actions)
+
+
+def utilitarian_has_settled_residual(
+    *,
+    remainder: Sequence[str] | None = None,
+    reversal_note: str = "",
+    factual_threshold: str = "",
+    weakest_decision_critical_status: str = "",
+) -> bool:
+    """True when a settled lean still carries leftover or open-world residue.
+
+    The admitted same-unit comparison may keep its directional lean. Residue
+    (incommensurable leftovers, a reversal-boundary hypothesis) attenuates the
+    vote; it must not erase the lean or invent a canceling point estimate.
+    """
+    if any(str(item).strip() for item in (remainder or [])):
+        return True
+    if " ".join(str(reversal_note or "").split()).casefold() not in {"", "none"}:
+        return True
+    if " ".join(str(factual_threshold or "").split()).casefold() not in {"", "none"}:
+        return True
+    return str(weakest_decision_critical_status or "").strip().upper() == "HYPOTHETICAL"
+
+
+def _closed_world_magnitude(effect: dict[str, Any]) -> str:
+    """Copy an admitted count onto a valuation row; do not mint one."""
+    for key in ("quantities", "affected_subject_quantities"):
+        raw = effect.get(key) or []
+        if isinstance(raw, str):
+            raw = [raw]
+        text = ", ".join(
+            str(value).strip() for value in raw if str(value).strip()
+        )
+        if text and _magnitude_numbers(text):
+            return text[:60]
+    qualifier = str(effect.get("qualifier", "") or "").strip()
+    if qualifier and qualifier.upper() not in {"STATED", "UNKNOWN"}:
+        if _magnitude_numbers(qualifier):
+            return qualifier[:60]
+    return "UNKNOWN"
 
 
 def align_action_scores_to_leader(
@@ -880,10 +965,7 @@ def _ledger_justifies_direct_invert(
         return False
     recommended_action = actions[action_ids.index(recommended_id)]
     baseline_action = actions[action_ids.index(baseline_id)]
-    nets = _consequence_table_nets(
-        admitted_utilitarian_consequence_table(consequence_table),
-        actions,
-    )
+    nets = _admitted_numeric_nets(consequence_table, actions)
     if nets is not None:
         return nets[recommended_action] > nets[baseline_action]
     return bool(_ev_prefers_recommended(
@@ -1126,6 +1208,30 @@ def _synthesis_admission_annotations(
     return list(dict.fromkeys(annotations))
 
 
+def _known_proposition_ids(
+    available_propositions: Sequence[dict[str, Any]] | None,
+    grounded_effects: Sequence[dict[str, Any]] | None = None,
+) -> set[str]:
+    """IDs a specialist may cite without failing semantic validation.
+
+    The prompt ledger is a projection of WORLD rows. Grounded effect IDs are
+    the same admitted facts. Citing PROP:WORLD:E0 for an admitted intervention
+    must not invalidate the candidate merely because the row is NEUTRAL.
+    """
+    ids = {
+        str(row.get("proposition_id", ""))
+        for row in (available_propositions or []) if isinstance(row, dict)
+        and str(row.get("proposition_id", ""))
+    }
+    for row in grounded_effects or []:
+        if not isinstance(row, dict):
+            continue
+        effect_id = str(row.get("effect_id", "")).strip()
+        if effect_id:
+            ids.add(f"PROP:WORLD:{effect_id}")
+    return ids
+
+
 def _candidate_from_data(
     specialist: str,
     actions: Sequence[str],
@@ -1150,11 +1256,9 @@ def _candidate_from_data(
     available_propositions: Sequence[dict[str, Any]] | None = None,
 ) -> CandidateChunk:
     action_ids = [f"A{index}" for index in range(len(actions))]
-    proposition_ids = {
-        str(row.get("proposition_id", ""))
-        for row in (available_propositions or []) if isinstance(row, dict)
-        and str(row.get("proposition_id", ""))
-    }
+    proposition_ids = _known_proposition_ids(
+        available_propositions, grounded_effects,
+    )
     supporting_proposition_ids = list(dict.fromkeys(
         str(value) for value in data.get("sps", []) if str(value) in proposition_ids
     )) if isinstance(data.get("sps", []), list) else []
@@ -1342,6 +1446,7 @@ def _candidate_from_data(
     utilitarian_ledger_proposal: dict[str, Any] = {}
     closed_world_leader: str | None = None
     closed_world_reversal_note = ""
+    utilitarian_settled_remainder: list[str] = []
     deontological_ledger_proposal: dict[str, Any] = {}
     care_ledger_proposal: dict[str, Any] = {}
     utilitarian_fields_present = specialist == "utilitarian" and any(
@@ -1394,7 +1499,6 @@ def _candidate_from_data(
                             "WORSENS": "HARM", "FOREGOES": "OPPORTUNITY_COST",
                         }.get(factual_direction, "UNKNOWN")
                         modality = str(effect.get("modality", "UNKNOWN")).upper()
-                        qualifier = str(effect.get("qualifier", "UNKNOWN")).strip()
                         expanded.append({
                             "effect_id": effect_id,
                             "outcome": str(effect.get("outcome", "")),
@@ -1402,7 +1506,7 @@ def _candidate_from_data(
                             "direction": accounting_direction,
                             "polarity": str(effect.get("polarity", "UNRESOLVED")).upper(),
                             "probability": "CERTAIN" if modality == "CERTAIN" else "UNKNOWN",
-                            "magnitude": qualifier if qualifier.upper() != "STATED" else "UNKNOWN",
+                            "magnitude": _closed_world_magnitude(effect),
                             "duration": "UNKNOWN", "reversibility": "UNKNOWN",
                             "support": "STATED",
                             "importance": importance,
@@ -1457,6 +1561,10 @@ def _candidate_from_data(
         closed_world_leader = closed_world_utilitarian_leader(
             actions, utilitarian_consequence_table,
         )
+        if closed_world_leader is not None:
+            utilitarian_settled_remainder = _admitted_numeric_remainder(
+                utilitarian_consequence_table, actions,
+            )
         if closed_world_leader is not None and utilitarian_depends_on_unknown:
             if _semantic_word_count(utilitarian_missing_comparison) >= 3:
                 closed_world_reversal_note = utilitarian_missing_comparison
@@ -2110,7 +2218,8 @@ def _candidate_from_data(
                     duty_errors.append(f"Deontological assessment for {action_id} has invalid authorization status")
                 if derivation not in {
                     "UNIVERSAL_LAW", "RECIPROCAL_EXTERNAL_FREEDOM", "RESPECT_PERSONS",
-                    "PERFECT_DUTY", "RIGHTFUL_PUBLIC_COERCION", "CONSENT", "UNRESOLVED",
+                    "PERFECT_DUTY", "RIGHTFUL_PUBLIC_COERCION", "CONSENT",
+                    "KANTIAN_ANALOGICAL", "UNRESOLVED",
                 }:
                     duty_errors.append(f"Deontological assessment for {action_id} has invalid derivation")
                 if resolution_status not in {"RESOLVED", "CONTESTED", "UNKNOWN"}:
@@ -2409,6 +2518,10 @@ def _candidate_from_data(
         closed_world_leader = closed_world_utilitarian_leader(
             actions, utilitarian_consequence_table, expected_values,
         ) or closed_world_leader
+        if closed_world_leader is not None:
+            utilitarian_settled_remainder = _admitted_numeric_remainder(
+                utilitarian_consequence_table, actions,
+            )
         if closed_world_leader is not None and utilitarian_depends_on_unknown:
             if (
                 not closed_world_reversal_note
@@ -3059,7 +3172,11 @@ def _candidate_from_data(
         selection_status = "PROVISIONAL"
         evidence_sufficient = False
         comparison_complete = False
-    if specialist == "utilitarian" and closed_world_leader is not None:
+    if (
+        specialist == "utilitarian"
+        and closed_world_leader is not None
+        and closed_world_leader in actions
+    ):
         scores = align_action_scores_to_leader(scores, closed_world_leader)
         id_scores = {
             action_id: scores[action]
@@ -3073,7 +3190,12 @@ def _candidate_from_data(
             min(1.0, ordered[0] - ordered[1] if len(ordered) > 1 else ordered[0]),
         )
         friction = preference_strength
-        comparison_complete = True
+        evidence_sufficient = True
+        comparison_complete = not utilitarian_has_settled_residual(
+            remainder=utilitarian_settled_remainder,
+            reversal_note=closed_world_reversal_note,
+            factual_threshold=factual_threshold,
+        )
         if (
             closed_world_reversal_note
             or factual_threshold.casefold() != "none"
@@ -3232,6 +3354,7 @@ def _candidate_from_data(
         utilitarian_consequence_table=utilitarian_consequence_table,
         utilitarian_decision_depends_on_unknown=utilitarian_depends_on_unknown,
         utilitarian_missing_comparison=utilitarian_missing_comparison,
+        utilitarian_incommensurable_remainder=utilitarian_settled_remainder,
         utilitarian_ledger_proposal=utilitarian_ledger_proposal,
         rawls_position_proposal=rawls_position_proposal,
         deontological_ledger_proposal=deontological_ledger_proposal,
@@ -4183,6 +4306,13 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                         if consequence is not None else "UNKNOWN"
                     ),
                     "qualifier": effect.magnitude_or_qualifier,
+                    "quantities": list(
+                        consequence.attributes.get("quantities", [])
+                        if consequence is not None else []
+                    ),
+                    "affected_subject_quantities": list(
+                        effect.affected_subject_quantities
+                    ),
                     "source_clause_id": effect.source_clause_id,
                     "consequence_id": effect.consequence_id,
                     "epistemic_status": effect.epistemic_status,
@@ -4690,7 +4820,8 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                         "type": "string", "enum": [
                             "UNIVERSAL_LAW", "RECIPROCAL_EXTERNAL_FREEDOM",
                             "RESPECT_PERSONS", "PERFECT_DUTY",
-                            "RIGHTFUL_PUBLIC_COERCION", "CONSENT", "UNRESOLVED",
+                            "RIGHTFUL_PUBLIC_COERCION", "CONSENT",
+                            "KANTIAN_ANALOGICAL", "UNRESOLVED",
                         ],
                     },
                     "res": {
@@ -5068,11 +5199,12 @@ RESPONSIVE_FEASIBILITY, or UNRESOLVED. Need alone does not establish entrustment
 urgency alone does not erase longer dependency, and population size does not establish
 relational priority. If dependency source, responsibility, feasibility, or the
 competing care claim remains unresolved, use res=CONTESTED or UNKNOWN and cb=UNRESOLVED
-with ss=PROVISIONAL and cc=false.
+with ss=PROVISIONAL. Keep cc=true when every live action has a Care row.
 When the frozen baseline is NORMATIVELY_CONTESTED, preserve its relational
 commitments rather than its provisional action: choose an interim r, but set
-ss=PROVISIONAL, cc=false, u=NORMATIVE_ADJUDICATION, and name in tf/nt what
-priority between the care commitments would settle the judgment.
+ss=PROVISIONAL, u=NORMATIVE_ADJUDICATION, and name in tf/nt what
+priority between the care commitments would settle the judgment. Keep cc=true
+when every live action was assessed.
 """
         elif self.name == "deontological":
             framework_example = (
@@ -5119,8 +5251,9 @@ states whether numerical magnitude is DECISIVE, SECONDARY, or IRRELEVANT; np mus
 connect any decisive quantity to the scope or category of a duty or rights
 violation, never merely to aggregate welfare. If the frozen baseline is
 NORMATIVELY_CONTESTED, preserve the conflicting duties rather than its provisional
-action: use ss=PROVISIONAL, cc=false, u=NORMATIVE_ADJUDICATION, and identify the
-non-consequential priority rule needed to settle the conflict in tf/nt.
+action: use ss=PROVISIONAL, u=NORMATIVE_ADJUDICATION, and identify the
+non-consequential priority rule needed to settle the conflict in tf/nt. Keep
+cc=true when fm/dp assessed every live action.
 dp is the typed duty ledger for every action. v must match the fm prefix. k and n
 identify the norm; rel states whether the action SATISFIES, is CONSISTENT with,
 VIOLATES, or CONFLICTS with that norm; b is the duty bearer; p is the protected
@@ -5168,7 +5301,17 @@ whether the action uses coercion; coa and cop name its current-scenario actor an
 coerced party, or NONE when ki=NONE. pj gives the public justification. rec tests
 whether the restriction is reciprocal, nec whether this coercive route is necessary,
 and auth records JUSTIFIED, UNJUSTIFIED, CONTESTED, UNKNOWN, or NOT_APPLICABLE.
-dv names the Kantian derivation actually used; res says whether the conflict is
+ki is restriction of a living agent's external freedom. A prior will about bodily
+remains after death is not ki=INTERPERSONAL: death removes the living agent whose
+freedom would be restricted, and Kant did not establish a perfect duty of
+antecedent autonomy. That case is a possible analogical extension of respect for
+persons and the prohibition on using humanity merely as a means. If the body's
+burden is an intermediate cause of another party's rescue, classify mr=
+INTENDED_AS_MEANS. Name the extra-textual step dv=KANTIAN_ANALOGICAL and keep
+res=CONTESTED; analogical derivation cannot make res=RESOLVED or settle dv=CONSENT.
+Direct Kantian wrongs such as false promising or falsification may still use
+UNIVERSAL_LAW or PERFECT_DUTY. dv names the Kantian derivation actually used; res
+says whether the conflict is
 RESOLVED, CONTESTED, or UNKNOWN. A priority slogan such as "justice outweighs liberty"
 is not a derivation. For state or institutional coercion, explain why the restriction
 can coexist with each person's external freedom under a universal public rule. When
@@ -5228,8 +5371,9 @@ These may be different constituencies in the same action. Never reuse the
 least-advantaged distributive group as the liberty subject unless the scenario
 also states that this group bears the liberty restriction or protection.
 If the frozen baseline is NORMATIVELY_CONTESTED, preserve the conflicting Rawlsian
-principles rather than its provisional action: use ss=PROVISIONAL, cc=false,
-u=NORMATIVE_ADJUDICATION, and identify the priority question in tf/nt.
+principles rather than its provisional action: use ss=PROVISIONAL,
+u=NORMATIVE_ADJUDICATION, and identify the priority question in tf/nt. Keep
+cc=true when fm/rp assessed every live action.
 rp is the proposed graph ledger. For each action, identify the subject or
 constituency actually affected, then identify the morally relevant comparative
 relation only when the scenario supports that relation. Do not equate “most
@@ -5289,7 +5433,7 @@ for the worst-off subject or constituency, you may use that as a provisional
 maximin fallback. Keep the action/subject comparison explicit, set rb=MAXIMIN_PRIMARY_GOODS
 when the comparison is about primary goods, or rb=ORIGINAL_POSITION_PUBLIC_RULE
 when the case is about a public rule rather than a distributive burden, and keep
-ss=PROVISIONAL with cc=false and esa=false. That fallback is still schema-compliant
+ss=PROVISIONAL with cc=true and esa=false. That fallback is still schema-compliant
 because it stays within the subject, effect, and principle_basis fields; it is not
 a new action or an invented group.
 """
@@ -5313,8 +5457,9 @@ nr states whether numerical magnitude is DECISIVE, SECONDARY, or IRRELEVANT; np
 must explain how the stakes inform phronesis rather than substituting a numerical
 maximization rule for character. If the frozen baseline is NORMATIVELY_CONTESTED,
 preserve the conflicting virtues rather than its provisional action: use
-ss=PROVISIONAL, cc=false, u=NORMATIVE_ADJUDICATION, and identify the practical-
-wisdom comparison needed to settle the conflict in tf/nt.
+ss=PROVISIONAL, u=NORMATIVE_ADJUDICATION, and identify the practical-
+wisdom comparison needed to settle the conflict in tf/nt. Keep cc=true when
+vl assessed every live action.
 vl is the proposed character ledger for every action. v must match the fm prefix;
 r names the actor's role; vs names the virtues expressed; x names the vice or
 excess risk; c names the circumstance that phronesis must interpret; g distinguishes
@@ -5322,7 +5467,7 @@ scenario/action grounding from framework interpretation; rs gives the shortest
 integrated judgment. vb names the governing mode: PRACTICAL_WISDOM, ROLE_FIDELITY,
 FLOURISHING, EXEMPLAR_REASONING, or UNRESOLVED. If independent virtues favor
 different actions without a practical-wisdom resolution, use vb=UNRESOLVED,
-ss=PROVISIONAL, and cc=false rather than converting the conflict into aggregate
+ss=PROVISIONAL, and keep cc=true rather than converting the conflict into aggregate
 welfare. In later cycles, changing vb, role, or verdict requires j to identify new
 framework-relevant information. When Previous graph-committed framework state is
 nonempty and no such information exists, copy its ranking basis, action verdicts,
@@ -5359,15 +5504,21 @@ actual harm or benefit already listed for that action and party; do not add it
 back or the welfare sum double-counts the same mutually exclusive outcome.
 cd=true exactly when the ranking among ADMITTED / WORLD_ESTABLISHED effects is
 unresolved; then cm must name that admitted comparison, use ss=PROVISIONAL,
-cc=false, and esa=false. A HYPOTHESIS or unverified downstream effect is not an
-unresolved admitted comparison: keep scores and r on the admitted ranking, keep
-cd=false and cc=true, put the extra claim in ft as a reversal boundary, and lower
-z as open-world confidence. Do not add hypothetical consequences to ct. Do not
-convert an admitted non-mortality outcome into deaths or another metric the world
-did not admit, and do not mint a numeric probability or magnitude absent from the
-world and scenario. Those claims may appear only as ft reversal boundaries; they
-cannot be why one action uniquely outranks the other. If admitted effects lack a
-shared numeric magnitude, rank only on admitted polarity and modality, or set
+cc=false, and esa=false. Admitted CERTAIN welfare that already shares a numeric
+unit may uniquely lean: copy the world's count (including a party quantity such
+as five) and keep r on that settled comparison. Process or parent rows must not
+be added back into the sum. Leftover admitted benefits or harms that share no
+number stay named leftovers; they attenuate the vote (cc=false, esa=true) but
+must not erase the settled lean or set cd=true. A HYPOTHESIS or unverified
+downstream effect is not an unresolved admitted comparison: keep scores and r on
+the admitted ranking, keep cd=false and esa=true, set cc=false, put the extra
+claim in ft as a reversal boundary, and lower z as open-world confidence. Do not
+add hypothetical consequences to ct. Do not convert an admitted non-mortality
+outcome into deaths or another metric the world did not admit, and do not mint a
+numeric probability or magnitude absent from the world and scenario. Those claims
+may appear only as ft reversal boundaries; they cannot cancel admitted CERTAIN
+saves or be why one action uniquely outranks the other. If admitted effects lack
+any shared numeric magnitude, rank only on admitted polarity and modality, or set
 cd=true.
 """
             else:
@@ -5387,15 +5538,19 @@ or UNKNOWN; m=magnitude; h=duration; rv=reversibility; g=STATED, INFERRED, or
 UNKNOWN support. Do not place assumptions in STATED rows and do not omit the losing
 action. cd=true exactly when the ranking among admitted / STATED consequences is
 unresolved; then cm must name that admitted comparison, use ss=PROVISIONAL,
-cc=false, and esa=false. A HYPOTHESIS does not make the current ranking unknown:
-keep scores and r on admitted consequences, keep cd=false and cc=true, and put the
-unverified downstream effect in ft as a reversal boundary, lowering z as open-world
-confidence. Do not convert an admitted non-mortality outcome into deaths or another
-metric the world did not admit, and do not mint a numeric probability or magnitude
-absent from the scenario. Those claims may appear only as ft reversal boundaries;
-they cannot uniquely decide the ranking. If admitted rows lack a shared numeric
-magnitude, rank only on admitted polarity and modality, or set cd=true. A compact
-table is more important than listing remote effects.
+cc=false, and esa=false. Admitted CERTAIN welfare that already shares a numeric
+unit may uniquely lean; leftover admitted rows that share no number attenuate
+the vote (cc=false, esa=true) but must not set cd=true or cancel that lean. A
+HYPOTHESIS does not make the current ranking unknown: keep scores and r on
+admitted consequences, keep cd=false and esa=true, set cc=false, and put the
+unverified downstream effect in ft as a reversal boundary, lowering z as
+open-world confidence. Do not convert an admitted non-mortality outcome into
+deaths or another metric the world did not admit, and do not mint a numeric
+probability or magnitude absent from the scenario. Those claims may appear only
+as ft reversal boundaries; they cannot cancel admitted CERTAIN saves or uniquely
+decide the ranking. If admitted rows lack any shared numeric magnitude, rank
+only on admitted polarity and modality, or set cd=true.
+A compact table is more important than listing remote effects.
 """
         proposition_example_fields = ""
         if available_proposition_ids:
@@ -5500,7 +5655,12 @@ in x; Python assigns its hypothesis ID and prevents it from gaining authority th
 recurrence. CLOSED-WORLD vs HYPOTHESIS: scores, r, and cc must reflect admitted /
 WORLD_ESTABLISHED consequences only. beneficiaries and harmed are those obtaining
 roles. at_risk and conditionally_benefited are reversal boundaries, not obtaining
-outcomes; they must not change closed-world action scores or set cd=true. A HYPOTHESIS may create a reversal boundary in
+outcomes; they must not change closed-world action scores or set cd=true.
+COMPARISON COMPLETENESS: cc=true when every live action was assessed on admitted
+facts, even if the priority rule remains contested. Residual normative ranking
+belongs in u=NORMATIVE_ADJUDICATION, foq, and nt. Use cc=false only when an
+action was not assessed or an admitted comparison needed to rank remains unknown
+(utilitarian cd=true). A HYPOTHESIS may create a reversal boundary in
 ft, create an investigative question, and lower z as open-world confidence. It may
 not change closed-world action scores or set cd=true unless it is admitted or
 verified. If a decision-critical proposition is HYPOTHETICAL, keep the admitted
@@ -5754,7 +5914,10 @@ range, population size, or claim that the hidden harm cannot approach a threshol
                 raise SpecialistEvaluationStageError(
                     "RECURRENT_FRAMEWORK_STATE_CHANGE_AUDIT", error,
                 ) from error
-            self.previous_recommendation_id = action_ids[actions.index(candidate.recommended_action)]
+            if candidate.recommended_action in actions:
+                self.previous_recommendation_id = action_ids[
+                    actions.index(candidate.recommended_action)
+                ]
             self.previous_confidence = candidate.reported_preference_strength
             self.previous_context = self._context_class(broadcast)
             self.assumption_status = candidate.assumption_status
@@ -5828,6 +5991,8 @@ c must be one of: {', '.join(allowed_constraints)}. No prose.
                     self.baseline_condition,
                     scenario,
                     self.baseline_preferred_extension,
+                    grounded_effect_context,
+                    self.proposition_ledger,
                 )
                 try:
                     self._audit_framework_state_change(candidate, broadcast)
@@ -5835,7 +6000,10 @@ c must be one of: {', '.join(allowed_constraints)}. No prose.
                     raise SpecialistEvaluationStageError(
                         "RECURRENT_FRAMEWORK_STATE_CHANGE_AUDIT", error,
                     ) from error
-                self.previous_recommendation_id = action_ids[actions.index(candidate.recommended_action)]
+                if candidate.recommended_action in actions:
+                    self.previous_recommendation_id = action_ids[
+                        actions.index(candidate.recommended_action)
+                    ]
                 self.previous_confidence = candidate.reported_preference_strength
                 self.previous_context = self._context_class(broadcast)
                 self.assumption_status = candidate.assumption_status
@@ -7083,6 +7251,10 @@ def ground_actions_in_scenario(
     actions: Sequence[str],
     max_tokens: int = 160,
     max_attempts: int = 3,
+    prior_errors: Sequence[str] | None = None,
+    prior_issues: Sequence[dict[str, Any]] | None = None,
+    prior_candidate: Any | None = None,
+    call_kind_primary: str = "world_grounding_primary",
 ) -> dict[str, Any]:
     """Map every canonical action to explicit scenario clauses for graph provenance.
 
@@ -7263,7 +7435,10 @@ effect's cited sources. Use DIRECT_COPY only when the proposition states the ato
 outcome without relying on another effect; then source_effect_ids is empty. Use
 SOURCE_STIPULATED_CAUSAL for a source-stated downstream consequence, list its
 same-action immediate causal parents in source_effect_ids, and explain the
-source-stated inference in derivation_explanation. STRUCTURAL_ABSTRACTION is only
+source-stated inference in derivation_explanation. An independent background
+chance event is DIRECT_COPY or SOURCE_STIPULATED_CAUSAL with empty
+source_effect_ids and no inbound causal parent; do not invent a parent to
+satisfy derivation binding. STRUCTURAL_ABSTRACTION is only
 for a NEUTRAL non-welfare intermediate needed to preserve the source's causal
 topology; it must retain a lexical anchor from the quoted proposition and list its
 same-action immediate parent. Use COUNTERFACTUAL_PROJECTION
@@ -7378,9 +7553,10 @@ INSTITUTIONAL_OUTCOME through that action-mediated process. Do not leave the
 intervention and the mediated process as disconnected siblings. FOREGONE effects use
 directness FOREGONE, polarity FOREGONE, and effect_kind OPPORTUNITY_LOSS.
 Copy only the longest source quantity span: "over five hundred", "as many as three hundred",
-or "at most three hundred", not also "five" or "three hundred". Each effect needs a non-empty outcome and a non-empty
-predicate such as IS, SURVIVES, PERFORMS, SUBJECT_TO, STATE_CHANGE, or
-EXPERIENCES. Do not use a field named relation on effects. Causal links use
+or "at most three hundred", not also "five" or "three hundred". Each effect needs a non-empty outcome that states the source verb
+(left default, chokes, spared, inundated), and a non-empty type tag
+predicate such as STATE_CHANGE, SURVIVES, PERFORMS, SUBJECT_TO, or
+EXPERIENCES. Do not put IS in the outcome; IS is not a source fact. Do not use a field named relation on effects. Causal links use
 link_relation ENABLES, CAUSES, ACCELERATES, PREVENTS, or DOES_NOT_INCREASE.
 PREVENTS is not for two
 obtaining actual effects that share BENEFICIAL or ADVERSE polarity; those stages
@@ -7415,6 +7591,23 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
     repair_note = ""
     result: dict[str, Any] = {}
     rejected_candidate: Any = None
+    seeded_errors = [str(item) for item in (prior_errors or []) if str(item).strip()]
+    seeded_issues = [dict(item) for item in (prior_issues or []) if isinstance(item, dict)]
+    if seeded_errors:
+        rejected_candidate = prior_candidate
+        repair_note = (
+            "\n\nA previous generator was rejected by deterministic validation for: "
+            + "; ".join(seeded_errors)
+            + "\nTyped validation issues:\n"
+            + json.dumps(seeded_issues, ensure_ascii=False, sort_keys=True)
+            + "\nDo not repeat those errors."
+        )
+        if prior_candidate is not None:
+            repair_note += (
+                "\nRepair the rejected candidate below. Preserve every field not "
+                "implicated by those validation errors.\nRejected candidate JSON:\n"
+                + json.dumps(prior_candidate, ensure_ascii=False, sort_keys=True)
+            )
     for attempt in range(1, max(1, max_attempts) + 1):
         repair_delta: dict[str, Any] = {}
         try:
@@ -7426,7 +7619,7 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                 llm, call_prompt, max_tokens=max(6144, max_tokens),
                 temperature=0.0, schema=schema,
                 call_kind=(
-                    "world_grounding_primary"
+                    call_kind_primary
                     if attempt == 1 else "world_grounding_repair"
                 ),
                 call_metadata={"attempt": attempt},
@@ -7436,10 +7629,13 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                 if isinstance(output, dict) else str(output)
             )
             candidate = _extract_json(raw)
-            previous_errors = list(attempts[-1]["errors"]) if attempts else []
-            previous_issues = list(
-                attempts[-1].get("validation_issues") or []
-            ) if attempts else []
+            previous_errors = (
+                list(attempts[-1]["errors"]) if attempts else list(seeded_errors)
+            )
+            previous_issues = (
+                list(attempts[-1].get("validation_issues") or [])
+                if attempts else list(seeded_issues)
+            )
             repair_delta: dict[str, Any] = {}
             if rejected_candidate is not None:
                 candidate = _preserve_stable_world_bookkeeping(

@@ -12,6 +12,12 @@ from .structured_io import ModelCallUnavailable
 from .performance import record_performance_event
 
 
+def uses_hidden_reasoning(model: str) -> bool:
+    """Chat Completions models that reject temperature and use a reasoning budget."""
+    name = str(model or "").casefold()
+    return name.startswith(("o1", "o3", "o4", "gpt-5"))
+
+
 class OpenAIWorkspaceLLM:
     """Expose an OpenAI chat model through the small callable API used by delegates."""
 
@@ -175,8 +181,8 @@ class OpenAIWorkspaceLLM:
                 },
             },
         }
-        # Reasoning models such as o3 do not accept arbitrary temperatures.
-        if self.model.lower().startswith(("o1", "o3", "o4")):
+        # Reasoning models such as o3 and GPT-5.6 Sol do not accept arbitrary temperatures.
+        if uses_hidden_reasoning(self.model):
             # Structured synthesis needs room for hidden reasoning before the
             # schema-constrained answer. A tiny llama.cpp output budget is not
             # a suitable total budget for a reasoning model.
@@ -233,7 +239,7 @@ class OpenAIWorkspaceLLM:
                 0.1, float(kwargs.get("timeout", self.timeout))
             ),
         }
-        if self.model.lower().startswith(("o1", "o3", "o4")):
+        if uses_hidden_reasoning(self.model):
             # This limit includes invisible reasoning tokens. The legacy agents'
             # 180-token llama.cpp allowance otherwise leaves o3 no room to answer.
             request["max_completion_tokens"] = max(2048, requested_tokens)

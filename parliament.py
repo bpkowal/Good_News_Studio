@@ -59,6 +59,24 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         help="Halt after the admitted world is printed; do not run expert agents",
     )
     parser.add_argument(
+        "--escalate-world-model",
+        action="store_true",
+        help=(
+            "If o3 world grounding does not COMMIT, retry once with "
+            "GPT-5.6 Sol without prompting"
+        ),
+    )
+    parser.add_argument(
+        "--no-world-escalation",
+        action="store_true",
+        help="Never offer or run a stronger-model world-grounding retry",
+    )
+    parser.add_argument(
+        "--world-escalation-model",
+        default="gpt-5.6-sol",
+        help="Model used for one world-grounding retry after o3 fails",
+    )
+    parser.add_argument(
         "--skip-original-agents",
         action="store_true",
         help="Skip the original-agent consult (diagnostic)",
@@ -285,6 +303,14 @@ def workspace_command(args: argparse.Namespace, scenario_path: Path) -> list[str
         command.append("--accept-world")
     if args.stop_after_world:
         command.append("--stop-after-world")
+    if getattr(args, "escalate_world_model", False):
+        command.append("--escalate-world-model")
+    if getattr(args, "no_world_escalation", False):
+        command.append("--no-world-escalation")
+    command.extend([
+        "--world-escalation-model",
+        str(getattr(args, "world_escalation_model", None) or "gpt-5.6-sol"),
+    ])
     if args.skip_original_agents:
         command.append("--skip-original-agents")
     # Default is off: MiniLM consult is opt-in per run.

@@ -29,6 +29,16 @@ OMISSION_PERFECT_NEGATIVE_VIOLATION = "OMISSION_PERFECT_NEGATIVE_VIOLATION"
 PERFECT_POSITIVE_LACKS_BASIS = "PERFECT_POSITIVE_LACKS_BASIS"
 INTENDED_AS_MEANS_LACKS_PATH = "INTENDED_AS_MEANS_LACKS_PATH"
 HARM_RELATION_GRAPH_MISALIGN = "HARM_RELATION_GRAPH_MISALIGN"
+POSTHUMOUS_NOT_COERCION = (
+    "posthumous directive is not a coercive restriction of a living agent's "
+    "external freedom"
+)
+ANTECEDENT_AUTONOMY_NOT_SETTLED = (
+    "antecedent autonomy is not a settled Kantian derivation"
+)
+KANTIAN_ANALOGICAL_CANNOT_SETTLE = (
+    "Kantian analogical derivation cannot settle a resolved duty"
+)
 _OMISSION_HARM_RELATIONS = {"ALLOWING_HARM", "WITHHOLDING_BENEFIT"}
 _DOING_HARM_LACKS_AGENT_CAUSE = (
     "doing-harm classification lacks an agent-caused settled welfare harm "
@@ -135,7 +145,8 @@ class DutyAssessmentProposal(BaseModel):
     ] = "UNKNOWN"
     derivation: Literal[
         "UNIVERSAL_LAW", "RECIPROCAL_EXTERNAL_FREEDOM", "RESPECT_PERSONS",
-        "PERFECT_DUTY", "RIGHTFUL_PUBLIC_COERCION", "CONSENT", "UNRESOLVED",
+        "PERFECT_DUTY", "RIGHTFUL_PUBLIC_COERCION", "CONSENT",
+        "KANTIAN_ANALOGICAL", "UNRESOLVED",
     ] = "UNRESOLVED"
     resolution_status: Literal["RESOLVED", "CONTESTED", "UNKNOWN"] = "UNKNOWN"
     evidence_basis: Literal["ACTION_GRAPH", "SCENARIO", "FRAMEWORK_ONLY", "UNKNOWN"]
@@ -586,6 +597,9 @@ _COERCION_MECHANISM = re.compile(
     r"\b(?:abolish|ban|compel|compulsor\w*|detain|forbid|force|illegal|mandat\w*|"
     r"monopol\w*|prohibit|require|restrict|seize|without consent)\b", re.I,
 )
+_POSTHUMOUS_PARTY = re.compile(
+    r"\b(?:deceased|corpse|cadaver|remains|posthumous)\b", re.I,
+)
 _NECESSITY_GROUND = re.compile(
     r"\b(?:only means|only way|no less restrictive|no other means|cannot otherwise|"
     r"necessary condition|strictly necessary|without any alternative)\b", re.I,
@@ -619,6 +633,10 @@ def _graph_supporting_nodes(graph: SemanticGraph, pattern: re.Pattern[str]) -> l
 
 def _party_named(explanation: str, party: str) -> bool:
     return bool(_words(explanation) & _words(party))
+
+
+def _party_is_posthumous(text: str) -> bool:
+    return bool(_POSTHUMOUS_PARTY.search(text))
 
 
 def _coercion_path_support(
@@ -751,25 +769,40 @@ def calibrate_deontological_adjudication(
             )
         if omission_classified_as_perfect_negative_violation(item):
             errors.append(_OMISSION_VIOLATION_MESSAGE)
-        if item.means_relation == "INTENDED_AS_MEANS":
-            means_supported, means_support = _means_path_support(graph, action, item)
-            support.extend(means_support)
-            if not means_supported:
-                errors.append(
-                    "intended-as-means classification lacks an in-action causal path"
-                )
         if _MERELY_AS_MEANS_CLAIM.search(
             " ".join((item.norm, item.competing_norm, item.priority_rule, item.reason))
         ) and item.means_relation != "INTENDED_AS_MEANS":
             errors.append("merely-as-means conclusion lacks intended-as-means classification")
 
-    if item.coercion_kind != "NONE":
-        path_supported, path_support = _coercion_path_support(graph, action, item)
-        support.extend(path_support)
-        if not path_supported:
+    if item.means_relation == "INTENDED_AS_MEANS":
+        means_supported, means_support = _means_path_support(graph, action, item)
+        support.extend(means_support)
+        if not means_supported:
             errors.append(
-                "coercion claim lacks actor-to-mechanism-to-restriction-to-party grounding"
+                "intended-as-means classification lacks an in-action causal path"
             )
+
+    if item.derivation == "KANTIAN_ANALOGICAL" and item.resolution_status == "RESOLVED":
+        errors.append(KANTIAN_ANALOGICAL_CANNOT_SETTLE)
+    if (
+        item.resolution_status == "RESOLVED"
+        and _party_is_posthumous(item.protected_party)
+        and (item.derivation == "CONSENT" or item.priority_basis == "AUTONOMY")
+    ):
+        errors.append(ANTECEDENT_AUTONOMY_NOT_SETTLED)
+        updates["derivation"] = "KANTIAN_ANALOGICAL"
+
+    if item.coercion_kind != "NONE":
+        if _party_is_posthumous(item.coerced_party):
+            path_supported, path_support = False, []
+            errors.append(POSTHUMOUS_NOT_COERCION)
+        else:
+            path_supported, path_support = _coercion_path_support(graph, action, item)
+            support.extend(path_support)
+            if not path_supported:
+                errors.append(
+                    "coercion claim lacks actor-to-mechanism-to-restriction-to-party grounding"
+                )
 
         necessity_support = _graph_supporting_nodes(graph, _NECESSITY_GROUND)
         if item.necessity_status == "NECESSARY" and not necessity_support:

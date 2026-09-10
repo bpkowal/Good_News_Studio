@@ -109,6 +109,28 @@ class ParliamentLauncherTests(unittest.TestCase):
         command = parliament.workspace_command(args, Path("scenario.json"))
         self.assertIn("--accept-world", command)
 
+    def test_workspace_command_forwards_world_escalation_flags(self):
+        args = parliament.parse_args([
+            "--mode", "workspace",
+            "--question", "A sufficiently long ethical question",
+            "--escalate-world-model",
+            "--world-escalation-model", "gpt-5.6-sol",
+        ])
+        command = parliament.workspace_command(args, Path("scenario.json"))
+        self.assertIn("--escalate-world-model", command)
+        self.assertEqual(
+            command[command.index("--world-escalation-model") + 1],
+            "gpt-5.6-sol",
+        )
+        args = parliament.parse_args([
+            "--mode", "workspace",
+            "--question", "A sufficiently long ethical question",
+            "--no-world-escalation",
+        ])
+        command = parliament.workspace_command(args, Path("scenario.json"))
+        self.assertIn("--no-world-escalation", command)
+        self.assertNotIn("--escalate-world-model", command)
+
     def test_agent_aliases_are_normalized_in_canonical_order(self):
         self.assertEqual(
             parliament.normalize_agents(["Rawls", "deon"]),
@@ -466,6 +488,121 @@ class ParliamentLauncherTests(unittest.TestCase):
             stop_after_world=True,
             output_fn=lambda _message: None,
         ))
+
+    def test_world_escalation_is_offered_only_after_live_openai_failure(self):
+        rejected = {"status": "REJECTED", "errors": ["missing unique clause"]}
+        openai_live = dict(backend="openai", current_model="o3", reused=False)
+        self.assertTrue(global_workspace_pipeline.should_offer_world_escalation(
+            rejected, **openai_live,
+        ))
+        self.assertFalse(global_workspace_pipeline.should_offer_world_escalation(
+            {"status": "COMMITTED"}, **openai_live,
+        ))
+        self.assertFalse(global_workspace_pipeline.should_offer_world_escalation(
+            rejected, backend="openai", current_model="o3", reused=True,
+        ))
+        self.assertFalse(global_workspace_pipeline.should_offer_world_escalation(
+            rejected, backend="local", current_model="o3", reused=False,
+        ))
+        self.assertFalse(global_workspace_pipeline.should_offer_world_escalation(
+            rejected, backend="openai", current_model="gpt-5.6-sol", reused=False,
+        ))
+        self.assertFalse(global_workspace_pipeline.should_offer_world_escalation(
+            rejected, backend="openai", current_model="gpt-5.6", reused=False,
+        ))
+        self.assertFalse(global_workspace_pipeline.should_offer_world_escalation(
+            rejected, **openai_live, no_world_escalation=True,
+        ))
+        self.assertFalse(global_workspace_pipeline.should_offer_world_escalation(
+            {"status": "UNAVAILABLE", "errors": ["scenario has no source clauses"]},
+            **openai_live,
+        ))
+
+    @patch("global_workspace_pipeline.sys.stdin.isatty", return_value=True)
+    def test_world_escalation_asks_before_a_sol_retry(self, _isatty):
+        grounding = {"status": "REJECTED", "errors": ["missing unique clause"]}
+        captured: list[str] = []
+        self.assertTrue(global_workspace_pipeline.confirm_world_model_escalation(
+            grounding,
+            from_model="o3",
+            input_fn=lambda _: "y",
+            output_fn=captured.append,
+        ))
+        self.assertTrue(any("missing unique clause" in line for line in captured))
+        self.assertTrue(any("GPT-5.6 Sol" in line for line in captured))
+        captured.clear()
+        self.assertFalse(global_workspace_pipeline.confirm_world_model_escalation(
+            grounding,
+            from_model="o3",
+            input_fn=lambda _: "n",
+            output_fn=captured.append,
+        ))
+        self.assertTrue(any("Skipping" in line for line in captured))
+
+    @patch("global_workspace_pipeline.sys.stdin.isatty", return_value=False)
+    def test_noninteractive_world_escalation_requires_flag(self, _isatty):
+        grounding = {"status": "REJECTED", "errors": ["missing unique clause"]}
+        captured: list[str] = []
+        self.assertFalse(global_workspace_pipeline.confirm_world_model_escalation(
+            grounding,
+            from_model="o3",
+            output_fn=captured.append,
+        ))
+        self.assertTrue(any("--escalate-world-model" in line for line in captured))
+        captured.clear()
+        self.assertTrue(global_workspace_pipeline.confirm_world_model_escalation(
+            grounding,
+            from_model="o3",
+            escalate_world_model=True,
+            output_fn=captured.append,
+        ))
+        self.assertTrue(any("Retrying once" in line for line in captured))
+
+    def test_world_escalation_keeps_primary_attempts(self):
+        merged = global_workspace_pipeline.attach_world_escalation(
+            {
+                "status": "REJECTED",
+                "attempts": [{"attempt": 1, "errors": ["primary failed"]}],
+            },
+            {
+                "status": "COMMITTED",
+                "attempts": [{"attempt": 1, "errors": []}],
+                "world_model": {"schema_version": "1.3"},
+            },
+            from_model="o3",
+            to_model="gpt-5.6-sol",
+        )
+        self.assertEqual(merged["status"], "COMMITTED")
+        self.assertEqual(len(merged["attempts"]), 2)
+        self.assertEqual(merged["escalation"]["from_model"], "o3")
+        self.assertEqual(merged["escalation"]["to_model"], "gpt-5.6-sol")
+        self.assertEqual(merged["escalation"]["attempts"], 1)
+
+    def test_quota_failure_continues_to_compact_specialists(self):
+        captured: list[str] = []
+        testimonies, errors = global_workspace_pipeline.original_testimonies_or_continue(
+            {},
+            {
+                "utilitarian": "OpenAI quota prevented the model call",
+                "deontological": "canceled after terminal provider failure",
+            },
+            ["utilitarian", "deontological", "virtue"],
+            output_fn=captured.append,
+        )
+        self.assertEqual(testimonies, {})
+        self.assertEqual(errors["utilitarian"], "OpenAI quota prevented the model call")
+        self.assertEqual(errors["virtue"], "no original testimony")
+        self.assertTrue(any("compact specialists only" in line for line in captured))
+
+    def test_two_original_testimonies_are_kept(self):
+        testimonies, errors = global_workspace_pipeline.original_testimonies_or_continue(
+            {"utilitarian": "prefer A0", "care": "prefer A1"},
+            {},
+            ["utilitarian", "care", "virtue"],
+            output_fn=lambda _message: None,
+        )
+        self.assertEqual(testimonies, {"utilitarian": "prefer A0", "care": "prefer A1"})
+        self.assertEqual(errors["virtue"], "no original testimony")
 
     def test_rejected_world_exits_zero_on_tty(self):
         record = SimpleNamespace(

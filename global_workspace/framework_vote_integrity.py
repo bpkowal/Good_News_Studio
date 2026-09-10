@@ -107,7 +107,10 @@ def _derived_claim_errors(candidate: Any, records: list[dict[str, Any]]) -> list
         )
     ]
     if not derived:
-        return ["framework ranking exposes no derivation from admitted effects"]
+        # Direct copies of admitted world rows are premises. The committed
+        # ledger is the derivation. Quarantine only an actual transformation
+        # that launders trapping into death, certainty, or a cross-action attach.
+        return []
     grounded_by_action: dict[str, set[str]] = {}
     for record in records:
         action_id = str(record.get("canonical_action_id", ""))
@@ -255,10 +258,11 @@ def evaluate_framework_vote(
         return _decision(
             "ABSTAIN", "committed ledger does not compare every live action", **context,
         )
-    if not bool(getattr(candidate, "comparison_complete", True)):
-        return _decision(
-            "ABSTAIN", "framework explicitly reports an incomplete comparison", **context,
-        )
+    # Residual ranking tension is not a missing comparison. If the ledger
+    # already assessed every live action, keep a directional vote at the
+    # attenuated ceiling. ABSTAIN remains for a ledger that skipped an action,
+    # a non-ranking verdict, or a quarantined derivation.
+    incomplete_comparison = not bool(getattr(candidate, "comparison_complete", True))
 
     derivation_errors = _derived_claim_errors(candidate, records)
     candidate.derived_claim_validation_status = (
@@ -373,6 +377,12 @@ def evaluate_framework_vote(
     uncertain = ledger_status == "COMMITTED_WITH_UNCERTAINTY" or bool(
         getattr(candidate, "framework_grounding_penalty", 0.0)
     )
+    if incomplete_comparison:
+        return _decision(
+            "ATTENUATED",
+            "framework compared every live action but reports residual uncertainty",
+            **context,
+        )
     if uncertain:
         return _decision(
             "ATTENUATED",

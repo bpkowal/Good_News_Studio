@@ -153,7 +153,8 @@ class ClosedWorldHypothesisTests(unittest.TestCase):
                 chunk.action_scores[case.actions[1]],
             )
             self.assertFalse(chunk.utilitarian_decision_depends_on_unknown)
-            self.assertTrue(chunk.comparison_complete)
+            self.assertFalse(chunk.comparison_complete)
+            self.assertTrue(chunk.evidence_sufficient_for_action)
             profile = apply_specialist_authority(chunk)
             self.assertEqual(profile.adjudication_status, "SUPPORTS")
         else:

@@ -1442,6 +1442,38 @@ def _add_unique_edge(graph: SemanticGraph, edge: SemanticEdge) -> None:
     graph.add_edge(edge)
 
 
+def _attach_world_source_excerpt(
+    graph: SemanticGraph,
+    action_id: str,
+    ref: Any,
+    provenance: tuple[str, ...],
+) -> str:
+    """Expose typed SourceRef excerpts as GROUNDED_IN evidence.
+
+    Coercion calibration reads those labels. A harvest effect that only says
+    "organs harvested" still has to see the cited refusal/directive excerpt.
+    """
+    excerpt = " ".join(str(getattr(ref, "excerpt", "") or "").split())
+    clause_id = str(getattr(ref, "clause_id", "") or "").strip()
+    if not excerpt or not clause_id:
+        return ""
+    source_id = f"ACTION_SOURCE:{action_id}:{clause_id}"
+    if source_id not in graph.nodes:
+        graph.add_node(SemanticNode(
+            source_id, "EVIDENCE", excerpt, provenance,
+            {
+                "clause_id": clause_id,
+                "grounding_status": "MODEL_MAPPED_VALIDATED",
+                "evidence_role": "SCENARIO_ASSERTION",
+                "world_state_typed": True,
+            },
+        ))
+    _add_unique_edge(graph, SemanticEdge(
+        action_id, "GROUNDED_IN", source_id, provenance=provenance,
+    ))
+    return source_id
+
+
 def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
     """Compile an admitted typed world model without re-reading source prose.
 
@@ -1470,6 +1502,8 @@ def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
             action.action_id, "HAS_INTERVENTION", intervention_id,
             provenance=provenance,
         ))
+        for ref in action.provenance:
+            _attach_world_source_excerpt(graph, action.action_id, ref, provenance)
         actor = party_by_id.get(action.actor_party_id)
         if actor is not None:
             actor_id = f"PARTY:{actor.party_id}"
@@ -1581,7 +1615,9 @@ def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
                     provenance=provenance,
                 ))
         for ref in effect.provenance:
-            evidence_id = f"ACTION_SOURCE:{effect.action_id}:{ref.clause_id}"
+            evidence_id = _attach_world_source_excerpt(
+                graph, effect.action_id, ref, provenance,
+            ) or f"ACTION_SOURCE:{effect.action_id}:{ref.clause_id}"
             if evidence_id in graph.nodes:
                 _add_unique_edge(graph, SemanticEdge(
                     consequence_id, "SUPPORTED_BY", evidence_id,

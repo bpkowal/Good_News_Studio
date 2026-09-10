@@ -910,8 +910,15 @@ def _candidate_epistemic_qualification(
             rendered.append(f"{status}: {claim}")
     if not rendered:
         return ""
+    # A settled util lean with residual hypothesis still stands as a lean.
+    # comparison_complete=false only attenuates; it does not erase the ranking.
+    admitted_stands = bool(candidate.get("comparison_complete", True)) or (
+        str(candidate.get("specialist", "")).casefold() == "utilitarian"
+        and not bool(candidate.get("utilitarian_decision_depends_on_unknown", False))
+        and bool(candidate.get("evidence_sufficient_for_action", True))
+    )
     prefix = "Reversal boundary" if (
-        critical and candidate.get("comparison_complete", True)
+        critical and admitted_stands
     ) else ("Conditional on" if critical else "Uses an unestablished premise")
     if compact:
         qualification = f"{prefix} [{'; '.join(rendered)}]"
@@ -919,7 +926,7 @@ def _candidate_epistemic_qualification(
             qualification += "; other premise coverage unverified"
         return qualification
     noun = "proposition" if len(rendered) == 1 else "propositions"
-    if critical and candidate.get("comparison_complete", True):
+    if critical and admitted_stands:
         verb = "exceeds" if len(rendered) == 1 else "exceed"
         qualification = (
             f"Admitted ranking stands. Reversal boundary if the unestablished "
@@ -967,6 +974,29 @@ def _row_is_stipulated_world_fact(row: dict[str, Any]) -> bool:
     return bool(str(row.get("claim") or "").strip())
 
 
+_PRIMARY_FACT_KINDS = frozenset({"HEALTH_OUTCOME", "WELFARE_OUTCOME"})
+
+
+def _row_is_primary_world_fact(row: dict[str, Any]) -> bool:
+    """Obtained harm, or a people-welfare benefit, not an intermediate process."""
+    polarity = str(row.get("polarity") or "").upper()
+    kind = str(row.get("effect_kind") or "").upper()
+    if polarity == "ADVERSE":
+        return True
+    return polarity == "BENEFICIAL" and kind in _PRIMARY_FACT_KINDS
+
+
+def _order_factual_status_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Keep every obtained welfare/harm visible before filler process rows.
+
+    A fixed six-row window that kept A0 spare and A1 plant-protect, and dropped
+    A1's certain farm submergence, is an incomplete listing.
+    """
+    primary = [row for row in rows if _row_is_primary_world_fact(row)]
+    secondary = [row for row in rows if not _row_is_primary_world_fact(row)]
+    return [*primary, *secondary]
+
+
 def _prefer_protective_relations(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     protects = [
         row for row in rows
@@ -991,18 +1021,18 @@ def _factual_status_lines(
     data: dict[str, Any], candidates: list[dict[str, Any]],
 ) -> list[str]:
     ledger = _proposition_index(data)
-    established = _prefer_protective_relations([
+    established = _order_factual_status_rows(_prefer_protective_relations([
         row for row in ledger.values()
         if _row_is_settled_world_fact(row)
-    ])
-    stipulated = [
+    ]))
+    stipulated = _order_factual_status_rows([
         row for row in ledger.values()
         if _row_is_stipulated_world_fact(row)
         and not re.search(
             r":(?:TEMPORAL|SCOPE|LIKELIHOOD|OVERALL_LIKELIHOOD):",
             str(row.get("proposition_id") or ""),
         )
-    ]
+    ])
     dependents: dict[str, set[str]] = {}
     relevant_ids: list[str] = []
     for candidate in candidates:
@@ -1025,7 +1055,7 @@ def _factual_status_lines(
     lines = ["## Factual Status", ""]
     if established:
         lines.extend(["**Established or derived from the admitted world model:**", ""])
-        for row in established[:6]:
+        for row in established:
             status = str(row.get("epistemic_status") or "").lower()
             lines.append(f"- {_sentence(_public_claim(str(row.get('claim') or '')))} ({status})")
         lines.append("")
@@ -1034,7 +1064,7 @@ def _factual_status_lines(
             "**Stipulated in the admitted world (including alternative-action facts):**",
             "",
         ])
-        for row in stipulated[:6]:
+        for row in stipulated:
             status = str(row.get("epistemic_status") or "").lower()
             modality = str(row.get("modality") or "").replace("_", " ").lower()
             suffix = f"{status}"

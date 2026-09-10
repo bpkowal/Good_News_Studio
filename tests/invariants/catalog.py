@@ -111,12 +111,15 @@ INVARIANTS: tuple[Invariant, ...] = (
             "EpistemicHypothesisBindingTests.test_framework_derived_is_not_a_descriptive_hypothesis",
             "EpistemicHypothesisBindingTests.test_audit_reclassifies_normative_new_hypothesis",
             "PropositionIdentityTests.test_framework_derived_does_not_duplicate_world_facts",
+            "FrameworkVoteIntegrityTests.test_direct_copy_of_admitted_world_facts_is_not_a_missing_derivation",
         ),
         oracle_risk="independent",
         notes=(
             "Hypothesis case.is_framework_derived is the oracle. NORMATIVE "
             "templates use doing/allowing/duty/least-advantaged cues. EMPIRICAL "
-            "claims stay hypotheses and take the confidence cap."
+            "claims stay hypotheses and take the confidence cap. Direct copies "
+            "of admitted world rows (DIRECT_COPY / PROP:WORLD:*) are premises; "
+            "vote integrity must not treat them as a missing derivation."
         ),
     ),
     Invariant(
@@ -133,12 +136,18 @@ INVARIANTS: tuple[Invariant, ...] = (
             "EpistemicPropositionLedgerTests.test_decision_critical_hypothesis_does_not_unsettle_closed_world_ranking",
             "EpistemicPropositionLedgerTests.test_unverified_downstream_hypothesis_does_not_move_closed_world_scores",
             "UnadmittedMagnitudeRankingTests.test_admitted_numeric_nets_still_rank_despite_minted_hypothesis",
+            "UtilitarianSettledWelfareRankingTests.test_hypothesis_does_not_veto_admitted_five_life_comparison",
+            "UtilitarianSettledWelfareRankingTests.test_incommensurable_remainder_attenuates_without_erasing_the_five_saves",
         ),
         oracle_risk="independent",
         notes=(
             "Hypothesis case.should_restore is the oracle: NETS restores the "
             "admitted unique ranking; OPEN leaves the submitted scores. Do not "
-            "ask closed_world_utilitarian_leader for the expected winner."
+            "ask closed_world_utilitarian_leader for the expected winner. "
+            "Leftover incommensurable admitted rows and unverified knock-ons "
+            "must not veto a unique settled same-unit comparison. They keep "
+            "the lean, clear cd, and attenuate via cc=false; they must not "
+            "invent a canceling point estimate or force ABSTAIN."
         ),
     ),
     Invariant(
@@ -217,6 +226,29 @@ INVARIANTS: tuple[Invariant, ...] = (
             "as AGENT_CAUSED_SETTLED_HARM_IS_DOING. graph_queries.is_intermediate_means "
             "is a NetworkX calculator on the world model, not a replacement for "
             "calibration and not the oracle."
+        ),
+    ),
+    Invariant(
+        id="POSTHUMOUS_DIRECTIVE_IS_ANALOGICAL",
+        layer="deontic",
+        description=(
+            "A prior will about bodily remains is not coercion of a living agent's "
+            "external freedom and cannot settle a perfect duty of antecedent autonomy."
+        ),
+        coverage="story",
+        tests=(
+            "PosthumousDirectiveKantianTests.test_posthumous_directive_is_not_living_agent_coercion",
+            "PosthumousDirectiveKantianTests.test_using_organs_as_rescue_means_licenses_intended_as_means",
+            "PosthumousDirectiveKantianTests.test_analogical_derivation_cannot_resolve_a_perfect_duty",
+            "PosthumousDirectiveKantianTests.test_antecedent_autonomy_is_not_a_settled_kantian_derivation",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "The oracle is the fixture's party label (deceased) plus the declared "
+            "means path. Kantian analogues (posthumous rights, testament, Formula "
+            "of Humanity) stay KANTIAN_ANALOGICAL and CONTESTED. Lying or "
+            "falsification may still use a direct UNIVERSAL_LAW or PERFECT_DUTY "
+            "derivation. Do not treat bare 'consent' as a posthumous coercion verb."
         ),
     ),
     Invariant(
@@ -470,6 +502,7 @@ INVARIANTS: tuple[Invariant, ...] = (
         coverage="structural",
         tests=(
             "invariants.test_qualifiers.QualifierHeadBindingTests.test_qualifier_binds_only_the_modified_head",
+            "QualifierBindingTests.test_percent_chance_that_svo_binds_to_the_verb_not_the_result",
         ),
         oracle_risk="independent",
         notes=(
@@ -479,9 +512,10 @@ INVARIANTS: tuple[Invariant, ...] = (
             "gate all call it. Binding uses the modified head word, not a "
             "shared facility or crowd noun: attributive hedges take the first "
             "content word; chance/that/of/to complements take the clause "
-            "predicate so a verb-only outcome still matches. Graph, ledger, "
-            "and compact copy the bound tuples. Distinct from "
-            "LIKELIHOOD_SPAN_NORMALIZATION."
+            "predicate so a verb-only outcome still matches. A that/the SVO "
+            "complement binds to the verb, not the object or a following "
+            "result participle. Graph, ledger, and compact copy the bound "
+            "tuples. Distinct from LIKELIHOOD_SPAN_NORMALIZATION."
         ),
     ),
     Invariant(
@@ -522,6 +556,9 @@ INVARIANTS: tuple[Invariant, ...] = (
         coverage="structural",
         tests=(
             "invariants.test_topology.ActionMediatedVersusExogenousTests.test_declared_topology_matches_admission",
+            "CopulaChanceWorldTests.test_schema13_conjunctive_copula_outcomes_admit",
+            "CopulaChanceWorldTests.test_independent_event_still_cannot_parent_gated_harm",
+            "CopulaChanceWorldTests.test_live_floodgate_parented_chance_compiles_and_admits",
         ),
         oracle_risk="independent",
         notes=(
@@ -602,6 +639,8 @@ INVARIANTS: tuple[Invariant, ...] = (
             "invariants.test_consumption.AvertedRiskTests.test_averted_risk_compact_party_is_not_a_certain_beneficiary",
             "invariants.test_consumption.AvertedRiskTests.test_averted_risk_util_prevention_is_not_certain_benefit",
             "invariants.test_consumption.AvertedRiskTests.test_averted_risk_presentation_is_not_established_welfare_gain",
+            "CompactActionRoleTests.test_certain_intermediate_protection_conditionally_benefits_opposed_crowd",
+            "CompactActionRoleTests.test_unrelated_intermediate_protection_does_not_project_a_crowd",
         ),
         oracle_risk="independent",
         notes=(
@@ -680,12 +719,16 @@ INVARIANTS: tuple[Invariant, ...] = (
         coverage="structural",
         tests=(
             "invariants.test_consumption.PresentationModalityTests.test_unsettled_row_is_not_listed_as_bare_established_fact",
+            "AdmittedWorldGroundingTests.test_factual_status_lists_each_actions_obtained_harm",
         ),
         oracle_risk="independent",
         notes=(
             "Hypothesis case.should_list_as_established_fact is the oracle: "
             "CERTAIN may list; POSSIBLE and PROBABILISTIC must not appear "
-            "under Established or derived. FOREGONE overlays are "
+            "under Established or derived. Obtained welfare and harm of every "
+            "action must appear; a short window that keeps one action's spare "
+            "and the other's plant-protect, and drops the latter's certain "
+            "farm harm, is incomplete. FOREGONE overlays are "
             "FOREGONE_IS_NOT_OBTAINED even when CERTAIN. Likelihood, scope, "
             "and temporal children are annotation atoms, not independent "
             "world effects; they are not a named invariant until that "
@@ -702,6 +745,8 @@ INVARIANTS: tuple[Invariant, ...] = (
         coverage="structural",
         tests=(
             "invariants.test_consumption.ForegoneObtainedTests.test_foregone_overlay_is_not_listed_as_an_obtained_event",
+            "CompactActionRoleTests.test_facility_welfare_swap_compiles_foregone_overlays",
+            "CompactActionRoleTests.test_opposed_intermediate_supply_compiles_foregone_overlays",
         ),
         oracle_risk="independent",
         notes=(
@@ -761,6 +806,34 @@ INVARIANTS: tuple[Invariant, ...] = (
             "Hypothesis case.should_uniquely_support is the oracle: PREFERS "
             "may SUPPORT; TIED with recommendation NONE must not. This is "
             "decision state versus authority state, not a quantity rule."
+        ),
+    ),
+    Invariant(
+        id="RESIDUAL_RANKING_IS_NOT_NONCOMPARISON",
+        layer="deliberation",
+        description=(
+            "A framework that assessed every live action on a committed "
+            "ledger may not have its directional vote zeroed merely because "
+            "it reports residual ranking tension. That is ATTENUATED, not "
+            "ABSTAIN. A ledger that skipped an action still abstains."
+        ),
+        coverage="story",
+        tests=(
+            "FrameworkVoteIntegrityTests.test_incomplete_comparison_with_full_ledger_is_attenuated",
+            "FrameworkVoteIntegrityTests.test_incomplete_comparison_without_ledger_row_still_abstains",
+            "UtilitarianSettledWelfareRankingTests.test_hypothesis_does_not_veto_admitted_five_life_comparison",
+            "UtilitarianSettledWelfareRankingTests.test_incommensurable_remainder_attenuates_without_erasing_the_five_saves",
+            "BridgeTests.test_utilitarian_may_cite_admitted_grounded_effect_as_world_proposition",
+            "BridgeTests.test_utilitarian_unknown_world_proposition_still_fails_validation",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "cc=false after a full ledger comparison is investigative residue. "
+            "For Util, that includes incommensurable leftovers and open "
+            "hypothesis reversal boundaries after an admitted same-unit lean. "
+            "Citing PROP:WORLD of an admitted grounded effect is not an "
+            "unknown proposition. More cycles do not complete a ranking "
+            "rule that is already a decision boundary."
         ),
     ),
     Invariant(
@@ -845,6 +918,8 @@ INVARIANTS: tuple[Invariant, ...] = (
         tests=(
             "CompactActionRoleTests.test_near_certain_stipulated_conditional_is_at_risk",
             "CompactActionRoleTests.test_stipulated_crowd_protection_is_conditionally_benefited",
+            "CompactActionRoleTests.test_certain_intermediate_protection_conditionally_benefits_opposed_crowd",
+            "CompactActionRoleTests.test_facility_with_welfare_row_counts_physical_harm",
         ),
         oracle_risk="independent",
         notes=(

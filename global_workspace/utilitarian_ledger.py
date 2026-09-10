@@ -13,7 +13,11 @@ from .scenario_semantics import (
     query_grounded_action_effects,
 )
 from .semantic_graph import SemanticEdge, SemanticGraph, SemanticNode, merge_graphs, validate_graph
-from .world_state import counts_as_actual_welfare, is_averted_risk_not_obtained_benefit_consequence
+from .world_state import (
+    counts_as_actual_welfare,
+    is_averted_risk_not_obtained_benefit_consequence,
+    quantity_magnitude,
+)
 
 
 class ConsequenceProposal(BaseModel):
@@ -342,10 +346,15 @@ def _apply_effect_valuation_transaction(
             direction, probability = utilitarian_accounting(store.graph, evidence.id)
             modality = str(evidence.attributes.get("modality", "UNKNOWN")).upper()
             quantities = [
-                str(value) for value in evidence.attributes.get("quantities", [])
+                str(value).strip()
+                for key in ("quantities", "party_quantities")
+                for value in evidence.attributes.get(key, []) or []
                 if str(value).strip()
             ]
-            magnitude = ", ".join(quantities)[:60] or "UNKNOWN"
+            magnitude = next(
+                (span[:60] for span in quantities if quantity_magnitude(span) is not None),
+                "UNKNOWN",
+            )
             scope_label = " ".join(effect.affected_subject.casefold().split()).strip(" ,.;:")
             target_id = _stable_id("UTIL_SCOPE", scope_label)
             consequence_id = (

@@ -77,6 +77,98 @@ ROOT = Path(__file__).resolve().parent
 DEFAULT_MODEL = (ROOT / "../mistral-7b-instruct-v0.2.Q4_K_M.gguf").resolve()
 FRAMING_CACHE_VERSION = 2
 FRAMING_CACHE_FILENAME = "last_problem_framing.json"
+WORLD_ESCALATION_MODEL = "gpt-5.6-sol"
+WORLD_ESCALATION_LABEL = "GPT-5.6 Sol"
+
+
+def _canonical_openai_model(model: str) -> str:
+    name = str(model or "").strip().casefold()
+    if name in {"gpt-5.6", "gpt-5.6-sol"}:
+        return "gpt-5.6-sol"
+    return name
+
+
+def is_world_escalation_model(model: str) -> bool:
+    return _canonical_openai_model(model) == _canonical_openai_model(WORLD_ESCALATION_MODEL)
+
+
+def should_offer_world_escalation(
+    grounding: dict[str, object],
+    *,
+    backend: str,
+    current_model: str,
+    reused: bool,
+    no_world_escalation: bool = False,
+    escalation_model: str = WORLD_ESCALATION_MODEL,
+) -> bool:
+    """Offer one stronger-model retry only after a live OpenAI world-gen failure."""
+    if no_world_escalation or reused:
+        return False
+    if str(backend or "").casefold() != "openai":
+        return False
+    if _canonical_openai_model(current_model) == _canonical_openai_model(escalation_model):
+        return False
+    status = str(grounding.get("status") or "").upper()
+    return status not in {"COMMITTED", "UNAVAILABLE"}
+
+
+def confirm_world_model_escalation(
+    grounding: dict[str, object],
+    *,
+    from_model: str,
+    to_label: str = WORLD_ESCALATION_LABEL,
+    escalate_world_model: bool = False,
+    input_fn=input,
+    output_fn=print,
+) -> bool:
+    """Ask once whether to spend a GPT-5.6 Sol world-grounding call."""
+    errors = [str(item) for item in (grounding.get("errors") or []) if str(item).strip()]
+    if errors:
+        output_fn("Primary world grounding failed:")
+        for item in errors[:8]:
+            output_fn(f"  {item}")
+    output_fn(f"A stronger-model retry is available: {to_label}.")
+    if escalate_world_model:
+        output_fn(f"Retrying once with {to_label} (--escalate-world-model).")
+        return True
+    if not sys.stdin.isatty():
+        output_fn(
+            "Non-interactive input: skipping world-model escalation. "
+            f"Pass --escalate-world-model to retry once with {to_label}."
+        )
+        return False
+    with model_call_budget_paused():
+        answer = input_fn(
+            f"World grounding with {from_model} did not reach COMMITTED. "
+            f"Retry once with {to_label}? [y/N]: "
+        ).strip().casefold()
+    if answer in {"y", "yes"}:
+        return True
+    output_fn("Skipping world-model escalation.")
+    return False
+
+
+def attach_world_escalation(
+    primary: dict[str, object],
+    escalated: dict[str, object],
+    *,
+    from_model: str,
+    to_model: str,
+) -> dict[str, object]:
+    """Keep the failed primary attempts and mark the single escalation call."""
+    merged = dict(escalated)
+    merged["attempts"] = list(primary.get("attempts") or []) + list(
+        escalated.get("attempts") or []
+    )
+    merged["repair_attempts"] = max(0, len(merged["attempts"]) - 1)
+    merged["escalation"] = {
+        "from_model": from_model,
+        "to_model": to_model,
+        "attempts": 1,
+        "primary_status": str(primary.get("status") or ""),
+        "escalated_status": str(escalated.get("status") or ""),
+    }
+    return merged
 
 
 def load_problem_framing_cache(
@@ -307,6 +399,27 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Halt after the admitted world is printed; do not run expert agents",
     )
+    parser.add_argument(
+        "--escalate-world-model",
+        action="store_true",
+        help=(
+            "If the primary OpenAI world-grounding model does not COMMIT, retry "
+            "once with --world-escalation-model without prompting"
+        ),
+    )
+    parser.add_argument(
+        "--no-world-escalation",
+        action="store_true",
+        help="Never offer or run a stronger-model world-grounding retry",
+    )
+    parser.add_argument(
+        "--world-escalation-model",
+        default=WORLD_ESCALATION_MODEL,
+        help=(
+            "Model used for one world-grounding retry after the primary model "
+            f"fails (default: {WORLD_ESCALATION_MODEL})"
+        ),
+    )
     parser.add_argument("--no-synthesis", action="store_true", help="Disable recurrent action synthesis")
     parser.add_argument("--no-planning", action="store_true", help="Disable selective implementation planning")
     parser.add_argument("--no-consensus-audit", action="store_true", help="Disable suspicious-consensus access gate")
@@ -481,6 +594,38 @@ def _confirm_continue_after_world(
         "cache if it was saved."
     )
     return False
+
+
+def original_testimonies_or_continue(
+    testimonies: dict[str, str],
+    source_errors: dict[str, str],
+    selected_agents: list[str],
+    *,
+    output_fn=print,
+) -> tuple[dict[str, str], dict[str, str]]:
+    """Keep compact specialists runnable when original-agent consult fails.
+
+    Original agents are a comparison treatment. Quota or a canceled provider
+    must not abort an admitted world before compact experts start. The skip-
+    original path already continues with empty testimony; a live consult that
+    returns fewer than two usable answers follows the same rule.
+    """
+    usable = {
+        name: text
+        for name, text in testimonies.items()
+        if str(text or "").strip()
+    }
+    errors = dict(source_errors)
+    for name in selected_agents:
+        if name not in usable and name not in errors:
+            errors[name] = "no original testimony"
+    if len(usable) < 2:
+        output_fn(
+            "Original ethical agents did not produce enough testimony "
+            f"({len(usable)} of {len(selected_agents)}); continuing with "
+            "compact specialists only."
+        )
+    return usable, errors
 
 
 def report_withheld_world(
@@ -733,6 +878,55 @@ def run_pipeline(args: argparse.Namespace, recorder: PerformanceRecorder) -> int
                     llm, scenario, actions, max_tokens=max(128, args.delegate_tokens),
                 ),
             )
+        escalation_model = str(
+            getattr(args, "world_escalation_model", None) or WORLD_ESCALATION_MODEL
+        )
+        if should_offer_world_escalation(
+            action_source_grounding,
+            backend=args.backend,
+            current_model=args.openai_model,
+            reused=grounding_reused,
+            no_world_escalation=bool(getattr(args, "no_world_escalation", False)),
+            escalation_model=escalation_model,
+        ):
+            to_label = (
+                WORLD_ESCALATION_LABEL
+                if is_world_escalation_model(escalation_model)
+                else escalation_model
+            )
+            if confirm_world_model_escalation(
+                action_source_grounding,
+                from_model=args.openai_model,
+                to_label=to_label,
+                escalate_world_model=bool(getattr(args, "escalate_world_model", False)),
+            ):
+                print(
+                    f"World grounding escalation: one attempt with {escalation_model}.",
+                    flush=True,
+                )
+                escalated_llm = OpenAIWorkspaceLLM(
+                    escalation_model,
+                    timeout=max(1.0, args.agent_timeout),
+                    client=getattr(llm, "client", None),
+                )
+                with performance_stage("world_grounding_escalation"):
+                    escalated = ground_actions_in_scenario(
+                        escalated_llm,
+                        scenario,
+                        actions,
+                        max_tokens=max(128, args.delegate_tokens),
+                        max_attempts=1,
+                        prior_errors=action_source_grounding.get("errors") or [],
+                        prior_issues=action_source_grounding.get("validation_issues") or [],
+                        prior_candidate=action_source_grounding.get("rejected_candidate"),
+                        call_kind_primary="world_grounding_escalation",
+                    )
+                action_source_grounding = attach_world_escalation(
+                    action_source_grounding,
+                    escalated,
+                    from_model=args.openai_model,
+                    to_model=escalation_model,
+                )
     if grounding_reused:
         if frozen_replay is None:
             print(
@@ -924,11 +1118,9 @@ def run_pipeline(args: argparse.Namespace, recorder: PerformanceRecorder) -> int
         source_retrievals = dict(consultation.retrievals)
         for name, error in source_errors.items():
             print(f"Original {name} agent unavailable: {error}")
-        if len(testimonies) < 2:
-            raise RuntimeError(
-                "Fewer than two original ethical agents produced testimony; "
-                "cannot run meaningful recurrent orchestration."
-            )
+        testimonies, source_errors = original_testimonies_or_continue(
+            testimonies, source_errors, selected_agents,
+        )
 
     scenario_facts = extract_scenario_facts(scenario)
     if scenario_facts:

@@ -882,6 +882,7 @@ class CandidateChunk:
     )
     utilitarian_decision_depends_on_unknown: bool = False
     utilitarian_missing_comparison: str = ""
+    utilitarian_incommensurable_remainder: list[str] = field(default_factory=list)
     utilitarian_ledger_proposal: dict[str, Any] = field(default_factory=dict)
     rawls_position_proposal: dict[str, Any] = field(default_factory=dict)
     deontological_ledger_proposal: dict[str, Any] = field(default_factory=dict)
@@ -1277,6 +1278,11 @@ class CandidateChunk:
         self.utilitarian_missing_comparison = " ".join(
             str(self.utilitarian_missing_comparison).split()
         )[:180]
+        self.utilitarian_incommensurable_remainder = [
+            " ".join(str(item).split())[:160]
+            for item in self.utilitarian_incommensurable_remainder
+            if " ".join(str(item).split())
+        ][:8]
         self.utilitarian_ledger_proposal = dict(self.utilitarian_ledger_proposal or {})
         self.rawls_position_proposal = dict(self.rawls_position_proposal or {})
         self.deontological_ledger_proposal = dict(

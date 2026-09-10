@@ -32,6 +32,7 @@ from global_workspace.world_state import (
     admit_world_model_extension,
     classify_clause_role,
     compile_event_condition_bindings,
+    compile_foregone_overlays,
     compact_committed_world,
     explicit_likelihood_spans,
     explicit_likelihood_span_records,
@@ -660,6 +661,44 @@ class QualifierBindingTests(unittest.TestCase):
         self.assertEqual(
             _closed_class_qualifiers(fails).likelihood_qualifiers,
             ("20% chance",),
+        )
+
+    def test_percent_chance_that_svo_binds_to_the_verb_not_the_result(self):
+        excerpt = (
+            "There is a 25% chance that residue chokes the catchment, "
+            "inundating the works and fouling the supply used by the users."
+        )
+        choke = self._effect(
+            "E3", "residue chokes the catchment", "PHYSICAL_STATE",
+            excerpt=excerpt, condition_ids=(),
+        )
+        flood = self._effect(
+            "E4", "works inundated", "PHYSICAL_STATE",
+            excerpt=excerpt, modality="STIPULATED_CONDITIONAL",
+        )
+        foul = self._effect(
+            "E5", "users lose the supply", "WELFARE_OUTCOME",
+            excerpt=excerpt, modality="STIPULATED_CONDITIONAL",
+        )
+        self.assertEqual(
+            _effect_expected_qualifiers(choke, explicit_likelihood_spans),
+            ("25% chance",),
+        )
+        self.assertEqual(
+            _effect_expected_qualifiers(flood, explicit_likelihood_spans),
+            (),
+        )
+        self.assertEqual(
+            _effect_expected_qualifiers(foul, explicit_likelihood_spans),
+            (),
+        )
+        self.assertEqual(
+            _closed_class_qualifiers(choke).likelihood_qualifiers,
+            ("25% chance",),
+        )
+        self.assertEqual(
+            _closed_class_qualifiers(flood).likelihood_qualifiers,
+            (),
         )
 
     def test_percent_chance_of_being_binds_to_the_participle(self):
@@ -1382,6 +1421,532 @@ class IndependentConditionTests(unittest.TestCase):
             "independent stochastic" in error and "E2" in error
             for error in errors
         ), errors)
+
+
+class CopulaChanceWorldTests(unittest.TestCase):
+    """A chance-gated world must admit when the verb sits in the predicate.
+
+    Grounders often put IS in outcome. Identity checks must still see the
+    source verb so an unparented chance event can gate the mediated path.
+    """
+
+    def test_schema13_conjunctive_copula_outcomes_admit(self):
+        excerpt = (
+            "Leave the valve in its default position to drain through the "
+            "lower catchment, which completely spares the holdings and "
+            "holders. There is a 25% chance that residue chokes the "
+            "catchment, inundating the works and fouling the supply for "
+            "twenty thousand users for weeks."
+        )
+        ref = (SourceRef("C0", excerpt),)
+        model = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "allocator", "AUTOMATED_SYSTEM", ref),
+                WorldParty("PV", "valve", "INFRASTRUCTURE", ref),
+                WorldParty("PC", "catchment", "PROCESS", ref),
+                WorldParty("PH", "holdings", "FACILITY", ref),
+                WorldParty("PO", "holders", "GROUP", ref),
+                WorldParty("PW", "works", "FACILITY", ref),
+                WorldParty("PS", "supply", "RESOURCE", ref),
+                WorldParty(
+                    "PU", "users", "POPULATION", ref, ("twenty thousand",),
+                ),
+            ),
+            actions=(
+                WorldAction(
+                    "A0", "leave the valve in its default position",
+                    "P0", ("PV",),
+                    ("E0", "E1", "E2", "E3", "E4", "E5", "E6", "E7"),
+                    ref,
+                ),
+            ),
+            effects=(
+                WorldEffect(
+                    "E0", "A0", "PV", "IS", "LEFT_DEFAULT", "NEUTRAL",
+                    "DIRECT", "CERTAIN", "INTERVENTION", provenance=ref,
+                    source_proposition="Leave the valve in its default position",
+                    derivation_operation="DIRECT_COPY",
+                    derivation_explanation="C0 states the default valve act.",
+                ),
+                WorldEffect(
+                    "E1", "A0", "PC", "IS", "DRAINS", "NEUTRAL",
+                    "DOWNSTREAM", "CERTAIN", "PHYSICAL_STATE", provenance=ref,
+                    source_proposition="to drain through the lower catchment",
+                    source_effect_ids=("E0",),
+                    derivation_operation="SOURCE_STIPULATED_CAUSAL",
+                    derivation_explanation="C0 names drainage through the catchment.",
+                ),
+                WorldEffect(
+                    "E2", "A0", "PH", "IS", "SPARED", "BENEFICIAL",
+                    "DOWNSTREAM", "CERTAIN", "PHYSICAL_STATE", provenance=ref,
+                    source_proposition="which completely spares the holdings",
+                    source_effect_ids=("E1",),
+                    derivation_operation="SOURCE_STIPULATED_CAUSAL",
+                    derivation_explanation="C0 states the holdings are spared.",
+                ),
+                WorldEffect(
+                    "E3", "A0", "PO", "IS", "SPARED", "BENEFICIAL",
+                    "DOWNSTREAM", "CERTAIN", "WELFARE_OUTCOME", provenance=ref,
+                    source_proposition="completely spares the holdings and holders",
+                    source_effect_ids=("E1",),
+                    derivation_operation="SOURCE_STIPULATED_CAUSAL",
+                    derivation_explanation="C0 states the holders are spared.",
+                ),
+                WorldEffect(
+                    "E4", "A0", "PC", "IS", "CHOKED", "ADVERSE",
+                    "DOWNSTREAM", "PROBABILISTIC", "PHYSICAL_STATE",
+                    provenance=ref,
+                    likelihood_qualifiers=("25% chance",),
+                    source_proposition=(
+                        "There is a 25% chance that residue chokes the catchment"
+                    ),
+                    derivation_operation="SOURCE_STIPULATED_CAUSAL",
+                    derivation_explanation="C0 states the independent choke chance.",
+                ),
+                WorldEffect(
+                    "E5", "A0", "PW", "IS", "INUNDATED", "ADVERSE",
+                    "DOWNSTREAM", "STIPULATED_CONDITIONAL", "PHYSICAL_STATE",
+                    ("COND0",), provenance=ref,
+                    source_proposition="inundating the works",
+                    source_effect_ids=("E1",),
+                    derivation_operation="SOURCE_STIPULATED_CAUSAL",
+                    derivation_explanation="C0 gates works inundation on the choke.",
+                ),
+                WorldEffect(
+                    "E6", "A0", "PS", "IS", "FOULED", "ADVERSE",
+                    "DOWNSTREAM", "STIPULATED_CONDITIONAL", "PHYSICAL_STATE",
+                    ("COND0",), provenance=ref,
+                    temporal_qualifiers=("for weeks",),
+                    source_proposition="fouling the supply",
+                    source_effect_ids=("E5",),
+                    derivation_operation="SOURCE_STIPULATED_CAUSAL",
+                    derivation_explanation="C0 links inundation to a fouled supply.",
+                ),
+                WorldEffect(
+                    "E7", "A0", "PU", "IS", "FOULED", "ADVERSE",
+                    "DOWNSTREAM", "STIPULATED_CONDITIONAL", "WELFARE_OUTCOME",
+                    ("COND0",), provenance=ref,
+                    quantities=("twenty thousand",),
+                    source_proposition="fouling the supply for twenty thousand users",
+                    source_effect_ids=("E6",),
+                    derivation_operation="SOURCE_STIPULATED_CAUSAL",
+                    derivation_explanation="C0 names the affected users.",
+                ),
+            ),
+            conditions=(
+                WorldCondition(
+                    "COND0", "residue chokes the catchment",
+                    provenance=ref, event_effect_id="E4",
+                ),
+            ),
+            causal_links=(
+                CausalLink("E0", "ENABLES", "E1", "CERTAIN", (), ref, "A0"),
+                CausalLink("E1", "CAUSES", "E2", "CERTAIN", (), ref, "A0"),
+                CausalLink("E1", "CAUSES", "E3", "CERTAIN", (), ref, "A0"),
+                CausalLink("E1", "CAUSES", "E5", "CERTAIN", (), ref, "A0"),
+                CausalLink("E5", "CAUSES", "E6", "CERTAIN", (), ref, "A0"),
+                CausalLink("E6", "CAUSES", "E7", "CERTAIN", (), ref, "A0"),
+            ),
+            schema_version="1.3",
+        )
+        errors, _ = validate_world_model(model, action_ids=["A0"])
+        self.assertEqual(errors, [])
+        self.assertEqual(validate_world_completeness(model, action_ids=["A0"]), [])
+        self.assertEqual(validate_effect_source_bindings(model), [])
+
+    def test_independent_event_still_cannot_parent_gated_harm(self):
+        excerpt = (
+            "Leave the valve in its default position to drain through the "
+            "lower catchment. There is a 25% chance that residue chokes the "
+            "catchment, inundating the works."
+        )
+        ref = (SourceRef("C0", excerpt),)
+        model = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "allocator", "AUTOMATED_SYSTEM", ref),
+                WorldParty("PV", "valve", "INFRASTRUCTURE", ref),
+                WorldParty("PC", "catchment", "PROCESS", ref),
+                WorldParty("PW", "works", "FACILITY", ref),
+            ),
+            actions=(
+                WorldAction(
+                    "A0", "leave the valve in its default position",
+                    "P0", ("PV",), ("E0", "E1", "E4", "E5"), ref,
+                ),
+            ),
+            effects=(
+                WorldEffect(
+                    "E0", "A0", "PV", "IS", "LEFT_DEFAULT", "NEUTRAL",
+                    "DIRECT", "CERTAIN", "INTERVENTION", provenance=ref,
+                    source_proposition="Leave the valve in its default position",
+                    derivation_operation="DIRECT_COPY",
+                    derivation_explanation="C0 states the default valve act.",
+                ),
+                WorldEffect(
+                    "E1", "A0", "PC", "IS", "DRAINS", "NEUTRAL",
+                    "DOWNSTREAM", "CERTAIN", "PHYSICAL_STATE", provenance=ref,
+                    source_proposition="to drain through the lower catchment",
+                    source_effect_ids=("E0",),
+                    derivation_operation="SOURCE_STIPULATED_CAUSAL",
+                    derivation_explanation="C0 names drainage through the catchment.",
+                ),
+                WorldEffect(
+                    "E4", "A0", "PC", "IS", "CHOKED", "ADVERSE",
+                    "DOWNSTREAM", "PROBABILISTIC", "PHYSICAL_STATE",
+                    provenance=ref,
+                    likelihood_qualifiers=("25% chance",),
+                    source_proposition=(
+                        "There is a 25% chance that residue chokes the catchment"
+                    ),
+                    derivation_operation="SOURCE_STIPULATED_CAUSAL",
+                    derivation_explanation="C0 states the independent choke chance.",
+                ),
+                WorldEffect(
+                    "E5", "A0", "PW", "IS", "INUNDATED", "ADVERSE",
+                    "DOWNSTREAM", "STIPULATED_CONDITIONAL", "PHYSICAL_STATE",
+                    ("COND0",), provenance=ref,
+                    source_proposition="inundating the works",
+                    source_effect_ids=("E4",),
+                    derivation_operation="SOURCE_STIPULATED_CAUSAL",
+                    derivation_explanation="Wrongly parents inundation from the choke.",
+                ),
+            ),
+            conditions=(
+                WorldCondition(
+                    "COND0", "residue chokes the catchment",
+                    provenance=ref, event_effect_id="E4",
+                ),
+            ),
+            causal_links=(
+                CausalLink("E0", "ENABLES", "E1", "CERTAIN", (), ref, "A0"),
+                CausalLink("E4", "CAUSES", "E5", "CERTAIN", (), ref, "A0"),
+            ),
+            schema_version="1.3",
+        )
+        errors = validate_world_completeness(model, action_ids=["A0"])
+        self.assertTrue(any(
+            "independent stochastic" in error and "E4" in error
+            for error in errors
+        ), errors)
+
+    def test_live_floodgate_parented_chance_compiles_and_admits(self):
+        """The common LLM graph must compile to the gated topology and admit."""
+        clauses = [
+            {
+                "clause_id": "C0",
+                "text": (
+                    "A severe flash flood threatens both an upstream farming "
+                    "township and a downstream municipal water treatment "
+                    "facility, forcing an immediate, irreversible decision on "
+                    "a single automated floodgate."
+                ),
+            },
+            {
+                "clause_id": "C1",
+                "text": (
+                    "A1 activates the diversion gate to route the surge into "
+                    "the township, submerging forty family farms and ruining "
+                    "the livelihoods of three hundred residents, but "
+                    "guaranteeing absolute protection for the downstream "
+                    "water plant."
+                ),
+            },
+            {
+                "clause_id": "C2",
+                "text": (
+                    "A0 leaves the gate in its default position to drain "
+                    "naturally through lower marshlands, which completely "
+                    "spares the farms and residents."
+                ),
+            },
+            {
+                "clause_id": "C3",
+                "text": (
+                    "however, there is a 25% chance that debris chokes the "
+                    "basin, flooding the treatment facility and contaminating "
+                    "the drinking water supply for fifty thousand urban "
+                    "residents for weeks."
+                ),
+            },
+        ]
+        raw = {
+            "schema_version": "1.3",
+            "parties": [
+                {"party_id": "P0", "label": "flood-control decision maker",
+                 "kind": "AUTOMATED_SYSTEM", "clause_ids": ["C0"], "quantities": []},
+                {"party_id": "P1", "label": "automated diversion gate",
+                 "kind": "INFRASTRUCTURE", "clause_ids": ["C0", "C1", "C2"],
+                 "quantities": []},
+                {"party_id": "P2", "label": "family farms", "kind": "GROUP",
+                 "clause_ids": ["C1", "C2"], "quantities": ["forty"]},
+                {"party_id": "P3", "label": "township residents",
+                 "kind": "POPULATION", "clause_ids": ["C1", "C2"],
+                 "quantities": ["three hundred"]},
+                {"party_id": "P4", "label": "municipal water treatment facility",
+                 "kind": "FACILITY", "clause_ids": ["C0", "C1", "C3"],
+                 "quantities": []},
+                {"party_id": "P5", "label": "drinking water supply",
+                 "kind": "RESOURCE", "clause_ids": ["C1", "C3"], "quantities": []},
+                {"party_id": "P6", "label": "urban residents",
+                 "kind": "POPULATION", "clause_ids": ["C3"],
+                 "quantities": ["fifty thousand"]},
+                {"party_id": "P9", "label": "drainage basin", "kind": "FACILITY",
+                 "clause_ids": ["C3"], "quantities": []},
+            ],
+            "actions": [
+                {
+                    "action_id": "A0",
+                    "intervention": "leave the gate in its default position",
+                    "actor_party_id": "P0",
+                    "recipient_party_ids": ["P1"],
+                    "clause_ids": ["C2", "C3"],
+                    "effect_ids": ["E0", "E1", "E2", "E3", "E4", "E5", "E6", "F0", "F1"],
+                },
+                {
+                    "action_id": "A1",
+                    "intervention": "activate the diversion gate",
+                    "actor_party_id": "P0",
+                    "recipient_party_ids": ["P1"],
+                    "clause_ids": ["C1"],
+                    "effect_ids": ["E10", "E11", "E12", "E13", "E14", "E15", "F10", "F11"],
+                },
+            ],
+            "effects": [
+                {"effect_id": "E0", "action_id": "A0", "party_id": "P1",
+                 "outcome": "left in default position", "predicate": "STATE_REMAINS",
+                 "polarity": "NEUTRAL", "directness": "DIRECT", "modality": "CERTAIN",
+                 "effect_kind": "INTERVENTION", "clause_ids": ["C2"],
+                 "source_proposition": "leaves the gate in its default position",
+                 "derivation_operation": "DIRECT_COPY", "source_effect_ids": []},
+                {"effect_id": "E1", "action_id": "A0", "party_id": "P2",
+                 "outcome": "spared from flooding", "predicate": "SURVIVES",
+                 "polarity": "BENEFICIAL", "directness": "DOWNSTREAM",
+                 "modality": "CERTAIN", "effect_kind": "PHYSICAL_STATE",
+                 "clause_ids": ["C2"], "source_proposition": "completely spares the farms",
+                 "source_effect_ids": ["E0"],
+                 "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                 "derivation_explanation": "Farms are spared on the default path."},
+                {"effect_id": "E2", "action_id": "A0", "party_id": "P3",
+                 "outcome": "livelihoods preserved", "predicate": "WELFARE_PRESERVED",
+                 "polarity": "BENEFICIAL", "directness": "DOWNSTREAM",
+                 "modality": "CERTAIN", "effect_kind": "WELFARE_OUTCOME",
+                 "clause_ids": ["C2"],
+                 "source_proposition": "completely spares the ... residents",
+                 "source_effect_ids": ["E0"],
+                 "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                 "derivation_explanation": "Residents are spared with the farms."},
+                {"effect_id": "E3", "action_id": "A0", "party_id": "P9",
+                 "outcome": "debris chokes basin", "predicate": "BLOCKED",
+                 "polarity": "ADVERSE", "directness": "DOWNSTREAM",
+                 "modality": "PROBABILISTIC", "effect_kind": "PHYSICAL_STATE",
+                 "clause_ids": ["C3"], "likelihood_qualifiers": ["25% chance"],
+                 "source_proposition": "there is a 25% chance that debris chokes the basin",
+                 "source_effect_ids": ["E0"],
+                 "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                 "derivation_explanation": "Independent basin-choke chance."},
+                {"effect_id": "E4", "action_id": "A0", "party_id": "P4",
+                 "outcome": "facility flooded", "predicate": "SUBJECT_TO",
+                 "polarity": "ADVERSE", "directness": "DOWNSTREAM",
+                 "modality": "STIPULATED_CONDITIONAL", "effect_kind": "PHYSICAL_STATE",
+                 "clause_ids": ["C3"],
+                 "source_proposition": "flooding the treatment facility",
+                 "source_effect_ids": ["E3"],
+                 "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                 "derivation_explanation": "Choke floods the plant."},
+                {"effect_id": "E5", "action_id": "A0", "party_id": "P5",
+                 "outcome": "water supply contaminated for weeks",
+                 "predicate": "CONTAMINATED", "polarity": "ADVERSE",
+                 "directness": "DOWNSTREAM", "modality": "STIPULATED_CONDITIONAL",
+                 "effect_kind": "PHYSICAL_STATE", "clause_ids": ["C3"],
+                 "quantities": ["for weeks"], "temporal_qualifiers": ["for weeks"],
+                 "source_proposition": (
+                     "contaminating the drinking water supply for fifty "
+                     "thousand urban residents for weeks"
+                 ),
+                 "source_effect_ids": ["E4"],
+                 "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                 "derivation_explanation": "Flood contaminates the supply."},
+                {"effect_id": "E6", "action_id": "A0", "party_id": "P6",
+                 "outcome": "lose safe drinking water",
+                 "predicate": "WELFARE_LOSS", "polarity": "ADVERSE",
+                 "directness": "DOWNSTREAM", "modality": "STIPULATED_CONDITIONAL",
+                 "effect_kind": "WELFARE_OUTCOME", "clause_ids": ["C3"],
+                 "quantities": ["fifty thousand"],
+                 "source_proposition": (
+                     "contaminating the drinking water supply for fifty "
+                     "thousand urban residents for weeks"
+                 ),
+                 "source_effect_ids": ["E5"],
+                 "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                 "derivation_explanation": "Urban residents lose safe water."},
+                {"effect_id": "F0", "action_id": "A0", "party_id": "P2",
+                 "outcome": "farms submerged", "predicate": "SUBJECT_TO",
+                 "polarity": "FOREGONE", "directness": "FOREGONE",
+                 "modality": "CERTAIN", "effect_kind": "OPPORTUNITY_LOSS",
+                 "clause_ids": ["C1"], "quantities": ["forty"],
+                 "source_proposition": "submerging forty family farms",
+                 "derivation_operation": "COUNTERFACTUAL_PROJECTION",
+                 "source_effect_ids": []},
+                {"effect_id": "F1", "action_id": "A0", "party_id": "P4",
+                 "outcome": "facility absolutely protected",
+                 "predicate": "PROTECTED", "polarity": "FOREGONE",
+                 "directness": "FOREGONE", "modality": "CERTAIN",
+                 "effect_kind": "OPPORTUNITY_LOSS", "clause_ids": ["C1"],
+                 "source_proposition": (
+                     "guaranteeing absolute protection for the downstream "
+                     "water plant"
+                 ),
+                 "derivation_operation": "COUNTERFACTUAL_PROJECTION",
+                 "source_effect_ids": []},
+                {"effect_id": "E10", "action_id": "A1", "party_id": "P1",
+                 "outcome": "gate activated to divert surge",
+                 "predicate": "STATE_CHANGE", "polarity": "NEUTRAL",
+                 "directness": "DIRECT", "modality": "CERTAIN",
+                 "effect_kind": "INTERVENTION", "clause_ids": ["C1"],
+                 "source_proposition": (
+                     "activates the diversion gate to route the surge into "
+                     "the township"
+                 ),
+                 "derivation_operation": "DIRECT_COPY", "source_effect_ids": []},
+                {"effect_id": "E11", "action_id": "A1", "party_id": "P2",
+                 "outcome": "family farms submerged", "predicate": "SUBJECT_TO",
+                 "polarity": "ADVERSE", "directness": "DOWNSTREAM",
+                 "modality": "CERTAIN", "effect_kind": "PHYSICAL_STATE",
+                 "clause_ids": ["C1"], "quantities": ["forty"],
+                 "source_proposition": "submerging forty family farms",
+                 "source_effect_ids": ["E10"],
+                 "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                 "derivation_explanation": "Diversion submerges the farms."},
+                {"effect_id": "E12", "action_id": "A1", "party_id": "P3",
+                 "outcome": "livelihoods ruined", "predicate": "WELFARE_LOSS",
+                 "polarity": "ADVERSE", "directness": "DOWNSTREAM",
+                 "modality": "CERTAIN", "effect_kind": "WELFARE_OUTCOME",
+                 "clause_ids": ["C1"], "quantities": ["three hundred"],
+                 "source_proposition": (
+                     "ruining the livelihoods of three hundred residents"
+                 ),
+                 "source_effect_ids": ["E11"],
+                 "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                 "derivation_explanation": "Submerged farms ruin livelihoods."},
+                {"effect_id": "E13", "action_id": "A1", "party_id": "P4",
+                 "outcome": "facility protected", "predicate": "PROTECTED",
+                 "polarity": "BENEFICIAL", "directness": "DOWNSTREAM",
+                 "modality": "CERTAIN", "effect_kind": "PHYSICAL_STATE",
+                 "clause_ids": ["C1"],
+                 "source_proposition": (
+                     "guaranteeing absolute protection for the downstream "
+                     "water plant"
+                 ),
+                 "source_effect_ids": ["E10"],
+                 "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                 "derivation_explanation": "Diversion protects the plant."},
+                {"effect_id": "E14", "action_id": "A1", "party_id": "P5",
+                 "outcome": "drinking water supply protected",
+                 "predicate": "PROTECTED", "polarity": "BENEFICIAL",
+                 "directness": "DOWNSTREAM", "modality": "CERTAIN",
+                 "effect_kind": "PHYSICAL_STATE", "clause_ids": ["C1"],
+                 "source_proposition": (
+                     "guaranteeing absolute protection for the downstream "
+                     "water plant"
+                 ),
+                 "source_effect_ids": ["E13"],
+                 "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                 "derivation_explanation": "Protected plant keeps the supply safe."},
+                {"effect_id": "E15", "action_id": "A1", "party_id": "P6",
+                 "outcome": "retain safe drinking water",
+                 "predicate": "WELFARE_PRESERVED", "polarity": "BENEFICIAL",
+                 "directness": "DOWNSTREAM", "modality": "CERTAIN",
+                 "effect_kind": "WELFARE_OUTCOME", "clause_ids": ["C1"],
+                 "quantities": ["fifty thousand"],
+                 "source_proposition": (
+                     "guaranteeing absolute protection for the downstream "
+                     "water plant"
+                 ),
+                 "source_effect_ids": ["E14"],
+                 "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                 "derivation_explanation": "Urban residents keep safe water."},
+                {"effect_id": "F10", "action_id": "A1", "party_id": "P2",
+                 "outcome": "farms spared", "predicate": "SURVIVES",
+                 "polarity": "FOREGONE", "directness": "FOREGONE",
+                 "modality": "CERTAIN", "effect_kind": "OPPORTUNITY_LOSS",
+                 "clause_ids": ["C2"], "quantities": ["forty"],
+                 "source_proposition": "completely spares the farms",
+                 "derivation_operation": "COUNTERFACTUAL_PROJECTION",
+                 "source_effect_ids": []},
+                {"effect_id": "F11", "action_id": "A1", "party_id": "P4",
+                 "outcome": "facility flooded", "predicate": "SUBJECT_TO",
+                 "polarity": "FOREGONE", "directness": "FOREGONE",
+                 "modality": "CERTAIN", "effect_kind": "OPPORTUNITY_LOSS",
+                 "clause_ids": ["C3"],
+                 "source_proposition": "flooding the treatment facility",
+                 "derivation_operation": "COUNTERFACTUAL_PROJECTION",
+                 "source_effect_ids": []},
+            ],
+            "conditions": [],
+            "causal_links": [
+                {"action_id": "A0", "source_id": "E0", "target_id": "E1",
+                 "link_relation": "CAUSES", "modality": "CERTAIN",
+                 "condition_ids": [], "clause_ids": ["C2"]},
+                {"action_id": "A0", "source_id": "E0", "target_id": "E3",
+                 "link_relation": "CAUSES", "modality": "POSSIBLE",
+                 "condition_ids": [], "clause_ids": ["C3"]},
+                {"action_id": "A0", "source_id": "E3", "target_id": "E4",
+                 "link_relation": "CAUSES", "modality": "STIPULATED_CONDITIONAL",
+                 "condition_ids": [], "clause_ids": ["C3"]},
+                {"action_id": "A0", "source_id": "E4", "target_id": "E5",
+                 "link_relation": "CAUSES", "modality": "STIPULATED_CONDITIONAL",
+                 "condition_ids": [], "clause_ids": ["C3"]},
+                {"action_id": "A0", "source_id": "E5", "target_id": "E6",
+                 "link_relation": "CAUSES", "modality": "STIPULATED_CONDITIONAL",
+                 "condition_ids": [], "clause_ids": ["C3"]},
+                {"action_id": "A1", "source_id": "E10", "target_id": "E11",
+                 "link_relation": "CAUSES", "modality": "CERTAIN",
+                 "condition_ids": [], "clause_ids": ["C1"]},
+                {"action_id": "A1", "source_id": "E11", "target_id": "E12",
+                 "link_relation": "CAUSES", "modality": "CERTAIN",
+                 "condition_ids": [], "clause_ids": ["C1"]},
+                {"action_id": "A1", "source_id": "E10", "target_id": "E13",
+                 "link_relation": "CAUSES", "modality": "CERTAIN",
+                 "condition_ids": [], "clause_ids": ["C1"]},
+                {"action_id": "A1", "source_id": "E13", "target_id": "E14",
+                 "link_relation": "CAUSES", "modality": "CERTAIN",
+                 "condition_ids": [], "clause_ids": ["C1"]},
+                {"action_id": "A1", "source_id": "E14", "target_id": "E15",
+                 "link_relation": "CAUSES", "modality": "CERTAIN",
+                 "condition_ids": [], "clause_ids": ["C1"]},
+            ],
+            "counterfactual_links": [
+                {"action_id": "A0", "source_effect_id": "F0",
+                 "alternative_action_id": "A1", "alternative_effect_id": "E11",
+                 "counterfactual_relation": "FOREGOES_ALTERNATIVE_EFFECT",
+                 "modality": "CERTAIN", "clause_ids": ["C1", "C2"]},
+                {"action_id": "A0", "source_effect_id": "F1",
+                 "alternative_action_id": "A1", "alternative_effect_id": "E13",
+                 "counterfactual_relation": "FOREGOES_ALTERNATIVE_EFFECT",
+                 "modality": "CERTAIN", "clause_ids": ["C1", "C3"]},
+                {"action_id": "A1", "source_effect_id": "F10",
+                 "alternative_action_id": "A0", "alternative_effect_id": "E1",
+                 "counterfactual_relation": "FOREGOES_ALTERNATIVE_EFFECT",
+                 "modality": "CERTAIN", "clause_ids": ["C1", "C2"]},
+                {"action_id": "A1", "source_effect_id": "F11",
+                 "alternative_action_id": "A0", "alternative_effect_id": "E4",
+                 "counterfactual_relation": "FOREGOES_ALTERNATIVE_EFFECT",
+                 "modality": "CERTAIN", "clause_ids": ["C1", "C3"]},
+            ],
+        }
+        model = parse_world_model(raw, clauses=clauses, action_ids=["A0", "A1"])
+        self.assertTrue(any(
+            condition.event_effect_id == "E3" for condition in model.conditions
+        ), [condition.as_dict() for condition in model.conditions])
+        self.assertFalse(any(
+            link.source_id == "E3" and link.target_id == "E4"
+            for link in model.causal_links
+        ))
+        self.assertFalse(any(
+            link.source_id == "E0" and link.target_id == "E3"
+            for link in model.causal_links
+        ))
+        self.assertIn("E6", {effect.effect_id for effect in model.effects})
 
 
 class NeutralDirectInterventionTests(unittest.TestCase):
@@ -3292,7 +3857,7 @@ class EpistemicPropositionLedgerTests(unittest.TestCase):
             candidate.action_scores[actions[0]], candidate.action_scores[actions[1]],
         )
         self.assertFalse(candidate.utilitarian_decision_depends_on_unknown)
-        self.assertTrue(candidate.comparison_complete)
+        self.assertFalse(candidate.comparison_complete)
         self.assertNotEqual(candidate.assumption_status, "UNDERDETERMINED")
         self.assertEqual(candidate.unresolved, "DECISION_BOUNDARY")
         self.assertEqual(profile.adjudication_status, "SUPPORTS")
@@ -3305,6 +3870,12 @@ class EpistemicPropositionLedgerTests(unittest.TestCase):
             {
                 "specialist": "utilitarian",
                 "comparison_complete": candidate.comparison_complete,
+                "utilitarian_decision_depends_on_unknown": (
+                    candidate.utilitarian_decision_depends_on_unknown
+                ),
+                "evidence_sufficient_for_action": (
+                    candidate.evidence_sufficient_for_action
+                ),
                 "decision_critical_proposition_ids": candidate.decision_critical_proposition_ids,
                 "supporting_proposition_ids": candidate.supporting_proposition_ids,
             },
@@ -4198,6 +4769,181 @@ class CompactActionRoleTests(unittest.TestCase):
         self.assertEqual(roles.harmed, ())
         self.assertEqual(roles.unresolved, ())
 
+    def test_facility_with_welfare_row_counts_physical_harm(self):
+        model = _model(
+            (
+                _effect(
+                    "E_spare", "A0", "P4",
+                    outcome="holdings spared",
+                    polarity="BENEFICIAL",
+                    effect_kind="WELFARE_OUTCOME",
+                ),
+                _effect(
+                    "E_sub", "A1", "P4",
+                    outcome="holdings submerged",
+                    polarity="ADVERSE",
+                    effect_kind="PHYSICAL_STATE",
+                ),
+            ),
+            extra_parties=(WorldParty("P4", "outlying holdings", "FACILITY", REF),),
+        )
+        spared = project_world_action_roles(model, "A0")
+        submerged = project_world_action_roles(model, "A1")
+        self.assertEqual(spared.beneficiaries, ("outlying holdings",))
+        self.assertEqual(submerged.harmed, ("outlying holdings",))
+        self.assertEqual(submerged.beneficiaries, ())
+
+    def test_certain_intermediate_protection_conditionally_benefits_opposed_crowd(self):
+        model = _model(
+            (
+                _effect(
+                    "E0", "A0", "P0",
+                    outcome="leave the valve",
+                    polarity="NEUTRAL",
+                    effect_kind="INTERVENTION",
+                ),
+                _effect(
+                    "E_works", "A0", "P4",
+                    outcome="works inundated",
+                    polarity="ADVERSE",
+                    directness="DOWNSTREAM",
+                    modality="STIPULATED_CONDITIONAL",
+                    condition_ids=("COND1",),
+                    effect_kind="PHYSICAL_STATE",
+                ),
+                _effect(
+                    "E_users", "A0", "P3",
+                    outcome="users lose the supply",
+                    polarity="ADVERSE",
+                    directness="DOWNSTREAM",
+                    modality="STIPULATED_CONDITIONAL",
+                    condition_ids=("COND1",),
+                    effect_kind="WELFARE_OUTCOME",
+                ),
+                _effect(
+                    "E1", "A1", "P0",
+                    outcome="divert the valve",
+                    polarity="NEUTRAL",
+                    effect_kind="INTERVENTION",
+                ),
+                _effect(
+                    "E_prot", "A1", "P4",
+                    outcome="works protected",
+                    polarity="BENEFICIAL",
+                    directness="DOWNSTREAM",
+                    effect_kind="PHYSICAL_STATE",
+                ),
+            ),
+            extra_parties=(WorldParty("P4", "treatment works", "FACILITY", REF),),
+            conditions=(
+                WorldCondition(
+                    "COND1", "residue chokes", provenance=REF, event_effect_id="E_evt",
+                ),
+            ),
+            links=(
+                CausalLink("E0", "CAUSES", "E_works", "CERTAIN", (), REF, "A0"),
+                CausalLink("E_works", "CAUSES", "E_users", "CERTAIN", (), REF, "A0"),
+                CausalLink("E1", "CAUSES", "E_prot", "CERTAIN", (), REF, "A1"),
+            ),
+        )
+        leave = project_world_action_roles(model, "A0")
+        divert = project_world_action_roles(model, "A1")
+        self.assertEqual(leave.at_risk, ("downstream residents",))
+        self.assertEqual(leave.beneficiaries, ())
+        self.assertEqual(divert.beneficiaries, ())
+        self.assertEqual(divert.conditionally_benefited, ("downstream residents",))
+        self.assertEqual(divert.harmed, ())
+
+    def test_unrelated_intermediate_protection_does_not_project_a_crowd(self):
+        model = _model(
+            (
+                _effect(
+                    "E_users", "A0", "P3",
+                    outcome="users lose the supply",
+                    polarity="ADVERSE",
+                    directness="DOWNSTREAM",
+                    modality="STIPULATED_CONDITIONAL",
+                    condition_ids=("COND1",),
+                    effect_kind="WELFARE_OUTCOME",
+                ),
+                _effect(
+                    "E_prot", "A1", "P4",
+                    outcome="works protected",
+                    polarity="BENEFICIAL",
+                    directness="DOWNSTREAM",
+                    effect_kind="PHYSICAL_STATE",
+                ),
+            ),
+            extra_parties=(WorldParty("P4", "treatment works", "FACILITY", REF),),
+            conditions=(
+                WorldCondition("COND1", "residue chokes", provenance=REF),
+            ),
+        )
+        divert = project_world_action_roles(model, "A1")
+        self.assertEqual(divert.conditionally_benefited, ())
+        self.assertEqual(divert.beneficiaries, ())
+
+    def test_facility_welfare_swap_compiles_foregone_overlays(self):
+        model = compile_foregone_overlays(_model(
+            (
+                _effect(
+                    "E_spare", "A0", "P4",
+                    outcome="holdings spared",
+                    polarity="BENEFICIAL",
+                    effect_kind="WELFARE_OUTCOME",
+                ),
+                _effect(
+                    "E_sub", "A1", "P4",
+                    outcome="holdings submerged",
+                    polarity="ADVERSE",
+                    effect_kind="PHYSICAL_STATE",
+                ),
+            ),
+            extra_parties=(WorldParty("P4", "outlying holdings", "FACILITY", REF),),
+        ))
+        overlays = [
+            effect for effect in model.effects if effect.directness == "FOREGONE"
+        ]
+        self.assertEqual(len(overlays), 2)
+        self.assertEqual({item.action_id for item in overlays}, {"A0", "A1"})
+        self.assertTrue(all(item.party_id == "P4" for item in overlays))
+        self.assertEqual(validate_world_completeness(model, action_ids=["A0", "A1"]), [])
+        for overlay in overlays:
+            self.assertTrue(utilitarian_omits_foregone_dual(overlay, model))
+
+    def test_opposed_intermediate_supply_compiles_foregone_overlays(self):
+        model = compile_foregone_overlays(_model(
+            (
+                _effect(
+                    "E_foul", "A0", "P4",
+                    outcome="supply fouled",
+                    polarity="ADVERSE",
+                    directness="DOWNSTREAM",
+                    modality="STIPULATED_CONDITIONAL",
+                    condition_ids=("COND1",),
+                    effect_kind="PHYSICAL_STATE",
+                ),
+                _effect(
+                    "E_kept", "A1", "P4",
+                    outcome="supply kept clean",
+                    polarity="BENEFICIAL",
+                    directness="DOWNSTREAM",
+                    effect_kind="PHYSICAL_STATE",
+                ),
+            ),
+            extra_parties=(WorldParty("P4", "piped supply", "RESOURCE", REF),),
+            conditions=(WorldCondition("COND1", "residue chokes", provenance=REF),),
+        ))
+        overlays = [
+            effect for effect in model.effects if effect.directness == "FOREGONE"
+        ]
+        self.assertEqual(len(overlays), 2)
+        self.assertEqual({item.action_id for item in overlays}, {"A0", "A1"})
+        self.assertTrue(all(item.party_id == "P4" for item in overlays))
+        self.assertEqual(validate_world_completeness(model, action_ids=["A0", "A1"]), [])
+        for overlay in overlays:
+            self.assertTrue(utilitarian_omits_foregone_dual(overlay, model))
+
     def test_near_certain_probabilistic_health_is_compact_harm(self):
         model = _model(
             (
@@ -5050,17 +5796,19 @@ class CausalChainCompletenessTests(unittest.TestCase):
             if effect["effect_id"] not in {"EF0", "EF1"}
         ]
         raw["counterfactual_links"] = []
-        with self.assertRaises(ValueError) as raised:
-            parse_world_model(
-                raw,
-                clauses=MAGISTRATE_CLAUSES,
-                action_ids=["A0", "A1"],
-                action_texts={"A0": A0_TEXT, "A1": A1_TEXT},
-            )
-        message = str(raised.exception)
-        self.assertIn("opposed welfare", message)
-        self.assertIn("counterfactual_link", message)
-        self.assertIn("causal_links", message)
+        model = parse_world_model(
+            raw,
+            clauses=MAGISTRATE_CLAUSES,
+            action_ids=["A0", "A1"],
+            action_texts={"A0": A0_TEXT, "A1": A1_TEXT},
+        )
+        overlays = [
+            effect for effect in model.effects
+            if effect.directness == "FOREGONE" and effect.party_id == "P4"
+        ]
+        self.assertEqual(len(overlays), 2)
+        self.assertEqual({item.action_id for item in overlays}, {"A0", "A1"})
+        self.assertEqual(validate_world_completeness(model, action_ids=["A0", "A1"]), [])
 
     def test_foregone_kind_normalizes_to_opportunity_loss(self):
         raw = _connected_allocator_raw()
@@ -5350,7 +6098,7 @@ class PromulgatedWorldTests(unittest.TestCase):
             )
             for row in opening["committed_world"]["counterfactual_links"]
         }
-        self.assertEqual(links, {("A0", "EF0", "E10"), ("A1", "EF1", "E4")})
+        self.assertTrue({("A0", "EF0", "E10"), ("A1", "EF1", "E4")} <= links)
         causal_endpoints = {
             endpoint
             for row in opening["committed_world"]["causal_links"]
@@ -5366,7 +6114,7 @@ class PromulgatedWorldTests(unittest.TestCase):
             for effect in model.effects
             if utilitarian_omits_foregone_dual(effect, model)
         }
-        self.assertEqual(omitted, {"EF0", "EF1"})
+        self.assertTrue({"EF0", "EF1"} <= omitted)
         innocent_foregone = replace(
             next(effect for effect in model.effects if effect.effect_id == "E2"),
             effect_id="EF_INNOCENT",
@@ -5711,6 +6459,74 @@ class AdmittedWorldGroundingTests(unittest.TestCase):
             if "fire-resistant walls" in line.casefold() and "makes" not in line.casefold()
         ]
         self.assertFalse(walls_lines)
+
+    def test_factual_status_lists_each_actions_obtained_harm(self):
+        def _row(
+            effect_id: str,
+            claim: str,
+            *,
+            polarity: str,
+            kind: str,
+            action_id: str,
+        ) -> dict[str, object]:
+            return {
+                "proposition_id": f"PROP:WORLD:{effect_id}",
+                "claim": claim,
+                "proposition_type": "DESCRIPTIVE",
+                "epistemic_status": "ESTABLISHED",
+                "epistemic_type": "WORLD_ESTABLISHED",
+                "modality": "CERTAIN",
+                "directness": "DOWNSTREAM",
+                "polarity": polarity,
+                "effect_kind": kind,
+                "action_id": action_id,
+                "outcome": claim.split(";")[0],
+            }
+
+        lines = _factual_status_lines(
+            {
+                "proposition_ledger": [
+                    _row(
+                        "E0", "valve left shut; affected subject: works",
+                        polarity="NEUTRAL", kind="INTERVENTION", action_id="A0",
+                    ),
+                    _row(
+                        "E1", "holdings spared; affected subject: outlying holdings",
+                        polarity="BENEFICIAL", kind="WELFARE_OUTCOME", action_id="A0",
+                    ),
+                    _row(
+                        "E10", "works protected; affected subject: treatment works",
+                        polarity="BENEFICIAL", kind="PHYSICAL_STATE", action_id="A1",
+                    ),
+                    _row(
+                        "E11", "supply kept clean; affected subject: piped supply",
+                        polarity="BENEFICIAL", kind="PHYSICAL_STATE", action_id="A1",
+                    ),
+                    _row(
+                        "E2", "livelihoods spared; affected subject: township users",
+                        polarity="BENEFICIAL", kind="WELFARE_OUTCOME", action_id="A0",
+                    ),
+                    _row(
+                        "E7", "valve diverted; affected subject: works",
+                        polarity="NEUTRAL", kind="INTERVENTION", action_id="A1",
+                    ),
+                    _row(
+                        "E8", "holdings submerged; affected subject: outlying holdings",
+                        polarity="ADVERSE", kind="PHYSICAL_STATE", action_id="A1",
+                    ),
+                    _row(
+                        "E9", "livelihoods ruined; affected subject: township users",
+                        polarity="ADVERSE", kind="WELFARE_OUTCOME", action_id="A1",
+                    ),
+                ]
+            },
+            [],
+        )
+        joined = "\n".join(lines)
+        self.assertIn("holdings spared", joined.casefold())
+        self.assertIn("livelihoods spared", joined.casefold())
+        self.assertIn("holdings submerged", joined.casefold())
+        self.assertIn("livelihoods ruined", joined.casefold())
 
     def test_public_brief_uses_short_action_labels(self):
         long_a0 = (
