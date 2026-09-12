@@ -113,6 +113,12 @@ from .structured_io import (
 )
 from .performance import record_performance_event
 from .local_specialists import _invalid_candidate
+from .procedural_control import (
+    ANSWER_ARGUMENT_CHALLENGE,
+    BASE_DELIBERATION,
+    CHECK_PROPOSAL_FEASIBILITY,
+    ProceduralController,
+)
 
 
 SynthesisCallback = Callable[
@@ -1287,10 +1293,15 @@ def _argument_challenge_candidates(
                 " ".join(str(row.get("scope", "")).casefold().split())
                 for row in material_rows if str(row.get("scope", "")).strip()
             }
-            grounded_ev = bool(candidate.expected_value_estimates) and all(
-                bool(item.get("grounded"))
-                for item in candidate.expected_value_estimates.values()
-                if isinstance(item, dict)
+            grounded_ev = (
+                candidate.expected_value_validation_status == "ARITHMETIC_VERIFIED"
+                and bool(candidate.expected_value_estimates)
+                and all(
+                    bool(item.get("grounded"))
+                    and item.get("validation_status") == "ARITHMETIC_VERIFIED"
+                    for item in candidate.expected_value_estimates.values()
+                    if isinstance(item, dict)
+                )
             )
             if len(material_rows) >= 2 and (len(directions) > 1 or len(scopes) > 1) and not grounded_ev:
                 add(
@@ -1648,6 +1659,23 @@ _ACTIVE_CHALLENGE_STATUSES = {
 }
 
 
+def _attach_procedural_decision(
+    broadcast: WorkspaceBroadcast,
+    controller: ProceduralController,
+    decision: Any,
+) -> WorkspaceBroadcast:
+    """Attach non-evidentiary controller state to an outgoing broadcast."""
+    state = copy.deepcopy(broadcast.problem_state or {})
+    state["procedural_control"] = controller.snapshot()
+    return replace(
+        broadcast,
+        problem_state=state,
+        procedure_operation=str(decision.operation),
+        procedure_task_ids=tuple(decision.task_ids),
+        procedure_reason=str(decision.reason),
+    )
+
+
 def _graph_party_labels(graph: SemanticGraph) -> list[str]:
     return list(dict.fromkeys(
         node.label
@@ -1763,6 +1791,57 @@ def _answer_transfers_unshared_world_effect(
                     "that does not admit it"
                 )
     if _text_has_mortality(blob):
+        # Validate mortality assertions clause by clause.  A death effect for
+        # one constituency must not license a mortality conversion for another
+        # constituency merely because both appear in the full answer.
+        mortality_rows = [
+            row for row in actual
+            if _text_has_mortality(str(row.get("outcome") or ""))
+        ]
+        for segment in re.split(r"[.;\n]+", blob):
+            if not _text_has_mortality(segment):
+                continue
+            segment_actions = {
+                match.group(0).upper()
+                for match in re.finditer(r"\bA\d+\b", segment, re.IGNORECASE)
+            }
+            for party in _graph_party_labels(graph):
+                party_words = [
+                    word for word in re.findall(r"[a-z0-9]+", party.casefold())
+                    if len(word) > 3
+                ]
+                if not party_words:
+                    continue
+                # The head noun is generally the stable reference when an
+                # answer shortens "eastern-district residents" to "residents".
+                reference = re.escape(party_words[-1])
+                asserts_mortality = bool(re.search(
+                    rf"\b{reference}\b[^,;:.!?]{{0,55}}\b(?:"
+                    r"die|dies|dying|death|deaths|fatal|fatality|fatalities|"
+                    r"mortality|lethal|casualty|casualties)\b|"
+                    rf"\b(?:death|deaths|fatality|fatalities|mortality|casualty|casualties)\b"
+                    rf"[^,;:.!?]{{0,35}}\b(?:among|of|for|to)\b[^,;:.!?]{{0,20}}\b{reference}\b",
+                    segment,
+                    re.IGNORECASE,
+                ))
+                if not asserts_mortality:
+                    continue
+                supporting_mortality = [
+                    row for row in mortality_rows
+                    if any(
+                        _content_token_overlap(party, str(label))
+                        for label in row.get("parties") or []
+                    )
+                    and (
+                        not segment_actions
+                        or str(row.get("action_id") or "").upper() in segment_actions
+                    )
+                ]
+                if not supporting_mortality:
+                    return (
+                        "answer converts an admitted non-mortality outcome into deaths "
+                        f"for {party}"
+                    )
         answer_quantities = _quantity_keys(blob)
         mentioned_actions = {
             match.group(0).upper()
@@ -1818,6 +1897,13 @@ def _challenge_resolution_supported(
     ]
     if not records:
         return False, "no operative graph-committed framework ledger is available"
+
+    if graph is not None:
+        semantic_error = _answer_transfers_unshared_world_effect(
+            str(response.get("answer") or ""), graph,
+        )
+        if semantic_error:
+            return False, semantic_error
 
     action_ids = {
         str(item.get("canonical_action_id", "")) for item in records
@@ -1941,11 +2027,6 @@ def _challenge_resolution_supported(
                     "committed Rawlsian positions omit named parties: "
                     + ", ".join(missing[:3]),
                 )
-            transfer = _answer_transfers_unshared_world_effect(
-                str(response.get("answer") or ""), graph,
-            )
-            if transfer:
-                return False, transfer
         return True, "committed Rawlsian positions cover both actions"
 
     rejected = candidate.framework_retention_status in {
@@ -2068,6 +2149,11 @@ def _render_deliberation_progress(
             vote_note = f"; vote={candidate.framework_vote_status}"
             if candidate.framework_vote_status != "FULL":
                 vote_note += f" ({candidate.framework_vote_reason})"
+        ev_note = ""
+        if candidate.expected_value_validation_status != "NOT_CLAIMED":
+            ev_note = f"; ev={candidate.expected_value_validation_status}"
+            if candidate.expected_value_validation_errors:
+                ev_note += f" ({candidate.expected_value_validation_errors[0]})"
         if not response:
             reason = " ".join(
                 value for value in (candidate.decision_rule, candidate.rationale)
@@ -2075,7 +2161,7 @@ def _render_deliberation_progress(
             )
             progress(
                 f"    {candidate.specialist}: {action_id} "
-                f"[{candidate.adjudication_status}{vote_note}] — "
+                f"[{candidate.adjudication_status}{vote_note}{ev_note}] — "
                 f"{reason or 'no reason supplied'}"
             )
             for line in native_lines(candidate):
@@ -2084,7 +2170,7 @@ def _render_deliberation_progress(
         issue_id = str(response.get("issue_id", ""))
         progress(
             f"    {candidate.specialist}: {action_id} "
-            f"[{candidate.adjudication_status}{vote_note}]"
+            f"[{candidate.adjudication_status}{vote_note}{ev_note}]"
         )
         progress(f"      Question: {questions.get(issue_id, issue_id)}")
         answer_lines = textwrap.wrap(str(response.get("answer", "")), width=100)
@@ -2651,15 +2737,28 @@ class WorkspaceEngine:
         proposal: SynthesisProposal,
         expected_specialists: Sequence[str],
     ) -> bool:
-        """True once the admitted proposal has received a specialist review pass."""
+        """True once enough specialists have returned a substantive review.
+
+        A syntactically valid UNDERDETERMINED response records that a specialist
+        was asked; it does not establish that the proposal was actually assessed.
+        """
         if not proposal.framework_reviews:
             return False
         expected = [name for name in expected_specialists if str(name).strip()]
         if not expected:
-            return True
+            return any(
+                isinstance(review, dict)
+                and review.get("valid") is True
+                and str(review.get("framework_status", "")).upper()
+                != "UNDERDETERMINED"
+                for review in proposal.framework_reviews.values()
+            )
         reviewed = {
             name for name, review in proposal.framework_reviews.items()
             if isinstance(review, dict)
+            and review.get("valid") is True
+            and str(review.get("framework_status", "")).upper()
+            != "UNDERDETERMINED"
         }
         missing = set(expected) - reviewed
         if not missing:
@@ -2681,8 +2780,6 @@ class WorkspaceEngine:
             if str(proposal.admission_status).upper() in {
                 "WITHHOLD_FROM_REVIEW", "REJECTED",
             }:
-                continue
-            if self._proposal_review_pass_completed(proposal, result):
                 continue
             if self._proposal_review_complete(proposal, expected):
                 continue
@@ -3546,6 +3643,7 @@ class WorkspaceEngine:
                     setattr(specialist, name, copy.deepcopy(value))
 
         broadcast = initial_broadcast or WorkspaceBroadcast()
+        procedure_controller = ProceduralController()
         result = WorkspaceResult(
             scenario=scenario,
             actions=clean_actions,
@@ -3579,6 +3677,28 @@ class WorkspaceEngine:
                     world_model=(action_source_grounding or {}).get("world_model"),
                 ),
             )
+        procedure_controller.register_challenges(
+            list((broadcast.problem_state or {}).get(
+                "argument_challenge_candidates", [],
+            ) or []),
+            cycle=1,
+        )
+        if broadcast.constraint in _CHALLENGE_AGENDA_PROTECTED_CONSTRAINTS:
+            opening_decision = procedure_controller.record_forced_operation(
+                cycle=1,
+                constraint=broadcast.constraint,
+                task_ids=broadcast.procedure_task_ids,
+            )
+        else:
+            opening_decision = procedure_controller.select_next(
+                cycle=1,
+                challenge_agenda=broadcast.challenge_agenda,
+                fallback_constraint=broadcast.constraint,
+            )
+        broadcast = _attach_procedural_decision(
+            broadcast, procedure_controller, opening_decision,
+        )
+        result.procedural_control = procedure_controller.snapshot()
         visibility_multipliers = {action: 1.0 for action in clean_actions}
         visibility: VisibilityAssessment | None = None
         if assess_visibility is not None:
@@ -3672,6 +3792,12 @@ class WorkspaceEngine:
             cycle_started = time.monotonic()
             begin_model_call_cycle(cycle_number)
             received_broadcast = broadcast
+            procedure_controller.record_cycle_start(
+                cycle=cycle_number,
+                operation=received_broadcast.procedure_operation,
+                task_ids=received_broadcast.procedure_task_ids,
+            )
+            result.procedural_control = procedure_controller.snapshot()
             is_planning_branch = received_broadcast.branch_kind == "PLANNING_CONTINGENCY"
             is_reformulation_probe = received_broadcast.constraint == "PROBLEM_REFORMULATION"
             is_reversal_probe = received_broadcast.constraint == "REVERSAL_AUDIT"
@@ -4379,14 +4505,28 @@ class WorkspaceEngine:
                                 "framework_status": review.framework_status,
                             } for consequence in review.predicted_consequences)
                     reviewed_proposal.predicted_consequences = accepted_predictions
-                    if self._proposal_review_complete(
+                    proposal_review_complete = self._proposal_review_complete(
                         reviewed_proposal,
                         [specialist.name for specialist in self.specialists],
-                    ):
+                    )
+                    if proposal_review_complete:
                         # Reviewed ≠ promoted: ADMISSIBLE means specialists spoke;
                         # the proposal still stays outside the live action set.
                         reviewed_proposal.promotion_status = "ADMISSIBLE"
                         reviewed_proposal.admission_status = "ADMISSIBLE"
+                    procedure_controller.register_proposal(
+                        reviewed_proposal, cycle=cycle_number,
+                    )
+                    procedure_controller.record_proposal_review(
+                        reviewed_proposal.proposal_id,
+                        cycle=cycle_number,
+                        substantive_complete=proposal_review_complete,
+                        reason=(
+                            "all received framework reviews were invalid or "
+                            "underdetermined"
+                        ),
+                    )
+                    result.procedural_control = procedure_controller.snapshot()
                     proposal_node = graph_store.graph.nodes.get(reviewed_proposal.proposal_id)
                     if proposal_node is not None:
                         graph_store.graph.add_node(SemanticNode(
@@ -4632,7 +4772,12 @@ class WorkspaceEngine:
             deliberative_winner = recorded_focus
             recorded_winner = recorded_focus
             winner = focus
-            if not is_counterfactual:
+            if (
+                not is_counterfactual
+                and procedure_controller.contributes_to_policy_stability(
+                    received_broadcast.procedure_operation
+                )
+            ):
                 stable_cycles = stable_cycles + 1 if selected_action == previous_action else 1
                 previous_action = selected_action
             entropy = self._normalized_entropy(policy)
@@ -4793,12 +4938,7 @@ class WorkspaceEngine:
                 selected_action,
             )
             retained_challenges, challenge_agenda = _advance_argument_challenge_agenda(
-                previous_challenges=(
-                    received_broadcast.problem_state.get(
-                        "argument_challenge_candidates", [],
-                    )
-                    if received_broadcast.problem_state else []
-                ),
+                previous_challenges=procedure_controller.challenge_history(),
                 generated_challenges=argument_challenges,
                 candidates=valid_candidates,
                 next_cycle=cycle_number + 1,
@@ -4811,6 +4951,10 @@ class WorkspaceEngine:
                 settled_issue_ids=settled_keys,
                 graph=graph_store.graph,
             )
+            procedure_controller.register_challenges(
+                retained_challenges, cycle=cycle_number,
+            )
+            retained_challenges = procedure_controller.challenge_history()
             _apply_verified_resolution_to_native_ledgers(
                 retained_challenges, valid_candidates, graph_store, result,
             )
@@ -4829,6 +4973,8 @@ class WorkspaceEngine:
                             private_by_agent.get(specialist.name, {})
                         )
             next_problem_state["argument_challenge_candidates"] = retained_challenges
+            next_problem_state["procedural_control"] = procedure_controller.snapshot()
+            result.procedural_control = procedure_controller.snapshot()
             for candidate in valid_candidates:
                 apply_validator_governance_gate(candidate)
             prior_governing = governing_claim
@@ -4914,6 +5060,16 @@ class WorkspaceEngine:
                 focus_proposition_ids=cycle_focus_proposition_ids,
                 challenge_agenda=tuple(challenge_agenda),
                 problem_state=next_problem_state,
+            )
+            default_procedure_decision = procedure_controller.select_next(
+                cycle=cycle_number + 1,
+                challenge_agenda=challenge_agenda,
+                fallback_constraint=next_broadcast.constraint,
+            )
+            next_broadcast = _attach_procedural_decision(
+                next_broadcast,
+                procedure_controller,
+                default_procedure_decision,
             )
             result.cycles.append(
                 CycleRecord(
@@ -5547,6 +5703,22 @@ class WorkspaceEngine:
                     elif progress:
                         progress(f"  planning assessment unavailable: {assessment.error}")
 
+            if next_broadcast.constraint in _CHALLENGE_AGENDA_PROTECTED_CONSTRAINTS:
+                scheduled_decision = procedure_controller.record_forced_operation(
+                    cycle=cycle_number + 1,
+                    constraint=next_broadcast.constraint,
+                    task_ids=next_broadcast.procedure_task_ids,
+                )
+            else:
+                scheduled_decision = procedure_controller.select_next(
+                    cycle=cycle_number + 1,
+                    challenge_agenda=next_broadcast.challenge_agenda,
+                    fallback_constraint=next_broadcast.constraint,
+                )
+            next_broadcast = _attach_procedural_decision(
+                next_broadcast, procedure_controller, scheduled_decision,
+            )
+            result.procedural_control = procedure_controller.snapshot()
             result.cycles[-1].broadcast = next_broadcast
             broadcast = next_broadcast
             if progress:
@@ -5632,9 +5804,10 @@ class WorkspaceEngine:
                         candidate.specialist for candidate in valid_candidates
                         if candidate.constraint in proposal.addressed_constraints
                     ]
-                    proposal.feasibility_status = (
-                        "PLAUSIBLE" if proposal.feasibility >= 0.70 else "UNCERTAIN"
-                    )
+                    # The synthesis model's number is a screening estimate, not
+                    # physical evidence.  Keep feasibility explicitly unresolved
+                    # until an independent implementation review establishes it.
+                    proposal.feasibility_status = "UNCERTAIN"
                     result.synthesis_proposals.append(proposal)
                     if proposal.accepted:
                         synthesis_text = (
@@ -5672,9 +5845,12 @@ class WorkspaceEngine:
                                 + "; ".join(synthesis_record.errors)
                             )
                     if proposal.accepted:
-                        proposal.grounding_status = "GROUNDED"
+                        proposal.grounding_status = "PARTIALLY_GROUNDED"
                         proposal.promotion_status = "UNDER_REVIEW"
                         proposal.admission_status = "UNDER_REVIEW"
+                        proposal_task_id = procedure_controller.register_proposal(
+                            proposal, cycle=cycle_number,
+                        )
                         graph_store.graph.add_node(SemanticNode(
                             proposal.proposal_id,
                             "PROPOSAL",
@@ -5708,19 +5884,46 @@ class WorkspaceEngine:
                             scenario,
                             result.synthesis_proposals,
                         )
-                        broadcast = WorkspaceBroadcast(
-                            constraint="PROPOSAL_REVIEW",
-                            intent=f"review_{proposal.proposal_id.casefold()}",
-                            urgency=broadcast.urgency,
-                            danger_probability=broadcast.danger_probability,
-                            unresolved="CHECK_FEASIBILITY",
-                            reformulation_context=(
-                                f"Review proposal {proposal.proposal_id}: {proposal.action}. "
-                                "It is not a live action and cannot be selected."
-                            ),
-                            focus_proposition_ids=next_broadcast.focus_proposition_ids,
-                            problem_state=synthesis_problem_state.to_dict(),
+                        scheduled_decision = procedure_controller.select_next(
+                            cycle=cycle_number + 1,
+                            challenge_agenda=next_broadcast.challenge_agenda,
+                            proposal_id=proposal.proposal_id,
+                            fallback_constraint=next_broadcast.constraint,
                         )
+                        if scheduled_decision.operation == ANSWER_ARGUMENT_CHALLENGE:
+                            broadcast = _attach_procedural_decision(
+                                next_broadcast,
+                                procedure_controller,
+                                scheduled_decision,
+                            )
+                        else:
+                            synthesis_state = synthesis_problem_state.to_dict()
+                            synthesis_state["argument_challenge_candidates"] = (
+                                procedure_controller.challenge_history()
+                            )
+                            synthesis_state["procedural_control"] = (
+                                procedure_controller.snapshot()
+                            )
+                            broadcast = WorkspaceBroadcast(
+                                constraint="PROPOSAL_REVIEW",
+                                intent=f"review_{proposal.proposal_id.casefold()}",
+                                urgency=broadcast.urgency,
+                                danger_probability=broadcast.danger_probability,
+                                unresolved="CHECK_FEASIBILITY",
+                                reformulation_context=(
+                                    f"Review proposal {proposal.proposal_id}: {proposal.action}. "
+                                    "It is not a live action and cannot be selected."
+                                ),
+                                focus_proposition_ids=next_broadcast.focus_proposition_ids,
+                                problem_state=synthesis_state,
+                            )
+                            broadcast = _attach_procedural_decision(
+                                broadcast,
+                                procedure_controller,
+                                scheduled_decision,
+                            )
+                        result.procedural_control = procedure_controller.snapshot()
+                        result.cycles[-1].broadcast = broadcast
                         result.access_decisions.append(WorkspaceAccessDecision(
                             cycle=cycle_number,
                             content_type="PROPOSAL_REVIEW",
@@ -5736,7 +5939,12 @@ class WorkspaceEngine:
                                 "ordinary finalization."
                             ),
                         ))
-                        if progress:
+                        if progress and scheduled_decision.operation == ANSWER_ARGUMENT_CHALLENGE:
+                            progress(
+                                f"  synthesis stored as {proposal.proposal_id}; proposal review "
+                                "deferred until higher-priority grounded argument questions are answered"
+                            )
+                        elif progress:
                             progress(
                                 f"  synthesis stored as {proposal.proposal_id} for proposal review: {proposal.action} "
                                 f"(feasibility={proposal.feasibility:.2f}; "
@@ -5756,6 +5964,26 @@ class WorkspaceEngine:
                 and result.cycles[-2].broadcast.unresolved == dissent.unresolved
             )
             pending_proposal = self._pending_proposal_for_guaranteed_review(result)
+            pending_proposal_decision = None
+            pending_proposal_retry_eligible = bool(
+                pending_proposal is not None
+                and (
+                    cycle_number < cycle_limit
+                    or not self._proposal_review_pass_completed(
+                        pending_proposal, result,
+                    )
+                )
+            )
+            if pending_proposal is not None and pending_proposal_retry_eligible:
+                procedure_controller.register_proposal(
+                    pending_proposal, cycle=cycle_number,
+                )
+                pending_proposal_decision = procedure_controller.select_next(
+                    cycle=cycle_number + 1,
+                    challenge_agenda=next_broadcast.challenge_agenda,
+                    proposal_id=pending_proposal.proposal_id,
+                    fallback_constraint=next_broadcast.constraint,
+                )
             hard_resource_exhausted = (
                 elapsed >= self.config.time_budget_seconds
                 or result.halted_by in {
@@ -5766,6 +5994,9 @@ class WorkspaceEngine:
             )
             if (
                 pending_proposal is not None
+                and pending_proposal_decision is not None
+                and pending_proposal_decision.operation
+                == CHECK_PROPOSAL_FEASIBILITY
                 and not proposal_review_forced
                 and not hard_resource_exhausted
                 and self.config.enable_synthesis
@@ -5786,6 +6017,13 @@ class WorkspaceEngine:
                     scenario,
                     result.synthesis_proposals,
                 )
+                synthesis_state = synthesis_problem_state.to_dict()
+                synthesis_state["argument_challenge_candidates"] = (
+                    procedure_controller.challenge_history()
+                )
+                synthesis_state["procedural_control"] = (
+                    procedure_controller.snapshot()
+                )
                 broadcast = WorkspaceBroadcast(
                     constraint="PROPOSAL_REVIEW",
                     intent=f"review_{pending_proposal.proposal_id.casefold()}",
@@ -5798,8 +6036,15 @@ class WorkspaceEngine:
                         "It is not a live action and cannot be selected."
                     ),
                     focus_proposition_ids=next_broadcast.focus_proposition_ids,
-                    problem_state=synthesis_problem_state.to_dict(),
+                    problem_state=synthesis_state,
                 )
+                broadcast = _attach_procedural_decision(
+                    broadcast,
+                    procedure_controller,
+                    pending_proposal_decision,
+                )
+                result.procedural_control = procedure_controller.snapshot()
+                result.cycles[-1].broadcast = broadcast
                 result.access_decisions.append(WorkspaceAccessDecision(
                     cycle=cycle_number,
                     content_type="PROPOSAL_REVIEW",
@@ -5840,6 +6085,7 @@ class WorkspaceEngine:
                 )
                 and not next_problem_state.get("argument_challenge_candidates")
                 and not next_problem_state.get("audit_candidates")
+                and procedure_controller.may_converge()
             )
             if no_op_consensus:
                 result.halted_by = "convergence"
@@ -5853,6 +6099,7 @@ class WorkspaceEngine:
                 entropy < self.config.entropy_threshold
                 and stable_cycles >= self.config.stable_cycles_required
                 and dissent_addressed
+                and procedure_controller.may_converge()
             ):
                 result.halted_by = "convergence"
                 break
@@ -6041,6 +6288,7 @@ class WorkspaceEngine:
 
         if not result.halted_by:
             result.halted_by = "cycle_budget"
+        result.procedural_control = procedure_controller.snapshot()
         actual_cycles = [cycle for cycle in result.cycles if not cycle.is_hypothetical]
         if not actual_cycles:
             result.selected_action = "INCONCLUSIVE"

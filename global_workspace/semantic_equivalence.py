@@ -77,11 +77,23 @@ def semantic_run_snapshot(result: WorkspaceResult) -> SemanticRunSnapshot:
             "framework_vote_reason": candidate.framework_vote_reason,
             "framework_ledger_kind": candidate.framework_ledger_kind,
             "framework_ledger_status": candidate.framework_ledger_status,
+            "framework_ranking_validation_status": (
+                candidate.framework_ranking_validation_status
+            ),
+            "framework_ranking_validation_errors": list(
+                candidate.framework_ranking_validation_errors
+            ),
             "derived_claim_validation_status": (
                 candidate.derived_claim_validation_status
             ),
             "derived_claim_validation_errors": list(
                 candidate.derived_claim_validation_errors
+            ),
+            "expected_value_validation_status": (
+                candidate.expected_value_validation_status
+            ),
+            "expected_value_validation_errors": list(
+                candidate.expected_value_validation_errors
             ),
             "policy_weight_factor": candidate.policy_weight_factor,
             "governing_eligible": candidate.governing_eligible,

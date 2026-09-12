@@ -714,9 +714,17 @@ _CONCEALMENT_MARKER = re.compile(
 )
 _SHORT_LABEL_SPLIT = re.compile(
     r",|;|\bwhile\b|\bcausing\b|\bkilling\b|\bpreserving\b|\ballowing\b|"
-    r"\bleaving\b|\bthereby\b|\bresulting\b",
+    r"\bleaving\b|\bobliging\b|\bexposing\b|\bpreventing\b|\byielding\b|"
+    r"\bsacrificing\b|\bthereby\b|\bresulting\b",
     re.IGNORECASE,
 )
+
+ACTION_ORIGINS = frozenset({
+    "SOURCE_EXTRACTED",
+    "MODEL_PROPOSED",
+    "USER_AUTHORED",
+    "FROZEN_REPLAY",
+})
 
 # Token classes so paraphrases keep the same ranking-relevant content.
 # "kills 16 refugees" ≡ "causes 16 refugees to die"; "grid failure" ≡ "grid unstable".
@@ -785,6 +793,11 @@ class CanonicalActionRecord:
     commitment_status: str = "REJECTED"
     commitment_reasons: tuple[str, ...] = ()
     source_label: str = ""
+    # The source-facing prose is retained for audit and presentation only. Once
+    # a typed world commits, canonical_semantic_action is the neutral admitted
+    # intervention and this field may contain a longer consequence-bearing label.
+    presentation_action: str = ""
+    action_origin: str = "SOURCE_EXTRACTED"
 
     @property
     def eligible_for_deliberation(self) -> bool:
@@ -1173,6 +1186,26 @@ def extract_structured_action_roles(
         "mechanism": mechanism,
         "institutional_effect": institutional,
     }
+
+
+def intervention_only_action_text(action_text: str) -> str:
+    """Project free action prose onto a neutral intervention identity.
+
+    A planner may propose which branch exists, but its causal tail is not a
+    factual source. Consequences are admitted later through the typed world.
+    This projection is deliberately structural: it does not decide whether the
+    discarded tail is true, and it does not add a replacement consequence.
+    """
+    text = " ".join(str(action_text or "").split()).strip(" ,;.")
+    if not text:
+        return ""
+    structure = extract_structured_action_roles(text)
+    intervention = " ".join(str(structure.get("intervention") or "").split())
+    candidate = intervention or text
+    boundary = _SHORT_LABEL_SPLIT.search(candidate)
+    if boundary is not None and boundary.start() > 0:
+        candidate = candidate[:boundary.start()].strip(" ,;.")
+    return candidate or text
 
 
 def extract_scenario_actor(scenario: str) -> str:
@@ -1893,6 +1926,7 @@ def build_canonical_action_record(
     scenario: str = "",
     grounding_status: str = "",
     require_complete: bool = False,
+    action_origin: str = "SOURCE_EXTRACTED",
 ) -> CanonicalActionRecord:
     """Compile id / short label / semantic action / structured fields."""
     semantic = " ".join(str(action_text or "").split())
@@ -2011,6 +2045,10 @@ def build_canonical_action_record(
         structure_issues=structure_issues,
         commitment_status=commitment,
         commitment_reasons=commitment_reasons,
+        presentation_action=semantic,
+        action_origin=(
+            action_origin if action_origin in ACTION_ORIGINS else "SOURCE_EXTRACTED"
+        ),
     )
     if require_complete and status in {
         "INCOMPLETE_CLAUSE",
@@ -2034,6 +2072,7 @@ def build_canonical_action_records(
     grounding_status: str = "",
     require_complete: bool = False,
     world_model: dict[str, Any] | None = None,
+    action_origin: str = "SOURCE_EXTRACTED",
 ) -> list[CanonicalActionRecord]:
     if world_model:
         from .world_state import project_world_action_roles, source_plan_label, world_model_from_dict
@@ -2097,10 +2136,12 @@ def build_canonical_action_records(
                     f"quarantined contradictory direct effect {item.effect_id}"
                     for item in quarantined
                 )
-                semantic = " ".join(str(
-                    action_text_by_id.get(world_action.action_id)
-                    or world_action.intervention
+                presentation_action = " ".join(str(
+                    action_text_by_id.get(world_action.action_id) or ""
                 ).split())
+                # The committed world owns causal facts. Planner/source prose is
+                # passive presentation provenance once its branch has been bound.
+                semantic = " ".join(str(world_action.intervention).split())
                 records.append(CanonicalActionRecord(
                     action_id=world_action.action_id,
                     short_label=render_short_label(world_action.intervention),
@@ -2149,6 +2190,12 @@ def build_canonical_action_records(
                         if quarantined else ()
                     ),
                     source_label=source_plan_label(world_action),
+                    presentation_action=presentation_action,
+                    action_origin=(
+                        action_origin
+                        if action_origin in ACTION_ORIGINS
+                        else "SOURCE_EXTRACTED"
+                    ),
                 ))
             return records
     grounded = grounded_clause_texts_by_id or {}
@@ -2163,8 +2210,126 @@ def build_canonical_action_records(
             scenario=scenario,
             grounding_status=grounding_status,
             require_complete=require_complete,
+            action_origin=action_origin,
         ))
     return records
+
+
+def action_world_correspondence_errors(
+    actions: Sequence[str],
+    world_model: Any,
+    *,
+    action_origin: str = "SOURCE_EXTRACTED",
+) -> tuple[str, ...]:
+    """Validate branch identity and factual authority after world admission.
+
+    The check is intentionally about correspondence, not prose equivalence. A
+    longer source/presentation action is projected to its intervention and may
+    paraphrase the typed intervention. Model-proposed actions may never serve as
+    provenance for effects; only source clauses or explicit user-authored input
+    can establish factual consequences.
+    """
+    from .world_state import ScenarioWorldModel, world_model_from_dict
+
+    typed = (
+        world_model
+        if isinstance(world_model, ScenarioWorldModel)
+        else world_model_from_dict(world_model)
+    )
+    if typed is None:
+        return ("typed world state could not be restored for action correspondence",)
+    origin = str(action_origin or "").strip().upper()
+    if origin not in ACTION_ORIGINS:
+        return (f"unknown action origin {action_origin!r}",)
+    expected_ids = [f"A{index}" for index in range(len(actions))]
+    world_by_id = {action.action_id: action for action in typed.actions}
+    errors: list[str] = []
+    if set(world_by_id) != set(expected_ids):
+        errors.append(
+            "typed world action IDs do not match the canonical action set"
+        )
+        return tuple(errors)
+
+    generic = {
+        "action", "act", "choose", "choice", "option", "plan", "directly",
+        "only", "same", "possible", "many", "much", "one",
+    }
+    scoped_label_heads = {
+        "site", "sector", "route", "road", "gate", "pipeline", "ward",
+        "district", "facility", "branch", "zone", "side",
+    }
+
+    def correspondence_tokens(value: str) -> set[str]:
+        raw = re.findall(r"[a-z0-9]+", value.casefold())
+        tokens = set(_concepts(value)) - generic
+        for index, token in enumerate(raw[1:], start=1):
+            if raw[index - 1] in scoped_label_heads and len(token) <= 3:
+                tokens.add(f"{raw[index - 1]}:{token}")
+        return tokens
+
+    admitted_tokens_by_id = {
+        action_id: correspondence_tokens(" ".join((
+            world_action.intervention,
+            *(
+                party.label for party in typed.parties
+                if party.party_id in world_action.recipient_party_ids
+            ),
+        )))
+        for action_id, world_action in world_by_id.items()
+    }
+    for action_id, presentation in zip(expected_ids, actions):
+        world_action = world_by_id[action_id]
+        proposed_intervention = intervention_only_action_text(presentation)
+        admitted_intervention = " ".join(world_action.intervention.split())
+        if not proposed_intervention:
+            errors.append(f"{action_id} has no proposed intervention identity")
+            continue
+        if not admitted_intervention:
+            errors.append(f"{action_id} has no admitted intervention identity")
+            continue
+        proposed_tokens = correspondence_tokens(proposed_intervention)
+        admitted_tokens = admitted_tokens_by_id[action_id]
+        if proposed_tokens and admitted_tokens:
+            shared = proposed_tokens & admitted_tokens
+            own_score = len(shared) / len(proposed_tokens | admitted_tokens)
+            rival_scores = {
+                rival_id: len(proposed_tokens & rival_tokens)
+                / len(proposed_tokens | rival_tokens)
+                for rival_id, rival_tokens in admitted_tokens_by_id.items()
+                if rival_id != action_id and proposed_tokens | rival_tokens
+            }
+            best_rival = max(rival_scores.values(), default=0.0)
+            # Reject only a confident cross-branch match. Merely unusual
+            # paraphrasing is not enough to withhold an otherwise grounded world.
+            if not shared or best_rival > own_score + 0.15:
+                errors.append(
+                    f"{action_id} proposed intervention does not correspond to "
+                    "its admitted world intervention"
+                )
+
+    if origin not in {"USER_AUTHORED", "FROZEN_REPLAY"}:
+        for effect in typed.effects:
+            action_refs = sorted({
+                ref.clause_id for ref in effect.provenance
+                if ref.clause_id in expected_ids
+            })
+            if action_refs:
+                errors.append(
+                    f"{effect.effect_id} treats non-authoritative action prose "
+                    f"as factual provenance: {action_refs}"
+                )
+        for link in typed.counterfactual_links:
+            action_refs = sorted({
+                ref.clause_id for ref in link.provenance
+                if ref.clause_id in expected_ids
+            })
+            if action_refs:
+                errors.append(
+                    "counterfactual link "
+                    f"{link.source_effect_id}->{link.alternative_effect_id} treats "
+                    f"non-authoritative action prose as factual provenance: {action_refs}"
+                )
+    return tuple(dict.fromkeys(errors))
 
 
 def validate_action_set_completeness(

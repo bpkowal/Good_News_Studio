@@ -13,6 +13,7 @@ from unittest.mock import patch
 
 from global_workspace.scenario_semantics import (
     attach_typed_world_model, compile_scenario_graph,
+    conditional_gate_projection_errors,
     project_grounded_action_effects,
 )
 from global_workspace.utilitarian_ledger import (
@@ -33,6 +34,8 @@ from global_workspace.world_state import (
     classify_clause_role,
     compile_event_condition_bindings,
     compile_foregone_overlays,
+    compile_missing_parent_links,
+    compile_proximal_recipient_transfer_parents,
     compact_committed_world,
     explicit_likelihood_spans,
     explicit_likelihood_span_records,
@@ -55,9 +58,17 @@ from global_workspace.world_state import (
     _event_referenced_condition_errors,
     _unique_likelihood_spans,
 )
-from global_workspace.action_identity import build_canonical_action_records
+from global_workspace.action_identity import (
+    action_world_correspondence_errors,
+    build_canonical_action_records,
+    intervention_only_action_text,
+)
 from global_workspace.world_validation import (
+    FULL_REBUILD,
+    LOCAL_PATCH,
+    SUBGRAPH_REBUILD,
     WorldModelValidationError,
+    classify_world_repair_scope,
     repair_patch_contract,
     validation_issues_from_messages,
 )
@@ -2121,6 +2132,80 @@ class ClauseRoleTests(unittest.TestCase):
 
 
 class WorldModelValidationTests(unittest.TestCase):
+    def test_admission_rejects_model_action_ids_as_effect_evidence(self):
+        clauses = [
+            {"clause_id": "C1", "text": "A0 acts north."},
+            {"clause_id": "C2", "text": "A1 acts south."},
+        ]
+        candidate = {
+            "actions": {
+                "A0": {"clause_ids": ["C1"], "reason": "north branch"},
+                "A1": {"clause_ids": ["C2"], "reason": "south branch"},
+            },
+            "world_model": {
+                "effects": [{"effect_id": "E0", "clause_ids": ["A0"]}],
+                "counterfactual_links": [],
+            },
+        }
+        model = _model(_valid_effects()[:2])
+        with patch(
+            "global_workspace.world_state.parse_world_model",
+            return_value=model,
+        ), patch(
+            "global_workspace.world_state.validate_world_model",
+            return_value=([], []),
+        ):
+            rejected = _admit_action_source_rows(
+                candidate,
+                ["act north", "act south"],
+                ["A0", "A1"],
+                clauses,
+            )
+            admitted = _admit_action_source_rows(
+                candidate,
+                ["act north", "act south"],
+                ["A0", "A1"],
+                clauses,
+                allow_action_text_evidence=True,
+            )
+
+        self.assertEqual(rejected["status"], "REJECTED")
+        self.assertTrue(any(
+            "non-authoritative model action text" in error
+            for error in rejected["errors"]
+        ))
+        self.assertEqual(admitted["status"], "COMMITTED")
+
+    def test_grounding_schema_grants_action_text_evidence_only_to_user_actions(self):
+        schemas = []
+
+        def fail_after_capture(_llm, _prompt, **kwargs):
+            schemas.append(kwargs["schema"])
+            raise RuntimeError("stop after schema capture")
+
+        for allow in (False, True):
+            with patch(
+                "global_workspace.local_specialists._call_json_llm",
+                side_effect=fail_after_capture,
+            ):
+                ground_actions_in_scenario(
+                    object(),
+                    "A dispatcher acts north. The alternative acts south.",
+                    ["act north", "act south"],
+                    max_attempts=1,
+                    allow_action_text_evidence=allow,
+                )
+
+        source_enums = [
+            schema["properties"]["world_model"]["properties"]["effects"]
+            ["items"]["properties"]["clause_ids"]["items"]["enum"]
+            for schema in schemas
+        ]
+        self.assertNotIn("A0", source_enums[0])
+        self.assertNotIn("A1", source_enums[0])
+        self.assertIn("A0", source_enums[1])
+        self.assertIn("A1", source_enums[1])
+
     def test_schema_13_action_source_candidate_commits_end_to_end(self):
         clauses = [
             {"clause_id": "C0", "text": "An automated system controls two gates."},
@@ -2210,6 +2295,25 @@ class WorldModelValidationTests(unittest.TestCase):
             effects=(effect,),
             schema_version="1.3",
         )
+        self.assertEqual(validate_effect_source_bindings(model), [])
+
+    def test_source_binding_matches_active_and_passive_irregular_verbs(self):
+        ref = (SourceRef("C1", "Plan B sends the buses east."),)
+        effect = WorldEffect(
+            "E1", "A0", "P1", "buses sent east", "MOVED", "NEUTRAL",
+            "DIRECT", "CERTAIN", "INTERVENTION", provenance=ref,
+            source_proposition="sends the buses east",
+            derivation_operation="DIRECT_COPY",
+        )
+        model = ScenarioWorldModel(
+            parties=(WorldParty("P1", "buses", "RESOURCE", ref),),
+            actions=(
+                WorldAction("A0", "send buses east", "P1", ("P1",), ("E1",), ref),
+            ),
+            effects=(effect,),
+            schema_version="1.3",
+        )
+
         self.assertEqual(validate_effect_source_bindings(model), [])
 
     def test_schema_13_rejects_outcome_leap_hidden_as_direct_copy(self):
@@ -2352,6 +2456,145 @@ class WorldModelValidationTests(unittest.TestCase):
         self.assertEqual(contract["allowed_operations"], ["add", "replace"])
         self.assertIn("E2", contract["allowed_entity_ids"])
 
+    def test_repair_scope_separates_local_subgraph_and_full_rebuilds(self):
+        candidate = {
+            "world_model": {
+                "effects": [{"effect_id": "E2", "action_id": "A1"}],
+                "conditions": [],
+                "causal_links": [],
+            },
+        }
+        local = validation_issues_from_messages((
+            "E2 temporal qualifier 'immediate' is not stated in its provenance",
+        ))
+        subgraph = validation_issues_from_messages((
+            "A1 recipient P2 lacks an atomic DIRECT INTERVENTION, "
+            "RESOURCE_TRANSFER, or INSTITUTIONAL_OUTCOME effect",
+            "E2 is a downstream human outcome with no causal parent",
+        ))
+        self.assertEqual(
+            classify_world_repair_scope(local, candidate=candidate),
+            LOCAL_PATCH,
+        )
+        self.assertEqual(
+            classify_world_repair_scope(subgraph, candidate=candidate),
+            SUBGRAPH_REBUILD,
+        )
+        contract = repair_patch_contract(subgraph, candidate=candidate)
+        self.assertEqual(contract["repair_scope"], SUBGRAPH_REBUILD)
+        self.assertEqual(contract["implicated_action_ids"], ["A1"])
+        self.assertEqual(
+            classify_world_repair_scope(
+                subgraph,
+                errors=("action-source mapping must cover every canonical action",),
+                candidate=candidate,
+            ),
+            FULL_REBUILD,
+        )
+        self.assertEqual(
+            classify_world_repair_scope(subgraph, candidate=None),
+            FULL_REBUILD,
+        )
+
+    def test_transferred_resource_recipient_requires_subgraph_rebuild(self):
+        candidate = {
+            "world_model": {
+                "actions": [{"action_id": "A0"}],
+                "effects": [{"effect_id": "E1", "action_id": "A0"}],
+                "conditions": [],
+                "causal_links": [],
+            },
+        }
+        issues = validation_issues_from_messages((
+            "A0 names transferred resource P2 as a recipient; the person or "
+            "crowd who receives that resource should be the recipient; P4 is "
+            "the receiving group",
+        ))
+
+        self.assertEqual(issues[0].code, "RESOURCE_TRANSFER_TARGET_MISMATCH")
+        self.assertEqual(
+            classify_world_repair_scope(issues, candidate=candidate),
+            SUBGRAPH_REBUILD,
+        )
+        self.assertEqual(
+            repair_patch_contract(issues, candidate=candidate)
+            ["implicated_action_ids"],
+            ["A0"],
+        )
+
+    def test_causal_ancestry_failure_requires_subgraph_rebuild(self):
+        candidate = {
+            "world_model": {
+                "effects": [{"effect_id": "E2", "action_id": "A0"}],
+                "conditions": [],
+                "causal_links": [],
+            },
+        }
+        issues = validation_issues_from_messages((
+            "E2 is a downstream human outcome whose causal ancestry never "
+            "reaches a DIRECT act on the actor or a named recipient",
+        ))
+
+        self.assertEqual(issues[0].code, "MISSING_CAUSAL_PARENT")
+        self.assertEqual(
+            classify_world_repair_scope(issues, candidate=candidate),
+            SUBGRAPH_REBUILD,
+        )
+
+    def test_existing_recipient_transfer_becomes_proximal_outcome_parent(self):
+        ref = (SourceRef(
+            "C1", "The coordinator sends the buses east, allowing residents to escape.",
+        ),)
+        model = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "coordinator", "PERSON", ref),
+                WorldParty("P1", "residents", "GROUP", ref),
+            ),
+            actions=(
+                WorldAction("A0", "send buses east", "P0", ("P1",),
+                            ("E0", "E1", "E2"), ref),
+            ),
+            effects=(
+                WorldEffect(
+                    "E0", "A0", "P0", "sends buses east", "PERFORMS",
+                    "NEUTRAL", "DIRECT", "CERTAIN", "INTERVENTION",
+                    provenance=ref,
+                ),
+                WorldEffect(
+                    "E1", "A0", "P1", "receive buses", "GAINS",
+                    "NEUTRAL", "DIRECT", "CERTAIN", "RESOURCE_TRANSFER",
+                    provenance=ref, source_effect_ids=("E0",),
+                ),
+                WorldEffect(
+                    "E2", "A0", "P1", "escape", "SURVIVES",
+                    "BENEFICIAL", "DOWNSTREAM", "CERTAIN", "HEALTH_OUTCOME",
+                    provenance=ref, source_effect_ids=("E0",),
+                ),
+            ),
+            causal_links=(
+                CausalLink("E0", "CAUSES", "E2", "CERTAIN", (), ref, "A0"),
+            ),
+            schema_version="1.3",
+        )
+        compiled = compile_proximal_recipient_transfer_parents(
+            compile_missing_parent_links(model),
+        )
+
+        self.assertTrue(any(
+            link.source_id == "E0" and link.target_id == "E1"
+            for link in compiled.causal_links
+        ))
+        self.assertTrue(any(
+            link.source_id == "E1" and link.target_id == "E2"
+            for link in compiled.causal_links
+        ))
+        self.assertFalse(any(
+            link.source_id == "E0" and link.target_id == "E2"
+            for link in compiled.causal_links
+        ))
+        child = next(effect for effect in compiled.effects if effect.effect_id == "E2")
+        self.assertEqual(child.source_effect_ids, ("E1",))
+
     def test_world_model_validation_error_retains_typed_issues(self):
         issue = validation_issues_from_messages(("E2 lacks source provenance",))[0]
         error = WorldModelValidationError((issue.message,), (issue,))
@@ -2464,6 +2707,8 @@ class WorldModelValidationTests(unittest.TestCase):
         self.assertIn("Typed validation issues", prompts[1])
         self.assertIn("Transactional repair boundary", prompts[1])
         self.assertIn('"allowed_entity_ids": ["E1"]', prompts[1])
+        self.assertEqual(result["attempts"][1]["repair_scope"], LOCAL_PATCH)
+        self.assertTrue(result["attempts"][1]["inherited_candidate"])
         world_schema = schemas[0]["properties"]["world_model"]
         self.assertEqual(
             world_schema["properties"]["schema_version"]["enum"], ["1.3"],
@@ -2471,6 +2716,255 @@ class WorldModelValidationTests(unittest.TestCase):
         effect_required = world_schema["properties"]["effects"]["items"]["required"]
         self.assertIn("source_proposition", effect_required)
         self.assertIn("derivation_operation", effect_required)
+
+    def test_subgraph_rebuild_inherits_candidate_but_unlocks_action_component(self):
+        rejected_candidate = {
+            "sentinel": "rebuild this component",
+            "actions": {"A0": {}, "A1": {}},
+            "world_model": {
+                "effects": [{"effect_id": "E0", "action_id": "A0"}],
+            },
+        }
+        issue = validation_issues_from_messages((
+            "A0 recipient P2 lacks an atomic DIRECT INTERVENTION, "
+            "RESOURCE_TRANSFER, or INSTITUTIONAL_OUTCOME effect",
+        ))[0].as_dict()
+        rejected = {
+            "status": "REJECTED", "actions": {},
+            "errors": [issue["message"]], "validation_issues": [issue],
+            "clauses": [], "world_contradictions": [],
+        }
+        committed = {
+            "status": "COMMITTED", "actions": {"A0": {}, "A1": {}},
+            "errors": [], "validation_issues": [], "clauses": [],
+            "world_contradictions": [],
+        }
+        prompts: list[str] = []
+
+        def fake_call(_llm, prompt, **_kwargs):
+            prompts.append(prompt)
+            return {"choices": [{"text": __import__("json").dumps(rejected_candidate)}]}
+
+        with patch(
+            "global_workspace.local_specialists._call_json_llm",
+            side_effect=fake_call,
+        ), patch(
+            "global_workspace.local_specialists._admit_action_source_rows",
+            side_effect=[rejected, committed],
+        ):
+            result = ground_actions_in_scenario(
+                object(),
+                "Option A: send aid north. Option B: send aid south.",
+                ["send aid north", "send aid south"],
+                max_attempts=2,
+            )
+
+        self.assertIn("SUBGRAPH_REBUILD", prompts[1])
+        self.assertIn('"sentinel": "rebuild this component"', prompts[1])
+        self.assertEqual(result["attempts"][1]["repair_scope"], SUBGRAPH_REBUILD)
+        self.assertEqual(result["attempts"][1]["rebuild_action_ids"], ["A0"])
+
+    def test_full_rebuild_does_not_inherit_rejected_candidate(self):
+        rejected_candidate = {
+            "sentinel": "must not be inherited",
+            "actions": {"A0": {}, "A1": {}},
+            "world_model": {"effects": []},
+        }
+        message = "action-source mapping must cover every canonical action"
+        issue = validation_issues_from_messages((message,))[0].as_dict()
+        rejected = {
+            "status": "REJECTED", "actions": {}, "errors": [message],
+            "validation_issues": [issue], "clauses": [],
+            "world_contradictions": [],
+        }
+        committed = {
+            "status": "COMMITTED", "actions": {"A0": {}, "A1": {}},
+            "errors": [], "validation_issues": [], "clauses": [],
+            "world_contradictions": [],
+        }
+        prompts: list[str] = []
+
+        def fake_call(_llm, prompt, **_kwargs):
+            prompts.append(prompt)
+            return {"choices": [{"text": __import__("json").dumps(rejected_candidate)}]}
+
+        with patch(
+            "global_workspace.local_specialists._call_json_llm",
+            side_effect=fake_call,
+        ), patch(
+            "global_workspace.local_specialists._admit_action_source_rows",
+            side_effect=[rejected, committed],
+        ):
+            result = ground_actions_in_scenario(
+                object(),
+                "Option A: send aid north. Option B: send aid south.",
+                ["send aid north", "send aid south"],
+                max_attempts=2,
+            )
+
+        self.assertIn("FULL_REBUILD", prompts[1])
+        self.assertNotIn('"sentinel": "must not be inherited"', prompts[1])
+        self.assertEqual(result["attempts"][1]["repair_scope"], FULL_REBUILD)
+        self.assertFalse(result["attempts"][1]["inherited_candidate"])
+
+    def test_transient_repair_failure_retains_prior_semantic_scope(self):
+        prior_candidate = {
+            "actions": {"A0": {}, "A1": {}},
+            "world_model": {
+                "effects": [{"effect_id": "E2", "action_id": "A1"}],
+            },
+        }
+        prior_issue = validation_issues_from_messages((
+            "E2 is a downstream human outcome with no causal parent",
+        ))[0].as_dict()
+        with patch(
+            "global_workspace.local_specialists._call_json_llm",
+            side_effect=TimeoutError("provider stalled"),
+        ):
+            result = ground_actions_in_scenario(
+                object(),
+                "Option A: send aid north. Option B: send aid south.",
+                ["send aid north", "send aid south"],
+                max_attempts=1,
+                prior_errors=[prior_issue["message"]],
+                prior_issues=[prior_issue],
+                prior_candidate=prior_candidate,
+                prior_source="failed_grounding_resume_cache",
+            )
+
+        self.assertEqual(result["status"], "REJECTED")
+        self.assertEqual(result["next_repair_scope"], SUBGRAPH_REBUILD)
+        self.assertEqual(result["rejected_candidate"], prior_candidate)
+        self.assertEqual(result["attempts"][0]["validation_issues"], [prior_issue])
+        self.assertTrue(result["repair_inheritance"]["candidate_inherited"])
+        self.assertEqual(result["inherited_candidate_snapshot"], prior_candidate)
+
+    def test_complete_failed_cache_is_revalidated_before_any_model_call(self):
+        prior_candidate = {
+            "actions": {"A0": {}, "A1": {}},
+            "world_model": {
+                "schema_version": "1.3",
+                "parties": [], "actions": [], "effects": [],
+                "conditions": [], "causal_links": [],
+                "counterfactual_links": [],
+            },
+        }
+        committed = {
+            "status": "COMMITTED", "world_model_status": "COMMITTED",
+            "actions": {"A0": {}, "A1": {}}, "world_model": {"effects": []},
+            "errors": [], "validation_issues": [], "clauses": [],
+            "world_contradictions": [],
+        }
+        with patch(
+            "global_workspace.local_specialists._admit_action_source_rows",
+            return_value=committed,
+        ), patch(
+            "global_workspace.local_specialists._call_json_llm",
+        ) as model_call:
+            result = ground_actions_in_scenario(
+                object(),
+                "Option A: send aid north. Option B: send aid south.",
+                ["send aid north", "send aid south"],
+                max_attempts=1,
+                prior_errors=["previous compiler rejection"],
+                prior_issues=[{"code": "WORLD_VALIDATION_ERROR"}],
+                prior_candidate=prior_candidate,
+                prior_source="failed_grounding_resume_cache",
+            )
+
+        model_call.assert_not_called()
+        self.assertEqual(result["status"], "COMMITTED")
+        self.assertEqual(
+            result["attempts"][0]["repair_scope"],
+            "DETERMINISTIC_REVALIDATION",
+        )
+
+    def test_failed_grounding_retains_lowest_cost_candidate_across_attempts(self):
+        def candidate(marker):
+            return {
+                "marker": marker,
+                "actions": {"A0": {}, "A1": {}},
+                "world_model": {
+                    "schema_version": "1.3",
+                    "parties": [], "actions": [], "effects": [],
+                    "conditions": [], "causal_links": [],
+                    "counterfactual_links": [],
+                },
+            }
+
+        first_issue = {"code": "FIRST", "message": "first issue"}
+        worse_issues = [
+            {"code": f"WORSE_{index}", "message": f"worse issue {index}"}
+            for index in range(3)
+        ]
+        rejected_first = {
+            "status": "REJECTED", "actions": {},
+            "errors": ["first issue"], "validation_issues": [first_issue],
+            "clauses": [], "world_contradictions": [],
+        }
+        rejected_worse = {
+            "status": "REJECTED", "actions": {},
+            "errors": ["three later issues"], "validation_issues": worse_issues,
+            "clauses": [], "world_contradictions": [],
+        }
+        responses = [
+            {"choices": [{"text": __import__("json").dumps(candidate("best"))}]},
+            {"choices": [{"text": __import__("json").dumps(candidate("worse"))}]},
+        ]
+        with patch(
+            "global_workspace.local_specialists._call_json_llm",
+            side_effect=responses,
+        ), patch(
+            "global_workspace.local_specialists._admit_action_source_rows",
+            side_effect=[rejected_first, rejected_worse],
+        ):
+            result = ground_actions_in_scenario(
+                object(),
+                "Option A: send aid north. Option B: send aid south.",
+                ["send aid north", "send aid south"],
+                max_attempts=2,
+            )
+
+        self.assertEqual(result["rejected_candidate"]["marker"], "best")
+        self.assertEqual(result["validation_issues"], [first_issue])
+        self.assertEqual(len(result["attempts"]), 2)
+
+    def test_subgraph_preservation_does_not_restore_rebuilt_action_effects(self):
+        previous = {
+            "world_model": {
+                "effects": [
+                    {"effect_id": "E0", "action_id": "A0", "quantities": ["20"]},
+                    {"effect_id": "E1", "action_id": "A1", "quantities": ["300"]},
+                ],
+                "actions": [
+                    {"action_id": "A0", "effect_ids": ["E0"]},
+                    {"action_id": "A1", "effect_ids": ["E1"]},
+                ],
+                "parties": [], "conditions": [], "causal_links": [],
+                "counterfactual_links": [],
+            },
+        }
+        candidate = {
+            "world_model": {
+                "effects": [
+                    {"effect_id": "E1", "action_id": "A1", "quantities": []},
+                ],
+                "actions": [
+                    {"action_id": "A0", "effect_ids": []},
+                    {"action_id": "A1", "effect_ids": ["E1"]},
+                ],
+                "parties": [], "conditions": [], "causal_links": [],
+                "counterfactual_links": [],
+            },
+        }
+        merged = _preserve_stable_world_bookkeeping(
+            previous, candidate, rebuild_action_ids=("A0",),
+        )
+        effects = {
+            row["effect_id"]: row for row in merged["world_model"]["effects"]
+        }
+        self.assertNotIn("E0", effects)
+        self.assertEqual(effects["E1"]["quantities"], ["300"])
 
     def test_repair_restores_dropped_counterfactual_overlays(self):
         previous = {
@@ -4911,6 +5405,44 @@ class CompactActionRoleTests(unittest.TestCase):
         for overlay in overlays:
             self.assertTrue(utilitarian_omits_foregone_dual(overlay, model))
 
+    def test_foregone_overlay_preserves_overall_likelihood_qualifiers(self):
+        adverse = replace(
+            _effect(
+                "E_adverse", "A0", "P4",
+                outcome="patients face near-certain death",
+                polarity="ADVERSE",
+                directness="DOWNSTREAM",
+                modality="STIPULATED_CONDITIONAL",
+                condition_ids=("COND1",),
+                effect_kind="HEALTH_OUTCOME",
+                likelihood_qualifiers=("near-certain",),
+            ),
+            overall_likelihood_qualifiers=("unlikely",),
+        )
+        model = compile_foregone_overlays(_model(
+            (
+                adverse,
+                _effect(
+                    "E_benefit", "A1", "P4",
+                    outcome="patients escape safely",
+                    polarity="BENEFICIAL",
+                    directness="DOWNSTREAM",
+                    effect_kind="HEALTH_OUTCOME",
+                ),
+            ),
+            extra_parties=(WorldParty("P4", "hospital patients", "GROUP", REF),),
+            conditions=(WorldCondition("COND1", "ventilation fails", provenance=REF),),
+        ))
+        mirror = next(
+            effect for effect in model.effects
+            if effect.action_id == "A1"
+            and effect.directness == "FOREGONE"
+            and effect.source_effect_ids == ("E_adverse",)
+        )
+
+        self.assertEqual(mirror.likelihood_qualifiers, ("near-certain",))
+        self.assertEqual(mirror.overall_likelihood_qualifiers, ("unlikely",))
+
     def test_opposed_intermediate_supply_compiles_foregone_overlays(self):
         model = compile_foregone_overlays(_model(
             (
@@ -6369,6 +6901,159 @@ def _admitted_comparison_graph() -> SemanticGraph:
 
 
 class AdmittedWorldGroundingTests(unittest.TestCase):
+    def test_committed_world_intervention_replaces_planner_causal_tail(self):
+        model = _model(_valid_effects()[:2])
+        planner_actions = [
+            "Send crew to Site A, requiring the family to leave by river",
+            "Send crew to Site B, obliging the engineer to attempt the same route",
+        ]
+
+        self.assertEqual(
+            intervention_only_action_text(planner_actions[1]),
+            "Send crew to Site B",
+        )
+        self.assertEqual(
+            action_world_correspondence_errors(
+                planner_actions, model, action_origin="MODEL_PROPOSED",
+            ),
+            (),
+        )
+        records = build_canonical_action_records(
+            planner_actions,
+            world_model=model.as_dict(),
+            grounding_status="COMMITTED",
+            action_origin="MODEL_PROPOSED",
+        )
+        self.assertEqual(records[0].canonical_semantic_action, "send crew to Site A")
+        self.assertEqual(records[1].canonical_semantic_action, "send crew to Site B")
+        self.assertEqual(records[1].presentation_action, planner_actions[1])
+        self.assertNotIn("engineer", records[1].canonical_semantic_action)
+        self.assertEqual(records[1].action_origin, "MODEL_PROPOSED")
+
+    def test_action_world_correspondence_rejects_swapped_branches(self):
+        model = _model(_valid_effects()[:2])
+        errors = action_world_correspondence_errors(
+            ["Send crew to Site B", "Send crew to Site A"],
+            model,
+            action_origin="SOURCE_EXTRACTED",
+        )
+        self.assertTrue(any("A0" in error for error in errors), errors)
+        self.assertTrue(any("A1" in error for error in errors), errors)
+
+    def test_action_world_correspondence_allows_valid_branch_paraphrases(self):
+        model = _model(_valid_effects()[:2])
+
+        errors = action_world_correspondence_errors(
+            ["Deploy the team at Site A", "Assign the team to Site B"],
+            model,
+            action_origin="SOURCE_EXTRACTED",
+        )
+
+        self.assertEqual(errors, ())
+
+    def test_model_action_text_cannot_be_world_effect_provenance(self):
+        effects = list(_valid_effects()[:2])
+        effects[0] = replace(effects[0], provenance=ACTION_A0_REF)
+        model = _model(tuple(effects))
+
+        errors = action_world_correspondence_errors(
+            ["send crew to Site A", "send crew to Site B"],
+            model,
+            action_origin="MODEL_PROPOSED",
+        )
+        self.assertTrue(any("E1" in error and "provenance" in error for error in errors))
+        self.assertFalse(action_world_correspondence_errors(
+            ["send crew to Site A", "send crew to Site B"],
+            model,
+            action_origin="USER_AUTHORED",
+        ))
+
+    def test_conditional_antecedent_survives_semantic_graph_projection(self):
+        graph = _admitted_comparison_graph()
+        condition = graph.nodes["COND1"]
+        block_node = "A1:WORLD_EFFECT:E1_BLOCK"
+        trapped_node = "A1:WORLD_EFFECT:E1_TRAP"
+
+        self.assertEqual(condition.attributes["event_effect_id"], "E1_BLOCK")
+        self.assertTrue(any(
+            edge.source == block_node
+            and edge.relation == "ACTIVATES"
+            and edge.target == "COND1"
+            for edge in graph.edges
+        ))
+        self.assertTrue(any(
+            edge.source == trapped_node
+            and edge.relation == "CONDITIONAL_ON"
+            and edge.target == "COND1"
+            for edge in graph.edges
+        ))
+        trapped = seed_proposition_ledger(graph)["PROP:WORLD:E1_TRAP"]
+        self.assertTrue(any(
+            "10% chance" in term and "BLOCKAGE" in term
+            for term in trapped.context_terms
+        ), trapped.context_terms)
+
+    def test_action_mediated_causal_edge_names_its_independent_event_gate(self):
+        condition = WorldCondition(
+            "COND_BLOCK", "narrow road is blocked", provenance=REF,
+            event_effect_id="E_BLOCK",
+        )
+        model = _model(
+            (
+                _effect(
+                    "E_ACT", "A0", "P1", outcome="assign buses",
+                    relation="ASSIGNS", effect_kind="INTERVENTION",
+                ),
+                _effect(
+                    "E_USE", "A0", "P3", outcome="uses narrow road",
+                    relation="USES", polarity="NEUTRAL", directness="DOWNSTREAM",
+                    effect_kind="PHYSICAL_STATE",
+                ),
+                _effect(
+                    "E_BLOCK", "A0", "P4", outcome="blocked by debris",
+                    relation="BLOCKED", polarity="ADVERSE", directness="DOWNSTREAM",
+                    modality="PROBABILISTIC", effect_kind="PHYSICAL_STATE",
+                    likelihood_qualifiers=("10% chance",),
+                ),
+                _effect(
+                    "E_TRAP", "A0", "P3", outcome="residents trapped",
+                    relation="TRAPPED", polarity="ADVERSE", directness="DOWNSTREAM",
+                    modality="STIPULATED_CONDITIONAL", effect_kind="WELFARE_OUTCOME",
+                    condition_ids=("COND_BLOCK",),
+                ),
+                _effect("E_OTHER", "A1", "P2"),
+            ),
+            conditions=(condition,),
+            links=(
+                CausalLink("E_ACT", "ENABLES", "E_USE", "CERTAIN", (), REF, "A0"),
+                CausalLink("E_USE", "CAUSES", "E_TRAP", "CERTAIN", (), REF, "A0"),
+            ),
+            extra_parties=(WorldParty("P4", "narrow road", "INFRASTRUCTURE", REF),),
+        )
+        graph = SemanticGraph()
+        for action_id in ("A0", "A1"):
+            graph.add_node(SemanticNode(
+                action_id, "ACTION", action_id, ("scenario_action_set",),
+                {"canonical_action_id": action_id},
+            ))
+        attach_typed_world_model(graph, model)
+
+        use_node = "A0:WORLD_EFFECT:E_USE"
+        trap_node = "A0:WORLD_EFFECT:E_TRAP"
+        causal = next(
+            edge for edge in graph.edges
+            if edge.source == use_node and edge.target == trap_node
+        )
+        self.assertEqual(causal.condition, "COND_BLOCK")
+        self.assertIn("conditional_gate=COND_BLOCK", causal.justification)
+        self.assertFalse(any(
+            edge.source == "A0:WORLD_EFFECT:E_BLOCK"
+            and edge.relation == "CAUSES"
+            and edge.target == trap_node
+            for edge in graph.edges
+        ))
+        self.assertEqual(conditional_gate_projection_errors(graph, model), [])
+
     def test_admitted_alternative_action_facts_rebind_as_stipulated(self):
         ledger = seed_proposition_ledger(_admitted_comparison_graph())
         trapped = ledger["PROP:WORLD:E1_TRAP"]

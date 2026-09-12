@@ -1769,6 +1769,15 @@ def render_decision_brief(result: Any) -> str:
             elif (
                 proposal.get("accepted")
                 and proposal.get("promotion_status") == "ADMISSIBLE"
+                and any(
+                    isinstance(review, dict)
+                    and review.get("valid") is True
+                    and str(review.get("framework_status", "")).upper()
+                    != "UNDERDETERMINED"
+                    for review in dict(
+                        proposal.get("framework_reviews") or {}
+                    ).values()
+                )
             ):
                 lines.append(
                     "**Status:** Reviewed by specialists — retained as a candidate "
@@ -1776,7 +1785,8 @@ def render_decision_brief(result: Any) -> str:
                 )
             else:
                 lines.append(
-                    "**Status:** Candidate only — not sufficiently reviewed during this run."
+                    "**Status:** Candidate only — no completed substantive specialist "
+                    "review during this run."
                 )
                 lines.append("")
                 lines.append(

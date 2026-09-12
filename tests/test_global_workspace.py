@@ -24,6 +24,11 @@ from global_workspace.engine import (
 from global_workspace.epistemic_ledger import seed_proposition_ledger
 from global_workspace.action_identity import compile_action_identity
 from global_workspace.evidence_calibration import EvidenceCalibration
+from global_workspace.ev_dominance import assess_ev_dominance
+from global_workspace.expected_value import (
+    EV_ARITHMETIC_VERIFIED, EV_INVALID, EV_SOURCE_CORRESPONDENCE,
+    expected_value_leader, validate_expected_value_estimates,
+)
 from global_workspace.framework_vote_integrity import apply_framework_vote_integrity
 from global_workspace.framework_retrieval import format_evidence_context
 from global_workspace.legacy_bridge import (
@@ -1304,6 +1309,75 @@ class WorkspaceEngineTests(unittest.TestCase):
             "omit named parties" in reason or "transfers an action-scoped" in reason,
             reason,
         )
+
+    def test_care_challenge_cannot_reintroduce_rejected_mortality_conversion(self):
+        graph = SemanticGraph()
+        for action_id, label in (("A0", "send buses east"), ("A1", "send buses to hospital")):
+            graph.add_node(SemanticNode(
+                action_id, "ACTION", label,
+                attributes={"canonical_action_id": action_id},
+            ))
+        graph.add_node(SemanticNode(
+            "A0:WORLD_EFFECT:E6", "CONSEQUENCE", "face death",
+            attributes={
+                "world_effect_id": "E6", "polarity": "ADVERSE",
+                "directness": "DOWNSTREAM", "quantities": ["twenty"],
+            },
+        ))
+        graph.add_node(SemanticNode(
+            "A1:WORLD_EFFECT:E12", "CONSEQUENCE", "residents trapped",
+            attributes={
+                "world_effect_id": "E12", "polarity": "ADVERSE",
+                "directness": "DOWNSTREAM", "quantities": ["approximately sixty"],
+            },
+        ))
+        graph.add_node(SemanticNode("PARTY:P3", "TARGET", "hospital patients"))
+        graph.add_node(SemanticNode(
+            "PARTY:P4", "TARGET", "eastern-district residents",
+        ))
+        graph.add_edge(SemanticEdge("A0", "HAS_CONSEQUENCE", "A0:WORLD_EFFECT:E6"))
+        graph.add_edge(SemanticEdge("A1", "HAS_CONSEQUENCE", "A1:WORLD_EFFECT:E12"))
+        graph.add_edge(SemanticEdge("A0:WORLD_EFFECT:E6", "AFFECTS", "PARTY:P3"))
+        graph.add_edge(SemanticEdge("A1:WORLD_EFFECT:E12", "AFFECTS", "PARTY:P4"))
+        candidate = CandidateChunk(
+            specialist="care", constraint="CARE",
+            action_scores={"send buses east": 0.25, "send buses to hospital": 0.75},
+            surprise=0.2, friction=0.5, confidence=0.7,
+            recommended_action="send buses to hospital",
+            committed_native_ledger={
+                "ledger_kind": "CARE_RELATIONSHIP_LEDGER",
+                "transaction_status": "COMMITTED",
+                "records": [
+                    {
+                        "canonical_action_id": "A0", "affected_party": "residents",
+                        "relationship_type": "COMMUNITY_RELATION",
+                        "dependency_source": "shared civic infrastructure",
+                        "competing_care_claim": "hospital patients",
+                    },
+                    {
+                        "canonical_action_id": "A1", "affected_party": "patients",
+                        "relationship_type": "ENTRUSTED",
+                        "dependency_source": "hospital custody",
+                        "competing_care_claim": "eastern residents",
+                    },
+                ],
+            },
+        )
+        verified, reason = _challenge_resolution_supported(
+            candidate,
+            {"challenge_kind": "CARE_CLAIM_COVERAGE"},
+            {
+                "answer": (
+                    "Patients face near-certain death if left; residents face "
+                    "6 expected deaths."
+                ),
+                "current_position_effect": "NO_CHANGE",
+            },
+            graph=graph,
+        )
+        self.assertFalse(verified)
+        self.assertIn("non-mortality outcome into deaths", reason)
+        self.assertIn("residents", reason)
 
     def test_rejected_normative_update_preserves_current_epistemic_audit(self):
         actions = ["provide relief", "defer relief"]
@@ -5343,6 +5417,54 @@ class WorkspaceEngineTests(unittest.TestCase):
             {"SUPPORTS": 1, "QUALIFIES": 1},
         )
 
+    def test_all_underdetermined_proposal_responses_are_not_completed_reviews(self):
+        proposal = SynthesisProposal(
+            "evacuate patients then shuttle residents",
+            ["care", "rawlsian"], ["CARE", "FAIRNESS"],
+            0.8, "attempts to serve both groups", accepted=True,
+            # Reproduce the contradictory legacy trace: a mechanical response
+            # count promoted all-UNDERDETERMINED reviews to ADMISSIBLE.
+            proposal_id="P0", promotion_status="ADMISSIBLE",
+            feasibility_status="UNCERTAIN", grounding_status="PARTIALLY_GROUNDED",
+            framework_reviews={
+                name: ProposalFrameworkReview(
+                    proposal_id="P0", specialist=name,
+                    framework_status="UNDERDETERMINED",
+                    framework_reason="proposal is not a live action choice",
+                ).to_dict()
+                for name in ("care", "rawlsian")
+            },
+        )
+        self.assertFalse(WorkspaceEngine._proposal_review_complete(
+            proposal, ["care", "rawlsian"],
+        ))
+        result = WorkspaceResult(
+            scenario="test", actions=["send buses east", "send buses to hospital"],
+            cycles=[CycleRecord(
+                cycle=1,
+                broadcast=WorkspaceBroadcast(constraint="CARE"),
+                candidates=[CandidateChunk(
+                    specialist="care", constraint="CARE",
+                    action_scores={
+                        "send buses east": 0.3,
+                        "send buses to hospital": 0.7,
+                    },
+                    surprise=0.2, friction=0.4, confidence=0.7,
+                    recommended_action="send buses to hospital",
+                    rationale="respond to entrusted patients",
+                )],
+                winner=None, dissent=None,
+                policy={"send buses east": 0.3, "send buses to hospital": 0.7},
+                entropy=0.5, stable_cycles=0, elapsed_seconds=0.1,
+            )],
+            selected_action="send buses to hospital",
+            current_plurality="send buses to hospital",
+            synthesis_proposals=[proposal],
+        )
+        answer = render_public_judgment(result)
+        self.assertNotIn("Reviewed by specialists", answer)
+        self.assertIn("no completed substantive specialist review", answer)
+
     def test_admitted_proposal_review_emits_access_decision(self):
         result = WorkspaceEngine(
             [
@@ -5419,7 +5541,7 @@ class WorkspaceEngineTests(unittest.TestCase):
             for decision in result.access_decisions
         ))
 
-    def test_pending_proposal_helper_skips_completed_review_pass(self):
+    def test_pending_proposal_helper_retries_incomplete_review_pass(self):
         engine = WorkspaceEngine(
             [
                 FixedSpecialist("care", "protect", "CARE"),
@@ -5448,7 +5570,9 @@ class WorkspaceEngineTests(unittest.TestCase):
             cycles=[cycle],
         )
         result.synthesis_proposals.append(proposal)
-        self.assertIsNone(engine._pending_proposal_for_guaranteed_review(result))
+        self.assertIs(
+            engine._pending_proposal_for_guaranteed_review(result), proposal,
+        )
 
     def test_proposal_review_parser_rejects_unproven_scenario_inheritance(self):
         data = {
@@ -8462,6 +8586,53 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(propose_actions(PlannerMustNotRun(), scenario), expected)
         self.assertTrue(_scenario_closes_action_set(scenario))
 
+    def test_plan_a_b_sentences_bypass_model_planning_without_merging_branches(self):
+        scenario = (
+            "A wildfire approaches a town. Plan A sends the only buses to the "
+            "hospital, making the patients' escape almost certain. The eastern "
+            "district then uses a narrow road. Plan B sends the buses east, "
+            "allowing residents to escape safely. The hospital patients remain "
+            "behind."
+        )
+
+        class PlannerMustNotRun:
+            def __call__(self, *args, **kwargs):
+                raise AssertionError("source-labelled plans should bypass planning")
+
+        expected = [
+            "Sends the only buses to the hospital, making the patients' escape almost certain",
+            "Sends the buses east, allowing residents to escape safely",
+        ]
+        self.assertEqual(extract_labeled_action_legend(scenario), {
+            "A0": expected[0], "A1": expected[1],
+        })
+        self.assertEqual(propose_actions(PlannerMustNotRun(), scenario), expected)
+
+    def test_model_planner_cannot_broadcast_an_invented_consequence_tail(self):
+        class HallucinatingPlanner:
+            def __call__(self, prompt, **kwargs):
+                return {"choices": [{"text": json.dumps({
+                    "actor": "emergency coordinator",
+                    "sides": {"A": "hospital", "B": "eastern district"},
+                    "actions": [
+                        {
+                            "a": "Send buses to the hospital, leaving residents to use the narrow road",
+                            "f": 0.9, "e": True, "p": "SIDE_A",
+                        },
+                        {
+                            "a": "Send buses east, obliging hospital patients to attempt the same narrow road escape",
+                            "f": 0.9, "e": True, "p": "SIDE_B",
+                        },
+                    ],
+                })}]}
+
+        actions = propose_actions(
+            HallucinatingPlanner(),
+            "An emergency coordinator must choose between hospital protection and district evacuation.",
+        )
+        self.assertEqual(actions, ["Send buses to the hospital", "Send buses east"])
+        self.assertNotIn("obliging", " ".join(actions).casefold())
+
     def test_sentence_separated_a0_a1_choices_bypass_model_planning(self):
         scenario = (
             "An airborne pathogen forces a 15-minute decision. Action A0 seals "
@@ -8656,6 +8827,40 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(stance.numerical_role, "SECONDARY")
         self.assertEqual(set(stance.framework_commitments), {"A0", "A1"})
         self.assertIn("Care-specific construct check", llm.prompt)
+
+    def test_source_plan_label_resolves_through_shuffled_current_run_map(self):
+        class PositionalGuessLlm:
+            def complete_json(self, prompt, *, schema, max_tokens, temperature):
+                # Reproduce the trace bug: semantic extraction guesses that the
+                # author's Plan A means canonical A0.
+                return {"choices": [{"text": json.dumps({
+                    "b": "A0", "p": "A0", "w": "old positional guess",
+                    "q": "DIRECT", "c": "NONE", "s": "NONE", "x": ["A1"],
+                    "m": {
+                        "A0": "MIXED: least-advantaged residents face a burden",
+                        "A1": "MIXED: least-advantaged patients face a burden",
+                    },
+                    "nr": "DECISIVE",
+                })}]}
+
+        stance = infer_testimony_stance(
+            PositionalGuessLlm(),
+            "rawlsian",
+            (
+                "Action: Plan A\nThe least-advantaged patients retain a primary good.\n"
+                "Action: Plan B\nThe least-advantaged residents retain basic liberty.\n"
+                "Rawlsian Status: Plan A is justified under the difference principle."
+            ),
+            ["send buses east", "send buses to hospital"],
+            source_action_legend={
+                "A0": "send buses east",
+                "A1": "send buses to hospital",
+            },
+            source_label_bindings={"Plan A": "A1", "Plan B": "A0"},
+        )
+        self.assertEqual(stance.status, "DIRECT")
+        self.assertEqual(stance.action_id, "A1")
+        self.assertIn("terminal labeled answer (A1)", stance.reason)
 
     def test_contested_care_baseline_does_not_freeze_provisional_action(self):
         actions = ["maintain course", "swerve"]
@@ -13184,6 +13389,103 @@ class EpistemicHypothesisBindingTests(unittest.TestCase):
             "PROP:WORLD:E6",
         )
 
+    def test_source_proposition_paraphrases_bind_but_outcome_conversion_does_not(self):
+        from global_workspace.epistemic_ledger import resolve_proposition
+
+        actions = ("send buses east", "send buses to hospital")
+        graph = SemanticGraph()
+        for action_id, label in (("A0", actions[0]), ("A1", actions[1])):
+            graph.add_node(SemanticNode(
+                action_id, "ACTION", label,
+                attributes={"canonical_action_id": action_id},
+            ))
+        common = (SourceRef("C0", "A wildfire approaches the town."),)
+        escape_ref = (SourceRef(
+            "C2", "Plan A sends buses to the hospital, making the patients' escape almost certain.",
+        ),)
+        death_ref = (SourceRef(
+            "C9", "If ventilation fails, patients who cannot be moved face near-certain death.",
+        ),)
+        trapped_ref = (SourceRef(
+            "C4", "If blocked, approximately sixty residents could be trapped.",
+        ),)
+        world = ScenarioWorldModel(
+            parties=(
+                WorldParty("P0", "emergency coordinator", "PERSON", common),
+                WorldParty("P3", "hospital patients", "GROUP", common, ("twenty",)),
+                WorldParty("P4", "eastern-district residents", "GROUP", common, ("three hundred",)),
+            ),
+            actions=(
+                WorldAction("A0", actions[0], "P0", ("P4",), ("E6",), common),
+                WorldAction("A1", actions[1], "P0", ("P3",), ("E9", "E12"), common),
+            ),
+            effects=(
+                WorldEffect(
+                    "E6", "A0", "P3", "face death", "AT_RISK_OF",
+                    "ADVERSE", "DOWNSTREAM", "STIPULATED_CONDITIONAL",
+                    "HEALTH_OUTCOME", ("COND1",), (), death_ref,
+                    ("near-certain",), source_proposition=(
+                        "the patients who cannot be moved face near-certain death"
+                    ),
+                ),
+                WorldEffect(
+                    "E9", "A1", "P3", "escape", "SURVIVES",
+                    "BENEFICIAL", "DOWNSTREAM", "PROBABILISTIC",
+                    "HEALTH_OUTCOME", (), (), escape_ref, ("almost certain",),
+                    source_proposition="making the patients' escape almost certain",
+                ),
+                WorldEffect(
+                    "E12", "A1", "P4", "residents trapped", "TRAPPED",
+                    "ADVERSE", "DOWNSTREAM", "STIPULATED_CONDITIONAL",
+                    "WELFARE_OUTCOME", ("COND2",), ("approximately sixty",),
+                    trapped_ref, ("could",),
+                    source_proposition="approximately sixty residents could be trapped",
+                ),
+            ),
+            conditions=(
+                WorldCondition("COND1", "ventilation fails", provenance=death_ref),
+                WorldCondition("COND2", "road blocked", provenance=trapped_ref),
+            ),
+            admission=WorldStateAdmission(
+                status="COMMITTED", admitted_effect_ids=("E6", "E9", "E12"),
+            ),
+        )
+        attach_typed_world_model(graph, world)
+        ledger = seed_proposition_ledger(graph)
+
+        self.assertEqual(
+            resolve_proposition(
+                ledger,
+                "patients who cannot be moved face near-certain death if ventilation fails under Plan A0",
+                preferred="PROP:WORLD:E6",
+            ),
+            "PROP:WORLD:E6",
+        )
+        self.assertEqual(
+            resolve_proposition(
+                ledger,
+                "the patients' escape is almost certain under Plan A1",
+                preferred="PROP:WORLD:E9",
+            ),
+            "PROP:WORLD:E9",
+        )
+        self.assertEqual(
+            resolve_proposition(
+                ledger,
+                "approximately sixty residents could be trapped under Plan A1",
+                preferred="PROP:WORLD:E12",
+            ),
+            "PROP:WORLD:E12",
+        )
+        self.assertEqual(
+            resolve_proposition(
+                ledger,
+                "six eastern-district residents die under Plan A1",
+                preferred="PROP:WORLD:E12",
+            ),
+            "",
+        )
+
     def test_hypothesis_about_possible_row_is_not_certain_quarantine(self):
         from global_workspace.epistemic_ledger import (
             CERTAIN_CONTRADICTION_NOTE,
@@ -15363,7 +15665,7 @@ class CanonicalActionCompletenessTests(unittest.TestCase):
         self.assertTrue(any("token-bag" in issue for issue in issues))
         self.assertTrue(any("beneficiaries missing" in issue for issue in issues))
 
-    def test_planner_path_does_not_word_truncate_action_text(self):
+    def test_planner_path_projects_consequence_prose_to_interventions(self):
         from global_workspace.local_specialists import _feasible_actions
         long_action = (
             "Maintain standard oxygen allocation for the public ward, preserving "
@@ -15382,8 +15684,15 @@ class CanonicalActionCompletenessTests(unittest.TestCase):
                 {"a": other, "f": 0.9, "e": True, "p": "SIDE_B"},
             ],
         })
-        self.assertEqual(actions[0], long_action)
-        self.assertIn("kills 16 refugees", actions[0])
+        self.assertEqual(
+            actions[0],
+            "Maintain standard oxygen allocation for the public ward",
+        )
+        self.assertEqual(
+            actions[1],
+            "Publish the unalterable system audit now",
+        )
+        self.assertNotIn("kills 16 refugees", " ".join(actions))
 
     def test_incomplete_planner_action_is_rejected(self):
         from global_workspace.local_specialists import _feasible_actions
@@ -15676,6 +15985,355 @@ class FrameworkVoteIntegrityTests(unittest.TestCase):
         decision = apply_framework_vote_integrity(candidate, self.actions)
         self.assertEqual(decision.status, "ABSTAIN")
         self.assertEqual(candidate.derived_claim_validation_status, "QUARANTINED")
+
+    def test_agent_ev_is_verified_from_action_local_effect_operands(self):
+        submitted = {
+            self.actions[0]: {
+                "value": 8, "unit": "LIVES", "direction": "BENEFIT",
+                "grounded": True, "method": "DIRECT_COUNT",
+                "source_effect_ids": ["E0"],
+                "calculation": "eight certain beneficiaries equals eight",
+                "assumptions": [],
+            },
+            self.actions[1]: {
+                "value": 5, "unit": "LIVES", "direction": "BENEFIT",
+                "grounded": True, "method": "DIRECT_COUNT",
+                "source_effect_ids": ["E1"],
+                "calculation": "five certain beneficiaries equals five",
+                "assumptions": [],
+            },
+        }
+        validation = validate_expected_value_estimates(
+            submitted,
+            action_id_by_key={self.actions[0]: "A0", self.actions[1]: "A1"},
+            effect_records=[
+                {
+                    "effect_id": "E0", "action_id": "A0",
+                    "polarity": "BENEFICIAL", "modality": "CERTAIN",
+                    "quantities": ["eight"],
+                },
+                {
+                    "effect_id": "E1", "action_id": "A1",
+                    "polarity": "BENEFICIAL", "modality": "CERTAIN",
+                    "quantities": ["five"],
+                },
+            ],
+        )
+        self.assertEqual(validation.status, EV_ARITHMETIC_VERIFIED)
+        self.assertEqual(
+            expected_value_leader(validation.estimates, self.actions),
+            self.actions[0],
+        )
+        self.assertEqual(validation.estimates[self.actions[0]]["calculation"],
+                         "eight certain beneficiaries equals eight")
+
+    def test_traceable_utility_index_is_preserved_without_becoming_world_arithmetic(self):
+        submitted = {
+            action: {
+                "value": value, "unit": "UTILITY_POINTS", "direction": "BENEFIT",
+                "grounded": True, "method": "UTILITY_INDEX",
+                "source_effect_ids": [effect_id],
+                "calculation": "apply declared welfare weight to cited effect",
+                "assumptions": ["one utility scale is used"],
+            }
+            for action, value, effect_id in (
+                (self.actions[0], 0.8, "E0"),
+                (self.actions[1], 0.6, "E1"),
+            )
+        }
+        validation = validate_expected_value_estimates(
+            submitted,
+            action_id_by_key={self.actions[0]: "A0", self.actions[1]: "A1"},
+            effect_records=[
+                {"effect_id": "E0", "action_id": "A0", "polarity": "BENEFICIAL"},
+                {"effect_id": "E1", "action_id": "A1", "polarity": "BENEFICIAL"},
+            ],
+        )
+        self.assertEqual(validation.status, EV_SOURCE_CORRESPONDENCE)
+        self.assertIsNone(expected_value_leader(validation.estimates, self.actions))
+
+        records = [
+            {"specialist": "utilitarian", "canonical_action_id": "A0", "grounded_effect_id": "E0", "direction": "BENEFIT"},
+            {"specialist": "utilitarian", "canonical_action_id": "A1", "grounded_effect_id": "E1", "direction": "BENEFIT"},
+        ]
+        candidate = self._candidate(
+            "utilitarian",
+            expected_value_estimates=validation.estimates,
+            expected_value_validation_status=validation.status,
+            committed_native_ledger=self._native(
+                "UTILITARIAN_CONSEQUENCE_LEDGER", records,
+            ),
+        )
+        decision = apply_framework_vote_integrity(candidate, self.actions)
+        self.assertEqual(decision.status, "ATTENUATED")
+        self.assertNotEqual(decision.status, "ABSTAIN")
+
+    def test_verified_agent_ev_can_supply_full_utilitarian_vote(self):
+        submitted = {
+            self.actions[0]: {
+                "value": 8, "unit": "LIVES", "direction": "BENEFIT",
+                "grounded": True, "method": "DIRECT_COUNT",
+                "source_effect_ids": ["E0"],
+                "calculation": "eight certain lives equals eight",
+                "assumptions": [],
+            },
+            self.actions[1]: {
+                "value": 5, "unit": "LIVES", "direction": "BENEFIT",
+                "grounded": True, "method": "DIRECT_COUNT",
+                "source_effect_ids": ["E1"],
+                "calculation": "five certain lives equals five",
+                "assumptions": [],
+            },
+        }
+        validation = validate_expected_value_estimates(
+            submitted,
+            action_id_by_key={self.actions[0]: "A0", self.actions[1]: "A1"},
+            effect_records=[
+                {"effect_id": "E0", "action_id": "A0", "polarity": "BENEFICIAL", "modality": "CERTAIN", "quantities": ["eight"]},
+                {"effect_id": "E1", "action_id": "A1", "polarity": "BENEFICIAL", "modality": "CERTAIN", "quantities": ["five"]},
+            ],
+        )
+        records = [
+            {"specialist": "utilitarian", "canonical_action_id": "A0", "grounded_effect_id": "E0", "direction": "BENEFIT"},
+            {"specialist": "utilitarian", "canonical_action_id": "A1", "grounded_effect_id": "E1", "direction": "BENEFIT"},
+        ]
+        candidate = self._candidate(
+            "utilitarian",
+            expected_value_estimates=validation.estimates,
+            expected_value_validation_status=validation.status,
+            committed_native_ledger=self._native(
+                "UTILITARIAN_CONSEQUENCE_LEDGER", records,
+            ),
+        )
+        decision = apply_framework_vote_integrity(candidate, self.actions)
+        self.assertEqual(decision.status, "FULL")
+        self.assertEqual(candidate.framework_ranking_validation_status, "PASSED")
+
+        dominance = assess_ev_dominance(
+            [candidate], self.actions,
+            ratio_threshold=1.5, majority_fraction=1.0, minimum_majority=1,
+        )
+        self.assertTrue(dominance.activated)
+
+    def test_unverified_grounded_flag_cannot_activate_ev_dominance(self):
+        candidate = self._candidate(
+            "utilitarian",
+            expected_value_estimates={
+                self.actions[0]: {
+                    "value": 100, "unit": "LIVES", "direction": "BENEFIT",
+                    "grounded": True,
+                },
+                self.actions[1]: {
+                    "value": 1, "unit": "LIVES", "direction": "BENEFIT",
+                    "grounded": True,
+                },
+            },
+        )
+        dominance = assess_ev_dominance(
+            [candidate], self.actions,
+            ratio_threshold=5.0, majority_fraction=1.0, minimum_majority=1,
+        )
+        self.assertFalse(dominance.activated)
+        self.assertEqual(dominance.valid_delegate_count, 0)
+
+    def test_bad_ev_arithmetic_is_quarantined_before_utilitarian_voting(self):
+        submitted = {
+            self.actions[0]: {
+                "value": 80, "unit": "LIVES", "direction": "BENEFIT",
+                "grounded": True, "method": "DIRECT_COUNT",
+                "source_effect_ids": ["E0"], "calculation": "eight becomes eighty",
+                "assumptions": [],
+            },
+            self.actions[1]: {
+                "value": 5, "unit": "LIVES", "direction": "BENEFIT",
+                "grounded": True, "method": "DIRECT_COUNT",
+                "source_effect_ids": ["E1"], "calculation": "five stays five",
+                "assumptions": [],
+            },
+        }
+        validation = validate_expected_value_estimates(
+            submitted,
+            action_id_by_key={self.actions[0]: "A0", self.actions[1]: "A1"},
+            effect_records=[
+                {"effect_id": "E0", "action_id": "A0", "polarity": "BENEFICIAL", "modality": "CERTAIN", "quantities": ["eight"]},
+                {"effect_id": "E1", "action_id": "A1", "polarity": "BENEFICIAL", "modality": "CERTAIN", "quantities": ["five"]},
+            ],
+        )
+        self.assertEqual(validation.status, EV_INVALID)
+        records = [
+            {"specialist": "utilitarian", "canonical_action_id": "A0", "grounded_effect_id": "E0", "direction": "BENEFIT"},
+            {"specialist": "utilitarian", "canonical_action_id": "A1", "grounded_effect_id": "E1", "direction": "BENEFIT"},
+        ]
+        candidate = self._candidate(
+            "utilitarian",
+            expected_value_estimates=validation.estimates,
+            expected_value_validation_status=validation.status,
+            expected_value_validation_errors=list(validation.errors),
+            committed_native_ledger=self._native(
+                "UTILITARIAN_CONSEQUENCE_LEDGER", records,
+            ),
+        )
+        decision = apply_framework_vote_integrity(candidate, self.actions)
+        self.assertEqual(decision.status, "ABSTAIN")
+        self.assertIn("EV was quarantined", decision.reason)
+
+    def test_bad_ev_does_not_erase_independent_native_ledger_dominance(self):
+        candidate = self._candidate(
+            "utilitarian",
+            expected_value_estimates={
+                self.actions[0]: {"claimed_grounded": True, "grounded": False},
+                self.actions[1]: {"claimed_grounded": True, "grounded": False},
+            },
+            expected_value_validation_status=EV_INVALID,
+            expected_value_validation_errors=["A0: EV value does not match"],
+            committed_native_ledger=self._native(
+                "UTILITARIAN_CONSEQUENCE_LEDGER",
+                [
+                    {"specialist": "utilitarian", "canonical_action_id": "A0", "grounded_effect_id": "E0", "direction": "BENEFIT"},
+                    {"specialist": "utilitarian", "canonical_action_id": "A1", "grounded_effect_id": "E1", "direction": "HARM"},
+                ],
+            ),
+        )
+        decision = apply_framework_vote_integrity(candidate, self.actions)
+        self.assertEqual(decision.status, "ATTENUATED")
+        self.assertNotEqual(candidate.policy_weight_factor, 0.0)
+
+    def test_ev_cannot_relabel_trapping_as_a_death_count(self):
+        submitted = {
+            self.actions[0]: {
+                "value": 60, "unit": "DEATHS", "direction": "HARM",
+                "grounded": True, "method": "UTILITY_INDEX",
+                "source_effect_ids": ["E0"],
+                "calculation": "sixty trapped residents become sixty deaths",
+                "assumptions": ["no later rescue"],
+            },
+            self.actions[1]: {
+                "value": 20, "unit": "DEATHS", "direction": "HARM",
+                "grounded": True, "method": "UTILITY_INDEX",
+                "source_effect_ids": ["E1"],
+                "calculation": "twenty admitted deaths equal twenty deaths",
+                "assumptions": [],
+            },
+        }
+        validation = validate_expected_value_estimates(
+            submitted,
+            action_id_by_key={self.actions[0]: "A0", self.actions[1]: "A1"},
+            effect_records=[
+                {"effect_id": "E0", "action_id": "A0", "outcome": "RESIDENTS_TRAPPED", "polarity": "ADVERSE", "quantities": ["sixty"]},
+                {"effect_id": "E1", "action_id": "A1", "outcome": "NEAR_CERTAIN_DEATH", "polarity": "ADVERSE", "quantities": ["twenty"]},
+            ],
+        )
+        self.assertEqual(validation.status, EV_INVALID)
+        self.assertTrue(any(
+            "trapping outcome into a mortality quantity" in error
+            for error in validation.errors
+        ))
+
+    def test_non_utilitarian_vote_does_not_fail_because_unused_ev_is_invalid(self):
+        records = [
+            {"specialist": "deontological", "canonical_action_id": "A0", "verdict": "REQUIRED", "duty_type": "PERFECT_NEGATIVE"},
+            {"specialist": "deontological", "canonical_action_id": "A1", "verdict": "PROHIBITED", "duty_type": "PERFECT_NEGATIVE"},
+        ]
+        candidate = self._candidate(
+            "deontological",
+            expected_value_validation_status=EV_INVALID,
+            expected_value_validation_errors=["unused EV does not correspond"],
+            committed_native_ledger=self._native(
+                "DEONTOLOGICAL_DUTY_LEDGER", records,
+            ),
+        )
+        decision = apply_framework_vote_integrity(candidate, self.actions)
+        self.assertEqual(decision.status, "FULL")
+
+    def test_framework_native_verdict_inversions_are_quarantined(self):
+        cases = (
+            (
+                "virtue", "VIRTUE_CHARACTER_LEDGER",
+                [
+                    {"specialist": "virtue", "canonical_action_id": "A0", "verdict": "UNDERMINES", "ranking_basis": "PRACTICAL_WISDOM"},
+                    {"specialist": "virtue", "canonical_action_id": "A1", "verdict": "EXEMPLIFIES", "ranking_basis": "PRACTICAL_WISDOM"},
+                ],
+            ),
+            (
+                "care", "CARE_RELATIONSHIP_LEDGER",
+                [
+                    {"specialist": "care", "canonical_action_id": "A0", "verdict": "NEGLECTFUL", "ranking_basis": "ACUTE_DEPENDENCY"},
+                    {"specialist": "care", "canonical_action_id": "A1", "verdict": "RESPONSIVE", "ranking_basis": "ACUTE_DEPENDENCY"},
+                ],
+            ),
+        )
+        for specialist, ledger_kind, records in cases:
+            with self.subTest(specialist=specialist):
+                candidate = self._candidate(
+                    specialist,
+                    committed_native_ledger=self._native(ledger_kind, records),
+                )
+                decision = apply_framework_vote_integrity(candidate, self.actions)
+                self.assertEqual(decision.status, "ABSTAIN")
+                self.assertEqual(
+                    candidate.framework_ranking_validation_status, "QUARANTINED",
+                )
+
+    def test_mixed_native_verdict_is_not_falsely_rejected(self):
+        records = [
+            {"specialist": "virtue", "canonical_action_id": "A0", "verdict": "MIXED", "ranking_basis": "PRACTICAL_WISDOM"},
+            {"specialist": "virtue", "canonical_action_id": "A1", "verdict": "EXEMPLIFIES", "ranking_basis": "PRACTICAL_WISDOM"},
+        ]
+        candidate = self._candidate(
+            "virtue",
+            committed_native_ledger=self._native("VIRTUE_CHARACTER_LEDGER", records),
+        )
+        decision = apply_framework_vote_integrity(candidate, self.actions)
+        self.assertEqual(decision.status, "FULL")
+        self.assertEqual(candidate.framework_ranking_validation_status, "PASSED")
+
+    def test_rawlsian_recommendation_must_follow_typed_comparative_position(self):
+        records = [
+            {
+                "specialist": "rawlsian", "canonical_action_id": "A0",
+                "compared_to_action_id": "A1", "effect": "WORSENS",
+                "ranking_basis": "BASIC_INTEREST_SECURITY",
+                "dimension": "BASIC_INTEREST_SECURITY",
+                "institutional_relation": "NATURAL_CONTINGENCY",
+            },
+            {
+                "specialist": "rawlsian", "canonical_action_id": "A1",
+                "compared_to_action_id": "A0", "effect": "IMPROVES",
+                "ranking_basis": "BASIC_INTEREST_SECURITY",
+                "dimension": "BASIC_INTEREST_SECURITY",
+                "institutional_relation": "NATURAL_CONTINGENCY",
+            },
+        ]
+        candidate = self._candidate(
+            "rawlsian",
+            committed_native_ledger=self._native("RAWLSIAN_POSITION_LEDGER", records),
+        )
+        decision = apply_framework_vote_integrity(candidate, self.actions)
+        self.assertEqual(decision.status, "ABSTAIN")
+        self.assertIn("committed Rawlsian positions", decision.reason)
+
+    def test_deontological_required_verdict_must_follow_governing_norm(self):
+        records = [
+            {
+                "specialist": "deontological", "canonical_action_id": "A0",
+                "verdict": "REQUIRED", "duty_type": "PERFECT_NEGATIVE",
+                "governing_norm": "PRIMARY", "relation": "VIOLATES",
+            },
+            {
+                "specialist": "deontological", "canonical_action_id": "A1",
+                "verdict": "PROHIBITED", "duty_type": "PERFECT_NEGATIVE",
+                "governing_norm": "PRIMARY", "relation": "SATISFIES",
+            },
+        ]
+        candidate = self._candidate(
+            "deontological",
+            committed_native_ledger=self._native(
+                "DEONTOLOGICAL_DUTY_LEDGER", records,
+            ),
+        )
+        decision = apply_framework_vote_integrity(candidate, self.actions)
+        self.assertEqual(decision.status, "ABSTAIN")
+        self.assertIn("violates the norm recorded as governing", decision.reason)
 
     def test_frozen_wildfire_world_preserves_qualifiers_and_negative_controls(self):
         path = (

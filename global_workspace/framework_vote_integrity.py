@@ -12,6 +12,13 @@ from dataclasses import dataclass
 import re
 from typing import Any, Sequence
 
+from .expected_value import (
+    EV_ARITHMETIC_VERIFIED,
+    EV_INVALID,
+    EV_SOURCE_CORRESPONDENCE,
+    expected_value_leader,
+)
+
 
 EXPECTED_LEDGER_KINDS = {
     "utilitarian": "UTILITARIAN_CONSEQUENCE_LEDGER",
@@ -115,8 +122,7 @@ def _derived_claim_errors(candidate: Any, records: list[dict[str, Any]]) -> list
     for record in records:
         action_id = str(record.get("canonical_action_id", ""))
         grounded_by_action.setdefault(action_id, set()).update(
-            str(value) for value in record.get("grounded_effect_ids", []) or []
-            if str(value)
+            _record_effect_ids(record)
         )
     known_effects = (
         set().union(*grounded_by_action.values()) if grounded_by_action else set()
@@ -207,6 +213,181 @@ def _derived_claim_errors(candidate: Any, records: list[dict[str, Any]]) -> list
     return list(dict.fromkeys(errors))[:12]
 
 
+def _ev_ledger_correspondence_errors(
+    candidate: Any,
+    actions: Sequence[str],
+    by_action: dict[str, list[dict[str, Any]]],
+    recommended_id: str,
+    live_ids: set[str],
+) -> list[str]:
+    """Ensure a Utilitarian EV cites effects in its committed native ledger."""
+    status = str(
+        getattr(candidate, "expected_value_validation_status", "NOT_CLAIMED")
+    ).upper()
+    if status == EV_INVALID:
+        # Quarantine the bad calculation rather than the whole framework when
+        # the native ledger independently establishes the same direction.
+        if _utilitarian_ledger_independently_supports(
+            recommended_id, by_action, live_ids,
+        ):
+            return []
+        errors = list(getattr(candidate, "expected_value_validation_errors", []) or [])
+        return errors or ["specialist-claimed grounded EV failed validation"]
+    if status not in {EV_ARITHMETIC_VERIFIED, EV_SOURCE_CORRESPONDENCE}:
+        return []
+    estimates = dict(getattr(candidate, "expected_value_estimates", {}) or {})
+    errors: list[str] = []
+    for index, action in enumerate(actions):
+        action_id = f"A{index}"
+        estimate = dict(estimates.get(action) or {})
+        cited = {
+            str(value) for value in estimate.get("source_effect_ids", []) or []
+            if str(value)
+        }
+        committed = {
+            effect_id
+            for record in by_action.get(action_id, [])
+            for effect_id in _record_effect_ids(record)
+        }
+        if not cited:
+            errors.append(f"{action_id} EV omits committed source effects")
+        elif not cited.issubset(committed):
+            errors.append(f"{action_id} EV cites effects outside its committed Utilitarian ledger")
+    return list(dict.fromkeys(errors))[:8]
+
+
+def _utilitarian_signs(
+    rows: Sequence[dict[str, Any]],
+) -> tuple[list[int], bool]:
+    values: list[int] = []
+    complete = True
+    for row in rows:
+        direction = str(row.get("direction", "")).upper()
+        if direction == "BENEFIT":
+            values.append(1)
+        elif direction in {"HARM", "OPPORTUNITY_COST"}:
+            values.append(-1)
+        elif direction not in {"", "NEUTRAL"}:
+            complete = False
+    return values, complete
+
+
+def _utilitarian_ledger_independently_supports(
+    recommended_id: str,
+    by_action: dict[str, list[dict[str, Any]]],
+    live_ids: set[str],
+) -> bool:
+    """True only for categorical native-ledger dominance without EV."""
+    chosen, chosen_complete = _utilitarian_signs(by_action.get(recommended_id, []))
+    if not chosen_complete or not chosen or not all(value >= 0 for value in chosen):
+        return False
+    if not any(value > 0 for value in chosen):
+        return False
+    for rival_id in live_ids - {recommended_id}:
+        rival, rival_complete = _utilitarian_signs(by_action.get(rival_id, []))
+        if (
+            not rival_complete or not rival
+            or not all(value <= 0 for value in rival)
+            or not any(value < 0 for value in rival)
+        ):
+            return False
+    return True
+
+
+def _framework_ranking_errors(
+    specialist: str,
+    recommended_id: str,
+    by_action: dict[str, list[dict[str, Any]]],
+    live_ids: set[str],
+) -> list[str]:
+    """Find only typed, high-confidence contradictions in native rankings.
+
+    This deliberately avoids keyword matching and does not demand that every
+    framework share one scalar ordering. Mixed or genuinely plural records are
+    left to the framework; only an explicit inversion is quarantined.
+    """
+    chosen_rows = by_action.get(recommended_id, [])
+    rival_ids = sorted(live_ids - {recommended_id})
+    errors: list[str] = []
+
+    if specialist == "utilitarian":
+        chosen_signs, chosen_complete = _utilitarian_signs(chosen_rows)
+        for rival_id in rival_ids:
+            rival_signs, rival_complete = _utilitarian_signs(by_action.get(rival_id, []))
+            if (
+                chosen_signs and rival_signs
+                and chosen_complete and rival_complete
+                and all(value <= 0 for value in chosen_signs)
+                and any(value < 0 for value in chosen_signs)
+                and all(value >= 0 for value in rival_signs)
+                and any(value > 0 for value in rival_signs)
+            ):
+                errors.append(
+                    f"selected {recommended_id} is directionally dominated by {rival_id} in the committed consequence ledger"
+                )
+
+    elif specialist == "deontological" and chosen_rows:
+        chosen = chosen_rows[-1]
+        verdict = str(chosen.get("verdict", "")).upper()
+        governing = str(chosen.get("governing_norm", "")).upper()
+        relation = str(chosen.get("relation", "")).upper()
+        competing_relation = str(chosen.get("competing_relation", "")).upper()
+        if verdict == "REQUIRED" and (
+            (governing == "PRIMARY" and relation == "VIOLATES")
+            or (governing == "COMPETING" and competing_relation == "VIOLATES")
+        ):
+            errors.append(
+                "selected required action violates the norm recorded as governing"
+            )
+
+    elif specialist == "rawlsian":
+        for rival_id in rival_ids:
+            # Normalize every pairwise record to the selected action's point
+            # of view. Any MIXED/UNCERTAIN/PRESERVES row blocks a categorical
+            # rejection: Rawlsian ledgers may compare several constituencies.
+            selected_perspective: list[str] = []
+            for row in chosen_rows:
+                if str(row.get("compared_to_action_id", "")).upper() != rival_id:
+                    continue
+                effect = str(row.get("effect", row.get("comparative_effect", ""))).upper()
+                if effect:
+                    selected_perspective.append(effect)
+            for row in by_action.get(rival_id, []):
+                if str(row.get("compared_to_action_id", "")).upper() != recommended_id:
+                    continue
+                effect = str(row.get("effect", row.get("comparative_effect", ""))).upper()
+                if effect:
+                    selected_perspective.append({
+                        "IMPROVES": "WORSENS",
+                        "WORSENS": "IMPROVES",
+                    }.get(effect, effect))
+            if selected_perspective and set(selected_perspective) == {"WORSENS"}:
+                errors.append(
+                    f"selected {recommended_id} is explicitly worsened relative to {rival_id} in the committed Rawlsian positions"
+                )
+
+    elif specialist == "virtue" and chosen_rows:
+        chosen = str(chosen_rows[-1].get("verdict", "")).upper()
+        if chosen == "UNDERMINES" and any(
+            str(by_action[rival_id][-1].get("verdict", "")).upper() == "EXEMPLIFIES"
+            for rival_id in rival_ids if by_action.get(rival_id)
+        ):
+            errors.append(
+                "selected action undermines virtue while a rival explicitly exemplifies it"
+            )
+
+    elif specialist == "care" and chosen_rows:
+        chosen = str(chosen_rows[-1].get("verdict", "")).upper()
+        if chosen == "NEGLECTFUL" and any(
+            str(by_action[rival_id][-1].get("verdict", "")).upper() == "RESPONSIVE"
+            for rival_id in rival_ids if by_action.get(rival_id)
+        ):
+            errors.append(
+                "selected action is neglectful while a rival is explicitly responsive"
+            )
+    return errors[:8]
+
+
 def evaluate_framework_vote(
     candidate: Any,
     actions: Sequence[str],
@@ -276,7 +457,45 @@ def evaluate_framework_vote(
             **context,
         )
 
+    ranking_errors = _framework_ranking_errors(
+        specialist, recommended_id, by_action, live_ids,
+    )
+    candidate.framework_ranking_validation_status = (
+        "QUARANTINED" if ranking_errors else "PASSED"
+    )
+    candidate.framework_ranking_validation_errors = ranking_errors
+    if ranking_errors:
+        return _decision(
+            "ABSTAIN",
+            "framework ranking contradicts its committed native ledger: "
+            + "; ".join(ranking_errors[:2]),
+            **context,
+        )
+
     if specialist == "utilitarian":
+        ev_errors = _ev_ledger_correspondence_errors(
+            candidate, actions, by_action, recommended_id, live_ids,
+        )
+        if ev_errors:
+            return _decision(
+                "ABSTAIN",
+                "specialist-authored EV was quarantined: " + "; ".join(ev_errors[:2]),
+                **context,
+            )
+        ev_status = str(
+            getattr(candidate, "expected_value_validation_status", "NOT_CLAIMED")
+        ).upper()
+        if ev_status == EV_ARITHMETIC_VERIFIED:
+            leader = expected_value_leader(
+                dict(getattr(candidate, "expected_value_estimates", {}) or {}),
+                actions,
+            )
+            if leader is not None and leader != recommended:
+                return _decision(
+                    "ABSTAIN",
+                    "Utilitarian recommendation contradicts its verified EV calculation",
+                    **context,
+                )
         if bool(getattr(candidate, "utilitarian_decision_depends_on_unknown", False)):
             return _decision(
                 "ABSTAIN", "utilitarian ranking depends on an unresolved comparison", **context,
@@ -374,8 +593,15 @@ def evaluate_framework_vote(
                 "ABSTAIN", "Care assessment does not rank the selected action", **context,
             )
 
-    uncertain = ledger_status == "COMMITTED_WITH_UNCERTAINTY" or bool(
-        getattr(candidate, "framework_grounding_penalty", 0.0)
+    uncertain = (
+        ledger_status == "COMMITTED_WITH_UNCERTAINTY"
+        or bool(getattr(candidate, "framework_grounding_penalty", 0.0))
+        or (
+            specialist == "utilitarian"
+            and str(getattr(
+                candidate, "expected_value_validation_status", "NOT_CLAIMED",
+            )).upper() in {EV_SOURCE_CORRESPONDENCE, EV_INVALID}
+        )
     )
     if incomplete_comparison:
         return _decision(
@@ -400,6 +626,12 @@ def apply_framework_vote_integrity(
 ) -> FrameworkVoteDecision:
     """Apply the gate after ordinary authority typing and before aggregation."""
     decision = evaluate_framework_vote(candidate, actions)
+    if (
+        str(getattr(candidate, "framework_ranking_validation_status", "NOT_RUN"))
+        == "NOT_RUN"
+        and decision.status == "ABSTAIN"
+    ):
+        candidate.framework_ranking_validation_status = "UNRESOLVED"
     candidate.framework_vote_status = decision.status
     candidate.framework_vote_reason = decision.reason
     candidate.framework_ledger_kind = decision.ledger_kind

@@ -51,7 +51,8 @@ _BIND_STOPWORDS = _COMPOSITION_STOPWORDS | {
     "allows", "allowing", "refuse", "refuses", "refusing", "refusal",
     "remain", "remains", "remaining", "stay", "stays", "carry", "carried",
     "immediately", "immediate", "predictably", "affected", "subject",
-    "magnitude", "qualifier", "action",
+    "magnitude", "qualifier", "action", "plan", "option", "under",
+    "leave", "leaves", "leaving", "expose", "exposes", "exposed",
 }
 _STRENGTHENING_WORDS = {
     "always", "never", "only", "exclusive", "exclusively", "unique",
@@ -238,6 +239,9 @@ def seed_proposition_ledger(graph: SemanticGraph) -> dict[str, PropositionRecord
         ):
             obtained_welfare = False
         admitted_status = _admitted_status_for_world_row(modality, polarity, directness)
+        source_proposition = " ".join(str(
+            consequence.attributes.get("source_proposition", "")
+        ).split())[:240]
         ledger[proposition_id] = PropositionRecord(
             proposition_id=proposition_id,
             claim="; ".join(claim_parts),
@@ -246,6 +250,7 @@ def seed_proposition_ledger(graph: SemanticGraph) -> dict[str, PropositionRecord
             support_ids=[world_effect_id or effect.consequence_id],
             introduced_by="WORLD_MODEL",
             epistemic_type="WORLD_ESTABLISHED",
+            aliases=[source_proposition] if source_proposition else [],
             action_id=effect.action_id,
             outcome=consequence.label,
             polarity=polarity,
@@ -455,7 +460,10 @@ def _quantity_value(span: str) -> tuple[int, bool] | None:
 
 def _quantity_keys(text: str) -> set[tuple[int, bool]]:
     keys: set[tuple[int, bool]] = set()
-    blob = str(text or "")
+    # Canonical action identifiers express scope, not numerical magnitude.
+    # Without this guard, "under A0" is parsed as quantity zero and prevents
+    # an otherwise exact world-proposition paraphrase from rebinding.
+    blob = re.sub(r"\bA\d+\b", " ", str(text or ""), flags=re.IGNORECASE)
     parts = [part.strip() for part in blob.split(";") if part.strip()] or [blob]
     for part in parts:
         part_keys: set[tuple[int, bool]] = set()
@@ -587,6 +595,11 @@ def _collect_context_terms(graph: SemanticGraph, node_id: str) -> list[str]:
         node = graph.nodes.get(current)
         if node is not None and node.label:
             terms.append(node.label)
+            terms.extend(
+                f"{qualifier} — {node.label}"
+                for qualifier in node.attributes.get("likelihood_qualifiers", ())
+                if str(qualifier).strip()
+            )
         for edge in graph.outgoing(current, "HAS_INTERVENTION"):
             target = graph.nodes.get(edge.target)
             if target is not None:
@@ -599,8 +612,14 @@ def _collect_context_terms(graph: SemanticGraph, node_id: str) -> list[str]:
             stack.append(edge.target)
             if target.label:
                 terms.append(target.label)
+        for edge in graph.outgoing(current, "HAS_OPERAND"):
+            if edge.target in seen:
+                continue
+            seen.add(edge.target)
+            stack.append(edge.target)
         for edge in _incoming_edges(
-            graph, current, _CAUSAL_RELATIONS | {"HAS_CONSEQUENCE"},
+            graph, current,
+            _CAUSAL_RELATIONS | {"HAS_CONSEQUENCE", "ACTIVATES"},
         ):
             if edge.source in seen:
                 continue
@@ -1040,6 +1059,7 @@ def _semantic_match(
         for word in _OUTCOME_FAMILIES[index]
     }
     extra = _content_words(claim) - context_words - family_words
+    extra -= {action_id.casefold() for action_id in claim_actions}
     extra -= {str(value) for value, _flag in claim_quantities}
     extra -= {word for word in extra if word.isdigit()}
     admitted = _admitted_tokens(record, ledger)

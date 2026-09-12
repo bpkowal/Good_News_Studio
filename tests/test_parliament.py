@@ -163,6 +163,11 @@ class ParliamentLauncherTests(unittest.TestCase):
                 )
             self.assertEqual(status, "HIT")
             self.assertEqual(cached["presentation_actions"], ["act", "wait"])
+            self.assertEqual(cached["action_origin"], "MODEL_PROPOSED")
+            self.assertEqual(
+                cached["action_authority_contract_version"],
+                global_workspace_pipeline.ACTION_AUTHORITY_CONTRACT_VERSION,
+            )
 
     def test_framing_cache_requires_exact_problem_text(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -188,6 +193,20 @@ class ParliamentLauncherTests(unittest.TestCase):
             path.write_text(json.dumps({
                 "cache_version": 1,
                 "ethical_problem": "Exactly this ethical problem",
+            }), encoding="utf-8")
+            cached, status = global_workspace_pipeline.load_problem_framing_cache(
+                path, "Exactly this ethical problem",
+            )
+            self.assertIsNone(cached)
+            self.assertEqual(status, "MISS_INCOMPATIBLE_CACHE")
+
+    def test_pre_action_authority_framing_cache_is_invalidated(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "last_problem_framing.json"
+            path.write_text(json.dumps({
+                "cache_version": 2,
+                "ethical_problem": "Exactly this ethical problem",
+                "presentation_actions": ["act", "wait"],
             }), encoding="utf-8")
             cached, status = global_workspace_pipeline.load_problem_framing_cache(
                 path, "Exactly this ethical problem",
@@ -247,6 +266,98 @@ class ParliamentLauncherTests(unittest.TestCase):
             )
             self.assertIsNone(cached)
             self.assertEqual(status, "MISS_INVALID_CACHE")
+
+    def test_failed_grounding_cache_resumes_only_exact_patchable_failures(self):
+        grounding = {
+            "status": "REJECTED",
+            "errors": ["E2 is a downstream human outcome with no causal parent"],
+            "validation_issues": [{
+                "code": "MISSING_CAUSAL_PARENT",
+                "entity_id": "E2",
+                "entity_kind": "effect",
+                "message": "E2 is a downstream human outcome with no causal parent",
+                "repair_class": "SEMANTIC_PATCH",
+            }],
+            "rejected_candidate": {
+                "world_model": {
+                    "schema_version": "1.3",
+                    "effects": [{"effect_id": "E2", "action_id": "A1"}],
+                },
+            },
+            "next_rebuild_action_ids": ["A1"],
+            "attempts": [
+                {"attempt": index, "errors": ["failed"]}
+                for index in range(1, 4)
+            ],
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "last_failed_world_grounding.json"
+            global_workspace_pipeline.save_failed_grounding_cache(
+                path,
+                ethical_problem="Exact wildfire problem",
+                presentation_actions=["hospital", "residents"],
+                canonical_actions=["residents", "hospital"],
+                canonical_scenario="canonical wildfire problem",
+                presentation_action_mapping=[],
+                source_action_legend={"A0": "residents", "A1": "hospital"},
+                grounding=grounding,
+                repair_scope="SUBGRAPH_REBUILD",
+                source_model="gpt-5.6-sol",
+            )
+            cached, status = global_workspace_pipeline.load_failed_grounding_cache(
+                path, "Exact wildfire problem",
+            )
+            different, different_status = (
+                global_workspace_pipeline.load_failed_grounding_cache(
+                    path, "Different wildfire problem",
+                )
+            )
+
+        self.assertEqual(status, "HIT")
+        self.assertEqual(cached["repair_scope"], "SUBGRAPH_REBUILD")
+        self.assertEqual(cached["action_origin"], "MODEL_PROPOSED")
+        self.assertEqual(
+            cached["action_source_grounding"]["rejected_candidate"],
+            grounding["rejected_candidate"],
+        )
+        self.assertIsNone(different)
+        self.assertEqual(different_status, "MISS_DIFFERENT_PROBLEM")
+
+    def test_failed_grounding_cache_rejects_full_rebuild_and_short_runs(self):
+        grounding = {
+            "status": "REJECTED",
+            "rejected_candidate": {"world_model": {}},
+            "attempts": [{"attempt": 1}, {"attempt": 2}],
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "last_failed_world_grounding.json"
+            with self.assertRaisesRegex(ValueError, "three failures"):
+                global_workspace_pipeline.save_failed_grounding_cache(
+                    path,
+                    ethical_problem="problem",
+                    presentation_actions=["act", "wait"],
+                    canonical_actions=["wait", "act"],
+                    canonical_scenario="canonical problem",
+                    presentation_action_mapping=[],
+                    source_action_legend={"A0": "wait", "A1": "act"},
+                    grounding=grounding,
+                    repair_scope="LOCAL_PATCH",
+                    source_model="o3",
+                )
+            grounding["attempts"].append({"attempt": 3})
+            with self.assertRaisesRegex(ValueError, "not cacheable"):
+                global_workspace_pipeline.save_failed_grounding_cache(
+                    path,
+                    ethical_problem="problem",
+                    presentation_actions=["act", "wait"],
+                    canonical_actions=["wait", "act"],
+                    canonical_scenario="canonical problem",
+                    presentation_action_mapping=[],
+                    source_action_legend={"A0": "wait", "A1": "act"},
+                    grounding=grounding,
+                    repair_scope="FULL_REBUILD",
+                    source_model="o3",
+                )
 
     def test_question_validation(self):
         with self.assertRaises(ValueError):
@@ -578,6 +689,67 @@ class ParliamentLauncherTests(unittest.TestCase):
         self.assertEqual(merged["escalation"]["to_model"], "gpt-5.6-sol")
         self.assertEqual(merged["escalation"]["attempts"], 1)
 
+    def test_rejected_world_escalation_keeps_candidate_history_by_stage(self):
+        merged = global_workspace_pipeline.attach_world_escalation(
+            {
+                "status": "REJECTED",
+                "attempts": [{"attempt": 1, "errors": ["primary failed"]}],
+                "rejected_candidate_history": [{
+                    "attempt": 1, "candidate": {"world_model": {"effects": ["E0"]}},
+                }],
+            },
+            {
+                "status": "REJECTED",
+                "attempts": [{"attempt": 1, "errors": ["escalation failed"]}],
+                "rejected_candidate_history": [{
+                    "attempt": 1, "candidate": {"world_model": {"effects": ["E1"]}},
+                }],
+            },
+            from_model="o3",
+            to_model="gpt-5.6-sol",
+        )
+        self.assertEqual(
+            [entry["stage"] for entry in merged["rejected_candidate_history"]],
+            ["primary", "escalation"],
+        )
+        self.assertEqual(
+            merged["rejected_candidate_history"][1]["candidate"]
+            ["world_model"]["effects"],
+            ["E1"],
+        )
+
+    def test_rejected_world_escalation_retains_more_repairable_candidate(self):
+        primary_candidate = {"world_model": {"effects": ["E0"]}}
+        escalated_candidate = {"world_model": {"effects": ["E1"]}}
+        primary = {
+            "status": "REJECTED",
+            "errors": ["primary rejected"],
+            "validation_issues": [{"code": "A"}, {"code": "B"}],
+            "rejected_candidate": primary_candidate,
+            "attempts": [{"attempt": 1, "errors": ["primary rejected"]}],
+        }
+        escalated = {
+            "status": "REJECTED",
+            "errors": ["escalation rejected"],
+            "validation_issues": [
+                {"code": "A"}, {"code": "B"}, {"code": "C"},
+            ],
+            "rejected_candidate": escalated_candidate,
+            "attempts": [{"attempt": 1, "errors": ["escalation rejected"]}],
+        }
+
+        merged = global_workspace_pipeline.attach_world_escalation(
+            primary,
+            escalated,
+            from_model="o3",
+            to_model="gpt-5.6-sol",
+        )
+
+        self.assertIs(merged["rejected_candidate"], primary_candidate)
+        self.assertEqual(merged["validation_issues"], primary["validation_issues"])
+        self.assertEqual(merged["escalation"]["selected_stage"], "primary")
+        self.assertEqual(len(merged["attempts"]), 2)
+
     def test_quota_failure_continues_to_compact_specialists(self):
         captured: list[str] = []
         testimonies, errors = global_workspace_pipeline.original_testimonies_or_continue(
@@ -627,6 +799,108 @@ class ParliamentLauncherTests(unittest.TestCase):
         self.assertIn("World grounding rejected", rendered)
         self.assertNotIn("Admitted world", rendered)
         self.assertNotIn("benefits:", rendered)
+
+    def test_rejected_world_diagnostic_preserves_full_evidence(self):
+        grounding = {
+            "status": "REJECTED",
+            "world_model_status": "REJECTED",
+            "repair_attempts": 1,
+            "attempts": [{
+                "attempt": 1,
+                "errors": ["typed world rejected"],
+                "validation_issues": [{
+                    "code": "WORLD_VALIDATION_ERROR",
+                    "entity_id": "E2",
+                    "entity_kind": "effect",
+                    "message": "missing process-state parent",
+                    "repair_class": "SEMANTIC_PATCH",
+                }],
+                "repair_delta": {"added_ids": ["E2"]},
+            }],
+            "validation_issues": [{
+                "code": "WORLD_VALIDATION_ERROR",
+                "entity_id": "E2",
+                "entity_kind": "effect",
+                "message": "missing process-state parent",
+                "repair_class": "SEMANTIC_PATCH",
+            }],
+            "rejected_candidate": {"world_model": {"effects": [{"effect_id": "E2"}]}},
+            "rejected_candidate_history": [{
+                "attempt": 1,
+                "candidate": {"world_model": {"effects": [{"effect_id": "E1"}]}},
+            }],
+            "escalation": {"from_model": "o3", "to_model": "gpt-5.6-sol"},
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = global_workspace_pipeline.save_world_grounding_failure(
+                Path(directory),
+                scenario_path=Path("wildfire.json"),
+                ethical_problem="original problem",
+                canonical_scenario="canonical problem",
+                presentation_actions=["Option A", "Option B"],
+                canonical_actions=["Option B", "Option A"],
+                presentation_action_mapping=[{
+                    "source_label": "Option A", "canonical_action_id": "A1",
+                }],
+                source_action_legend={"A0": "Option B", "A1": "Option A"},
+                grounding=grounding,
+                backend="openai",
+                model="o3",
+            )
+            saved = json.loads(path.read_text(encoding="utf-8"))
+
+        self.assertEqual(saved["failure_stage"], "WORLD_GROUNDING")
+        self.assertEqual(saved["summary"]["final_validation_issue_count"], 1)
+        self.assertEqual(saved["attempt_summary"][0]["affected_entities"], ["E2"])
+        self.assertEqual(
+            saved["grounding"]["rejected_candidate"],
+            grounding["rejected_candidate"],
+        )
+        self.assertEqual(
+            saved["grounding"]["attempts"][0]["repair_delta"],
+            {"added_ids": ["E2"]},
+        )
+        self.assertEqual(
+            saved["grounding"]["rejected_candidate_history"][0]["candidate"]
+            ["world_model"]["effects"][0]["effect_id"],
+            "E1",
+        )
+
+    def test_rejected_world_report_is_bounded_and_links_diagnostic(self):
+        record = SimpleNamespace(
+            action_id="A0",
+            commitment_status="REJECTED",
+            commitment_reasons=("incomplete",),
+            as_dict=lambda: {
+                "action_id": "A0", "short_label": "wait", "world_effects": [],
+            },
+        )
+        captured: list[str] = []
+        diagnostic_path = Path("outputs/world_grounding_failure_run.json")
+        code = global_workspace_pipeline.report_withheld_world(
+            [record],
+            {
+                "status": "REJECTED",
+                "validation_issues": [{
+                    "code": "WORLD_VALIDATION_ERROR",
+                    "entity_id": f"E{index}",
+                    "entity_kind": "effect",
+                    "message": "x" * 600,
+                    "repair_class": "SEMANTIC_PATCH",
+                } for index in range(7)],
+                "rejected_candidate": {"large": "payload"},
+            },
+            diagnostic_path=diagnostic_path,
+            tty=False,
+            output_fn=captured.append,
+        )
+        rendered = "\n".join(captured)
+        self.assertEqual(code, 2)
+        self.assertIn(str(diagnostic_path), rendered)
+        self.assertIn("7 final issue", rendered)
+        self.assertIn("2 more issue", rendered)
+        self.assertNotIn("\"large\": \"payload\"", rendered)
+        self.assertLess(max(map(len, captured)), 400)
 
     def test_rejected_world_never_prints_fallback_role_inferences(self):
         text = global_workspace_pipeline.render_admitted_world(

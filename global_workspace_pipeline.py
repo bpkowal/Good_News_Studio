@@ -32,6 +32,7 @@ from global_workspace.landscape_validation import verify_landscape_alignment
 from global_workspace.local_specialists import (
     CompactLocalSpecialist,
     analyze_action_plan,
+    extract_explicit_actions,
     extract_labeled_action_legend,
     extract_scenario_facts,
     generate_failure_condition,
@@ -70,13 +71,27 @@ from global_workspace.structured_io import (
     start_model_call_budget,
 )
 from global_workspace.visibility import assess_visibility
+from global_workspace.world_validation import (
+    FULL_REBUILD,
+    LOCAL_PATCH,
+    SUBGRAPH_REBUILD,
+    classify_world_repair_scope,
+)
 from dotenv import load_dotenv
 
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_MODEL = (ROOT / "../mistral-7b-instruct-v0.2.Q4_K_M.gguf").resolve()
-FRAMING_CACHE_VERSION = 2
+FRAMING_CACHE_VERSION = 3
 FRAMING_CACHE_FILENAME = "last_problem_framing.json"
+FAILED_GROUNDING_CACHE_VERSION = 2
+FAILED_GROUNDING_CACHE_FILENAME = "last_failed_world_grounding.json"
+GROUNDING_CONTRACT_VERSION = 2
+WORLD_MODEL_SCHEMA_VERSION = "1.3"
+ACTION_AUTHORITY_CONTRACT_VERSION = 1
+ACTION_ORIGINS = {
+    "SOURCE_EXTRACTED", "MODEL_PROPOSED", "USER_AUTHORED", "FROZEN_REPLAY",
+}
 WORLD_ESCALATION_MODEL = "gpt-5.6-sol"
 WORLD_ESCALATION_LABEL = "GPT-5.6 Sol"
 
@@ -122,11 +137,13 @@ def confirm_world_model_escalation(
     output_fn=print,
 ) -> bool:
     """Ask once whether to spend a GPT-5.6 Sol world-grounding call."""
-    errors = [str(item) for item in (grounding.get("errors") or []) if str(item).strip()]
-    if errors:
-        output_fn("Primary world grounding failed:")
-        for item in errors[:8]:
+    issue_lines, issue_count = _compact_grounding_issues(grounding)
+    if issue_lines:
+        output_fn(f"Primary world grounding failed ({issue_count} issue(s)):")
+        for item in issue_lines:
             output_fn(f"  {item}")
+        if issue_count > len(issue_lines):
+            output_fn(f"  … {issue_count - len(issue_lines)} more issue(s)")
     output_fn(f"A stronger-model retry is available: {to_label}.")
     if escalate_world_model:
         output_fn(f"Retrying once with {to_label} (--escalate-world-model).")
@@ -155,11 +172,46 @@ def attach_world_escalation(
     from_model: str,
     to_model: str,
 ) -> dict[str, object]:
-    """Keep the failed primary attempts and mark the single escalation call."""
-    merged = dict(escalated)
-    merged["attempts"] = list(primary.get("attempts") or []) + list(
-        escalated.get("attempts") or []
-    )
+    """Keep escalation history without replacing a better rejected candidate.
+
+    A committed escalation always wins. When both stages reject, deterministic
+    validation issue count selects the more repairable candidate. This prevents
+    one broad but unsuccessful rewrite from poisoning the exact-match resume
+    cache with more defects than the primary model had already repaired.
+    """
+    primary_committed = str(primary.get("status") or "").upper() == "COMMITTED"
+    escalated_committed = str(escalated.get("status") or "").upper() == "COMMITTED"
+
+    def rejection_cost(payload: dict[str, object]) -> tuple[int, int, int]:
+        candidate_missing = int(not isinstance(payload.get("rejected_candidate"), dict))
+        issue_count = len([
+            issue for issue in payload.get("validation_issues") or []
+            if isinstance(issue, dict)
+        ])
+        error_count = len([
+            error for error in payload.get("errors") or [] if str(error).strip()
+        ])
+        return candidate_missing, issue_count, error_count
+
+    if escalated_committed or primary_committed:
+        selected = escalated if escalated_committed else primary
+        selected_stage = "escalation" if escalated_committed else "primary"
+    elif rejection_cost(primary) < rejection_cost(escalated):
+        selected = primary
+        selected_stage = "primary"
+    else:
+        selected = escalated
+        selected_stage = "escalation"
+    merged = dict(selected)
+    merged["attempts"] = [
+        {**attempt, "stage": "primary"}
+        for attempt in primary.get("attempts") or []
+        if isinstance(attempt, dict)
+    ] + [
+        {**attempt, "stage": "escalation"}
+        for attempt in escalated.get("attempts") or []
+        if isinstance(attempt, dict)
+    ]
     merged["repair_attempts"] = max(0, len(merged["attempts"]) - 1)
     merged["escalation"] = {
         "from_model": from_model,
@@ -167,7 +219,19 @@ def attach_world_escalation(
         "attempts": 1,
         "primary_status": str(primary.get("status") or ""),
         "escalated_status": str(escalated.get("status") or ""),
+        "selected_stage": selected_stage,
+        "primary_rejection_cost": list(rejection_cost(primary)),
+        "escalated_rejection_cost": list(rejection_cost(escalated)),
     }
+    if str(merged.get("status") or "").upper() != "COMMITTED":
+        history: list[dict[str, object]] = []
+        for stage, source in (("primary", primary), ("escalation", escalated)):
+            for entry in source.get("rejected_candidate_history") or []:
+                if not isinstance(entry, dict):
+                    continue
+                history.append({**entry, "stage": stage})
+        if history:
+            merged["rejected_candidate_history"] = history
     return merged
 
 
@@ -181,7 +245,12 @@ def load_problem_framing_cache(
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError):
         return None, "MISS_INVALID_CACHE"
-    if not isinstance(payload, dict) or payload.get("cache_version") != FRAMING_CACHE_VERSION:
+    if (
+        not isinstance(payload, dict)
+        or payload.get("cache_version") != FRAMING_CACHE_VERSION
+        or payload.get("action_authority_contract_version")
+        != ACTION_AUTHORITY_CONTRACT_VERSION
+    ):
         return None, "MISS_INCOMPATIBLE_CACHE"
     if payload.get("ethical_problem") != ethical_problem:
         return None, "MISS_DIFFERENT_PROBLEM"
@@ -189,12 +258,14 @@ def load_problem_framing_cache(
     grounding = payload.get("action_source_grounding")
     canonical_actions = payload.get("canonical_actions")
     canonical_scenario = payload.get("canonical_scenario")
+    action_origin = str(payload.get("action_origin") or "").upper()
     if (
         not isinstance(actions, list) or not 2 <= len(actions) <= 5
         or not all(isinstance(action, str) and action.strip() for action in actions)
         or not isinstance(canonical_actions, list)
         or not all(isinstance(action, str) and action.strip() for action in canonical_actions)
         or not isinstance(canonical_scenario, str) or not canonical_scenario.strip()
+        or action_origin not in ACTION_ORIGINS
         or not isinstance(grounding, dict)
         or str(grounding.get("status") or "").upper() != "COMMITTED"
         or not isinstance(grounding.get("world_model"), dict)
@@ -213,10 +284,128 @@ def load_problem_framing_cache(
 def save_problem_framing_cache(path: Path, payload: dict[str, object]) -> None:
     """Atomically replace the single-entry successful-framing cache."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    complete = {**payload, "cache_version": FRAMING_CACHE_VERSION}
+    complete = {
+        **payload,
+        "cache_version": FRAMING_CACHE_VERSION,
+        "action_authority_contract_version": ACTION_AUTHORITY_CONTRACT_VERSION,
+        "action_origin": str(
+            payload.get("action_origin") or "MODEL_PROPOSED"
+        ).upper(),
+    }
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_text(json.dumps(complete, indent=2), encoding="utf-8")
     temporary.replace(path)
+
+
+def load_failed_grounding_cache(
+    path: Path,
+    ethical_problem: str,
+) -> tuple[dict[str, object] | None, str]:
+    """Load an exact-match, safely inheritable rejected grounding candidate."""
+    if not path.exists():
+        return None, "MISS_NO_CACHE"
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return None, "MISS_INVALID_CACHE"
+    if (
+        not isinstance(payload, dict)
+        or payload.get("cache_version") != FAILED_GROUNDING_CACHE_VERSION
+        or payload.get("grounding_contract_version") != GROUNDING_CONTRACT_VERSION
+        or payload.get("world_model_schema_version") != WORLD_MODEL_SCHEMA_VERSION
+        or payload.get("action_authority_contract_version")
+        != ACTION_AUTHORITY_CONTRACT_VERSION
+    ):
+        return None, "MISS_INCOMPATIBLE_CACHE"
+    if payload.get("ethical_problem") != ethical_problem:
+        return None, "MISS_DIFFERENT_PROBLEM"
+    try:
+        failed_attempt_count = int(payload.get("failed_attempt_count") or 0)
+    except (TypeError, ValueError):
+        return None, "MISS_INVALID_CACHE"
+    actions = payload.get("presentation_actions")
+    canonical_actions = payload.get("canonical_actions")
+    canonical_scenario = payload.get("canonical_scenario")
+    grounding = payload.get("action_source_grounding")
+    repair_scope = str(payload.get("repair_scope") or "").upper()
+    action_origin = str(payload.get("action_origin") or "").upper()
+    if (
+        not isinstance(actions, list) or not 2 <= len(actions) <= 5
+        or not all(isinstance(action, str) and action.strip() for action in actions)
+        or not isinstance(canonical_actions, list)
+        or not all(isinstance(action, str) and action.strip() for action in canonical_actions)
+        or not isinstance(canonical_scenario, str) or not canonical_scenario.strip()
+        or not isinstance(grounding, dict)
+        or str(grounding.get("status") or "").upper() != "REJECTED"
+        or not isinstance(grounding.get("rejected_candidate"), dict)
+        or not isinstance(
+            grounding.get("rejected_candidate", {}).get("world_model"), dict
+        )
+        or failed_attempt_count < 3
+        or repair_scope not in {LOCAL_PATCH, SUBGRAPH_REBUILD}
+        or action_origin not in ACTION_ORIGINS
+    ):
+        return None, "MISS_INVALID_CACHE"
+    return payload, "HIT"
+
+
+def save_failed_grounding_cache(
+    path: Path,
+    *,
+    ethical_problem: str,
+    presentation_actions: list[str],
+    canonical_actions: list[str],
+    canonical_scenario: str,
+    presentation_action_mapping: list[dict[str, object]],
+    source_action_legend: dict[str, str],
+    grounding: dict[str, object],
+    repair_scope: str,
+    source_model: str,
+    action_origin: str = "MODEL_PROPOSED",
+    resume_count: int = 0,
+) -> None:
+    """Save only the latest resumable state, never the full diagnostic history."""
+    if repair_scope not in {LOCAL_PATCH, SUBGRAPH_REBUILD}:
+        raise ValueError(f"repair scope {repair_scope!r} is not cacheable")
+    attempts = list(grounding.get("attempts") or [])
+    if len(attempts) < 3 or not isinstance(
+        grounding.get("rejected_candidate"), dict
+    ) or not isinstance(
+        grounding.get("rejected_candidate", {}).get("world_model"), dict
+    ):
+        raise ValueError("failed grounding cache requires three failures and a candidate")
+    seed_grounding = {
+        "status": "REJECTED",
+        "errors": list(grounding.get("errors") or []),
+        "validation_issues": list(grounding.get("validation_issues") or []),
+        "rejected_candidate": grounding["rejected_candidate"],
+        "next_repair_scope": repair_scope,
+        "next_rebuild_action_ids": list(
+            grounding.get("next_rebuild_action_ids") or []
+        ),
+        "escalation": grounding.get("escalation"),
+    }
+    atomic_write_json(path, {
+        "cache_version": FAILED_GROUNDING_CACHE_VERSION,
+        "grounding_contract_version": GROUNDING_CONTRACT_VERSION,
+        "world_model_schema_version": WORLD_MODEL_SCHEMA_VERSION,
+        "action_authority_contract_version": ACTION_AUTHORITY_CONTRACT_VERSION,
+        "action_origin": str(action_origin).upper(),
+        "ethical_problem": ethical_problem,
+        "presentation_actions": list(presentation_actions),
+        "canonical_actions": list(canonical_actions),
+        "canonical_scenario": canonical_scenario,
+        "presentation_action_mapping": [
+            dict(item) for item in presentation_action_mapping
+        ],
+        "source_action_legend": dict(source_action_legend),
+        "repair_scope": repair_scope,
+        "failed_attempt_count": len(attempts),
+        "resume_count": max(0, int(resume_count)),
+        "source_model": source_model,
+        "saved_at": datetime.now().astimezone().isoformat(),
+        "action_source_grounding": seed_grounding,
+    }, pretty=True)
 
 
 def cached_framing_matches(
@@ -493,6 +682,179 @@ def render_rejected_world(records: list[dict], grounding: dict[str, object]) -> 
     return "\n".join(lines)
 
 
+def _compact_grounding_issues(
+    grounding: dict[str, object],
+    *,
+    limit: int = 5,
+    message_limit: int = 280,
+) -> tuple[list[str], int]:
+    """Return bounded, typed rejection lines without dumping model payloads."""
+    raw_issues = grounding.get("validation_issues") or []
+    lines: list[str] = []
+    seen: set[tuple[str, str, str, str]] = set()
+    for raw_issue in raw_issues:
+        if not isinstance(raw_issue, dict):
+            continue
+        code = str(raw_issue.get("code") or "VALIDATION_ERROR")
+        entity_kind = str(raw_issue.get("entity_kind") or "world")
+        entity_id = str(raw_issue.get("entity_id") or "-")
+        repair_class = str(raw_issue.get("repair_class") or "UNCLASSIFIED")
+        message = " ".join(str(raw_issue.get("message") or "").split())
+        key = (code, entity_kind, entity_id, message)
+        if not message or key in seen:
+            continue
+        seen.add(key)
+        if len(message) > message_limit:
+            message = message[: max(1, message_limit - 1)].rstrip() + "…"
+        lines.append(
+            f"[{code} {entity_kind}:{entity_id} {repair_class}] {message}"
+        )
+
+    if not lines:
+        for raw_error in grounding.get("errors") or []:
+            message = " ".join(str(raw_error or "").split())
+            if not message:
+                continue
+            key = ("GROUNDING_ERROR", "world", "-", message)
+            if key in seen:
+                continue
+            seen.add(key)
+            if len(message) > message_limit:
+                message = message[: max(1, message_limit - 1)].rstrip() + "…"
+            lines.append(f"[GROUNDING_ERROR world:- UNCLASSIFIED] {message}")
+
+    total = len(lines)
+    return lines[: max(0, limit)], total
+
+
+def _grounding_attempt_summary(grounding: dict[str, object]) -> list[dict[str, object]]:
+    """Build a searchable overview while retaining full attempts separately."""
+    summaries: list[dict[str, object]] = []
+    for fallback_index, raw_attempt in enumerate(grounding.get("attempts") or [], 1):
+        if not isinstance(raw_attempt, dict):
+            continue
+        issues = [
+            issue for issue in (raw_attempt.get("validation_issues") or [])
+            if isinstance(issue, dict)
+        ]
+        summaries.append({
+            "attempt": int(raw_attempt.get("attempt") or fallback_index),
+            "stage": str(raw_attempt.get("stage") or "grounding"),
+            "repair_scope": str(
+                raw_attempt.get("repair_scope") or "UNSPECIFIED"
+            ),
+            "inherited_candidate": bool(
+                raw_attempt.get("inherited_candidate", False)
+            ),
+            "rebuild_action_ids": list(
+                raw_attempt.get("rebuild_action_ids") or []
+            ),
+            "error_count": len(raw_attempt.get("errors") or []),
+            "validation_issue_count": len(issues),
+            "issue_codes": sorted({
+                str(issue.get("code") or "VALIDATION_ERROR") for issue in issues
+            }),
+            "repair_classes": sorted({
+                str(issue.get("repair_class") or "UNCLASSIFIED") for issue in issues
+            }),
+            "affected_entities": sorted({
+                str(issue.get("entity_id")) for issue in issues
+                if issue.get("entity_id")
+            }),
+            "repair_delta": raw_attempt.get("repair_delta"),
+        })
+    return summaries
+
+
+def _presentation_source_label_bindings(
+    mapping: list[dict[str, object]],
+) -> dict[str, str]:
+    """Return only author-facing alpha labels mapped to current canonical IDs.
+
+    Numeric A0/A1 labels are deliberately excluded: original agents receive
+    canonical numeric IDs, while Plan A/Option B may still be echoes of the
+    source presentation order.
+    """
+    bindings: dict[str, str] = {}
+    for item in mapping:
+        canonical_id = str(item.get("canonical_action_id") or "").strip().upper()
+        source_label = " ".join(str(item.get("source_label") or "").split())
+        if not re.fullmatch(r"A\d+", canonical_id) or not source_label:
+            continue
+        alias = re.sub(r"^Original\s+", "", source_label, flags=re.IGNORECASE)
+        if not re.fullmatch(r"(?:Plan|Option|Action)\s+[A-Z]", alias, re.IGNORECASE):
+            continue
+        bindings[alias] = canonical_id
+        bindings[source_label] = canonical_id
+    return bindings
+
+
+def save_world_grounding_failure(
+    output_dir: Path,
+    *,
+    scenario_path: Path,
+    ethical_problem: str,
+    canonical_scenario: str,
+    presentation_actions: list[str],
+    canonical_actions: list[str],
+    presentation_action_mapping: list[dict[str, object]],
+    source_action_legend: dict[str, str],
+    grounding: dict[str, object],
+    backend: str,
+    model: str,
+) -> Path:
+    """Atomically persist everything needed to diagnose rejected grounding.
+
+    This artifact is execution evidence only. It is never supplied to specialists,
+    the workspace salience process, or policy aggregation.
+    """
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    destination = (
+        Path(output_dir)
+        / f"world_grounding_failure_{scenario_path.stem}_{stamp}.json"
+    )
+    issue_lines, issue_count = _compact_grounding_issues(
+        grounding, limit=10_000, message_limit=10_000,
+    )
+    payload = {
+        "diagnostic_schema_version": 1,
+        "failure_stage": "WORLD_GROUNDING",
+        "saved_at": datetime.now().astimezone().isoformat(),
+        "scenario_path": str(scenario_path),
+        "ethical_problem": ethical_problem,
+        "canonical_scenario": canonical_scenario,
+        "presentation_actions": list(presentation_actions),
+        "canonical_actions": list(canonical_actions),
+        "presentation_action_mapping": [
+            dict(item) for item in presentation_action_mapping
+        ],
+        "source_action_legend": dict(source_action_legend),
+        "execution": {"backend": backend, "model": model},
+        "summary": {
+            "status": str(grounding.get("status") or "UNKNOWN").upper(),
+            "world_model_status": str(
+                grounding.get("world_model_status") or "UNKNOWN"
+            ).upper(),
+            "attempt_count": len(grounding.get("attempts") or []),
+            "repair_attempts": int(grounding.get("repair_attempts") or 0),
+            "final_validation_issue_count": issue_count,
+            "final_validation_issues": issue_lines,
+            "escalation": grounding.get("escalation"),
+            "next_repair_scope": grounding.get("next_repair_scope"),
+            "next_rebuild_action_ids": list(
+                grounding.get("next_rebuild_action_ids") or []
+            ),
+            "repair_inheritance": grounding.get("repair_inheritance"),
+        },
+        "attempt_summary": _grounding_attempt_summary(grounding),
+        # Complete raw evidence: typed issues, repair deltas, rejected candidate,
+        # clauses, and escalation result.
+        "grounding": grounding,
+    }
+    atomic_write_json(destination, payload, pretty=True)
+    return destination
+
+
 def render_admitted_world(records: list[dict], grounding: dict[str, object]) -> str:
     """Short inspectable projection of the committed world, not the full trace dump."""
     status = str(grounding.get("status") or "UNKNOWN").upper()
@@ -632,6 +994,7 @@ def report_withheld_world(
     records: list,
     grounding: dict[str, object],
     *,
+    diagnostic_path: Path | None = None,
     tty: bool | None = None,
     output_fn=print,
 ) -> int:
@@ -651,11 +1014,15 @@ def report_withheld_world(
     output_fn(
         "World grounding did not reach COMMITTED. " + (detail or "no committed records")
     )
-    grounding_errors = grounding.get("errors") or []
-    if grounding_errors:
-        output_fn("Grounding errors:")
-        for item in grounding_errors:
+    issue_lines, issue_count = _compact_grounding_issues(grounding)
+    if issue_lines:
+        output_fn(f"Grounding validation summary ({issue_count} final issue(s)):")
+        for item in issue_lines:
             output_fn(f"  {item}")
+        if issue_count > len(issue_lines):
+            output_fn(f"  … {issue_count - len(issue_lines)} more issue(s) in diagnostic")
+    if diagnostic_path is not None:
+        output_fn(f"Full grounding diagnostic: {diagnostic_path}")
     output_fn(render_rejected_world(dumped, grounding))
     if tty:
         output_fn("World grounding was rejected; not running expert agents.")
@@ -735,17 +1102,30 @@ def run_pipeline(args: argparse.Namespace, recorder: PerformanceRecorder) -> int
             flush=True,
         )
     framing_cache_path = args.output_dir / FRAMING_CACHE_FILENAME
+    failed_grounding_cache_path = args.output_dir / FAILED_GROUNDING_CACHE_FILENAME
     if frozen_replay is not None:
         cached_framing = None
         framing_cache_lookup = "FROZEN_REPLAY"
+        failed_grounding_cache = None
+        failed_grounding_cache_lookup = "FROZEN_REPLAY"
     elif args.no_framing_cache:
         cached_framing = None
         framing_cache_lookup = "DISABLED"
+        failed_grounding_cache = None
+        failed_grounding_cache_lookup = "DISABLED"
     else:
         cached_framing, framing_cache_lookup = load_problem_framing_cache(
             framing_cache_path, ethical_problem,
         )
+        failed_grounding_cache, failed_grounding_cache_lookup = (
+            load_failed_grounding_cache(
+                failed_grounding_cache_path, ethical_problem,
+            )
+        )
+    action_cache = cached_framing or failed_grounding_cache
     grounding_reused = False
+    grounding_resumed = False
+    failed_grounding_cache_written = False
     framing_cache_written = False
     if args.backend == "local" and not args.model.exists():
         raise FileNotFoundError(f"Local GGUF model not found: {args.model}")
@@ -780,6 +1160,7 @@ def run_pipeline(args: argparse.Namespace, recorder: PerformanceRecorder) -> int
         actions = list(frozen_replay.presentation_actions)
         cached_actions_reused = True
         user_authored_actions = False
+        action_origin = "FROZEN_REPLAY"
         source_action_legend = dict(frozen_replay.source_action_legend)
         source_labels_explicit = bool(source_action_legend)
         print("Using frozen presentation action set; planner was not called.", flush=True)
@@ -792,11 +1173,16 @@ def run_pipeline(args: argparse.Namespace, recorder: PerformanceRecorder) -> int
         try:
             with performance_stage("action_planning"):
                 actions, cached_actions_reused = choose_initial_actions(
-                    args.actions, cached_framing, lambda: propose_actions(llm, scenario),
+                    args.actions, action_cache, lambda: propose_actions(llm, scenario),
                 )
             if cached_actions_reused:
+                cache_label = (
+                    "committed framing cache"
+                    if cached_framing is not None
+                    else "failed-grounding resume cache"
+                )
                 print(
-                    "Framing cache hit: reusing the last action set for this exact problem.",
+                    f"{cache_label.capitalize()} hit: reusing the exact action set.",
                     flush=True,
                 )
         except ValueError as exc:
@@ -804,6 +1190,19 @@ def run_pipeline(args: argparse.Namespace, recorder: PerformanceRecorder) -> int
             print("Rerun with explicit choices, for example: --actions \"first action\" \"second action\"", flush=True)
             return 2
         user_authored_actions = bool(args.actions)
+        if user_authored_actions:
+            action_origin = "USER_AUTHORED"
+        elif cached_actions_reused and action_cache is not None:
+            action_origin = str(
+                action_cache.get("action_origin") or "MODEL_PROPOSED"
+            ).upper()
+        else:
+            explicit_source_actions = extract_explicit_actions(scenario)
+            action_origin = (
+                "SOURCE_EXTRACTED"
+                if source_action_legend or explicit_source_actions == actions
+                else "MODEL_PROPOSED"
+            )
         _validate_lossless_action_set(
             actions, scenario, user_authored=user_authored_actions,
         )
@@ -815,6 +1214,7 @@ def run_pipeline(args: argparse.Namespace, recorder: PerformanceRecorder) -> int
             return 2
         if confirmed_actions != actions:
             user_authored_actions = True
+            action_origin = "USER_AUTHORED"
         actions = confirmed_actions
         _validate_lossless_action_set(
             actions, scenario, user_authored=user_authored_actions,
@@ -847,6 +1247,9 @@ def run_pipeline(args: argparse.Namespace, recorder: PerformanceRecorder) -> int
         scenario = canonicalize_deliberation_scenario(
             scenario, presentation_action_legend, actions,
         )
+    source_label_bindings = _presentation_source_label_bindings(
+        presentation_action_mapping
+    )
     # Original agents now receive the canonical mapping, so any A0/A1 labels in
     # their testimony refer to this legend—not to the user's display order.
     source_action_legend = {
@@ -864,18 +1267,48 @@ def run_pipeline(args: argparse.Namespace, recorder: PerformanceRecorder) -> int
         grounding_reused = True
         print("Using frozen committed world; world generator was not called.", flush=True)
     else:
-        cached_actions_match = cached_framing_matches(
+        committed_cache_matches = cached_framing_matches(
             cached_framing,
             presentation_actions=presentation_actions,
             canonical_actions=actions,
             canonical_scenario=scenario,
         )
+        failed_cache_matches = cached_framing_matches(
+            failed_grounding_cache,
+            presentation_actions=presentation_actions,
+            canonical_actions=actions,
+            canonical_scenario=scenario,
+        )
+        failed_seed = (
+            failed_grounding_cache.get("action_source_grounding")
+            if (
+                failed_grounding_cache is not None
+                and failed_cache_matches
+                and not committed_cache_matches
+            )
+            else None
+        )
+        grounding_resumed = isinstance(failed_seed, dict)
+        if grounding_resumed:
+            print(
+                "Resuming rejected world grounding from exact-match cache "
+                f"({failed_grounding_cache.get('repair_scope')}).",
+                flush=True,
+            )
         with performance_stage("world_grounding"):
             action_source_grounding, grounding_reused = choose_action_source_grounding(
                 cached_framing,
-                cache_matches=cached_actions_match,
+                cache_matches=committed_cache_matches,
                 grounder=lambda: ground_actions_in_scenario(
-                    llm, scenario, actions, max_tokens=max(128, args.delegate_tokens),
+                    llm,
+                    scenario,
+                    actions,
+                    max_tokens=max(128, args.delegate_tokens),
+                    prior_errors=(failed_seed or {}).get("errors") or [],
+                    prior_issues=(failed_seed or {}).get("validation_issues") or [],
+                    prior_candidate=(failed_seed or {}).get("rejected_candidate"),
+                    prior_source="failed_grounding_resume_cache",
+                    allow_action_text_evidence=(action_origin == "USER_AUTHORED"),
                 ),
             )
         escalation_model = str(
@@ -919,7 +1352,9 @@ def run_pipeline(args: argparse.Namespace, recorder: PerformanceRecorder) -> int
                         prior_errors=action_source_grounding.get("errors") or [],
                         prior_issues=action_source_grounding.get("validation_issues") or [],
                         prior_candidate=action_source_grounding.get("rejected_candidate"),
+                        prior_source="model_escalation",
                         call_kind_primary="world_grounding_escalation",
+                        allow_action_text_evidence=(action_origin == "USER_AUTHORED"),
                     )
                 action_source_grounding = attach_world_escalation(
                     action_source_grounding,
@@ -934,12 +1369,16 @@ def run_pipeline(args: argparse.Namespace, recorder: PerformanceRecorder) -> int
                 flush=True,
             )
     else:
-        if cached_framing is not None:
-            framing_cache_lookup = "MISS_ACTION_SET_CHANGED"
+        if action_cache is not None and not grounding_resumed:
+            if cached_framing is not None:
+                framing_cache_lookup = "MISS_ACTION_SET_CHANGED"
+            elif failed_grounding_cache is not None:
+                failed_grounding_cache_lookup = "MISS_ACTION_SET_CHANGED"
             print(
                 "Cached actions changed; recomputing action-source grounding.",
                 flush=True,
             )
+    grounding_diagnostic_path: Path | None = None
     if frozen_replay is not None:
         frozen_world = action_source_grounding.get("world_model") or {}
         print(
@@ -948,16 +1387,130 @@ def run_pipeline(args: argparse.Namespace, recorder: PerformanceRecorder) -> int
             flush=True,
         )
     else:
+        grounding_status = str(
+            action_source_grounding.get("status") or "UNKNOWN"
+        ).upper()
+        attempt_count = len(action_source_grounding.get("attempts") or [])
+        repair_scope = str(
+            action_source_grounding.get("next_repair_scope") or ""
+        ).upper()
+        if grounding_status == "REJECTED" and repair_scope not in {
+            LOCAL_PATCH, SUBGRAPH_REBUILD, FULL_REBUILD,
+        }:
+            repair_scope = classify_world_repair_scope(
+                action_source_grounding.get("validation_issues") or [],
+                errors=action_source_grounding.get("errors") or [],
+                candidate=action_source_grounding.get("rejected_candidate"),
+            )
+            action_source_grounding["next_repair_scope"] = repair_scope
+        _, issue_count = _compact_grounding_issues(
+            action_source_grounding, limit=0,
+        )
         print(
             "Action-source grounding: "
-            + json.dumps(action_source_grounding, ensure_ascii=False, sort_keys=True),
+            f"{grounding_status} ({attempt_count} attempt(s), "
+            f"{issue_count} final validation issue(s))",
             flush=True,
         )
+        cache_enabled = not args.no_framing_cache
+        cache_eligible = (
+            cache_enabled
+            and grounding_status == "REJECTED"
+            and attempt_count >= 3
+            and repair_scope in {LOCAL_PATCH, SUBGRAPH_REBUILD}
+            and isinstance(
+                action_source_grounding.get("rejected_candidate"), dict
+            )
+        )
+        if cache_eligible:
+            try:
+                with performance_stage("failed_grounding_cache_serialization"):
+                    save_failed_grounding_cache(
+                        failed_grounding_cache_path,
+                        ethical_problem=ethical_problem,
+                        presentation_actions=presentation_actions,
+                        canonical_actions=actions,
+                        canonical_scenario=scenario,
+                        presentation_action_mapping=presentation_action_mapping,
+                        source_action_legend=source_action_legend,
+                        grounding=action_source_grounding,
+                        repair_scope=repair_scope,
+                        source_model=(
+                            args.openai_model if args.backend == "openai"
+                            else str(args.model)
+                        ),
+                        action_origin=action_origin,
+                        resume_count=(
+                            int(failed_grounding_cache.get("resume_count") or 0) + 1
+                            if grounding_resumed and failed_grounding_cache else 0
+                        ),
+                    )
+                failed_grounding_cache_written = True
+                print(
+                    "Rejected grounding cached for the next exact-match run "
+                    f"({repair_scope}).",
+                    flush=True,
+                )
+            except (OSError, ValueError) as exc:
+                print(
+                    f"Failed-grounding resume cache could not be saved: {exc}",
+                    flush=True,
+                )
+        elif (
+            cache_enabled
+            and failed_grounding_cache is not None
+            and failed_cache_matches
+            and grounding_status in {"COMMITTED", "REJECTED"}
+            and (grounding_status == "COMMITTED" or repair_scope == FULL_REBUILD)
+        ):
+            try:
+                failed_grounding_cache_path.unlink(missing_ok=True)
+            except OSError as exc:
+                print(
+                    f"Stale failed-grounding cache could not be removed: {exc}",
+                    flush=True,
+                )
+        if (
+            cache_enabled
+            and grounding_status == "REJECTED"
+            and attempt_count >= 3
+            and repair_scope == FULL_REBUILD
+        ):
+            print(
+                "Rejected grounding was not cached because the next attempt "
+                "requires FULL_REBUILD.",
+                flush=True,
+            )
+        if grounding_status != "COMMITTED":
+            try:
+                with performance_stage("world_grounding_failure_serialization"):
+                    grounding_diagnostic_path = save_world_grounding_failure(
+                        args.output_dir,
+                        scenario_path=scenario_path,
+                        ethical_problem=ethical_problem,
+                        canonical_scenario=scenario,
+                        presentation_actions=presentation_actions,
+                        canonical_actions=actions,
+                        presentation_action_mapping=presentation_action_mapping,
+                        source_action_legend=source_action_legend,
+                        grounding=action_source_grounding,
+                        backend=args.backend,
+                        model=(
+                            args.openai_model if args.backend == "openai"
+                            else str(args.model)
+                        ),
+                    )
+            except OSError as exc:
+                print(
+                    f"World-grounding diagnostic could not be saved: {exc}",
+                    flush=True,
+                )
     if action_source_grounding.get("world_contradictions"):
         if not resolve_world_state_contradictions(action_source_grounding):
             print("Run abandoned because the direct world state remained contradictory.")
             return 2
     from global_workspace.action_identity import (
+        action_world_correspondence_errors,
         build_canonical_action_records,
         extract_scenario_actor,
         partition_records_for_deliberation,
@@ -990,12 +1543,30 @@ def run_pipeline(args: argparse.Namespace, recorder: PerformanceRecorder) -> int
         scenario=scenario,
         grounding_status=grounding_status,
         world_model=dict(action_source_grounding.get("world_model") or {}),
+        action_origin=action_origin,
     )
     if action_source_grounding.get("world_model"):
         from global_workspace.world_state import world_model_from_dict
         typed_world = world_model_from_dict(action_source_grounding["world_model"])
         if typed_world is None:
             raise SystemExit("Refusing to deliberate: typed world state could not be restored.")
+        correspondence_errors = action_world_correspondence_errors(
+            actions,
+            typed_world,
+            action_origin=action_origin,
+        )
+        action_source_grounding["action_world_correspondence"] = {
+            "status": "REJECTED" if correspondence_errors else "COMMITTED",
+            "action_origin": action_origin,
+            "errors": list(correspondence_errors),
+        }
+        if correspondence_errors:
+            print(
+                "Refusing to deliberate: canonical action/world correspondence "
+                "was rejected. " + "; ".join(correspondence_errors),
+                flush=True,
+            )
+            return 2
         expected_effect_ids = {
             effect.effect_id
             for action in typed_world.actions
@@ -1025,8 +1596,21 @@ def run_pipeline(args: argparse.Namespace, recorder: PerformanceRecorder) -> int
     # Deliberating over a subset would silently pose a different dilemma than
     # the one the user asked about, so any withheld action halts the run.
     if withheld:
-        return report_withheld_world(records, action_source_grounding)
+        return report_withheld_world(
+            records,
+            action_source_grounding,
+            diagnostic_path=grounding_diagnostic_path,
+        )
     canonical_action_records = [record.as_dict() for record in admitted]
+    reasoning_action_by_id = {
+        str(record["action_id"]): str(record["canonical_semantic_action"])
+        for record in canonical_action_records
+    }
+    for mapping in presentation_action_mapping:
+        canonical_id = str(mapping.get("canonical_action_id") or "")
+        if canonical_id in reasoning_action_by_id:
+            mapping["canonical_action"] = reasoning_action_by_id[canonical_id]
+            mapping["reasoning_identity_source"] = "ADMITTED_WORLD_INTERVENTION"
     if (
         frozen_replay is None
         and not args.no_framing_cache and not grounding_reused
@@ -1038,6 +1622,7 @@ def run_pipeline(args: argparse.Namespace, recorder: PerformanceRecorder) -> int
                 "presentation_actions": presentation_actions,
                 "canonical_actions": actions,
                 "canonical_scenario": scenario,
+                "action_origin": action_origin,
                 "action_source_grounding": action_source_grounding,
             })
             framing_cache_written = True
@@ -1159,6 +1744,7 @@ def run_pipeline(args: argparse.Namespace, recorder: PerformanceRecorder) -> int
                     testimonies[name],
                     actions,
                     source_action_legend=source_action_legend,
+                    source_label_bindings=source_label_bindings,
                 )
         except ModelCallBudgetExceeded as exc:
             print(
@@ -1392,6 +1978,12 @@ def run_pipeline(args: argparse.Namespace, recorder: PerformanceRecorder) -> int
         "grounding_reused": grounding_reused,
         "cache_written": framing_cache_written,
         "cache_version": FRAMING_CACHE_VERSION,
+        "failed_grounding_lookup_status": failed_grounding_cache_lookup,
+        "failed_grounding_resumed": grounding_resumed,
+        "failed_grounding_cache_written": failed_grounding_cache_written,
+        "failed_grounding_cache_version": FAILED_GROUNDING_CACHE_VERSION,
+        "action_authority_contract_version": ACTION_AUTHORITY_CONTRACT_VERSION,
+        "action_origin": action_origin,
     }
     result.frozen_world_replay = (
         frozen_replay.metadata() if frozen_replay is not None else {}

@@ -1,0 +1,701 @@
+<div id="parliament-solo-overlay-v1">
+  <style>
+    #parliament-solo-overlay-v1 {
+      --grounded: var(--viz-series-2);
+      --conditional: var(--viz-series-4);
+      --unsupported: var(--viz-series-5);
+      --guardrail: var(--viz-series-1);
+      --partial: var(--viz-series-3);
+      color: var(--foreground);
+      background: var(--background);
+      font-family: var(--font-sans);
+      line-height: 1.48;
+      padding: 18px;
+    }
+
+    #parliament-solo-overlay-v1 * { box-sizing: border-box; }
+
+    #parliament-solo-overlay-v1 .shell {
+      max-width: 1440px;
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+
+    #parliament-solo-overlay-v1 h1,
+    #parliament-solo-overlay-v1 h2,
+    #parliament-solo-overlay-v1 h3,
+    #parliament-solo-overlay-v1 p { margin: 0; }
+
+    #parliament-solo-overlay-v1 h1 {
+      font-size: clamp(25px, 3.2vw, 43px);
+      line-height: 1.06;
+      letter-spacing: -0.04em;
+      max-width: 920px;
+    }
+
+    #parliament-solo-overlay-v1 h2 {
+      font-size: clamp(19px, 2.2vw, 28px);
+      line-height: 1.16;
+      letter-spacing: -0.025em;
+    }
+
+    #parliament-solo-overlay-v1 h3 {
+      font-size: 14px;
+      letter-spacing: 0.02em;
+    }
+
+    #parliament-solo-overlay-v1 .hero,
+    #parliament-solo-overlay-v1 .panel,
+    #parliament-solo-overlay-v1 .result-card,
+    #parliament-solo-overlay-v1 .lane,
+    #parliament-solo-overlay-v1 .audit-item,
+    #parliament-solo-overlay-v1 .fact-card,
+    #parliament-solo-overlay-v1 .guardrail-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--card);
+    }
+
+    #parliament-solo-overlay-v1 .hero {
+      padding: clamp(20px, 3vw, 36px);
+      display: grid;
+      gap: 14px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 92% 12%, color-mix(in srgb, var(--guardrail) 18%, transparent), transparent 31%),
+        var(--card);
+    }
+
+    #parliament-solo-overlay-v1 .eyebrow {
+      color: var(--muted-foreground);
+      font-size: 12px;
+      font-weight: 750;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    #parliament-solo-overlay-v1 .subtitle {
+      max-width: 1020px;
+      color: var(--muted-foreground);
+      font-size: 15px;
+    }
+
+    #parliament-solo-overlay-v1 .result-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    #parliament-solo-overlay-v1 .result-card { padding: 15px; }
+
+    #parliament-solo-overlay-v1 .result-card.solo { border-top: 4px solid var(--unsupported); }
+    #parliament-solo-overlay-v1 .result-card.parliament { border-top: 4px solid var(--guardrail); }
+    #parliament-solo-overlay-v1 .result-card.meaning { border-top: 4px solid var(--grounded); }
+
+    #parliament-solo-overlay-v1 .result-label {
+      font-size: 11px;
+      color: var(--muted-foreground);
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      font-weight: 750;
+      margin-bottom: 6px;
+    }
+
+    #parliament-solo-overlay-v1 .result-value {
+      font-size: 17px;
+      font-weight: 780;
+      line-height: 1.25;
+      margin-bottom: 5px;
+    }
+
+    #parliament-solo-overlay-v1 .fine {
+      color: var(--muted-foreground);
+      font-size: 12px;
+    }
+
+    #parliament-solo-overlay-v1 .panel {
+      padding: clamp(16px, 2.2vw, 26px);
+      display: grid;
+      gap: 16px;
+    }
+
+    #parliament-solo-overlay-v1 .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    #parliament-solo-overlay-v1 .legend {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    #parliament-solo-overlay-v1 .chip,
+    #parliament-solo-overlay-v1 .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 10px;
+      font-weight: 750;
+      letter-spacing: 0.035em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    #parliament-solo-overlay-v1 .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    #parliament-solo-overlay-v1 .grounded .dot,
+    #parliament-solo-overlay-v1 .status.grounded { background: color-mix(in srgb, var(--grounded) 18%, transparent); }
+    #parliament-solo-overlay-v1 .grounded .dot { background: var(--grounded); }
+    #parliament-solo-overlay-v1 .conditional .dot,
+    #parliament-solo-overlay-v1 .status.conditional { background: color-mix(in srgb, var(--conditional) 18%, transparent); }
+    #parliament-solo-overlay-v1 .conditional .dot { background: var(--conditional); }
+    #parliament-solo-overlay-v1 .unsupported .dot,
+    #parliament-solo-overlay-v1 .status.unsupported { background: color-mix(in srgb, var(--unsupported) 18%, transparent); }
+    #parliament-solo-overlay-v1 .unsupported .dot { background: var(--unsupported); }
+    #parliament-solo-overlay-v1 .guardrail .dot,
+    #parliament-solo-overlay-v1 .status.guardrail { background: color-mix(in srgb, var(--guardrail) 18%, transparent); }
+    #parliament-solo-overlay-v1 .guardrail .dot { background: var(--guardrail); }
+    #parliament-solo-overlay-v1 .status.partial { background: color-mix(in srgb, var(--partial) 18%, transparent); }
+
+    #parliament-solo-overlay-v1 .overlay-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.24fr) minmax(310px, 0.76fr);
+      gap: 15px;
+      align-items: start;
+    }
+
+    #parliament-solo-overlay-v1 .solo-paper {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: clamp(16px, 2vw, 24px);
+      background: color-mix(in srgb, var(--card) 86%, var(--background));
+      display: grid;
+      gap: 13px;
+      box-shadow: 0 12px 28px color-mix(in srgb, var(--foreground) 7%, transparent);
+    }
+
+    #parliament-solo-overlay-v1 .solo-title {
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    #parliament-solo-overlay-v1 .solo-line {
+      padding-left: 12px;
+      border-left: 3px solid var(--border);
+      font-size: 13px;
+    }
+
+    #parliament-solo-overlay-v1 .mark {
+      border-radius: 4px;
+      padding: 1px 3px;
+      font-weight: 680;
+    }
+
+    #parliament-solo-overlay-v1 .mark.grounded { background: color-mix(in srgb, var(--grounded) 19%, transparent); }
+    #parliament-solo-overlay-v1 .mark.conditional { background: color-mix(in srgb, var(--conditional) 22%, transparent); }
+    #parliament-solo-overlay-v1 .mark.unsupported { background: color-mix(in srgb, var(--unsupported) 19%, transparent); }
+    #parliament-solo-overlay-v1 .mark.guardrail { background: color-mix(in srgb, var(--guardrail) 18%, transparent); }
+
+    #parliament-solo-overlay-v1 sup {
+      display: inline-grid;
+      place-items: center;
+      width: 17px;
+      height: 17px;
+      margin-left: 2px;
+      border-radius: 50%;
+      background: var(--foreground);
+      color: var(--background);
+      font-size: 9px;
+      font-weight: 800;
+      vertical-align: 2px;
+    }
+
+    #parliament-solo-overlay-v1 .audit-stack {
+      display: grid;
+      gap: 9px;
+    }
+
+    #parliament-solo-overlay-v1 .audit-item {
+      padding: 11px 12px;
+      display: grid;
+      grid-template-columns: 24px 1fr;
+      gap: 9px;
+      font-size: 12px;
+    }
+
+    #parliament-solo-overlay-v1 .audit-number {
+      width: 23px;
+      height: 23px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: var(--background);
+      background: var(--foreground);
+      font-weight: 800;
+      font-size: 10px;
+    }
+
+    #parliament-solo-overlay-v1 .audit-item strong { display: block; margin-bottom: 2px; }
+    #parliament-solo-overlay-v1 .audit-item span { color: var(--muted-foreground); }
+
+    #parliament-solo-overlay-v1 .guardrail-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    #parliament-solo-overlay-v1 .guardrail-card {
+      padding: 12px;
+      min-height: 132px;
+      display: grid;
+      align-content: start;
+      gap: 7px;
+    }
+
+    #parliament-solo-overlay-v1 .guardrail-card p { font-size: 11px; color: var(--muted-foreground); }
+    #parliament-solo-overlay-v1 .guardrail-card strong { font-size: 13px; line-height: 1.25; }
+
+    #parliament-solo-overlay-v1 .framework-block {
+      border-top: 1px solid var(--border);
+      padding-top: 15px;
+      display: grid;
+      gap: 11px;
+    }
+
+    #parliament-solo-overlay-v1 .framework-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 9px;
+    }
+
+    #parliament-solo-overlay-v1 .framework-card {
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 11px;
+      display: grid;
+      align-content: start;
+      gap: 7px;
+      font-size: 10px;
+      background: color-mix(in srgb, var(--card) 88%, var(--background));
+    }
+
+    #parliament-solo-overlay-v1 .framework-card h3 { font-size: 12px; }
+    #parliament-solo-overlay-v1 .framework-card p { color: var(--muted-foreground); }
+    #parliament-solo-overlay-v1 .framework-card b { color: var(--foreground); }
+
+    #parliament-solo-overlay-v1 .mapping {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    #parliament-solo-overlay-v1 .map-card {
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 12px;
+    }
+
+    #parliament-solo-overlay-v1 .map-card b { font-size: 14px; }
+
+    #parliament-solo-overlay-v1 .world-flow {
+      display: grid;
+      gap: 12px;
+    }
+
+    #parliament-solo-overlay-v1 .source-strip {
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 11px 14px;
+      text-align: center;
+      background: color-mix(in srgb, var(--grounded) 9%, var(--card));
+      font-size: 12px;
+    }
+
+    #parliament-solo-overlay-v1 .split-arrow {
+      text-align: center;
+      font-size: 23px;
+      color: var(--muted-foreground);
+      line-height: 1;
+      letter-spacing: 0.4em;
+    }
+
+    #parliament-solo-overlay-v1 .lanes {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    #parliament-solo-overlay-v1 .lane {
+      padding: 14px;
+      display: grid;
+      align-content: start;
+      gap: 12px;
+    }
+
+    #parliament-solo-overlay-v1 .lane.a0 { border-top: 5px solid var(--guardrail); }
+    #parliament-solo-overlay-v1 .lane.a1 { border-top: 5px solid var(--conditional); }
+
+    #parliament-solo-overlay-v1 .lane-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+    }
+
+    #parliament-solo-overlay-v1 .lane-head p { color: var(--muted-foreground); font-size: 11px; margin-top: 4px; }
+
+    #parliament-solo-overlay-v1 .chain {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 22px minmax(0, 1fr) 22px minmax(0, 1fr);
+      align-items: stretch;
+      gap: 4px;
+    }
+
+    #parliament-solo-overlay-v1 .arrow {
+      display: grid;
+      place-items: center;
+      color: var(--muted-foreground);
+      font-weight: 800;
+    }
+
+    #parliament-solo-overlay-v1 .fact-card {
+      padding: 10px;
+      display: grid;
+      gap: 5px;
+      min-height: 125px;
+      align-content: start;
+      background: color-mix(in srgb, var(--card) 88%, var(--background));
+    }
+
+    #parliament-solo-overlay-v1 .effect-id {
+      color: var(--muted-foreground);
+      font-family: var(--font-mono);
+      font-size: 10px;
+    }
+
+    #parliament-solo-overlay-v1 .effect-title { font-size: 12px; font-weight: 780; }
+    #parliament-solo-overlay-v1 .effect-meta { font-size: 10px; color: var(--muted-foreground); }
+
+    #parliament-solo-overlay-v1 .effect-direction {
+      display: inline-flex;
+      align-self: start;
+      width: fit-content;
+      border-radius: 999px;
+      padding: 2px 6px;
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      background: color-mix(in srgb, var(--grounded) 17%, transparent);
+    }
+
+    #parliament-solo-overlay-v1 .effect-direction.adverse { background: color-mix(in srgb, var(--unsupported) 17%, transparent); }
+    #parliament-solo-overlay-v1 .effect-direction.neutral { background: color-mix(in srgb, var(--guardrail) 15%, transparent); }
+
+    #parliament-solo-overlay-v1 .foregone {
+      border: 1px dashed var(--border);
+      border-radius: 9px;
+      padding: 9px 10px;
+      font-size: 11px;
+      color: var(--muted-foreground);
+      background: color-mix(in srgb, var(--partial) 8%, transparent);
+    }
+
+    #parliament-solo-overlay-v1 .action-text-gap {
+      border-left: 3px solid var(--partial);
+      padding: 8px 10px;
+      background: color-mix(in srgb, var(--partial) 10%, transparent);
+      border-radius: 7px;
+      font-size: 10px;
+    }
+
+    #parliament-solo-overlay-v1 .quarantine {
+      border: 2px dashed var(--unsupported);
+      border-radius: 12px;
+      padding: 13px;
+      display: grid;
+      grid-template-columns: 190px 1fr;
+      gap: 13px;
+      align-items: center;
+      background: color-mix(in srgb, var(--unsupported) 7%, transparent);
+    }
+
+    #parliament-solo-overlay-v1 .quarantine-title { font-size: 13px; font-weight: 800; }
+    #parliament-solo-overlay-v1 .quarantine p { font-size: 11px; color: var(--muted-foreground); }
+    #parliament-solo-overlay-v1 .hypotheses { display: flex; gap: 7px; flex-wrap: wrap; }
+
+    #parliament-solo-overlay-v1 .hypothesis {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 9px;
+      font-size: 10px;
+      background: var(--card);
+      flex: 1 1 170px;
+    }
+
+    #parliament-solo-overlay-v1 .collapse-flow {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      align-items: stretch;
+      gap: 6px;
+    }
+
+    #parliament-solo-overlay-v1 .collapse-node {
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 10px;
+      min-height: 96px;
+      font-size: 11px;
+      display: grid;
+      align-content: center;
+      text-align: center;
+      gap: 4px;
+    }
+
+    #parliament-solo-overlay-v1 .collapse-node b { font-size: 12px; }
+    #parliament-solo-overlay-v1 .collapse-arrow { display: grid; place-items: center; color: var(--muted-foreground); }
+    #parliament-solo-overlay-v1 .collapse-node.bad { border-color: var(--unsupported); background: color-mix(in srgb, var(--unsupported) 8%, transparent); }
+    #parliament-solo-overlay-v1 .collapse-node.good { border-color: var(--grounded); background: color-mix(in srgb, var(--grounded) 8%, transparent); }
+
+    #parliament-solo-overlay-v1 .caution-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    #parliament-solo-overlay-v1 .caution {
+      border-left: 4px solid var(--partial);
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--partial) 9%, transparent);
+      padding: 12px;
+      font-size: 11px;
+    }
+
+    #parliament-solo-overlay-v1 .caution strong { display: block; margin-bottom: 4px; font-size: 12px; }
+
+    #parliament-solo-overlay-v1 .bottom-line {
+      border: 1px solid var(--grounded);
+      border-radius: 12px;
+      padding: 14px 16px;
+      background: color-mix(in srgb, var(--grounded) 8%, transparent);
+      font-size: 13px;
+    }
+
+    @media (max-width: 1040px) {
+      #parliament-solo-overlay-v1 .guardrail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #parliament-solo-overlay-v1 .framework-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #parliament-solo-overlay-v1 .chain { grid-template-columns: 1fr; }
+      #parliament-solo-overlay-v1 .chain .arrow { transform: rotate(90deg); min-height: 14px; }
+      #parliament-solo-overlay-v1 .collapse-flow { grid-template-columns: 1fr; }
+      #parliament-solo-overlay-v1 .collapse-arrow { transform: rotate(90deg); }
+    }
+
+    @media (max-width: 760px) {
+      #parliament-solo-overlay-v1 { padding: 10px; }
+      #parliament-solo-overlay-v1 .result-grid,
+      #parliament-solo-overlay-v1 .overlay-grid,
+      #parliament-solo-overlay-v1 .lanes,
+      #parliament-solo-overlay-v1 .mapping,
+      #parliament-solo-overlay-v1 .caution-grid,
+      #parliament-solo-overlay-v1 .framework-grid { grid-template-columns: 1fr; }
+      #parliament-solo-overlay-v1 .quarantine { grid-template-columns: 1fr; }
+    }
+  </style>
+
+  <div class="shell">
+    <section class="hero">
+      <div class="eyebrow">Solo answer × Parliament audit · organ directive scenario</div>
+      <h1>The solo answer may reach a defensible choice—but it hides the uncertainty that determines whether the choice is justified.</h1>
+      <p class="subtitle">The overlay below separates admitted facts, normative classifications, outside premises, and decision boundaries. The Parliament trace did not prove Option B wrong; it showed that its apparent cross-framework certainty was not yet earned.</p>
+      <div class="result-grid">
+        <div class="result-card solo">
+          <div class="result-label">Solo output</div>
+          <div class="result-value">“The physician should choose Option B.”</div>
+          <div class="fine">Decisive conclusion; no abstention, confidence state, or live reversal test.</div>
+        </div>
+        <div class="result-card parliament">
+          <div class="result-label">Parliament output</div>
+          <div class="result-value">UNRESOLVED · plurality A0 / Option B</div>
+          <div class="fine">Policy support 0.50 · epistemic confidence 0.00 · all displayed framework votes abstained.</div>
+        </div>
+        <div class="result-card meaning">
+          <div class="result-label">What changed</div>
+          <div class="result-value">The conclusion became a hypothesis to justify.</div>
+          <div class="fine">Facts remained stable; the claimed certainty did not survive provenance, framework, and vote gates.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">1 · Annotated overlay</div>
+          <h2>What is doing the work inside the solo response?</h2>
+        </div>
+        <div class="legend" aria-label="Overlay legend">
+          <span class="chip grounded"><i class="dot"></i>admitted fact</span>
+          <span class="chip conditional"><i class="dot"></i>normative classification</span>
+          <span class="chip unsupported"><i class="dot"></i>unestablished / external</span>
+          <span class="chip guardrail"><i class="dot"></i>missing guardrail</span>
+        </div>
+      </div>
+
+      <div class="overlay-grid">
+        <article class="solo-paper" aria-label="Solo answer excerpts with audit highlights">
+          <div class="solo-title">Solo answer, with Parliament-style annotations</div>
+          <p class="solo-line"><span class="mark guardrail">“The physician should choose Option B”</span><sup>1</sup>—respect the deceased’s binding refusal—even though <span class="mark grounded">the five transplant candidates will die tonight</span>.</p>
+          <p class="solo-line">A competent patient’s wishes are <span class="mark conditional">“morally decisive”</span><sup>2</sup>, and violating the directive would deny a <span class="mark conditional">“fundamental moral and legal right”</span>.</p>
+          <p class="solo-line">If physicians override refusals, <span class="mark unsupported">“every future patient has reason to fear” and “systemic trust collapses”</span><sup>3</sup>.</p>
+          <p class="solo-line"><span class="mark unsupported">“Every relevant legal system criminalizes” procurement; prosecution, loss of license, and imprisonment follow; professional codes “absolutely forbid” it.</span><sup>4</sup></p>
+          <p class="solo-line">Fraud would <span class="mark unsupported">“deter countless future donors” and “ultimately cost more than five lives”</span><sup>5</sup>, so long-term consequences outweigh the immediate rescue.</p>
+          <p class="solo-line">Falsification and harvesting are <span class="mark conditional">“intrinsically wrong”</span><sup>6</sup>; dishonesty and disrespect cultivate vice, while a virtuous physician maintains fidelity and trustworthiness.</p>
+          <p class="solo-line">The rejected alternatives are “ask forgiveness later,” take only some organs, or ignore the directive because the patient is dead.<sup>7</sup></p>
+          <p class="solo-line"><span class="mark guardrail">“Morally, professionally, and legally, the physician must honor the explicit refusal.”</span><sup>8</sup></p>
+        </article>
+
+        <aside class="audit-stack" aria-label="Parliament audit annotations">
+          <div class="audit-item"><div class="audit-number">1</div><div><strong>Conclusion outruns vote admission</strong><span>The trace has a plurality, not a governing recommendation: 0.50 support, 0.00 epistemic confidence, cycle budget exhausted.</span></div></div>
+          <div class="audit-item"><div class="audit-number">2</div><div><strong>A premise is not its priority rule</strong><span>The directive is explicit and legally binding in the scenario. Whether it lexically defeats a rescue duty is a separate deontological and Rawlsian classification.</span></div></div>
+          <div class="audit-item"><div class="audit-number">3</div><div><strong>Hypothesis presented as outcome</strong><span>The Parliament quarantined trust corrosion as hypothetical. Repetition can raise salience, never epistemic status.</span></div></div>
+          <div class="audit-item"><div class="audit-number">4</div><div><strong>Outside facts lack retrieval or citations</strong><span>Universal legal claims, sanctions, and code coverage are not in the admitted world. They require sourced retrieval or must remain external assumptions.</span></div></div>
+          <div class="audit-item"><div class="audit-number">5</div><div><strong>Expected-value leap</strong><span>“More than five lives” needs probability × impact, source effects, assumptions, and a threshold. The Parliament surfaced the reversal boundary: expected added deaths &gt; 5.</span></div></div>
+          <div class="audit-item"><div class="audit-number">6</div><div><strong>Framework verdict without conflict adjudication</strong><span>Deontology must compare negative duty, rescue duty, means versus side effect, and priority. Virtue must weigh compassion against honesty—not name only the vices of A1.</span></div></div>
+          <div class="audit-item"><div class="audit-number">7</div><div><strong>Alternatives do not test the live rival</strong><span>These are mostly variants of A1. The real challenge is what would make justified rescue override the directive—or make respect for the directive override five certain deaths.</span></div></div>
+          <div class="audit-item"><div class="audit-number">8</div><div><strong>No abstention or reversal contract</strong><span>The prose fuses medicine, law, utility, duty, and virtue into apparent consensus without showing which claims each framework can validly support.</span></div></div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div>
+        <div class="eyebrow">2 · Designed guardrails</div>
+        <h2>What the Parliament is built to catch</h2>
+      </div>
+      <div class="guardrail-grid">
+        <div class="guardrail-card"><span class="status grounded">worked</span><strong>Canonical action identity</strong><p>Presented Option A became A1; presented Option B became A0. Stable IDs prevent wording order from silently changing the comparison.</p></div>
+        <div class="guardrail-card"><span class="status grounded">worked</span><strong>Action-local world effects</strong><p>Who benefits, who is harmed, causal paths, and foregone counterfactuals remain attached to one action.</p></div>
+        <div class="guardrail-card"><span class="status grounded">worked</span><strong>Provenance and epistemic status</strong><p>Scenario clauses ground admitted effects. Agent-added trust, callousness, and future-death claims stay hypothetical.</p></div>
+        <div class="guardrail-card"><span class="status grounded">worked</span><strong>Framework-native ledgers</strong><p>Utility, duty, virtue, care, and Rawlsian claims retain different structures instead of collapsing into one generic “reason.”</p></div>
+        <div class="guardrail-card"><span class="status grounded">worked</span><strong>Challenge and reversal agenda</strong><p>The trace asks about means, rescue-duty priority, dependency, primary goods, consent, and the expected-deaths threshold.</p></div>
+        <div class="guardrail-card"><span class="status grounded">worked</span><strong>Vote admission</strong><p>A stated lean cannot become full policy influence when its ledger or derivation fails validation. The displayed votes abstained.</p></div>
+        <div class="guardrail-card"><span class="status grounded">worked</span><strong>Plurality ≠ convergence</strong><p>The system reports A0 as current plurality while explicitly withholding a safe governing recommendation.</p></div>
+        <div class="guardrail-card"><span class="status partial">partial</span><strong>Report and schema fidelity</strong><p>The trace still has inconsistencies: the final narrative says Utilitarian “favors” A0, and deception is not separately atomized in the effect graph.</p></div>
+      </div>
+
+      <div class="framework-block">
+        <div>
+          <div class="eyebrow">Five lenses · five different validation jobs</div>
+          <h3>The solo answer sounds pluralistic, but it does not preserve independent framework reasoning.</h3>
+        </div>
+        <div class="framework-grid">
+          <div class="framework-card"><h3>Utilitarian</h3><p><b>Solo:</b> speculative trust and donor effects “ultimately cost more than five lives.”</p><p><b>Required:</b> weigh admitted E1/E4 first; expose probability × impact. A0 reversal boundary: expected added deaths &gt; 5.</p></div>
+          <div class="framework-card"><h3>Deontological</h3><p><b>Solo:</b> labels deception and harvesting intrinsically wrong, then stops.</p><p><b>Required:</b> classify truth, autonomy, rescue, omission, means/side-effect, and justify which perfect claim has priority.</p></div>
+          <div class="framework-card"><h3>Virtue</h3><p><b>Solo:</b> lists A1’s dishonesty and arrogance.</p><p><b>Required:</b> weigh honesty, justice, and fidelity against compassion and beneficence; keep “callousness” hypothetical until grounded.</p></div>
+          <div class="framework-card"><h3>Care</h3><p><b>Solo:</b> invokes systemic trust as a generalized consequence.</p><p><b>Required:</b> compare the deceased’s explicit entrustment with five patients’ acute dependency; do not treat future relational corrosion as established.</p></div>
+          <div class="framework-card"><h3>Rawlsian</h3><p><b>Solo:</b> merges rights, law, and autonomy into the general conclusion.</p><p><b>Required:</b> establish basic-liberty status, relevant representative positions, and lexical priority over the patients’ survival interest.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">3 · Parliament world model</div>
+          <h2>One admitted world, two action-local causal lanes</h2>
+        </div>
+        <span class="status grounded">status: committed · repairs: 3</span>
+      </div>
+
+      <div class="mapping" aria-label="Original to canonical action mapping">
+        <div class="map-card"><span>Presented Option B</span><span>→</span><b>A0 · disclose truth</b></div>
+        <div class="map-card"><span>Presented Option A</span><span>→</span><b>A1 · harvest organs</b></div>
+      </div>
+
+      <div class="world-flow">
+        <div class="source-strip"><strong>Admitted scenario clauses C0–C3</strong> · five patients die tonight without immediate transplants · deceased exact match · signed binding refusal · action descriptions</div>
+        <div class="split-arrow">↙ ↘</div>
+
+        <div class="lanes">
+          <article class="lane a0">
+            <div class="lane-head">
+              <div><h3>A0 · Disclose truth and uphold directive</h3><p>Presented Option B · benefits: deceased patient · harms: five waiting patients</p></div>
+              <span class="status guardrail">actual lane</span>
+            </div>
+            <div class="chain">
+              <div class="fact-card"><span class="effect-id">E0 · DIRECT · CERTAIN</span><span class="effect-title">Uphold the legal contract</span><span class="effect-meta">Affected: deceased patient</span><span class="effect-direction">beneficial</span></div>
+              <div class="arrow">→</div>
+              <div class="fact-card"><span class="effect-id">E6 · DOWNSTREAM</span><span class="effect-title">No immediate organ transplants</span><span class="effect-meta">Affected: transplant process</span><span class="effect-direction neutral">neutral mechanism</span></div>
+              <div class="arrow">→</div>
+              <div class="fact-card"><span class="effect-id">E1 · DOWNSTREAM · CERTAIN</span><span class="effect-title">Five die tonight</span><span class="effect-meta">Affected: five waiting patients</span><span class="effect-direction adverse">adverse</span></div>
+            </div>
+            <div class="foregone"><strong>E2 · FOREGONE:</strong> “survive tonight” is not asserted as an A0 effect. It points across to counterpart A1:E4.</div>
+          </article>
+
+          <article class="lane a1">
+            <div class="lane-head">
+              <div><h3>A1 · Falsify records and harvest organs</h3><p>Presented Option A · benefits: five waiting patients · harms: deceased patient</p></div>
+              <span class="status conditional">actual lane</span>
+            </div>
+            <div class="chain">
+              <div class="fact-card"><span class="effect-id">E3 · DIRECT · CERTAIN</span><span class="effect-title">Organs harvested</span><span class="effect-meta">Affected: deceased patient</span><span class="effect-direction adverse">adverse</span></div>
+              <div class="arrow">→</div>
+              <div class="fact-card"><span class="effect-id">E7 · DOWNSTREAM</span><span class="effect-title">Immediate transplants received</span><span class="effect-meta">Affected: transplant process</span><span class="effect-direction neutral">neutral mechanism</span></div>
+              <div class="arrow">→</div>
+              <div class="fact-card"><span class="effect-id">E4 · DOWNSTREAM · CERTAIN</span><span class="effect-title">Five survive tonight</span><span class="effect-meta">Affected: five waiting patients</span><span class="effect-direction">beneficial</span></div>
+            </div>
+            <div class="foregone"><strong>E5 · FOREGONE:</strong> “die tonight” is not asserted as an A1 effect. It points across to counterpart A0:E1.</div>
+            <div class="action-text-gap"><strong>Remaining graph gap:</strong> falsifying records, lying to the board, and violating the directive appear in the action description, but are not separate typed effect nodes in this admitted graph.</div>
+          </article>
+        </div>
+
+        <div class="quarantine">
+          <div><div class="quarantine-title">Hypothesis quarantine</div><p>Salient enough to investigate; not authoritative enough to vote as fact.</p></div>
+          <div class="hypotheses">
+            <div class="hypothesis">Discovery of deception → additional future patient deaths</div>
+            <div class="hypothesis">Breaking entrustment → systemic trust corrosion</div>
+            <div class="hypothesis">Choosing A0 → perceived callousness</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div>
+        <div class="eyebrow">4 · Why the missing world model is visible</div>
+        <h2>The solo answer collapses different claim types into one rhetorical chain</h2>
+      </div>
+      <div class="collapse-flow" aria-label="Comparison of solo collapse and Parliament separation">
+        <div class="collapse-node good"><b>Admitted fact</b><span>Five certain deaths under A0</span></div>
+        <div class="collapse-arrow">→</div>
+        <div class="collapse-node bad"><b>Agent hypothesis</b><span>Trust collapse and future deaths</span></div>
+        <div class="collapse-arrow">→</div>
+        <div class="collapse-node bad"><b>Unsourced quantity</b><span>“More than five lives”</span></div>
+        <div class="collapse-arrow">→</div>
+        <div class="collapse-node bad"><b>Settled verdict</b><span>All frameworks appear to require Option B</span></div>
+      </div>
+      <div class="caution-grid">
+        <div class="caution"><strong>In the solo prose</strong>Facts, predictions, legal generalizations, and normative priority rules are equally fluent. Nothing in the representation prevents a plausible downstream story from outweighing five admitted deaths.</div>
+        <div class="caution"><strong>In the Parliament representation</strong>The graph fixes action scope and outcome type; ledgers evaluate rather than rewrite it; hypotheses remain quarantined; invalid derivations cannot supply full voting weight; unresolved conflict can end in abstention.</div>
+      </div>
+      <div class="bottom-line"><strong>Bottom line:</strong> the solo model’s weakness is not that it chose Option B. It is that the prose gives no inspectable way to tell whether Option B follows from admitted facts, a framework-specific priority rule, or an invented downstream consequence. The Parliament run exposes that distinction—and, in this trace, correctly refuses to call the plurality a settled judgment.</div>
+    </section>
+  </div>
+</div>

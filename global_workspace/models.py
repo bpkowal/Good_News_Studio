@@ -540,6 +540,12 @@ class WorkspaceBroadcast:
     # an address, not evidence and never changes proposition authority.
     focus_proposition_ids: tuple[str, ...] = ()
     problem_state: dict[str, Any] = field(default_factory=dict)
+    # Controller metadata is procedural only.  Specialists may use it to know
+    # what kind of work this cycle requests, but it is never evidence and does
+    # not enter policy or salience calculations.
+    procedure_operation: str = "BASE_DELIBERATION"
+    procedure_task_ids: tuple[str, ...] = ()
+    procedure_reason: str = ""
 
     def __post_init__(self) -> None:
         self.constraint = self.constraint.strip().upper()[:48] or "OPEN_DELIBERATION"
@@ -602,6 +608,14 @@ class WorkspaceBroadcast:
             if str(value).strip()
         ))[:6]
         self.problem_state = dict(self.problem_state or {})
+        operation = self.procedure_operation.strip().upper()[:48]
+        self.procedure_operation = operation or "BASE_DELIBERATION"
+        self.procedure_task_ids = tuple(dict.fromkeys(
+            str(value).strip()[:160]
+            for value in self.procedure_task_ids
+            if str(value).strip()
+        ))[:12]
+        self.procedure_reason = " ".join(self.procedure_reason.split())[:240]
         self.urgency = clamp(self.urgency)
         self.danger_probability = clamp(self.danger_probability)
 
@@ -635,6 +649,8 @@ class WorkspaceBroadcast:
             f"fallback={self.branch_fallback or 'NONE'}"
             f"; reversal_challenge={self.reversal_challenge or 'NONE'}; "
             f"challenge_agenda={json.dumps(challenge_projection, sort_keys=True) if challenge_projection else 'NONE'}; "
+            f"procedure={self.procedure_operation}; "
+            f"procedure_tasks={list(self.procedure_task_ids) or 'NONE'}; "
             f"focus_propositions={list(self.focus_proposition_ids) or 'NONE'}; "
             f"problem_delta={json.dumps(delta_projection, sort_keys=True) if delta_projection else 'NONE'}; "
             f"problem_state={json.dumps(state_projection, sort_keys=True) if state_projection else 'NONE'}"
@@ -662,6 +678,8 @@ class WorkspaceBroadcast:
             f"{self.constraint} | salient={salient} | claim={claim} | "
             f"authority={self.broadcast_authority or 'NONE'} | "
             f"unresolved={self.unresolved} | "
+            f"procedure={self.procedure_operation} | "
+            f"tasks={list(self.procedure_task_ids) or 'NONE'} | "
             f"focus_propositions={list(self.focus_proposition_ids) or 'NONE'}{frame}"
         )
 
@@ -811,6 +829,8 @@ class CandidateChunk:
     framework_vote_reason: str = ""
     framework_ledger_kind: str = ""
     framework_ledger_status: str = ""
+    framework_ranking_validation_status: str = "NOT_RUN"
+    framework_ranking_validation_errors: list[str] = field(default_factory=list)
     derived_claim_validation_status: str = "NOT_RUN"
     derived_claim_validation_errors: list[str] = field(default_factory=list)
     investigative_claim: str = ""
@@ -838,6 +858,11 @@ class CandidateChunk:
     challenge_response: dict[str, Any] = field(default_factory=dict)
     graph_update_proposal: dict[str, Any] = field(default_factory=dict)
     expected_value_estimates: dict[str, dict[str, Any]] = field(default_factory=dict)
+    # System-owned validation of the specialist-authored EV calculation.
+    # SOURCE_CORRESPONDENCE preserves traceable but non-recomputable utility
+    # indices; only ARITHMETIC_VERIFIED may act as numeric world evidence.
+    expected_value_validation_status: str = "NOT_CLAIMED"
+    expected_value_validation_errors: list[str] = field(default_factory=list)
     # Passive construct-validity measurements. These fields are serialized for
     # evaluation but are intentionally absent from policy, salience, drift, and
     # stopping calculations.
@@ -1204,6 +1229,29 @@ class CandidateChunk:
         )
         self.graph_update_proposal = dict(self.graph_update_proposal or {})
         self.expected_value_estimates = dict(self.expected_value_estimates or {})
+        ev_status = str(self.expected_value_validation_status).strip().upper()
+        self.expected_value_validation_status = (
+            ev_status if ev_status in {
+                "NOT_CLAIMED", "SOURCE_CORRESPONDENCE",
+                "ARITHMETIC_VERIFIED", "INVALID",
+            } else "NOT_CLAIMED"
+        )
+        self.expected_value_validation_errors = list(dict.fromkeys(
+            " ".join(str(error).split())[:180]
+            for error in self.expected_value_validation_errors
+            if " ".join(str(error).split())
+        ))[:12]
+        ranking_status = str(self.framework_ranking_validation_status).strip().upper()
+        self.framework_ranking_validation_status = (
+            ranking_status if ranking_status in {
+                "NOT_RUN", "PASSED", "QUARANTINED", "UNRESOLVED",
+            } else "NOT_RUN"
+        )
+        self.framework_ranking_validation_errors = list(dict.fromkeys(
+            " ".join(str(error).split())[:180]
+            for error in self.framework_ranking_validation_errors
+            if " ".join(str(error).split())
+        ))[:12]
         selection = self.selection_status.strip().upper()
         self.selection_status = (
             selection if selection in {"SELECTED", "PROVISIONAL", "UNSELECTED"}
@@ -1875,6 +1923,7 @@ class WorkspaceResult:
     framing_cache: dict[str, Any] = field(default_factory=dict)
     frozen_world_replay: dict[str, Any] = field(default_factory=dict)
     performance_trace: dict[str, Any] = field(default_factory=dict)
+    procedural_control: dict[str, Any] = field(default_factory=dict)
     scenario_facts: dict[str, Any] = field(default_factory=dict)
     cycles: list[CycleRecord] = field(default_factory=list)
     selected_action: str = ""

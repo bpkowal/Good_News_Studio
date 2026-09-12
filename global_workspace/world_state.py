@@ -4083,6 +4083,27 @@ def _identity_head_text(effect: WorldEffect) -> str:
 def _deverbal_identity_stems(stems: set[str]) -> set[str]:
     """Expand protect/protection and contaminate/contamination pairs."""
     expanded = set(_binder_stems(stems))
+    # Source propositions commonly state an allocation in active voice while
+    # an atomic effect records the same event in passive voice ("sends" / "sent").
+    # These lexical aliases establish event identity only; they do not license
+    # a new outcome or change its modality.
+    irregular_verb_roots = {
+        "sent": "send",
+        "left": "leave",
+        "held": "hold",
+        "kept": "keep",
+        "lost": "lose",
+        "made": "make",
+        "gave": "give",
+        "given": "give",
+        "took": "take",
+        "taken": "take",
+        "led": "lead",
+    }
+    for word in list(stems | expanded):
+        root = irregular_verb_roots.get(word)
+        if root:
+            expanded.add(root)
     for word in list(stems | expanded):
         for suffix in ("tion", "sion", "ment", "ance", "ence"):
             if word.endswith(suffix) and len(word) > len(suffix) + 2:
@@ -4496,6 +4517,83 @@ def compile_missing_parent_links(
     return replace(model, causal_links=(*model.causal_links, *added))
 
 
+def compile_proximal_recipient_transfer_parents(
+    model: ScenarioWorldModel,
+) -> ScenarioWorldModel:
+    """Prefer an existing recipient transfer over the actor as outcome parent.
+
+    Grounders sometimes add the correct DIRECT RESOURCE_TRANSFER after a repair
+    but leave a same-clause welfare outcome connected to the actor's broader
+    intervention. If the transfer is on the outcome's own party and explicitly
+    derives from that actor intervention, the transfer is the more proximal
+    causal head. Repointing the existing edge preserves every admitted fact and
+    prevents a false person-to-person causal leap; it never creates an effect.
+    """
+    effect_by_id = {effect.effect_id: effect for effect in model.effects}
+    parent_pairs = {
+        (link.source_id, link.target_id)
+        for link in model.causal_links if _link_parents_target(link)
+    }
+    replacements: dict[tuple[str, str], str] = {}
+    for child in model.effects:
+        if child.directness != "DOWNSTREAM":
+            continue
+        child_clauses = {
+            ref.clause_id for ref in child.provenance if ref.clause_id
+        }
+        current_parent_ids = {
+            link.source_id
+            for link in model.causal_links
+            if link.action_id == child.action_id
+            and link.target_id == child.effect_id
+            and _link_parents_target(link)
+        }
+        for parent_id in current_parent_ids:
+            parent = effect_by_id.get(parent_id)
+            if parent is None or parent.directness != "DIRECT":
+                continue
+            candidates = [
+                transfer for transfer in model.effects
+                if transfer.action_id == child.action_id
+                and transfer.effect_id != child.effect_id
+                and transfer.party_id == child.party_id
+                and transfer.directness == "DIRECT"
+                and transfer.effect_kind == "RESOURCE_TRANSFER"
+                and parent_id in transfer.source_effect_ids
+                and (parent_id, transfer.effect_id) in parent_pairs
+                and child_clauses
+                & {ref.clause_id for ref in transfer.provenance if ref.clause_id}
+            ]
+            if len(candidates) == 1:
+                replacements[(parent_id, child.effect_id)] = candidates[0].effect_id
+    if not replacements:
+        return model
+
+    links: list[CausalLink] = []
+    seen: set[tuple[str, str, str, str]] = set()
+    for link in model.causal_links:
+        source_id = replacements.get((link.source_id, link.target_id), link.source_id)
+        updated = replace(link, source_id=source_id)
+        identity = (
+            updated.action_id, updated.source_id, updated.relation, updated.target_id,
+        )
+        if identity not in seen:
+            links.append(updated)
+            seen.add(identity)
+
+    effects: list[WorldEffect] = []
+    for effect in model.effects:
+        replacement_sources = tuple(dict.fromkeys(
+            replacements.get((source_id, effect.effect_id), source_id)
+            for source_id in effect.source_effect_ids
+        ))
+        effects.append(
+            replace(effect, source_effect_ids=replacement_sources)
+            if replacement_sources != effect.source_effect_ids else effect
+        )
+    return replace(model, effects=tuple(effects), causal_links=tuple(links))
+
+
 def _snap_ellipsis_span(proposition: str, excerpts: Sequence[str]) -> str:
     parts = _PROPOSITION_ELLIPSIS.split(str(proposition or ""), maxsplit=1)
     if len(parts) != 2:
@@ -4671,6 +4769,9 @@ def compile_foregone_overlays(
                         quantities=preferred.quantities,
                         provenance=preferred.provenance,
                         likelihood_qualifiers=preferred.likelihood_qualifiers,
+                        overall_likelihood_qualifiers=(
+                            preferred.overall_likelihood_qualifiers
+                        ),
                         scope_qualifiers=preferred.scope_qualifiers,
                         temporal_qualifiers=preferred.temporal_qualifiers,
                         source_proposition=preferred.source_proposition,
@@ -4786,6 +4887,7 @@ def compile_chance_gated_world(
     compiled = compile_independent_event_gates(model)
     compiled = compile_gated_link_certainty(compiled)
     compiled = compile_missing_parent_links(compiled)
+    compiled = compile_proximal_recipient_transfer_parents(compiled)
     compiled = compile_source_proposition_spans(compiled)
     compiled = compile_grounded_quantities(compiled)
     compiled = compile_omit_unbound_derived_effects(compiled)

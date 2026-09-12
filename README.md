@@ -32,24 +32,41 @@ Our guiding ethos: *Neither side becomes subservient to the other. We are co-exp
 ## Getting Started
 
 1. **Clone the repository:**
+
    ```bash
    git clone https://github.com/bpkowal/good-news-studio.git
    cd good-news-studio
+   ```
 
 2. **Set up a virtual environment:**
+
    ```bash
-   python -m venv venv
-   source venv/bin/activate
+   python -m venv .venv
+   source .venv/bin/activate
+   ```
 
 3. **Install dependencies:**
+
    ```bash
-   pip install -r requirements.txt
+   python -m pip install -r requirements.txt
+   ```
 
-4. **Run the primary pipeline:**
-   '''bash
+   This installs the runtime packages and test-only packages, including
+   Hypothesis for the property-based invariant suite.
+
+4. **Run the tests:**
+
+   ```bash
+   python -m unittest discover -s tests
+   ```
+
+5. **Run the primary pipeline:**
+
+   ```bash
    python ethics_synthesis_agent.py
+   ```
 
-5. **Contemplate Inferences:**
+6. **Contemplate Inferences:**
 
 ## Recurrent Global Workspace (experimental)
 

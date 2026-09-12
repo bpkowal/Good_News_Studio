@@ -1,0 +1,306 @@
+<div id="solo-report-parliament-overlay-v1">
+  <style>
+    #solo-report-parliament-overlay-v1 {
+      color: var(--foreground);
+      background: transparent;
+      font-family: var(--font-sans);
+    }
+
+    #solo-report-parliament-overlay-v1 * { box-sizing: border-box; }
+    #solo-report-parliament-overlay-v1 h1,
+    #solo-report-parliament-overlay-v1 h2,
+    #solo-report-parliament-overlay-v1 h3,
+    #solo-report-parliament-overlay-v1 p { margin-top: 0; }
+
+    #solo-report-parliament-overlay-v1 .overlay-shell {
+      display: grid;
+      gap: 1.25rem;
+    }
+
+    #solo-report-parliament-overlay-v1 .intro {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    #solo-report-parliament-overlay-v1 .mapping {
+      color: var(--muted-foreground);
+    }
+
+    #solo-report-parliament-overlay-v1 .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.25rem;
+      align-items: center;
+    }
+
+    #solo-report-parliament-overlay-v1 .legend-item {
+      display: inline-flex;
+      gap: 0.45rem;
+      align-items: center;
+    }
+
+    #solo-report-parliament-overlay-v1 .swatch {
+      width: 0.85rem;
+      height: 0.85rem;
+      display: inline-block;
+      border-radius: 0.15rem;
+    }
+
+    #solo-report-parliament-overlay-v1 .swatch.fact,
+    #solo-report-parliament-overlay-v1 mark.fact {
+      background: color-mix(in srgb, var(--green) 24%, transparent);
+      box-shadow: inset 0 -2px 0 var(--green);
+    }
+
+    #solo-report-parliament-overlay-v1 .swatch.external,
+    #solo-report-parliament-overlay-v1 mark.external {
+      background: color-mix(in srgb, var(--red) 22%, transparent);
+      box-shadow: inset 0 -2px 0 var(--red);
+    }
+
+    #solo-report-parliament-overlay-v1 .swatch.hypothesis,
+    #solo-report-parliament-overlay-v1 mark.hypothesis {
+      background: color-mix(in srgb, var(--orange) 25%, transparent);
+      box-shadow: inset 0 -2px 0 var(--orange);
+    }
+
+    #solo-report-parliament-overlay-v1 .swatch.normative,
+    #solo-report-parliament-overlay-v1 mark.normative {
+      background: color-mix(in srgb, var(--purple) 22%, transparent);
+      box-shadow: inset 0 -2px 0 var(--purple);
+    }
+
+    #solo-report-parliament-overlay-v1 .swatch.guardrail,
+    #solo-report-parliament-overlay-v1 mark.guardrail {
+      background: color-mix(in srgb, var(--blue) 22%, transparent);
+      box-shadow: inset 0 -2px 0 var(--blue);
+    }
+
+    #solo-report-parliament-overlay-v1 mark {
+      color: inherit;
+      padding: 0.06em 0.14em;
+      border-radius: 0.15rem;
+    }
+
+    #solo-report-parliament-overlay-v1 .report-head,
+    #solo-report-parliament-overlay-v1 .report-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1.65fr) minmax(16rem, 0.85fr);
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    #solo-report-parliament-overlay-v1 .report-head {
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    #solo-report-parliament-overlay-v1 .report-row {
+      padding: 1.1rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    #solo-report-parliament-overlay-v1 .passage {
+      min-width: 0;
+    }
+
+    #solo-report-parliament-overlay-v1 .passage p:last-child,
+    #solo-report-parliament-overlay-v1 .audit p:last-child { margin-bottom: 0; }
+
+    #solo-report-parliament-overlay-v1 .audit {
+      padding-left: 0.85rem;
+      border-left: 3px solid var(--border);
+    }
+
+    #solo-report-parliament-overlay-v1 .audit.fact { border-left-color: var(--green); }
+    #solo-report-parliament-overlay-v1 .audit.external { border-left-color: var(--red); }
+    #solo-report-parliament-overlay-v1 .audit.hypothesis { border-left-color: var(--orange); }
+    #solo-report-parliament-overlay-v1 .audit.normative { border-left-color: var(--purple); }
+    #solo-report-parliament-overlay-v1 .audit.guardrail { border-left-color: var(--blue); }
+
+    #solo-report-parliament-overlay-v1 .audit-label {
+      display: inline-block;
+      margin-bottom: 0.35rem;
+      font-weight: 500;
+    }
+
+    #solo-report-parliament-overlay-v1 .audit p,
+    #solo-report-parliament-overlay-v1 .absence p,
+    #solo-report-parliament-overlay-v1 .mapping { color: var(--muted-foreground); }
+
+    #solo-report-parliament-overlay-v1 .bullet {
+      display: grid;
+      grid-template-columns: 1rem 1fr;
+      gap: 0.25rem;
+      margin-bottom: 0.55rem;
+    }
+
+    #solo-report-parliament-overlay-v1 .bullet span:first-child {
+      color: var(--muted-foreground);
+    }
+
+    #solo-report-parliament-overlay-v1 .missing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    #solo-report-parliament-overlay-v1 .absence {
+      padding-left: 0.85rem;
+      border-left: 3px solid var(--blue);
+    }
+
+    #solo-report-parliament-overlay-v1 .bottom-line {
+      padding-top: 0.25rem;
+    }
+
+    @media (max-width: 760px) {
+      #solo-report-parliament-overlay-v1 .report-head,
+      #solo-report-parliament-overlay-v1 .report-row,
+      #solo-report-parliament-overlay-v1 .missing-grid {
+        grid-template-columns: 1fr;
+      }
+
+      #solo-report-parliament-overlay-v1 .report-head div:last-child { display: none; }
+    }
+  </style>
+
+  <div class="overlay-shell">
+    <header class="intro">
+      <h1>Solo response under a Parliament audit</h1>
+      <p class="mapping">Solo “Option B” = Parliament canonical A0: disclose truth, uphold the directive, do not harvest, and permit the five patients to die tonight.</p>
+      <div class="legend" aria-label="Highlight meanings">
+        <span class="legend-item"><i class="swatch fact" aria-hidden="true"></i><span>Scenario-grounded fact</span></span>
+        <span class="legend-item"><i class="swatch external" aria-hidden="true"></i><span>External factual claim without provenance</span></span>
+        <span class="legend-item"><i class="swatch hypothesis" aria-hidden="true"></i><span>Hypothesis stated as fact</span></span>
+        <span class="legend-item"><i class="swatch normative" aria-hidden="true"></i><span>Normative classification needing adjudication</span></span>
+        <span class="legend-item"><i class="swatch guardrail" aria-hidden="true"></i><span>Missing vote, challenge, or uncertainty guardrail</span></span>
+      </div>
+    </header>
+
+    <main aria-label="Annotated solo ethics report">
+      <div class="report-head">
+        <h2>Actual solo report</h2>
+        <h2>What Parliament checks</h2>
+      </div>
+
+      <section class="report-row">
+        <div class="passage">
+          <h3>Short answer</h3>
+          <p><mark class="guardrail">The physician should choose Option B</mark>—<mark class="fact">respect the deceased’s binding refusal and not harvest the organs</mark>—even though this means <mark class="fact">the five transplant candidates will die</mark>.</p>
+        </div>
+        <aside class="audit guardrail">
+          <span class="audit-label">Vote admission and convergence</span>
+          <p>The action facts are grounded. The categorical “should” is not. Parliament found only an unresolved A0 plurality: policy support 0.50, epistemic confidence 0.00, no governing claim, and abstaining framework votes.</p>
+        </aside>
+      </section>
+
+      <section class="report-row">
+        <div class="passage">
+          <h3>1. Autonomy and informed consent</h3>
+          <div class="bullet"><span>•</span><span><mark class="external">Modern biomedical ethics treats a competent patient’s properly expressed wishes as morally decisive.</mark></span></div>
+          <div class="bullet"><span>•</span><span>Violating that directive would deny the person’s <mark class="normative">most fundamental moral and legal right—to decide what happens to his or her own body.</mark></span></div>
+        </div>
+        <aside class="audit normative">
+          <span class="audit-label">Provenance plus framework classification</span>
+          <p>The signed, legally binding refusal is admitted. “Morally decisive,” “most fundamental,” and the scope of post-mortem bodily rights are conclusions requiring sources and a duty or Rawlsian ledger—not additional scenario facts.</p>
+        </aside>
+      </section>
+
+      <section class="report-row">
+        <div class="passage">
+          <h3>2. The rule of law and institutional trust</h3>
+          <div class="bullet"><span>•</span><span><mark class="hypothesis">Hospitals function only because patients, families, and society trust that medical records, advance directives, and consent forms will be honored.</mark></span></div>
+          <div class="bullet"><span>•</span><span><mark class="hypothesis">If physicians may override a clear, lawful refusal whenever a “greater good” seems available, every future patient has reason to fear that her own directives could be ignored. Systemic trust collapses.</mark></span></div>
+        </div>
+        <aside class="audit hypothesis">
+          <span class="audit-label">Side-premise and epistemic-status audit</span>
+          <p>The trace explicitly quarantined “breaking the directive would corrode future caring relationships and systemic trust” as hypothetical. Recurrence can increase attention, but cannot upgrade this to an established effect.</p>
+        </aside>
+      </section>
+
+      <section class="report-row">
+        <div class="passage">
+          <h3>3. Professional codes and statutes</h3>
+          <div class="bullet"><span>•</span><span><mark class="external">Every relevant legal system criminalizes non-consensual organ procurement; the doctor would face prosecution, loss of license, and imprisonment.</mark></span></div>
+          <div class="bullet"><span>•</span><span><mark class="external">The AMA, WMA, and nearly every national medical code absolutely forbid taking organs against explicit refusal.</mark></span></div>
+        </div>
+        <aside class="audit external">
+          <span class="audit-label">Source binding and scope control</span>
+          <p>These may be supportable, but they are not in the scenario and the solo report supplies no retrieval or citations. “Every relevant legal system,” predicted sanctions, and worldwide code coverage must be verified or labeled external assumptions.</p>
+        </aside>
+      </section>
+
+      <section class="report-row">
+        <div class="passage">
+          <h3>4. Long-term consequences outweigh short-term utilitarian gain</h3>
+          <div class="bullet"><span>•</span><span>While five people die tonight, harvesting by fraud would <mark class="hypothesis">deter countless future donors, reduce public confidence, and ultimately cost more than five lives.</mark></span></div>
+          <div class="bullet"><span>•</span><span><mark class="hypothesis">“Ends justify means” reasoning here sets a precedent that makes medicine hostage to whatever any clinician decides is a sufficiently large benefit.</mark></span></div>
+        </div>
+        <aside class="audit hypothesis">
+          <span class="audit-label">Derived-claim validation</span>
+          <p>The admitted world says A0 causes five deaths and A1 causes five survivals. Reversing that utilitarian ranking requires sources, causal assumptions, probability × impact, and a decision boundary. Parliament surfaced the boundary: choose A0 only if expected additional deaths exceed five.</p>
+        </aside>
+      </section>
+
+      <section class="report-row">
+        <div class="passage">
+          <h3>5. Deontological limits</h3>
+          <div class="bullet"><span>•</span><span><mark class="normative">Some actions—e.g., battery on a corpse, falsification of medical records—are intrinsically wrong.</mark></span></div>
+          <div class="bullet"><span>•</span><span><mark class="normative">Moral integrity entails refusing to do what one knows to be wrongful, even to secure a good outcome.</mark></span></div>
+        </div>
+        <aside class="audit normative">
+          <span class="audit-label">Deontological ledger</span>
+          <p>The solo report classifies the A1 duties but does not adjudicate the competing rescue duty. Parliament asks separately about duty type, omission versus doing harm, special obligation, means versus side effect, and whether rescue is perfect and overriding.</p>
+        </aside>
+      </section>
+
+      <section class="report-row">
+        <div class="passage">
+          <h3>6. Virtue ethics and the physician’s character</h3>
+          <div class="bullet"><span>•</span><span><mark class="normative">Lying, forging documents, and violating bodily integrity cultivate vice (dishonesty, arrogance, disrespect).</mark></span></div>
+          <div class="bullet"><span>•</span><span><mark class="normative">A virtuous physician maintains fidelity, trustworthiness, and respect.</mark></span></div>
+        </div>
+        <aside class="audit normative">
+          <span class="audit-label">Virtue ledger and competing virtues</span>
+          <p>The characterization is one-sided. Parliament preserves honesty, justice, and fidelity for A0 alongside compassion and beneficence for A1, plus the still-hypothetical vice risk that A0 may express callousness.</p>
+        </aside>
+      </section>
+
+      <section class="report-row">
+        <div class="passage">
+          <h3>Rejected alternatives considered and why they fail</h3>
+          <div class="bullet"><span>•</span><span><mark class="guardrail">“Harvest first, ask forgiveness later”</mark>: illegal, erodes trust, and denies autonomy.</span></div>
+          <div class="bullet"><span>•</span><span><mark class="guardrail">“Take some but not all organs”</mark>: still the same violation.</span></div>
+          <div class="bullet"><span>•</span><span>“Ignore the directive because the patient is dead”: <mark class="external">autonomy extends post-mortem through prior consent; law treats the dead body as still subject to the person’s last wishes.</mark></span></div>
+        </div>
+        <aside class="audit guardrail">
+          <span class="audit-label">Challenge quality and reversal testing</span>
+          <p>The first two alternatives are variants of A1, not the strongest live objections. Informative challenges ask what would reverse the position: overriding rescue duty, valid consent, absent refusal, or verified expected systemic harm greater than five deaths.</p>
+        </aside>
+      </section>
+
+      <section class="report-row">
+        <div class="passage">
+          <h3>Bottom line</h3>
+          <p><mark class="guardrail">Morally, professionally, and legally, the physician must honor the explicit refusal.</mark> <mark class="normative">Life-saving beneficence cannot override autonomy obtained through valid advance directive</mark>; <mark class="hypothesis">the long-term damage to justice, trust, and the rule of law would be greater than the tragic loss of five lives tonight.</mark></p>
+        </div>
+        <aside class="audit guardrail">
+          <span class="audit-label">The compression failure</span>
+          <p>Three different claim types—categorical duty priority, legal/professional authority, and speculative expected consequences—are fused into one “must.” Parliament keeps them separate so a weak premise cannot borrow authority from stronger neighboring claims.</p>
+        </aside>
+      </section>
+    </main>
+
+    <section aria-labelledby="silent-omissions-title">
+      <h2 id="silent-omissions-title">What cannot be highlighted because the solo report omits it</h2>
+      <div class="missing-grid">
+        <div class="absence"><h3>Care comparison</h3><p>No explicit ledger compares the deceased’s entrusted refusal with the five patients’ immediate, life-or-death dependency.</p></div>
+        <div class="absence"><h3>Rawlsian classification</h3><p>No argument establishes whether post-mortem autonomy is a basic liberty with lexical priority over the patients’ survival interest.</p></div>
+        <div class="absence"><h3>Abstention and uncertainty</h3><p>No confidence state, unresolved-duty status, vote-admission result, or acknowledgement that the available premises may not support a settled recommendation.</p></div>
+      </div>
+    </section>
+
+    <p class="bottom-line"><strong>Reading result:</strong> green passages describe the admitted dilemma. The decisive work is being done by red, orange, purple, and blue passages whose provenance, framework validity, or decision status the solo response never exposes.</p>
+  </div>
+</div>

@@ -14,9 +14,41 @@ from typing import Sequence
 
 
 _ENTITY_ID = re.compile(
-    r"(?<![A-Za-z0-9_])(?:A\d+(?:_[A-Za-z0-9_]+)?|E[A-Za-z0-9_]*|CT[A-Za-z0-9_]*|COND[A-Za-z0-9_]*)(?![A-Za-z0-9_])"
+    r"(?<![A-Za-z0-9_])(?:A\d+(?:_[A-Za-z0-9_]+)?|E[A-Za-z0-9_]*|P\d+(?:_[A-Za-z0-9_]+)?|CT[A-Za-z0-9_]*|COND[A-Za-z0-9_]*)(?![A-Za-z0-9_])"
 )
 _LINK_INDEX = re.compile(r"causal_link\[(\d+)\]")
+
+LOCAL_PATCH = "LOCAL_PATCH"
+SUBGRAPH_REBUILD = "SUBGRAPH_REBUILD"
+FULL_REBUILD = "FULL_REBUILD"
+REPAIR_SCOPES = frozenset({LOCAL_PATCH, SUBGRAPH_REBUILD, FULL_REBUILD})
+
+_SUBGRAPH_ISSUE_CODES = frozenset({
+    "MISSING_DIRECT_INTERVENTION",
+    "MISSING_CAUSAL_PARENT",
+    "DIRECT_EFFECT_TARGET_MISMATCH",
+    "INVALID_CAUSAL_ANCESTRY",
+    "INDEPENDENT_EVENT_AS_CAUSAL_PARENT",
+    "MISSING_PROCESS_INTERMEDIATE",
+    "RESOURCE_TRANSFER_TARGET_MISMATCH",
+})
+_GLOBAL_FAILURE_PATTERNS = (
+    "action-source mapping must cover every canonical action",
+    "typed world actions must cover every canonical action exactly once",
+    "effects require unique non-empty effect_id values",
+    "world_model is required",
+)
+_SUBGRAPH_FAILURE_PATTERNS = (
+    "lacks an atomic direct intervention",
+    "downstream human outcome with no causal parent",
+    "only path to a direct act passes through",
+    "independent background event",
+    "independent stochastic event",
+    "caused directly by another party's act",
+    "no path to this action's direct",
+    "insert a process, facility, institution, infrastructure, or resource state",
+    "names transferred resource",
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -45,6 +77,17 @@ class WorldModelValidationError(ValueError):
 
 def _issue_code(message: str) -> tuple[str, str, str, bool]:
     lowered = message.casefold()
+    if "recipient" in lowered and "lacks an atomic direct intervention" in lowered:
+        return "MISSING_DIRECT_INTERVENTION", "effects", "SEMANTIC_PATCH", False
+    if "names transferred resource" in lowered and "as a recipient" in lowered:
+        return "RESOURCE_TRANSFER_TARGET_MISMATCH", "effects", "SEMANTIC_PATCH", False
+    if "caused directly by another party's act" in lowered:
+        return "MISSING_PROCESS_INTERMEDIATE", "causal_links", "SEMANTIC_PATCH", False
+    if (
+        "is direct on" in lowered
+        and "neither the actor nor a named recipient" in lowered
+    ):
+        return "DIRECT_EFFECT_TARGET_MISMATCH", "effects", "SEMANTIC_PATCH", False
     if "is certain but lists conditions" in lowered:
         return "CERTAIN_ROW_HAS_CONDITIONS", "condition_ids", "DETERMINISTIC", False
     if "description restates" in lowered and "event_effect_id" in lowered:
@@ -54,6 +97,11 @@ def _issue_code(message: str) -> tuple[str, str, str, bool]:
     if "restates existing event" in lowered:
         return "FREE_TEXT_EVENT_ALIAS", "event_effect_id", "DETERMINISTIC", False
     if "downstream human outcome with no causal parent" in lowered:
+        return "MISSING_CAUSAL_PARENT", "causal_links", "SEMANTIC_PATCH", False
+    if (
+        "downstream human outcome whose causal ancestry" in lowered
+        and "never reaches a direct act" in lowered
+    ):
         return "MISSING_CAUSAL_PARENT", "causal_links", "SEMANTIC_PATCH", False
     if "only path to a direct act passes through" in lowered:
         return "INVALID_CAUSAL_ANCESTRY", "causal_links", "SEMANTIC_PATCH", False
@@ -80,6 +128,97 @@ def _issue_code(message: str) -> tuple[str, str, str, bool]:
     return "WORLD_VALIDATION_ERROR", "", "SEMANTIC_PATCH", False
 
 
+def _issue_rows(
+    issues: Sequence[ValidationIssue | dict[str, object]],
+) -> list[dict[str, object]]:
+    return [
+        issue.as_dict() if isinstance(issue, ValidationIssue) else dict(issue)
+        for issue in issues
+    ]
+
+
+def implicated_action_ids(
+    issues: Sequence[ValidationIssue | dict[str, object]],
+    candidate: object | None,
+) -> tuple[str, ...]:
+    """Resolve typed issue entities to their owning canonical action."""
+    world = (
+        candidate.get("world_model")
+        if isinstance(candidate, dict) else None
+    )
+    if not isinstance(world, dict):
+        return ()
+    effect_actions = {
+        str(effect.get("effect_id") or ""): str(effect.get("action_id") or "")
+        for effect in world.get("effects") or []
+        if isinstance(effect, dict) and effect.get("effect_id")
+    }
+    condition_events = {
+        str(condition.get("condition_id") or ""): str(
+            condition.get("event_effect_id") or ""
+        )
+        for condition in world.get("conditions") or []
+        if isinstance(condition, dict) and condition.get("condition_id")
+    }
+    links = [
+        link for link in world.get("causal_links") or []
+        if isinstance(link, dict)
+    ]
+    found: set[str] = set()
+    for issue in _issue_rows(issues):
+        identifiers = [
+            str(issue.get("entity_id") or ""),
+            *[str(value) for value in issue.get("related_ids", ())],
+        ]
+        kind = str(issue.get("entity_kind") or "")
+        if kind == "causal_link" and identifiers[0].isdigit():
+            index = int(identifiers[0])
+            if 0 <= index < len(links):
+                action_id = str(links[index].get("action_id") or "")
+                if action_id:
+                    found.add(action_id)
+        for identifier in identifiers:
+            if re.fullmatch(r"A\d+", identifier):
+                found.add(identifier)
+                continue
+            effect_id = condition_events.get(identifier, identifier)
+            action_id = effect_actions.get(effect_id, "")
+            if action_id:
+                found.add(action_id)
+    return tuple(sorted(found))
+
+
+def classify_world_repair_scope(
+    issues: Sequence[ValidationIssue | dict[str, object]],
+    *,
+    errors: Sequence[str] = (),
+    candidate: object | None = None,
+) -> str:
+    """Choose how much rejected state a repair call may safely inherit.
+
+    Scope is intentionally separate from repair_class. The latter describes the
+    kind of mutation; this classification governs the size of the graph region
+    that may be replaced.
+    """
+    if not isinstance(candidate, dict):
+        return FULL_REBUILD
+    rows = _issue_rows(issues)
+    messages = [
+        str(row.get("message") or "") for row in rows
+    ] + [str(error) for error in errors]
+    folded = " ".join(messages).casefold()
+    if not rows and "action-source mapping failed:" in folded:
+        return FULL_REBUILD
+    if any(pattern in folded for pattern in _GLOBAL_FAILURE_PATTERNS):
+        return FULL_REBUILD
+    codes = {str(row.get("code") or "") for row in rows}
+    if codes & _SUBGRAPH_ISSUE_CODES or any(
+        pattern in folded for pattern in _SUBGRAPH_FAILURE_PATTERNS
+    ):
+        return SUBGRAPH_REBUILD
+    return LOCAL_PATCH
+
+
 def validation_issues_from_messages(
     messages: Sequence[str],
 ) -> tuple[ValidationIssue, ...]:
@@ -101,6 +240,8 @@ def validation_issues_from_messages(
                 entity_kind = "effect"
             elif entity_id.startswith("A"):
                 entity_kind = "action"
+            elif entity_id.startswith("P"):
+                entity_kind = "party"
             else:
                 entity_kind = "party"
         else:
@@ -123,12 +264,12 @@ def validation_issues_from_messages(
 
 def repair_patch_contract(
     issues: Sequence[ValidationIssue | dict[str, object]],
+    *,
+    errors: Sequence[str] = (),
+    candidate: object | None = None,
 ) -> dict[str, object]:
     """Return the mutation boundary for a transactional repair response."""
-    issue_rows = [
-        issue.as_dict() if isinstance(issue, ValidationIssue) else dict(issue)
-        for issue in issues
-    ]
+    issue_rows = _issue_rows(issues)
     entity_ids: list[str] = []
     fields: list[str] = []
     codes: list[str] = []
@@ -144,8 +285,16 @@ def repair_patch_contract(
     operations = ["add", "replace"]
     if removal_allowed:
         operations.append("remove")
+    repair_scope = classify_world_repair_scope(
+        issue_rows, errors=errors, candidate=candidate,
+    )
     return {
         "schema_version": 1,
+        "repair_scope": repair_scope,
+        "implicated_action_ids": list(
+            implicated_action_ids(issue_rows, candidate)
+            if repair_scope == SUBGRAPH_REBUILD else ()
+        ),
         "issue_codes": list(dict.fromkeys(code for code in codes if code)),
         "allowed_entity_ids": list(dict.fromkeys(value for value in entity_ids if value)),
         "allowed_fields": list(dict.fromkeys(value for value in fields if value)),

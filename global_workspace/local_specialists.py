@@ -1,13 +1,24 @@
 from __future__ import annotations
 
+import copy
 import json
 import re
 from dataclasses import dataclass, field
 from typing import Any, Callable, Sequence
 
-from .action_identity import action_clause_looks_complete, compile_action_identity, _concepts
+from .action_identity import (
+    _concepts,
+    action_clause_looks_complete,
+    compile_action_identity,
+    intervention_only_action_text,
+)
 from .core_quote_pack import format_core_dialect_contract
 from .evidence_calibration import EvidenceCalibration
+from .expected_value import (
+    EV_ARITHMETIC_VERIFIED,
+    expected_value_leader,
+    validate_expected_value_estimates,
+)
 from .contingency_graph import compile_contingency_graph
 from .middleware.claim_damping import (
     SPECULATIVE_EPISTEMIC_CAP,
@@ -32,7 +43,12 @@ from .scenario_semantics import (
 from .utilitarian_ledger import utilitarian_scored_grounded_effects
 from .world_state import quantity_magnitude
 from .world_validation import (
+    FULL_REBUILD,
+    LOCAL_PATCH,
+    SUBGRAPH_REBUILD,
     WorldModelValidationError,
+    classify_world_repair_scope,
+    implicated_action_ids,
     issue_mentions_identifier,
     repair_patch_contract,
     validation_issues_from_messages,
@@ -240,7 +256,7 @@ def _framework_grounded_action_sections(
     """
     normalized = normalize_action_labels(testimony)
     headings = list(re.finditer(
-        r"(?im)^\s*(?:action|option)\s+(A\d+)\b[^\n]*",
+        r"(?im)^\s*(?:action|option)\s*:?\s*(A\d+)\b[^\n]*",
         normalized,
     ))
     grounded: set[str] = set()
@@ -829,22 +845,12 @@ def _ev_closed_world_leader(
     actions: Sequence[str],
 ) -> str | None:
     items = [dict((expected_values or {}).get(action) or {}) for action in actions]
-    if not items or not all(item.get("grounded") for item in items):
+    if not items or not all(
+        item.get("validation_status") == EV_ARITHMETIC_VERIFIED
+        for item in items
+    ):
         return None
-    directions = {str(item.get("direction", "")).upper() for item in items}
-    units = {str(item.get("unit", "")).upper() for item in items}
-    if directions not in ({"HARM"}, {"BENEFIT"}):
-        return None
-    if len(units) != 1 or "" in units or "NONE" in units:
-        return None
-    try:
-        numeric = {
-            action: float(((expected_values or {}).get(action) or {}).get("value", 0.0))
-            for action in actions
-        }
-    except (TypeError, ValueError):
-        return None
-    return _unique_extreme_action(numeric, prefer_higher=directions == {"BENEFIT"})
+    return expected_value_leader(expected_values or {}, actions)
 
 
 def closed_world_utilitarian_leader(
@@ -925,7 +931,12 @@ def _ev_prefers_recommended(
     """Whether grounded same-unit EV ranks the new action better; None if incomparable."""
     recommended = expected_values.get(recommended_action) or {}
     baseline = expected_values.get(baseline_action) or {}
-    if not recommended.get("grounded") or not baseline.get("grounded"):
+    if (
+        not recommended.get("grounded")
+        or not baseline.get("grounded")
+        or recommended.get("validation_status") != EV_ARITHMETIC_VERIFIED
+        or baseline.get("validation_status") != EV_ARITHMETIC_VERIFIED
+    ):
         return None
     rec_dir = str(recommended.get("direction", "")).upper()
     base_dir = str(baseline.get("direction", "")).upper()
@@ -2504,16 +2515,17 @@ def _candidate_from_data(
                 "clauses": [],
             }
     raw_ev = data.get("ev", {})
-    expected_values = {
-        actions[action_ids.index(action_id)]: {
-            "value": float(value.get("value", 0.0)),
-            "unit": str(value.get("unit", "")).upper(),
-            "direction": str(value.get("direction", "")).upper(),
-            "grounded": bool(value.get("grounded", False)),
-        }
+    submitted_expected_values = {
+        actions[action_ids.index(action_id)]: dict(value)
         for action_id, value in raw_ev.items()
         if action_id in action_ids and isinstance(value, dict)
     } if isinstance(raw_ev, dict) else {}
+    ev_validation = validate_expected_value_estimates(
+        submitted_expected_values,
+        action_id_by_key=dict(zip(actions, action_ids)),
+        effect_records=list(grounded_effects or []),
+    )
+    expected_values = ev_validation.estimates
     if specialist == "utilitarian":
         closed_world_leader = closed_world_utilitarian_leader(
             actions, utilitarian_consequence_table, expected_values,
@@ -3328,6 +3340,8 @@ def _candidate_from_data(
         challenge_response=challenge_response,
         graph_update_proposal=graph_update,
         expected_value_estimates=expected_values,
+        expected_value_validation_status=ev_validation.status,
+        expected_value_validation_errors=list(ev_validation.errors),
         visibility_response=visibility_response,
         visibility_justification=visibility_justification,
         visibility_harm_revision=visibility_harm_revision,
@@ -4306,6 +4320,7 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                         if consequence is not None else "UNKNOWN"
                     ),
                     "qualifier": effect.magnitude_or_qualifier,
+                    "likelihood_qualifiers": list(effect.likelihood_qualifiers),
                     "quantities": list(
                         consequence.attributes.get("quantities", [])
                         if consequence is not None else []
@@ -4409,8 +4424,27 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                                 "unit": {"type": "string", "maxLength": 24},
                                 "direction": {"type": "string", "enum": ["BENEFIT", "HARM"]},
                                 "grounded": {"type": "boolean"},
+                                "method": {
+                                    "type": "string",
+                                    "enum": [
+                                        "NOT_COMPUTED", "DIRECT_COUNT",
+                                        "EXPECTED_COUNT", "UTILITY_INDEX",
+                                    ],
+                                },
+                                "source_effect_ids": {
+                                    "type": "array", "minItems": 0, "maxItems": 12,
+                                    "items": {"type": "string", "minLength": 1, "maxLength": 120},
+                                },
+                                "calculation": {"type": "string", "maxLength": 240},
+                                "assumptions": {
+                                    "type": "array", "minItems": 0, "maxItems": 5,
+                                    "items": {"type": "string", "minLength": 1, "maxLength": 160},
+                                },
                             },
-                            "required": ["value", "unit", "direction", "grounded"],
+                            "required": [
+                                "value", "unit", "direction", "grounded", "method",
+                                "source_effect_ids", "calculation", "assumptions",
+                            ],
                             "additionalProperties": False,
                         } for action_id in action_ids
                     },
@@ -5676,7 +5710,8 @@ in fic/foq and your framework fields unless YOUR framework resolves, defeats,
 refines, or reinterprets them for an explicit reason in j/fa. Do not copy another
 framework's vocabulary merely to acknowledge the broadcast.
 Action IDs: {json.dumps(action_legend)}
-Reason from each action's canonical_semantic_action and structured fields
+canonical_semantic_action identifies the neutral admitted intervention; it does
+not assert consequences. Reason about consequences only from the structured fields
 (actor/beneficiaries/harmed/at_risk/conditionally_benefited/mechanism/institutional_effect/world_effects/causal_links).
 short_label is display-only and must not be treated as the complete deliberative object.
 committed_world and causal_links are the admitted factual topology. Do not
@@ -5685,14 +5720,17 @@ world-model extension admits it.
 Original testimony source labels: {json.dumps(self.source_action_legend or {
             str(record.get("action_id")): str(record.get("canonical_semantic_action", ""))
             for record in record_rows
-        })}
+})}
+Original testimony source labels are identity/provenance aids, not an additional
+factual channel. If their causal wording differs from committed_world, use the
+committed world and surface the mismatch rather than combining both descriptions.
 CRITICAL STATE MAPPING: the Action IDs above are immutable for this run. Every
 score, recommendation, admissibility judgment, rationale, and graph update must
 refer to the physical action attached to that exact ID. Do not reuse a label from
 the original testimony unless it denotes the same action in this mapping.
 
 Return ONLY compact JSON like:
-{{"scores":{{"A0":0.8,"A1":0.2}},"r":"A0","c":"{allowed_constraints[0]}","u":"NONE","w":"short reason","j":"NONE","e":"STATED_FACTS","x":"NONE"{proposition_example_fields},"l":{{"A0":"best case A0","A1":"best case A1"}},"da":"decisive ethical axis","t":"attempted comparison rule","tf":"NONE","dr":"prefer A0 when its reason outweighs A1","ft":"NONE","nt":"prefer A1 if its value is overriding","z":0.8,"gu":{{"operation":"NONE","from_action":"NONE","to_action":"NONE","clauses":[]}},"ev":{{"A0":{{"value":0,"unit":"NONE","direction":"HARM","grounded":false}},"A1":{{"value":0,"unit":"NONE","direction":"HARM","grounded":false}}}},"ss":"SELECTED","am":{{"A0":"PERMISSIBLE","A1":"REJECTED"}},"cc":true,"esa":true,"ia":"A0","wp":"NOT_APPLICABLE","we":"NONE","fa":"NONE","fr":true,"bd":"NONE","fic":[],"foq":[]{framework_example}}}
+{{"scores":{{"A0":0.8,"A1":0.2}},"r":"A0","c":"{allowed_constraints[0]}","u":"NONE","w":"short reason","j":"NONE","e":"STATED_FACTS","x":"NONE"{proposition_example_fields},"l":{{"A0":"best case A0","A1":"best case A1"}},"da":"decisive ethical axis","t":"attempted comparison rule","tf":"NONE","dr":"prefer A0 when its reason outweighs A1","ft":"NONE","nt":"prefer A1 if its value is overriding","z":0.8,"gu":{{"operation":"NONE","from_action":"NONE","to_action":"NONE","clauses":[]}},"ev":{{"A0":{{"value":0,"unit":"NONE","direction":"HARM","grounded":false,"method":"NOT_COMPUTED","source_effect_ids":[],"calculation":"not computed","assumptions":[]}},"A1":{{"value":0,"unit":"NONE","direction":"HARM","grounded":false,"method":"NOT_COMPUTED","source_effect_ids":[],"calculation":"not computed","assumptions":[]}}}},"ss":"SELECTED","am":{{"A0":"PERMISSIBLE","A1":"REJECTED"}},"cc":true,"esa":true,"ia":"A0","wp":"NOT_APPLICABLE","we":"NONE","fa":"NONE","fr":true,"bd":"NONE","fic":[],"foq":[]{framework_example}}}
 Return scores for every action ID. recommended must have the highest score.
 r=recommended and must have the highest score. The frozen baseline was extracted
 separately from your testimony. Python derives whether the result supports or
@@ -5765,8 +5803,17 @@ Use operation=NONE with NONE action IDs and [] clauses when no measurable factua
 boundary exists. Do not encode moral priorities or vague axes as numeric clauses.
 ev reports expected value only when the scenario itself supplies enough quantities
 to compute comparable values for EVERY action. Use one shared unit and one shared
-direction (BENEFIT or HARM); grounded=true only for arithmetic from stated facts.
-Otherwise return value=0, unit=NONE, a shared direction, and grounded=false for all.
+direction (BENEFIT or HARM); grounded=true only for a calculation whose source
+effects are stated facts.
+The EV calculation is specialist-authored: for each grounded row, set method to
+DIRECT_COUNT, EXPECTED_COUNT, or UTILITY_INDEX; cite only that action's admitted
+effect IDs in source_effect_ids; write the calculation in calculation; and list
+every extra premise in assumptions (use [] when none). DIRECT_COUNT and
+EXPECTED_COUNT must reproduce the submitted value from the cited quantities and
+stated probabilities. UTILITY_INDEX preserves an explicit normative weighting but
+is not treated as verified world arithmetic. Otherwise return value=0, unit=NONE,
+a shared direction, grounded=false, method=NOT_COMPUTED, source_effect_ids=[],
+calculation="not computed", and assumptions=[] for all actions.
 Each case must describe what happens IF ITS OWN ACTION is chosen. Name the affected
 person or value from that action, and for harmful actions explicitly acknowledge the
 harm before giving the countervailing reason. Do not place the benefit of sparing a
@@ -5936,8 +5983,11 @@ Return l with a case for every action ID, da, t, tf, explicit decision rule dr,
 separate factual/normative thresholds ft and nt, epistemic confidence z, and gu.
 gu must be {{"operation":"NONE","from_action":"NONE","to_action":"NONE","clauses":[]}}
 unless ft supplies a measurable typed BOUNDARY/AND/OR graph update.
-Also return ev for every action ID with value, unit, BENEFIT/HARM direction, and
-grounded boolean; use zero/NONE/false consistently when stated facts cannot compute EV.
+Also return ev for every action ID with value, unit, BENEFIT/HARM direction,
+grounded boolean, method, source_effect_ids, calculation, and assumptions. Use
+zero/NONE/false/NOT_COMPUTED/[]/"not computed" consistently when stated facts
+cannot compute comparable EV. Grounded rows must cite action-local admitted effect
+IDs and expose the specialist-authored arithmetic.
 Also return passive fields ss, am, cc, esa, ia, wp, we, fa, fr, and bd. They describe
 the response but must not be used to alter scores merely for consistency.
 Also return fic and foq as arrays (maximum three each). fic contains only unresolved
@@ -6154,8 +6204,12 @@ def _feasible_actions(data: dict[str, Any], scenario: str = "") -> list[str]:
             except ValueError:
                 continue
             position = str(item.get("p", "")).strip().upper()
-            # Never truncate canonical action text — it is a compressed state object.
-            action = " ".join(str(item.get("a", "")).split())
+            # Model-planned prose selects a branch but is not a factual source.
+            # Strip causal/result tails now; the admitted world supplies them.
+            raw_action = " ".join(str(item.get("a", "")).split())
+            if not action_clause_looks_complete(raw_action):
+                continue
+            action = intervention_only_action_text(raw_action)
             if (
                 action
                 and action_clause_looks_complete(action)
@@ -6199,12 +6253,33 @@ def extract_labeled_action_legend(scenario: str) -> dict[str, str]:
     from .scenario_semantics import normalize_action_labels
 
     cleaned = " ".join(normalize_action_labels(scenario).split())
+    # Source-labelled alternatives may be separated by other consequence
+    # sentences. Capture the sentence that introduces each branch without
+    # asking the planner to paraphrase it. Later world grounding restores the
+    # complete consequences from all applicable source clauses.
+    sentence_rows: dict[str, str] = {}
+    for match in re.finditer(
+        r"\b(?:action|option|plan)\s+(?P<label>[AB])\s*[:,-]?\s*"
+        r"(?P<body>.+?)(?=\.(?:\s|$)|$)",
+        cleaned,
+        flags=re.IGNORECASE,
+    ):
+        action_id = "A0" if match.group("label").upper() == "A" else "A1"
+        body = match.group("body").strip(" ,;:.?")
+        if body and action_id not in sentence_rows:
+            sentence_rows[action_id] = body[0].upper() + body[1:]
+    if set(sentence_rows) == {"A0", "A1"}:
+        actions = [sentence_rows["A0"], sentence_rows["A1"]]
+        if all(len(action.split()) >= 2 for action in actions):
+            _validate_lossless_action_set(actions, scenario)
+            return dict(zip(("A0", "A1"), actions))
+
     # Authors also commonly use alphabetic labels. Preserve their clauses
     # verbatim and translate only the presentation label into internal A0/A1.
     # This prevents an LLM planner from weakening "will kill" into "risks."
     alphabetic = re.search(
-        r"\b(?:action|option)\s+A\s*:\s*(.+?)\s*(?:\.\s*)?"
-        r"\b(?:action|option)\s+B\s*:\s*(.+)$",
+        r"\b(?:action|option|plan)\s+A\s*:\s*(.+?)\s*(?:\.\s*)?"
+        r"\b(?:action|option|plan)\s+B\s*:\s*(.+)$",
         cleaned,
         flags=re.IGNORECASE,
     )
@@ -6223,8 +6298,8 @@ def extract_labeled_action_legend(scenario: str) -> dict[str, str]:
     # joined by a literal "or". Labels provide the boundary; consequences stay
     # attached to their own action. This is topic-independent.
     sentence_labeled = re.search(
-        r"\b(?:action|option)\s+A0\s*[,;:]?\s*(.+?)\.\s*"
-        r"\b(?:action|option)\s+A1\s*[,;:]?\s*(.+?)(?=\.(?:\s|$)|$)",
+        r"\b(?:action|option|plan)\s+A0\s*[,;:]?\s*(.+?)\.\s*"
+        r"\b(?:action|option|plan)\s+A1\s*[,;:]?\s*(.+?)(?=\.(?:\s|$)|$)",
         cleaned,
         flags=re.IGNORECASE,
     )
@@ -6241,9 +6316,9 @@ def extract_labeled_action_legend(scenario: str) -> dict[str, str]:
     # either/or recognizer. This form commonly carries long consequence clauses
     # whose labels, rather than verb symmetry, define the action boundary.
     labeled = re.search(
-        r"(?:\bfirst\s+action\s*\(\s*A0\s*\)|\b(?:action|option)\s+A0\b|\bA0\s*:?)"
+        r"(?:\bfirst\s+action\s*\(\s*A0\s*\)|\b(?:action|option|plan)\s+A0\b|\bA0\s*:?)"
         r"\s*[,;:]?\s*(.+?)\s*(?:;|,)\s*or\s*"
-        r"(?:\bsecond\s+action\s*\(\s*A1\s*\)|\b(?:action|option)\s+A1\b|\bA1\s*:?)"
+        r"(?:\bsecond\s+action\s*\(\s*A1\s*\)|\b(?:action|option|plan)\s+A1\b|\bA1\s*:?)"
         r"\s*[,;:]?\s*(.+)$",
         cleaned,
         flags=re.IGNORECASE,
@@ -6524,9 +6599,52 @@ _POSITIVE_DECISION_BEFORE = re.compile(
 )
 _POSITIVE_DECISION_AFTER = re.compile(
     r"^[^.!?;]{0,55}\b(?:preferred|favou?red|permissible|recommended|best|right|"
-    r"maximi[sz]es?|minimi[sz]es?|saves?|protects?)\b",
+    r"justified|warranted|maximi[sz]es?|minimi[sz]es?|saves?|protects?)\b",
     re.IGNORECASE,
 )
+
+
+def _bind_presentation_action_labels(
+    testimony: str,
+    source_label_bindings: dict[str, str] | None,
+) -> str:
+    """Resolve author-facing Plan/Option labels before baseline classification.
+
+    Canonical A0/A1 IDs are intentionally independent of presentation order.
+    Original specialists can nevertheless echo ``Plan A`` or ``Option B`` from
+    the source problem.  Bind those aliases through the current run's passive
+    presentation map instead of allowing a classifier to assume Plan A == A0.
+    Replacements are simultaneous so a shuffled A/B mapping cannot cascade.
+    """
+    bindings = {
+        " ".join(str(label).split()): str(action_id).strip().upper()
+        for label, action_id in dict(source_label_bindings or {}).items()
+        if " ".join(str(label).split())
+        and re.fullmatch(r"A\d+", str(action_id).strip(), re.IGNORECASE)
+    }
+    if not bindings:
+        return str(testimony)
+    aliases = sorted(bindings, key=lambda value: (-len(value), value.casefold()))
+    pattern = re.compile(
+        r"(?<![A-Za-z0-9])(" + "|".join(
+            re.escape(alias) for alias in aliases
+        ) + r")(?![A-Za-z0-9])",
+        re.IGNORECASE,
+    )
+    canonical_by_alias = {
+        alias.casefold(): action_id for alias, action_id in bindings.items()
+    }
+    placeholders: dict[str, str] = {}
+
+    def stage(match: re.Match[str]) -> str:
+        placeholder = f"SOURCEACTIONPLACEHOLDER{len(placeholders)}"
+        placeholders[placeholder] = canonical_by_alias[match.group(1).casefold()]
+        return placeholder
+
+    staged = pattern.sub(stage, str(testimony))
+    for placeholder, action_id in placeholders.items():
+        staged = staged.replace(placeholder, action_id)
+    return staged
 
 
 def _terminal_action_polarities(
@@ -6573,6 +6691,7 @@ def infer_testimony_stance(
     max_tokens: int = 96,
     *,
     source_action_legend: dict[str, str] | None = None,
+    source_label_bindings: dict[str, str] | None = None,
 ) -> TestimonyBaseline:
     from .scenario_semantics import normalize_action_labels
 
@@ -6587,7 +6706,9 @@ def infer_testimony_stance(
         "rawls": "rawlsian",
     }.get(specialist_key, specialist_key)
     is_care = specialist_key == "care"
-    normalized_testimony = normalize_action_labels(testimony)
+    normalized_testimony = normalize_action_labels(
+        _bind_presentation_action_labels(testimony, source_label_bindings)
+    )
     declared_legend = extract_declared_action_legend(normalized_testimony)
     if declared_legend:
         # Testimony-local bindings override positional workspace IDs.
@@ -6708,6 +6829,8 @@ def infer_testimony_stance(
         r"utilitarian\s+answer|virtue(?:\s+ethics)?\s+answer|"
         r"care(?:\s+ethics)?\s+answer|rawlsian(?:\s+ethics)?\s+answer|"
         r"rawlsian(?:\s+ethics)?\s+verdict|"
+        r"(?:utilitarian|deontological|virtue(?:\s+ethics)?|care(?:\s+ethics)?|"
+        r"rawlsian(?:\s+ethics)?)\s+status|"
         r"deontological\s+resolution|conclusion|recommendation)\s*:?",
         normalized_testimony,
         re.IGNORECASE,
@@ -6874,6 +6997,7 @@ Framework: {specialist}
 Original testimony: {_compact_testimony(testimony, 1400)}
 Canonical workspace actions: {json.dumps(legend)}
 Scenario source labels: {json.dumps(source_legend or legend)}
+Presentation-label bindings: {json.dumps(source_label_bindings or {})}
 System-detected rejected source labels: {json.dumps(sorted(terminal_rejected_source_ids))}
 Which listed action does the testimony directly recommend as the answer to the
 stated dilemma? q=DIRECT only when it clearly selects one listed action without
@@ -6987,7 +7111,7 @@ Return JSON only: {{"b":"NONE","p":"A0","w":"short evidence","q":"CONDITIONAL","
                 if "numerical" not in error and "decisive" not in error
             ]
             source_grounded_ids = _framework_grounded_action_sections(
-                testimony, action_ids, marker,
+                normalized_testimony, action_ids, marker,
             )
             if source_grounded_ids == set(action_ids):
                 # The original testimony is the authoritative framework source.
@@ -7016,6 +7140,15 @@ Return JSON only: {{"b":"NONE","p":"A0","w":"short evidence","q":"CONDITIONAL","
                 return parse_failure("direct baseline omitted its action ID")
             if provisional not in {"NONE", baseline}:
                 return parse_failure("direct and provisional baseline IDs disagree")
+            if (
+                terminal_direct_fallback is not None
+                and baseline != terminal_direct_fallback[0]
+            ):
+                # Explicit source labels have already been resolved through the
+                # current run's map.  They outrank a model's positional guess.
+                baseline, reason = terminal_direct_fallback
+                rejected.discard(baseline)
+                all_rejected = sorted(rejected | system_rejected)
             return TestimonyBaseline(
                 status="DIRECT",
                 action_id=baseline,
@@ -7106,6 +7239,7 @@ def infer_testimony_baseline(
     max_tokens: int = 96,
     *,
     source_action_legend: dict[str, str] | None = None,
+    source_label_bindings: dict[str, str] | None = None,
 ) -> tuple[str, str]:
     """Compatibility view for callers that only understand direct baselines."""
     stance = infer_testimony_stance(
@@ -7115,6 +7249,7 @@ def infer_testimony_baseline(
         actions,
         max_tokens=max_tokens,
         source_action_legend=source_action_legend,
+        source_label_bindings=source_label_bindings,
     )
     reason = stance.reason
     if stance.status != "DIRECT":
@@ -7254,7 +7389,9 @@ def ground_actions_in_scenario(
     prior_errors: Sequence[str] | None = None,
     prior_issues: Sequence[dict[str, Any]] | None = None,
     prior_candidate: Any | None = None,
+    prior_source: str = "previous_grounding_attempt",
     call_kind_primary: str = "world_grounding_primary",
+    allow_action_text_evidence: bool = False,
 ) -> dict[str, Any]:
     """Map every canonical action to explicit scenario clauses for graph provenance.
 
@@ -7287,7 +7424,12 @@ def ground_actions_in_scenario(
         "type": "array", "minItems": 1, "maxItems": min(4, len(clause_ids)),
         "items": {"type": "string", "enum": clause_ids},
     }
-    effect_source_ids = list(dict.fromkeys([*clause_ids, *action_ids]))
+    # Planner/source-normalization prose identifies branches, but it is not an
+    # epistemic source. Only an explicit user-authored action may introduce a
+    # fact absent from the scenario clauses.
+    effect_source_ids = list(clause_ids)
+    if allow_action_text_evidence:
+        effect_source_ids.extend(action_ids)
     effect_source_ids_schema = {
         "type": "array", "minItems": 1, "maxItems": min(5, len(effect_source_ids)),
         "items": {"type": "string", "enum": effect_source_ids},
@@ -7387,6 +7529,11 @@ def ground_actions_in_scenario(
         "required": ["actions", "world_model"],
         "additionalProperties": False,
     }
+    action_evidence_instruction = (
+        "or an explicitly user-authored action id (A0, A1, …)"
+        if allow_action_text_evidence else
+        "and may not use A0/A1 action labels as evidence"
+    )
     prompt = f"""[INST]
 Map each canonical action to the scenario clauses that state what that action is
 and what follows if it is chosen. This is source attribution, not ethical judgment.
@@ -7427,8 +7574,9 @@ CERTAIN effects and CERTAIN
 causal links must not list condition_ids. Non-certain rows without a source
 likelihood hedge still need an independent condition. Foregone effects use directness FOREGONE, polarity
 FOREGONE, and effect_kind OPPORTUNITY_LOSS. Do not score a missed opportunity as ADVERSE or BENEFICIAL. Effect
-clause_ids must include at least one FACT clause or the confirmed action id
-(A0, A1, …) that states the claim. A choose-between or interrogative clause may
+clause_ids must include at least one FACT clause {action_evidence_instruction}
+that states the claim. Canonical labels identify branches and are not factual
+authority unless the user explicitly authored their content. A choose-between or interrogative clause may
 be cited as context only and is never sufficient alone. For every effect,
 source_proposition must be one exact contiguous proposition span from one of that
 effect's cited sources. Use DIRECT_COPY only when the proposition states the atomic
@@ -7588,28 +7736,152 @@ Scenario clauses: {json.dumps(clauses, ensure_ascii=False)}
 Return JSON only. For each action give clause_ids and a short mapping reason.
 [/INST]"""
     attempts: list[dict[str, Any]] = []
+    rejected_candidate_history: list[dict[str, Any]] = []
     repair_note = ""
     result: dict[str, Any] = {}
     rejected_candidate: Any = None
+    repair_base_candidate: Any = None
+    best_rejected_result: dict[str, Any] | None = None
+    best_rejected_candidate: Any = None
+    best_rejected_cost: tuple[int, int, int] | None = None
+    active_repair_scope = "FRESH_GENERATION"
+    active_rebuild_action_ids: tuple[str, ...] = ()
     seeded_errors = [str(item) for item in (prior_errors or []) if str(item).strip()]
     seeded_issues = [dict(item) for item in (prior_issues or []) if isinstance(item, dict)]
-    if seeded_errors:
-        rejected_candidate = prior_candidate
+
+    def rejection_cost(payload: dict[str, Any]) -> tuple[int, int, int]:
+        payload_errors = [
+            str(item) for item in payload.get("errors") or [] if str(item).strip()
+        ]
+        call_failure = int(any(
+            "action-source mapping failed:" in item.casefold()
+            for item in payload_errors
+        ))
+        issue_count = len([
+            item for item in payload.get("validation_issues") or []
+            if isinstance(item, dict)
+        ])
+        return call_failure, issue_count, len(payload_errors)
+
+    # A cached rejected candidate may become valid after a deterministic
+    # compiler/validator correction. Revalidate a structurally complete cache
+    # before spending another model call, and refresh stale issue metadata when
+    # it still needs repair.
+    prior_world = (
+        prior_candidate.get("world_model")
+        if isinstance(prior_candidate, dict) else None
+    )
+    revalidatable_cache = (
+        prior_source == "failed_grounding_resume_cache"
+        and isinstance(prior_candidate, dict)
+        and isinstance(prior_candidate.get("actions"), dict)
+        and isinstance(prior_world, dict)
+        and all(
+            key in prior_world
+            for key in (
+                "schema_version", "parties", "actions", "effects", "conditions",
+                "causal_links", "counterfactual_links",
+            )
+        )
+    )
+    if revalidatable_cache:
+        refreshed = _admit_action_source_rows(
+            prior_candidate, actions, action_ids, clauses,
+            allow_action_text_evidence=allow_action_text_evidence,
+        )
+        if refreshed.get("status") == "COMMITTED":
+            refreshed["attempts"] = [{
+                "attempt": 0,
+                "repair_scope": "DETERMINISTIC_REVALIDATION",
+                "inherited_candidate": True,
+                "rebuild_action_ids": [],
+                "errors": [],
+                "validation_issues": [],
+                "repair_delta": {},
+            }]
+            refreshed["repair_attempts"] = 0
+            refreshed["next_repair_scope"] = "NONE"
+            refreshed["next_rebuild_action_ids"] = []
+            refreshed["repair_inheritance"] = {
+                "source": prior_source,
+                "initial_scope": "DETERMINISTIC_REVALIDATION",
+                "candidate_inherited": True,
+                "rebuild_action_ids": [],
+            }
+            return refreshed
+        seeded_errors = list(refreshed.get("errors") or seeded_errors)
+        seeded_issues = list(refreshed.get("validation_issues") or seeded_issues)
+        best_rejected_result = copy.deepcopy(refreshed)
+        best_rejected_candidate = copy.deepcopy(prior_candidate)
+        best_rejected_cost = rejection_cost(refreshed)
+    if seeded_errors or seeded_issues:
+        active_repair_scope = classify_world_repair_scope(
+            seeded_issues,
+            errors=seeded_errors,
+            candidate=prior_candidate,
+        )
+        active_rebuild_action_ids = (
+            implicated_action_ids(seeded_issues, prior_candidate)
+            if active_repair_scope == SUBGRAPH_REBUILD else ()
+        )
+        if active_repair_scope != FULL_REBUILD:
+            repair_base_candidate = prior_candidate
+            rejected_candidate = prior_candidate
         repair_note = (
             "\n\nA previous generator was rejected by deterministic validation for: "
             + "; ".join(seeded_errors)
             + "\nTyped validation issues:\n"
             + json.dumps(seeded_issues, ensure_ascii=False, sort_keys=True)
+            + "\nTransactional repair boundary:\n"
+            + json.dumps(
+                repair_patch_contract(
+                    seeded_issues,
+                    errors=seeded_errors,
+                    candidate=prior_candidate,
+                ),
+                ensure_ascii=False,
+                sort_keys=True,
+            )
             + "\nDo not repeat those errors."
         )
-        if prior_candidate is not None:
+        if active_repair_scope == SUBGRAPH_REBUILD:
+            repair_note += (
+                "\nSUBGRAPH_REBUILD: reconstruct the complete causal component(s) "
+                f"for {', '.join(active_rebuild_action_ids) or 'the implicated actions'}. "
+                "Preserve canonical actions, source clauses, parties, and unaffected "
+                "action branches, but do not preserve a malformed causal root merely "
+                "because its ID already exists. Effects, conditions, and links inside "
+                "the named action component(s) may be added, replaced, or removed."
+            )
+        elif active_repair_scope == FULL_REBUILD:
+            repair_note += (
+                "\nFULL_REBUILD: the prior candidate is not safe to inherit. Generate "
+                "a new complete model from the canonical actions and source clauses."
+            )
+        else:
+            repair_note += (
+                "\nLOCAL_PATCH: change only the fields and entities implicated by the "
+                "typed validation issues."
+            )
+        if repair_base_candidate is not None:
             repair_note += (
                 "\nRepair the rejected candidate below. Preserve every field not "
                 "implicated by those validation errors.\nRejected candidate JSON:\n"
-                + json.dumps(prior_candidate, ensure_ascii=False, sort_keys=True)
+                + json.dumps(
+                    repair_base_candidate, ensure_ascii=False, sort_keys=True,
+                )
             )
     for attempt in range(1, max(1, max_attempts) + 1):
         repair_delta: dict[str, Any] = {}
+        generated_candidate = False
+        inherited_candidate = repair_base_candidate is not None
+        previous_errors = (
+            list(attempts[-1]["errors"]) if attempts else list(seeded_errors)
+        )
+        previous_issues = (
+            list(attempts[-1].get("validation_issues") or [])
+            if attempts else list(seeded_issues)
+        )
         try:
             call_prompt = (
                 prompt if not repair_note
@@ -7629,28 +7901,25 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                 if isinstance(output, dict) else str(output)
             )
             candidate = _extract_json(raw)
-            previous_errors = (
-                list(attempts[-1]["errors"]) if attempts else list(seeded_errors)
-            )
-            previous_issues = (
-                list(attempts[-1].get("validation_issues") or [])
-                if attempts else list(seeded_issues)
-            )
+            generated_candidate = True
             repair_delta: dict[str, Any] = {}
-            if rejected_candidate is not None:
+            if repair_base_candidate is not None:
                 candidate = _preserve_stable_world_bookkeeping(
-                    rejected_candidate, candidate,
+                    repair_base_candidate, candidate,
                     previous_errors=previous_errors,
                     previous_issues=previous_issues,
+                    rebuild_action_ids=active_rebuild_action_ids,
                 )
                 repair_delta = compute_repair_delta(
-                    rejected_candidate, candidate,
+                    repair_base_candidate, candidate,
                     previous_errors=previous_errors,
                     previous_issues=previous_issues,
+                    rebuild_action_ids=active_rebuild_action_ids,
                 )
             rejected_candidate = candidate
             result = _admit_action_source_rows(
                 candidate, actions, action_ids, clauses,
+                allow_action_text_evidence=allow_action_text_evidence,
             )
             illegal = list(repair_delta.get("illegal_drops") or [])
             if illegal:
@@ -7665,6 +7934,7 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                 "errors": [
                     f"action-source mapping failed: {type(exc).__name__}: {exc}"
                 ],
+                "validation_issues": list(previous_issues),
                 "clauses": list(clauses),
             }
         attempt_errors = list(result["errors"])
@@ -7675,12 +7945,68 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
             )
         attempts.append({
             "attempt": attempt,
+            "repair_scope": active_repair_scope,
+            "inherited_candidate": inherited_candidate,
+            "rebuild_action_ids": list(active_rebuild_action_ids),
             "errors": attempt_errors,
             "validation_issues": list(result.get("validation_issues") or []),
             "repair_delta": repair_delta,
         })
+        if (
+            result.get("status") != "COMMITTED"
+            and isinstance(rejected_candidate, dict)
+        ):
+            current_cost = rejection_cost(result)
+            if best_rejected_cost is None or current_cost <= best_rejected_cost:
+                best_rejected_cost = current_cost
+                best_rejected_result = copy.deepcopy(result)
+                best_rejected_candidate = copy.deepcopy(rejected_candidate)
+        if generated_candidate and result.get("status") != "COMMITTED":
+            rejected_candidate_history.append({
+                "attempt": attempt,
+                "repair_scope": active_repair_scope,
+                "inherited_candidate": inherited_candidate,
+                "rebuild_action_ids": list(active_rebuild_action_ids),
+                "candidate": copy.deepcopy(rejected_candidate),
+            })
         if result["status"] == "COMMITTED":
             break
+        next_repair_contract = repair_patch_contract(
+            result.get("validation_issues") or [],
+            errors=attempt_errors,
+            candidate=rejected_candidate,
+        )
+        active_repair_scope = str(
+            next_repair_contract.get("repair_scope") or LOCAL_PATCH
+        )
+        active_rebuild_action_ids = tuple(
+            str(value)
+            for value in next_repair_contract.get("implicated_action_ids") or []
+            if value
+        )
+        repair_base_candidate = (
+            rejected_candidate if active_repair_scope != FULL_REBUILD else None
+        )
+        if active_repair_scope == SUBGRAPH_REBUILD:
+            scope_instruction = (
+                "SUBGRAPH_REBUILD: reconstruct the complete causal component(s) "
+                f"for {', '.join(active_rebuild_action_ids) or 'the implicated actions'}. "
+                "Preserve canonical actions, source clauses, parties, and unaffected "
+                "action branches. Do not retain a malformed intervention root merely "
+                "because its ID already exists. You may add, replace, or remove effects, "
+                "conditions, causal links, and counterfactual links owned by the named "
+                "component(s). Reuse an ID only when its semantic identity is unchanged."
+            )
+        elif active_repair_scope == FULL_REBUILD:
+            scope_instruction = (
+                "FULL_REBUILD: do not inherit the rejected candidate. Generate a new "
+                "complete model from the canonical actions and source clauses."
+            )
+        else:
+            scope_instruction = (
+                "LOCAL_PATCH: change only the fields and entities implicated by the "
+                "typed validation issues."
+            )
         repair_note = (
             "\n\nA previous attempt was rejected by deterministic validation for: "
             + "; ".join(attempt_errors)
@@ -7692,10 +8018,12 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
             )
             + "\nTransactional repair boundary:\n"
             + json.dumps(
-                repair_patch_contract(result.get("validation_issues") or []),
+                next_repair_contract,
                 ensure_ascii=False,
                 sort_keys=True,
             )
+            + "\nRepair inheritance scope:\n"
+            + scope_instruction
             + "\nRepair the rejected candidate below. Preserve every field not "
             "implicated by those validation errors; do not regenerate the model "
             "from scratch. Keep existing IDs and already-valid records stable. "
@@ -7799,13 +8127,77 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
             "percent-chance hedge on that process or outcome row. Delete invented "
             "words such as widespread. "
             "Correct exactly these problems and return the mapping again."
-            + "\nRejected candidate JSON:\n"
-            + json.dumps(rejected_candidate, ensure_ascii=False, sort_keys=True)
+            + (
+                "\nRejected candidate JSON:\n"
+                + json.dumps(
+                    repair_base_candidate, ensure_ascii=False, sort_keys=True,
+                )
+                if repair_base_candidate is not None
+                else "\nNo rejected candidate is inherited for this full rebuild."
+            )
+        )
+        if active_repair_scope == FULL_REBUILD:
+            repair_note = (
+                "\n\nThe previous attempt requires FULL_REBUILD and its candidate "
+                "must not be inherited. Generate a new complete model from the "
+                "canonical actions and scenario clauses. Correct these validation "
+                "errors:\n"
+                + "\n".join(f"- {error}" for error in attempt_errors)
+                + "\nTyped validation issues:\n"
+                + json.dumps(
+                    result.get("validation_issues") or [],
+                    ensure_ascii=False,
+                    sort_keys=True,
+                )
+                + "\nReturn the complete action mapping and world model again."
+            )
+    if result.get("status") != "COMMITTED" and best_rejected_result is not None:
+        result = best_rejected_result
+        rejected_candidate = best_rejected_candidate
+        selected_contract = repair_patch_contract(
+            result.get("validation_issues") or [],
+            errors=result.get("errors") or [],
+            candidate=rejected_candidate,
+        )
+        active_repair_scope = str(
+            selected_contract.get("repair_scope") or LOCAL_PATCH
+        )
+        active_rebuild_action_ids = tuple(
+            str(value)
+            for value in selected_contract.get("implicated_action_ids") or []
+            if value
         )
     result["attempts"] = attempts
     result["repair_attempts"] = len(attempts) - 1
+    result["next_repair_scope"] = (
+        active_repair_scope
+        if result.get("status") != "COMMITTED" else "NONE"
+    )
+    result["next_rebuild_action_ids"] = (
+        list(active_rebuild_action_ids)
+        if result.get("status") != "COMMITTED" else []
+    )
     if result.get("status") != "COMMITTED" and rejected_candidate is not None:
         result["rejected_candidate"] = rejected_candidate
+        result["rejected_candidate_history"] = rejected_candidate_history
+    if seeded_errors or seeded_issues:
+        result["repair_inheritance"] = {
+            "source": prior_source,
+            "initial_scope": attempts[0].get("repair_scope") if attempts else "NONE",
+            "candidate_inherited": bool(
+                attempts and attempts[0].get("inherited_candidate")
+            ),
+            "rebuild_action_ids": (
+                list(attempts[0].get("rebuild_action_ids") or []) if attempts else []
+            ),
+        }
+        if (
+            result.get("status") != "COMMITTED"
+            and prior_candidate is not None
+            and attempts
+            and attempts[0].get("inherited_candidate")
+        ):
+            result["inherited_candidate_snapshot"] = copy.deepcopy(prior_candidate)
     return result
 
 
@@ -7983,6 +8375,7 @@ def compute_repair_delta(
     *,
     previous_errors: Sequence[str] = (),
     previous_issues: Sequence[dict[str, Any]] = (),
+    rebuild_action_ids: Sequence[str] = (),
 ) -> dict[str, Any]:
     """Structural drop/add between repair attempts, plus unimplicated losses."""
     prev_wm = previous.get("world_model") if isinstance(previous, dict) else {}
@@ -8001,11 +8394,42 @@ def compute_repair_delta(
         )
         for kind in after
     }
+    rebuild_actions = {str(value) for value in rebuild_action_ids if value}
+
+    def belongs_to_rebuilt_action(kind: str, item: str) -> bool:
+        if not rebuild_actions or not isinstance(prev_wm, dict):
+            return False
+        effect_actions = {
+            str(effect.get("effect_id") or ""): str(effect.get("action_id") or "")
+            for effect in prev_wm.get("effects") or []
+            if isinstance(effect, dict)
+        }
+        parts = item.split("|")
+        if kind == "overlays":
+            return bool(rebuild_actions & {parts[0], parts[2] if len(parts) > 2 else ""})
+        identifiers = set(parts)
+        actions = {
+            effect_actions.get(identifier, "") for identifier in identifiers
+        }
+        if kind == "conditions" and parts and parts[0] == "condition":
+            condition_id = parts[1] if len(parts) > 1 else ""
+            event_id = next((
+                str(condition.get("event_effect_id") or "")
+                for condition in prev_wm.get("conditions") or []
+                if isinstance(condition, dict)
+                and str(condition.get("condition_id") or "").upper()
+                == condition_id.upper()
+            ), "")
+            actions.add(effect_actions.get(event_id, ""))
+        return bool(rebuild_actions & actions)
+
     illegal: list[str] = []
     for kind, items in dropped.items():
         if kind == "effects":
             continue
         for item in items:
+            if belongs_to_rebuilt_action(kind, item):
+                continue
             parts = item.split("|")
             identifiers = [part for part in parts if part]
             if any(
@@ -8018,6 +8442,8 @@ def compute_repair_delta(
                 f"{item} that the listed errors did not name"
             )
     for item in dropped.get("effects") or []:
+        if belongs_to_rebuilt_action("effects", item):
+            continue
         eid = item.split("|")[0]
         if _identifier_may_drop_row(eid, previous_errors, previous_issues):
             continue
@@ -8065,6 +8491,7 @@ def _preserve_stable_world_bookkeeping(
     *,
     previous_errors: Sequence[str] = (),
     previous_issues: Sequence[dict[str, Any]] = (),
+    rebuild_action_ids: Sequence[str] = (),
 ) -> Any:
     """Keep already-valid facts when a repair empties or deletes them.
 
@@ -8080,6 +8507,7 @@ def _preserve_stable_world_bookkeeping(
         return candidate
     prev_effects = _index_rows(prev_wm.get("effects"), "effect_id")
     new_effects = _index_rows(new_wm.get("effects"), "effect_id")
+    rebuild_actions = {str(value) for value in rebuild_action_ids if value}
     restored_effects: list[dict[str, Any]] = []
     new_ids = set(new_effects)
     for eid, row in prev_effects.items():
@@ -8087,7 +8515,7 @@ def _preserve_stable_world_bookkeeping(
             current = new_effects[eid]
             implicated = _identifier_implicated(
                 eid, previous_errors, previous_issues,
-            )
+            ) or str(row.get("action_id") or "") in rebuild_actions
             current = _restore_emptied_list(
                 row, current, "likelihood_qualifiers", implicated=implicated,
             )
@@ -8102,7 +8530,10 @@ def _preserve_stable_world_bookkeeping(
             )
             new_effects[eid] = current
             continue
-        if _identifier_may_drop_row(eid, previous_errors, previous_issues):
+        if (
+            str(row.get("action_id") or "") in rebuild_actions
+            or _identifier_may_drop_row(eid, previous_errors, previous_issues)
+        ):
             continue
         restored_effects.append(row)
         new_ids.add(eid)
@@ -8157,7 +8588,12 @@ def _preserve_stable_world_bookkeeping(
         cid = str(row.get("condition_id") or "").upper()
         if not cid or cid in new_cond_ids:
             continue
-        if _identifier_implicated(cid, previous_errors, previous_issues):
+        event_id = str(row.get("event_effect_id") or "")
+        event_action = str(prev_effects.get(event_id, {}).get("action_id") or "")
+        if (
+            event_action in rebuild_actions
+            or _identifier_implicated(cid, previous_errors, previous_issues)
+        ):
             continue
         new_conditions.append(row)
         new_cond_ids.add(cid)
@@ -8184,6 +8620,8 @@ def _preserve_stable_world_bookkeeping(
                 previous_errors,
                 previous_issues,
             )
+            and str(link.get("action_id") or "") not in rebuild_actions
+            and str(link.get("alternative_action_id") or "") not in rebuild_actions
         ]
         new_links = keep_links
     prev_causal = [
@@ -8207,6 +8645,7 @@ def _preserve_stable_world_bookkeeping(
             and not _causal_link_forbidden(
                 link, previous_errors, previous_issues,
             )
+            and str(link.get("action_id") or "") not in rebuild_actions
         ]
     extras: dict[str, list[str]] = {}
     for row in restored_effects:
@@ -8244,6 +8683,8 @@ def _admit_action_source_rows(
     actions: Sequence[str],
     action_ids: Sequence[str],
     clauses: Sequence[dict[str, str]],
+    *,
+    allow_action_text_evidence: bool = False,
 ) -> dict[str, Any]:
     """Validate a proposed action-to-clause mapping and report why it fails."""
     rows = data.get("actions", {}) if isinstance(data, dict) else {}
@@ -8276,6 +8717,27 @@ def _admit_action_source_rows(
     world_contradictions: list[list[str]] = []
     world_model_status = "UNAVAILABLE"
     if isinstance(data, dict) and "world_model" in data:
+        raw_world = data.get("world_model")
+        if isinstance(raw_world, dict) and not allow_action_text_evidence:
+            for section in ("effects", "counterfactual_links"):
+                for item in raw_world.get(section, []) or []:
+                    if not isinstance(item, dict):
+                        continue
+                    cited_actions = sorted({
+                        str(value).upper()
+                        for value in item.get("clause_ids", []) or []
+                        if str(value).upper() in set(action_ids)
+                    })
+                    if cited_actions:
+                        entity = str(
+                            item.get("effect_id")
+                            or item.get("source_effect_id")
+                            or section
+                        )
+                        errors.append(
+                            f"{entity} uses non-authoritative model action text "
+                            f"as factual provenance: {cited_actions}"
+                        )
         try:
             from .world_state import parse_world_model, validate_world_model
             parsed_world = parse_world_model(

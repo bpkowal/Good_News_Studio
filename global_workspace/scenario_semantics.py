@@ -963,6 +963,10 @@ def build_presentation_action_mapping(
         re.search(rf"\baction\s+{letter}\b", scenario, re.IGNORECASE)
         for letter in ("A", "B")
     )
+    alpha_plan = all(
+        re.search(rf"\bplan\s+{letter}\b", scenario, re.IGNORECASE)
+        for letter in ("A", "B")
+    )
 
     mapping: list[dict[str, object]] = []
     for source_position, source_id in enumerate(source_ids):
@@ -972,6 +976,8 @@ def build_presentation_action_mapping(
             source_label = f"Original Option {chr(ord('A') + source_position)}"
         elif alpha_action and source_position < 26:
             source_label = f"Original Action {chr(ord('A') + source_position)}"
+        elif alpha_plan and source_position < 26:
+            source_label = f"Original Plan {chr(ord('A') + source_position)}"
         else:
             source_label = f"Original {source_id}"
         canonical_id = bindings[source_id]
@@ -1539,11 +1545,46 @@ def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
             {
                 "value_status": condition.value_status,
                 "decision_relevance": condition.decision_relevance,
+                "event_effect_id": condition.event_effect_id,
                 "source_clause_ids": [ref.clause_id for ref in condition.provenance],
                 "world_state_typed": True,
             },
         ))
+    def ensure_gate_node(
+        owner_id: str,
+        condition_ids: tuple[str, ...],
+        condition_join: str,
+        provenance: tuple[str, ...],
+    ) -> str:
+        existing = tuple(dict.fromkeys(
+            condition_id for condition_id in condition_ids
+            if condition_id in graph.nodes
+        ))
+        if not existing:
+            return ""
+        if len(existing) == 1:
+            return existing[0]
+        operator = condition_join if condition_join in {"AND", "OR"} else "AND"
+        gate_id = f"WORLD_GATE:{owner_id}"
+        graph.add_node(SemanticNode(
+            gate_id,
+            "LOGICAL",
+            f" {operator} ".join(existing),
+            provenance,
+            {
+                "operator": operator,
+                "condition_ids": list(existing),
+                "world_state_typed": True,
+            },
+        ))
+        for condition_id in existing:
+            _add_unique_edge(graph, SemanticEdge(
+                gate_id, "HAS_OPERAND", condition_id, provenance=provenance,
+            ))
+        return gate_id
+
     effect_node_ids: dict[str, str] = {}
+    effect_gate_node_ids: dict[str, str] = {}
     for effect in model.effects:
         if filter_admission and effect.effect_id not in admitted:
             continue
@@ -1566,6 +1607,7 @@ def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
                 "effect_kind": effect.effect_kind,
                 "modality": effect.modality,
                 "condition_ids": list(effect.condition_ids),
+                "condition_join": effect.condition_join,
                 "quantities": list(effect.quantities),
                 "likelihood_qualifiers": list(effect.likelihood_qualifiers),
                 "overall_likelihood_qualifiers": list(
@@ -1583,6 +1625,10 @@ def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
                     effect.provenance[0].clause_id if effect.provenance else ""
                 ),
                 "source_clause_ids": [ref.clause_id for ref in effect.provenance],
+                "source_proposition": effect.source_proposition,
+                "source_effect_ids": list(effect.source_effect_ids),
+                "derivation_operation": effect.derivation_operation,
+                "outcome_type_transformation": effect.outcome_type_transformation,
                 "effect_layer": "TYPED_WORLD",
                 "world_effect_id": effect.effect_id,
             },
@@ -1608,12 +1654,18 @@ def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
         _add_unique_edge(graph, SemanticEdge(
             consequence_id, "AFFECTS", target_id, provenance=provenance,
         ))
-        for condition_id in effect.condition_ids:
-            if condition_id in graph.nodes:
-                _add_unique_edge(graph, SemanticEdge(
-                    consequence_id, "CONDITIONAL_ON", condition_id,
-                    provenance=provenance,
-                ))
+        gate_node_id = ensure_gate_node(
+            effect.effect_id,
+            tuple(effect.condition_ids),
+            str(effect.condition_join or ""),
+            provenance,
+        )
+        if gate_node_id:
+            effect_gate_node_ids[effect.effect_id] = gate_node_id
+            _add_unique_edge(graph, SemanticEdge(
+                consequence_id, "CONDITIONAL_ON", gate_node_id,
+                provenance=provenance,
+            ))
         for ref in effect.provenance:
             evidence_id = _attach_world_source_excerpt(
                 graph, effect.action_id, ref, provenance,
@@ -1623,6 +1675,25 @@ def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
                     consequence_id, "SUPPORTED_BY", evidence_id,
                     provenance=provenance,
                 ))
+    # Preserve the conditional antecedent as an explicit graph binding without
+    # pretending that an independent chance event is caused by the action. The
+    # action-mediated path remains the causal spine; the event activates its gate.
+    for condition in model.conditions:
+        event_node_id = effect_node_ids.get(condition.event_effect_id, "")
+        if not event_node_id or condition.condition_id not in graph.nodes:
+            continue
+        provenance = tuple(
+            f"scenario_clause:{ref.clause_id}" for ref in condition.provenance
+        ) or ("typed_world_model",)
+        _add_unique_edge(graph, SemanticEdge(
+            event_node_id,
+            "ACTIVATES",
+            condition.condition_id,
+            justification=(
+                "conditional_antecedent_event=" + condition.event_effect_id
+            ),
+            provenance=provenance,
+        ))
     for index, link in enumerate(model.causal_links):
         source = effect_node_ids.get(link.source_id, link.source_id)
         target = effect_node_ids.get(link.target_id, link.target_id)
@@ -1639,10 +1710,32 @@ def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
         from .semantic_graph import EDGE_RELATIONS
         if relation not in EDGE_RELATIONS:
             relation = "CAUSES"
+        target_effect = next((
+            effect for effect in model.effects
+            if effect.effect_id == link.target_id
+        ), None)
+        combined_condition_ids = tuple(dict.fromkeys((
+            *tuple(getattr(target_effect, "condition_ids", ()) or ()),
+            *tuple(link.condition_ids or ()),
+        )))
+        gate_node_id = effect_gate_node_ids.get(link.target_id, "")
+        if not gate_node_id and combined_condition_ids:
+            gate_node_id = ensure_gate_node(
+                f"CAUSAL:{index}",
+                combined_condition_ids,
+                str(getattr(target_effect, "condition_join", "") or ""),
+                provenance,
+            )
         _add_unique_edge(graph, SemanticEdge(
             source, relation, target,
+            condition=gate_node_id,
             justification=(
                 f"typed_relation={link.relation}; modality={link.modality}"
+                + (
+                    f"; conditional_gate={gate_node_id}; "
+                    f"condition_ids={','.join(combined_condition_ids)}"
+                    if gate_node_id else ""
+                )
             ), provenance=provenance,
         ))
     for link in model.counterfactual_links:
@@ -1662,6 +1755,58 @@ def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
             source, relation, alternative,
             justification=f"modality={link.modality}", provenance=provenance,
         ))
+
+
+def conditional_gate_projection_errors(
+    graph: SemanticGraph,
+    model: Any,
+) -> list[str]:
+    """Verify that event-referenced gates survive typed-world projection."""
+    consequence_by_effect = {
+        str(node.attributes.get("world_effect_id") or ""): node.id
+        for node in graph.nodes.values()
+        if node.kind == "CONSEQUENCE"
+        and node.attributes.get("world_effect_id")
+    }
+    errors: list[str] = []
+    for condition in model.conditions:
+        event_effect_id = str(condition.event_effect_id or "")
+        if not event_effect_id:
+            continue
+        condition_node = graph.nodes.get(condition.condition_id)
+        event_node_id = consequence_by_effect.get(event_effect_id, "")
+        if condition_node is None:
+            errors.append(
+                f"condition {condition.condition_id} was not projected"
+            )
+            continue
+        if condition_node.attributes.get("event_effect_id") != event_effect_id:
+            errors.append(
+                f"condition {condition.condition_id} lost event_effect_id "
+                f"{event_effect_id}"
+            )
+        if not event_node_id:
+            errors.append(
+                f"conditional antecedent event {event_effect_id} was not projected"
+            )
+            continue
+        if not _graph_has_edge(
+            graph, event_node_id, "ACTIVATES", condition.condition_id,
+        ):
+            errors.append(
+                f"conditional antecedent {event_effect_id} is not bound to "
+                f"condition {condition.condition_id}"
+            )
+    for effect in model.effects:
+        if not effect.condition_ids or effect.effect_id not in consequence_by_effect:
+            continue
+        consequence_id = consequence_by_effect[effect.effect_id]
+        gate_edges = list(graph.outgoing(consequence_id, "CONDITIONAL_ON"))
+        if not gate_edges:
+            errors.append(
+                f"conditional effect {effect.effect_id} lost its condition gate"
+            )
+    return errors
 
 
 def compile_scenario_graph(
@@ -1714,6 +1859,12 @@ def compile_scenario_graph(
         typed = world_model_from_dict(world_model)
         if typed is not None:
             attach_typed_world_model(graph, typed)
+            gate_errors = conditional_gate_projection_errors(graph, typed)
+            if gate_errors:
+                raise ValueError(
+                    "typed conditional-gate projection mismatch: "
+                    + "; ".join(gate_errors)
+                )
             expected_effect_ids = {
                 effect.effect_id
                 for action in typed.actions

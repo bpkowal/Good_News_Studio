@@ -329,7 +329,11 @@ def _estimate_for_clause(
 ) -> float | None:
     """Return a comparable current value, without guessing across dimensions."""
     estimate = estimates.get(clause.affected_action, {})
-    if not isinstance(estimate, dict) or estimate.get("grounded") is not True:
+    if (
+        not isinstance(estimate, dict)
+        or estimate.get("grounded") is not True
+        or estimate.get("validation_status") != "ARITHMETIC_VERIFIED"
+    ):
         return None
     try:
         value = float(estimate["value"])

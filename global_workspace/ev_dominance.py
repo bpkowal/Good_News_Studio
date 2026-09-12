@@ -5,6 +5,7 @@ import math
 import statistics
 from typing import Sequence
 
+from .expected_value import EV_ARITHMETIC_VERIFIED
 from .models import CandidateChunk
 
 
@@ -43,10 +44,16 @@ def assess_ev_dominance(
         )
     usable = []
     for candidate in valid:
+        if candidate.expected_value_validation_status != EV_ARITHMETIC_VERIFIED:
+            continue
         estimates = candidate.expected_value_estimates
         if set(estimates) != set(actions):
             continue
-        if not all(bool(value.get("grounded")) for value in estimates.values()):
+        if not all(
+            bool(value.get("grounded"))
+            and value.get("validation_status") == EV_ARITHMETIC_VERIFIED
+            for value in estimates.values()
+        ):
             continue
         units = {str(value.get("unit", "")).upper() for value in estimates.values()}
         directions = {str(value.get("direction", "")).upper() for value in estimates.values()}

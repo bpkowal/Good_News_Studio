@@ -1495,6 +1495,11 @@ def build_deliberative_problem_state(
             continue
         reviews = dict(proposal.framework_reviews)
         valid_reviews = [review for review in reviews.values() if review.get("valid")]
+        substantive_reviews = [
+            review for review in valid_reviews
+            if str(review.get("framework_status", "")).upper()
+            != "UNDERDETERMINED"
+        ]
         status_counts: dict[str, int] = {}
         for review in valid_reviews:
             status = str(review.get("framework_status", "UNDERDETERMINED"))
@@ -1526,6 +1531,7 @@ def build_deliberative_problem_state(
                 "received_reviewers": sorted(reviews),
                 "missing_reviewers": sorted(expected_reviewers - set(reviews)),
                 "valid_review_count": len(valid_reviews),
+                "substantive_review_count": len(substantive_reviews),
                 "invalid_review_count": len(reviews) - len(valid_reviews),
                 "framework_status_counts": status_counts,
                 "feasibility_concerns": feasibility_concerns,

@@ -1,0 +1,39 @@
+{
+  "fixture_version": 1,
+  "fixture_role": "frozen_admitted_world_for_procedural_control",
+  "source_trace": "workspace_workspace_20260911_091520_547426_20260911_091946.json",
+  "world_model_status": "COMMITTED",
+  "scenario": "An emergency physician has five patients who will die tonight without immediate organ transplants. In the adjacent room, a deceased patient is an exact match for all five, but left a signed, legally binding directive explicitly prohibiting organ donation. The physician must make an immediate choice: Option A requires falsifying medical records and lying to the hospital board to harvest the organs, directly preserving five human lives at the cost of deliberate deception and violating the deceased's explicit command. Option B requires telling the truth and upholding the legal contract, respecting the deceased patient's autonomy while permitting all five waiting patients to die tonight.",
+  "actions": {
+    "A0": "Tell the truth and uphold the directive, respecting the deceased patient's autonomy while permitting the five waiting patients to die tonight",
+    "A1": "Falsify the records and harvest the organs, preserving five lives while violating the deceased patient's explicit command"
+  },
+  "effects": [
+    {"effect_id": "E1A0", "action_id": "A0", "outcome": "TELL_TRUTH_AND_UPHOLD_DIRECTIVE", "polarity": "NEUTRAL", "modality": "CERTAIN", "conditions": []},
+    {"effect_id": "E2A0", "action_id": "A0", "outcome": "DIRECTIVE_UPHELD", "polarity": "BENEFICIAL", "modality": "CERTAIN", "conditions": [], "affected_party": "deceased patient"},
+    {"effect_id": "E3A0", "action_id": "A0", "outcome": "DIE_TONIGHT", "polarity": "ADVERSE", "modality": "CERTAIN", "conditions": [], "quantities": ["five"], "affected_party": "waiting patients"},
+    {"effect_id": "E4A0", "action_id": "A0", "outcome": "LIVES_PRESERVED", "polarity": "FOREGONE", "modality": "CERTAIN", "conditions": [], "quantities": ["five"], "affected_party": "waiting patients"},
+    {"effect_id": "E1A1", "action_id": "A1", "outcome": "FALSIFY_RECORDS_AND_LIE", "polarity": "NEUTRAL", "modality": "CERTAIN", "conditions": []},
+    {"effect_id": "E2A1", "action_id": "A1", "outcome": "HARVEST_ORGANS", "polarity": "NEUTRAL", "modality": "CERTAIN", "conditions": [], "affected_party": "deceased patient"},
+    {"effect_id": "E3A1", "action_id": "A1", "outcome": "LIVES_PRESERVED", "polarity": "BENEFICIAL", "modality": "CERTAIN", "conditions": [], "quantities": ["five"], "affected_party": "waiting patients"},
+    {"effect_id": "E4A1", "action_id": "A1", "outcome": "EXPLICIT_COMMAND_VIOLATED", "polarity": "ADVERSE", "modality": "CERTAIN", "conditions": [], "affected_party": "deceased patient"},
+    {"effect_id": "E5A1", "action_id": "A1", "outcome": "DIE_TONIGHT", "polarity": "FOREGONE", "modality": "CERTAIN", "conditions": [], "quantities": ["five"], "affected_party": "waiting patients"}
+  ],
+  "conditions": [],
+  "causal_links": [
+    {"source_id": "E1A1", "relation": "ENABLES", "target_id": "E2A1", "action_id": "A1"},
+    {"source_id": "E2A1", "relation": "CAUSES", "target_id": "E3A1", "action_id": "A1"},
+    {"source_id": "E2A1", "relation": "CAUSES", "target_id": "E4A1", "action_id": "A1"},
+    {"source_id": "E2A0", "relation": "CO_OCCURS_WITH", "target_id": "E3A0", "action_id": "A0"}
+  ],
+  "procedural_regression": {
+    "persistent_question": "Can a posthumous directive ground a categorical or lexical priority over preventing five stipulated deaths?",
+    "target_specialists": ["deontological", "rawlsian"],
+    "required_invariants": [
+      "grounded unanswered challenges survive protected review cycles",
+      "argument questions are answered before lower-priority proposal review",
+      "all-underdetermined proposal review is incomplete",
+      "incomplete procedural work blocks convergence without affecting policy"
+    ]
+  }
+}
