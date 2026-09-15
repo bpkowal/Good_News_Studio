@@ -838,22 +838,102 @@ INVARIANTS: tuple[Invariant, ...] = (
         description=(
             "A vague source quantity (dozens, hundreds, thousands, millions, "
             "several thousand, …) may not be refined to a sharper numeric "
-            "literal (10,000, ~10,000, 5,000, …) unless that exact numeral is "
-            "already licensed by source text or a named derivation."
+            "literal (10,000, ~10,000, 5–10 000, 100 000×80 life-years, …) "
+            "unless that exact numeral is already licensed by source text or "
+            "a named derivation."
         ),
         coverage="structural",
         tests=(
             "invariants.test_quantity_precision_non_escalation.QuantityPrecisionNonEscalationTests.test_thousands_may_not_become_10000",
             "invariants.test_quantity_precision_non_escalation.QuantityPrecisionNonEscalationTests.test_licensed_exact_numeral_is_not_escalation",
+            "invariants.test_quantity_precision_non_escalation.QuantityPrecisionNonEscalationTests.test_life_year_product_from_thousands_is_escalation",
+            "invariants.test_quantity_precision_non_escalation.QuantityPrecisionNonEscalationTests.test_spaced_range_headcount_is_escalation",
+            "invariants.test_quantity_precision_non_escalation.QuantityPrecisionNonEscalationTests.test_challenge_refined_answer_rejects_life_year_invention",
             "invariants.test_quantity_precision_non_escalation.QuantityPrecisionHypothesisTests.test_oracle_agrees_with_detector",
         ),
         oracle_risk="independent",
         notes=(
             "Paired with QUANTITY_BEARING_CONSEQUENCE_PRESERVATION (retain the "
             "vague span) and AVERTED_ALTERNATIVE_HARM (inherit the same span). "
-            "Live witness: Util ~10 000 after source 'thousands'; threshold "
-            "validator already rejected ungrounded numerals — this names the "
-            "precision rule. Hypothesis: strategies.quantity_precision."
+            "Kernel: relent.precision. Challenge answers that invent life-year "
+            "products earn PRECISION_REJECTED rather than VERIFIED_REFINED. "
+            "Hypothesis: strategies.quantity_precision."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=False,
+            structured_property=True,
+            grounding_property=False,
+            production_validator=True,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="enforced",
+        source_type="parliament_extension",
+    ),
+    Invariant(
+        id="QUANTITY_FIELD_TYPING",
+        layer="semantic_integrity",
+        description=(
+            "Recorded effect/party quantities must be magnitude spans "
+            "(thousands, thousands of lives, decades, 500+); outcome or "
+            "severity phrases (catastrophic loss of life, immediate survival) "
+            "are rejected, and incomplete tails (decades of) prefer a "
+            "source-licensed longer form or the bare collective head."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_quantity_field_typing.QuantityFieldTypingTests.test_catastrophic_loss_is_pseudo_outcome",
+            "invariants.test_quantity_field_typing.QuantityFieldTypingTests.test_incomplete_decades_of_completes_from_source",
+            "invariants.test_quantity_field_typing.QuantityFieldTypingTests.test_bare_thousands_is_retained",
+            "invariants.test_quantity_field_typing.QuantityFieldTypingHypothesisTests.test_outcome_phrases_never_survive_sanitize",
+            "invariants.test_quantity_field_typing.QuantityFieldTypingHypothesisTests.test_magnitude_phrases_remain_magnitude",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "Kernel: relent.quantity_typing. Applied at parse_world_model, DET "
+            "add_quantity, and Util magnitude selection. Complements "
+            "QUANTITY_PRECISION_NON_ESCALATION (no invented sharpening) and "
+            "QUANTITY_BEARING_CONSEQUENCE_PRESERVATION (retain licensed spans)."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=False,
+            structured_property=True,
+            grounding_property=False,
+            production_validator=True,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="enforced",
+        source_type="parliament_extension",
+    ),
+    Invariant(
+        id="DERIVED_PROPOSITION_STATUS_CONSERVATION",
+        layer="semantic_integrity",
+        description=(
+            "A licensed action-conditioned paraphrase of a world-established "
+            "effect (no-purge / refrain / purge not executed ↔ A1→CERTAIN "
+            "loss) must inherit that proposition's admitted status rather than "
+            "minting a fresh HYPOTHETICAL atom; wrong-action or wrong-polarity "
+            "wording must not transfer status."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_derived_proposition_status_conservation.DerivedPropositionStatusConservationTests.test_no_purge_paraphrase_binds_established_f1",
+            "invariants.test_derived_proposition_status_conservation.DerivedPropositionStatusConservationTests.test_purge_not_executed_paraphrase_binds",
+            "invariants.test_derived_proposition_status_conservation.DerivedPropositionStatusConservationTests.test_execute_paraphrase_does_not_bind_refrain_effect",
+            "invariants.test_derived_proposition_status_conservation.DerivedPropositionParaphraseHypothesisTests.test_oracle_agrees_with_detector",
+            "invariants.test_derived_proposition_status_conservation.DerivedPropositionParaphraseHypothesisTests.test_ledger_resolve_agrees_on_refrain_fixtures",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "RelEnt paraphrase binder (PARAPHRASE_OF / EQUIVALENT_TO only). "
+            "Kernel: relent.paraphrase. Wired through resolve_proposition / "
+            "register_hypothesis. Hypothesis: "
+            "strategies.derived_proposition_paraphrase."
         ),
         production="pass",
         integrity_layers=IntegrityLayers(
@@ -1687,6 +1767,331 @@ INVARIANTS: tuple[Invariant, ...] = (
             "world effects; they are not a named invariant until that "
             "contract is decided."
         ),
+    ),
+    Invariant(
+        id="VOTE_REPORT_SPLIT",
+        layer="presentation",
+        description=(
+            "Public judgment must not report an ABSTAIN framework as favoring "
+            "the recommendation merely because its directional lean or "
+            "recommended_action matches the plurality. Admitted vote "
+            "(FULL / ATTENUATED / ABSTAIN) and directional position stay "
+            "separate columns and separate prose."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_vote_report_split.VoteReportSplitTests.test_abstain_never_reads_as_favors_despite_directional_lean",
+            "invariants.test_vote_report_split.VoteReportSplitTests.test_full_vote_still_reported_as_favor",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "Intro support clauses use FULL only; Why-favors uses admitted "
+            "vote; ABSTAIN leans surface under 'Directional leans without "
+            "admitted vote'. Deliberation map headers: Directional position "
+            "| Admitted vote."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=False,
+            structured_property=True,
+            grounding_property=False,
+            production_validator=True,
+            metamorphic_test=False,
+            end_to_end=False,
+        ),
+        enforcement="enforced",
+        source_type="parliament_extension",
+    ),
+    Invariant(
+        id="OPERATOR_SCOPE_CONSERVATION",
+        layer="semantic_integrity",
+        description=(
+            "A licensed Conditional or ExceptionRule must conserve operator "
+            "scope: A∧¬B→C does not license C under A∧B; A→probably C forbids "
+            "probably A→C and bare A→C; A→C unless B licenses C only when the "
+            "exception is false."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_operator_scope_conservation.OperatorScopeConservationTests.test_a_and_not_b_licenses_only_matching_world",
+            "invariants.test_operator_scope_conservation.OperatorScopeConservationTests.test_modal_drop_and_antecedent_move_are_rejected",
+            "invariants.test_operator_scope_conservation.OperatorScopeConservationTests.test_unless_exception_blocks_consequent",
+            "invariants.test_operator_scope_conservation.OperatorScopeConservationTests.test_parliament_adapter_projects_condition_gates",
+            "invariants.test_operator_scope_conservation.OperatorScopeHypothesisTests.test_oracle_agrees_with_detector",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "RelEnt kernel: relent.operators + relent.scope. Parliament "
+            "adapter project_operator_to_effect_gates maps into "
+            "condition_ids/join/modality without owning world state. "
+            "Hypothesis: strategies.operator_scope. Temporal feedback "
+            "deferred."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=False,
+            structured_property=True,
+            grounding_property=False,
+            production_validator=False,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="enforced",
+        source_type="parliament_extension",
+    ),
+    Invariant(
+        id="RELATIONAL_ENTAILMENT",
+        layer="semantic_integrity",
+        description=(
+            "Licensed world edges must respect typed relation algebra: "
+            "SAME_ENTITY_AS closes under reflexivity/symmetry/transitivity; "
+            "ALTERNATIVE_OF is symmetric but not identity; CAUSES does not "
+            "freely transit; quantity/status/harm_under_action transfer only "
+            "when RelationSpec allows."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_relational_entailment.RelationSpecTableTests.test_every_tag_has_a_spec",
+            "invariants.test_relational_entailment.RelationalAlgebraTests.test_identity_closure_a_b_c",
+            "invariants.test_relational_entailment.RelationalAlgebraTests.test_alternative_symmetry",
+            "invariants.test_relational_entailment.RelationalAlgebraTests.test_causes_does_not_auto_transit",
+            "invariants.test_relational_entailment.RelationalAlgebraTests.test_alternative_plus_identity_is_forbidden",
+            "invariants.test_relational_entailment.RelationalAlgebraTests.test_quantity_transfer_policies",
+            "invariants.test_relational_entailment.RelationalAlgebraHypothesisTests.test_oracle_agrees_with_algebra",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "Umbrella for relational closure. Members: RELATIONAL_SYMMETRY, "
+            "RELATIONAL_FUNCTION_TRANSFER, RELATIONAL_NON_TRANSFER (AV slice), "
+            "RELATIONAL_IDENTITY_CLOSURE (SAME_ENTITY_AS), "
+            "RELATIONAL_DIRECTIONALITY / RELATIONAL_TRANSITIVITY "
+            "(CAUSES/BEFORE). Kernel: relent.relations RelationSpec + "
+            "relent.algebra. Adapter: relent_adapt "
+            "project_alternative_of_edges / project_same_entity_edges / "
+            "project_causes_edges / project_before_edges. Hypothesis: "
+            "strategies.relational_algebra + strategies.identity_closure + "
+            "strategies.directionality."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=False,
+            structured_property=True,
+            grounding_property=False,
+            production_validator=True,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="enforced",
+        source_type="parliament_extension",
+    ),
+    Invariant(
+        id="RELATIONAL_SYMMETRY",
+        layer="semantic_integrity",
+        description=(
+            "ALTERNATIVE_OF projected from counterfactual pairs or opposed "
+            "CERTAIN welfare must close under symmetry: ALTERNATIVE_OF(A0,A1) "
+            "entails ALTERNATIVE_OF(A1,A0)."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_relational_entailment.RelationalAlgebraTests.test_alternative_symmetry",
+            "invariants.test_relational_entailment.AvertedRelationalAdapterTests.test_alternative_of_projects_symmetric_closure",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "Member of RELATIONAL_ENTAILMENT. Adapter "
+            "project_alternative_of_edges; closure via relent.algebra."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=False,
+            structured_property=True,
+            grounding_property=False,
+            production_validator=True,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="enforced",
+        source_type="parliament_extension",
+    ),
+    Invariant(
+        id="RELATIONAL_FUNCTION_TRANSFER",
+        layer="semantic_integrity",
+        description=(
+            "Quantity may move across ALTERNATIVE_OF only via_derivation_only: "
+            "AVERTED_ALTERNATIVE_HARM rows with DERIVED_FROM marks may inherit "
+            "CERTAIN opposed-harm spans; unmarked transfer is rejected."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_relational_entailment.RelationalAlgebraTests.test_quantity_transfer_policies",
+            "invariants.test_relational_entailment.AvertedRelationalAdapterTests.test_derived_averted_quantity_transfer_is_licensed",
+            "invariants.test_averted_alternative_harm_hypothesis.AvertedAlternativeHarmHypothesisTests.test_derived_row_licenses_quantity_via_counterfactual",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "Member of RELATIONAL_ENTAILMENT. compile_averted_alternative_harm_overlays "
+            "consults function_transfer_errors before mint; "
+            "averted_alternative_relational_errors post-checks."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=True,
+            structured_property=True,
+            grounding_property=False,
+            production_validator=True,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="enforced",
+        source_type="parliament_extension",
+    ),
+    Invariant(
+        id="RELATIONAL_NON_TRANSFER",
+        layer="semantic_integrity",
+        description=(
+            "ALTERNATIVE_OF must not imply effect equality or silent DIRECT_COPY "
+            "of opposed CERTAIN harm quantities onto a survival row; "
+            "harm_under_action must not cross action-scoped alternatives."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_relational_entailment.RelationalAlgebraTests.test_alternative_plus_identity_is_forbidden",
+            "invariants.test_relational_entailment.AvertedRelationalAdapterTests.test_silent_copy_is_relational_non_transfer",
+            "invariants.test_averted_alternative_harm_hypothesis.AvertedAlternativeHarmHypothesisTests.test_oracle_rejects_silent_source_copy",
+            "invariants.test_relational_entailment.IdentityClosureAdapterTests.test_harm_cross_branch_is_non_transfer",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "Member of RELATIONAL_ENTAILMENT. Distinct from AVERTED_ALTERNATIVE_HARM "
+            "(compiler + inheritance) by stating the algebra non-transfer rule "
+            "explicitly; production validator averted_alternative_relational_errors "
+            "+ identity_relational_errors (action-scoped harm via SAME_ENTITY_AS)."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=False,
+            structured_property=True,
+            grounding_property=False,
+            production_validator=True,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="enforced",
+        source_type="parliament_extension",
+    ),
+    Invariant(
+        id="RELATIONAL_IDENTITY_CLOSURE",
+        layer="semantic_integrity",
+        description=(
+            "SAME_ENTITY_AS / EQUIVALENT_TO form an identity family: licensed "
+            "party-alias edges close under reflexivity, symmetry, and "
+            "transitivity. Quantity may transfer along identity; "
+            "harm_under_action must not cross distinct action branches even "
+            "when parties are identity-linked."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_relational_entailment.RelationalAlgebraTests.test_identity_closure_a_b_c",
+            "invariants.test_relational_entailment.IdentityClosureAdapterTests.test_label_alias_projects_symmetric_identity",
+            "invariants.test_relational_entailment.IdentityClosureAdapterTests.test_chain_closes_a_to_c",
+            "invariants.test_relational_entailment.IdentityClosureAdapterTests.test_quantity_may_transfer_along_identity",
+            "invariants.test_relational_entailment.IdentityClosureAdapterTests.test_harm_cross_branch_is_non_transfer",
+            "invariants.test_relational_entailment.IdentityClosureHypothesisTests.test_oracle_agrees_with_adapter",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "Member of RELATIONAL_ENTAILMENT. Adapter project_same_entity_edges "
+            "(licensed edges + shared party labels) and identity_relational_errors. "
+            "Hypothesis: strategies.identity_closure. Bridges anaphor party_id "
+            "data without importing discourse parsers into relent/."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=False,
+            structured_property=True,
+            grounding_property=False,
+            production_validator=True,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="enforced",
+        source_type="parliament_extension",
+    ),
+    Invariant(
+        id="RELATIONAL_DIRECTIONALITY",
+        layer="semantic_integrity",
+        description=(
+            "CAUSES, BEFORE, and DERIVED_FROM are directed: closure must not "
+            "invent reverse edges. BEFORE / DERIVED_FROM must not be licensed "
+            "in both directions. CAUSES feedback cycles stay host-owned; only "
+            "invented reverses are rejected."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_relational_entailment.RelationalAlgebraTests.test_causes_does_not_auto_transit",
+            "invariants.test_relational_entailment.DirectionalityAdapterTests.test_causes_projects_without_reverse",
+            "invariants.test_relational_entailment.DirectionalityAdapterTests.test_before_antisymmetric_base_is_rejected",
+            "invariants.test_relational_entailment.DirectionalityHypothesisTests.test_oracle_agrees_with_adapter",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "Member of RELATIONAL_ENTAILMENT. Kernel directionality_errors; "
+            "adapter project_causes_edges / project_before_edges / "
+            "directionality_relational_errors. Hypothesis: "
+            "strategies.directionality."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=False,
+            structured_property=True,
+            grounding_property=False,
+            production_validator=True,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="enforced",
+        source_type="parliament_extension",
+    ),
+    Invariant(
+        id="RELATIONAL_TRANSITIVITY",
+        layer="semantic_integrity",
+        description=(
+            "Transitivity follows RelationSpec: BEFORE closes under "
+            "transitivity; CAUSES and DERIVED_FROM are restricted and must "
+            "not auto-derive A→C skip-links. Hosts may still license each hop."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_relational_entailment.RelationalAlgebraTests.test_causes_does_not_auto_transit",
+            "invariants.test_relational_entailment.DirectionalityAdapterTests.test_before_chain_transits",
+            "invariants.test_relational_entailment.DirectionalityAdapterTests.test_causes_chain_does_not_skip",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "Member of RELATIONAL_ENTAILMENT. Complements RELATIONAL_DIRECTIONALITY. "
+            "Hypothesis modes before_transits / causes_no_free_transitivity."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=False,
+            structured_property=True,
+            grounding_property=False,
+            production_validator=True,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="enforced",
+        source_type="parliament_extension",
     ),
     Invariant(
         id="FOREGONE_IS_NOT_OBTAINED",

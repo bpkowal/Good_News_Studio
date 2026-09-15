@@ -1,0 +1,801 @@
+{
+  "ethical_problem": "An emergency logistics algorithm must allocate the city\u2019s only mobile generator to one of two critical facilities during a prolonged blackout. A1 sends the generator to a neonatal intensive-care unit, maintaining life support for eight premature infants and preventing their immediate deaths, but leaving the municipal water-treatment plant without power and increasing the risk of a widespread sanitation failure. A0 sends the generator to the water-treatment plant, preserving safe water for tens of thousands of residents and preventing a broader public-health crisis, but leaving the neonatal unit without backup power and exposing the eight infants to near-certain fatal equipment failure. The city must choose between protecting a small group facing immediate death and preventing a larger but less immediate danger to the wider population.",
+  "presentation_actions": [
+    "dispatch the city\u2019s only mobile generator to the neonatal ICU, sustaining life-support equipment for eight premature infants and averting their imminent deaths while leaving the water-treatment plant without power and heightening the risk of a sanitation failure affecting tens of thousands",
+    "dispatch the city\u2019s only mobile generator to the municipal water-treatment plant, preserving safe water for tens of thousands of residents and averting a public-health crisis while leaving the neonatal ICU without backup power and exposing eight premature infants to near-certain fatal equipment failure"
+  ],
+  "canonical_actions": [
+    "dispatch the city\u2019s only mobile generator to the municipal water-treatment plant, preserving safe water for tens of thousands of residents and averting a public-health crisis while leaving the neonatal ICU without backup power and exposing eight premature infants to near-certain fatal equipment failure",
+    "dispatch the city\u2019s only mobile generator to the neonatal ICU, sustaining life-support equipment for eight premature infants and averting their imminent deaths while leaving the water-treatment plant without power and heightening the risk of a sanitation failure affecting tens of thousands"
+  ],
+  "canonical_scenario": "An emergency logistics algorithm must allocate the city\u2019s only mobile generator to one of two critical facilities during a prolonged blackout. A0 sends the generator to a neonatal intensive-care unit, maintaining life support for eight premature infants and preventing their immediate deaths, but leaving the municipal water-treatment plant without power and increasing the risk of a widespread sanitation failure. A1 sends the generator to the water-treatment plant, preserving safe water for tens of thousands of residents and preventing a broader public-health crisis, but leaving the neonatal unit without backup power and exposing the eight infants to near-certain fatal equipment failure. The city must choose between protecting a small group facing immediate death and preventing a larger but less immediate danger to the wider population.",
+  "action_source_grounding": {
+    "status": "COMMITTED",
+    "actions": {
+      "A0": {
+        "action": "dispatch the city\u2019s only mobile generator to the municipal water-treatment plant, preserving safe water for tens of thousands of residents and averting a public-health crisis while leaving the neonatal ICU without backup power and exposing eight premature infants to near-certain fatal equipment failure",
+        "clause_ids": [
+          "C2"
+        ],
+        "clauses": [
+          {
+            "clause_id": "C2",
+            "text": "A1 sends the generator to the water-treatment plant, preserving safe water for tens of thousands of residents and preventing a broader public-health crisis, but leaving the neonatal unit without backup power and exposing the eight infants to near-certain fatal equipment failure."
+          }
+        ],
+        "reason": "C2 details dispatching the generator to the water-treatment plant and its consequences"
+      },
+      "A1": {
+        "action": "dispatch the city\u2019s only mobile generator to the neonatal ICU, sustaining life-support equipment for eight premature infants and averting their imminent deaths while leaving the water-treatment plant without power and heightening the risk of a sanitation failure affecting tens of thousands",
+        "clause_ids": [
+          "C1"
+        ],
+        "clauses": [
+          {
+            "clause_id": "C1",
+            "text": "A0 sends the generator to a neonatal intensive-care unit, maintaining life support for eight premature infants and preventing their immediate deaths, but leaving the municipal water-treatment plant without power and increasing the risk of a widespread sanitation failure."
+          }
+        ],
+        "reason": "C1 details dispatching the generator to the neonatal ICU and its consequences"
+      }
+    },
+    "world_model": {
+      "parties": [
+        {
+          "party_id": "P_ALGORITHM",
+          "label": "emergency logistics algorithm",
+          "kind": "SYSTEM",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An emergency logistics algorithm must allocate the city\u2019s only mobile generator to one of two critical facilities during a prolonged blackout."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P_WATER_PLANT",
+          "label": "municipal water-treatment plant",
+          "kind": "FACILITY",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "A0 sends the generator to a neonatal intensive-care unit, maintaining life support for eight premature infants and preventing their immediate deaths, but leaving the municipal water-treatment plant without power and increasing the risk of a widespread sanitation failure."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "A1 sends the generator to the water-treatment plant, preserving safe water for tens of thousands of residents and preventing a broader public-health crisis, but leaving the neonatal unit without backup power and exposing the eight infants to near-certain fatal equipment failure."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P_NICU",
+          "label": "neonatal intensive-care unit",
+          "kind": "FACILITY",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "A0 sends the generator to a neonatal intensive-care unit, maintaining life support for eight premature infants and preventing their immediate deaths, but leaving the municipal water-treatment plant without power and increasing the risk of a widespread sanitation failure."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "A1 sends the generator to the water-treatment plant, preserving safe water for tens of thousands of residents and preventing a broader public-health crisis, but leaving the neonatal unit without backup power and exposing the eight infants to near-certain fatal equipment failure."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P_INFANTS",
+          "label": "eight premature infants",
+          "kind": "POPULATION",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "A0 sends the generator to a neonatal intensive-care unit, maintaining life support for eight premature infants and preventing their immediate deaths, but leaving the municipal water-treatment plant without power and increasing the risk of a widespread sanitation failure."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "A1 sends the generator to the water-treatment plant, preserving safe water for tens of thousands of residents and preventing a broader public-health crisis, but leaving the neonatal unit without backup power and exposing the eight infants to near-certain fatal equipment failure."
+            }
+          ],
+          "quantities": [
+            "eight"
+          ]
+        },
+        {
+          "party_id": "P_RESIDENTS",
+          "label": "tens of thousands of residents",
+          "kind": "POPULATION",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "A0 sends the generator to a neonatal intensive-care unit, maintaining life support for eight premature infants and preventing their immediate deaths, but leaving the municipal water-treatment plant without power and increasing the risk of a widespread sanitation failure."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "A1 sends the generator to the water-treatment plant, preserving safe water for tens of thousands of residents and preventing a broader public-health crisis, but leaving the neonatal unit without backup power and exposing the eight infants to near-certain fatal equipment failure."
+            }
+          ],
+          "quantities": [
+            "tens of thousands"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "action_id": "A0",
+          "intervention": "dispatch the only mobile generator to the water-treatment plant",
+          "actor_party_id": "P_ALGORITHM",
+          "recipient_party_ids": [
+            "P_WATER_PLANT"
+          ],
+          "effect_ids": [
+            "E0_direct_transfer",
+            "E0_plant_powered",
+            "E0_residents_safe_water",
+            "E0_nicu_no_power",
+            "E0_infants_die",
+            "E0_infants_survive_fg",
+            "E0_residents_sanitation_failure_fg"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "A1 sends the generator to the water-treatment plant, preserving safe water for tens of thousands of residents and preventing a broader public-health crisis, but leaving the neonatal unit without backup power and exposing the eight infants to near-certain fatal equipment failure."
+            }
+          ]
+        },
+        {
+          "action_id": "A1",
+          "intervention": "dispatch the only mobile generator to the neonatal ICU",
+          "actor_party_id": "P_ALGORITHM",
+          "recipient_party_ids": [
+            "P_NICU"
+          ],
+          "effect_ids": [
+            "E1_direct_transfer",
+            "E1_nicu_powered",
+            "E1_infants_survive",
+            "E1_water_plant_no_power",
+            "E1_residents_sanitation_failure",
+            "E1_residents_safe_water_fg",
+            "E1_infants_die_fg"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "A0 sends the generator to a neonatal intensive-care unit, maintaining life support for eight premature infants and preventing their immediate deaths, but leaving the municipal water-treatment plant without power and increasing the risk of a widespread sanitation failure."
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "effect_id": "E0_direct_transfer",
+          "action_id": "A0",
+          "party_id": "P_WATER_PLANT",
+          "outcome": "MOBILE_GENERATOR",
+          "relation": "RECEIVES",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "INTERVENTION",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "A1 sends the generator to the water-treatment plant, preserving safe water for tens of thousands of residents and preventing a broader public-health crisis, but leaving the neonatal unit without backup power and exposing the eight infants to near-certain fatal equipment failure."
+            },
+            {
+              "clause_id": "A0",
+              "excerpt": "dispatch the city\u2019s only mobile generator to the municipal water-treatment plant, preserving safe water for tens of thousands of residents and averting a public-health crisis while leaving the neonatal ICU without backup power and exposing eight premature infants to near-certain fatal equipment failure"
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "effect_id": "E0_plant_powered",
+          "action_id": "A0",
+          "party_id": "P_WATER_PLANT",
+          "outcome": "POWER_SUPPLIED",
+          "relation": "IS",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "PHYSICAL_STATE",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "A1 sends the generator to the water-treatment plant, preserving safe water for tens of thousands of residents and preventing a broader public-health crisis, but leaving the neonatal unit without backup power and exposing the eight infants to near-certain fatal equipment failure."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "effect_id": "E0_residents_safe_water",
+          "action_id": "A0",
+          "party_id": "P_RESIDENTS",
+          "outcome": "SAFE_WATER",
+          "relation": "OBTAINS",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "WELFARE_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "A1 sends the generator to the water-treatment plant, preserving safe water for tens of thousands of residents and preventing a broader public-health crisis, but leaving the neonatal unit without backup power and exposing the eight infants to near-certain fatal equipment failure."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "effect_id": "E0_nicu_no_power",
+          "action_id": "A0",
+          "party_id": "P_NICU",
+          "outcome": "POWER_LOSS",
+          "relation": "EXPERIENCES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "PHYSICAL_STATE",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "A1 sends the generator to the water-treatment plant, preserving safe water for tens of thousands of residents and preventing a broader public-health crisis, but leaving the neonatal unit without backup power and exposing the eight infants to near-certain fatal equipment failure."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "effect_id": "E0_infants_die",
+          "action_id": "A0",
+          "party_id": "P_INFANTS",
+          "outcome": "DEATH",
+          "relation": "SUBJECT_TO",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [
+            "COND_EQUIPMENT_FAILURE"
+          ],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "A1 sends the generator to the water-treatment plant, preserving safe water for tens of thousands of residents and preventing a broader public-health crisis, but leaving the neonatal unit without backup power and exposing the eight infants to near-certain fatal equipment failure."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "near-certain"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "effect_id": "E0_infants_survive_fg",
+          "action_id": "A0",
+          "party_id": "P_INFANTS",
+          "outcome": "SURVIVAL",
+          "relation": "FOREGONE",
+          "polarity": "FOREGONE",
+          "directness": "FOREGONE",
+          "modality": "CERTAIN",
+          "effect_kind": "OPPORTUNITY_LOSS",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "A1 sends the generator to the water-treatment plant, preserving safe water for tens of thousands of residents and preventing a broader public-health crisis, but leaving the neonatal unit without backup power and exposing the eight infants to near-certain fatal equipment failure."
+            },
+            {
+              "clause_id": "A0",
+              "excerpt": "dispatch the city\u2019s only mobile generator to the municipal water-treatment plant, preserving safe water for tens of thousands of residents and averting a public-health crisis while leaving the neonatal ICU without backup power and exposing eight premature infants to near-certain fatal equipment failure"
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "effect_id": "E0_residents_sanitation_failure_fg",
+          "action_id": "A0",
+          "party_id": "P_RESIDENTS",
+          "outcome": "SANITATION_FAILURE",
+          "relation": "FOREGONE",
+          "polarity": "FOREGONE",
+          "directness": "FOREGONE",
+          "modality": "CERTAIN",
+          "effect_kind": "OPPORTUNITY_LOSS",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "A0 sends the generator to a neonatal intensive-care unit, maintaining life support for eight premature infants and preventing their immediate deaths, but leaving the municipal water-treatment plant without power and increasing the risk of a widespread sanitation failure."
+            },
+            {
+              "clause_id": "A0",
+              "excerpt": "dispatch the city\u2019s only mobile generator to the municipal water-treatment plant, preserving safe water for tens of thousands of residents and averting a public-health crisis while leaving the neonatal ICU without backup power and exposing eight premature infants to near-certain fatal equipment failure"
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [
+            "widespread"
+          ],
+          "temporal_qualifiers": []
+        },
+        {
+          "effect_id": "E1_direct_transfer",
+          "action_id": "A1",
+          "party_id": "P_NICU",
+          "outcome": "MOBILE_GENERATOR",
+          "relation": "RECEIVES",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "INTERVENTION",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "A0 sends the generator to a neonatal intensive-care unit, maintaining life support for eight premature infants and preventing their immediate deaths, but leaving the municipal water-treatment plant without power and increasing the risk of a widespread sanitation failure."
+            },
+            {
+              "clause_id": "A1",
+              "excerpt": "dispatch the city\u2019s only mobile generator to the neonatal ICU, sustaining life-support equipment for eight premature infants and averting their imminent deaths while leaving the water-treatment plant without power and heightening the risk of a sanitation failure affecting tens of thousands"
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "effect_id": "E1_nicu_powered",
+          "action_id": "A1",
+          "party_id": "P_NICU",
+          "outcome": "POWER_SUPPLIED",
+          "relation": "IS",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "PHYSICAL_STATE",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "A0 sends the generator to a neonatal intensive-care unit, maintaining life support for eight premature infants and preventing their immediate deaths, but leaving the municipal water-treatment plant without power and increasing the risk of a widespread sanitation failure."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "effect_id": "E1_infants_survive",
+          "action_id": "A1",
+          "party_id": "P_INFANTS",
+          "outcome": "SURVIVAL",
+          "relation": "ACHIEVES",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "A0 sends the generator to a neonatal intensive-care unit, maintaining life support for eight premature infants and preventing their immediate deaths, but leaving the municipal water-treatment plant without power and increasing the risk of a widespread sanitation failure."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "effect_id": "E1_water_plant_no_power",
+          "action_id": "A1",
+          "party_id": "P_WATER_PLANT",
+          "outcome": "POWER_LOSS",
+          "relation": "EXPERIENCES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "PHYSICAL_STATE",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "A0 sends the generator to a neonatal intensive-care unit, maintaining life support for eight premature infants and preventing their immediate deaths, but leaving the municipal water-treatment plant without power and increasing the risk of a widespread sanitation failure."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "effect_id": "E1_residents_sanitation_failure",
+          "action_id": "A1",
+          "party_id": "P_RESIDENTS",
+          "outcome": "SANITATION_FAILURE",
+          "relation": "RISK_OF",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "WELFARE_OUTCOME",
+          "condition_ids": [
+            "COND_SANITATION_FAILURE"
+          ],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "A0 sends the generator to a neonatal intensive-care unit, maintaining life support for eight premature infants and preventing their immediate deaths, but leaving the municipal water-treatment plant without power and increasing the risk of a widespread sanitation failure."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "risk"
+          ],
+          "scope_qualifiers": [
+            "widespread"
+          ],
+          "temporal_qualifiers": []
+        },
+        {
+          "effect_id": "E1_residents_safe_water_fg",
+          "action_id": "A1",
+          "party_id": "P_RESIDENTS",
+          "outcome": "SAFE_WATER",
+          "relation": "FOREGONE",
+          "polarity": "FOREGONE",
+          "directness": "FOREGONE",
+          "modality": "CERTAIN",
+          "effect_kind": "OPPORTUNITY_LOSS",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "A1 sends the generator to the water-treatment plant, preserving safe water for tens of thousands of residents and preventing a broader public-health crisis, but leaving the neonatal unit without backup power and exposing the eight infants to near-certain fatal equipment failure."
+            },
+            {
+              "clause_id": "A1",
+              "excerpt": "dispatch the city\u2019s only mobile generator to the neonatal ICU, sustaining life-support equipment for eight premature infants and averting their imminent deaths while leaving the water-treatment plant without power and heightening the risk of a sanitation failure affecting tens of thousands"
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "effect_id": "E1_infants_die_fg",
+          "action_id": "A1",
+          "party_id": "P_INFANTS",
+          "outcome": "DEATH",
+          "relation": "FOREGONE",
+          "polarity": "FOREGONE",
+          "directness": "FOREGONE",
+          "modality": "CERTAIN",
+          "effect_kind": "OPPORTUNITY_LOSS",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "A1 sends the generator to the water-treatment plant, preserving safe water for tens of thousands of residents and preventing a broader public-health crisis, but leaving the neonatal unit without backup power and exposing the eight infants to near-certain fatal equipment failure."
+            },
+            {
+              "clause_id": "A1",
+              "excerpt": "dispatch the city\u2019s only mobile generator to the neonatal ICU, sustaining life-support equipment for eight premature infants and averting their imminent deaths while leaving the water-treatment plant without power and heightening the risk of a sanitation failure affecting tens of thousands"
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "COND_EQUIPMENT_FAILURE",
+          "description": "life-support equipment failure in the neonatal ICU",
+          "value_status": "UNKNOWN",
+          "decision_relevance": "NECESSARY_FOR_EFFECT",
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "A1 sends the generator to the water-treatment plant, preserving safe water for tens of thousands of residents and preventing a broader public-health crisis, but leaving the neonatal unit without backup power and exposing the eight infants to near-certain fatal equipment failure."
+            }
+          ]
+        },
+        {
+          "condition_id": "COND_SANITATION_FAILURE",
+          "description": "sanitation failure at the water-treatment plant",
+          "value_status": "UNKNOWN",
+          "decision_relevance": "NECESSARY_FOR_EFFECT",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "A0 sends the generator to a neonatal intensive-care unit, maintaining life support for eight premature infants and preventing their immediate deaths, but leaving the municipal water-treatment plant without power and increasing the risk of a widespread sanitation failure."
+            }
+          ]
+        }
+      ],
+      "causal_links": [
+        {
+          "source_id": "E0_direct_transfer",
+          "relation": "CAUSES",
+          "target_id": "E0_plant_powered",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "A1 sends the generator to the water-treatment plant, preserving safe water for tens of thousands of residents and preventing a broader public-health crisis, but leaving the neonatal unit without backup power and exposing the eight infants to near-certain fatal equipment failure."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E0_plant_powered",
+          "relation": "CAUSES",
+          "target_id": "E0_residents_safe_water",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "A1 sends the generator to the water-treatment plant, preserving safe water for tens of thousands of residents and preventing a broader public-health crisis, but leaving the neonatal unit without backup power and exposing the eight infants to near-certain fatal equipment failure."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E0_direct_transfer",
+          "relation": "CAUSES",
+          "target_id": "E0_nicu_no_power",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "A1 sends the generator to the water-treatment plant, preserving safe water for tens of thousands of residents and preventing a broader public-health crisis, but leaving the neonatal unit without backup power and exposing the eight infants to near-certain fatal equipment failure."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E0_nicu_no_power",
+          "relation": "CAUSES",
+          "target_id": "E0_infants_die",
+          "modality": "PROBABILISTIC",
+          "condition_ids": [
+            "COND_EQUIPMENT_FAILURE"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "A1 sends the generator to the water-treatment plant, preserving safe water for tens of thousands of residents and preventing a broader public-health crisis, but leaving the neonatal unit without backup power and exposing the eight infants to near-certain fatal equipment failure."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E1_direct_transfer",
+          "relation": "CAUSES",
+          "target_id": "E1_nicu_powered",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "A0 sends the generator to a neonatal intensive-care unit, maintaining life support for eight premature infants and preventing their immediate deaths, but leaving the municipal water-treatment plant without power and increasing the risk of a widespread sanitation failure."
+            }
+          ],
+          "action_id": "A1"
+        },
+        {
+          "source_id": "E1_nicu_powered",
+          "relation": "CAUSES",
+          "target_id": "E1_infants_survive",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "A0 sends the generator to a neonatal intensive-care unit, maintaining life support for eight premature infants and preventing their immediate deaths, but leaving the municipal water-treatment plant without power and increasing the risk of a widespread sanitation failure."
+            }
+          ],
+          "action_id": "A1"
+        },
+        {
+          "source_id": "E1_direct_transfer",
+          "relation": "CAUSES",
+          "target_id": "E1_water_plant_no_power",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "A0 sends the generator to a neonatal intensive-care unit, maintaining life support for eight premature infants and preventing their immediate deaths, but leaving the municipal water-treatment plant without power and increasing the risk of a widespread sanitation failure."
+            }
+          ],
+          "action_id": "A1"
+        },
+        {
+          "source_id": "E1_water_plant_no_power",
+          "relation": "CAUSES",
+          "target_id": "E1_residents_sanitation_failure",
+          "modality": "PROBABILISTIC",
+          "condition_ids": [
+            "COND_SANITATION_FAILURE"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "A0 sends the generator to a neonatal intensive-care unit, maintaining life support for eight premature infants and preventing their immediate deaths, but leaving the municipal water-treatment plant without power and increasing the risk of a widespread sanitation failure."
+            }
+          ],
+          "action_id": "A1"
+        }
+      ],
+      "counterfactual_links": [
+        {
+          "action_id": "A0",
+          "source_effect_id": "E0_infants_survive_fg",
+          "relation": "FOREGOES_ALTERNATIVE_EFFECT",
+          "alternative_action_id": "A1",
+          "alternative_effect_id": "E1_infants_survive",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "A0",
+              "excerpt": "dispatch the city\u2019s only mobile generator to the municipal water-treatment plant, preserving safe water for tens of thousands of residents and averting a public-health crisis while leaving the neonatal ICU without backup power and exposing eight premature infants to near-certain fatal equipment failure"
+            },
+            {
+              "clause_id": "A1",
+              "excerpt": "dispatch the city\u2019s only mobile generator to the neonatal ICU, sustaining life-support equipment for eight premature infants and averting their imminent deaths while leaving the water-treatment plant without power and heightening the risk of a sanitation failure affecting tens of thousands"
+            }
+          ]
+        },
+        {
+          "action_id": "A0",
+          "source_effect_id": "E0_residents_sanitation_failure_fg",
+          "relation": "FOREGOES_ALTERNATIVE_EFFECT",
+          "alternative_action_id": "A1",
+          "alternative_effect_id": "E1_residents_sanitation_failure",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "A0",
+              "excerpt": "dispatch the city\u2019s only mobile generator to the municipal water-treatment plant, preserving safe water for tens of thousands of residents and averting a public-health crisis while leaving the neonatal ICU without backup power and exposing eight premature infants to near-certain fatal equipment failure"
+            },
+            {
+              "clause_id": "A1",
+              "excerpt": "dispatch the city\u2019s only mobile generator to the neonatal ICU, sustaining life-support equipment for eight premature infants and averting their imminent deaths while leaving the water-treatment plant without power and heightening the risk of a sanitation failure affecting tens of thousands"
+            }
+          ]
+        },
+        {
+          "action_id": "A1",
+          "source_effect_id": "E1_residents_safe_water_fg",
+          "relation": "FOREGOES_ALTERNATIVE_EFFECT",
+          "alternative_action_id": "A0",
+          "alternative_effect_id": "E0_residents_safe_water",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "A0",
+              "excerpt": "dispatch the city\u2019s only mobile generator to the municipal water-treatment plant, preserving safe water for tens of thousands of residents and averting a public-health crisis while leaving the neonatal ICU without backup power and exposing eight premature infants to near-certain fatal equipment failure"
+            },
+            {
+              "clause_id": "A1",
+              "excerpt": "dispatch the city\u2019s only mobile generator to the neonatal ICU, sustaining life-support equipment for eight premature infants and averting their imminent deaths while leaving the water-treatment plant without power and heightening the risk of a sanitation failure affecting tens of thousands"
+            }
+          ]
+        },
+        {
+          "action_id": "A1",
+          "source_effect_id": "E1_infants_die_fg",
+          "relation": "FOREGOES_ALTERNATIVE_EFFECT",
+          "alternative_action_id": "A0",
+          "alternative_effect_id": "E0_infants_die",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "A0",
+              "excerpt": "dispatch the city\u2019s only mobile generator to the municipal water-treatment plant, preserving safe water for tens of thousands of residents and averting a public-health crisis while leaving the neonatal ICU without backup power and exposing eight premature infants to near-certain fatal equipment failure"
+            },
+            {
+              "clause_id": "A1",
+              "excerpt": "dispatch the city\u2019s only mobile generator to the neonatal ICU, sustaining life-support equipment for eight premature infants and averting their imminent deaths while leaving the water-treatment plant without power and heightening the risk of a sanitation failure affecting tens of thousands"
+            }
+          ]
+        }
+      ],
+      "admission": {
+        "status": "COMMITTED",
+        "admitted_effect_ids": [
+          "E0_direct_transfer",
+          "E0_plant_powered",
+          "E0_residents_safe_water",
+          "E0_nicu_no_power",
+          "E0_infants_die",
+          "E0_infants_survive_fg",
+          "E0_residents_sanitation_failure_fg",
+          "E1_direct_transfer",
+          "E1_nicu_powered",
+          "E1_infants_survive",
+          "E1_water_plant_no_power",
+          "E1_residents_sanitation_failure",
+          "E1_residents_safe_water_fg",
+          "E1_infants_die_fg"
+        ],
+        "quarantined_effects": [],
+        "user_override": false,
+        "override_reason": ""
+      },
+      "schema_version": "1.2"
+    },
+    "world_model_status": "COMMITTED",
+    "world_contradictions": [],
+    "errors": [],
+    "clauses": [
+      {
+        "clause_id": "C0",
+        "text": "An emergency logistics algorithm must allocate the city\u2019s only mobile generator to one of two critical facilities during a prolonged blackout."
+      },
+      {
+        "clause_id": "C1",
+        "text": "A0 sends the generator to a neonatal intensive-care unit, maintaining life support for eight premature infants and preventing their immediate deaths, but leaving the municipal water-treatment plant without power and increasing the risk of a widespread sanitation failure."
+      },
+      {
+        "clause_id": "C2",
+        "text": "A1 sends the generator to the water-treatment plant, preserving safe water for tens of thousands of residents and preventing a broader public-health crisis, but leaving the neonatal unit without backup power and exposing the eight infants to near-certain fatal equipment failure."
+      },
+      {
+        "clause_id": "C3",
+        "text": "The city must choose between protecting a small group facing immediate death and preventing a larger but less immediate danger to the wider population."
+      }
+    ],
+    "attempts": [
+      {
+        "attempt": 1,
+        "errors": [
+          "typed world model rejected: E0_infants_die is a downstream human outcome whose causal ancestry never reaches a DIRECT act on the actor or a named recipient; connect this action's intervention to the intermediate process that produces the outcome; E1_residents_sanitation_failure is a downstream human outcome whose causal ancestry never reaches a DIRECT act on the actor or a named recipient; connect this action's intervention to the intermediate process that produces the outcome; A0 and A1 stipulate opposed welfare on non-recipient P_INFANTS, but A1 has no FOREGONE effect with a counterfactual_link to A0's actual effect; do not put that comparison on causal_links; A0 and A1 stipulate opposed welfare on non-recipient P_RESIDENTS, but A0 has no FOREGONE effect with a counterfactual_link to A1's actual effect; do not put that comparison on causal_links"
+        ]
+      },
+      {
+        "attempt": 2,
+        "errors": []
+      }
+    ],
+    "repair_attempts": 1
+  },
+  "cache_version": 2
+}

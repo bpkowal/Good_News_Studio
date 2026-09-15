@@ -95,6 +95,28 @@ def _candidate_recommendation(candidate: dict[str, Any]) -> str:
     return explicit or (max(scores, key=scores.get) if scores else "")
 
 
+def _directional_position(candidate: dict[str, Any]) -> str:
+    """Specialist score/recommendation lean — not the admitted vote."""
+    return _candidate_recommendation(candidate)
+
+
+def _admitted_vote(candidate: dict[str, Any]) -> str:
+    """Vote-admission gate: FULL / ATTENUATED / ABSTAIN / NOT_APPLICABLE."""
+    return str(candidate.get("framework_vote_status", "NOT_APPLICABLE") or "NOT_APPLICABLE").upper()
+
+
+def _vote_counts_as_support(candidate: dict[str, Any], recommendation: str) -> bool:
+    """True when admitted vote may be reported as support for the recommendation.
+
+    Directional lean alone is never enough: ABSTAIN must not read as favor.
+    NOT_APPLICABLE preserves older traces that predate vote integrity.
+    """
+    if _directional_position(candidate) != recommendation:
+        return False
+    vote = _admitted_vote(candidate)
+    return vote in {"FULL", "ATTENUATED", "NOT_APPLICABLE"}
+
+
 def _readable_condition(value: str) -> str:
     normalized = " ".join(str(value).replace("_", " ").split()).strip()
     if not normalized or re.fullmatch(r"[A-Z ]+", normalized):
@@ -1492,16 +1514,24 @@ def render_decision_brief(result: Any) -> str:
     supporting = [
         candidate for _, candidate in ordered_specialists
         if (
-            _candidate_recommendation(candidate) == recommendation
-            and str(candidate.get("framework_vote_status", "")).upper() == "FULL"
+            _vote_counts_as_support(candidate, recommendation)
+            and _admitted_vote(candidate) == "FULL"
         )
     ]
     supporting_names = [
         _framework_display_name(name)
         for name, candidate in ordered_specialists
         if (
-            _candidate_recommendation(candidate) == recommendation
-            and str(candidate.get("framework_vote_status", "")).upper() == "FULL"
+            _vote_counts_as_support(candidate, recommendation)
+            and _admitted_vote(candidate) == "FULL"
+        )
+    ]
+    attenuated_names = [
+        _framework_display_name(name)
+        for name, candidate in ordered_specialists
+        if (
+            _vote_counts_as_support(candidate, recommendation)
+            and _admitted_vote(candidate) == "ATTENUATED"
         )
     ]
 
@@ -1527,6 +1557,14 @@ def render_decision_brief(result: Any) -> str:
                 f"The Parliament broadly favors {short_action(recommendation)}. "
                 f"{support_clause}"
             )
+            if attenuated_names:
+                if len(attenuated_names) == 1:
+                    intro += f"; {attenuated_names[0]} offers attenuated support"
+                else:
+                    intro += (
+                        f"; {', '.join(attenuated_names[:-1])} and "
+                        f"{attenuated_names[-1]} offer attenuated support"
+                    )
         provisional = [
             c for c in supporting
             if _epistemic_status(c) in {"PROVISIONAL_LEANING", "CONDITIONAL_SUPPORTS"}
@@ -1603,11 +1641,18 @@ def render_decision_brief(result: Any) -> str:
     if factual_lines:
         lines.extend(["", *factual_lines])
 
-    # Why favored
+    # Why favored — admitted vote only; directional lean alone never says "favors".
     lines.extend(["", "## Why the Parliament currently favors this action", ""])
     why_added = False
+    abstain_leans: list[tuple[str, dict[str, Any]]] = []
     for name, candidate in ordered_specialists:
-        if _candidate_recommendation(candidate) != recommendation:
+        if _directional_position(candidate) != recommendation:
+            continue
+        vote = _admitted_vote(candidate)
+        if vote == "ABSTAIN":
+            abstain_leans.append((name, candidate))
+            continue
+        if not _vote_counts_as_support(candidate, recommendation):
             continue
         reason = _main_contribution(
             data, candidate, recommendation, original_actions, records=action_records,
@@ -1616,9 +1661,12 @@ def render_decision_brief(result: Any) -> str:
             continue
         label = _framework_display_name(name)
         status_code = _epistemic_status(candidate)
+        if status_code == "ABSTAINS":
+            abstain_leans.append((name, candidate))
+            continue
         if status_code == "PROVISIONAL_LEANING":
             lead = f"{label} provisionally favors this action"
-        elif status_code == "CONDITIONAL_SUPPORTS":
+        elif status_code == "CONDITIONAL_SUPPORTS" or vote == "ATTENUATED":
             lead = f"{label} conditionally supports this action"
         elif status_code == "CONTESTED_NO_LEANING":
             continue
@@ -1640,6 +1688,36 @@ def render_decision_brief(result: Any) -> str:
                 "form safe to summarize without overstating authority."
             )
         lines.append("")
+    if abstain_leans:
+        lines.extend([
+            "### Directional leans without admitted vote",
+            "",
+            "These frameworks lean toward the plurality on scores or "
+            "recommended_action, but their **admitted vote is ABSTAIN** — "
+            "not support.",
+            "",
+        ])
+        for name, candidate in abstain_leans:
+            label = _framework_display_name(name)
+            vote_reason = _sentence(_public_claim(str(
+                candidate.get("framework_vote_reason") or ""
+            )))
+            lean = short_action(_directional_position(candidate), 48)
+            if vote_reason:
+                lines.append(
+                    _sentence(
+                        f"{label} leans toward {lean} but abstains: "
+                        f"{_lower_initial(vote_reason)}"
+                    )
+                )
+            else:
+                lines.append(
+                    _sentence(
+                        f"{label} leans toward {lean} but abstains from the "
+                        "admitted vote"
+                    )
+                )
+            lines.append("")
 
     # Most important unresolved issue
     focus_candidate, focus_text = _primary_investigative_focus(latest_by_specialist, data)
@@ -1801,16 +1879,16 @@ def render_decision_brief(result: Any) -> str:
                 )
             lines.append("")
 
-    # Deliberation map
+    # Deliberation map — directional position and admitted vote stay separate columns.
     lines.extend([
         "## Deliberation Map",
         "",
-        "| Framework | Current position | Vote admission | Epistemic status | Main contribution |",
+        "| Framework | Directional position | Admitted vote | Epistemic status | Main contribution |",
         "|---|---|---|---|---|",
     ])
     for name, candidate in ordered_specialists:
         position = _map_position_label(candidate, recommendation, records=action_records)
-        vote_status = str(candidate.get("framework_vote_status", "NOT_APPLICABLE")).upper()
+        vote_status = _admitted_vote(candidate)
         vote_reason = _sentence(_public_claim(str(
             candidate.get("framework_vote_reason", "")
         )))
@@ -1825,7 +1903,7 @@ def render_decision_brief(result: Any) -> str:
         alignment = str(candidate.get("testimony_alignment", "")).upper()
         if (
             epistemic_status == "SUPPORTS"
-            and _candidate_recommendation(candidate) == recommendation
+            and _directional_position(candidate) == recommendation
             and "RECONSIDER" in alignment
         ):
             epistemic_status = "RECONSIDERED_SUPPORT"

@@ -1,0 +1,1645 @@
+{
+  "actions": {
+    "A0": {
+      "clause_ids": [
+        "C6",
+        "C7",
+        "C8",
+        "C9"
+      ],
+      "reason": "C6 defines Plan A (buses to hospital); C7–C9 give its stipulated patient escape, residents’ road-use, blockage risk, and possible trapping."
+    },
+    "A1": {
+      "clause_ids": [
+        "C11",
+        "C12",
+        "C13",
+        "C14"
+      ],
+      "reason": "C11 defines Plan B (buses east); C12–C14 give resulting resident escape and the patients’ residual, probabilistic risks."
+    }
+  },
+  "attempts": [
+    {
+      "attempt": 1,
+      "errors": [
+        "typed world model rejected: F6 is PROBABILISTIC but has no condition; F10 is PROBABILISTIC but has no condition; E1 is DIRECT on P2, who is neither the actor nor a named recipient; non-recipient process and population states are DOWNSTREAM or FOREGONE. If this row is later conduct (assist, remain, use a road), recast it DOWNSTREAM with a non-INTERVENTION kind; do not add that party as a recipient to make the conduct DIRECT. If this row is the actor assigning or allocating that party, they may be a recipient of a separate DIRECT assignment, not of this later conduct; E6 is a downstream human outcome with no causal parent; connect it through the source-named process. Do not drop E6; insert or reuse a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as its parent; F1 is DIRECT on P3, who is neither the actor nor a named recipient; non-recipient process and population states are DOWNSTREAM or FOREGONE. If this row is later conduct (assist, remain, use a road), recast it DOWNSTREAM with a non-INTERVENTION kind; do not add that party as a recipient to make the conduct DIRECT. If this row is the actor assigning or allocating that party, they may be a recipient of a separate DIRECT assignment, not of this later conduct; F7 is a downstream human outcome whose causal ancestry never reaches a DIRECT act on the actor or a named recipient; connect this action's intervention to the action-mediated process that produces the outcome. An independent stochastic condition must not be parented from the intervention to satisfy this; F9 is a downstream human outcome with no causal parent; connect it through the source-named process. Do not drop F9; insert or reuse a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as its parent; F10 is a downstream human outcome with no causal parent; connect it through the source-named process. Do not drop F10; insert or reuse a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as its parent; A0 and A1 stipulate opposed welfare on P4, but A0 has no FOREGONE effect with a counterfactual_link to A1's actual effect; do not put that comparison on causal_links; A0 and A1 stipulate opposed welfare on P5, but A1 has no FOREGONE effect with a counterfactual_link to A0's actual effect; do not put that comparison on causal_links; F6 is referenced by COND2 and must not also be an ordinary causal parent of ['F7']; gate the action-mediated path with this condition; F6 is an independent stochastic event; do not parent F7 from it. Gate the action-mediated path with a condition whose event_effect_id is F6; E2 is the receipt of a transferred resource so effect_kind must be RESOURCE_TRANSFER, not INTERVENTION; F2 is the receipt of a transferred resource so effect_kind must be RESOURCE_TRANSFER, not INTERVENTION"
+      ],
+      "repair_delta": {}
+    },
+    {
+      "attempt": 2,
+      "errors": [
+        "typed world model rejected: F6 is PROBABILISTIC but has no condition; F10 is PROBABILISTIC but has no condition; causal_link[8] is conditional but has no condition; E2 is DIRECT on P4, who is neither the actor nor a named recipient; non-recipient process and population states are DOWNSTREAM or FOREGONE. If this row is later conduct (assist, remain, use a road), recast it DOWNSTREAM with a non-INTERVENTION kind; do not add that party as a recipient to make the conduct DIRECT. If this row is the actor assigning or allocating that party, they may be a recipient of a separate DIRECT assignment, not of this later conduct; F7 is a downstream human outcome whose causal ancestry never reaches a DIRECT act on the actor or a named recipient; connect this action's intervention to the action-mediated process that produces the outcome. If the source does not attribute a stochastic process to the intervention, do not invent that causal link; generate the missing mediated branch; F9 is a downstream human outcome whose causal ancestry never reaches a DIRECT act on the actor or a named recipient; connect this action's intervention to the action-mediated process that produces the outcome. If the source does not attribute a stochastic process to the intervention, do not invent that causal link; generate the missing mediated branch; F10 is a downstream human outcome whose causal ancestry never reaches a DIRECT act on the actor or a named recipient; connect this action's intervention to the action-mediated process that produces the outcome. If the source does not attribute a stochastic process to the intervention, do not invent that causal link; generate the missing mediated branch; A0 and A1 stipulate opposed welfare on P4, but A0 has no FOREGONE effect with a counterfactual_link to A1's actual effect; do not put that comparison on causal_links; A0 and A1 stipulate opposed welfare on P5, but A1 has no FOREGONE effect with a counterfactual_link to A0's actual effect; do not put that comparison on causal_links",
+        "repair dropped previously valid probabilities E5|10%chance that the listed errors did not name"
+      ],
+      "repair_delta": {
+        "added": {},
+        "dropped": {
+          "probabilities": [
+            "E5|10%chance",
+            "F6|20%chance"
+          ]
+        },
+        "illegal_drops": [
+          "repair dropped previously valid probabilities E5|10%chance that the listed errors did not name"
+        ]
+      }
+    },
+    {
+      "attempt": 3,
+      "errors": [
+        "typed world model rejected: E2 is DIRECT on P4, who is neither the actor nor a named recipient; non-recipient process and population states are DOWNSTREAM or FOREGONE. If this row is later conduct (assist, remain, use a road), recast it DOWNSTREAM with a non-INTERVENTION kind; do not add that party as a recipient to make the conduct DIRECT. If this row is the actor assigning or allocating that party, they may be a recipient of a separate DIRECT assignment, not of this later conduct; F7 is a downstream human outcome whose causal ancestry never reaches a DIRECT act on the actor or a named recipient; connect this action's intervention to the action-mediated process that produces the outcome. An independent stochastic condition must not be parented from the intervention to satisfy this; A0 and A1 stipulate opposed welfare on P4, but A0 has no FOREGONE effect with a counterfactual_link to A1's actual effect; do not put that comparison on causal_links; A0 and A1 stipulate opposed welfare on P5, but A1 has no FOREGONE effect with a counterfactual_link to A0's actual effect; do not put that comparison on causal_links; F6 is referenced by COND2 and must not also be an ordinary causal parent of ['F7']; gate the action-mediated path with this condition; COND4 references F5 which is CERTAIN; event_effect_id must point at a probabilistic event and keep that event's chance hedge; F6 is an independent stochastic event; do not parent F7 from it. Gate the action-mediated path with a condition whose event_effect_id is F6; F10 is gated by an event-referenced condition so its modality must be STIPULATED_CONDITIONAL; keep the probability on the referenced event"
+      ],
+      "repair_delta": {
+        "added": {
+          "citations": [
+            "condition|COND3|C15",
+            "condition|COND4|C14"
+          ],
+          "conditions": [
+            "condition|COND3",
+            "condition|COND4",
+            "gate|F10|COND4",
+            "gate|F6|COND3"
+          ]
+        },
+        "dropped": {},
+        "illegal_drops": []
+      }
+    }
+  ],
+  "clauses": [
+    {
+      "clause_id": "C0",
+      "text": "A wildfire is approaching a hospital and an eastern residential district."
+    },
+    {
+      "clause_id": "C1",
+      "text": "Twenty patients cannot be moved without buses."
+    },
+    {
+      "clause_id": "C2",
+      "text": "Three hundred eastern residents need those same buses to evacuate."
+    },
+    {
+      "clause_id": "C3",
+      "text": "Fifty firefighters are on scene."
+    },
+    {
+      "clause_id": "C4",
+      "text": "The coordinator must choose one plan."
+    },
+    {
+      "clause_id": "C5",
+      "text": "The buses cannot be divided, no reinforcements will arrive, and delay is not an option."
+    },
+    {
+      "clause_id": "C6",
+      "text": "Plan A sends the buses to the hospital."
+    },
+    {
+      "clause_id": "C7",
+      "text": "The patients' escape is then almost certain."
+    },
+    {
+      "clause_id": "C8",
+      "text": "The eastern district must use a narrow road with a 10% chance of blockage."
+    },
+    {
+      "clause_id": "C9",
+      "text": "If the road is blocked, about sixty residents could be trapped."
+    },
+    {
+      "clause_id": "C10",
+      "text": "Using the buses for the hospital does not increase that blockage risk."
+    },
+    {
+      "clause_id": "C11",
+      "text": "Plan B sends the buses east."
+    },
+    {
+      "clause_id": "C12",
+      "text": "Nearly all 300 residents then escape safely."
+    },
+    {
+      "clause_id": "C13",
+      "text": "The patients remain."
+    },
+    {
+      "clause_id": "C14",
+      "text": "Fire-resistant walls make their deaths unlikely."
+    },
+    {
+      "clause_id": "C15",
+      "text": "There is a 20% chance the hospital ventilation system fails."
+    },
+    {
+      "clause_id": "C16",
+      "text": "If it does, patients who cannot be moved face near-certain death."
+    },
+    {
+      "clause_id": "C17",
+      "text": "Five firefighters stay to assist them at moderate risk."
+    },
+    {
+      "clause_id": "C18",
+      "text": "Which plan should the coordinator choose?"
+    }
+  ],
+  "errors": [
+    "typed world model rejected: E2 is DIRECT on P4, who is neither the actor nor a named recipient; non-recipient process and population states are DOWNSTREAM or FOREGONE. If this row is later conduct (assist, remain, use a road), recast it DOWNSTREAM with a non-INTERVENTION kind; do not add that party as a recipient to make the conduct DIRECT. If this row is the actor assigning or allocating that party, they may be a recipient of a separate DIRECT assignment, not of this later conduct; F7 is a downstream human outcome whose causal ancestry never reaches a DIRECT act on the actor or a named recipient; connect this action's intervention to the action-mediated process that produces the outcome. An independent stochastic condition must not be parented from the intervention to satisfy this; A0 and A1 stipulate opposed welfare on P4, but A0 has no FOREGONE effect with a counterfactual_link to A1's actual effect; do not put that comparison on causal_links; A0 and A1 stipulate opposed welfare on P5, but A1 has no FOREGONE effect with a counterfactual_link to A0's actual effect; do not put that comparison on causal_links; F6 is referenced by COND2 and must not also be an ordinary causal parent of ['F7']; gate the action-mediated path with this condition; COND4 references F5 which is CERTAIN; event_effect_id must point at a probabilistic event and keep that event's chance hedge; F6 is an independent stochastic event; do not parent F7 from it. Gate the action-mediated path with a condition whose event_effect_id is F6; F10 is gated by an event-referenced condition so its modality must be STIPULATED_CONDITIONAL; keep the probability on the referenced event"
+  ],
+  "rejected_candidate": {
+    "actions": {
+      "A0": {
+        "clause_ids": [
+          "C6",
+          "C7",
+          "C8",
+          "C9"
+        ],
+        "reason": "C6 defines Plan A (buses to hospital); C7–C9 give its stipulated patient escape, residents’ road-use, blockage risk, and possible trapping."
+      },
+      "A1": {
+        "clause_ids": [
+          "C11",
+          "C12",
+          "C13",
+          "C14"
+        ],
+        "reason": "C11 defines Plan B (buses east); C12–C14 give resulting resident escape and the patients’ residual, probabilistic risks."
+      }
+    },
+    "world_model": {
+      "actions": [
+        {
+          "action_id": "A0",
+          "actor_party_id": "P0",
+          "clause_ids": [
+            "C6"
+          ],
+          "effect_ids": [
+            "E1",
+            "E3",
+            "E4",
+            "E5",
+            "E6",
+            "E7",
+            "E2"
+          ],
+          "intervention": "Dispatch buses to hospital for patient evacuation",
+          "recipient_party_ids": [
+            "P2"
+          ]
+        },
+        {
+          "action_id": "A1",
+          "actor_party_id": "P0",
+          "clause_ids": [
+            "C11"
+          ],
+          "effect_ids": [
+            "F1",
+            "F2",
+            "F3",
+            "F4",
+            "F5",
+            "F6",
+            "F7",
+            "F8",
+            "F9",
+            "F10",
+            "F11"
+          ],
+          "intervention": "Send buses east to evacuate residents",
+          "recipient_party_ids": [
+            "P3",
+            "P5"
+          ]
+        }
+      ],
+      "causal_links": [
+        {
+          "action_id": "A0",
+          "clause_ids": [
+            "C7"
+          ],
+          "condition_ids": [],
+          "link_relation": "CAUSES",
+          "modality": "CERTAIN",
+          "source_id": "E1",
+          "target_id": "E3"
+        },
+        {
+          "action_id": "A0",
+          "clause_ids": [
+            "C8"
+          ],
+          "condition_ids": [],
+          "link_relation": "CAUSES",
+          "modality": "CERTAIN",
+          "source_id": "E1",
+          "target_id": "E4"
+        },
+        {
+          "action_id": "A0",
+          "clause_ids": [
+            "C9"
+          ],
+          "condition_ids": [
+            "Cond1"
+          ],
+          "link_relation": "ENABLES",
+          "modality": "STIPULATED_CONDITIONAL",
+          "source_id": "E4",
+          "target_id": "E6"
+        },
+        {
+          "action_id": "A0",
+          "clause_ids": [
+            "C10"
+          ],
+          "condition_ids": [],
+          "link_relation": "DOES_NOT_INCREASE",
+          "modality": "CERTAIN",
+          "source_id": "E1",
+          "target_id": "E5"
+        },
+        {
+          "action_id": "A1",
+          "clause_ids": [
+            "C11"
+          ],
+          "condition_ids": [],
+          "link_relation": "CAUSES",
+          "modality": "CERTAIN",
+          "source_id": "F1",
+          "target_id": "F2"
+        },
+        {
+          "action_id": "A1",
+          "clause_ids": [
+            "C12"
+          ],
+          "condition_ids": [],
+          "link_relation": "CAUSES",
+          "modality": "CERTAIN",
+          "source_id": "F2",
+          "target_id": "F3"
+        },
+        {
+          "action_id": "A1",
+          "clause_ids": [
+            "C13"
+          ],
+          "condition_ids": [],
+          "link_relation": "CAUSES",
+          "modality": "CERTAIN",
+          "source_id": "F1",
+          "target_id": "F4"
+        },
+        {
+          "action_id": "A1",
+          "clause_ids": [
+            "C17"
+          ],
+          "condition_ids": [],
+          "link_relation": "CAUSES",
+          "modality": "CERTAIN",
+          "source_id": "F4",
+          "target_id": "F8"
+        },
+        {
+          "action_id": "A1",
+          "clause_ids": [
+            "C17"
+          ],
+          "condition_ids": [],
+          "link_relation": "CAUSES",
+          "modality": "CERTAIN",
+          "source_id": "F8",
+          "target_id": "F9"
+        },
+        {
+          "action_id": "A1",
+          "clause_ids": [
+            "C16"
+          ],
+          "condition_ids": [
+            "Cond2"
+          ],
+          "link_relation": "ENABLES",
+          "modality": "STIPULATED_CONDITIONAL",
+          "source_id": "F6",
+          "target_id": "F7"
+        },
+        {
+          "action_id": "A1",
+          "clause_ids": [
+            "C14"
+          ],
+          "condition_ids": [
+            "Cond4"
+          ],
+          "link_relation": "CAUSES",
+          "modality": "PROBABILISTIC",
+          "source_id": "F4",
+          "target_id": "F10"
+        }
+      ],
+      "conditions": [
+        {
+          "clause_ids": [
+            "C9"
+          ],
+          "condition_id": "Cond1",
+          "decision_relevance": "RELEVANT",
+          "description": "Road is blocked",
+          "event_effect_id": "E5",
+          "value_status": "UNCERTAIN"
+        },
+        {
+          "clause_ids": [
+            "C16"
+          ],
+          "condition_id": "Cond2",
+          "decision_relevance": "RELEVANT",
+          "description": "Ventilation system fails",
+          "event_effect_id": "F6",
+          "value_status": "UNCERTAIN"
+        },
+        {
+          "clause_ids": [
+            "C15"
+          ],
+          "condition_id": "Cond3",
+          "decision_relevance": "RELEVANT",
+          "description": "Potential mechanical failure",
+          "event_effect_id": "",
+          "value_status": "UNCERTAIN"
+        },
+        {
+          "clause_ids": [
+            "C14"
+          ],
+          "condition_id": "Cond4",
+          "decision_relevance": "RELEVANT",
+          "description": "Fire-resistant walls reduce fatality risk",
+          "event_effect_id": "F5",
+          "value_status": "UNCERTAIN"
+        }
+      ],
+      "counterfactual_links": [
+        {
+          "action_id": "A0",
+          "alternative_action_id": "A1",
+          "alternative_effect_id": "F3",
+          "clause_ids": [
+            "C12"
+          ],
+          "condition_ids": [],
+          "counterfactual_relation": "FOREGOES_ALTERNATIVE_EFFECT",
+          "modality": "CERTAIN",
+          "source_effect_id": "E7"
+        },
+        {
+          "action_id": "A1",
+          "alternative_action_id": "A0",
+          "alternative_effect_id": "E3",
+          "clause_ids": [
+            "C7"
+          ],
+          "condition_ids": [],
+          "counterfactual_relation": "FOREGOES_ALTERNATIVE_EFFECT",
+          "modality": "CERTAIN",
+          "source_effect_id": "F11"
+        }
+      ],
+      "effects": [
+        {
+          "action_id": "A0",
+          "clause_ids": [
+            "C6"
+          ],
+          "condition_ids": [],
+          "condition_join": "AND",
+          "directness": "DIRECT",
+          "effect_id": "E1",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "likelihood_qualifiers": [],
+          "modality": "CERTAIN",
+          "outcome": "BUSES_ON_SITE",
+          "party_id": "P2",
+          "polarity": "NEUTRAL",
+          "predicate": "RECEIVES",
+          "quantities": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A0",
+          "clause_ids": [
+            "C7"
+          ],
+          "condition_ids": [],
+          "condition_join": "AND",
+          "directness": "DOWNSTREAM",
+          "effect_id": "E3",
+          "effect_kind": "HEALTH_OUTCOME",
+          "likelihood_qualifiers": [
+            "almost certain"
+          ],
+          "modality": "PROBABILISTIC",
+          "outcome": "SURVIVES",
+          "party_id": "P4",
+          "polarity": "BENEFICIAL",
+          "predicate": "LIKELY",
+          "quantities": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A0",
+          "clause_ids": [
+            "C8"
+          ],
+          "condition_ids": [],
+          "condition_join": "AND",
+          "directness": "DOWNSTREAM",
+          "effect_id": "E4",
+          "effect_kind": "PHYSICAL_STATE",
+          "likelihood_qualifiers": [],
+          "modality": "CERTAIN",
+          "outcome": "USES_NARROW_ROAD",
+          "party_id": "P5",
+          "polarity": "NEUTRAL",
+          "predicate": "PERFORMS",
+          "quantities": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A0",
+          "clause_ids": [
+            "C8"
+          ],
+          "condition_ids": [],
+          "condition_join": "AND",
+          "directness": "DOWNSTREAM",
+          "effect_id": "E5",
+          "effect_kind": "PHYSICAL_STATE",
+          "likelihood_qualifiers": [
+            "10% chance"
+          ],
+          "modality": "PROBABILISTIC",
+          "outcome": "BLOCKED",
+          "party_id": "P8",
+          "polarity": "ADVERSE",
+          "predicate": "IS",
+          "quantities": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A0",
+          "clause_ids": [
+            "C9"
+          ],
+          "condition_ids": [
+            "Cond1"
+          ],
+          "condition_join": "AND",
+          "directness": "DOWNSTREAM",
+          "effect_id": "E6",
+          "effect_kind": "WELFARE_OUTCOME",
+          "likelihood_qualifiers": [],
+          "modality": "STIPULATED_CONDITIONAL",
+          "outcome": "TRAPPED",
+          "party_id": "P5",
+          "polarity": "ADVERSE",
+          "predicate": "SUBJECT_TO",
+          "quantities": [
+            "about sixty"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A0",
+          "clause_ids": [
+            "C12"
+          ],
+          "condition_ids": [],
+          "condition_join": "AND",
+          "directness": "FOREGONE",
+          "effect_id": "E7",
+          "effect_kind": "OPPORTUNITY_LOSS",
+          "likelihood_qualifiers": [],
+          "modality": "CERTAIN",
+          "outcome": "ESCAPES_SAFELY",
+          "party_id": "P5",
+          "polarity": "FOREGONE",
+          "predicate": "FOREGONE",
+          "quantities": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A1",
+          "clause_ids": [
+            "C11"
+          ],
+          "condition_ids": [],
+          "condition_join": "AND",
+          "directness": "DIRECT",
+          "effect_id": "F1",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "likelihood_qualifiers": [],
+          "modality": "CERTAIN",
+          "outcome": "BUSES_ON_SITE",
+          "party_id": "P3",
+          "polarity": "NEUTRAL",
+          "predicate": "RECEIVES",
+          "quantities": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A1",
+          "clause_ids": [
+            "C11"
+          ],
+          "condition_ids": [],
+          "condition_join": "AND",
+          "directness": "DIRECT",
+          "effect_id": "F2",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "likelihood_qualifiers": [],
+          "modality": "CERTAIN",
+          "outcome": "RECEIVES_BUSES",
+          "party_id": "P5",
+          "polarity": "NEUTRAL",
+          "predicate": "RECEIVES",
+          "quantities": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A1",
+          "clause_ids": [
+            "C12"
+          ],
+          "condition_ids": [],
+          "condition_join": "AND",
+          "directness": "DOWNSTREAM",
+          "effect_id": "F3",
+          "effect_kind": "HEALTH_OUTCOME",
+          "likelihood_qualifiers": [
+            "nearly all"
+          ],
+          "modality": "CERTAIN",
+          "outcome": "ESCAPES_SAFELY",
+          "party_id": "P5",
+          "polarity": "BENEFICIAL",
+          "predicate": "IS",
+          "quantities": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A1",
+          "clause_ids": [
+            "C13"
+          ],
+          "condition_ids": [],
+          "condition_join": "AND",
+          "directness": "DOWNSTREAM",
+          "effect_id": "F4",
+          "effect_kind": "PHYSICAL_STATE",
+          "likelihood_qualifiers": [],
+          "modality": "CERTAIN",
+          "outcome": "REMAIN_IN_PLACE",
+          "party_id": "P4",
+          "polarity": "NEUTRAL",
+          "predicate": "IS",
+          "quantities": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A1",
+          "clause_ids": [
+            "C14"
+          ],
+          "condition_ids": [],
+          "condition_join": "AND",
+          "directness": "DOWNSTREAM",
+          "effect_id": "F5",
+          "effect_kind": "PHYSICAL_STATE",
+          "likelihood_qualifiers": [],
+          "modality": "CERTAIN",
+          "outcome": "WALLS_FIRE_RESISTANT",
+          "party_id": "P2",
+          "polarity": "NEUTRAL",
+          "predicate": "IS",
+          "quantities": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A1",
+          "clause_ids": [
+            "C15"
+          ],
+          "condition_ids": [
+            "Cond3"
+          ],
+          "condition_join": "AND",
+          "directness": "DOWNSTREAM",
+          "effect_id": "F6",
+          "effect_kind": "PHYSICAL_STATE",
+          "likelihood_qualifiers": [
+            "20% chance"
+          ],
+          "modality": "PROBABILISTIC",
+          "outcome": "FAILURE",
+          "party_id": "P9",
+          "polarity": "ADVERSE",
+          "predicate": "SUBJECT_TO",
+          "quantities": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A1",
+          "clause_ids": [
+            "C16"
+          ],
+          "condition_ids": [
+            "Cond2"
+          ],
+          "condition_join": "AND",
+          "directness": "DOWNSTREAM",
+          "effect_id": "F7",
+          "effect_kind": "HEALTH_OUTCOME",
+          "likelihood_qualifiers": [
+            "near-certain"
+          ],
+          "modality": "STIPULATED_CONDITIONAL",
+          "outcome": "DEATH",
+          "party_id": "P4",
+          "polarity": "ADVERSE",
+          "predicate": "FACES",
+          "quantities": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A1",
+          "clause_ids": [
+            "C17"
+          ],
+          "condition_ids": [],
+          "condition_join": "AND",
+          "directness": "DOWNSTREAM",
+          "effect_id": "F8",
+          "effect_kind": "OTHER",
+          "likelihood_qualifiers": [],
+          "modality": "CERTAIN",
+          "outcome": "STAY_TO_ASSIST",
+          "party_id": "P6",
+          "polarity": "NEUTRAL",
+          "predicate": "PERFORMS",
+          "quantities": [
+            "five"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A1",
+          "clause_ids": [
+            "C17"
+          ],
+          "condition_ids": [],
+          "condition_join": "AND",
+          "directness": "DOWNSTREAM",
+          "effect_id": "F9",
+          "effect_kind": "WELFARE_OUTCOME",
+          "likelihood_qualifiers": [],
+          "modality": "CERTAIN",
+          "outcome": "AT_MODERATE_RISK",
+          "party_id": "P6",
+          "polarity": "ADVERSE",
+          "predicate": "IS",
+          "quantities": [],
+          "scope_qualifiers": [
+            "at moderate risk"
+          ],
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A1",
+          "clause_ids": [
+            "C14"
+          ],
+          "condition_ids": [
+            "Cond4"
+          ],
+          "condition_join": "AND",
+          "directness": "DOWNSTREAM",
+          "effect_id": "F10",
+          "effect_kind": "HEALTH_OUTCOME",
+          "likelihood_qualifiers": [
+            "unlikely"
+          ],
+          "modality": "PROBABILISTIC",
+          "outcome": "SURVIVES",
+          "party_id": "P4",
+          "polarity": "BENEFICIAL",
+          "predicate": "UNLIKELY_TO_DIE",
+          "quantities": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A1",
+          "clause_ids": [
+            "C7"
+          ],
+          "condition_ids": [],
+          "condition_join": "AND",
+          "directness": "FOREGONE",
+          "effect_id": "F11",
+          "effect_kind": "OPPORTUNITY_LOSS",
+          "likelihood_qualifiers": [],
+          "modality": "CERTAIN",
+          "outcome": "SURVIVES",
+          "party_id": "P4",
+          "polarity": "FOREGONE",
+          "predicate": "FOREGONE",
+          "quantities": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A0",
+          "clause_ids": [
+            "C6"
+          ],
+          "condition_ids": [],
+          "condition_join": "AND",
+          "directness": "DIRECT",
+          "effect_id": "E2",
+          "effect_kind": "INTERVENTION",
+          "likelihood_qualifiers": [],
+          "modality": "CERTAIN",
+          "outcome": "EVACUATION_ATTEMPT",
+          "party_id": "P4",
+          "polarity": "NEUTRAL",
+          "predicate": "PERFORMS",
+          "quantities": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        }
+      ],
+      "parties": [
+        {
+          "clause_ids": [
+            "C4"
+          ],
+          "kind": "HUMAN",
+          "label": "Coordinator",
+          "party_id": "P0",
+          "quantities": []
+        },
+        {
+          "clause_ids": [
+            "C5"
+          ],
+          "kind": "RESOURCE",
+          "label": "Buses",
+          "party_id": "P1",
+          "quantities": []
+        },
+        {
+          "clause_ids": [
+            "C0"
+          ],
+          "kind": "FACILITY",
+          "label": "Hospital",
+          "party_id": "P2",
+          "quantities": []
+        },
+        {
+          "clause_ids": [
+            "C0"
+          ],
+          "kind": "FACILITY",
+          "label": "Eastern Residential District",
+          "party_id": "P3",
+          "quantities": []
+        },
+        {
+          "clause_ids": [
+            "C1"
+          ],
+          "kind": "POPULATION",
+          "label": "Immobile Patients",
+          "party_id": "P4",
+          "quantities": [
+            "twenty"
+          ]
+        },
+        {
+          "clause_ids": [
+            "C2"
+          ],
+          "kind": "POPULATION",
+          "label": "Eastern Residents",
+          "party_id": "P5",
+          "quantities": [
+            "three hundred"
+          ]
+        },
+        {
+          "clause_ids": [
+            "C3"
+          ],
+          "kind": "POPULATION",
+          "label": "Firefighters",
+          "party_id": "P6",
+          "quantities": [
+            "fifty"
+          ]
+        },
+        {
+          "clause_ids": [
+            "C0"
+          ],
+          "kind": "PROCESS",
+          "label": "Wildfire",
+          "party_id": "P7",
+          "quantities": []
+        },
+        {
+          "clause_ids": [
+            "C8"
+          ],
+          "kind": "INFRASTRUCTURE",
+          "label": "Narrow Road",
+          "party_id": "P8",
+          "quantities": []
+        },
+        {
+          "clause_ids": [
+            "C15"
+          ],
+          "kind": "FACILITY",
+          "label": "Hospital Ventilation System",
+          "party_id": "P9",
+          "quantities": []
+        }
+      ],
+      "schema_version": "1.2"
+    }
+  },
+  "repair_attempts": 2,
+  "status": "REJECTED",
+  "world_contradictions": [],
+  "world_model": {
+    "actions": [
+      {
+        "action_id": "A0",
+        "actor_party_id": "P0",
+        "clause_ids": [
+          "C6"
+        ],
+        "effect_ids": [
+          "E1",
+          "E3",
+          "E4",
+          "E5",
+          "E6",
+          "E7",
+          "E2"
+        ],
+        "intervention": "Dispatch buses to hospital for patient evacuation",
+        "recipient_party_ids": [
+          "P2"
+        ]
+      },
+      {
+        "action_id": "A1",
+        "actor_party_id": "P0",
+        "clause_ids": [
+          "C11"
+        ],
+        "effect_ids": [
+          "F1",
+          "F2",
+          "F3",
+          "F4",
+          "F5",
+          "F6",
+          "F7",
+          "F8",
+          "F9",
+          "F10",
+          "F11"
+        ],
+        "intervention": "Send buses east to evacuate residents",
+        "recipient_party_ids": [
+          "P3",
+          "P5"
+        ]
+      }
+    ],
+    "causal_links": [
+      {
+        "action_id": "A0",
+        "clause_ids": [
+          "C7"
+        ],
+        "condition_ids": [],
+        "link_relation": "CAUSES",
+        "modality": "CERTAIN",
+        "source_id": "E1",
+        "target_id": "E3"
+      },
+      {
+        "action_id": "A0",
+        "clause_ids": [
+          "C8"
+        ],
+        "condition_ids": [],
+        "link_relation": "CAUSES",
+        "modality": "CERTAIN",
+        "source_id": "E1",
+        "target_id": "E4"
+      },
+      {
+        "action_id": "A0",
+        "clause_ids": [
+          "C9"
+        ],
+        "condition_ids": [
+          "Cond1"
+        ],
+        "link_relation": "ENABLES",
+        "modality": "STIPULATED_CONDITIONAL",
+        "source_id": "E4",
+        "target_id": "E6"
+      },
+      {
+        "action_id": "A0",
+        "clause_ids": [
+          "C10"
+        ],
+        "condition_ids": [],
+        "link_relation": "DOES_NOT_INCREASE",
+        "modality": "CERTAIN",
+        "source_id": "E1",
+        "target_id": "E5"
+      },
+      {
+        "action_id": "A1",
+        "clause_ids": [
+          "C11"
+        ],
+        "condition_ids": [],
+        "link_relation": "CAUSES",
+        "modality": "CERTAIN",
+        "source_id": "F1",
+        "target_id": "F2"
+      },
+      {
+        "action_id": "A1",
+        "clause_ids": [
+          "C12"
+        ],
+        "condition_ids": [],
+        "link_relation": "CAUSES",
+        "modality": "CERTAIN",
+        "source_id": "F2",
+        "target_id": "F3"
+      },
+      {
+        "action_id": "A1",
+        "clause_ids": [
+          "C13"
+        ],
+        "condition_ids": [],
+        "link_relation": "CAUSES",
+        "modality": "CERTAIN",
+        "source_id": "F1",
+        "target_id": "F4"
+      },
+      {
+        "action_id": "A1",
+        "clause_ids": [
+          "C17"
+        ],
+        "condition_ids": [],
+        "link_relation": "CAUSES",
+        "modality": "CERTAIN",
+        "source_id": "F4",
+        "target_id": "F8"
+      },
+      {
+        "action_id": "A1",
+        "clause_ids": [
+          "C17"
+        ],
+        "condition_ids": [],
+        "link_relation": "CAUSES",
+        "modality": "CERTAIN",
+        "source_id": "F8",
+        "target_id": "F9"
+      },
+      {
+        "action_id": "A1",
+        "clause_ids": [
+          "C16"
+        ],
+        "condition_ids": [
+          "Cond2"
+        ],
+        "link_relation": "ENABLES",
+        "modality": "STIPULATED_CONDITIONAL",
+        "source_id": "F6",
+        "target_id": "F7"
+      },
+      {
+        "action_id": "A1",
+        "clause_ids": [
+          "C14"
+        ],
+        "condition_ids": [
+          "Cond4"
+        ],
+        "link_relation": "CAUSES",
+        "modality": "PROBABILISTIC",
+        "source_id": "F4",
+        "target_id": "F10"
+      }
+    ],
+    "conditions": [
+      {
+        "clause_ids": [
+          "C9"
+        ],
+        "condition_id": "Cond1",
+        "decision_relevance": "RELEVANT",
+        "description": "Road is blocked",
+        "event_effect_id": "E5",
+        "value_status": "UNCERTAIN"
+      },
+      {
+        "clause_ids": [
+          "C16"
+        ],
+        "condition_id": "Cond2",
+        "decision_relevance": "RELEVANT",
+        "description": "Ventilation system fails",
+        "event_effect_id": "F6",
+        "value_status": "UNCERTAIN"
+      },
+      {
+        "clause_ids": [
+          "C15"
+        ],
+        "condition_id": "Cond3",
+        "decision_relevance": "RELEVANT",
+        "description": "Potential mechanical failure",
+        "event_effect_id": "",
+        "value_status": "UNCERTAIN"
+      },
+      {
+        "clause_ids": [
+          "C14"
+        ],
+        "condition_id": "Cond4",
+        "decision_relevance": "RELEVANT",
+        "description": "Fire-resistant walls reduce fatality risk",
+        "event_effect_id": "F5",
+        "value_status": "UNCERTAIN"
+      }
+    ],
+    "counterfactual_links": [
+      {
+        "action_id": "A0",
+        "alternative_action_id": "A1",
+        "alternative_effect_id": "F3",
+        "clause_ids": [
+          "C12"
+        ],
+        "condition_ids": [],
+        "counterfactual_relation": "FOREGOES_ALTERNATIVE_EFFECT",
+        "modality": "CERTAIN",
+        "source_effect_id": "E7"
+      },
+      {
+        "action_id": "A1",
+        "alternative_action_id": "A0",
+        "alternative_effect_id": "E3",
+        "clause_ids": [
+          "C7"
+        ],
+        "condition_ids": [],
+        "counterfactual_relation": "FOREGOES_ALTERNATIVE_EFFECT",
+        "modality": "CERTAIN",
+        "source_effect_id": "F11"
+      }
+    ],
+    "effects": [
+      {
+        "action_id": "A0",
+        "clause_ids": [
+          "C6"
+        ],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "directness": "DIRECT",
+        "effect_id": "E1",
+        "effect_kind": "RESOURCE_TRANSFER",
+        "likelihood_qualifiers": [],
+        "modality": "CERTAIN",
+        "outcome": "BUSES_ON_SITE",
+        "party_id": "P2",
+        "polarity": "NEUTRAL",
+        "predicate": "RECEIVES",
+        "quantities": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": []
+      },
+      {
+        "action_id": "A0",
+        "clause_ids": [
+          "C7"
+        ],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "directness": "DOWNSTREAM",
+        "effect_id": "E3",
+        "effect_kind": "HEALTH_OUTCOME",
+        "likelihood_qualifiers": [
+          "almost certain"
+        ],
+        "modality": "PROBABILISTIC",
+        "outcome": "SURVIVES",
+        "party_id": "P4",
+        "polarity": "BENEFICIAL",
+        "predicate": "LIKELY",
+        "quantities": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": []
+      },
+      {
+        "action_id": "A0",
+        "clause_ids": [
+          "C8"
+        ],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "directness": "DOWNSTREAM",
+        "effect_id": "E4",
+        "effect_kind": "PHYSICAL_STATE",
+        "likelihood_qualifiers": [],
+        "modality": "CERTAIN",
+        "outcome": "USES_NARROW_ROAD",
+        "party_id": "P5",
+        "polarity": "NEUTRAL",
+        "predicate": "PERFORMS",
+        "quantities": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": []
+      },
+      {
+        "action_id": "A0",
+        "clause_ids": [
+          "C8"
+        ],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "directness": "DOWNSTREAM",
+        "effect_id": "E5",
+        "effect_kind": "PHYSICAL_STATE",
+        "likelihood_qualifiers": [
+          "10% chance"
+        ],
+        "modality": "PROBABILISTIC",
+        "outcome": "BLOCKED",
+        "party_id": "P8",
+        "polarity": "ADVERSE",
+        "predicate": "IS",
+        "quantities": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": []
+      },
+      {
+        "action_id": "A0",
+        "clause_ids": [
+          "C9"
+        ],
+        "condition_ids": [
+          "Cond1"
+        ],
+        "condition_join": "AND",
+        "directness": "DOWNSTREAM",
+        "effect_id": "E6",
+        "effect_kind": "WELFARE_OUTCOME",
+        "likelihood_qualifiers": [],
+        "modality": "STIPULATED_CONDITIONAL",
+        "outcome": "TRAPPED",
+        "party_id": "P5",
+        "polarity": "ADVERSE",
+        "predicate": "SUBJECT_TO",
+        "quantities": [
+          "about sixty"
+        ],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": []
+      },
+      {
+        "action_id": "A0",
+        "clause_ids": [
+          "C12"
+        ],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "directness": "FOREGONE",
+        "effect_id": "E7",
+        "effect_kind": "OPPORTUNITY_LOSS",
+        "likelihood_qualifiers": [],
+        "modality": "CERTAIN",
+        "outcome": "ESCAPES_SAFELY",
+        "party_id": "P5",
+        "polarity": "FOREGONE",
+        "predicate": "FOREGONE",
+        "quantities": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": []
+      },
+      {
+        "action_id": "A1",
+        "clause_ids": [
+          "C11"
+        ],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "directness": "DIRECT",
+        "effect_id": "F1",
+        "effect_kind": "RESOURCE_TRANSFER",
+        "likelihood_qualifiers": [],
+        "modality": "CERTAIN",
+        "outcome": "BUSES_ON_SITE",
+        "party_id": "P3",
+        "polarity": "NEUTRAL",
+        "predicate": "RECEIVES",
+        "quantities": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": []
+      },
+      {
+        "action_id": "A1",
+        "clause_ids": [
+          "C11"
+        ],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "directness": "DIRECT",
+        "effect_id": "F2",
+        "effect_kind": "RESOURCE_TRANSFER",
+        "likelihood_qualifiers": [],
+        "modality": "CERTAIN",
+        "outcome": "RECEIVES_BUSES",
+        "party_id": "P5",
+        "polarity": "NEUTRAL",
+        "predicate": "RECEIVES",
+        "quantities": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": []
+      },
+      {
+        "action_id": "A1",
+        "clause_ids": [
+          "C12"
+        ],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "directness": "DOWNSTREAM",
+        "effect_id": "F3",
+        "effect_kind": "HEALTH_OUTCOME",
+        "likelihood_qualifiers": [
+          "nearly all"
+        ],
+        "modality": "CERTAIN",
+        "outcome": "ESCAPES_SAFELY",
+        "party_id": "P5",
+        "polarity": "BENEFICIAL",
+        "predicate": "IS",
+        "quantities": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": []
+      },
+      {
+        "action_id": "A1",
+        "clause_ids": [
+          "C13"
+        ],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "directness": "DOWNSTREAM",
+        "effect_id": "F4",
+        "effect_kind": "PHYSICAL_STATE",
+        "likelihood_qualifiers": [],
+        "modality": "CERTAIN",
+        "outcome": "REMAIN_IN_PLACE",
+        "party_id": "P4",
+        "polarity": "NEUTRAL",
+        "predicate": "IS",
+        "quantities": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": []
+      },
+      {
+        "action_id": "A1",
+        "clause_ids": [
+          "C14"
+        ],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "directness": "DOWNSTREAM",
+        "effect_id": "F5",
+        "effect_kind": "PHYSICAL_STATE",
+        "likelihood_qualifiers": [],
+        "modality": "CERTAIN",
+        "outcome": "WALLS_FIRE_RESISTANT",
+        "party_id": "P2",
+        "polarity": "NEUTRAL",
+        "predicate": "IS",
+        "quantities": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": []
+      },
+      {
+        "action_id": "A1",
+        "clause_ids": [
+          "C15"
+        ],
+        "condition_ids": [
+          "Cond3"
+        ],
+        "condition_join": "AND",
+        "directness": "DOWNSTREAM",
+        "effect_id": "F6",
+        "effect_kind": "PHYSICAL_STATE",
+        "likelihood_qualifiers": [
+          "20% chance"
+        ],
+        "modality": "PROBABILISTIC",
+        "outcome": "FAILURE",
+        "party_id": "P9",
+        "polarity": "ADVERSE",
+        "predicate": "SUBJECT_TO",
+        "quantities": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": []
+      },
+      {
+        "action_id": "A1",
+        "clause_ids": [
+          "C16"
+        ],
+        "condition_ids": [
+          "Cond2"
+        ],
+        "condition_join": "AND",
+        "directness": "DOWNSTREAM",
+        "effect_id": "F7",
+        "effect_kind": "HEALTH_OUTCOME",
+        "likelihood_qualifiers": [
+          "near-certain"
+        ],
+        "modality": "STIPULATED_CONDITIONAL",
+        "outcome": "DEATH",
+        "party_id": "P4",
+        "polarity": "ADVERSE",
+        "predicate": "FACES",
+        "quantities": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": []
+      },
+      {
+        "action_id": "A1",
+        "clause_ids": [
+          "C17"
+        ],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "directness": "DOWNSTREAM",
+        "effect_id": "F8",
+        "effect_kind": "OTHER",
+        "likelihood_qualifiers": [],
+        "modality": "CERTAIN",
+        "outcome": "STAY_TO_ASSIST",
+        "party_id": "P6",
+        "polarity": "NEUTRAL",
+        "predicate": "PERFORMS",
+        "quantities": [
+          "five"
+        ],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": []
+      },
+      {
+        "action_id": "A1",
+        "clause_ids": [
+          "C17"
+        ],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "directness": "DOWNSTREAM",
+        "effect_id": "F9",
+        "effect_kind": "WELFARE_OUTCOME",
+        "likelihood_qualifiers": [],
+        "modality": "CERTAIN",
+        "outcome": "AT_MODERATE_RISK",
+        "party_id": "P6",
+        "polarity": "ADVERSE",
+        "predicate": "IS",
+        "quantities": [],
+        "scope_qualifiers": [
+          "at moderate risk"
+        ],
+        "temporal_qualifiers": []
+      },
+      {
+        "action_id": "A1",
+        "clause_ids": [
+          "C14"
+        ],
+        "condition_ids": [
+          "Cond4"
+        ],
+        "condition_join": "AND",
+        "directness": "DOWNSTREAM",
+        "effect_id": "F10",
+        "effect_kind": "HEALTH_OUTCOME",
+        "likelihood_qualifiers": [
+          "unlikely"
+        ],
+        "modality": "PROBABILISTIC",
+        "outcome": "SURVIVES",
+        "party_id": "P4",
+        "polarity": "BENEFICIAL",
+        "predicate": "UNLIKELY_TO_DIE",
+        "quantities": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": []
+      },
+      {
+        "action_id": "A1",
+        "clause_ids": [
+          "C7"
+        ],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "directness": "FOREGONE",
+        "effect_id": "F11",
+        "effect_kind": "OPPORTUNITY_LOSS",
+        "likelihood_qualifiers": [],
+        "modality": "CERTAIN",
+        "outcome": "SURVIVES",
+        "party_id": "P4",
+        "polarity": "FOREGONE",
+        "predicate": "FOREGONE",
+        "quantities": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": []
+      },
+      {
+        "action_id": "A0",
+        "clause_ids": [
+          "C6"
+        ],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "directness": "DIRECT",
+        "effect_id": "E2",
+        "effect_kind": "INTERVENTION",
+        "likelihood_qualifiers": [],
+        "modality": "CERTAIN",
+        "outcome": "EVACUATION_ATTEMPT",
+        "party_id": "P4",
+        "polarity": "NEUTRAL",
+        "predicate": "PERFORMS",
+        "quantities": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": []
+      }
+    ],
+    "parties": [
+      {
+        "clause_ids": [
+          "C4"
+        ],
+        "kind": "HUMAN",
+        "label": "Coordinator",
+        "party_id": "P0",
+        "quantities": []
+      },
+      {
+        "clause_ids": [
+          "C5"
+        ],
+        "kind": "RESOURCE",
+        "label": "Buses",
+        "party_id": "P1",
+        "quantities": []
+      },
+      {
+        "clause_ids": [
+          "C0"
+        ],
+        "kind": "FACILITY",
+        "label": "Hospital",
+        "party_id": "P2",
+        "quantities": []
+      },
+      {
+        "clause_ids": [
+          "C0"
+        ],
+        "kind": "FACILITY",
+        "label": "Eastern Residential District",
+        "party_id": "P3",
+        "quantities": []
+      },
+      {
+        "clause_ids": [
+          "C1"
+        ],
+        "kind": "POPULATION",
+        "label": "Immobile Patients",
+        "party_id": "P4",
+        "quantities": [
+          "twenty"
+        ]
+      },
+      {
+        "clause_ids": [
+          "C2"
+        ],
+        "kind": "POPULATION",
+        "label": "Eastern Residents",
+        "party_id": "P5",
+        "quantities": [
+          "three hundred"
+        ]
+      },
+      {
+        "clause_ids": [
+          "C3"
+        ],
+        "kind": "POPULATION",
+        "label": "Firefighters",
+        "party_id": "P6",
+        "quantities": [
+          "fifty"
+        ]
+      },
+      {
+        "clause_ids": [
+          "C0"
+        ],
+        "kind": "PROCESS",
+        "label": "Wildfire",
+        "party_id": "P7",
+        "quantities": []
+      },
+      {
+        "clause_ids": [
+          "C8"
+        ],
+        "kind": "INFRASTRUCTURE",
+        "label": "Narrow Road",
+        "party_id": "P8",
+        "quantities": []
+      },
+      {
+        "clause_ids": [
+          "C15"
+        ],
+        "kind": "FACILITY",
+        "label": "Hospital Ventilation System",
+        "party_id": "P9",
+        "quantities": []
+      }
+    ],
+    "schema_version": "1.2"
+  },
+  "world_model_status": "REJECTED"
+}

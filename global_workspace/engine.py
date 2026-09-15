@@ -2256,8 +2256,11 @@ def _advance_argument_challenge_agenda(
     active_specialists: Sequence[str],
     settled_issue_ids: Sequence[str] = (),
     graph: SemanticGraph | None = None,
+    source_texts: Sequence[str] = (),
 ) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
     """Retain challenge history and assign one live question per framework."""
+    from relent.precision import quantity_precision_escalation_errors
+
     settled = {str(value) for value in settled_issue_ids}
     retained: dict[str, dict[str, object]] = {}
     for raw in previous_challenges:
@@ -2272,6 +2275,9 @@ def _advance_argument_challenge_agenda(
         retained[issue_id] = item
 
     followups: list[dict[str, object]] = []
+    precision_sources = tuple(
+        str(text).strip() for text in source_texts if str(text or "").strip()
+    )
     for candidate in candidates:
         response = dict(getattr(candidate, "challenge_response", {}) or {})
         issue_id = str(response.get("issue_id", ""))
@@ -2324,7 +2330,28 @@ def _advance_argument_challenge_agenda(
         )
         operative_disposition = reported_disposition
         verification_status = "ANSWER_RECORDED"
-        if reported_disposition == "RESOLVED":
+        answer_blob = " ".join([
+            str(response.get("answer") or ""),
+            str(response.get("reason") or ""),
+            str(response.get("refined_question") or ""),
+        ])
+        precision_errors = (
+            quantity_precision_escalation_errors(
+                source_texts=precision_sources,
+                claim_text=answer_blob,
+            )
+            if precision_sources and answer_blob.strip()
+            else []
+        )
+        if precision_errors:
+            # Invented magnitudes must not earn VERIFIED_* status.
+            operative_disposition = "UNRESOLVED"
+            verification_status = "PRECISION_REJECTED"
+            verification_reason = precision_errors[0]
+            followups.append(_verification_follow_up(
+                candidate, item, verification_reason,
+            ))
+        elif reported_disposition == "RESOLVED":
             if verified:
                 verification_status = "VERIFIED_RESOLVED"
             else:
@@ -4950,6 +4977,7 @@ class WorkspaceEngine:
                 active_specialists=[specialist.name for specialist in self.specialists],
                 settled_issue_ids=settled_keys,
                 graph=graph_store.graph,
+                source_texts=(scenario, *clean_actions),
             )
             procedure_controller.register_challenges(
                 retained_challenges, cycle=cycle_number,

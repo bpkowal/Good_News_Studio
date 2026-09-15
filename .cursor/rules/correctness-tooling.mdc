@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Correctness tooling around Parliament
 
-Hypothesis, mutmut, CrossHair, NetworkX, and SymPy are **not** Parliament architecture.
+Hypothesis, mutmut, CrossHair, NetworkX, SymPy, and RelEnt are **not** Parliament architecture.
 World model, ledgers, governance, agent outputs, and JSON traces stay canonical.
 
 If adopting a tool requires redesigning a working subsystem to satisfy the tool, do not adopt it.
@@ -15,6 +15,17 @@ If adopting a tool requires redesigning a working subsystem to satisfy the tool,
 ```text
 Hypothesis → generated test worlds → existing validators → pytest → mutmut
 Current Parliament ─────────────────────────────────────────┘
+        └──► relent/ (RelEnt kernel) ──► precision / paraphrase / quantity_typing
+              / operators (Fact Not AllOf AnyOf Conditional Exception Modal)
+              / scope metamorphic checks
+              / relation algebra (RelationSpec + closure / transfer / non-transfer)
+                + ALTERNATIVE_OF / AVERTED qty (via_derivation_only)
+                + SAME_ENTITY_AS identity closure (qty along edge;
+                  harm_under_action action-scoped non-transfer)
+                + CAUSES/BEFORE directionality (no invent reverse;
+                  CAUSES restricted; BEFORE transits)
+              Parliament adapters: global_workspace.relent_adapt
+              (no engine/LLM imports inside relent/)
         └──► graph_queries.to_networkx ──► standard graph queries
         └──► sympy_arith / sympy_certificates ──► Util identity + certificate family
               (arith, ranking boundary, interval robustness, substitution,
@@ -29,12 +40,16 @@ Current Parliament ────────────────────�
                     REPAIR_PROVENANCE_MINIMALITY (DET licensing_patch only)
                     REPAIR_NO_EFFECT (enforced; generic unstable guard)
                     QUANTITY_PRECISION_NON_ESCALATION (vague → exact forbidden)
+                    QUANTITY_FIELD_TYPING (pseudo-outcome qty rejected; RelEnt)
+                    DERIVED_PROPOSITION_STATUS_CONSERVATION
+                      (action-conditioned paraphrase ↔ ESTABLISHED; RelEnt)
                     AVERTED_ALTERNATIVE_HARM (DERIVED admit + inherited qty)
                     umbrella SEMANTIC_STATUS_CONSERVATION (purge integration)
                     QUANTITY_BEARING add_quantity + add_provenance
                       → DETERMINISTIC_LOCAL_PATCH
                     (known effect_id + span + licensing_clause_id; before LLM)
                     Hypothesis: strategies.status_conservation
+                      + strategies.derived_proposition_paraphrase
                       (outcome_predicate / binary_stipulation /
                        quantity_consequence cases → repair_stage metadata;
                        quantity bank: collectives/bounds/approx/ranges +
@@ -49,6 +64,8 @@ Current Parliament ────────────────────�
                     AVERTED_ALTERNATIVE_HARM (enforced):
                       CERTAIN opposed harm qty via CF edge + derivation;
                       not silent DIRECT_COPY onto survival;
+                      RelEnt: ALTERNATIVE_OF + via_derivation_only qty;
+                      RELATIONAL_SYMMETRY / FUNCTION_TRANSFER / NON_TRANSFER;
                       Hypothesis: strategies.averted_alternative_harm
                     ├── anaphor_identity / negation_scope Hypothesis
                     strategies.anaphor_identity → RESOLVE_ENTITY

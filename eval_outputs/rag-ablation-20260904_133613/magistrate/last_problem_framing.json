@@ -1,0 +1,544 @@
+{
+  "ethical_problem": "A city magistrate must decide whether to frame and execute an innocent person to quell an escalating riot during a severe municipal crisis. A1 refuses to execute the innocent individual, strictly upholding the inviolable duty against framing and killing an innocent citizen, but allowing the riot to spread and predictably result in the deaths of over five hundred residents. A0 frames and executes the innocent individual, satisfying the mob's demand for retribution, immediately halting the violence, and preserving the lives of over five hundred citizens at the cost of one. The magistrate must choose between upholding an absolute moral prohibition against judicial murder or sacrificing one innocent life to secure the greatest overall preservation of human life.",
+  "presentation_actions": [
+    "refuse to frame or execute the innocent individual, uphold the absolute duty, let the riot continue and predictably allow over five hundred residents to die",
+    "frame and execute the innocent individual to satisfy the mob, immediately halt the riot, and save over five hundred residents at the cost of one innocent life"
+  ],
+  "canonical_actions": [
+    "frame and execute the innocent individual to satisfy the mob, immediately halt the riot, and save over five hundred residents at the cost of one innocent life",
+    "refuse to frame or execute the innocent individual, uphold the absolute duty, let the riot continue and predictably allow over five hundred residents to die"
+  ],
+  "canonical_scenario": "A city magistrate must decide whether to frame and execute an innocent person to quell an escalating riot during a severe municipal crisis. A1 refuses to execute the innocent individual, strictly upholding the inviolable duty against framing and killing an innocent citizen, but allowing the riot to spread and predictably result in the deaths of over five hundred residents. A0 frames and executes the innocent individual, satisfying the mob's demand for retribution, immediately halting the violence, and preserving the lives of over five hundred citizens at the cost of one. The magistrate must choose between upholding an absolute moral prohibition against judicial murder or sacrificing one innocent life to secure the greatest overall preservation of human life.",
+  "action_source_grounding": {
+    "status": "COMMITTED",
+    "actions": {
+      "A0": {
+        "action": "frame and execute the innocent individual to satisfy the mob, immediately halt the riot, and save over five hundred residents at the cost of one innocent life",
+        "clause_ids": [
+          "C0",
+          "C2",
+          "C3"
+        ],
+        "clauses": [
+          {
+            "clause_id": "C0",
+            "text": "A city magistrate must decide whether to frame and execute an innocent person to quell an escalating riot during a severe municipal crisis."
+          },
+          {
+            "clause_id": "C2",
+            "text": "A0 frames and executes the innocent individual, satisfying the mob's demand for retribution, immediately halting the violence, and preserving the lives of over five hundred citizens at the cost of one."
+          },
+          {
+            "clause_id": "C3",
+            "text": "The magistrate must choose between upholding an absolute moral prohibition against judicial murder or sacrificing one innocent life to secure the greatest overall preservation of human life."
+          }
+        ],
+        "reason": "C2 explicitly describes framing and executing the innocent to stop the riot and save residents; C0 and C3 set the decision context for that option."
+      },
+      "A1": {
+        "action": "refuse to frame or execute the innocent individual, uphold the absolute duty, let the riot continue and predictably allow over five hundred residents to die",
+        "clause_ids": [
+          "C0",
+          "C1",
+          "C3"
+        ],
+        "clauses": [
+          {
+            "clause_id": "C0",
+            "text": "A city magistrate must decide whether to frame and execute an innocent person to quell an escalating riot during a severe municipal crisis."
+          },
+          {
+            "clause_id": "C1",
+            "text": "A1 refuses to execute the innocent individual, strictly upholding the inviolable duty against framing and killing an innocent citizen, but allowing the riot to spread and predictably result in the deaths of over five hundred residents."
+          },
+          {
+            "clause_id": "C3",
+            "text": "The magistrate must choose between upholding an absolute moral prohibition against judicial murder or sacrificing one innocent life to secure the greatest overall preservation of human life."
+          }
+        ],
+        "reason": "C1 explicitly describes refusing to frame or execute, letting the riot continue with many deaths; C0 and C3 set the decision context for that option."
+      }
+    },
+    "world_model": {
+      "parties": [
+        {
+          "party_id": "P_MAG",
+          "label": "city magistrate",
+          "kind": "PERSON",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A city magistrate must decide whether to frame and execute an innocent person to quell an escalating riot during a severe municipal crisis."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "The magistrate must choose between upholding an absolute moral prohibition against judicial murder or sacrificing one innocent life to secure the greatest overall preservation of human life."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P_INNOCENT",
+          "label": "innocent individual",
+          "kind": "PERSON",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A city magistrate must decide whether to frame and execute an innocent person to quell an escalating riot during a severe municipal crisis."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "A1 refuses to execute the innocent individual, strictly upholding the inviolable duty against framing and killing an innocent citizen, but allowing the riot to spread and predictably result in the deaths of over five hundred residents."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "A0 frames and executes the innocent individual, satisfying the mob's demand for retribution, immediately halting the violence, and preserving the lives of over five hundred citizens at the cost of one."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "The magistrate must choose between upholding an absolute moral prohibition against judicial murder or sacrificing one innocent life to secure the greatest overall preservation of human life."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P_RIOT",
+          "label": "riot violence",
+          "kind": "PROCESS",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A city magistrate must decide whether to frame and execute an innocent person to quell an escalating riot during a severe municipal crisis."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "A1 refuses to execute the innocent individual, strictly upholding the inviolable duty against framing and killing an innocent citizen, but allowing the riot to spread and predictably result in the deaths of over five hundred residents."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "A0 frames and executes the innocent individual, satisfying the mob's demand for retribution, immediately halting the violence, and preserving the lives of over five hundred citizens at the cost of one."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P_RESIDENTS",
+          "label": "over five hundred residents",
+          "kind": "POPULATION",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "A1 refuses to execute the innocent individual, strictly upholding the inviolable duty against framing and killing an innocent citizen, but allowing the riot to spread and predictably result in the deaths of over five hundred residents."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "A0 frames and executes the innocent individual, satisfying the mob's demand for retribution, immediately halting the violence, and preserving the lives of over five hundred citizens at the cost of one."
+            }
+          ],
+          "quantities": [
+            "over five hundred"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "action_id": "A0",
+          "intervention": "frame and execute the innocent individual to halt the riot",
+          "actor_party_id": "P_MAG",
+          "recipient_party_ids": [
+            "P_INNOCENT"
+          ],
+          "effect_ids": [
+            "E0_A0_FRAME",
+            "E1_A0_EXECUTE",
+            "E2_A0_RIOT_HALTED",
+            "E3_A0_RES_SURVIVE"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A city magistrate must decide whether to frame and execute an innocent person to quell an escalating riot during a severe municipal crisis."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "A0 frames and executes the innocent individual, satisfying the mob's demand for retribution, immediately halting the violence, and preserving the lives of over five hundred citizens at the cost of one."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "The magistrate must choose between upholding an absolute moral prohibition against judicial murder or sacrificing one innocent life to secure the greatest overall preservation of human life."
+            }
+          ]
+        },
+        {
+          "action_id": "A1",
+          "intervention": "refuse to frame or execute the innocent individual",
+          "actor_party_id": "P_MAG",
+          "recipient_party_ids": [
+            "P_INNOCENT"
+          ],
+          "effect_ids": [
+            "E0_A1_NOT_FRAME",
+            "E1_A1_SURVIVE",
+            "E2_A1_RIOT_CONT",
+            "E3_A1_RES_DIE"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A city magistrate must decide whether to frame and execute an innocent person to quell an escalating riot during a severe municipal crisis."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "A1 refuses to execute the innocent individual, strictly upholding the inviolable duty against framing and killing an innocent citizen, but allowing the riot to spread and predictably result in the deaths of over five hundred residents."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "The magistrate must choose between upholding an absolute moral prohibition against judicial murder or sacrificing one innocent life to secure the greatest overall preservation of human life."
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "effect_id": "E0_A0_FRAME",
+          "action_id": "A0",
+          "party_id": "P_INNOCENT",
+          "outcome": "FRAMED",
+          "relation": "IS_SUBJECT_TO",
+          "polarity": "ADVERSE",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "INSTITUTIONAL_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "A0 frames and executes the innocent individual, satisfying the mob's demand for retribution, immediately halting the violence, and preserving the lives of over five hundred citizens at the cost of one."
+            },
+            {
+              "clause_id": "A0",
+              "excerpt": "frame and execute the innocent individual to satisfy the mob, immediately halt the riot, and save over five hundred residents at the cost of one innocent life"
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "effect_id": "E1_A0_EXECUTE",
+          "action_id": "A0",
+          "party_id": "P_INNOCENT",
+          "outcome": "DEAD",
+          "relation": "IS",
+          "polarity": "ADVERSE",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "A0 frames and executes the innocent individual, satisfying the mob's demand for retribution, immediately halting the violence, and preserving the lives of over five hundred citizens at the cost of one."
+            },
+            {
+              "clause_id": "A0",
+              "excerpt": "frame and execute the innocent individual to satisfy the mob, immediately halt the riot, and save over five hundred residents at the cost of one innocent life"
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "effect_id": "E2_A0_RIOT_HALTED",
+          "action_id": "A0",
+          "party_id": "P_RIOT",
+          "outcome": "HALTED",
+          "relation": "IS",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "A0 frames and executes the innocent individual, satisfying the mob's demand for retribution, immediately halting the violence, and preserving the lives of over five hundred citizens at the cost of one."
+            },
+            {
+              "clause_id": "A0",
+              "excerpt": "frame and execute the innocent individual to satisfy the mob, immediately halt the riot, and save over five hundred residents at the cost of one innocent life"
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [
+            "immediately"
+          ]
+        },
+        {
+          "effect_id": "E3_A0_RES_SURVIVE",
+          "action_id": "A0",
+          "party_id": "P_RESIDENTS",
+          "outcome": "SURVIVE",
+          "relation": "ARE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [
+            "over five hundred"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "A0 frames and executes the innocent individual, satisfying the mob's demand for retribution, immediately halting the violence, and preserving the lives of over five hundred citizens at the cost of one."
+            },
+            {
+              "clause_id": "A0",
+              "excerpt": "frame and execute the innocent individual to satisfy the mob, immediately halt the riot, and save over five hundred residents at the cost of one innocent life"
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "effect_id": "E0_A1_NOT_FRAME",
+          "action_id": "A1",
+          "party_id": "P_INNOCENT",
+          "outcome": "NOT_FRAMED",
+          "relation": "IS",
+          "polarity": "BENEFICIAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "INSTITUTIONAL_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "A1 refuses to execute the innocent individual, strictly upholding the inviolable duty against framing and killing an innocent citizen, but allowing the riot to spread and predictably result in the deaths of over five hundred residents."
+            },
+            {
+              "clause_id": "A1",
+              "excerpt": "refuse to frame or execute the innocent individual, uphold the absolute duty, let the riot continue and predictably allow over five hundred residents to die"
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "effect_id": "E1_A1_SURVIVE",
+          "action_id": "A1",
+          "party_id": "P_INNOCENT",
+          "outcome": "SURVIVES",
+          "relation": "DOES",
+          "polarity": "BENEFICIAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "A1 refuses to execute the innocent individual, strictly upholding the inviolable duty against framing and killing an innocent citizen, but allowing the riot to spread and predictably result in the deaths of over five hundred residents."
+            },
+            {
+              "clause_id": "A1",
+              "excerpt": "refuse to frame or execute the innocent individual, uphold the absolute duty, let the riot continue and predictably allow over five hundred residents to die"
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "effect_id": "E2_A1_RIOT_CONT",
+          "action_id": "A1",
+          "party_id": "P_RIOT",
+          "outcome": "CONTINUES",
+          "relation": "IS",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "A1 refuses to execute the innocent individual, strictly upholding the inviolable duty against framing and killing an innocent citizen, but allowing the riot to spread and predictably result in the deaths of over five hundred residents."
+            },
+            {
+              "clause_id": "A1",
+              "excerpt": "refuse to frame or execute the innocent individual, uphold the absolute duty, let the riot continue and predictably allow over five hundred residents to die"
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        },
+        {
+          "effect_id": "E3_A1_RES_DIE",
+          "action_id": "A1",
+          "party_id": "P_RESIDENTS",
+          "outcome": "DIE",
+          "relation": "DO",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "STIPULATED_CONDITIONAL",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [
+            "COND1_RIOT_CONTINUES"
+          ],
+          "quantities": [
+            "over five hundred"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "A1 refuses to execute the innocent individual, strictly upholding the inviolable duty against framing and killing an innocent citizen, but allowing the riot to spread and predictably result in the deaths of over five hundred residents."
+            },
+            {
+              "clause_id": "A1",
+              "excerpt": "refuse to frame or execute the innocent individual, uphold the absolute duty, let the riot continue and predictably allow over five hundred residents to die"
+            }
+          ],
+          "likelihood_qualifiers": [
+            "predictably"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": []
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "COND1_RIOT_CONTINUES",
+          "description": "riot continues",
+          "value_status": "STATED",
+          "decision_relevance": "LINK RESIDENT DEATHS TO ONGOING RIOT",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "A1 refuses to execute the innocent individual, strictly upholding the inviolable duty against framing and killing an innocent citizen, but allowing the riot to spread and predictably result in the deaths of over five hundred residents."
+            }
+          ]
+        }
+      ],
+      "causal_links": [
+        {
+          "source_id": "E1_A0_EXECUTE",
+          "relation": "CAUSES",
+          "target_id": "E2_A0_RIOT_HALTED",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "A0 frames and executes the innocent individual, satisfying the mob's demand for retribution, immediately halting the violence, and preserving the lives of over five hundred citizens at the cost of one."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E2_A0_RIOT_HALTED",
+          "relation": "CAUSES",
+          "target_id": "E3_A0_RES_SURVIVE",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "A0 frames and executes the innocent individual, satisfying the mob's demand for retribution, immediately halting the violence, and preserving the lives of over five hundred citizens at the cost of one."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E0_A1_NOT_FRAME",
+          "relation": "CAUSES",
+          "target_id": "E2_A1_RIOT_CONT",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "A1 refuses to execute the innocent individual, strictly upholding the inviolable duty against framing and killing an innocent citizen, but allowing the riot to spread and predictably result in the deaths of over five hundred residents."
+            }
+          ],
+          "action_id": "A1"
+        },
+        {
+          "source_id": "E2_A1_RIOT_CONT",
+          "relation": "CAUSES",
+          "target_id": "E3_A1_RES_DIE",
+          "modality": "STIPULATED_CONDITIONAL",
+          "condition_ids": [
+            "COND1_RIOT_CONTINUES"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "A1 refuses to execute the innocent individual, strictly upholding the inviolable duty against framing and killing an innocent citizen, but allowing the riot to spread and predictably result in the deaths of over five hundred residents."
+            }
+          ],
+          "action_id": "A1"
+        }
+      ],
+      "counterfactual_links": [],
+      "admission": {
+        "status": "COMMITTED",
+        "admitted_effect_ids": [
+          "E0_A0_FRAME",
+          "E1_A0_EXECUTE",
+          "E2_A0_RIOT_HALTED",
+          "E3_A0_RES_SURVIVE",
+          "E0_A1_NOT_FRAME",
+          "E1_A1_SURVIVE",
+          "E2_A1_RIOT_CONT",
+          "E3_A1_RES_DIE"
+        ],
+        "quarantined_effects": [],
+        "user_override": false,
+        "override_reason": ""
+      },
+      "schema_version": "1.2"
+    },
+    "world_model_status": "COMMITTED",
+    "world_contradictions": [],
+    "errors": [],
+    "clauses": [
+      {
+        "clause_id": "C0",
+        "text": "A city magistrate must decide whether to frame and execute an innocent person to quell an escalating riot during a severe municipal crisis."
+      },
+      {
+        "clause_id": "C1",
+        "text": "A1 refuses to execute the innocent individual, strictly upholding the inviolable duty against framing and killing an innocent citizen, but allowing the riot to spread and predictably result in the deaths of over five hundred residents."
+      },
+      {
+        "clause_id": "C2",
+        "text": "A0 frames and executes the innocent individual, satisfying the mob's demand for retribution, immediately halting the violence, and preserving the lives of over five hundred citizens at the cost of one."
+      },
+      {
+        "clause_id": "C3",
+        "text": "The magistrate must choose between upholding an absolute moral prohibition against judicial murder or sacrificing one innocent life to secure the greatest overall preservation of human life."
+      }
+    ],
+    "attempts": [
+      {
+        "attempt": 1,
+        "errors": []
+      }
+    ],
+    "repair_attempts": 0
+  },
+  "cache_version": 2
+}

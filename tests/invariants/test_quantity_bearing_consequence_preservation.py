@@ -278,7 +278,7 @@ class QuantityBearingConsequencePreservationTests(unittest.TestCase):
                 "effects": [{
                     "effect_id": "E5",
                     "action_id": "A1",
-                    "quantities": ["thousands of"],
+                    "quantities": ["thousands of lives"],
                     "clause_ids": ["C3"],
                 }],
             },
@@ -292,7 +292,7 @@ class QuantityBearingConsequencePreservationTests(unittest.TestCase):
             clauses=[{"clause_id": "C0", "text": "risks thousands of lives"}],
         )
         effect = patched["world_model"]["effects"][0]
-        self.assertEqual(effect["quantities"], ["thousands of"])
+        self.assertEqual(effect["quantities"], ["thousands of lives"])
         self.assertFalse(
             any(row.get("op") == "add_quantity" for row in applied),
             applied,

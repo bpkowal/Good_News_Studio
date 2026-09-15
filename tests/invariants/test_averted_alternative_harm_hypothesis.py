@@ -15,6 +15,7 @@ import unittest
 from hypothesis import given, settings
 
 from global_workspace.epistemic_ledger import seed_proposition_ledger
+from global_workspace.relent_adapt import averted_alternative_relational_errors
 from global_workspace.scenario_semantics import compile_scenario_graph
 from global_workspace.world_state import (
     compile_averted_alternative_harm_overlays,
@@ -61,6 +62,8 @@ class AvertedAlternativeHarmHypothesisTests(unittest.TestCase):
         if case.mutation == "silent_copy_survival":
             self.assertTrue(silent)
             self.assertFalse(case.permits_silent_source_copy)
+            # RelEnt non-transfer before compile strip.
+            self.assertTrue(averted_alternative_relational_errors(case.world))
             # Compile must strip the unlicensed survival copy.
             stripped = compile_grounded_quantities(case.world)
             surv = next(

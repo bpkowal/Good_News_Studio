@@ -37,6 +37,9 @@ _ESCALATING_CLAIMS = (
     "exactly 5,000 residents die",
     "around 250 people are harmed",  # under hundreds band when source has hundreds
     "about 50 workers die",  # under dozens when source has dozens
+    "~8 million life-years preserved (100 000 residents × 80-year average)",
+    "100,000 residents times 80-year remaining life",
+    "approximately 5–10 000 city residents would be saved",
 )
 
 
@@ -65,6 +68,8 @@ def quantity_precision_cases(draw) -> QuantityPrecisionCase:
                 "roughly 10000 deaths follow from refraining",
                 "~10,000 lives are certainly saved",
                 "exactly 5,000 residents die",
+                "~8 million life-years preserved (100 000 residents × 80-year average)",
+                "approximately 5–10 000 city residents would be saved",
             ]))
         elif "hundred" in folded:
             claim = "around 250 people are harmed"

@@ -16,7 +16,12 @@ from .world_validation import (
     WorldModelValidationError,
     validation_issues_from_messages,
 )
-
+from relent.precision import quantity_precision_escalation_errors
+from relent.quantity_typing import (
+    magnitude_quantity_spans,
+    pseudo_quantity_errors,
+    sanitize_recorded_quantities,
+)
 
 DIRECTNESSES = {"DIRECT", "DOWNSTREAM", "FOREGONE", "INSTITUTIONAL"}
 EFFECT_KINDS = {
@@ -389,92 +394,6 @@ def _quantity_span_is_chance_percent(span: str, text: str) -> bool:
     if match is None:
         return False
     return bool(_PERCENT_CHANCE_TAIL.match(str(text)[match.end():]))
-
-
-# Vague collectives that must not be sharpened to unsupported exact numerals.
-_VAGUE_QUANTITY_COLLECTIVE = re.compile(
-    r"\b(?:"
-    r"dozens|"
-    r"hundreds|"
-    r"thousands|"
-    r"millions|"
-    r"several\s+thousands?|"
-    r"a\s+few\s+thousands?|"
-    r"many\s+thousands?"
-    r")\b",
-    re.IGNORECASE,
-)
-_VAGUE_COLLECTIVE_BANDS: tuple[tuple[re.Pattern[str], float, float], ...] = (
-    (re.compile(r"\bdozens\b", re.I), 10.0, 99.0),
-    (re.compile(r"\bhundreds\b", re.I), 100.0, 999.0),
-    (re.compile(r"\b(?:several|a\s+few|many)\s+thousands?\b|\bthousands\b", re.I), 1_000.0, 999_999.0),
-    (re.compile(r"\bmillions\b", re.I), 1_000_000.0, 999_999_999_999.0),
-)
-_CLAIM_NUMERIC_LITERAL = re.compile(
-    r"(?<![A-Za-z0-9])(?P<approx>~|≈|about\s+|roughly\s+|approximately\s+|around\s+)?"
-    r"(?P<n>\d{1,3}(?:,\d{3})+|\d+)(?!\s*%)",
-    re.IGNORECASE,
-)
-
-
-def _parse_claim_count_literal(raw: str) -> float | None:
-    text = str(raw or "").replace(",", "").replace(" ", "")
-    if not text or not re.fullmatch(r"\d+(?:\.\d+)?", text):
-        return None
-    return float(text)
-
-
-def quantity_precision_escalation_errors(
-    *,
-    source_texts: Sequence[str],
-    claim_text: str,
-) -> list[str]:
-    """Reject claims that sharpen a vague source quantity into an exact numeral.
-
-    ``QUANTITY_PRECISION_NON_ESCALATION``: source ``thousands`` may not become
-    ``10,000`` / ``~10,000`` / ``roughly 10000`` unless that exact numeral is
-    already licensed by source text. Digit-free paraphrases of the vague span
-    are allowed.
-    """
-    source_blob = " ".join(
-        " ".join(str(text or "").split()) for text in source_texts if str(text or "").strip()
-    )
-    claim = " ".join(str(claim_text or "").split())
-    if not source_blob or not claim:
-        return []
-    if not _VAGUE_QUANTITY_COLLECTIVE.search(source_blob):
-        return []
-    licensed: set[float] = set()
-    for match in _CLAIM_NUMERIC_LITERAL.finditer(source_blob):
-        value = _parse_claim_count_literal(match.group("n"))
-        if value is not None:
-            licensed.add(value)
-    errors: list[str] = []
-    seen: set[float] = set()
-    for match in _CLAIM_NUMERIC_LITERAL.finditer(claim):
-        value = _parse_claim_count_literal(match.group("n"))
-        if value is None or value in seen:
-            continue
-        seen.add(value)
-        if value in licensed:
-            continue
-        # Only flag when the numeral sits in a vague collective's band from source.
-        covering = [
-            pattern.pattern
-            for pattern, low, high in _VAGUE_COLLECTIVE_BANDS
-            if pattern.search(source_blob) and low <= value <= high
-        ]
-        if not covering:
-            continue
-        surface = match.group(0).strip()
-        errors.append(
-            f"quantity precision escalation: claim uses {surface!r} but source "
-            "only licenses a vague collective "
-            f"({', '.join(sorted({m.group(0) for m in _VAGUE_QUANTITY_COLLECTIVE.finditer(source_blob)}))}); "
-            "retain the source span or cite a derivation that licenses the refinement "
-            "(QUANTITY_PRECISION_NON_ESCALATION)"
-        )
-    return errors
 
 
 def _nested_recorded_quantities(quantities: Sequence[str]) -> tuple[str, ...]:
@@ -2759,9 +2678,10 @@ def parse_world_model(
         party_id=_clean(row.get("party_id"), 64).upper(),
         label=_clean(row.get("label"), 160),
         kind=_clean(row.get("kind"), 48).upper() or "OTHER",
-        quantities=tuple(dict.fromkeys(
-            _clean(value, 80) for value in row.get("quantities", [])
-        )),
+        quantities=sanitize_recorded_quantities(
+            [_clean(value, 80) for value in row.get("quantities", [])],
+            source_texts=tuple(lookup.values()),
+        ),
         provenance=_refs(row.get("clause_ids", []), lookup),
     ) for row in raw.get("parties", []) if isinstance(row, dict))
     if schema_version != "1.0":
@@ -2792,6 +2712,20 @@ def parse_world_model(
             continue
         directness, effect_kind = _normalized_directness_and_kind(row)
         outcome, predicate = _effect_outcome_and_predicate(row)
+        source_proposition = _clean(row.get("source_proposition"), 500)
+        effect_source_texts = tuple(
+            text for text in (
+                outcome,
+                source_proposition,
+                *[
+                    lookup.get(_clean(clause_id, 32), "")
+                    for clause_id in row.get("clause_ids", [])
+                    if _clean(clause_id, 32)
+                ],
+                *lookup.values(),
+            )
+            if text
+        )
         effect = WorldEffect(
             effect_id=_clean(row.get("effect_id"), 80),
             action_id=_clean(row.get("action_id"), 16).upper(),
@@ -2805,8 +2739,9 @@ def parse_world_model(
             condition_ids=tuple(
                 dict.fromkeys(_clean(value, 80).upper() for value in row.get("condition_ids", []))
             ),
-            quantities=tuple(
-                dict.fromkeys(_clean(value, 80) for value in row.get("quantities", []))
+            quantities=sanitize_recorded_quantities(
+                [_clean(value, 80) for value in row.get("quantities", [])],
+                source_texts=effect_source_texts,
             ),
             likelihood_qualifiers=_unique_likelihood_spans(
                 row.get("likelihood_qualifiers", [])
@@ -2821,7 +2756,7 @@ def parse_world_model(
             overall_likelihood_qualifiers=_unique_likelihood_spans(
                 row.get("overall_likelihood_qualifiers", [])
             ),
-            source_proposition=_clean(row.get("source_proposition"), 500),
+            source_proposition=source_proposition,
             source_effect_ids=tuple(dict.fromkeys(
                 _clean(value, 80)
                 for value in row.get("source_effect_ids", [])
@@ -3258,6 +3193,7 @@ def validate_world_model(
                     f"{prefix} quantity {quantity!r} is not stated in its "
                     "provenance (outcome text alone cannot ground a quantity)"
                 )
+        errors.extend(pseudo_quantity_errors(effect.quantities, prefix=prefix))
         qualifier_fields = _qualifier_channels()
         for qualifier_kind, field, extractor in qualifier_fields:
             recorded_values = getattr(effect, field)
@@ -3407,6 +3343,16 @@ def validate_world_model(
         errors.extend(_verb_lemma_binding_errors(model))
     if model.schema_version == "1.3":
         errors.extend(validate_effect_source_bindings(model))
+    # RelEnt: ALTERNATIVE_OF symmetry + AVERTED quantity transfer / non-transfer;
+    # SAME_ENTITY_AS identity closure + action-scoped harm non-transfer.
+    from .relent_adapt import (
+        averted_alternative_relational_errors,
+        directionality_relational_errors,
+        identity_relational_errors,
+    )
+    errors.extend(averted_alternative_relational_errors(model))
+    errors.extend(identity_relational_errors(model))
+    errors.extend(directionality_relational_errors(model))
     contradictions: list[tuple[str, ...]] = []
     direct = [effect for effect in model.effects if effect.directness == "DIRECT"]
     for index, left in enumerate(direct):
@@ -5122,6 +5068,25 @@ def compile_averted_alternative_harm_overlays(
                         if str(span).strip()
                     ))
                     if not qty:
+                        continue
+                    # RelEnt consult: unmarked quantity across ALTERNATIVE_OF is
+                    # forbidden; derivation-marked transfer is the licensed path.
+                    from relent.algebra import function_transfer_errors
+                    if not function_transfer_errors(
+                        "ALTERNATIVE_OF",
+                        "quantity",
+                        derivation_marked=False,
+                        source_action=alternative_id,
+                        target_action=action_id,
+                    ):
+                        continue
+                    if function_transfer_errors(
+                        "ALTERNATIVE_OF",
+                        "quantity",
+                        derivation_marked=True,
+                        source_action=alternative_id,
+                        target_action=action_id,
+                    ):
                         continue
                     overlay_id = _allocate_prefixed_id("AV", existing_ids)
                     existing_ids.add(overlay_id)

@@ -1,0 +1,728 @@
+{
+  "status": "COMMITTED",
+  "world_model_status": "COMMITTED",
+  "repair_attempts": 2,
+  "repairs": [
+    {
+      "attempt": 1,
+      "errors": [
+        "typed world model rejected: E0_1 quantity 'only' is not stated in its provenance (outcome text alone cannot ground a quantity); E0_F2 quantity 'about sixty' is not stated in its provenance (outcome text alone cannot ground a quantity); E1_F2 quantity 'nearly all 300' is not stated in its provenance (outcome text alone cannot ground a quantity); E0_6 is a downstream human outcome whose only path to a DIRECT act passes through an independent stochastic background event; connect it through an action-mediated process. Do not parent the independent background event from the intervention to satisfy ancestry; E0_7 is a downstream human outcome with no causal parent; connect it through the source-named process. Do not drop E0_7; insert or reuse a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as its parent; E1_5 is a downstream human outcome whose only path to a DIRECT act passes through an independent stochastic background event; connect it through an action-mediated process. Do not parent the independent background event from the intervention to satisfy ancestry; E0_6 condition COND1 restates immediate parent E0_5 ('FAILS'); drop the condition and type CERTAIN, or keep a non-certain modality only with a source hedge that is not this parent restated; causal_link[3] condition COND1 restates source E0_5 ('FAILS'); make the link CERTAIN or use an independent condition; E0_5 is referenced by COND1 and must not also be an ordinary causal parent of ['E0_6']; gate the action-mediated path with this condition; E1_4 is referenced by COND2 and must not also be an ordinary causal parent of ['E1_5']; gate the action-mediated path with this condition; E0_5 is an independent stochastic event; do not parent E0_6 from it. Gate the action-mediated path with a condition whose event_effect_id is E0_5; E1_4 is an independent stochastic event; do not parent E1_5 from it. Gate the action-mediated path with a condition whose event_effect_id is E1_4; A0 omits source clauses of its DIRECT effects: ['C12']; cite every FACT clause that states an owned assignment or transfer, including a named subgroup; A1 omits source clauses of its DIRECT effects: ['C7']; cite every FACT clause that states an owned assignment or transfer, including a named subgroup; E0_2 is the receipt of a transferred resource so effect_kind must be RESOURCE_TRANSFER, not INTERVENTION"
+      ],
+      "repair_delta": {}
+    },
+    {
+      "attempt": 2,
+      "errors": [
+        "typed world model rejected: A0 omits source clauses of its DIRECT effects: ['C12']; cite every FACT clause that states an owned assignment or transfer, including a named subgroup; A1 omits source clauses of its DIRECT effects: ['C7']; cite every FACT clause that states an owned assignment or transfer, including a named subgroup; E0_8 is the receipt of a transferred resource so effect_kind must be RESOURCE_TRANSFER, not INTERVENTION"
+      ],
+      "repair_delta": {
+        "added": {
+          "citations": [
+            "effect|E0_8|C17",
+            "effect|E0_F2|C9",
+            "effect|E1_F2|C12"
+          ],
+          "effects": [
+            "E0_8"
+          ],
+          "probabilities": [
+            "E0_5|20%chance",
+            "E1_4|10%"
+          ],
+          "quantities": [
+            "effect|E0_8|five"
+          ]
+        },
+        "dropped": {
+          "quantities": [
+            "effect|E0_1|only",
+            "effect|E0_7|moderate"
+          ]
+        },
+        "illegal_drops": []
+      }
+    },
+    {
+      "attempt": 3,
+      "errors": [],
+      "repair_delta": {
+        "added": {},
+        "dropped": {},
+        "illegal_drops": []
+      }
+    }
+  ],
+  "action_propositions": [
+    {
+      "action_id": "A0",
+      "text": "Send the only buses east so nearly all 300 residents evacuate safely while the 20 immobile patients remain behind protected by fire-resistant walls but face a 20% chance of ventilation failure leading to near-certain death despite five firefighters staying with them at moderate risk; buses stay whole, no reinforcements or delay",
+      "propositions": [
+        {
+          "kind": "quantity",
+          "text": "five",
+          "supported": true
+        }
+      ]
+    },
+    {
+      "action_id": "A1",
+      "text": "Send the only buses to the hospital so the 20 immobile patients escape almost certainly while the 300 eastern residents must flee via a narrow road carrying a 10% blockage risk that could trap about 60; buses stay whole, no reinforcements or delay",
+      "propositions": [
+        {
+          "kind": "quantity",
+          "text": "about 60",
+          "supported": true
+        }
+      ]
+    }
+  ],
+  "compact_role_assignments": [
+    {
+      "action_id": "A0",
+      "bucket": "beneficiaries",
+      "label": "Eastern Residents",
+      "effect_id": "E0_3",
+      "reason": "CERTAIN WELFARE_OUTCOME BENEFICIAL; affected quantity nearly all 300; compact beneficiaries"
+    },
+    {
+      "action_id": "A0",
+      "bucket": "at_risk",
+      "label": "Immobile Patients",
+      "effect_id": "E0_6",
+      "reason": "STIPULATED_CONDITIONAL HEALTH_OUTCOME ADVERSE; gated by COND1->E0_5; join AND; conditional, not obtained; STIPULATED_CONDITIONAL never settles; compact at_risk because the outcome is not obtained"
+    },
+    {
+      "action_id": "A0",
+      "bucket": "at_risk",
+      "label": "five Firefighters",
+      "effect_id": "E0_7",
+      "reason": "CERTAIN PHYSICAL_STATE ADVERSE; occupies an at-risk situation, not obtained harm; compact at_risk because the outcome is not obtained"
+    },
+    {
+      "action_id": "A1",
+      "bucket": "beneficiaries",
+      "label": "Immobile Patients",
+      "effect_id": "E1_2",
+      "reason": "PROBABILISTIC WELFARE_OUTCOME BENEFICIAL; compact beneficiaries"
+    },
+    {
+      "action_id": "A1",
+      "bucket": "at_risk",
+      "label": "about sixty Eastern Residents",
+      "effect_id": "E1_5",
+      "reason": "STIPULATED_CONDITIONAL WELFARE_OUTCOME ADVERSE; affected quantity about sixty; gated by COND2->E1_4; join AND; conditional, not obtained; STIPULATED_CONDITIONAL never settles; compact at_risk because the outcome is not obtained"
+    }
+  ],
+  "chains": [
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C11",
+          "text": "Plan B sends the buses east."
+        },
+        {
+          "clause_id": "C12",
+          "text": "Nearly all 300 residents then escape safely."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "Send the only buses east so nearly all 300 residents evacuate safely while the 20 immobile patients remain behind protected by fire-resistant walls but face a 20% chance of ventilation failure leading to near-certain death despite five firefighters staying with them at moderate risk; buses stay whole, no reinforcements or delay"
+      },
+      "world": {
+        "effect_id": "E0_1",
+        "party_id": "P5",
+        "party_label": "Eastern Residents",
+        "outcome": "RECEIVES_BUSES",
+        "directness": "DIRECT",
+        "effect_kind": "RESOURCE_TRANSFER",
+        "polarity": "BENEFICIAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C17",
+          "text": "Five firefighters stay to assist them at moderate risk."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "Send the only buses east so nearly all 300 residents evacuate safely while the 20 immobile patients remain behind protected by fire-resistant walls but face a 20% chance of ventilation failure leading to near-certain death despite five firefighters staying with them at moderate risk; buses stay whole, no reinforcements or delay"
+      },
+      "world": {
+        "effect_id": "E0_2",
+        "party_id": "P4",
+        "party_label": "Immobile Patients",
+        "outcome": "RECEIVES_FIRE_FIGHTER_ASSISTANCE",
+        "directness": "DIRECT",
+        "effect_kind": "RESOURCE_TRANSFER",
+        "polarity": "BENEFICIAL",
+        "modality": "CERTAIN",
+        "quantities": [
+          "five"
+        ],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C17",
+          "text": "Five firefighters stay to assist them at moderate risk."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "Send the only buses east so nearly all 300 residents evacuate safely while the 20 immobile patients remain behind protected by fire-resistant walls but face a 20% chance of ventilation failure leading to near-certain death despite five firefighters staying with them at moderate risk; buses stay whole, no reinforcements or delay"
+      },
+      "world": {
+        "effect_id": "E0_8",
+        "party_id": "P6",
+        "party_label": "Firefighters",
+        "outcome": "STAYS_TO_ASSIST",
+        "directness": "DIRECT",
+        "effect_kind": "RESOURCE_TRANSFER",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [
+          "five"
+        ],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C12",
+          "text": "Nearly all 300 residents then escape safely."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "Send the only buses east so nearly all 300 residents evacuate safely while the 20 immobile patients remain behind protected by fire-resistant walls but face a 20% chance of ventilation failure leading to near-certain death despite five firefighters staying with them at moderate risk; buses stay whole, no reinforcements or delay"
+      },
+      "world": {
+        "effect_id": "E0_3",
+        "party_id": "P5",
+        "party_label": "Eastern Residents",
+        "outcome": "EVACUATE_SAFELY",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "WELFARE_OUTCOME",
+        "polarity": "BENEFICIAL",
+        "modality": "CERTAIN",
+        "quantities": [
+          "nearly all 300"
+        ],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A0",
+        "bucket": "beneficiaries",
+        "label": "Eastern Residents",
+        "effect_id": "E0_3",
+        "reason": "CERTAIN WELFARE_OUTCOME BENEFICIAL; affected quantity nearly all 300; compact beneficiaries"
+      }
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C13",
+          "text": "The patients remain."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "Send the only buses east so nearly all 300 residents evacuate safely while the 20 immobile patients remain behind protected by fire-resistant walls but face a 20% chance of ventilation failure leading to near-certain death despite five firefighters staying with them at moderate risk; buses stay whole, no reinforcements or delay"
+      },
+      "world": {
+        "effect_id": "E0_4",
+        "party_id": "P4",
+        "party_label": "Immobile Patients",
+        "outcome": "REMAIN_IN_HOSPITAL",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "PHYSICAL_STATE",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C15",
+          "text": "There is a 20% chance the hospital ventilation system fails."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "Send the only buses east so nearly all 300 residents evacuate safely while the 20 immobile patients remain behind protected by fire-resistant walls but face a 20% chance of ventilation failure leading to near-certain death despite five firefighters staying with them at moderate risk; buses stay whole, no reinforcements or delay"
+      },
+      "world": {
+        "effect_id": "E0_5",
+        "party_id": "P8",
+        "party_label": "Hospital Ventilation System",
+        "outcome": "FAILS",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "PHYSICAL_STATE",
+        "polarity": "ADVERSE",
+        "modality": "PROBABILISTIC",
+        "quantities": [],
+        "likelihood_qualifiers": [
+          "20% chance"
+        ],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C16",
+          "text": "If it does, patients who cannot be moved face near-certain death."
+        },
+        {
+          "clause_id": "C14",
+          "text": "Fire-resistant walls make their deaths unlikely."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "Send the only buses east so nearly all 300 residents evacuate safely while the 20 immobile patients remain behind protected by fire-resistant walls but face a 20% chance of ventilation failure leading to near-certain death despite five firefighters staying with them at moderate risk; buses stay whole, no reinforcements or delay"
+      },
+      "world": {
+        "effect_id": "E0_6",
+        "party_id": "P4",
+        "party_label": "Immobile Patients",
+        "outcome": "NEAR_CERTAIN_DEATH",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "HEALTH_OUTCOME",
+        "polarity": "ADVERSE",
+        "modality": "STIPULATED_CONDITIONAL",
+        "quantities": [],
+        "likelihood_qualifiers": [
+          "near-certain"
+        ],
+        "condition_ids": [
+          "COND1"
+        ],
+        "condition_join": "AND",
+        "event_gates": [
+          {
+            "condition_id": "COND1",
+            "event_effect_id": "E0_5"
+          }
+        ]
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A0",
+        "bucket": "at_risk",
+        "label": "Immobile Patients",
+        "effect_id": "E0_6",
+        "reason": "STIPULATED_CONDITIONAL HEALTH_OUTCOME ADVERSE; gated by COND1->E0_5; join AND; conditional, not obtained; STIPULATED_CONDITIONAL never settles; compact at_risk because the outcome is not obtained"
+      }
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C17",
+          "text": "Five firefighters stay to assist them at moderate risk."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "Send the only buses east so nearly all 300 residents evacuate safely while the 20 immobile patients remain behind protected by fire-resistant walls but face a 20% chance of ventilation failure leading to near-certain death despite five firefighters staying with them at moderate risk; buses stay whole, no reinforcements or delay"
+      },
+      "world": {
+        "effect_id": "E0_7",
+        "party_id": "P6",
+        "party_label": "Firefighters",
+        "outcome": "AT_MODERATE_RISK",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "PHYSICAL_STATE",
+        "polarity": "ADVERSE",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A0",
+        "bucket": "at_risk",
+        "label": "five Firefighters",
+        "effect_id": "E0_7",
+        "reason": "CERTAIN PHYSICAL_STATE ADVERSE; occupies an at-risk situation, not obtained harm; compact at_risk because the outcome is not obtained"
+      }
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "A0",
+          "text": "Send the only buses east so nearly all 300 residents evacuate safely while the 20 immobile patients remain behind protected by fire-resistant walls but face a 20% chance of ventilation failure leading to near-certain death despite five firefighters staying with them at moderate risk; buses stay whole, no reinforcements or delay"
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "Send the only buses east so nearly all 300 residents evacuate safely while the 20 immobile patients remain behind protected by fire-resistant walls but face a 20% chance of ventilation failure leading to near-certain death despite five firefighters staying with them at moderate risk; buses stay whole, no reinforcements or delay"
+      },
+      "world": {
+        "effect_id": "E0_F1",
+        "party_id": "P4",
+        "party_label": "Immobile Patients",
+        "outcome": "ESCAPE_SAFELY",
+        "directness": "FOREGONE",
+        "effect_kind": "OPPORTUNITY_LOSS",
+        "polarity": "FOREGONE",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "A0",
+          "text": "Send the only buses east so nearly all 300 residents evacuate safely while the 20 immobile patients remain behind protected by fire-resistant walls but face a 20% chance of ventilation failure leading to near-certain death despite five firefighters staying with them at moderate risk; buses stay whole, no reinforcements or delay"
+        },
+        {
+          "clause_id": "C9",
+          "text": "If the road is blocked, about sixty residents could be trapped."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "Send the only buses east so nearly all 300 residents evacuate safely while the 20 immobile patients remain behind protected by fire-resistant walls but face a 20% chance of ventilation failure leading to near-certain death despite five firefighters staying with them at moderate risk; buses stay whole, no reinforcements or delay"
+      },
+      "world": {
+        "effect_id": "E0_F2",
+        "party_id": "P5",
+        "party_label": "Eastern Residents",
+        "outcome": "TRAPPED",
+        "directness": "FOREGONE",
+        "effect_kind": "OPPORTUNITY_LOSS",
+        "polarity": "FOREGONE",
+        "modality": "POSSIBLE",
+        "quantities": [
+          "about sixty"
+        ],
+        "likelihood_qualifiers": [
+          "could"
+        ],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C6",
+          "text": "Plan A sends the buses to the hospital."
+        },
+        {
+          "clause_id": "C7",
+          "text": "The patients' escape is then almost certain."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "Send the only buses to the hospital so the 20 immobile patients escape almost certainly while the 300 eastern residents must flee via a narrow road carrying a 10% blockage risk that could trap about 60; buses stay whole, no reinforcements or delay"
+      },
+      "world": {
+        "effect_id": "E1_1",
+        "party_id": "P4",
+        "party_label": "Immobile Patients",
+        "outcome": "RECEIVES_BUSES",
+        "directness": "DIRECT",
+        "effect_kind": "RESOURCE_TRANSFER",
+        "polarity": "BENEFICIAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C7",
+          "text": "The patients' escape is then almost certain."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "Send the only buses to the hospital so the 20 immobile patients escape almost certainly while the 300 eastern residents must flee via a narrow road carrying a 10% blockage risk that could trap about 60; buses stay whole, no reinforcements or delay"
+      },
+      "world": {
+        "effect_id": "E1_2",
+        "party_id": "P4",
+        "party_label": "Immobile Patients",
+        "outcome": "ESCAPE_SAFELY",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "WELFARE_OUTCOME",
+        "polarity": "BENEFICIAL",
+        "modality": "PROBABILISTIC",
+        "quantities": [],
+        "likelihood_qualifiers": [
+          "almost certain"
+        ],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A1",
+        "bucket": "beneficiaries",
+        "label": "Immobile Patients",
+        "effect_id": "E1_2",
+        "reason": "PROBABILISTIC WELFARE_OUTCOME BENEFICIAL; compact beneficiaries"
+      }
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C8",
+          "text": "The eastern district must use a narrow road with a 10% chance of blockage."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "Send the only buses to the hospital so the 20 immobile patients escape almost certainly while the 300 eastern residents must flee via a narrow road carrying a 10% blockage risk that could trap about 60; buses stay whole, no reinforcements or delay"
+      },
+      "world": {
+        "effect_id": "E1_3",
+        "party_id": "P5",
+        "party_label": "Eastern Residents",
+        "outcome": "USE_NARROW_ROAD",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "OTHER",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C8",
+          "text": "The eastern district must use a narrow road with a 10% chance of blockage."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "Send the only buses to the hospital so the 20 immobile patients escape almost certainly while the 300 eastern residents must flee via a narrow road carrying a 10% blockage risk that could trap about 60; buses stay whole, no reinforcements or delay"
+      },
+      "world": {
+        "effect_id": "E1_4",
+        "party_id": "P7",
+        "party_label": "Narrow Road",
+        "outcome": "BLOCKAGE",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "PHYSICAL_STATE",
+        "polarity": "ADVERSE",
+        "modality": "PROBABILISTIC",
+        "quantities": [],
+        "likelihood_qualifiers": [
+          "10% chance"
+        ],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C9",
+          "text": "If the road is blocked, about sixty residents could be trapped."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "Send the only buses to the hospital so the 20 immobile patients escape almost certainly while the 300 eastern residents must flee via a narrow road carrying a 10% blockage risk that could trap about 60; buses stay whole, no reinforcements or delay"
+      },
+      "world": {
+        "effect_id": "E1_5",
+        "party_id": "P5",
+        "party_label": "Eastern Residents",
+        "outcome": "TRAPPED",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "WELFARE_OUTCOME",
+        "polarity": "ADVERSE",
+        "modality": "STIPULATED_CONDITIONAL",
+        "quantities": [
+          "about sixty"
+        ],
+        "likelihood_qualifiers": [
+          "could"
+        ],
+        "condition_ids": [
+          "COND2"
+        ],
+        "condition_join": "AND",
+        "event_gates": [
+          {
+            "condition_id": "COND2",
+            "event_effect_id": "E1_4"
+          }
+        ]
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A1",
+        "bucket": "at_risk",
+        "label": "about sixty Eastern Residents",
+        "effect_id": "E1_5",
+        "reason": "STIPULATED_CONDITIONAL WELFARE_OUTCOME ADVERSE; affected quantity about sixty; gated by COND2->E1_4; join AND; conditional, not obtained; STIPULATED_CONDITIONAL never settles; compact at_risk because the outcome is not obtained"
+      }
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "A1",
+          "text": "Send the only buses to the hospital so the 20 immobile patients escape almost certainly while the 300 eastern residents must flee via a narrow road carrying a 10% blockage risk that could trap about 60; buses stay whole, no reinforcements or delay"
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "Send the only buses to the hospital so the 20 immobile patients escape almost certainly while the 300 eastern residents must flee via a narrow road carrying a 10% blockage risk that could trap about 60; buses stay whole, no reinforcements or delay"
+      },
+      "world": {
+        "effect_id": "E1_F1",
+        "party_id": "P4",
+        "party_label": "Immobile Patients",
+        "outcome": "NEAR_CERTAIN_DEATH",
+        "directness": "FOREGONE",
+        "effect_kind": "OPPORTUNITY_LOSS",
+        "polarity": "FOREGONE",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "A1",
+          "text": "Send the only buses to the hospital so the 20 immobile patients escape almost certainly while the 300 eastern residents must flee via a narrow road carrying a 10% blockage risk that could trap about 60; buses stay whole, no reinforcements or delay"
+        },
+        {
+          "clause_id": "C12",
+          "text": "Nearly all 300 residents then escape safely."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "Send the only buses to the hospital so the 20 immobile patients escape almost certainly while the 300 eastern residents must flee via a narrow road carrying a 10% blockage risk that could trap about 60; buses stay whole, no reinforcements or delay"
+      },
+      "world": {
+        "effect_id": "E1_F2",
+        "party_id": "P5",
+        "party_label": "Eastern Residents",
+        "outcome": "EVACUATE_SAFELY",
+        "directness": "FOREGONE",
+        "effect_kind": "OPPORTUNITY_LOSS",
+        "polarity": "FOREGONE",
+        "modality": "CERTAIN",
+        "quantities": [
+          "nearly all 300"
+        ],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C14",
+          "text": "Fire-resistant walls make their deaths unlikely."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "Send the only buses east so nearly all 300 residents evacuate safely while the 20 immobile patients remain behind protected by fire-resistant walls but face a 20% chance of ventilation failure leading to near-certain death despite five firefighters staying with them at moderate risk; buses stay whole, no reinforcements or delay"
+      },
+      "world": {
+        "effect_id": "A0_WALLS",
+        "party_id": "P1",
+        "party_label": "Hospital",
+        "outcome": "Fire-resistant walls",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "PHYSICAL_STATE",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    }
+  ]
+}

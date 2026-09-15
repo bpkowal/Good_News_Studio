@@ -18,6 +18,7 @@ from .world_state import (
     is_averted_risk_not_obtained_benefit_consequence,
     quantity_magnitude,
 )
+from relent.quantity_typing import magnitude_quantity_spans
 
 
 class ConsequenceProposal(BaseModel):
@@ -377,12 +378,12 @@ def _apply_effect_valuation_transaction(
             polarity = str(evidence.attributes.get("polarity", "UNRESOLVED")).upper()
             direction, probability = utilitarian_accounting(store.graph, evidence.id)
             modality = str(evidence.attributes.get("modality", "UNKNOWN")).upper()
-            quantities = [
+            quantities = magnitude_quantity_spans([
                 str(value).strip()
                 for key in ("quantities", "party_quantities")
                 for value in evidence.attributes.get(key, []) or []
                 if str(value).strip()
-            ]
+            ])
             magnitude = next(
                 (span[:60] for span in quantities if quantity_magnitude(span) is not None),
                 "UNKNOWN",

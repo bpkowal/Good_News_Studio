@@ -1246,13 +1246,26 @@ def apply_deterministic_local_patches(
                     continue
                 if op == "add_quantity":
                     from .world_state import merge_recorded_quantity_spans
+                    from relent.quantity_typing import sanitize_recorded_quantities
 
                     existing = [
                         str(item).strip()
                         for item in (effect.get("quantities") or [])
                         if str(item).strip()
                     ]
-                    merged = list(merge_recorded_quantity_spans(existing, value))
+                    source_blob = " ".join(
+                        str(item)
+                        for item in (
+                            effect.get("outcome"),
+                            effect.get("source_proposition"),
+                            value,
+                        )
+                        if item
+                    )
+                    merged = list(sanitize_recorded_quantities(
+                        merge_recorded_quantity_spans(existing, value),
+                        source_texts=(source_blob,),
+                    ))
                     if merged == existing:
                         continue
                     effect["quantities"] = merged

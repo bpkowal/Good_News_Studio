@@ -10,6 +10,7 @@ import hashlib
 import re
 from typing import Any, Iterable
 
+from .relent_adapt import action_branch_conflicts, action_paraphrase_binds
 from .scenario_semantics import project_grounded_action_effects
 from .semantic_graph import SemanticGraph
 from .world_state import (
@@ -670,7 +671,16 @@ def _annotate_binding_context(
             node_id = record.action_id
         if not node_id:
             continue
-        record.context_terms = _collect_context_terms(graph, node_id)
+        terms = _collect_context_terms(graph, node_id)
+        if record.action_id and record.action_id in graph.nodes:
+            terms = list(dict.fromkeys([
+                *terms,
+                *_collect_context_terms(graph, record.action_id),
+            ]))
+            action_node = graph.nodes.get(record.action_id)
+            if action_node is not None and action_node.label:
+                terms = list(dict.fromkeys([*terms, action_node.label]))
+        record.context_terms = terms
 
 
 def _seed_unknown_parameters(
@@ -993,6 +1003,14 @@ def certain_records_contradicted_by(
     return candidates
 
 
+def _action_glosses_for_record(record: PropositionRecord) -> list[str]:
+    """Intervention / alias text that may license action-conditioned paraphrases."""
+    return list(dict.fromkeys([
+        *[str(term) for term in record.context_terms if str(term).strip()],
+        *[str(alias) for alias in record.aliases if str(alias).strip()],
+    ]))
+
+
 def _semantic_match(
     claim: str,
     record: PropositionRecord,
@@ -1027,6 +1045,22 @@ def _semantic_match(
     ):
         return None
     outcome = record.outcome or record.claim.split(";")[0]
+    glosses = _action_glosses_for_record(record)
+    if action_branch_conflicts(claim, action_glosses=glosses):
+        return None
+    if (
+        _is_world_established(record)
+        and outcome
+        and action_paraphrase_binds(
+            claim,
+            outcome=outcome,
+            polarity=record.polarity,
+            action_id=record.action_id,
+            action_glosses=glosses,
+        )
+    ):
+        # Licensed PARAPHRASE_OF / EQUIVALENT_TO edge — not free similarity.
+        return 85
     claim_families = _outcome_families(claim)
     record_families = _outcome_families(" ".join((outcome, record.claim)))
     families = claim_families & record_families

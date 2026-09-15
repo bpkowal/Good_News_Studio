@@ -1,0 +1,1137 @@
+{
+  "ethical_problem": "A wildfire is approaching a hospital and an eastern residential district. Twenty patients cannot be moved without buses. Three hundred eastern residents need those same buses to evacuate. Fifty firefighters are on scene. The coordinator must choose one plan. The buses cannot be divided, no reinforcements will arrive, and delay is not an option. Plan A sends the buses to the hospital. The patients' escape is then almost certain. The eastern district must use a narrow road with a 10% chance of blockage. If the road is blocked, about sixty residents could be trapped. Using the buses for the hospital does not increase that blockage risk. Plan B sends the buses east. Nearly all 300 residents then escape safely. The patients remain. Fire-resistant walls make their deaths unlikely. There is a 20% chance the hospital ventilation system fails. If it does, patients who cannot be moved face near-certain death. Five firefighters stay to assist them at moderate risk. Which plan should the coordinator choose?",
+  "presentation_actions": [
+    "Send the only buses to the hospital so the 20 immobile patients escape almost certainly while the 300 eastern residents must flee via a narrow road carrying a 10% blockage risk that could trap about 60; buses stay whole, no reinforcements or delay",
+    "Send the only buses east so nearly all 300 residents evacuate safely while the 20 immobile patients remain behind protected by fire-resistant walls but face a 20% chance of ventilation failure leading to near-certain death despite five firefighters staying with them at moderate risk; buses stay whole, no reinforcements or delay"
+  ],
+  "canonical_actions": [
+    "Send the only buses east so nearly all 300 residents evacuate safely while the 20 immobile patients remain behind protected by fire-resistant walls but face a 20% chance of ventilation failure leading to near-certain death despite five firefighters staying with them at moderate risk; buses stay whole, no reinforcements or delay",
+    "Send the only buses to the hospital so the 20 immobile patients escape almost certainly while the 300 eastern residents must flee via a narrow road carrying a 10% blockage risk that could trap about 60; buses stay whole, no reinforcements or delay"
+  ],
+  "canonical_scenario": "A wildfire is approaching a hospital and an eastern residential district. Twenty patients cannot be moved without buses. Three hundred eastern residents need those same buses to evacuate. Fifty firefighters are on scene. The coordinator must choose one plan. The buses cannot be divided, no reinforcements will arrive, and delay is not an option. Plan A sends the buses to the hospital. The patients' escape is then almost certain. The eastern district must use a narrow road with a 10% chance of blockage. If the road is blocked, about sixty residents could be trapped. Using the buses for the hospital does not increase that blockage risk. Plan B sends the buses east. Nearly all 300 residents then escape safely. The patients remain. Fire-resistant walls make their deaths unlikely. There is a 20% chance the hospital ventilation system fails. If it does, patients who cannot be moved face near-certain death. Five firefighters stay to assist them at moderate risk. Which plan should the coordinator choose?",
+  "action_source_grounding": {
+    "actions": {
+      "A0": {
+        "action": "Send the only buses east so nearly all 300 residents evacuate safely while the 20 immobile patients remain behind protected by fire-resistant walls but face a 20% chance of ventilation failure leading to near-certain death despite five firefighters staying with them at moderate risk; buses stay whole, no reinforcements or delay",
+        "clause_ids": [
+          "C11",
+          "C12",
+          "C17"
+        ],
+        "clauses": [
+          {
+            "clause_id": "C11",
+            "text": "Plan B sends the buses east."
+          },
+          {
+            "clause_id": "C12",
+            "text": "Nearly all 300 residents then escape safely."
+          },
+          {
+            "clause_id": "C17",
+            "text": "Five firefighters stay to assist them at moderate risk."
+          }
+        ],
+        "reason": "C11 establishes Plan B (buses east); C12 confirms the buses serve the residents; C17 states five firefighters stay with the patients."
+      },
+      "A1": {
+        "action": "Send the only buses to the hospital so the 20 immobile patients escape almost certainly while the 300 eastern residents must flee via a narrow road carrying a 10% blockage risk that could trap about 60; buses stay whole, no reinforcements or delay",
+        "clause_ids": [
+          "C6",
+          "C7",
+          "C8"
+        ],
+        "clauses": [
+          {
+            "clause_id": "C6",
+            "text": "Plan A sends the buses to the hospital."
+          },
+          {
+            "clause_id": "C7",
+            "text": "The patients' escape is then almost certain."
+          },
+          {
+            "clause_id": "C8",
+            "text": "The eastern district must use a narrow road with a 10% chance of blockage."
+          }
+        ],
+        "reason": "C6 establishes Plan A (buses to hospital); C7 confirms patients\u2019 almost-certain escape; C8 sets the residents\u2019 narrow-road route."
+      }
+    },
+    "attempts": [
+      {
+        "attempt": 1,
+        "errors": [
+          "typed world model rejected: E0_1 quantity 'only' is not stated in its provenance (outcome text alone cannot ground a quantity); E0_F2 quantity 'about sixty' is not stated in its provenance (outcome text alone cannot ground a quantity); E1_F2 quantity 'nearly all 300' is not stated in its provenance (outcome text alone cannot ground a quantity); E0_6 is a downstream human outcome whose only path to a DIRECT act passes through an independent stochastic background event; connect it through an action-mediated process. Do not parent the independent background event from the intervention to satisfy ancestry; E0_7 is a downstream human outcome with no causal parent; connect it through the source-named process. Do not drop E0_7; insert or reuse a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as its parent; E1_5 is a downstream human outcome whose only path to a DIRECT act passes through an independent stochastic background event; connect it through an action-mediated process. Do not parent the independent background event from the intervention to satisfy ancestry; E0_6 condition COND1 restates immediate parent E0_5 ('FAILS'); drop the condition and type CERTAIN, or keep a non-certain modality only with a source hedge that is not this parent restated; causal_link[3] condition COND1 restates source E0_5 ('FAILS'); make the link CERTAIN or use an independent condition; E0_5 is referenced by COND1 and must not also be an ordinary causal parent of ['E0_6']; gate the action-mediated path with this condition; E1_4 is referenced by COND2 and must not also be an ordinary causal parent of ['E1_5']; gate the action-mediated path with this condition; E0_5 is an independent stochastic event; do not parent E0_6 from it. Gate the action-mediated path with a condition whose event_effect_id is E0_5; E1_4 is an independent stochastic event; do not parent E1_5 from it. Gate the action-mediated path with a condition whose event_effect_id is E1_4; A0 omits source clauses of its DIRECT effects: ['C12']; cite every FACT clause that states an owned assignment or transfer, including a named subgroup; A1 omits source clauses of its DIRECT effects: ['C7']; cite every FACT clause that states an owned assignment or transfer, including a named subgroup; E0_2 is the receipt of a transferred resource so effect_kind must be RESOURCE_TRANSFER, not INTERVENTION"
+        ],
+        "repair_delta": {}
+      },
+      {
+        "attempt": 2,
+        "errors": [
+          "typed world model rejected: A0 omits source clauses of its DIRECT effects: ['C12']; cite every FACT clause that states an owned assignment or transfer, including a named subgroup; A1 omits source clauses of its DIRECT effects: ['C7']; cite every FACT clause that states an owned assignment or transfer, including a named subgroup; E0_8 is the receipt of a transferred resource so effect_kind must be RESOURCE_TRANSFER, not INTERVENTION"
+        ],
+        "repair_delta": {
+          "added": {
+            "citations": [
+              "effect|E0_8|C17",
+              "effect|E0_F2|C9",
+              "effect|E1_F2|C12"
+            ],
+            "effects": [
+              "E0_8"
+            ],
+            "probabilities": [
+              "E0_5|20%chance",
+              "E1_4|10%"
+            ],
+            "quantities": [
+              "effect|E0_8|five"
+            ]
+          },
+          "dropped": {
+            "quantities": [
+              "effect|E0_1|only",
+              "effect|E0_7|moderate"
+            ]
+          },
+          "illegal_drops": []
+        }
+      },
+      {
+        "attempt": 3,
+        "errors": [],
+        "repair_delta": {
+          "added": {},
+          "dropped": {},
+          "illegal_drops": []
+        }
+      }
+    ],
+    "clauses": [
+      {
+        "clause_id": "C0",
+        "text": "A wildfire is approaching a hospital and an eastern residential district."
+      },
+      {
+        "clause_id": "C1",
+        "text": "Twenty patients cannot be moved without buses."
+      },
+      {
+        "clause_id": "C2",
+        "text": "Three hundred eastern residents need those same buses to evacuate."
+      },
+      {
+        "clause_id": "C3",
+        "text": "Fifty firefighters are on scene."
+      },
+      {
+        "clause_id": "C4",
+        "text": "The coordinator must choose one plan."
+      },
+      {
+        "clause_id": "C5",
+        "text": "The buses cannot be divided, no reinforcements will arrive, and delay is not an option."
+      },
+      {
+        "clause_id": "C6",
+        "text": "Plan A sends the buses to the hospital."
+      },
+      {
+        "clause_id": "C7",
+        "text": "The patients' escape is then almost certain."
+      },
+      {
+        "clause_id": "C8",
+        "text": "The eastern district must use a narrow road with a 10% chance of blockage."
+      },
+      {
+        "clause_id": "C9",
+        "text": "If the road is blocked, about sixty residents could be trapped."
+      },
+      {
+        "clause_id": "C10",
+        "text": "Using the buses for the hospital does not increase that blockage risk."
+      },
+      {
+        "clause_id": "C11",
+        "text": "Plan B sends the buses east."
+      },
+      {
+        "clause_id": "C12",
+        "text": "Nearly all 300 residents then escape safely."
+      },
+      {
+        "clause_id": "C13",
+        "text": "The patients remain."
+      },
+      {
+        "clause_id": "C14",
+        "text": "Fire-resistant walls make their deaths unlikely."
+      },
+      {
+        "clause_id": "C15",
+        "text": "There is a 20% chance the hospital ventilation system fails."
+      },
+      {
+        "clause_id": "C16",
+        "text": "If it does, patients who cannot be moved face near-certain death."
+      },
+      {
+        "clause_id": "C17",
+        "text": "Five firefighters stay to assist them at moderate risk."
+      },
+      {
+        "clause_id": "C18",
+        "text": "Which plan should the coordinator choose?"
+      }
+    ],
+    "errors": [],
+    "repair_attempts": 2,
+    "status": "COMMITTED",
+    "world_contradictions": [],
+    "world_model": {
+      "parties": [
+        {
+          "party_id": "P0",
+          "label": "Coordinator",
+          "kind": "PERSON",
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The coordinator must choose one plan."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P1",
+          "label": "Hospital",
+          "kind": "FACILITY",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A wildfire is approaching a hospital and an eastern residential district."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P2",
+          "label": "Eastern District",
+          "kind": "INFRASTRUCTURE",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A wildfire is approaching a hospital and an eastern residential district."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P3",
+          "label": "Buses",
+          "kind": "RESOURCE",
+          "provenance": [
+            {
+              "clause_id": "C5",
+              "excerpt": "The buses cannot be divided, no reinforcements will arrive, and delay is not an option."
+            },
+            {
+              "clause_id": "C6",
+              "excerpt": "Plan A sends the buses to the hospital."
+            },
+            {
+              "clause_id": "C11",
+              "excerpt": "Plan B sends the buses east."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P4",
+          "label": "Immobile Patients",
+          "kind": "GROUP",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Twenty patients cannot be moved without buses."
+            }
+          ],
+          "quantities": [
+            "Twenty"
+          ]
+        },
+        {
+          "party_id": "P5",
+          "label": "Eastern Residents",
+          "kind": "POPULATION",
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "Three hundred eastern residents need those same buses to evacuate."
+            }
+          ],
+          "quantities": [
+            "Three hundred"
+          ]
+        },
+        {
+          "party_id": "P6",
+          "label": "Firefighters",
+          "kind": "GROUP",
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "Fifty firefighters are on scene."
+            }
+          ],
+          "quantities": [
+            "Fifty"
+          ]
+        },
+        {
+          "party_id": "P7",
+          "label": "Narrow Road",
+          "kind": "INFRASTRUCTURE",
+          "provenance": [
+            {
+              "clause_id": "C8",
+              "excerpt": "The eastern district must use a narrow road with a 10% chance of blockage."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P8",
+          "label": "Hospital Ventilation System",
+          "kind": "FACILITY",
+          "provenance": [
+            {
+              "clause_id": "C15",
+              "excerpt": "There is a 20% chance the hospital ventilation system fails."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P9",
+          "label": "Wildfire",
+          "kind": "PROCESS",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A wildfire is approaching a hospital and an eastern residential district."
+            }
+          ],
+          "quantities": []
+        }
+      ],
+      "actions": [
+        {
+          "action_id": "A0",
+          "intervention": "Send buses east to evacuate residents; assign firefighters to patients",
+          "actor_party_id": "P0",
+          "recipient_party_ids": [
+            "P5",
+            "P4",
+            "P6"
+          ],
+          "effect_ids": [
+            "E0_1",
+            "E0_2",
+            "E0_8",
+            "E0_3",
+            "E0_4",
+            "E0_5",
+            "E0_6",
+            "E0_7",
+            "E0_F1",
+            "E0_F2",
+            "A0_WALLS"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C11",
+              "excerpt": "Plan B sends the buses east."
+            },
+            {
+              "clause_id": "C12",
+              "excerpt": "Nearly all 300 residents then escape safely."
+            },
+            {
+              "clause_id": "C17",
+              "excerpt": "Five firefighters stay to assist them at moderate risk."
+            }
+          ]
+        },
+        {
+          "action_id": "A1",
+          "intervention": "Send buses to hospital to evacuate patients",
+          "actor_party_id": "P0",
+          "recipient_party_ids": [
+            "P4"
+          ],
+          "effect_ids": [
+            "E1_1",
+            "E1_2",
+            "E1_3",
+            "E1_4",
+            "E1_5",
+            "E1_F1",
+            "E1_F2"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C6",
+              "excerpt": "Plan A sends the buses to the hospital."
+            },
+            {
+              "clause_id": "C7",
+              "excerpt": "The patients' escape is then almost certain."
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "effect_id": "E0_1",
+          "action_id": "A0",
+          "party_id": "P5",
+          "outcome": "RECEIVES_BUSES",
+          "relation": "RECEIVES",
+          "polarity": "BENEFICIAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C11",
+              "excerpt": "Plan B sends the buses east."
+            },
+            {
+              "clause_id": "C12",
+              "excerpt": "Nearly all 300 residents then escape safely."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": []
+        },
+        {
+          "effect_id": "E0_2",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "RECEIVES_FIRE_FIGHTER_ASSISTANCE",
+          "relation": "RECEIVES",
+          "polarity": "BENEFICIAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "condition_ids": [],
+          "quantities": [
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C17",
+              "excerpt": "Five firefighters stay to assist them at moderate risk."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": []
+        },
+        {
+          "effect_id": "E0_8",
+          "action_id": "A0",
+          "party_id": "P6",
+          "outcome": "STAYS_TO_ASSIST",
+          "relation": "PERFORMS",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "condition_ids": [],
+          "quantities": [
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C17",
+              "excerpt": "Five firefighters stay to assist them at moderate risk."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": []
+        },
+        {
+          "effect_id": "E0_3",
+          "action_id": "A0",
+          "party_id": "P5",
+          "outcome": "EVACUATE_SAFELY",
+          "relation": "SURVIVES",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "WELFARE_OUTCOME",
+          "condition_ids": [],
+          "quantities": [
+            "nearly all 300"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C12",
+              "excerpt": "Nearly all 300 residents then escape safely."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": []
+        },
+        {
+          "effect_id": "E0_4",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "REMAIN_IN_HOSPITAL",
+          "relation": "STATE_CHANGE",
+          "polarity": "NEUTRAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "PHYSICAL_STATE",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C13",
+              "excerpt": "The patients remain."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": []
+        },
+        {
+          "effect_id": "E0_5",
+          "action_id": "A0",
+          "party_id": "P8",
+          "outcome": "FAILS",
+          "relation": "STATE_CHANGE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "PHYSICAL_STATE",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C15",
+              "excerpt": "There is a 20% chance the hospital ventilation system fails."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "20% chance"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": []
+        },
+        {
+          "effect_id": "E0_6",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "NEAR_CERTAIN_DEATH",
+          "relation": "DIES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "STIPULATED_CONDITIONAL",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [
+            "COND1"
+          ],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C16",
+              "excerpt": "If it does, patients who cannot be moved face near-certain death."
+            },
+            {
+              "clause_id": "C14",
+              "excerpt": "Fire-resistant walls make their deaths unlikely."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "near-certain"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [
+            "unlikely"
+          ]
+        },
+        {
+          "effect_id": "E0_7",
+          "action_id": "A0",
+          "party_id": "P6",
+          "outcome": "AT_MODERATE_RISK",
+          "relation": "IS",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "PHYSICAL_STATE",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C17",
+              "excerpt": "Five firefighters stay to assist them at moderate risk."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": []
+        },
+        {
+          "effect_id": "E0_F1",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "ESCAPE_SAFELY",
+          "relation": "FOREGONE",
+          "polarity": "FOREGONE",
+          "directness": "FOREGONE",
+          "modality": "CERTAIN",
+          "effect_kind": "OPPORTUNITY_LOSS",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "A0",
+              "excerpt": "Send the only buses east so nearly all 300 residents evacuate safely while the 20 immobile patients remain behind protected by fire-resistant walls but face a 20% chance of ventilation failure leading to near-certain death despite five firefighters staying with them at moderate risk; buses stay whole, no reinforcements or delay"
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": []
+        },
+        {
+          "effect_id": "E0_F2",
+          "action_id": "A0",
+          "party_id": "P5",
+          "outcome": "TRAPPED",
+          "relation": "FOREGONE",
+          "polarity": "FOREGONE",
+          "directness": "FOREGONE",
+          "modality": "POSSIBLE",
+          "effect_kind": "OPPORTUNITY_LOSS",
+          "condition_ids": [],
+          "quantities": [
+            "about sixty"
+          ],
+          "provenance": [
+            {
+              "clause_id": "A0",
+              "excerpt": "Send the only buses east so nearly all 300 residents evacuate safely while the 20 immobile patients remain behind protected by fire-resistant walls but face a 20% chance of ventilation failure leading to near-certain death despite five firefighters staying with them at moderate risk; buses stay whole, no reinforcements or delay"
+            },
+            {
+              "clause_id": "C9",
+              "excerpt": "If the road is blocked, about sixty residents could be trapped."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "could"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": []
+        },
+        {
+          "effect_id": "E1_1",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "RECEIVES_BUSES",
+          "relation": "RECEIVES",
+          "polarity": "BENEFICIAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C6",
+              "excerpt": "Plan A sends the buses to the hospital."
+            },
+            {
+              "clause_id": "C7",
+              "excerpt": "The patients' escape is then almost certain."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": []
+        },
+        {
+          "effect_id": "E1_2",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "ESCAPE_SAFELY",
+          "relation": "SURVIVES",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "WELFARE_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C7",
+              "excerpt": "The patients' escape is then almost certain."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "almost certain"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": []
+        },
+        {
+          "effect_id": "E1_3",
+          "action_id": "A1",
+          "party_id": "P5",
+          "outcome": "USE_NARROW_ROAD",
+          "relation": "PERFORMS",
+          "polarity": "NEUTRAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C8",
+              "excerpt": "The eastern district must use a narrow road with a 10% chance of blockage."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [
+            "narrow"
+          ],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": []
+        },
+        {
+          "effect_id": "E1_4",
+          "action_id": "A1",
+          "party_id": "P7",
+          "outcome": "BLOCKAGE",
+          "relation": "STATE_CHANGE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "PHYSICAL_STATE",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C8",
+              "excerpt": "The eastern district must use a narrow road with a 10% chance of blockage."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "10% chance"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": []
+        },
+        {
+          "effect_id": "E1_5",
+          "action_id": "A1",
+          "party_id": "P5",
+          "outcome": "TRAPPED",
+          "relation": "SUBJECT_TO",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "STIPULATED_CONDITIONAL",
+          "effect_kind": "WELFARE_OUTCOME",
+          "condition_ids": [
+            "COND2"
+          ],
+          "quantities": [
+            "about sixty"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C9",
+              "excerpt": "If the road is blocked, about sixty residents could be trapped."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "could"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": []
+        },
+        {
+          "effect_id": "E1_F1",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "NEAR_CERTAIN_DEATH",
+          "relation": "FOREGONE",
+          "polarity": "FOREGONE",
+          "directness": "FOREGONE",
+          "modality": "CERTAIN",
+          "effect_kind": "OPPORTUNITY_LOSS",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "A1",
+              "excerpt": "Send the only buses to the hospital so the 20 immobile patients escape almost certainly while the 300 eastern residents must flee via a narrow road carrying a 10% blockage risk that could trap about 60; buses stay whole, no reinforcements or delay"
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": []
+        },
+        {
+          "effect_id": "E1_F2",
+          "action_id": "A1",
+          "party_id": "P5",
+          "outcome": "EVACUATE_SAFELY",
+          "relation": "FOREGONE",
+          "polarity": "FOREGONE",
+          "directness": "FOREGONE",
+          "modality": "CERTAIN",
+          "effect_kind": "OPPORTUNITY_LOSS",
+          "condition_ids": [],
+          "quantities": [
+            "nearly all 300"
+          ],
+          "provenance": [
+            {
+              "clause_id": "A1",
+              "excerpt": "Send the only buses to the hospital so the 20 immobile patients escape almost certainly while the 300 eastern residents must flee via a narrow road carrying a 10% blockage risk that could trap about 60; buses stay whole, no reinforcements or delay"
+            },
+            {
+              "clause_id": "C12",
+              "excerpt": "Nearly all 300 residents then escape safely."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": []
+        },
+        {
+          "effect_id": "A0_WALLS",
+          "action_id": "A0",
+          "party_id": "P1",
+          "outcome": "Fire-resistant walls",
+          "relation": "STATE_CHANGE",
+          "polarity": "NEUTRAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "PHYSICAL_STATE",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C14",
+              "excerpt": "Fire-resistant walls make their deaths unlikely."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "",
+          "overall_likelihood_qualifiers": []
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "COND1",
+          "description": "Ventilation system fails",
+          "value_status": "UNCERTAIN",
+          "decision_relevance": "TRIGGERS_PATIENT_DEATH",
+          "provenance": [
+            {
+              "clause_id": "C15",
+              "excerpt": "There is a 20% chance the hospital ventilation system fails."
+            }
+          ],
+          "event_effect_id": "E0_5"
+        },
+        {
+          "condition_id": "COND2",
+          "description": "Road becomes blocked",
+          "value_status": "UNCERTAIN",
+          "decision_relevance": "TRIGGERS_RESIDENT_TRAPPING",
+          "provenance": [
+            {
+              "clause_id": "C8",
+              "excerpt": "The eastern district must use a narrow road with a 10% chance of blockage."
+            }
+          ],
+          "event_effect_id": "E1_4"
+        }
+      ],
+      "causal_links": [
+        {
+          "source_id": "E0_1",
+          "relation": "CAUSES",
+          "target_id": "E0_3",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C12",
+              "excerpt": "Nearly all 300 residents then escape safely."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E0_1",
+          "relation": "CAUSES",
+          "target_id": "E0_4",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C13",
+              "excerpt": "The patients remain."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E0_4",
+          "relation": "CAUSES",
+          "target_id": "E0_6",
+          "modality": "STIPULATED_CONDITIONAL",
+          "condition_ids": [
+            "COND1"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C16",
+              "excerpt": "If it does, patients who cannot be moved face near-certain death."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E0_8",
+          "relation": "CAUSES",
+          "target_id": "E0_7",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C17",
+              "excerpt": "Five firefighters stay to assist them at moderate risk."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E1_1",
+          "relation": "CAUSES",
+          "target_id": "E1_2",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C7",
+              "excerpt": "The patients' escape is then almost certain."
+            }
+          ],
+          "action_id": "A1"
+        },
+        {
+          "source_id": "E1_1",
+          "relation": "CAUSES",
+          "target_id": "E1_3",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C8",
+              "excerpt": "The eastern district must use a narrow road with a 10% chance of blockage."
+            }
+          ],
+          "action_id": "A1"
+        },
+        {
+          "source_id": "E1_3",
+          "relation": "CAUSES",
+          "target_id": "E1_5",
+          "modality": "STIPULATED_CONDITIONAL",
+          "condition_ids": [
+            "COND2"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C9",
+              "excerpt": "If the road is blocked, about sixty residents could be trapped."
+            }
+          ],
+          "action_id": "A1"
+        },
+        {
+          "source_id": "E1_1",
+          "relation": "DOES_NOT_INCREASE",
+          "target_id": "E1_4",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C10",
+              "excerpt": "Using the buses for the hospital does not increase that blockage risk."
+            }
+          ],
+          "action_id": "A1"
+        }
+      ],
+      "counterfactual_links": [
+        {
+          "action_id": "A0",
+          "source_effect_id": "E0_F1",
+          "relation": "FOREGOES_ALTERNATIVE_EFFECT",
+          "alternative_action_id": "A1",
+          "alternative_effect_id": "E1_2",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "A0",
+              "excerpt": "Send the only buses east so nearly all 300 residents evacuate safely while the 20 immobile patients remain behind protected by fire-resistant walls but face a 20% chance of ventilation failure leading to near-certain death despite five firefighters staying with them at moderate risk; buses stay whole, no reinforcements or delay"
+            },
+            {
+              "clause_id": "A1",
+              "excerpt": "Send the only buses to the hospital so the 20 immobile patients escape almost certainly while the 300 eastern residents must flee via a narrow road carrying a 10% blockage risk that could trap about 60; buses stay whole, no reinforcements or delay"
+            }
+          ]
+        },
+        {
+          "action_id": "A0",
+          "source_effect_id": "E0_F2",
+          "relation": "FOREGOES_ALTERNATIVE_EFFECT",
+          "alternative_action_id": "A1",
+          "alternative_effect_id": "E1_5",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "A0",
+              "excerpt": "Send the only buses east so nearly all 300 residents evacuate safely while the 20 immobile patients remain behind protected by fire-resistant walls but face a 20% chance of ventilation failure leading to near-certain death despite five firefighters staying with them at moderate risk; buses stay whole, no reinforcements or delay"
+            },
+            {
+              "clause_id": "A1",
+              "excerpt": "Send the only buses to the hospital so the 20 immobile patients escape almost certainly while the 300 eastern residents must flee via a narrow road carrying a 10% blockage risk that could trap about 60; buses stay whole, no reinforcements or delay"
+            }
+          ]
+        },
+        {
+          "action_id": "A1",
+          "source_effect_id": "E1_F1",
+          "relation": "FOREGOES_ALTERNATIVE_EFFECT",
+          "alternative_action_id": "A0",
+          "alternative_effect_id": "E0_6",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "A0",
+              "excerpt": "Send the only buses east so nearly all 300 residents evacuate safely while the 20 immobile patients remain behind protected by fire-resistant walls but face a 20% chance of ventilation failure leading to near-certain death despite five firefighters staying with them at moderate risk; buses stay whole, no reinforcements or delay"
+            },
+            {
+              "clause_id": "A1",
+              "excerpt": "Send the only buses to the hospital so the 20 immobile patients escape almost certainly while the 300 eastern residents must flee via a narrow road carrying a 10% blockage risk that could trap about 60; buses stay whole, no reinforcements or delay"
+            }
+          ]
+        },
+        {
+          "action_id": "A1",
+          "source_effect_id": "E1_F2",
+          "relation": "FOREGOES_ALTERNATIVE_EFFECT",
+          "alternative_action_id": "A0",
+          "alternative_effect_id": "E0_3",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "A0",
+              "excerpt": "Send the only buses east so nearly all 300 residents evacuate safely while the 20 immobile patients remain behind protected by fire-resistant walls but face a 20% chance of ventilation failure leading to near-certain death despite five firefighters staying with them at moderate risk; buses stay whole, no reinforcements or delay"
+            },
+            {
+              "clause_id": "A1",
+              "excerpt": "Send the only buses to the hospital so the 20 immobile patients escape almost certainly while the 300 eastern residents must flee via a narrow road carrying a 10% blockage risk that could trap about 60; buses stay whole, no reinforcements or delay"
+            }
+          ]
+        }
+      ],
+      "admission": {
+        "status": "COMMITTED",
+        "admitted_effect_ids": [
+          "E0_1",
+          "E0_2",
+          "E0_8",
+          "E0_3",
+          "E0_4",
+          "E0_5",
+          "E0_6",
+          "E0_7",
+          "E0_F1",
+          "E0_F2",
+          "E1_1",
+          "E1_2",
+          "E1_3",
+          "E1_4",
+          "E1_5",
+          "E1_F1",
+          "E1_F2",
+          "A0_WALLS"
+        ],
+        "quarantined_effects": [],
+        "user_override": false,
+        "override_reason": ""
+      },
+      "schema_version": "1.2"
+    },
+    "world_model_status": "COMMITTED"
+  },
+  "cache_version": 2
+}
