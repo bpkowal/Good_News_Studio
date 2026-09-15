@@ -27,6 +27,17 @@ class InvariantCatalogTests(unittest.TestCase):
                 self.assertEqual(production_status(item), "untested", item.id)
             else:
                 self.assertTrue(item.tests, item.id)
+            if item.integrity_layers is not None:
+                self.assertIn(
+                    item.enforcement,
+                    {"", "experimental", "cataloged", "enforced"},
+                    item.id,
+                )
+                self.assertIn(
+                    item.source_type,
+                    {"", "fracas", "parliament_extension", "tooling"},
+                    item.id,
+                )
 
     def test_coverage_report_lists_every_invariant(self):
         report = format_coverage_report()

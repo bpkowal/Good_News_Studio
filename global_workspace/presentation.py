@@ -1491,12 +1491,18 @@ def render_decision_brief(result: Any) -> str:
 
     supporting = [
         candidate for _, candidate in ordered_specialists
-        if _candidate_recommendation(candidate) == recommendation
+        if (
+            _candidate_recommendation(candidate) == recommendation
+            and str(candidate.get("framework_vote_status", "")).upper() == "FULL"
+        )
     ]
     supporting_names = [
         _framework_display_name(name)
         for name, candidate in ordered_specialists
-        if _candidate_recommendation(candidate) == recommendation
+        if (
+            _candidate_recommendation(candidate) == recommendation
+            and str(candidate.get("framework_vote_status", "")).upper() == "FULL"
+        )
     ]
 
     lines: list[str] = ["# Ethical Parliament Judgment", "", "## Recommendation", ""]

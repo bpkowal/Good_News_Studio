@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Correctness tooling around Parliament
 
-Hypothesis, mutmut, CrossHair, and NetworkX are **not** Parliament architecture.
+Hypothesis, mutmut, CrossHair, NetworkX, and SymPy are **not** Parliament architecture.
 World model, ledgers, governance, agent outputs, and JSON traces stay canonical.
 
 If adopting a tool requires redesigning a working subsystem to satisfy the tool, do not adopt it.
@@ -16,11 +16,72 @@ If adopting a tool requires redesigning a working subsystem to satisfy the tool,
 Hypothesis → generated test worlds → existing validators → pytest → mutmut
 Current Parliament ─────────────────────────────────────────┘
         └──► graph_queries.to_networkx ──► standard graph queries
+        └──► sympy_arith / sympy_certificates ──► Util identity + certificate family
+              (arith, ranking boundary, interval robustness, substitution,
+               derivation equivalence, resource conservation)
+        └──► semantic_integrity (FraCaS diagnostic taxonomy + seed)
+              ├── structured lane: hand-built ScenarioWorldModel → invariant
+              └── grounding lane: mini-discourse → production segment/admit → invariant
+              └── status_conservation family (parliament_extension):
+                    OUTCOME_PREDICATE_COMPLETENESS
+                    SOURCE_STIPULATED_OUTCOME_PRESERVATION
+                    QUANTITY_BEARING_CONSEQUENCE_PRESERVATION
+                    REPAIR_PROVENANCE_MINIMALITY (DET licensing_patch only)
+                    REPAIR_NO_EFFECT (enforced; generic unstable guard)
+                    QUANTITY_PRECISION_NON_ESCALATION (vague → exact forbidden)
+                    AVERTED_ALTERNATIVE_HARM (DERIVED admit + inherited qty)
+                    umbrella SEMANTIC_STATUS_CONSERVATION (purge integration)
+                    QUANTITY_BEARING add_quantity + add_provenance
+                      → DETERMINISTIC_LOCAL_PATCH
+                    (known effect_id + span + licensing_clause_id; before LLM)
+                    Hypothesis: strategies.status_conservation
+                      (outcome_predicate / binary_stipulation /
+                       quantity_consequence cases → repair_stage metadata;
+                       quantity bank: collectives/bounds/approx/ranges +
+                       effect|party|omit|misassign placement +
+                       licensing topologies)
+                    qualifier preservation subtypes (enforced):
+                      LIKELIHOOD / TEMPORAL / SCOPE_QUALIFIER_PRESERVATION
+                      → DETERMINISTIC_LOCAL_PATCH add_*_qualifier
+                      Hypothesis: strategies.qualifier_preservation
+                    SOURCE_INFORMATION_MONOTONICITY: deferred umbrella
+                      over status-conservation + qualifier preservation
+                    AVERTED_ALTERNATIVE_HARM (enforced):
+                      CERTAIN opposed harm qty via CF edge + derivation;
+                      not silent DIRECT_COPY onto survival;
+                      Hypothesis: strategies.averted_alternative_harm
+                    ├── anaphor_identity / negation_scope Hypothesis
+                    strategies.anaphor_identity → RESOLVE_ENTITY
+                    strategies.negation_scope → REPAIR_GROUNDING
+              ├── verb_lemma / quantifier_count Hypothesis
+                    strategies.verb_lemma → REPAIR_GROUNDING
+                      (+ consequence_reassignment action_id mis-hang)
+                    strategies.quantifier_count → REPAIR_GROUNDING / RESOLVE_ENTITY
+              ├── FraCaS discourse Hypothesis (§2–5, §7, §9)
+                    plural_members → RESOLVE_ENTITY
+                    ellipsis_predicate → REPAIR_GROUNDING
+                    adjective_modifiers → REPAIR_GROUNDING
+                    temporal_order → REPAIR_GROUNDING
+                    attitude_factivity → VERIFY_PROVENANCE (epistemic_binding)
+              └── repair_ledger.yaml (failure-class → issue/ops/stage/promote)
+                    enforced now: status_conservation ×3 + REPAIR_NO_EFFECT,
+                      QUANTIFIER_PARTY_COUNT, VERB_LEMMA_OUTCOME_BINDING
+                    cataloged_hold / deferred: anaphor, negation, plural,
+                      ellipsis, adjective, temporal, attitude, reassignment
 ```
 
 - **Hypothesis** lives in `tests/strategies/` and `tests/invariants/`. Oracle is a declared case field. Production consumes fake worlds. Do not test live-dilemma nouns.
 - **NetworkX** is a calculator: `global_workspace/graph_queries.py` builds a temporary `DiGraph`, answers a query, discards it. Do not replace world state with NetworkX.
-- **mutmut** comes after the invariant suite is green. Scope it to modules those invariants protect. It automates comment-the-fix → tests must fail → restore.
+- **SymPy** is a calculator: `global_workspace/sympy_arith.py` and
+  `sympy_certificates.py` build temporary expressions from already-parsed Util
+  operands, verify nets/EVs, and may emit serializable certificates (gap,
+  one-variable boundary, optional interval robustness, equivalence,
+  conservation). Prefer expand/cancel over heuristic simplify(). Do not store
+  SymPy objects in ledgers or world state; do not parse English inside SymPy.
+  Certificates are derived artifacts with provenance, not admitted facts.
+  Beyond this Util family → SMT, not more SymPy.
+- **Semantic integrity / FraCaS** (`tests/semantic_integrity/`) is a diagnostic taxonomy, seed corpus, and coverage scaffold—not the taxonomy of meaning. Separate `fracas.gold` from `parliament_expectation`. Use two lanes so hand-ported worlds cannot bypass grounding failures. The `status_conservation` parliament_extension family (`SEMANTIC_STATUS_CONSERVATION` and members) hard-fails at admit when source stakes demote via fragments, omitted binary-contrast consequences, or dropped quantities; SymPy Util follows only after those quantities survive. Do not block live deliberation on taxonomy coverage gaps; CI may fail on `enforcement: enforced` regressions.
+- **mutmut** comes after the invariant suite is green. Scope it to modules those invariants protect. It automates comment-the-line → tests must fail → restore.
 - **CrossHair** is an experiment on one pure validator. Never on `run_entire_parliament` or LLM calls. Drop it if it becomes a maintenance burden.
 
 ## Do not change for these tools
@@ -29,4 +90,4 @@ World-state schema, agent architecture, workspace recurrence, specialist prompts
 
 ## Phase order
 
-Hypothesis (current methodology) → NetworkX means-path adapter → mutmut on invariant modules → CrossHair pilot on one small function.
+Hypothesis (current methodology) → NetworkX means-path adapter → SymPy Util certificate family → semantic-integrity (FraCaS §1–5, §7–9 + parliament_extension negation; §6 Comparatives optional) → mutmut on invariant modules → CrossHair pilot on one small function.

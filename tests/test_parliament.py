@@ -323,6 +323,103 @@ class ParliamentLauncherTests(unittest.TestCase):
         self.assertIsNone(different)
         self.assertEqual(different_status, "MISS_DIFFERENT_PROBLEM")
 
+    def test_failed_grounding_cache_rejects_truncated_actions(self):
+        grounding = {
+            "status": "REJECTED",
+            "errors": ["source binding"],
+            "validation_issues": [],
+            "rejected_candidate": {
+                "world_model": {
+                    "schema_version": "1.3",
+                    "effects": [{"effect_id": "E2", "action_id": "A1"}],
+                },
+            },
+            "next_rebuild_action_ids": ["A1"],
+            "attempts": [
+                {"attempt": index, "errors": ["failed"]}
+                for index in range(1, 4)
+            ],
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "last_failed_world_grounding.json"
+            with self.assertRaisesRegex(ValueError, "incomplete or truncated"):
+                global_workspace_pipeline.save_failed_grounding_cache(
+                    path,
+                    ethical_problem="Exact purge problem",
+                    presentation_actions=[
+                        "Trigger an immediate",
+                        "Hold off on the purge and instead isolate the AI",
+                    ],
+                    canonical_actions=[
+                        "Hold off on the purge and instead isolate the AI",
+                        "Trigger an immediate",
+                    ],
+                    canonical_scenario="canonical purge problem",
+                    presentation_action_mapping=[],
+                    source_action_legend={
+                        "A0": "Trigger an immediate",
+                        "A1": "Hold off on the purge and instead isolate the AI",
+                    },
+                    grounding=grounding,
+                    repair_scope="LOCAL_PATCH",
+                    source_model="o3",
+                )
+            # Pre-existing cache with truncated actions must miss on load.
+            path.write_text(
+                json.dumps({
+                    "cache_version": (
+                        global_workspace_pipeline.FAILED_GROUNDING_CACHE_VERSION
+                    ),
+                    "grounding_contract_version": (
+                        global_workspace_pipeline.GROUNDING_CONTRACT_VERSION
+                    ),
+                    "world_model_schema_version": (
+                        global_workspace_pipeline.WORLD_MODEL_SCHEMA_VERSION
+                    ),
+                    "action_authority_contract_version": (
+                        global_workspace_pipeline.ACTION_AUTHORITY_CONTRACT_VERSION
+                    ),
+                    "action_origin": "MODEL_PROPOSED",
+                    "ethical_problem": "Exact purge problem",
+                    "presentation_actions": [
+                        "Trigger an immediate",
+                        "Hold off on the purge and instead isolate the AI",
+                    ],
+                    "canonical_actions": [
+                        "Hold off on the purge and instead isolate the AI",
+                        "Trigger an immediate",
+                    ],
+                    "canonical_scenario": "canonical purge problem",
+                    "presentation_action_mapping": [],
+                    "source_action_legend": {},
+                    "repair_scope": "LOCAL_PATCH",
+                    "failed_attempt_count": 3,
+                    "action_source_grounding": grounding,
+                }),
+                encoding="utf-8",
+            )
+            cached, status = global_workspace_pipeline.load_failed_grounding_cache(
+                path, "Exact purge problem",
+            )
+        self.assertIsNone(cached)
+        self.assertEqual(status, "MISS_INCOMPLETE_ACTIONS")
+
+        actions, reused = global_workspace_pipeline.choose_initial_actions(
+            None,
+            {
+                "presentation_actions": [
+                    "Trigger an immediate",
+                    "Hold off on the purge and instead isolate the AI",
+                ],
+            },
+            lambda: ["Deploy an emergency purge", "Refrain from the purge"],
+        )
+        self.assertFalse(reused)
+        self.assertEqual(
+            actions,
+            ["Deploy an emergency purge", "Refrain from the purge"],
+        )
+
     def test_failed_grounding_cache_rejects_full_rebuild_and_short_runs(self):
         grounding = {
             "status": "REJECTED",

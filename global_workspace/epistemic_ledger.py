@@ -15,6 +15,7 @@ from .semantic_graph import SemanticGraph
 from .world_state import (
     explicit_quantity_spans,
     is_averted_risk_not_obtained_benefit_consequence,
+    quantity_precision_escalation_errors,
 )
 
 
@@ -69,6 +70,11 @@ _CARDINAL_VALUES = {
     "eighty": 80, "ninety": 90, "hundred": 100, "thousand": 1000,
     "million": 1_000_000, "billion": 1_000_000_000,
 }
+_VAGUE_QUANTITY_HINT = re.compile(
+    r"\b(?:dozens|hundreds|thousands|millions|"
+    r"several\s+thousands?|a\s+few\s+thousands?|many\s+thousands?)\b",
+    re.IGNORECASE,
+)
 _OUTCOME_FAMILIES = (
     frozenset({
         "kill", "killed", "killing", "die", "dies", "died", "dying", "dead",
@@ -232,12 +238,22 @@ def seed_proposition_ledger(graph: SemanticGraph) -> dict[str, PropositionRecord
                 claim_parts.append("foregone opportunity")
         effect_kind = str(consequence.attributes.get("effect_kind", "")).upper()
         obtained_welfare = True
+        derivation_operation = str(
+            consequence.attributes.get("derivation_operation", "")
+        ).upper()
         if (
             polarity == "BENEFICIAL"
             and effect_kind in {"HEALTH_OUTCOME", "WELFARE_OUTCOME"}
             and is_averted_risk_not_obtained_benefit_consequence(graph, consequence)
+            and derivation_operation != "AVERTED_ALTERNATIVE_HARM"
         ):
             obtained_welfare = False
+        if derivation_operation == "AVERTED_ALTERNATIVE_HARM":
+            # CERTAIN alternative harm aversion is established, not hypothetical,
+            # and is distinct from unsettled averted-risk accounting.
+            obtained_welfare = True
+            if not any("avert" in part.casefold() for part in claim_parts):
+                claim_parts.append("averted certain alternative harm")
         admitted_status = _admitted_status_for_world_row(modality, polarity, directness)
         source_proposition = " ".join(str(
             consequence.attributes.get("source_proposition", "")
@@ -2138,6 +2154,36 @@ def apply_side_premise_audit(
             continue
         critical = raw.get("decision_critical") is True
         binding = str(raw.get("binding", "NEW_HYPOTHESIS"))
+        source_qty_texts = [
+            " ".join([
+                record.claim,
+                *record.quantities,
+                record.outcome,
+            ])
+            for record in ledger.values()
+            if record.epistemic_status in ADMITTED_PROPOSITION_STATUSES
+            and (
+                record.quantities
+                or _VAGUE_QUANTITY_HINT.search(record.claim)
+                or _VAGUE_QUANTITY_HINT.search(record.outcome)
+            )
+        ]
+        precision_errors = quantity_precision_escalation_errors(
+            source_texts=source_qty_texts,
+            claim_text=claim,
+        ) if source_qty_texts else []
+        if precision_errors:
+            # Keep the premise hypothetical; do not let precision invention
+            # bind as established world support.
+            binding = "NEW_HYPOTHESIS"
+            critical = True
+            raw = {
+                **raw,
+                "reason": (
+                    f"{raw.get('reason') or ''} "
+                    f"{precision_errors[0]}"
+                ).strip()[:320],
+            }
         derived_from = [
             str(value) for value in raw.get("derived_from", [])
             if str(value) in ledger

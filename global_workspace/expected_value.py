@@ -13,6 +13,7 @@ import math
 import re
 from typing import Any, Mapping, Sequence
 
+from .sympy_arith import expected_count_expression, verify_expected_count
 from .world_state import quantity_magnitude
 
 
@@ -110,10 +111,11 @@ def _signed_direction(record: Mapping[str, Any]) -> float | None:
 
 def _recomputed_value(
     source_records: Sequence[Mapping[str, Any]], method: str,
-) -> tuple[float, str] | None:
+) -> tuple[float, str, tuple[tuple[float, float, float], ...]] | None:
     if method not in {"DIRECT_COUNT", "EXPECTED_COUNT"}:
         return None
     total = 0.0
+    terms: list[tuple[float, float, float]] = []
     for record in source_records:
         direction = _signed_direction(record)
         magnitude = _magnitude(record)
@@ -127,8 +129,9 @@ def _recomputed_value(
         elif probability is None:
             return None
         total += direction * magnitude * probability
-    direction = "BENEFIT" if total >= 0 else "HARM"
-    return abs(total), direction
+        terms.append((float(direction), float(magnitude), float(probability)))
+    direction_label = "BENEFIT" if total >= 0 else "HARM"
+    return abs(total), direction_label, tuple(terms)
 
 
 def validate_expected_value_estimates(
@@ -181,6 +184,8 @@ def validate_expected_value_estimates(
         unit = str(raw.get("unit", "NONE") or "NONE").strip().upper()
         direction = str(raw.get("direction", "HARM") or "HARM").strip().upper()
         row_errors: list[str] = []
+        arithmetic_identity = ""
+        symbolic_expression = ""
         if claimed:
             if method not in _METHODS or method == "NOT_COMPUTED":
                 row_errors.append("grounded EV omits a calculation method")
@@ -237,7 +242,7 @@ def validate_expected_value_estimates(
                         "numeric EV cannot be recomputed from its cited effects"
                     )
                 else:
-                    expected_value, expected_direction = recomputed
+                    expected_value, expected_direction, terms = recomputed
                     if not math.isclose(value, expected_value, rel_tol=0.01, abs_tol=0.001):
                         row_errors.append(
                             f"EV value {value:g} does not match recomputed {expected_value:g}"
@@ -247,7 +252,17 @@ def validate_expected_value_estimates(
                             f"EV direction {direction} contradicts recomputed {expected_direction}"
                         )
                     if not row_errors:
-                        arithmetic_rows += 1
+                        sympy_check = verify_expected_count(value, terms)
+                        if not sympy_check.ok:
+                            row_errors.extend(list(sympy_check.errors))
+                        else:
+                            arithmetic_rows += 1
+                            arithmetic_identity = sympy_check.identity
+                            symbolic_expression = (
+                                sympy_check.symbolic_expression
+                                or sympy_check.identity
+                                or str(expected_count_expression(terms))
+                            )
             elif method == "UTILITY_INDEX" and not row_errors:
                 correspondence_rows += 1
 
@@ -270,6 +285,8 @@ def validate_expected_value_estimates(
             "assumptions": assumptions,
             "validation_status": row_status,
             "validation_errors": row_errors,
+            "arithmetic_identity": arithmetic_identity,
+            "symbolic_expression": symbolic_expression,
         }
 
     if not claimed_keys:

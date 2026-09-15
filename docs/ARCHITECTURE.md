@@ -39,6 +39,8 @@ responsibilities and invariants, not a complete algorithm specification.
 | `action_identity.py` | Typed action identity graphs and conservative lexical fallback |
 | `scenario_semantics.py` | Canonical action ordering and deterministic scenario-fact compilation |
 | `semantic_invariants.py` | Typed propositions and checks across transformations |
+| `sympy_arith.py` | Temporary SymPy calculator for Util net / EV identity + substitution |
+| `sympy_certificates.py` | Derived Util certificates (gap, boundary, interval robustness, equivalence, conservation); not world truth |
 | `rawls_ledger.py` | Transactional action-to-group Rawlsian position assessments |
 | `utilitarian_ledger.py` | Transactional action-to-consequence welfare accounting |
 | `deontology_ledger.py` | Transactional duty, right, permission, and conflict assessments |
@@ -130,6 +132,25 @@ together, but new ethical logic should normally live in the relevant module abov
 - Add cross-cutting guardrails in `middleware/` when they are independently testable
   transformations over domain records.
 - Keep backend-specific behavior behind a small adapter and reuse `structured_io.py`.
+- Semantic-integrity / FraCaS work lives under `tests/semantic_integrity/` as a
+  diagnostic taxonomy and two-lane coverage scaffold (structured vs grounding).
+  Cataloged phenomena now include §1–5, §7–9, plus parliament_extension
+  negation and the status-conservation family under umbrella
+  `SEMANTIC_STATUS_CONSERVATION` (outcome-predicate completeness,
+  source-stipulated outcome preservation, quantity-bearing consequence
+  preservation; §6 Comparatives remains optional). Provenance is explicit
+  (`fracas` vs `parliament_extension`). Coverage CI fails on
+  `enforcement: enforced` regressions; cataloged phenomena do not block live
+  deliberation. It does not replace systematic world categories.
+  Quantity-bearing consequence defects with a known `effect_id` and missing
+  span are corrected by `apply_deterministic_local_patches`
+  (`DETERMINISTIC_LOCAL_PATCH`) before another model re-grounding; ambiguous
+  defects still require semantic re-evaluation. The same deterministic path
+  attaches source-bound likelihood, temporal, and scope qualifiers
+  (`LIKELIHOOD/TEMPORAL/SCOPE_QUALIFIER_PRESERVATION`). Quantity Hypothesis
+  covers collectives, bounds, approximations, ranges, and
+  effect/party/omit/misassign placement. `SOURCE_INFORMATION_MONOTONICITY`
+  remains a deferred catalog umbrella over these preservation subtypes.
 
 ## Next structural targets
 

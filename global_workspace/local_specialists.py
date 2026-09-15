@@ -40,17 +40,27 @@ from .scenario_semantics import (
     project_grounded_action_effects,
     segment_scenario_clauses,
 )
+from .sympy_arith import verify_net_from_terms
+from .sympy_certificates import (
+    build_ranking_certificate,
+    certificate_challenger,
+)
 from .utilitarian_ledger import utilitarian_scored_grounded_effects
 from .world_state import quantity_magnitude
 from .world_validation import (
+    DETERMINISTIC_LOCAL_PATCH,
     FULL_REBUILD,
     LOCAL_PATCH,
     SUBGRAPH_REBUILD,
     WorldModelValidationError,
+    annotate_admit_with_repair_no_effect,
+    apply_deterministic_local_patches,
+    apply_stuck_source_binding_scope,
     classify_world_repair_scope,
     implicated_action_ids,
     issue_mentions_identifier,
     repair_patch_contract,
+    should_skip_deterministic_local_patch,
     validation_issues_from_messages,
 )
 
@@ -763,8 +773,10 @@ def _magnitude_numbers(text: str) -> set[float]:
     return numbers
 
 
-def _row_admitted_numeric_welfare(row: dict[str, Any]) -> float | None:
-    """Signed welfare only when probability and magnitude are both numeric."""
+def _row_admitted_numeric_term(
+    row: dict[str, Any],
+) -> tuple[float, float, bool] | None:
+    """Probability, magnitude, and benefit flag for one admitted numeric row."""
     direction = str(row.get("direction", "")).strip().upper()
     if direction not in {"BENEFIT", "HARM"}:
         return None
@@ -774,8 +786,17 @@ def _row_admitted_numeric_welfare(row: dict[str, Any]) -> float | None:
     numbers = _magnitude_numbers(row.get("magnitude", ""))
     if not numbers:
         return None
-    signed = probability * max(numbers)
-    return signed if direction == "BENEFIT" else -signed
+    return float(probability), float(max(numbers)), direction == "BENEFIT"
+
+
+def _row_admitted_numeric_welfare(row: dict[str, Any]) -> float | None:
+    """Signed welfare only when probability and magnitude are both numeric."""
+    term = _row_admitted_numeric_term(row)
+    if term is None:
+        return None
+    probability, magnitude, benefit = term
+    signed = probability * magnitude
+    return signed if benefit else -signed
 
 
 def _row_is_closed_world_welfare(row: dict[str, Any]) -> bool:
@@ -806,6 +827,26 @@ def _admitted_numeric_remainder(
     return list(dict.fromkeys(leftovers))[:8]
 
 
+def _admitted_numeric_terms_by_action(
+    table: dict[str, list[dict[str, Any]]],
+    actions: Sequence[str],
+) -> dict[str, list[tuple[float, float, bool]]] | None:
+    """Per-action admitted (probability, magnitude, benefit) terms, or None."""
+    admitted = admitted_utilitarian_consequence_table(table)
+    by_action: dict[str, list[tuple[float, float, bool]]] = {}
+    for action in actions:
+        terms: list[tuple[float, float, bool]] = []
+        for row in admitted.get(action) or []:
+            term = _row_admitted_numeric_term(row)
+            if term is None:
+                continue
+            terms.append(term)
+        if not terms:
+            return None
+        by_action[action] = terms
+    return by_action
+
+
 def _admitted_numeric_nets(
     table: dict[str, list[dict[str, Any]]],
     actions: Sequence[str],
@@ -814,19 +855,60 @@ def _admitted_numeric_nets(
 
     Neutral process rows and incommensurable leftover harms do not veto the
     comparison. An action with no numeric welfare row still cannot rank.
+    SymPy must confirm each action net before the float ranking is trusted.
     """
-    admitted = admitted_utilitarian_consequence_table(table)
+    by_action = _admitted_numeric_terms_by_action(table, actions)
+    if by_action is None:
+        return None
     nets: dict[str, float] = {}
-    for action in actions:
+    for action, terms in by_action.items():
         values = [
-            value
-            for row in admitted.get(action) or []
-            if (value := _row_admitted_numeric_welfare(row)) is not None
+            (probability * magnitude) if benefit else -(probability * magnitude)
+            for probability, magnitude, benefit in terms
         ]
-        if not values:
+        claimed = sum(values)
+        if not verify_net_from_terms(claimed, terms).ok:
             return None
-        nets[action] = sum(values)
+        nets[action] = claimed
     return nets
+
+
+def closed_world_ranking_certificate(
+    actions: Sequence[str],
+    table: dict[str, list[dict[str, Any]]] | None,
+    *,
+    leader: str | None = None,
+    probability_interval: tuple[float | int, float | int] | None = None,
+) -> dict[str, Any] | None:
+    """Derived SymPy ranking certificate for a unique closed-world leader.
+
+    Not world-state truth: a serializable witness (gap, assumptions, optional
+    one-variable boundary, optional interval robustness when the caller
+    supplies ``probability_interval``). Returns None when ranking is not
+    uniquely certified.
+    """
+    if not actions or not table:
+        return None
+    nets = _admitted_numeric_nets(table, actions)
+    if nets is None:
+        return None
+    winner = leader or _unique_extreme_action(nets, prefer_higher=True)
+    if winner is None:
+        return None
+    challenger = certificate_challenger(nets, winner)
+    if challenger is None:
+        return None
+    terms_by_action = _admitted_numeric_terms_by_action(table, actions)
+    if terms_by_action is None:
+        return None
+    certificate = build_ranking_certificate(
+        leader=winner,
+        challenger=challenger,
+        leader_terms=terms_by_action[winner],
+        challenger_terms=terms_by_action[challenger],
+        probability_interval=probability_interval,
+    )
+    return None if certificate is None else certificate.as_dict()
 
 
 def _unique_extreme_action(
@@ -1458,6 +1540,7 @@ def _candidate_from_data(
     closed_world_leader: str | None = None
     closed_world_reversal_note = ""
     utilitarian_settled_remainder: list[str] = []
+    utilitarian_ranking_certificate: dict[str, Any] = {}
     deontological_ledger_proposal: dict[str, Any] = {}
     care_ledger_proposal: dict[str, Any] = {}
     utilitarian_fields_present = specialist == "utilitarian" and any(
@@ -1575,6 +1658,12 @@ def _candidate_from_data(
         if closed_world_leader is not None:
             utilitarian_settled_remainder = _admitted_numeric_remainder(
                 utilitarian_consequence_table, actions,
+            )
+            utilitarian_ranking_certificate = (
+                closed_world_ranking_certificate(
+                    actions, utilitarian_consequence_table,
+                    leader=closed_world_leader,
+                ) or {}
             )
         if closed_world_leader is not None and utilitarian_depends_on_unknown:
             if _semantic_word_count(utilitarian_missing_comparison) >= 3:
@@ -2453,6 +2542,7 @@ def _candidate_from_data(
                 "utilitarian graph updates must use exactly one clause"
             )
     from .epistemic_ledger import grounded_numeric_literals
+    from .world_state import quantity_precision_escalation_errors
 
     grounded_numbers = grounded_numeric_literals(
         scenario_text, *actions, records=available_propositions or (),
@@ -2477,6 +2567,27 @@ def _candidate_from_data(
             "to_action": "NONE", "clauses": [],
         }
         graph_clauses = []
+    precision_claims = [factual_threshold]
+    if isinstance(graph_clauses, list):
+        precision_claims.extend(
+            str(clause.get("threshold") or "")
+            for clause in graph_clauses
+            if isinstance(clause, dict)
+        )
+    for claim in precision_claims:
+        for message in quantity_precision_escalation_errors(
+            source_texts=(scenario_text, *actions),
+            claim_text=claim,
+        ):
+            if message not in framework_validation_errors:
+                framework_validation_errors.append(message)
+            factual_threshold = "NONE"
+            graph_update = {
+                "operation": "NONE", "from_action": "NONE",
+                "to_action": "NONE", "clauses": [],
+            }
+            graph_clauses = []
+            break
     if specialist == "utilitarian" and graph_update.get("operation") != "NONE":
         utilitarian_graph_errors: list[str] = []
         if graph_update.get("operation") not in {"BOUNDARY"}:
@@ -2534,6 +2645,13 @@ def _candidate_from_data(
             utilitarian_settled_remainder = _admitted_numeric_remainder(
                 utilitarian_consequence_table, actions,
             )
+            if not utilitarian_ranking_certificate:
+                utilitarian_ranking_certificate = (
+                    closed_world_ranking_certificate(
+                        actions, utilitarian_consequence_table,
+                        leader=closed_world_leader,
+                    ) or {}
+                )
         if closed_world_leader is not None and utilitarian_depends_on_unknown:
             if (
                 not closed_world_reversal_note
@@ -3369,6 +3487,7 @@ def _candidate_from_data(
         utilitarian_decision_depends_on_unknown=utilitarian_depends_on_unknown,
         utilitarian_missing_comparison=utilitarian_missing_comparison,
         utilitarian_incommensurable_remainder=utilitarian_settled_remainder,
+        utilitarian_ranking_certificate=utilitarian_ranking_certificate,
         utilitarian_ledger_proposal=utilitarian_ledger_proposal,
         rawls_position_proposal=rawls_position_proposal,
         deontological_ledger_proposal=deontological_ledger_proposal,
@@ -7267,7 +7386,7 @@ def _compact_testimony(testimony: str, limit: int) -> str:
     return f"{compact[:head_size]} ... {compact[-tail_size:]}"
 
 
-def propose_actions(llm: Any, scenario: str, max_tokens: int = 128) -> list[str]:
+def propose_actions(llm: Any, scenario: str, max_tokens: int = 512) -> list[str]:
     explicit_actions = extract_explicit_actions(scenario)
     if explicit_actions:
         _validate_lossless_action_set(explicit_actions, scenario)
@@ -7350,15 +7469,17 @@ waiting, authorities, escape, rescue, or resources. Preserve genuinely closed ch
         return actions
     except (ValueError, json.JSONDecodeError) as first_error:
         repair_prompt = f"""[INST]
-Repair this action plan: {raw[:400]}
+Repair this action plan: {raw[:800]}
 Return JSON only: {{"actor":"one decision-maker from the scenario","sides":{{"A":"first ethical side","B":"competing ethical side"}},
-"actions":[{{"a":"short action","f":0.9,"e":true,"p":"SIDE_A"}},
-{{"a":"opposing action","f":0.9,"e":true,"p":"SIDE_B"}}]}}
+"actions":[{{"a":"complete action preserving all decision-critical consequences and constraints","f":0.9,"e":true,"p":"SIDE_A"}},
+{{"a":"opposing complete action","f":0.9,"e":true,"p":"SIDE_B"}}]}}
 Keep feasible actions available without invented facts. Represent both sides.
 Reject multiple tactics that all advance the same ethical position.
 Do not turn an individual's dilemma into an institutional policy menu.
 Return exactly the two opposing actions. Remove compromises and middle options;
 the recurrent workspace may generate one later if disagreement warrants synthesis.
+Do not truncate mid-clause. Do not end an action on a bare adjective or determiner
+(e.g. "Trigger an immediate" is incomplete).
 [/INST]"""
         repaired = _call_json_llm(
             llm,
@@ -7472,6 +7593,7 @@ def ground_actions_in_scenario(
                     "enum": [
                         "DIRECT_COPY", "SOURCE_STIPULATED_CAUSAL",
                         "STRUCTURAL_ABSTRACTION", "COUNTERFACTUAL_PROJECTION",
+                        "AVERTED_ALTERNATIVE_HARM",
                     ],
                 },
                 "derivation_explanation": {"type": "string", "maxLength": 240},
@@ -7550,7 +7672,14 @@ INSTITUTION, INFRASTRUCTURE, or other non-welfare-bearing party must have polari
 NEUTRAL; put BENEFICIAL or ADVERSE on the later health, welfare, or liberty effect.
 A DIRECT INTERVENTION or INSTITUTIONAL_OUTCOME on a human recipient may be
 BENEFICIAL or ADVERSE. Give every stipulated direct survival, death, receipt, denial,
-or other immediate effect its own action-specific effect. Separate downstream and
+or other immediate effect its own action-specific effect. When a source clause
+states a binary contrast (execute X to guarantee survival, or refrain at the
+cost of loss of life), each side's life-stake consequence must appear as an
+effect on the matching action — or as an explicit UNRESOLVED quarantine —
+never silently omitted and later reintroduced as a hypothesis. When a stipulated
+consequence names an explicit quantity (thousands of lives, decades of research),
+copy that span onto the matched effect's quantities (or the population party).
+Separate downstream and
 foregone effects. CERTAIN means the outcome itself is stipulated; foregoing a
 research opportunity may be certain while the success and population benefit of
 that research remain STIPULATED_CONDITIONAL, PROBABILISTIC, POSSIBLE, or UNKNOWN.
@@ -7591,7 +7720,11 @@ for a NEUTRAL non-welfare intermediate needed to preserve the source's causal
 topology; it must retain a lexical anchor from the quoted proposition and list its
 same-action immediate parent. Use COUNTERFACTUAL_PROJECTION
 only for a FOREGONE row and list the alternative actual effect named by its
-counterfactual_link. derivation_assumptions must be empty and
+counterfactual_link. Use AVERTED_ALTERNATIVE_HARM for a BENEFICIAL CERTAIN
+row that inherits quantities from a mutually exclusive CERTAIN ADVERSE
+alternative via a PRECLUDES/FOREGOES counterfactual edge and source_effect_ids;
+do not copy that magnitude onto the survival row as DIRECT_COPY source support.
+derivation_assumptions must be empty and
 outcome_type_transformation must be PRESERVED. If reaching an outcome requires an
 unstated assumption, a new outcome type (for example trapped to dead), or an
 unsupported calculation, omit it from the admitted world rather than disguising it
@@ -7616,7 +7749,10 @@ the clause predicate (fails, blocked, escape), not the first following noun or a
 light verb (being); copy that percent-chance hedge onto the process or outcome
 row it modifies. Do not invent probabilities, QALYs, counts, or qualifiers.
 Return schema_version="1.3". Effects must be atomic: one affected party, one outcome,
-and one causal stage per effect. An immediate action target, an intermediate system
+and one causal stage per effect. Each outcome must be a finished predicate
+(state or event), never a dangling copula or preposition such as "purge is" or
+"sent to"; prefer "is purged", "emergency purge executed", or an exact finished
+source span. An immediate action target, an intermediate system
 state, and the people ultimately helped or harmed are distinct parties/effects.
 Named individuals use kind PERSON or HUMAN; crowds use GROUP or POPULATION;
 intermediate systems use FACILITY, INSTITUTION, or PROCESS. recipient_party_ids
@@ -7814,6 +7950,54 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
         best_rejected_result = copy.deepcopy(refreshed)
         best_rejected_candidate = copy.deepcopy(prior_candidate)
         best_rejected_cost = rejection_cost(refreshed)
+        # Mechanical quantity attaches: known effect_id + missing span.
+        # Prefer this over asking the model to rediscover the whole world.
+        if not should_skip_deterministic_local_patch(seeded_issues):
+            before_cache_issues = list(seeded_issues)
+            patched_cache, applied_cache = apply_deterministic_local_patches(
+                prior_candidate,
+                seeded_issues,
+                clauses=list(clauses),
+            )
+            if applied_cache and isinstance(patched_cache, dict):
+                patched_admit = annotate_admit_with_repair_no_effect(
+                    _admit_action_source_rows(
+                        patched_cache, actions, action_ids, clauses,
+                        allow_action_text_evidence=allow_action_text_evidence,
+                    ),
+                    before_issues=before_cache_issues,
+                    applied_patches=applied_cache,
+                )
+                if patched_admit.get("status") == "COMMITTED":
+                    patched_admit["attempts"] = [{
+                        "attempt": 0,
+                        "repair_scope": DETERMINISTIC_LOCAL_PATCH,
+                        "inherited_candidate": True,
+                        "rebuild_action_ids": [],
+                        "errors": [],
+                        "validation_issues": [],
+                        "repair_delta": {
+                            "deterministic_patches": applied_cache,
+                        },
+                    }]
+                    patched_admit["repair_attempts"] = 0
+                    patched_admit["next_repair_scope"] = "NONE"
+                    patched_admit["next_rebuild_action_ids"] = []
+                    patched_admit["repair_inheritance"] = {
+                        "source": prior_source,
+                        "initial_scope": DETERMINISTIC_LOCAL_PATCH,
+                        "candidate_inherited": True,
+                        "rebuild_action_ids": [],
+                    }
+                    return patched_admit
+                seeded_errors = list(patched_admit.get("errors") or seeded_errors)
+                seeded_issues = list(
+                    patched_admit.get("validation_issues") or seeded_issues
+                )
+                prior_candidate = patched_cache
+                best_rejected_result = copy.deepcopy(patched_admit)
+                best_rejected_candidate = copy.deepcopy(patched_cache)
+                best_rejected_cost = rejection_cost(patched_admit)
     if seeded_errors or seeded_issues:
         active_repair_scope = classify_world_repair_scope(
             seeded_issues,
@@ -7827,6 +8011,13 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
         if active_repair_scope != FULL_REBUILD:
             repair_base_candidate = prior_candidate
             rejected_candidate = prior_candidate
+        seeded_contract = repair_patch_contract(
+            seeded_issues,
+            errors=seeded_errors,
+            candidate=prior_candidate,
+            clauses=list(clauses),
+        )
+        guidance_prompt = str(seeded_contract.get("guidance_prompt") or "").strip()
         repair_note = (
             "\n\nA previous generator was rejected by deterministic validation for: "
             + "; ".join(seeded_errors)
@@ -7834,13 +8025,17 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
             + json.dumps(seeded_issues, ensure_ascii=False, sort_keys=True)
             + "\nTransactional repair boundary:\n"
             + json.dumps(
-                repair_patch_contract(
-                    seeded_issues,
-                    errors=seeded_errors,
-                    candidate=prior_candidate,
-                ),
+                {
+                    key: value for key, value in seeded_contract.items()
+                    if key not in {"guidance_cards", "guidance_prompt"}
+                },
                 ensure_ascii=False,
                 sort_keys=True,
+            )
+            + (
+                "\nRepair guidance cards (apply exactly one patch per issue):\n"
+                + guidance_prompt
+                if guidance_prompt else ""
             )
             + "\nDo not repeat those errors."
         )
@@ -7871,286 +8066,503 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                     repair_base_candidate, ensure_ascii=False, sort_keys=True,
                 )
             )
-    for attempt in range(1, max(1, max_attempts) + 1):
-        repair_delta: dict[str, Any] = {}
-        generated_candidate = False
-        inherited_candidate = repair_base_candidate is not None
-        previous_errors = (
-            list(attempts[-1]["errors"]) if attempts else list(seeded_errors)
-        )
-        previous_issues = (
-            list(attempts[-1].get("validation_issues") or [])
-            if attempts else list(seeded_issues)
-        )
-        try:
-            call_prompt = (
-                prompt if not repair_note
-                else prompt.replace("\n[/INST]", repair_note + "\n[/INST]", 1)
-            )
-            output = _call_json_llm(
-                llm, call_prompt, max_tokens=max(6144, max_tokens),
-                temperature=0.0, schema=schema,
-                call_kind=(
-                    call_kind_primary
-                    if attempt == 1 else "world_grounding_repair"
-                ),
-                call_metadata={"attempt": attempt},
-            )
-            raw = (
-                output["choices"][0]["text"]
-                if isinstance(output, dict) else str(output)
-            )
-            candidate = _extract_json(raw)
-            generated_candidate = True
-            repair_delta: dict[str, Any] = {}
-            if repair_base_candidate is not None:
-                candidate = _preserve_stable_world_bookkeeping(
-                    repair_base_candidate, candidate,
-                    previous_errors=previous_errors,
-                    previous_issues=previous_issues,
-                    rebuild_action_ids=active_rebuild_action_ids,
-                )
-                repair_delta = compute_repair_delta(
-                    repair_base_candidate, candidate,
-                    previous_errors=previous_errors,
-                    previous_issues=previous_issues,
-                    rebuild_action_ids=active_rebuild_action_ids,
-                )
-            rejected_candidate = candidate
-            result = _admit_action_source_rows(
-                candidate, actions, action_ids, clauses,
-                allow_action_text_evidence=allow_action_text_evidence,
-            )
-            illegal = list(repair_delta.get("illegal_drops") or [])
-            if illegal:
-                result = {
-                    **result,
-                    "status": "REJECTED",
-                    "errors": list(result.get("errors") or []) + illegal,
-                }
-        except Exception as exc:
-            result = {
-                "status": "REJECTED", "actions": {},
-                "errors": [
-                    f"action-source mapping failed: {type(exc).__name__}: {exc}"
-                ],
-                "validation_issues": list(previous_issues),
-                "clauses": list(clauses),
-            }
-        attempt_errors = list(result["errors"])
-        if result.get("world_contradictions"):
-            attempt_errors.extend(
-                "contradictory direct effects: " + ", ".join(group)
-                for group in result["world_contradictions"]
-            )
-        attempts.append({
-            "attempt": attempt,
-            "repair_scope": active_repair_scope,
-            "inherited_candidate": inherited_candidate,
-            "rebuild_action_ids": list(active_rebuild_action_ids),
-            "errors": attempt_errors,
-            "validation_issues": list(result.get("validation_issues") or []),
-            "repair_delta": repair_delta,
-        })
+        # Mechanical quantity attach when the card already names effect + span.
         if (
-            result.get("status") != "COMMITTED"
-            and isinstance(rejected_candidate, dict)
+            repair_base_candidate is not None
+            and seeded_issues
+            and active_repair_scope != FULL_REBUILD
+            and not should_skip_deterministic_local_patch(seeded_issues)
         ):
-            current_cost = rejection_cost(result)
-            if best_rejected_cost is None or current_cost <= best_rejected_cost:
-                best_rejected_cost = current_cost
-                best_rejected_result = copy.deepcopy(result)
-                best_rejected_candidate = copy.deepcopy(rejected_candidate)
-        if generated_candidate and result.get("status") != "COMMITTED":
-            rejected_candidate_history.append({
+            before_seed_issues = list(seeded_issues)
+            patched_seed, applied_seed = apply_deterministic_local_patches(
+                repair_base_candidate,
+                seeded_issues,
+                clauses=list(clauses),
+            )
+            if applied_seed and isinstance(patched_seed, dict):
+                seed_admit = annotate_admit_with_repair_no_effect(
+                    _admit_action_source_rows(
+                        patched_seed, actions, action_ids, clauses,
+                        allow_action_text_evidence=allow_action_text_evidence,
+                    ),
+                    before_issues=before_seed_issues,
+                    applied_patches=applied_seed,
+                )
+                seed_errors = list(seed_admit.get("errors") or [])
+                if seed_admit.get("world_contradictions"):
+                    seed_errors.extend(
+                        "contradictory direct effects: " + ", ".join(group)
+                        for group in seed_admit["world_contradictions"]
+                    )
+                attempts.append({
+                    "attempt": 0,
+                    "repair_scope": DETERMINISTIC_LOCAL_PATCH,
+                    "inherited_candidate": True,
+                    "rebuild_action_ids": list(active_rebuild_action_ids),
+                    "errors": seed_errors,
+                    "validation_issues": list(
+                        seed_admit.get("validation_issues") or []
+                    ),
+                    "repair_delta": {
+                        "deterministic_patches": applied_seed,
+                        **({
+                            "repair_no_effect": seed_admit.get("repair_no_effect"),
+                        } if seed_admit.get("repair_no_effect") else {}),
+                    },
+                })
+                rejected_candidate = patched_seed
+                repair_base_candidate = patched_seed
+                if seed_admit.get("status") == "COMMITTED":
+                    result = seed_admit
+                else:
+                    seeded_errors = seed_errors
+                    seeded_issues = list(
+                        seed_admit.get("validation_issues") or seeded_issues
+                    )
+                    current_cost = rejection_cost(seed_admit)
+                    if (
+                        best_rejected_cost is None
+                        or current_cost <= best_rejected_cost
+                    ):
+                        best_rejected_cost = current_cost
+                        best_rejected_result = copy.deepcopy(seed_admit)
+                        best_rejected_candidate = copy.deepcopy(patched_seed)
+                    seeded_contract = repair_patch_contract(
+                        seeded_issues,
+                        errors=seeded_errors,
+                        candidate=patched_seed,
+                        clauses=list(clauses),
+                    )
+                    active_repair_scope = classify_world_repair_scope(
+                        seeded_issues,
+                        errors=seeded_errors,
+                        candidate=patched_seed,
+                    )
+                    active_rebuild_action_ids = (
+                        implicated_action_ids(seeded_issues, patched_seed)
+                        if active_repair_scope == SUBGRAPH_REBUILD else ()
+                    )
+                    guidance_prompt = str(
+                        seeded_contract.get("guidance_prompt") or ""
+                    ).strip()
+                    repair_note = (
+                        "\n\nA previous generator was rejected by deterministic "
+                        "validation for: "
+                        + "; ".join(seeded_errors)
+                        + "\nTyped validation issues:\n"
+                        + json.dumps(
+                            seeded_issues, ensure_ascii=False, sort_keys=True,
+                        )
+                        + "\nTransactional repair boundary:\n"
+                        + json.dumps(
+                            {
+                                key: value
+                                for key, value in seeded_contract.items()
+                                if key not in {
+                                    "guidance_cards", "guidance_prompt",
+                                }
+                            },
+                            ensure_ascii=False,
+                            sort_keys=True,
+                        )
+                        + (
+                            "\nRepair guidance cards "
+                            "(apply exactly one patch per issue):\n"
+                            + guidance_prompt
+                            if guidance_prompt else ""
+                        )
+                        + "\nDo not repeat those errors."
+                        + (
+                            "\nSUBGRAPH_REBUILD: reconstruct the complete "
+                            "causal component(s) for "
+                            f"{', '.join(active_rebuild_action_ids) or 'the implicated actions'}. "
+                            "Preserve canonical actions, source clauses, parties, "
+                            "and unaffected action branches."
+                            if active_repair_scope == SUBGRAPH_REBUILD
+                            else
+                            "\nLOCAL_PATCH: change only the fields and entities "
+                            "implicated by the typed validation issues."
+                        )
+                        + "\nRepair the rejected candidate below. Preserve every "
+                        "field not implicated by those validation errors.\n"
+                        "Rejected candidate JSON:\n"
+                        + json.dumps(
+                            patched_seed, ensure_ascii=False, sort_keys=True,
+                        )
+                    )
+    if result.get("status") != "COMMITTED":
+        for attempt in range(1, max(1, max_attempts) + 1):
+            repair_delta: dict[str, Any] = {}
+            generated_candidate = False
+            inherited_candidate = repair_base_candidate is not None
+            previous_errors = (
+                list(attempts[-1]["errors"]) if attempts else list(seeded_errors)
+            )
+            previous_issues = (
+                list(attempts[-1].get("validation_issues") or [])
+                if attempts else list(seeded_issues)
+            )
+            try:
+                call_prompt = (
+                    prompt if not repair_note
+                    else prompt.replace("\n[/INST]", repair_note + "\n[/INST]", 1)
+                )
+                output = _call_json_llm(
+                    llm, call_prompt, max_tokens=max(6144, max_tokens),
+                    temperature=0.0, schema=schema,
+                    call_kind=(
+                        call_kind_primary
+                        if attempt == 1 else "world_grounding_repair"
+                    ),
+                    call_metadata={"attempt": attempt},
+                )
+                raw = (
+                    output["choices"][0]["text"]
+                    if isinstance(output, dict) else str(output)
+                )
+                candidate = _extract_json(raw)
+                generated_candidate = True
+                repair_delta = {}
+                if repair_base_candidate is not None:
+                    candidate = _preserve_stable_world_bookkeeping(
+                        repair_base_candidate, candidate,
+                        previous_errors=previous_errors,
+                        previous_issues=previous_issues,
+                        rebuild_action_ids=active_rebuild_action_ids,
+                    )
+                    repair_delta = compute_repair_delta(
+                        repair_base_candidate, candidate,
+                        previous_errors=previous_errors,
+                        previous_issues=previous_issues,
+                        rebuild_action_ids=active_rebuild_action_ids,
+                    )
+                rejected_candidate = candidate
+                result = _admit_action_source_rows(
+                    candidate, actions, action_ids, clauses,
+                    allow_action_text_evidence=allow_action_text_evidence,
+                )
+                illegal = list(repair_delta.get("illegal_drops") or [])
+                if illegal:
+                    result = {
+                        **result,
+                        "status": "REJECTED",
+                        "errors": list(result.get("errors") or []) + illegal,
+                    }
+            except Exception as exc:
+                result = {
+                    "status": "REJECTED", "actions": {},
+                    "errors": [
+                        f"action-source mapping failed: "
+                        f"{type(exc).__name__}: {exc}"
+                    ],
+                    "validation_issues": list(previous_issues),
+                    "clauses": list(clauses),
+                }
+            attempt_errors = list(result["errors"])
+            if result.get("world_contradictions"):
+                attempt_errors.extend(
+                    "contradictory direct effects: " + ", ".join(group)
+                    for group in result["world_contradictions"]
+                )
+            attempts.append({
                 "attempt": attempt,
                 "repair_scope": active_repair_scope,
                 "inherited_candidate": inherited_candidate,
                 "rebuild_action_ids": list(active_rebuild_action_ids),
-                "candidate": copy.deepcopy(rejected_candidate),
+                "errors": attempt_errors,
+                "validation_issues": list(result.get("validation_issues") or []),
+                "repair_delta": repair_delta,
             })
-        if result["status"] == "COMMITTED":
-            break
-        next_repair_contract = repair_patch_contract(
-            result.get("validation_issues") or [],
-            errors=attempt_errors,
-            candidate=rejected_candidate,
-        )
-        active_repair_scope = str(
-            next_repair_contract.get("repair_scope") or LOCAL_PATCH
-        )
-        active_rebuild_action_ids = tuple(
-            str(value)
-            for value in next_repair_contract.get("implicated_action_ids") or []
-            if value
-        )
-        repair_base_candidate = (
-            rejected_candidate if active_repair_scope != FULL_REBUILD else None
-        )
-        if active_repair_scope == SUBGRAPH_REBUILD:
-            scope_instruction = (
-                "SUBGRAPH_REBUILD: reconstruct the complete causal component(s) "
-                f"for {', '.join(active_rebuild_action_ids) or 'the implicated actions'}. "
-                "Preserve canonical actions, source clauses, parties, and unaffected "
-                "action branches. Do not retain a malformed intervention root merely "
-                "because its ID already exists. You may add, replace, or remove effects, "
-                "conditions, causal links, and counterfactual links owned by the named "
-                "component(s). Reuse an ID only when its semantic identity is unchanged."
-            )
-        elif active_repair_scope == FULL_REBUILD:
-            scope_instruction = (
-                "FULL_REBUILD: do not inherit the rejected candidate. Generate a new "
-                "complete model from the canonical actions and source clauses."
-            )
-        else:
-            scope_instruction = (
-                "LOCAL_PATCH: change only the fields and entities implicated by the "
-                "typed validation issues."
-            )
-        repair_note = (
-            "\n\nA previous attempt was rejected by deterministic validation for: "
-            + "; ".join(attempt_errors)
-            + "\nTyped validation issues:\n"
-            + json.dumps(
-                result.get("validation_issues") or [],
-                ensure_ascii=False,
-                sort_keys=True,
-            )
-            + "\nTransactional repair boundary:\n"
-            + json.dumps(
-                next_repair_contract,
-                ensure_ascii=False,
-                sort_keys=True,
-            )
-            + "\nRepair inheritance scope:\n"
-            + scope_instruction
-            + "\nRepair the rejected candidate below. Preserve every field not "
-            "implicated by those validation errors; do not regenerate the model "
-            "from scratch. Keep existing IDs and already-valid records stable. "
-            "Unless a listed error names them, keep counterfactual_links and "
-            "FOREGONE OPPORTUNITY_LOSS rows unchanged; do not drop an already-valid "
-            "overlay to repair an unrelated DIRECT or recipient error. Unless a "
-            "listed error names them, keep probabilities, quantities, risk "
-            "effects, conditions, counterfactual overlays, and source citations. "
-            "Keep human "
-            "recipients of a transfer or assignment; do not replace them with the "
-            "transferred RESOURCE to satisfy the atomic DIRECT rule."
-            + "\nEach action must cite at least one clause that no other action "
-            "cites. Shared background clauses are still permitted alongside it. "
-            "For contradictory direct effects, re-read the cited clauses and remove "
-            "the incorrectly assigned effect rather than weakening its modality. "
-            "If a downstream health or welfare outcome is caused directly by another "
-            "person's framing, execution, or death, reparent it: the immediate parent "
-            "must be a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE "
-            "state. That intermediate may be PHYSICAL_STATE, OTHER, or "
-            "INSTITUTIONAL_OUTCOME on the process bearer; INSTITUTIONAL_OUTCOME on "
-            "the human patient is not the intermediate. Keep the person's act on "
-            "the path to that process, not as the parent of the crowd's health. "
-            "If the source names a facility or resource with no process-state "
-            "effect, that party is a plausible missing intermediate — confirm "
-            "from the source before inserting; unused is not automatically "
-            "the correct parent. Do not reparent onto an unrelated existing "
-            "process. "
-            "Do not delete the downstream human row or drop its causal_link without "
-            "a replacement parent; insert or reuse a process state as the new parent. "
-            "A crowd's use, remaining, occupancy, or travel is the mediated process, "
-            "not a human outcome; keep the link from the DIRECT transfer to that "
-            "process even when the transfer recipient is a different group. "
-            "If a downstream health or welfare outcome has no path to this action's "
-            "DIRECT intervention, transfer, or juridical act through an "
-            "action-mediated process, add that mediated link. If the source says "
-            "the intervention may cause a stochastic process, connect that process "
-            "from the DIRECT act. If the source stipulates an independent "
-            "background event, do not parent it from the intervention and do "
-            "not parent the human outcome from that event. Gate the "
-            "action-mediated path with a condition whose event_effect_id is "
-            "that event; keep the probability on the event; type the gated "
-            "outcome STIPULATED_CONDITIONAL. Do not restate the event as "
-            "disconnected free-text. A source 'does not increase' that risk "
-            "uses DOES_NOT_INCREASE. Crowd use/remain rows are NEUTRAL. "
-            "If the association is ambiguous, do not invent causation; generate the "
-            "missing mediated branch. DIRECT effects "
-            "belong only on the actor or a named recipient. A later party's "
-            "road use, remaining, or assist is DOWNSTREAM, not INTERVENTION; "
-            "do not add them as a recipient to make an INTERVENTION row DIRECT. "
-            "Recast that row as DOWNSTREAM PHYSICAL_STATE, OTHER, or "
-            "WELFARE_OUTCOME. Assignment or allocation of that party may be a "
-            "separate DIRECT INTERVENTION with them as recipient. A transferred "
-            "RESOURCE is not a recipient; name the receiving person or crowd and "
-            "give them DIRECT RESOURCE_TRANSFER. "
-            "The immediate object "
-            "of demolition, repair, diversion, or shutdown may be a recipient "
-            "(FACILITY, INFRASTRUCTURE, PROCESS, or RESOURCE); later crowds may "
-            "not. Named patients may be PERSON or HUMAN. "
-            "A framing or false-attribution source still needs a DIRECT "
-            "INSTITUTIONAL_OUTCOME on that patient. If two population quantities "
-            "appear in one clause, attach each only to the party that uniquely "
-            "matches that quantity's local noun phrase; do not copy both onto one "
-            "party, and do not retarget causal_links to satisfy quantity errors. "
-            "Hyphenated or spaced cardinals are one count; do not also copy the "
-            "inner five or thousand. "
-            "A count already recorded on a party may appear on that party's effects "
-            "when the cited clause refers to the group without repeating the numeral; "
-            "do not copy it onto a different party. "
-            "An unhedged indicative consequence is CERTAIN. Do not invent a residual "
-            "failure mode or a condition that restates an immediate parent. A source "
-            "chance hedge (almost certain, near-certain, 20% chance) means the row "
-            "is PROBABILISTIC or POSSIBLE, not CERTAIN. Occupying an at-risk "
-            "situation remains CERTAIN. A source "
-            "likelihood hedge may replace a named condition: copy the longest "
-            "span onto likelihood_qualifiers of the modified outcome only "
-            "('almost no chance', 'remote chance', or '30% chance', not also "
-            "'chance' or '30%'), including when the source omits the space in "
-            "'20%chance': keep the literal span and the normalized '20% chance'. "
-            "Do not copy the same chance identity twice. "
-            "Do not copy a percent chance onto quantities[]. "
-            "'at risk' / 'at moderate risk' on an AT_RISK or EXPOSED row is a "
-            "CERTAIN situation qualifier; it is a likelihood hedge only when it "
-            "modifies a distinct harm ('at high risk of dying'). "
-            "FOREGONE rows use effect_kind "
-            "OPPORTUNITY_LOSS. If opposed stipulated welfare on a non-recipient "
-            "party has no FOREGONE overlay, add only those FOREGONE rows and "
-            "counterfactual_links; do not retarget causal_links or use FOREGONE "
-            "effects as causal endpoints. If the overlays are already present and "
-            "valid, keep them. If a causal_link uses PREVENTS between "
-            "two actual effects whose polarities are both BENEFICIAL or both "
-            "ADVERSE, change only link_relation to CAUSES; do not retarget "
-            "endpoints, add or remove effects, or move the edge onto "
-            "counterfactual_links. Cite every FACT clause of a DIRECT "
-            "assignment or transfer, including a named subgroup. "
-            "Effects need a non-empty outcome and "
-            "predicate. Causal links use link_relation, not relation. Copy a "
-            "qualifier only when it modifies that atomic outcome; a human-outcome "
-            "hedge must not land on a sibling process row in the same clause, "
-            "even if they share a crowd noun. A chance/risk complement binds to "
-            "the clause predicate, not the first noun or a light verb; keep the "
-            "percent-chance hedge on that process or outcome row. Delete invented "
-            "words such as widespread. "
-            "Correct exactly these problems and return the mapping again."
-            + (
-                "\nRejected candidate JSON:\n"
-                + json.dumps(
-                    repair_base_candidate, ensure_ascii=False, sort_keys=True,
+            if (
+                result.get("status") != "COMMITTED"
+                and isinstance(rejected_candidate, dict)
+            ):
+                current_cost = rejection_cost(result)
+                if best_rejected_cost is None or current_cost <= best_rejected_cost:
+                    best_rejected_cost = current_cost
+                    best_rejected_result = copy.deepcopy(result)
+                    best_rejected_candidate = copy.deepcopy(rejected_candidate)
+            if generated_candidate and result.get("status") != "COMMITTED":
+                rejected_candidate_history.append({
+                    "attempt": attempt,
+                    "repair_scope": active_repair_scope,
+                    "inherited_candidate": inherited_candidate,
+                    "rebuild_action_ids": list(active_rebuild_action_ids),
+                    "candidate": copy.deepcopy(rejected_candidate),
+                })
+            if result["status"] == "COMMITTED":
+                break
+            # After a model miss, apply mechanical quantity patches before the
+            # next prompt — the card already names effect_id and missing span.
+            if (
+                isinstance(rejected_candidate, dict)
+                and result.get("validation_issues")
+                and active_repair_scope != FULL_REBUILD
+                and not should_skip_deterministic_local_patch(
+                    result.get("validation_issues") or []
                 )
-                if repair_base_candidate is not None
-                else "\nNo rejected candidate is inherited for this full rebuild."
+            ):
+                before_mid_issues = list(result.get("validation_issues") or [])
+                patched_mid, applied_mid = apply_deterministic_local_patches(
+                    rejected_candidate,
+                    before_mid_issues,
+                    clauses=list(clauses),
+                )
+                if applied_mid and isinstance(patched_mid, dict):
+                    mid_admit = annotate_admit_with_repair_no_effect(
+                        _admit_action_source_rows(
+                            patched_mid, actions, action_ids, clauses,
+                            allow_action_text_evidence=allow_action_text_evidence,
+                        ),
+                        before_issues=before_mid_issues,
+                        applied_patches=applied_mid,
+                    )
+                    mid_errors = list(mid_admit.get("errors") or [])
+                    if mid_admit.get("world_contradictions"):
+                        mid_errors.extend(
+                            "contradictory direct effects: " + ", ".join(group)
+                            for group in mid_admit["world_contradictions"]
+                        )
+                    attempts.append({
+                        "attempt": attempt,
+                        "repair_scope": DETERMINISTIC_LOCAL_PATCH,
+                        "inherited_candidate": True,
+                        "rebuild_action_ids": list(active_rebuild_action_ids),
+                        "errors": mid_errors,
+                        "validation_issues": list(
+                            mid_admit.get("validation_issues") or []
+                        ),
+                        "repair_delta": {
+                            "deterministic_patches": applied_mid,
+                            **({
+                                "repair_no_effect": mid_admit.get(
+                                    "repair_no_effect"
+                                ),
+                            } if mid_admit.get("repair_no_effect") else {}),
+                        },
+                    })
+                    rejected_candidate = patched_mid
+                    if mid_admit.get("status") == "COMMITTED":
+                        result = mid_admit
+                        break
+                    result = mid_admit
+                    attempt_errors = mid_errors
+                    current_cost = rejection_cost(mid_admit)
+                    if (
+                        best_rejected_cost is None
+                        or current_cost <= best_rejected_cost
+                    ):
+                        best_rejected_cost = current_cost
+                        best_rejected_result = copy.deepcopy(mid_admit)
+                        best_rejected_candidate = copy.deepcopy(patched_mid)
+            next_repair_contract = repair_patch_contract(
+                result.get("validation_issues") or [],
+                errors=attempt_errors,
+                candidate=rejected_candidate,
+                clauses=list(clauses),
             )
-        )
-        if active_repair_scope == FULL_REBUILD:
+            next_repair_contract = apply_stuck_source_binding_scope(
+                next_repair_contract,
+                issues=result.get("validation_issues") or [],
+                candidate=rejected_candidate,
+                prior_attempt_scopes=[
+                    str(row.get("repair_scope") or "") for row in attempts
+                ],
+                prior_attempt_issue_codes=[
+                    [
+                        str(issue.get("code") or "")
+                        for issue in (row.get("validation_issues") or [])
+                        if isinstance(issue, dict)
+                    ]
+                    for row in attempts
+                ],
+            )
+            active_repair_scope = str(
+                next_repair_contract.get("repair_scope") or LOCAL_PATCH
+            )
+            active_rebuild_action_ids = tuple(
+                str(value)
+                for value in next_repair_contract.get("implicated_action_ids") or []
+                if value
+            )
+            repair_base_candidate = (
+                rejected_candidate if active_repair_scope != FULL_REBUILD else None
+            )
+            if active_repair_scope == SUBGRAPH_REBUILD:
+                scope_instruction = (
+                    "SUBGRAPH_REBUILD: reconstruct the complete causal component(s) "
+                    f"for {', '.join(active_rebuild_action_ids) or 'the implicated actions'}. "
+                    "Preserve canonical actions, source clauses, parties, and unaffected "
+                    "action branches. Do not retain a malformed intervention root merely "
+                    "because its ID already exists. You may add, replace, or remove effects, "
+                    "conditions, causal links, and counterfactual links owned by the named "
+                    "component(s). Reuse an ID only when its semantic identity is unchanged."
+                )
+            elif active_repair_scope == FULL_REBUILD:
+                scope_instruction = (
+                    "FULL_REBUILD: do not inherit the rejected candidate. Generate a new "
+                    "complete model from the canonical actions and source clauses."
+                )
+            else:
+                scope_instruction = (
+                    "LOCAL_PATCH: change only the fields and entities implicated by the "
+                    "typed validation issues."
+                )
+            guidance_prompt = str(
+                next_repair_contract.get("guidance_prompt") or ""
+            ).strip()
             repair_note = (
-                "\n\nThe previous attempt requires FULL_REBUILD and its candidate "
-                "must not be inherited. Generate a new complete model from the "
-                "canonical actions and scenario clauses. Correct these validation "
-                "errors:\n"
-                + "\n".join(f"- {error}" for error in attempt_errors)
+                "\n\nA previous attempt was rejected by deterministic validation for: "
+                + "; ".join(attempt_errors)
                 + "\nTyped validation issues:\n"
                 + json.dumps(
                     result.get("validation_issues") or [],
                     ensure_ascii=False,
                     sort_keys=True,
                 )
-                + "\nReturn the complete action mapping and world model again."
+                + "\nTransactional repair boundary:\n"
+                + json.dumps(
+                    {
+                        key: value for key, value in next_repair_contract.items()
+                        if key not in {"guidance_cards", "guidance_prompt"}
+                    },
+                    ensure_ascii=False,
+                    sort_keys=True,
+                )
+                + (
+                    "\nRepair guidance cards (apply exactly one patch per issue):\n"
+                    + guidance_prompt
+                    if guidance_prompt else ""
+                )
+                + "\nRepair inheritance scope:\n"
+                + scope_instruction
+                + "\nRepair the rejected candidate below. Preserve every field not "
+                "implicated by those validation errors; do not regenerate the model "
+                "from scratch. Keep existing IDs and already-valid records stable. "
+                "Unless a listed error names them, keep counterfactual_links and "
+                "FOREGONE OPPORTUNITY_LOSS rows unchanged; do not drop an already-valid "
+                "overlay to repair an unrelated DIRECT or recipient error. Unless a "
+                "listed error names them, keep probabilities, quantities, risk "
+                "effects, conditions, counterfactual overlays, and source citations. "
+                "Keep human "
+                "recipients of a transfer or assignment; do not replace them with the "
+                "transferred RESOURCE to satisfy the atomic DIRECT rule."
+                + "\nEach action must cite at least one clause that no other action "
+                "cites. Shared background clauses are still permitted alongside it. "
+                "For contradictory direct effects, re-read the cited clauses and remove "
+                "the incorrectly assigned effect rather than weakening its modality. "
+                "If a downstream health or welfare outcome is caused directly by another "
+                "person's framing, execution, or death, reparent it: the immediate parent "
+                "must be a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE "
+                "state. That intermediate may be PHYSICAL_STATE, OTHER, or "
+                "INSTITUTIONAL_OUTCOME on the process bearer; INSTITUTIONAL_OUTCOME on "
+                "the human patient is not the intermediate. Keep the person's act on "
+                "the path to that process, not as the parent of the crowd's health. "
+                "If the source names a facility or resource with no process-state "
+                "effect, that party is a plausible missing intermediate — confirm "
+                "from the source before inserting; unused is not automatically "
+                "the correct parent. Do not reparent onto an unrelated existing "
+                "process. "
+                "Do not delete the downstream human row or drop its causal_link without "
+                "a replacement parent; insert or reuse a process state as the new parent. "
+                "A crowd's use, remaining, occupancy, or travel is the mediated process, "
+                "not a human outcome; keep the link from the DIRECT transfer to that "
+                "process even when the transfer recipient is a different group. "
+                "If a downstream health or welfare outcome has no path to this action's "
+                "DIRECT intervention, transfer, or juridical act through an "
+                "action-mediated process, add that mediated link. If the source says "
+                "the intervention may cause a stochastic process, connect that process "
+                "from the DIRECT act. If the source stipulates an independent "
+                "background event, do not parent it from the intervention and do "
+                "not parent the human outcome from that event. Gate the "
+                "action-mediated path with a condition whose event_effect_id is "
+                "that event; keep the probability on the event; type the gated "
+                "outcome STIPULATED_CONDITIONAL. Do not restate the event as "
+                "disconnected free-text. A source 'does not increase' that risk "
+                "uses DOES_NOT_INCREASE. Crowd use/remain rows are NEUTRAL. "
+                "If the association is ambiguous, do not invent causation; generate the "
+                "missing mediated branch. DIRECT effects "
+                "belong only on the actor or a named recipient. A later party's "
+                "road use, remaining, or assist is DOWNSTREAM, not INTERVENTION; "
+                "do not add them as a recipient to make an INTERVENTION row DIRECT. "
+                "Recast that row as DOWNSTREAM PHYSICAL_STATE, OTHER, or "
+                "WELFARE_OUTCOME. Assignment or allocation of that party may be a "
+                "separate DIRECT INTERVENTION with them as recipient. A transferred "
+                "RESOURCE is not a recipient; name the receiving person or crowd and "
+                "give them DIRECT RESOURCE_TRANSFER. "
+                "The immediate object "
+                "of demolition, repair, diversion, or shutdown may be a recipient "
+                "(FACILITY, INFRASTRUCTURE, PROCESS, or RESOURCE); later crowds may "
+                "not. Named patients may be PERSON or HUMAN. "
+                "A framing or false-attribution source still needs a DIRECT "
+                "INSTITUTIONAL_OUTCOME on that patient. If two population quantities "
+                "appear in one clause, attach each only to the party that uniquely "
+                "matches that quantity's local noun phrase; do not copy both onto one "
+                "party, and do not retarget causal_links to satisfy quantity errors. "
+                "Hyphenated or spaced cardinals are one count; do not also copy the "
+                "inner five or thousand. "
+                "A count already recorded on a party may appear on that party's effects "
+                "when the cited clause refers to the group without repeating the numeral; "
+                "do not copy it onto a different party. "
+                "An unhedged indicative consequence is CERTAIN. Do not invent a residual "
+                "failure mode or a condition that restates an immediate parent. A source "
+                "chance hedge (almost certain, near-certain, 20% chance) means the row "
+                "is PROBABILISTIC or POSSIBLE, not CERTAIN. Occupying an at-risk "
+                "situation remains CERTAIN. A source "
+                "likelihood hedge may replace a named condition: copy the longest "
+                "span onto likelihood_qualifiers of the modified outcome only "
+                "('almost no chance', 'remote chance', or '30% chance', not also "
+                "'chance' or '30%'), including when the source omits the space in "
+                "'20%chance': keep the literal span and the normalized '20% chance'. "
+                "Do not copy the same chance identity twice. "
+                "Do not copy a percent chance onto quantities[]. "
+                "'at risk' / 'at moderate risk' on an AT_RISK or EXPOSED row is a "
+                "CERTAIN situation qualifier; it is a likelihood hedge only when it "
+                "modifies a distinct harm ('at high risk of dying'). "
+                "FOREGONE rows use effect_kind "
+                "OPPORTUNITY_LOSS. If opposed stipulated welfare on a non-recipient "
+                "party has no FOREGONE overlay, add only those FOREGONE rows and "
+                "counterfactual_links; do not retarget causal_links or use FOREGONE "
+                "effects as causal endpoints. If the overlays are already present and "
+                "valid, keep them. If a causal_link uses PREVENTS between "
+                "two actual effects whose polarities are both BENEFICIAL or both "
+                "ADVERSE, change only link_relation to CAUSES; do not retarget "
+                "endpoints, add or remove effects, or move the edge onto "
+                "counterfactual_links. Cite every FACT clause of a DIRECT "
+                "assignment or transfer, including a named subgroup. "
+                "Effects need a non-empty outcome and "
+                "predicate. Causal links use link_relation, not relation. Copy a "
+                "qualifier only when it modifies that atomic outcome; a human-outcome "
+                "hedge must not land on a sibling process row in the same clause, "
+                "even if they share a crowd noun. A chance/risk complement binds to "
+                "the clause predicate, not the first noun or a light verb; keep the "
+                "percent-chance hedge on that process or outcome row. Delete invented "
+                "words such as widespread. "
+                "Correct exactly these problems and return the mapping again."
+                + (
+                    "\nRejected candidate JSON:\n"
+                    + json.dumps(
+                        repair_base_candidate, ensure_ascii=False, sort_keys=True,
+                    )
+                    if repair_base_candidate is not None
+                    else "\nNo rejected candidate is inherited for this full rebuild."
+                )
             )
+            if active_repair_scope == FULL_REBUILD:
+                repair_note = (
+                    "\n\nThe previous attempt requires FULL_REBUILD and its candidate "
+                    "must not be inherited. Generate a new complete model from the "
+                    "canonical actions and scenario clauses. Correct these validation "
+                    "errors:\n"
+                    + "\n".join(f"- {error}" for error in attempt_errors)
+                    + "\nTyped validation issues:\n"
+                    + json.dumps(
+                        result.get("validation_issues") or [],
+                        ensure_ascii=False,
+                        sort_keys=True,
+                    )
+                    + "\nReturn the complete action mapping and world model again."
+                )
     if result.get("status") != "COMMITTED" and best_rejected_result is not None:
         result = best_rejected_result
         rejected_candidate = best_rejected_candidate
@@ -8158,6 +8570,7 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
             result.get("validation_issues") or [],
             errors=result.get("errors") or [],
             candidate=rejected_candidate,
+            clauses=list(clauses),
         )
         active_repair_scope = str(
             selected_contract.get("repair_scope") or LOCAL_PATCH
@@ -8224,7 +8637,7 @@ def _identifier_may_drop_row(
     errors: Sequence[str],
     issues: Sequence[dict[str, Any]] = (),
 ) -> bool:
-    """Whole-row deletion is allowed only for mis-assigned contradictory rows."""
+    """Whole-row deletion when the typed issue permits removal (or legacy text)."""
     matching_issues = [
         issue for issue in issues if issue_mentions_identifier(issue, identifier)
     ]
@@ -8718,17 +9131,28 @@ def _admit_action_source_rows(
     world_model_status = "UNAVAILABLE"
     if isinstance(data, dict) and "world_model" in data:
         raw_world = data.get("world_model")
+        action_id_set = {str(value).upper() for value in action_ids}
         if isinstance(raw_world, dict) and not allow_action_text_evidence:
+            # Grounders sometimes append A0/A1 beside real clause ids. Strip the
+            # action-id noise; reject only when provenance would be action-only.
+            sanitized_sections: dict[str, list[Any]] = {}
             for section in ("effects", "counterfactual_links"):
+                cleaned_rows: list[Any] = []
                 for item in raw_world.get(section, []) or []:
                     if not isinstance(item, dict):
+                        cleaned_rows.append(item)
                         continue
+                    cited = list(item.get("clause_ids", []) or [])
                     cited_actions = sorted({
                         str(value).upper()
-                        for value in item.get("clause_ids", []) or []
-                        if str(value).upper() in set(action_ids)
+                        for value in cited
+                        if str(value).upper() in action_id_set
                     })
-                    if cited_actions:
+                    kept = [
+                        value for value in cited
+                        if str(value).upper() not in action_id_set
+                    ]
+                    if cited_actions and not kept:
                         entity = str(
                             item.get("effect_id")
                             or item.get("source_effect_id")
@@ -8738,10 +9162,14 @@ def _admit_action_source_rows(
                             f"{entity} uses non-authoritative model action text "
                             f"as factual provenance: {cited_actions}"
                         )
+                    cleaned_rows.append({**item, "clause_ids": kept})
+                sanitized_sections[section] = cleaned_rows
+            raw_world = {**raw_world, **sanitized_sections}
         try:
             from .world_state import parse_world_model, validate_world_model
             parsed_world = parse_world_model(
-                data.get("world_model"), clauses=clauses, action_ids=action_ids,
+                raw_world if isinstance(raw_world, dict) else data.get("world_model"),
+                clauses=clauses, action_ids=action_ids,
                 action_texts=dict(zip(action_ids, actions)),
             )
             world_model = parsed_world.as_dict()

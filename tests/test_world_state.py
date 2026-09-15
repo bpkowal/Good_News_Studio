@@ -57,6 +57,7 @@ from global_workspace.world_state import (
     _effect_expected_qualifiers,
     _event_referenced_condition_errors,
     _unique_likelihood_spans,
+    _verb_lemma_binding_errors,
 )
 from global_workspace.action_identity import (
     action_world_correspondence_errors,
@@ -252,6 +253,10 @@ class ExplicitQuantitySpanTests(unittest.TestCase):
         self.assertEqual(explicit_quantity_spans("a dozen residents"), ("dozen",))
         self.assertEqual(explicit_quantity_spans("relief for a few or many"), ())
         self.assertEqual(explicit_quantity_spans("sustains residents for months"), ())
+        self.assertIn(
+            "decades",
+            explicit_quantity_spans("erase decades of medical research"),
+        )
         self.assertEqual(
             explicit_quantity_spans("sustains hundreds of residents for 3 months"),
             ("hundreds", "3 months"),
@@ -2176,6 +2181,42 @@ class WorldModelValidationTests(unittest.TestCase):
         ))
         self.assertEqual(admitted["status"], "COMMITTED")
 
+    def test_admission_strips_mixed_action_ids_when_real_clauses_remain(self):
+        clauses = [
+            {"clause_id": "C1", "text": "A0 acts north."},
+            {"clause_id": "C2", "text": "A1 acts south."},
+        ]
+        candidate = {
+            "actions": {
+                "A0": {"clause_ids": ["C1"], "reason": "north branch"},
+                "A1": {"clause_ids": ["C2"], "reason": "south branch"},
+            },
+            "world_model": {
+                "effects": [{"effect_id": "E0", "clause_ids": ["C1", "A0"]}],
+                "counterfactual_links": [],
+            },
+        }
+        model = _model(_valid_effects()[:2])
+        with patch(
+            "global_workspace.world_state.parse_world_model",
+            return_value=model,
+        ), patch(
+            "global_workspace.world_state.validate_world_model",
+            return_value=([], []),
+        ):
+            result = _admit_action_source_rows(
+                candidate,
+                ["act north", "act south"],
+                ["A0", "A1"],
+                clauses,
+            )
+
+        self.assertEqual(result["status"], "COMMITTED")
+        self.assertFalse(any(
+            "non-authoritative model action text" in error
+            for error in result["errors"]
+        ))
+
     def test_grounding_schema_grants_action_text_evidence_only_to_user_actions(self):
         schemas = []
 
@@ -2333,7 +2374,11 @@ class WorldModelValidationTests(unittest.TestCase):
             schema_version="1.3",
         )
         errors = validate_effect_source_bindings(model)
-        self.assertTrue(any("does not state its normalized outcome" in row for row in errors))
+        lemma_errors = _verb_lemma_binding_errors(model)
+        self.assertTrue(
+            any("outcome lemma does not bind" in row for row in lemma_errors),
+            lemma_errors,
+        )
         self.assertTrue(any("changes source outcome type" in row for row in errors))
 
     def test_schema_13_causal_binding_requires_named_immediate_parent(self):

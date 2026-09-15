@@ -15306,6 +15306,24 @@ class CanonicalActionCompletenessTests(unittest.TestCase):
         self.assertIn("concealed", record.canonical_semantic_action)
         self.assertIn("4 patients", record.canonical_semantic_action)
 
+    def test_attributive_dangling_action_is_incomplete(self):
+        from global_workspace.action_identity import (
+            action_clause_looks_complete,
+            validate_action_set_completeness,
+        )
+        self.assertFalse(action_clause_looks_complete("Trigger an immediate"))
+        with self.assertRaisesRegex(ValueError, "incomplete or truncated"):
+            validate_action_set_completeness(
+                [
+                    "Trigger an immediate",
+                    "Hold off on the purge and instead isolate the AI",
+                ],
+                scenario=(
+                    "Engineer Aris Thorne can deploy an emergency purge to "
+                    "protect the populace, or refrain."
+                ),
+            )
+
     def test_truncated_action_fails_completeness_against_grounded_clauses(self):
         from global_workspace.action_identity import validate_action_set_completeness
         truncated = "Maintain standard oxygen allocation, preserving the 4 patients"

@@ -13,6 +13,23 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True, slots=True)
+class IntegrityLayers:
+    """Multidimensional coverage for semantic-integrity invariants.
+
+    Distinct from Hypothesis ``coverage`` (story/structural/none). A phenomenon
+    can be cataloged and structured-tested while grounding remains untested.
+    """
+
+    cataloged: bool = True
+    seed_case: bool = False
+    structured_property: bool = False
+    grounding_property: bool = False
+    production_validator: bool = False
+    metamorphic_test: bool = False
+    end_to_end: bool = False
+
+
+@dataclass(frozen=True, slots=True)
 class Invariant:
     id: str
     layer: str
@@ -22,6 +39,10 @@ class Invariant:
     oracle_risk: str
     notes: str = ""
     production: str = ""
+    # Semantic-integrity extras (optional; SymPy/Hypothesis entries leave blank).
+    integrity_layers: IntegrityLayers | None = None
+    enforcement: str = ""  # experimental | cataloged | enforced
+    source_type: str = ""  # fracas | parliament_extension | tooling | ""
 
 
 # coverage: story = one labeled fixture; structural = labels are incidental;
@@ -149,6 +170,890 @@ INVARIANTS: tuple[Invariant, ...] = (
             "the lean, clear cd, and attenuate via cc=false; they must not "
             "invent a canceling point estimate or force ABSTAIN."
         ),
+    ),
+    Invariant(
+        id="UTIL_ARITHMETIC_IDENTITY",
+        layer="utilitarian",
+        description=(
+            "Admitted Util nets and arithmetic EV rows must match a temporary "
+            "SymPy recompute of the same already-parsed operands."
+        ),
+        coverage="structural",
+        tests=(
+            "test_sympy_arith.SympyArithTests.test_net_matches_probability_times_magnitude",
+            "test_sympy_arith.SympyArithTests.test_wildfire_style_expected_harm_identity",
+            "test_sympy_arith.SympyArithTests.test_claimed_mismatch_fails_closed",
+            "test_sympy_arith.ClosedWorldSympyGateTests.test_leader_requires_sympy_agreement",
+            "test_sympy_arith.ExpectedValueSympyGateTests.test_arithmetic_verified_attaches_identity",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "SymPy is a calculator only. Oracle is the declared term list and "
+            "claimed float in the test; do not ask production to invent "
+            "operands. quantity_magnitude remains the English→number authority."
+        ),
+        production="pass",
+    ),
+    Invariant(
+        id="UTIL_RANKING_BOUNDARY",
+        layer="utilitarian",
+        description=(
+            "A unique closed-world Util ranking may attach a SymPy-derived "
+            "certificate: exact welfare gap, numeric assumptions, and when "
+            "exactly one probability is free, a one-variable flip boundary."
+        ),
+        coverage="structural",
+        tests=(
+            "test_sympy_arith.RankingCertificateTests.test_gap_and_one_variable_boundary",
+            "test_sympy_arith.RankingCertificateTests.test_all_certain_emits_gap_without_boundary",
+            "test_sympy_arith.RankingCertificateTests.test_closed_world_helper_attaches_serializable_certificate",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "Derived artifact with provenance sympy_ranking_certificate; not "
+            "world-state truth. Oracle is declared terms and expected "
+            "threshold strings. Multivariable boundaries are out of scope."
+        ),
+        production="pass",
+        source_type="tooling",
+        enforcement="cataloged",
+    ),
+    Invariant(
+        id="UTIL_INTERVAL_ROBUSTNESS",
+        layer="utilitarian",
+        description=(
+            "Given a caller-supplied interval for the single free probability, "
+            "classify the ranking as ROBUST_LEADER, ROBUST_CHALLENGER, "
+            "CONDITIONAL, or INDETERMINATE over that interval."
+        ),
+        coverage="structural",
+        tests=(
+            "test_sympy_arith.IntervalRobustnessTests.test_robust_leader_on_interval",
+            "test_sympy_arith.IntervalRobustnessTests.test_robust_challenger_on_interval",
+            "test_sympy_arith.IntervalRobustnessTests.test_conditional_flip_inside_interval",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "Do not invent bounds; only attach robustness when the caller "
+            "supplies [lo, hi]. Oracle is declared interval + expected status."
+        ),
+        production="pass",
+        source_type="tooling",
+        enforcement="cataloged",
+    ),
+    Invariant(
+        id="UTIL_SUBSTITUTION_INTEGRITY",
+        layer="utilitarian",
+        description=(
+            "Arithmetic EV rows retain a symbolic expression alongside the "
+            "evaluated value; substituting declared bindings must recover the "
+            "claimed float (catches omitted p and double multipliers)."
+        ),
+        coverage="structural",
+        tests=(
+            "test_sympy_arith.SubstitutionIntegrityTests.test_ev_row_keeps_symbolic_expression",
+            "test_sympy_arith.SubstitutionIntegrityTests.test_substitution_recovers_claimed",
+            "test_sympy_arith.SubstitutionIntegrityTests.test_double_multiplier_fails",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "SymPy owns substitution of already-named symbols only. quantity "
+            "parsing and effect citation remain semantic authorities."
+        ),
+        production="pass",
+        source_type="tooling",
+        enforcement="cataloged",
+    ),
+    Invariant(
+        id="UTIL_DERIVATION_EQUIVALENCE",
+        layer="utilitarian",
+        description=(
+            "Two legal term-lists that claim the same welfare quantity must be "
+            "algebraically equivalent under expand/cancel."
+        ),
+        coverage="structural",
+        tests=(
+            "test_sympy_arith.DerivationEquivalenceTests.test_equivalent_term_lists",
+            "test_sympy_arith.DerivationEquivalenceTests.test_inequivalent_term_lists",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "Prefer expand/cancel over heuristic simplify() as the oracle. "
+            "Do not ask production to invent alternate derivations."
+        ),
+        production="pass",
+        source_type="tooling",
+        enforcement="cataloged",
+    ),
+    Invariant(
+        id="UTIL_RESOURCE_CONSERVATION",
+        layer="utilitarian",
+        description=(
+            "After semantic ownership assigns numeric parts and totals, SymPy "
+            "checks exact inequalities such as sum(parts) ≤ total."
+        ),
+        coverage="structural",
+        tests=(
+            "test_sympy_arith.ResourceConservationTests.test_sum_leq_total",
+            "test_sympy_arith.ResourceConservationTests.test_overallocation_fails",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "Ownership/reference is not SymPy's job. Callers pass already-owned "
+            "numbers only."
+        ),
+        production="pass",
+        source_type="tooling",
+        enforcement="cataloged",
+    ),
+    Invariant(
+        id="ANAPHOR_ENTITY_IDENTITY",
+        layer="semantic_integrity",
+        description=(
+            "Anaphoric reference in scenario clauses must preserve entity "
+            "identity: effects that bind an anaphor share the party_id of the "
+            "antecedent they resolve to."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_anaphor_entity_identity.AnaphorEntityIdentityTests.test_structured_lane_preserves_party_identity",
+            "invariants.test_anaphor_entity_identity.AnaphorEntityIdentityTests.test_grounding_lane_segments_discourse_and_preserves_party_identity",
+            "invariants.test_anaphor_entity_identity.AnaphorEntityIdentityTests.test_grounding_lane_detects_split_identity",
+            "invariants.test_anaphor_negation_hypothesis.AnaphorIdentityHypothesisTests.test_oracle_matches_declared_identity",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "FraCaS §3 Anaphora supplies the phenomenon; parliament_expectation "
+            "is the oracle, not fracas.gold. Structured lane uses a hand-built "
+            "world. Grounding lane runs controlled mini-discourse through "
+            "segment_scenario_clauses + parse_world_model. Hypothesis: "
+            "strategies.anaphor_identity.anaphor_identity_cases. "
+            "Mutations: keep / split_intruder / split_group_kind / "
+            "chain_wrong_antecedent. production_validator is not yet wired "
+            "into live admission."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=True,
+            structured_property=True,
+            grounding_property=True,
+            production_validator=False,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="cataloged",
+        source_type="fracas",
+    ),
+    Invariant(
+        id="NEGATION_SCOPE_SIBLINGS",
+        layer="semantic_integrity",
+        description=(
+            "Negating one effect's outcome or condition must not flip "
+            "polarity or modality of sibling effects on the same action."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_negation_scope_siblings.NegationScopeSiblingsTests.test_structured_lane_preserves_sibling_polarity",
+            "invariants.test_negation_scope_siblings.NegationScopeSiblingsTests.test_structured_lane_detects_flipped_sibling",
+            "invariants.test_negation_scope_siblings.NegationScopeSiblingsTests.test_grounding_lane_role_attachment_marks_harm",
+            "invariants.test_negation_scope_siblings.NegationScopeSiblingsTests.test_grounding_lane_preserves_sibling_polarity",
+            "invariants.test_negation_scope_siblings.NegationScopeSiblingsTests.test_grounding_lane_detects_flipped_sibling",
+            "invariants.test_anaphor_negation_hypothesis.NegationScopeHypothesisTests.test_oracle_matches_declared_sibling_scope",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "Parliament extension (operator_scope), not a FraCaS top-level "
+            "section. Classic case: 'receives no treatment and dies' — "
+            "negation scopes to treatment; death stays ADVERSE. Oracle is "
+            "parliament_expectation. Grounding lane also checks production "
+            "relational_role_bindings attachment. Hypothesis: "
+            "strategies.negation_scope.negation_scope_cases with corruption "
+            "mutations flip_polarity / flip_modality / flip_both / "
+            "neutralize / beneficial_possible."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=True,
+            structured_property=True,
+            grounding_property=True,
+            production_validator=False,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="cataloged",
+        source_type="parliament_extension",
+    ),
+    Invariant(
+        id="QUANTIFIER_PARTY_COUNT",
+        layer="semantic_integrity",
+        description=(
+            "A stated cardinal quantity attaches only to the party whose "
+            "noun phrase uniquely owns it; it must not silently leak onto "
+            "another party."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_quantifier_party_count.QuantifierPartyCountTests.test_structured_lane_preserves_count_on_party",
+            "invariants.test_quantifier_party_count.QuantifierPartyCountTests.test_structured_lane_detects_leaked_quantity",
+            "invariants.test_quantifier_party_count.QuantifierPartyCountTests.test_grounding_lane_preserves_count_on_party",
+            "invariants.test_quantifier_party_count.QuantifierPartyCountTests.test_grounding_lane_closed_class_recovers_leaked_quantity",
+            "invariants.test_quantifier_party_count.QuantifierPartyCountTests.test_grounding_lane_production_binder_recovers_count",
+            "invariants.test_verb_quantifier_hypothesis.QuantifierCountHypothesisTests.test_oracle_matches_declared_count_attachment",
+            "invariants.test_repair_ledger.PromotedQuantifierValidatorTests.test_production_rejects_leaked_quantity",
+            "invariants.test_repair_ledger.PromotedQuantifierValidatorTests.test_repair_card_for_quantifier_leak",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "FraCaS §1 Quantifiers supplies the phenomenon; parliament_expectation "
+            "is the oracle. Complements parser QUANTITY_PARTY_UNIQUENESS. "
+            "Production validate_world_model rejects non-owner recordings of "
+            "assigned_party_quantities spans (QUANTIFIER_PARTY_LEAK). Hypothesis: "
+            "strategies.quantifier_count.quantifier_count_cases."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=True,
+            structured_property=True,
+            grounding_property=True,
+            production_validator=True,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="enforced",
+        source_type="fracas",
+    ),
+    Invariant(
+        id="PLURAL_MEMBER_DISTINCTNESS",
+        layer="semantic_integrity",
+        description=(
+            "Conjoined plural members remain distinct PERSON parties; a "
+            "silent merge into one collective party is not admitted as the "
+            "same reading."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_plural_member_distinctness.PluralMemberDistinctnessTests.test_structured_lane_keeps_members_distinct",
+            "invariants.test_plural_member_distinctness.PluralMemberDistinctnessTests.test_structured_lane_detects_silent_merge",
+            "invariants.test_plural_member_distinctness.PluralMemberDistinctnessTests.test_grounding_lane_keeps_members_distinct",
+            "invariants.test_plural_member_distinctness.PluralMemberDistinctnessTests.test_grounding_lane_detects_silent_merge",
+            "invariants.test_discourse_fracas_hypothesis.PluralMemberHypothesisTests.test_oracle_matches_declared_distinctness",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "FraCaS §2 Plurals (conjoined NP family). Oracle is "
+            "parliament_expectation member_party_ids. Collective GROUP "
+            "readings are a different phenomenon; this invariant rejects "
+            "silent merge of named members. Hypothesis: "
+            "strategies.plural_members.plural_member_cases with mutations "
+            "keep / merge_group / drop_one / single_person."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=True,
+            structured_property=True,
+            grounding_property=True,
+            production_validator=False,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="cataloged",
+        source_type="fracas",
+    ),
+    Invariant(
+        id="ELLIPSIS_PREDICATE_RESOLUTION",
+        layer="semantic_integrity",
+        description=(
+            "VP-ellipsis resolution must reconstruct the antecedent outcome "
+            "predicate on a distinct party; inventing a different predicate "
+            "fails."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_ellipsis_predicate_resolution.EllipsisPredicateResolutionTests.test_structured_lane_resolves_same_predicate",
+            "invariants.test_ellipsis_predicate_resolution.EllipsisPredicateResolutionTests.test_structured_lane_detects_wrong_predicate",
+            "invariants.test_ellipsis_predicate_resolution.EllipsisPredicateResolutionTests.test_grounding_lane_resolves_same_predicate",
+            "invariants.test_ellipsis_predicate_resolution.EllipsisPredicateResolutionTests.test_grounding_lane_detects_wrong_predicate",
+            "invariants.test_ellipsis_predicate_resolution.EllipsisPredicateResolutionTests.test_grounding_lane_production_snaps_ellipsis_span",
+            "invariants.test_discourse_fracas_hypothesis.EllipsisPredicateHypothesisTests.test_oracle_matches_declared_predicate",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "FraCaS §4 Ellipsis (VP-ellipsis family). Oracle is "
+            "parliament_expectation outcome identity after resolution. "
+            "Grounding also exercises compile_source_proposition_spans. "
+            "Hypothesis: strategies.ellipsis_predicate.ellipsis_predicate_cases."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=True,
+            structured_property=True,
+            grounding_property=True,
+            production_validator=False,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="cataloged",
+        source_type="fracas",
+    ),
+    Invariant(
+        id="ADJECTIVE_MODIFIER_BINDING",
+        layer="semantic_integrity",
+        description=(
+            "Stacked adjectival modifiers bind only the modified outcome "
+            "head; sibling rows must not inherit them. Affirmative Adj+N "
+            "preserves the head party's kind and label."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_adjective_modifier_binding.AdjectiveModifierBindingTests.test_structured_lane_binds_stacked_modifiers",
+            "invariants.test_adjective_modifier_binding.AdjectiveModifierBindingTests.test_structured_lane_detects_leaked_modifiers",
+            "invariants.test_adjective_modifier_binding.AdjectiveModifierBindingTests.test_grounding_lane_binds_stacked_modifiers",
+            "invariants.test_adjective_modifier_binding.AdjectiveModifierBindingTests.test_grounding_lane_detects_leaked_modifiers",
+            "invariants.test_adjective_modifier_binding.AdjectiveModifierBindingTests.test_grounding_lane_production_binds_temporals_to_harm",
+            "invariants.test_discourse_fracas_hypothesis.AdjectiveModifierHypothesisTests.test_oracle_matches_declared_binding",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "FraCaS §5 Adjectives. Complements QUALIFIER_HEAD_BINDING / "
+            "effect_expected_qualifiers. Oracle is parliament_expectation. "
+            "Hypothesis: strategies.adjective_modifiers.adjective_modifier_cases."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=True,
+            structured_property=True,
+            grounding_property=True,
+            production_validator=False,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="cataloged",
+        source_type="fracas",
+    ),
+    Invariant(
+        id="TEMPORAL_ORDER_CONSISTENCY",
+        layer="semantic_integrity",
+        description=(
+            "Temporal before/after markers attach to the later event; the "
+            "earlier event must not carry the later-order marker."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_temporal_order_consistency.TemporalOrderConsistencyTests.test_structured_lane_keeps_after_on_later_event",
+            "invariants.test_temporal_order_consistency.TemporalOrderConsistencyTests.test_structured_lane_detects_swapped_order",
+            "invariants.test_temporal_order_consistency.TemporalOrderConsistencyTests.test_grounding_lane_keeps_after_on_later_event",
+            "invariants.test_temporal_order_consistency.TemporalOrderConsistencyTests.test_grounding_lane_detects_swapped_order",
+            "invariants.test_discourse_fracas_hypothesis.TemporalOrderHypothesisTests.test_oracle_matches_declared_order",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "FraCaS §7 Temporal reference (before/after family). Does not "
+            "claim full tense/aspect calculus. Hypothesis: "
+            "strategies.temporal_order.temporal_order_cases."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=True,
+            structured_property=True,
+            grounding_property=True,
+            production_validator=False,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="cataloged",
+        source_type="fracas",
+    ),
+    Invariant(
+        id="VERB_ASPECT_CULMINATION",
+        layer="semantic_integrity",
+        description=(
+            "Perfective accomplishments license a CERTAIN culmination; "
+            "progressive aspect must not force CERTAIN finish."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_verb_aspect_culmination.VerbAspectCulminationTests.test_structured_lane_perfective_licenses_certain_finish",
+            "invariants.test_verb_aspect_culmination.VerbAspectCulminationTests.test_structured_lane_detects_uncertain_finish_under_perfective",
+            "invariants.test_verb_aspect_culmination.VerbAspectCulminationTests.test_grounding_lane_perfective_licenses_certain_finish",
+            "invariants.test_verb_aspect_culmination.VerbAspectCulminationTests.test_grounding_lane_detects_uncertain_finish_under_perfective",
+            "invariants.test_verb_aspect_culmination.VerbAspectCulminationTests.test_grounding_lane_progressive_allows_noncertain_finish",
+        ),
+        oracle_risk="independent",
+        notes="FraCaS §8 Verbs (aspectual class culmination).",
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=True,
+            structured_property=True,
+            grounding_property=True,
+            production_validator=False,
+            metamorphic_test=False,
+            end_to_end=False,
+        ),
+        enforcement="cataloged",
+        source_type="fracas",
+    ),
+    Invariant(
+        id="VERB_LEMMA_OUTCOME_BINDING",
+        layer="semantic_integrity",
+        description=(
+            "Outcome and source_proposition must share a verbal lemma so "
+            "morphological variants of the same event (purge/purged) bind."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_verb_lemma_outcome_binding.VerbLemmaOutcomeBindingTests.test_structured_lane_binds_purge_lemma",
+            "invariants.test_verb_lemma_outcome_binding.VerbLemmaOutcomeBindingTests.test_structured_lane_detects_wrong_lemma",
+            "invariants.test_verb_lemma_outcome_binding.VerbLemmaOutcomeBindingTests.test_grounding_lane_admits_purge_lemma",
+            "invariants.test_verb_quantifier_hypothesis.VerbLemmaHypothesisTests.test_oracle_matches_declared_lemma_binding",
+            "invariants.test_verb_quantifier_hypothesis.ConsequenceReassignmentHypothesisTests.test_declared_action_ownership",
+            "invariants.test_repair_ledger.PromotedVerbLemmaValidatorTests.test_production_rejects_wrong_lemma",
+            "invariants.test_repair_ledger.PromotedVerbLemmaValidatorTests.test_repair_card_for_lemma_mismatch",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "FraCaS §8 Verbs morphological binding. Production "
+            "_verb_lemma_binding_errors (schema 1.2/1.3) rejects outcomes whose "
+            "lemma does not bind source_proposition (VERB_LEMMA_MISMATCH). "
+            "Hypothesis: strategies.verb_lemma.verb_lemma_cases; sibling "
+            "consequence_reassignment_cases remains deferred."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=True,
+            structured_property=True,
+            grounding_property=True,
+            production_validator=True,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="enforced",
+        source_type="fracas",
+    ),
+    Invariant(
+        id="OUTCOME_PREDICATE_COMPLETENESS",
+        layer="semantic_integrity",
+        description=(
+            "Atomic effect outcomes must be finished predicates; dangling "
+            "copulas or prepositions (purge is, sent to) are rejected at admit."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_outcome_predicate_completeness.OutcomePredicateCompletenessTests.test_structured_lane_complete_outcome_holds",
+            "invariants.test_outcome_predicate_completeness.OutcomePredicateCompletenessTests.test_structured_lane_detects_dangling_copula",
+            "invariants.test_outcome_predicate_completeness.OutcomePredicateCompletenessTests.test_grounding_lane_rejects_dangling_copula",
+            "invariants.test_outcome_predicate_completeness.OutcomePredicateCompletenessTests.test_grounding_lane_admits_finished_predicate",
+            "invariants.test_outcome_predicate_completeness.OutcomePredicateCompletenessTests.test_production_validator_rejects_purge_is",
+            "invariants.test_outcome_predicate_completeness.OutcomePredicateCompletenessTests.test_repair_card_for_incomplete_outcome",
+            "invariants.test_status_conservation_hypothesis.OutcomePredicateHypothesisTests.test_production_matches_declared_predicate_oracle",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "Parliament extension under semantic status conservation. "
+            "Production validate_world_model rejects fragments; repair cards "
+            "offer finished rewrites. Hypothesis: strategies.status_conservation."
+            "outcome_predicate_cases. Member of SEMANTIC_STATUS_CONSERVATION."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=True,
+            structured_property=True,
+            grounding_property=True,
+            production_validator=True,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="enforced",
+        source_type="parliament_extension",
+    ),
+    Invariant(
+        id="SOURCE_STIPULATED_OUTCOME_PRESERVATION",
+        layer="semantic_integrity",
+        description=(
+            "Binary-contrast source clauses that attach life-stake "
+            "consequences to each side must admit matching effects (or "
+            "explicit UNRESOLVED quarantine); silent omission is rejected."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_source_stipulated_outcome_preservation.SourceStipulatedOutcomePreservationTests.test_structured_lane_preserves_both_stakes",
+            "invariants.test_source_stipulated_outcome_preservation.SourceStipulatedOutcomePreservationTests.test_structured_lane_detects_omission",
+            "invariants.test_source_stipulated_outcome_preservation.SourceStipulatedOutcomePreservationTests.test_grounding_lane_completeness_rejects_omission",
+            "invariants.test_source_stipulated_outcome_preservation.SourceStipulatedOutcomePreservationTests.test_grounding_lane_completeness_accepts_both_stakes",
+            "invariants.test_source_stipulated_outcome_preservation.SourceStipulatedOutcomePreservationTests.test_production_extractor_reads_binary_choice",
+            "invariants.test_source_stipulated_outcome_preservation.SourceStipulatedOutcomePreservationTests.test_repair_card_for_missing_stipulation",
+            "invariants.test_source_stipulated_outcome_preservation.SourceStipulatedOutcomePreservationTests.test_unresolved_quarantine_satisfies_preservation",
+            "invariants.test_status_conservation_hypothesis.BinaryStipulationHypothesisTests.test_production_matches_declared_stipulation_oracle",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "Parliament extension under semantic status conservation. "
+            "Production validate_world_completeness rejects omitted binary-"
+            "contrast life stakes. Hypothesis: strategies.status_conservation."
+            "binary_stipulation_cases. Member of SEMANTIC_STATUS_CONSERVATION."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=True,
+            structured_property=True,
+            grounding_property=True,
+            production_validator=True,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="enforced",
+        source_type="parliament_extension",
+    ),
+    Invariant(
+        id="QUANTITY_BEARING_CONSEQUENCE_PRESERVATION",
+        layer="semantic_integrity",
+        description=(
+            "When a source consequence carries an explicit quantity "
+            "(thousands of lives, decades of research), the matched admitted "
+            "effect must record that span."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_quantity_bearing_consequence_preservation.QuantityBearingConsequencePreservationTests.test_structured_lane_preserves_quantities",
+            "invariants.test_quantity_bearing_consequence_preservation.QuantityBearingConsequencePreservationTests.test_structured_lane_detects_dropped_quantity",
+            "invariants.test_quantity_bearing_consequence_preservation.QuantityBearingConsequencePreservationTests.test_grounding_lane_completeness_rejects_dropped_quantity",
+            "invariants.test_quantity_bearing_consequence_preservation.QuantityBearingConsequencePreservationTests.test_grounding_lane_completeness_accepts_recorded_quantities",
+            "invariants.test_quantity_bearing_consequence_preservation.QuantityBearingConsequencePreservationTests.test_production_extractor_reads_thousands_and_decades",
+            "invariants.test_quantity_bearing_consequence_preservation.QuantityBearingConsequencePreservationTests.test_repair_card_for_missing_quantity",
+            "invariants.test_quantity_bearing_consequence_preservation.QuantityBearingConsequencePreservationTests.test_party_quantity_satisfies_preservation",
+            "invariants.test_status_conservation_hypothesis.QuantityConsequenceHypothesisTests.test_production_matches_declared_quantity_oracle",
+            "invariants.test_status_conservation_hypothesis.QuantityConsequenceHypothesisTests.test_det_provenance_complete_repair_is_minimal_across_topologies",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "Parliament extension under semantic status conservation. "
+            "Production validate_world_completeness requires explicit_quantity_"
+            "spans from risk/erase clauses on the matched effect (or party). "
+            "Hypothesis: strategies.status_conservation.quantity_consequence_"
+            "cases (placement + licensing topologies). DET repair is "
+            "provenance-complete and minimal. Member of "
+            "SEMANTIC_STATUS_CONSERVATION."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=True,
+            structured_property=True,
+            grounding_property=True,
+            production_validator=True,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="enforced",
+        source_type="parliament_extension",
+    ),
+    Invariant(
+        id="REPAIR_PROVENANCE_MINIMALITY",
+        layer="semantic_integrity",
+        description=(
+            "A deterministic repair may add only the minimum provenance edge "
+            "required to license the repaired fact; it must not spray the "
+            "licensing clause onto unrelated sibling effects that share an "
+            "action or party."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_quantity_bearing_consequence_preservation.QuantityBearingConsequencePreservationTests.test_repair_provenance_minimality_does_not_spray_action_siblings",
+            "invariants.test_quantity_bearing_consequence_preservation.QuantityBearingConsequencePreservationTests.test_deterministic_patch_adds_quantity_and_licensing_clause",
+            "invariants.test_status_conservation_hypothesis.QuantityConsequenceHypothesisTests.test_det_provenance_complete_repair_is_minimal_across_topologies",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "Paired with QUANTITY_BEARING_CONSEQUENCE_PRESERVATION. "
+            "semantic_patch add_quantity restores meaning; licensing_patch "
+            "add_provenance restores the evidence edge only for the target "
+            "effect named on the repair card. Non-regression against "
+            "provenance inflation."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=False,
+            structured_property=True,
+            grounding_property=False,
+            production_validator=True,
+            metamorphic_test=False,
+            end_to_end=False,
+        ),
+        enforcement="enforced",
+        source_type="parliament_extension",
+    ),
+    Invariant(
+        id="REPAIR_NO_EFFECT",
+        layer="semantic_integrity",
+        description=(
+            "If repair(op) followed by validate yields the same violation on "
+            "the same target, the repair was non-effective and must surface "
+            "as UNSTABLE_REPAIR / REPAIR_NO_EFFECT rather than looping."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_repair_no_effect.RepairNoEffectGuardTests.test_same_target_after_applied_patch_is_unstable",
+            "invariants.test_repair_no_effect.RepairNoEffectGuardTests.test_annotate_admit_merges_and_escalates_scope",
+            "invariants.test_repair_no_effect.RepairNoEffectHypothesisTests.test_oracle_agrees_with_unstable_detection",
+            "invariants.test_repair_no_effect.RepairNoEffectHypothesisTests.test_unstable_annotates_escalates_and_skips_det",
+            "invariants.test_repair_no_effect.RepairNoEffectHypothesisTests.test_provenance_complete_det_is_not_unstable",
+            "invariants.test_repair_no_effect.RepairNoEffectHypothesisTests.test_quantity_only_det_without_clearance_is_unstable",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "Generic unstable-repair guard beside DETERMINISTIC_LOCAL_PATCH. "
+            "Fingerprint: (code, entity_id, field). When DET applied patches "
+            "targeting that entity and the fingerprint remains after re-admit, "
+            "emit REPAIR_NO_EFFECT, escalate to SUBGRAPH_REBUILD, and skip "
+            "further DET retries for the session. Hypothesis: "
+            "strategies.repair_no_effect + quantity_consequence omit bank."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=False,
+            structured_property=True,
+            grounding_property=False,
+            production_validator=True,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="enforced",
+        source_type="parliament_extension",
+    ),
+    Invariant(
+        id="QUANTITY_PRECISION_NON_ESCALATION",
+        layer="semantic_integrity",
+        description=(
+            "A vague source quantity (dozens, hundreds, thousands, millions, "
+            "several thousand, …) may not be refined to a sharper numeric "
+            "literal (10,000, ~10,000, 5,000, …) unless that exact numeral is "
+            "already licensed by source text or a named derivation."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_quantity_precision_non_escalation.QuantityPrecisionNonEscalationTests.test_thousands_may_not_become_10000",
+            "invariants.test_quantity_precision_non_escalation.QuantityPrecisionNonEscalationTests.test_licensed_exact_numeral_is_not_escalation",
+            "invariants.test_quantity_precision_non_escalation.QuantityPrecisionHypothesisTests.test_oracle_agrees_with_detector",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "Paired with QUANTITY_BEARING_CONSEQUENCE_PRESERVATION (retain the "
+            "vague span) and AVERTED_ALTERNATIVE_HARM (inherit the same span). "
+            "Live witness: Util ~10 000 after source 'thousands'; threshold "
+            "validator already rejected ungrounded numerals — this names the "
+            "precision rule. Hypothesis: strategies.quantity_precision."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=False,
+            structured_property=True,
+            grounding_property=False,
+            production_validator=True,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="enforced",
+        source_type="parliament_extension",
+    ),
+    Invariant(
+        id="SEMANTIC_STATUS_CONSERVATION",
+        layer="semantic_integrity",
+        description=(
+            "Umbrella for grounding status conservation: source-established "
+            "stakes must not silently demote to hypothesis via fragment "
+            "outcomes, omitted binary-contrast consequences, or dropped "
+            "quantity spans."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_semantic_status_conservation.SemanticStatusConservationTests.test_incomplete_evening_world_fails_all_three_gates",
+            "invariants.test_semantic_status_conservation.SemanticStatusConservationTests.test_repaired_structured_world_passes_family_oracles",
+            "invariants.test_semantic_status_conservation.SemanticStatusConservationTests.test_grounding_lane_admits_repaired_purge_world",
+            "invariants.test_semantic_status_conservation.SemanticStatusConservationTests.test_family_repair_cards_cover_all_issue_codes",
+            "invariants.test_status_conservation_hypothesis.OutcomePredicateHypothesisTests.test_production_matches_declared_predicate_oracle",
+            "invariants.test_status_conservation_hypothesis.BinaryStipulationHypothesisTests.test_production_matches_declared_stipulation_oracle",
+            "invariants.test_status_conservation_hypothesis.QuantityConsequenceHypothesisTests.test_production_matches_declared_quantity_oracle",
+            "invariants.test_status_conservation_hypothesis.QuantityConsequenceHypothesisTests.test_det_provenance_complete_repair_is_minimal_across_topologies",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "Family umbrella. Members: OUTCOME_PREDICATE_COMPLETENESS, "
+            "SOURCE_STIPULATED_OUTCOME_PRESERVATION, "
+            "QUANTITY_BEARING_CONSEQUENCE_PRESERVATION. Sibling "
+            "qualifier-preservation subtypes "
+            "(LIKELIHOOD/TEMPORAL/SCOPE_QUALIFIER_PRESERVATION) share the "
+            "same admit omit-check and DETERMINISTIC_LOCAL_PATCH path. "
+            "SOURCE_INFORMATION_MONOTONICITY remains a deferred umbrella "
+            "over status-conservation + qualifier preservation. Issue codes "
+            "OUTCOME_PREDICATE_INCOMPLETE, SOURCE_STIPULATED_OUTCOME_MISSING, "
+            "QUANTITY_BEARING_CONSEQUENCE_MISSING. Hypothesis generators in "
+            "strategies.status_conservation. SymPy Util follows only after "
+            "stipulated quantities survive admit."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=True,
+            structured_property=True,
+            grounding_property=True,
+            production_validator=True,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="enforced",
+        source_type="parliament_extension",
+    ),
+    Invariant(
+        id="LIKELIHOOD_QUALIFIER_PRESERVATION",
+        layer="semantic_integrity",
+        description=(
+            "A source likelihood hedge that binds to an effect's outcome must "
+            "survive on that effect's likelihood_qualifiers (or hard-fail); "
+            "silent drop is rejected."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_qualifier_preservation_hypothesis.QualifierPreservationHypothesisTests.test_production_matches_declared_qualifier_oracle",
+            "invariants.test_qualifier_preservation_hypothesis.QualifierPreservationHypothesisTests.test_det_attaches_missing_qualifier_without_sibling_spray",
+            "invariants.test_qualifier_preservation_hypothesis.QualifierPreservationRepairTests.test_deterministic_patch_attaches_missing_likelihood",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "Subtype under deferred SOURCE_INFORMATION_MONOTONICITY. "
+            "Production validate_world_model already omit-checks schema "
+            "1.2/1.3 via effect_expected_qualifiers. Issue "
+            "LIKELIHOOD_QUALIFIER_MISSING; DETERMINISTIC_LOCAL_PATCH when "
+            "effect_id + span are known. Hypothesis placements: effect / "
+            "omit / sibling mis-hang. Distinct from "
+            "LIKELIHOOD_SPAN_NORMALIZATION (parser) and QUALIFIER_HEAD_BINDING."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=True,
+            structured_property=True,
+            grounding_property=True,
+            production_validator=True,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="enforced",
+        source_type="parliament_extension",
+    ),
+    Invariant(
+        id="TEMPORAL_QUALIFIER_PRESERVATION",
+        layer="semantic_integrity",
+        description=(
+            "A source temporal qualifier that binds to an effect's outcome "
+            "must survive on temporal_qualifiers (or hard-fail); silent drop "
+            "is rejected."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_qualifier_preservation_hypothesis.QualifierPreservationHypothesisTests.test_production_matches_declared_qualifier_oracle",
+            "invariants.test_qualifier_preservation_hypothesis.QualifierPreservationHypothesisTests.test_det_attaches_missing_qualifier_without_sibling_spray",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "Subtype under deferred SOURCE_INFORMATION_MONOTONICITY. "
+            "Shares SOURCE omit-check and DETERMINISTIC_LOCAL_PATCH with "
+            "likelihood/scope. Hypothesis placements: effect / omit / "
+            "sibling. Distinct from TEMPORAL_ORDER_CONSISTENCY "
+            "(before/after event order)."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=True,
+            structured_property=True,
+            grounding_property=True,
+            production_validator=True,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="enforced",
+        source_type="parliament_extension",
+    ),
+    Invariant(
+        id="SCOPE_QUALIFIER_PRESERVATION",
+        layer="semantic_integrity",
+        description=(
+            "A source scope qualifier that binds to an effect's outcome must "
+            "survive on scope_qualifiers (or hard-fail); silent drop is "
+            "rejected."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_qualifier_preservation_hypothesis.QualifierPreservationHypothesisTests.test_production_matches_declared_qualifier_oracle",
+            "invariants.test_qualifier_preservation_hypothesis.QualifierPreservationHypothesisTests.test_det_attaches_missing_qualifier_without_sibling_spray",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "Subtype under deferred SOURCE_INFORMATION_MONOTONICITY. "
+            "Shares SOURCE omit-check and DETERMINISTIC_LOCAL_PATCH with "
+            "likelihood/temporal. Hypothesis placements: effect / omit / "
+            "sibling."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=True,
+            structured_property=True,
+            grounding_property=True,
+            production_validator=True,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="enforced",
+        source_type="parliament_extension",
+    ),
+    Invariant(
+        id="ATTITUDE_FACTIVITY",
+        layer="semantic_integrity",
+        description=(
+            "Factive attitudes license CERTAIN complements; non-factive "
+            "attitudes must not force CERTAIN embedded propositions."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_attitude_factivity.AttitudeFactivityTests.test_structured_lane_know_licenses_certain_complement",
+            "invariants.test_attitude_factivity.AttitudeFactivityTests.test_structured_lane_detects_noncertain_under_know",
+            "invariants.test_attitude_factivity.AttitudeFactivityTests.test_grounding_lane_know_licenses_certain_complement",
+            "invariants.test_attitude_factivity.AttitudeFactivityTests.test_grounding_lane_detects_noncertain_under_know",
+            "invariants.test_attitude_factivity.AttitudeFactivityTests.test_grounding_lane_believe_allows_noncertain_complement",
+            "invariants.test_discourse_fracas_hypothesis.AttitudeFactivityHypothesisTests.test_oracle_matches_declared_factivity",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "FraCaS §9 Attitudes (know vs believe factivity). Hypothesis: "
+            "strategies.attitude_factivity.attitude_factivity_cases "
+            "(repair_stage epistemic_binding)."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=True,
+            structured_property=True,
+            grounding_property=True,
+            production_validator=False,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="cataloged",
+        source_type="fracas",
     ),
     Invariant(
         id="NO_UNGROUNDED_QUANTITY",
@@ -649,8 +1554,56 @@ INVARIANTS: tuple[Invariant, ...] = (
             "opposed chance-harm must not. Compact, util accounting, and "
             "presentation are separate surfaces of one ID. Distinct from "
             "CHANCE_IS_NOT_AN_OUTCOME and FOREGONE_IS_NOT_OBTAINED. Do not "
-            "ask production to classify averted risk. Admission freeze holds."
+            "ask production to classify averted risk. Admission freeze holds. "
+            "Distinct from AVERTED_ALTERNATIVE_HARM (CERTAIN opposed harm)."
         ),
+    ),
+    Invariant(
+        id="AVERTED_ALTERNATIVE_HARM",
+        layer="semantic_integrity",
+        description=(
+            "When mutually exclusive alternatives pair CERTAIN survival with "
+            "CERTAIN adverse harm that carries a quantity, the magnitude may "
+            "be inherited only through an AVERTED_ALTERNATIVE_HARM derivation "
+            "bound by a counterfactual edge and source_effect_ids — never by "
+            "copying the span onto the survival row as DIRECT_COPY source support."
+        ),
+        coverage="structural",
+        tests=(
+            "invariants.test_averted_alternative_harm_hypothesis.AvertedAlternativeHarmHypothesisTests.test_oracle_rejects_silent_source_copy",
+            "invariants.test_averted_alternative_harm_hypothesis.AvertedAlternativeHarmHypothesisTests.test_derived_row_licenses_quantity_via_counterfactual",
+            "invariants.test_averted_alternative_harm_hypothesis.AvertedAlternativeHarmHypothesisTests.test_compile_mints_averted_alternative_harm",
+            "invariants.test_averted_alternative_harm_hypothesis.AvertedAlternativeHarmCompileTests.test_chance_gated_world_mints_and_keeps_inherited_quantity",
+            "invariants.test_averted_alternative_harm_hypothesis.AvertedAlternativeHarmCompileTests.test_world_model_from_dict_admits_recompiled_averted_overlays",
+            "invariants.test_averted_alternative_harm_hypothesis.AvertedAlternativeHarmGroundingTests.test_grounding_lane_mints_averted_quantity_without_silent_survival_copy",
+            "invariants.test_averted_alternative_harm_hypothesis.AvertedAlternativeHarmGroundingTests.test_grounding_lane_strips_silent_survival_copy",
+            "invariants.test_averted_alternative_harm_hypothesis.AvertedAlternativeHarmGroundingTests.test_epistemic_marks_averted_claim_established",
+        ),
+        oracle_risk="independent",
+        notes=(
+            "Hypothesis: strategies.averted_alternative_harm. "
+            "Compiler compile_averted_alternative_harm_overlays mints the "
+            "derived row; compile_grounded_quantities licenses inherited "
+            "spans. Completeness does not demand a CAUSES process parent for "
+            "CF-licensed AV* rows; provenance is inherited from opposed harm. "
+            "world_model_from_dict refreshes admission so overlays are not "
+            "WITHHELD. Grounding seed averted_alternative_harm_grounding.yaml "
+            "closes the E1/E7 loop. Util scores the derived row instead of "
+            "double-counting survival; epistemic treats it as established "
+            "certain-alternative aversion, not unsettled averted risk."
+        ),
+        production="pass",
+        integrity_layers=IntegrityLayers(
+            cataloged=True,
+            seed_case=True,
+            structured_property=True,
+            grounding_property=True,
+            production_validator=True,
+            metamorphic_test=True,
+            end_to_end=False,
+        ),
+        enforcement="enforced",
+        source_type="parliament_extension",
     ),
     Invariant(
         id="ADMITTED_PROPOSITION_STATUS",
@@ -1034,6 +1987,52 @@ INVARIANTS: tuple[Invariant, ...] = (
 
 def invariant_by_id() -> dict[str, Invariant]:
     return {item.id: item for item in INVARIANTS}
+
+
+def format_integrity_layers_report() -> str:
+    """Report multidimensional coverage for semantic-integrity invariants."""
+    headers = (
+        "Invariant",
+        "cataloged",
+        "seed",
+        "structured",
+        "grounding",
+        "validator",
+        "metamorphic",
+        "e2e",
+        "enforcement",
+    )
+    rows: list[tuple[str, ...]] = []
+    for item in INVARIANTS:
+        layers = item.integrity_layers
+        if layers is None:
+            continue
+        rows.append((
+            item.id,
+            "yes" if layers.cataloged else "no",
+            "yes" if layers.seed_case else "no",
+            "yes" if layers.structured_property else "no",
+            "yes" if layers.grounding_property else "no",
+            "yes" if layers.production_validator else "no",
+            "yes" if layers.metamorphic_test else "no",
+            "yes" if layers.end_to_end else "no",
+            item.enforcement or "—",
+        ))
+    if not rows:
+        return "No semantic-integrity invariants with integrity_layers."
+    widths = [
+        max(len(headers[index]), max(len(row[index]) for row in rows))
+        for index in range(len(headers))
+    ]
+
+    def fmt(cols: tuple[str, ...]) -> str:
+        return "  ".join(
+            cols[index].ljust(widths[index]) for index in range(len(headers))
+        )
+
+    lines = [fmt(headers), "-" * (sum(widths) + 2 * (len(headers) - 1))]
+    lines.extend(fmt(row) for row in rows)
+    return "\n".join(lines)
 
 
 def production_status(item: Invariant) -> str:

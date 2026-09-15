@@ -214,6 +214,8 @@ def utilitarian_accounting(
     if (
         direction == "BENEFIT"
         and is_averted_risk_not_obtained_benefit_consequence(graph, evidence)
+        and str(evidence.attributes.get("derivation_operation", "")).upper()
+        != "AVERTED_ALTERNATIVE_HARM"
     ):
         direction = "UNKNOWN"
     return direction, probability
@@ -234,13 +236,25 @@ def utilitarian_scored_grounded_effects(graph: SemanticGraph):
     no actual harm or benefit on P. If the action already records that party's
     stipulated death, survival, or equivalent welfare, the FOREGONE overlay is
     the counterfactual dual and must not enter the welfare sum.
+
+    When an ``AVERTED_ALTERNATIVE_HARM`` row is present for (action, party), it
+    is the quantity-complete expression of the CERTAIN alternative pairing;
+    other actual BENEFICIAL welfare on that party is skipped so survival and
+    averted-thousands are not double-counted.
     """
     projected = project_grounded_action_effects(graph)
     actual_parties: dict[str, set[str]] = {}
+    averted_parties: dict[str, set[str]] = {}
     for effect in projected:
         node = graph.nodes.get(effect.consequence_id)
         if node is None or _node_is_foregone(node):
             continue
+        party_id = str(node.attributes.get("party_id", ""))
+        operation = str(
+            node.attributes.get("derivation_operation", "")
+        ).upper()
+        if operation == "AVERTED_ALTERNATIVE_HARM" and party_id:
+            averted_parties.setdefault(effect.action_id, set()).add(party_id)
         if not counts_as_actual_welfare(
             polarity=str(node.attributes.get("polarity", "")).upper(),
             directness=str(node.attributes.get("directness", "")).upper(),
@@ -248,7 +262,6 @@ def utilitarian_scored_grounded_effects(graph: SemanticGraph):
             party_kind=str(node.attributes.get("party_kind", "")).upper(),
         ):
             continue
-        party_id = str(node.attributes.get("party_id", ""))
         if party_id:
             actual_parties.setdefault(effect.action_id, set()).add(party_id)
     scored = []
@@ -257,6 +270,25 @@ def utilitarian_scored_grounded_effects(graph: SemanticGraph):
         if node is not None and _node_is_foregone(node):
             party_id = str(node.attributes.get("party_id", ""))
             if party_id and party_id in actual_parties.get(effect.action_id, set()):
+                continue
+        if node is not None:
+            party_id = str(node.attributes.get("party_id", ""))
+            operation = str(
+                node.attributes.get("derivation_operation", "")
+            ).upper()
+            polarity = str(node.attributes.get("polarity", "")).upper()
+            if (
+                operation != "AVERTED_ALTERNATIVE_HARM"
+                and polarity == "BENEFICIAL"
+                and party_id
+                and party_id in averted_parties.get(effect.action_id, set())
+                and counts_as_actual_welfare(
+                    polarity=polarity,
+                    directness=str(node.attributes.get("directness", "")).upper(),
+                    effect_kind=str(node.attributes.get("effect_kind", "")).upper(),
+                    party_kind=str(node.attributes.get("party_kind", "")).upper(),
+                )
+            ):
                 continue
         scored.append(effect)
     return scored

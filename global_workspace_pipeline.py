@@ -96,6 +96,20 @@ WORLD_ESCALATION_MODEL = "gpt-5.6-sol"
 WORLD_ESCALATION_LABEL = "GPT-5.6 Sol"
 
 
+def _cached_action_texts_are_complete(actions: object) -> bool:
+    """True when every cached action clause passes the truncation gate."""
+    from global_workspace.action_identity import action_clause_looks_complete
+
+    if not isinstance(actions, list) or not actions:
+        return False
+    return all(
+        isinstance(action, str)
+        and action.strip()
+        and action_clause_looks_complete(action)
+        for action in actions
+    )
+
+
 def _canonical_openai_model(model: str) -> str:
     name = str(model or "").strip().casefold()
     if name in {"gpt-5.6", "gpt-5.6-sol"}:
@@ -271,6 +285,11 @@ def load_problem_framing_cache(
         or not isinstance(grounding.get("world_model"), dict)
     ):
         return None, "MISS_INVALID_CACHE"
+    if (
+        not _cached_action_texts_are_complete(actions)
+        or not _cached_action_texts_are_complete(canonical_actions)
+    ):
+        return None, "MISS_INCOMPLETE_ACTIONS"
     try:
         from global_workspace.world_state import world_model_from_dict
         restored_world = world_model_from_dict(grounding["world_model"])
@@ -346,6 +365,13 @@ def load_failed_grounding_cache(
         or action_origin not in ACTION_ORIGINS
     ):
         return None, "MISS_INVALID_CACHE"
+    if (
+        not _cached_action_texts_are_complete(actions)
+        or not _cached_action_texts_are_complete(canonical_actions)
+    ):
+        # Truncated resume actions (e.g. "Trigger an immediate") must not lock
+        # the next run into a doomed action set or its rejected world graph.
+        return None, "MISS_INCOMPLETE_ACTIONS"
     return payload, "HIT"
 
 
@@ -367,6 +393,13 @@ def save_failed_grounding_cache(
     """Save only the latest resumable state, never the full diagnostic history."""
     if repair_scope not in {LOCAL_PATCH, SUBGRAPH_REBUILD}:
         raise ValueError(f"repair scope {repair_scope!r} is not cacheable")
+    if (
+        not _cached_action_texts_are_complete(presentation_actions)
+        or not _cached_action_texts_are_complete(canonical_actions)
+    ):
+        raise ValueError(
+            "failed grounding cache refuses incomplete or truncated action clauses"
+        )
     attempts = list(grounding.get("attempts") or [])
     if len(attempts) < 3 or not isinstance(
         grounding.get("rejected_candidate"), dict
@@ -431,7 +464,10 @@ def choose_initial_actions(
     if explicit_actions:
         return list(explicit_actions), False
     if cached is not None:
-        return list(cached["presentation_actions"]), True
+        actions = list(cached["presentation_actions"])
+        if _cached_action_texts_are_complete(actions):
+            return actions, True
+        # Incomplete resume actions fall through to a fresh plan.
     return list(planner()), False
 
 
@@ -1122,6 +1158,18 @@ def run_pipeline(args: argparse.Namespace, recorder: PerformanceRecorder) -> int
                 failed_grounding_cache_path, ethical_problem,
             )
         )
+        if failed_grounding_cache_lookup == "MISS_INCOMPLETE_ACTIONS":
+            print(
+                "Failed-grounding resume cache ignored: cached actions are "
+                "incomplete or truncated; planning a fresh action set.",
+                flush=True,
+            )
+        if framing_cache_lookup == "MISS_INCOMPLETE_ACTIONS":
+            print(
+                "Committed framing cache ignored: cached actions are "
+                "incomplete or truncated; planning a fresh action set.",
+                flush=True,
+            )
     action_cache = cached_framing or failed_grounding_cache
     grounding_reused = False
     grounding_resumed = False

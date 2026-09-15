@@ -33,6 +33,9 @@ UPPER_BOUND_PREFIXES = (
     "at most",
     "no more than",
     "not more than",
+    "roughly",
+    "about",
+    "approximately",
 )
 _CARDINALS = (
     "three hundred",

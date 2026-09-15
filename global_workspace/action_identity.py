@@ -42,6 +42,9 @@ _ACTION_OPEN_ENDINGS = {
 _ACTION_DANGLING_ENDINGS = {
     "main", "primary", "remaining", "official", "current", "next", "prior",
     "same", "other", "first", "second", "central", "essential", "necessary",
+    # Attributive adjectives with no head noun ("Trigger an immediate").
+    "immediate", "imminent", "emergency", "temporary", "permanent",
+    "irreversible", "complete", "partial", "final", "initial",
 }
 _WORD_NUMBER = {
     "zero": "0", "one": "1", "single": "1", "two": "2", "three": "3",

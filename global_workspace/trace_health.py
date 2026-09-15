@@ -66,11 +66,20 @@ def audit_trace_health(result: WorkspaceResult) -> list[TraceHealthFinding]:
                     f"{candidate.specialist} provider call failed; response excluded from policy",
                 ))
             if candidate.schema_valid and candidate.action_scores:
-                maximum = max(candidate.action_scores.values())
-                if candidate.action_scores.get(candidate.recommended_action) != maximum:
+                recommended = str(candidate.recommended_action or "").strip()
+                # Empty recommendation is an abstention path (scores often flat);
+                # do not treat it as SCORE_MISMATCH noise.
+                if recommended and recommended in candidate.action_scores:
+                    maximum = max(candidate.action_scores.values())
+                    if candidate.action_scores.get(recommended) != maximum:
+                        findings.append(TraceHealthFinding(
+                            "ERROR", "RECOMMENDATION_SCORE_MISMATCH", cycle.cycle,
+                            f"{candidate.specialist} recommendation is not its highest score",
+                        ))
+                elif recommended and recommended not in candidate.action_scores:
                     findings.append(TraceHealthFinding(
                         "ERROR", "RECOMMENDATION_SCORE_MISMATCH", cycle.cycle,
-                        f"{candidate.specialist} recommendation is not its highest score",
+                        f"{candidate.specialist} recommendation is not among scored actions",
                     ))
             if received.constraint == "VISIBILITY_AUDIT" and candidate.schema_valid:
                 if candidate.visibility_response == "NOT_TESTED":

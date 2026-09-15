@@ -8,20 +8,31 @@ without changing validation semantics again.
 """
 from __future__ import annotations
 
+import copy
 import re
 from dataclasses import asdict, dataclass
 from typing import Sequence
 
 
 _ENTITY_ID = re.compile(
-    r"(?<![A-Za-z0-9_])(?:A\d+(?:_[A-Za-z0-9_]+)?|E[A-Za-z0-9_]*|P\d+(?:_[A-Za-z0-9_]+)?|CT[A-Za-z0-9_]*|COND[A-Za-z0-9_]*)(?![A-Za-z0-9_])"
+    r"(?<![A-Za-z0-9_])(?:"
+    r"A\d+_e\d+"
+    r"|E[A-Za-z0-9_]*"
+    r"|A\d+(?:_[A-Za-z0-9_]+)?"
+    r"|P\d+(?:_[A-Za-z0-9_]+)?"
+    r"|CT[A-Za-z0-9_]*"
+    r"|COND[A-Za-z0-9_]*"
+    r")(?![A-Za-z0-9_])"
 )
 _LINK_INDEX = re.compile(r"causal_link\[(\d+)\]")
 
 LOCAL_PATCH = "LOCAL_PATCH"
+DETERMINISTIC_LOCAL_PATCH = "DETERMINISTIC_LOCAL_PATCH"
 SUBGRAPH_REBUILD = "SUBGRAPH_REBUILD"
 FULL_REBUILD = "FULL_REBUILD"
 REPAIR_SCOPES = frozenset({LOCAL_PATCH, SUBGRAPH_REBUILD, FULL_REBUILD})
+# DETERMINISTIC_LOCAL_PATCH is an execution mode of LOCAL_PATCH, not a
+# separate inheritance scope for classify_world_repair_scope.
 
 _SUBGRAPH_ISSUE_CODES = frozenset({
     "MISSING_DIRECT_INTERVENTION",
@@ -113,12 +124,33 @@ def _issue_code(message: str) -> tuple[str, str, str, bool]:
         return "STALE_EFFECT_INDEX", "effect_ids", "DETERMINISTIC", False
     if "foregone so its effect_kind" in lowered:
         return "FOREGONE_KIND_MISMATCH", "effect_kind", "DETERMINISTIC", False
+    if "omits source-grounded likelihood qualifiers" in lowered:
+        return "LIKELIHOOD_QUALIFIER_MISSING", "likelihood_qualifiers", "SOURCE_PATCH", False
+    if "omits source-grounded temporal qualifiers" in lowered:
+        return "TEMPORAL_QUALIFIER_MISSING", "temporal_qualifiers", "SOURCE_PATCH", False
+    if "omits source-grounded scope qualifiers" in lowered:
+        return "SCOPE_QUALIFIER_MISSING", "scope_qualifiers", "SOURCE_PATCH", False
     if "qualifier" in lowered and ("provenance" in lowered or "source-grounded" in lowered):
         return "SOURCE_QUALIFIER_MISMATCH", "provenance", "SOURCE_PATCH", False
     if "quantity" in lowered and "provenance" in lowered:
         return "SOURCE_QUANTITY_MISMATCH", "provenance", "SOURCE_PATCH", False
+    if "outcome lemma does not bind" in lowered:
+        return "VERB_LEMMA_MISMATCH", "outcome", "SOURCE_PATCH", True
     if "source_proposition" in lowered:
-        return "SOURCE_PROPOSITION_BINDING", "source_proposition", "SOURCE_PATCH", False
+        # Message offers bind-or-omit; removal must be contractually allowed.
+        return "SOURCE_PROPOSITION_BINDING", "source_proposition", "SOURCE_PATCH", True
+    if "incomplete predicate" in lowered:
+        return "OUTCOME_PREDICATE_INCOMPLETE", "outcome", "SEMANTIC_PATCH", True
+    if "source-stipulated outcome" in lowered:
+        return "SOURCE_STIPULATED_OUTCOME_MISSING", "effects", "SEMANTIC_PATCH", False
+    if "source quantity" in lowered and "quantity-bearing consequence" in lowered:
+        return "QUANTITY_BEARING_CONSEQUENCE_MISSING", "quantities", "SOURCE_PATCH", False
+    if "quantity-bearing consequence" in lowered:
+        return "QUANTITY_BEARING_CONSEQUENCE_MISSING", "effects", "SEMANTIC_PATCH", False
+    if "repair had no effect" in lowered or "unstable repair" in lowered:
+        return "REPAIR_NO_EFFECT", "repair", "QUARANTINE", False
+    if "records quantity" in lowered and "binds to" in lowered:
+        return "QUANTIFIER_PARTY_LEAK", "quantities", "SOURCE_PATCH", False
     if "derivation assumptions" in lowered or "changes source outcome type" in lowered:
         return "UNSUPPORTED_WORLD_DERIVATION", "derivation_operation", "QUARANTINE", False
     if "derivation_operation" in lowered or "source_effect_ids" in lowered:
@@ -212,11 +244,41 @@ def classify_world_repair_scope(
     if any(pattern in folded for pattern in _GLOBAL_FAILURE_PATTERNS):
         return FULL_REBUILD
     codes = {str(row.get("code") or "") for row in rows}
+    if "REPAIR_NO_EFFECT" in codes:
+        # Deterministic patch already proved non-effective; escalate away from
+        # LOCAL_PATCH / DET retries.
+        return SUBGRAPH_REBUILD
     if codes & _SUBGRAPH_ISSUE_CODES or any(
         pattern in folded for pattern in _SUBGRAPH_FAILURE_PATTERNS
     ):
         return SUBGRAPH_REBUILD
     return LOCAL_PATCH
+
+
+def widen_stuck_source_binding_repair_scope(
+    repair_scope: str,
+    *,
+    issue_codes: Sequence[str],
+    prior_attempt_scopes: Sequence[str] = (),
+    prior_attempt_issue_codes: Sequence[Sequence[str]] = (),
+) -> str:
+    """Widen LOCAL_PATCH after a prior LOCAL_PATCH still left binding residuals.
+
+    Keeps the first source-binding repair local (rewrite or omit). Repeated
+    identical residuals under LOCAL_PATCH escalate so model escalation does not
+    inherit a contract that cannot clear the error.
+    """
+    if repair_scope != LOCAL_PATCH:
+        return repair_scope
+    codes = {str(code) for code in issue_codes if code}
+    if "SOURCE_PROPOSITION_BINDING" not in codes:
+        return repair_scope
+    for scope, prior_codes in zip(prior_attempt_scopes, prior_attempt_issue_codes):
+        if str(scope) != LOCAL_PATCH:
+            continue
+        if "SOURCE_PROPOSITION_BINDING" in {str(code) for code in prior_codes}:
+            return SUBGRAPH_REBUILD
+    return repair_scope
 
 
 def validation_issues_from_messages(
@@ -236,7 +298,7 @@ def validation_issues_from_messages(
             entity_id = identifiers[0]
             if entity_id.startswith(("CT", "COND")):
                 entity_kind = "condition"
-            elif entity_id.startswith("E"):
+            elif entity_id.startswith("E") or re.fullmatch(r"A\d+_e\d+", entity_id):
                 entity_kind = "effect"
             elif entity_id.startswith("A"):
                 entity_kind = "action"
@@ -247,15 +309,21 @@ def validation_issues_from_messages(
         else:
             entity_kind = "world_model"
             entity_id = ""
+        related = [
+            identifier for identifier in identifiers if identifier != entity_id
+        ]
+        lic_match = re.search(r"licensing_clause_id=([A-Za-z0-9_]+)", message)
+        if lic_match:
+            clause_id = lic_match.group(1)
+            if clause_id not in related and clause_id != entity_id:
+                related.insert(0, clause_id)
         issues.append(ValidationIssue(
             code=code,
             message=message,
             entity_kind=entity_kind,
             entity_id=entity_id,
             field=field,
-            related_ids=tuple(
-                identifier for identifier in identifiers if identifier != entity_id
-            ),
+            related_ids=tuple(related),
             repair_class=repair_class,
             permits_removal=permits_removal,
         ))
@@ -267,6 +335,7 @@ def repair_patch_contract(
     *,
     errors: Sequence[str] = (),
     candidate: object | None = None,
+    clauses: Sequence[dict[str, object]] | None = None,
 ) -> dict[str, object]:
     """Return the mutation boundary for a transactional repair response."""
     issue_rows = _issue_rows(issues)
@@ -288,6 +357,10 @@ def repair_patch_contract(
     repair_scope = classify_world_repair_scope(
         issue_rows, errors=errors, candidate=candidate,
     )
+    unique_codes = list(dict.fromkeys(code for code in codes if code))
+    cards = repair_guidance_cards(
+        issue_rows, candidate, clauses=clauses,
+    )
     return {
         "schema_version": 1,
         "repair_scope": repair_scope,
@@ -295,12 +368,1099 @@ def repair_patch_contract(
             implicated_action_ids(issue_rows, candidate)
             if repair_scope == SUBGRAPH_REBUILD else ()
         ),
-        "issue_codes": list(dict.fromkeys(code for code in codes if code)),
+        "issue_codes": unique_codes,
         "allowed_entity_ids": list(dict.fromkeys(value for value in entity_ids if value)),
         "allowed_fields": list(dict.fromkeys(value for value in fields if value)),
         "allowed_operations": operations,
         "full_candidate_response_compatibility": True,
+        "guidance_cards": cards,
+        "guidance_prompt": format_repair_guidance_for_prompt(cards),
     }
+
+
+def _clause_text_by_id(
+    clauses: Sequence[dict[str, object]] | None,
+) -> dict[str, str]:
+    by_id: dict[str, str] = {}
+    for row in clauses or ():
+        if not isinstance(row, dict):
+            continue
+        clause_id = str(row.get("clause_id") or "").strip()
+        text = " ".join(str(row.get("text") or "").split())
+        if clause_id and text:
+            by_id[clause_id] = text
+    return by_id
+
+
+def _licensing_clause_id_for_quantity(
+    *,
+    quantity: str,
+    consequence: str,
+    clause_by_id: dict[str, str],
+) -> str:
+    """Resolve the source clause that must license a quantity span on an effect.
+
+    Completeness requires the span; compile_grounded_quantities keeps it only
+    when provenance (or a uniquely assigned party) licenses it. Prefer the
+    clause that states the quantity-bearing consequence; fall back to the
+    unique clause containing the span.
+    """
+    if not clause_by_id:
+        return ""
+    qty = str(quantity or "").casefold().strip()
+    cons = " ".join(str(consequence or "").split()).casefold()
+    if cons:
+        ranked: list[tuple[int, int, str]] = []
+        for clause_id, text in clause_by_id.items():
+            folded = text.casefold()
+            if not (
+                folded == cons
+                or cons in folded
+                or folded in cons
+            ):
+                continue
+            score = 0
+            if folded == cons:
+                score += 3
+            if qty and qty in folded:
+                score += 2
+            ranked.append((score, -len(text), clause_id))
+        if ranked:
+            ranked.sort(reverse=True)
+            return ranked[0][2]
+    if not qty:
+        return ""
+    hits = [
+        clause_id for clause_id, text in clause_by_id.items()
+        if qty in text.casefold()
+    ]
+    if len(hits) == 1:
+        return hits[0]
+    if len(hits) > 1:
+        return min(hits, key=lambda clause_id: len(clause_by_id[clause_id]))
+    return ""
+
+
+def _source_binding_outcome_suggestions(
+    *,
+    outcome: str,
+    proposition: str,
+    clause_spans: Sequence[str],
+) -> list[dict[str, object]]:
+    """Concrete outcome rewrites that reuse source wording.
+
+    Lazy-imports world_state so this module stays import-safe under the
+    world_state → world_validation dependency.
+    """
+    from .world_state import (
+        WorldEffect,
+        _source_proposition_supports_outcome,
+        outcome_predicate_is_incomplete,
+    )
+
+    candidates: list[str] = []
+    prop = " ".join(str(proposition or "").split())
+    if prop:
+        candidates.append(prop)
+        for chunk in re.split(r"\s*(?:,|;|\bor\b)\s*", prop, flags=re.IGNORECASE):
+            cleaned = " ".join(chunk.split()).strip(" .")
+            if cleaned and cleaned.casefold() != prop.casefold():
+                candidates.append(cleaned)
+    for span in clause_spans:
+        cleaned = " ".join(str(span or "").split()).strip(" .")
+        if cleaned:
+            candidates.append(cleaned)
+
+    seen: set[str] = set()
+    verified: list[dict[str, object]] = []
+    for value in candidates:
+        key = value.casefold()
+        if key in seen or key == str(outcome or "").casefold():
+            continue
+        seen.add(key)
+        if outcome_predicate_is_incomplete(value):
+            continue
+        probe = WorldEffect(
+            "E_probe",
+            "A0",
+            "P0",
+            value,
+            "STATE_CHANGE",
+            "NEUTRAL",
+            "DIRECT",
+            "CERTAIN",
+            "INTERVENTION",
+            provenance=(),
+            source_proposition=prop or value,
+            derivation_operation="DIRECT_COPY",
+        )
+        if not _source_proposition_supports_outcome(probe):
+            continue
+        verified.append({
+            "op": "replace_outcome",
+            "field": "outcome",
+            "value": value,
+            "why": (
+                "Outcome wording must share event identity with "
+                "source_proposition; this rewrite reuses source text."
+            ),
+        })
+    # Prefer short local rewrites (e.g. "refrain") over whole-clause copies,
+    # especially when the rejected outcome is a negation paraphrase.
+    verified.sort(key=lambda row: len(str(row.get("value") or "")))
+    return verified[:3]
+
+
+def _incomplete_outcome_suggestions(
+    *,
+    outcome: str,
+    proposition: str,
+    clause_spans: Sequence[str],
+) -> list[dict[str, object]]:
+    """Complete rewrites for dangling-copula / dangling-preposition fragments."""
+    from .world_state import outcome_predicate_is_incomplete
+
+    fragment = " ".join(str(outcome or "").split()).strip(" ,.;:")
+    head = re.sub(
+        r"\b(?:is|are|was|were|be|been|being|"
+        r"to|from|of|for|against|onto|into|over|under|before|after)\s*$",
+        "",
+        fragment,
+        flags=re.IGNORECASE,
+    ).strip(" ,.;:")
+    head_tokens = {
+        token.casefold()
+        for token in re.findall(r"[A-Za-z]+", head)
+        if len(token) > 2
+    }
+    candidates: list[str] = []
+    prop = " ".join(str(proposition or "").split())
+    if prop:
+        candidates.append(prop)
+        for chunk in re.split(r"\s*(?:,|;|\bor\b)\s*", prop, flags=re.IGNORECASE):
+            cleaned = " ".join(chunk.split()).strip(" .")
+            if cleaned:
+                candidates.append(cleaned)
+    for span in clause_spans:
+        cleaned = " ".join(str(span or "").split()).strip(" .")
+        if cleaned:
+            candidates.append(cleaned)
+    if head:
+        # Prefer a finished passive only when the head is already participial.
+        folded = head.casefold()
+        if folded.endswith(("ed", "en", "ing")):
+            candidates.insert(0, f"is {head}")
+        candidates.insert(0, f"{head} executed")
+        candidates.insert(0, f"{head} completed")
+
+    seen: set[str] = set()
+    verified: list[dict[str, object]] = []
+    for value in candidates:
+        cleaned = " ".join(str(value or "").split()).strip(" .")
+        key = cleaned.casefold()
+        if not cleaned or key in seen or key == fragment.casefold():
+            continue
+        seen.add(key)
+        if outcome_predicate_is_incomplete(cleaned):
+            continue
+        if head_tokens:
+            value_tokens = {
+                token.casefold()
+                for token in re.findall(r"[A-Za-z]+", cleaned)
+            }
+            if not (head_tokens & value_tokens):
+                continue
+        verified.append({
+            "op": "replace_outcome",
+            "field": "outcome",
+            "value": cleaned,
+            "why": (
+                "Replace the truncated predicate with a finished state or "
+                "event that keeps the fragment's event head."
+            ),
+        })
+    verified.sort(key=lambda row: len(str(row.get("value") or "")))
+    return verified[:3]
+
+
+def repair_guidance_cards(
+    issues: Sequence[ValidationIssue | dict[str, object]],
+    candidate: object | None = None,
+    *,
+    clauses: Sequence[dict[str, object]] | None = None,
+) -> list[dict[str, object]]:
+    """Concrete per-issue repair cards for model feedback.
+
+    Typed codes alone are not enough: SOURCE_PROPOSITION_BINDING needs the
+    current outcome / source_proposition pair, available clause spans, and
+    bind-or-omit patches the model can apply without guessing.
+    """
+    world = (
+        candidate.get("world_model")
+        if isinstance(candidate, dict) else None
+    )
+    effects_by_id: dict[str, dict[str, object]] = {}
+    if isinstance(world, dict):
+        for effect in world.get("effects") or []:
+            if isinstance(effect, dict) and effect.get("effect_id"):
+                effects_by_id[str(effect["effect_id"])] = effect
+    clause_by_id = _clause_text_by_id(clauses)
+    cards: list[dict[str, object]] = []
+    for row in _issue_rows(issues):
+        code = str(row.get("code") or "")
+        entity_id = str(row.get("entity_id") or "")
+        card: dict[str, object] = {
+            "code": code,
+            "entity_id": entity_id,
+            "entity_kind": str(row.get("entity_kind") or ""),
+            "field": str(row.get("field") or ""),
+            "repair_class": str(row.get("repair_class") or ""),
+            "permits_removal": bool(row.get("permits_removal")),
+            "message": str(row.get("message") or ""),
+        }
+        if code == "SOURCE_PROPOSITION_BINDING" and entity_id in effects_by_id:
+            effect = effects_by_id[entity_id]
+            outcome = str(effect.get("outcome") or "")
+            proposition = str(effect.get("source_proposition") or "")
+            action_id = str(effect.get("action_id") or "")
+            cited = [
+                str(item) for item in (effect.get("clause_ids") or [])
+                if str(item).strip()
+            ]
+            available_spans = [
+                clause_by_id[cid] for cid in cited if cid in clause_by_id
+            ]
+            concrete_patches: list[dict[str, object]] = list(
+                _source_binding_outcome_suggestions(
+                    outcome=outcome,
+                    proposition=proposition,
+                    clause_spans=available_spans,
+                )
+            )
+            if available_spans and outcome:
+                # Prefer an exact cited-clause span that already contains the
+                # outcome wording when the current source_proposition does not.
+                outcome_fold = outcome.casefold()
+                for span in available_spans:
+                    if outcome_fold in span.casefold() and (
+                        span.casefold() != proposition.casefold()
+                    ):
+                        concrete_patches.append({
+                            "op": "replace_source_proposition",
+                            "field": "source_proposition",
+                            "value": span,
+                            "why": (
+                                "Bind source_proposition to the cited clause "
+                                "span that already states the outcome."
+                            ),
+                        })
+                        break
+            if row.get("permits_removal"):
+                concrete_patches.append({
+                    "op": "remove_effect",
+                    "remove_effect_id": entity_id,
+                    "also_update": [
+                        f"{action_id}.effect_ids" if action_id else "action.effect_ids",
+                        "causal_links",
+                        "counterfactual_links",
+                    ],
+                    "why": (
+                        "Omit this derived world effect when no cited clause "
+                        "states that outcome."
+                    ),
+                })
+            card.update({
+                "action_id": action_id,
+                "current_outcome": outcome,
+                "current_source_proposition": proposition,
+                "cited_clause_ids": cited,
+                "available_clause_spans": available_spans,
+                "allowed_operations": (
+                    ["replace_outcome", "replace_source_proposition", "remove_effect"]
+                    if row.get("permits_removal")
+                    else ["replace_outcome", "replace_source_proposition"]
+                ),
+                "concrete_patches": concrete_patches,
+                "fix_examples": [
+                    patch.get("why") or patch.get("op")
+                    for patch in concrete_patches
+                ],
+            })
+        elif code == "OUTCOME_PREDICATE_INCOMPLETE" and entity_id in effects_by_id:
+            effect = effects_by_id[entity_id]
+            outcome = str(effect.get("outcome") or "")
+            proposition = str(effect.get("source_proposition") or "")
+            action_id = str(effect.get("action_id") or "")
+            cited = [
+                str(item) for item in (effect.get("clause_ids") or [])
+                if str(item).strip()
+            ]
+            available_spans = [
+                clause_by_id[cid] for cid in cited if cid in clause_by_id
+            ]
+            concrete_patches: list[dict[str, object]] = list(
+                _incomplete_outcome_suggestions(
+                    outcome=outcome,
+                    proposition=proposition,
+                    clause_spans=available_spans,
+                )
+            )
+            if row.get("permits_removal"):
+                concrete_patches.append({
+                    "op": "remove_effect",
+                    "remove_effect_id": entity_id,
+                    "also_update": [
+                        f"{action_id}.effect_ids" if action_id else "action.effect_ids",
+                        "causal_links",
+                        "counterfactual_links",
+                    ],
+                    "why": (
+                        "Omit this fragment when no finished predicate can be "
+                        "sourced for the event."
+                    ),
+                })
+            card.update({
+                "action_id": action_id,
+                "current_outcome": outcome,
+                "current_source_proposition": proposition,
+                "cited_clause_ids": cited,
+                "available_clause_spans": available_spans,
+                "allowed_operations": (
+                    ["replace_outcome", "remove_effect"]
+                    if row.get("permits_removal")
+                    else ["replace_outcome"]
+                ),
+                "concrete_patches": concrete_patches,
+                "fix_examples": [
+                    patch.get("why") or patch.get("op")
+                    for patch in concrete_patches
+                ],
+            })
+        elif code == "SOURCE_STIPULATED_OUTCOME_MISSING":
+            message = str(row.get("message") or "")
+            match = re.search(
+                r"source-stipulated outcome '([^']+)'", message, re.IGNORECASE,
+            )
+            consequence = match.group(1) if match else ""
+            polarity = "ADVERSE" if re.search(
+                r"\b(?:loss\s+of\s+lif|death|die|kill|catastroph)",
+                consequence,
+                re.IGNORECASE,
+            ) else "BENEFICIAL"
+            action_id = entity_id if re.fullmatch(r"A\d+", entity_id) else ""
+            available_spans = [
+                text for text in clause_by_id.values() if text
+            ]
+            concrete_patches: list[dict[str, object]] = []
+            if consequence:
+                concrete_patches.append({
+                    "op": "add_effect",
+                    "action_id": action_id,
+                    "field": "effects",
+                    "value": {
+                        "outcome": consequence,
+                        "polarity": polarity,
+                        "effect_kind": "HEALTH_OUTCOME",
+                        "directness": "DIRECT",
+                        "modality": "CERTAIN",
+                        "source_proposition": consequence,
+                    },
+                    "why": (
+                        "Admit the binary-contrast consequence as an effect "
+                        "on this action, or mark polarity UNRESOLVED to "
+                        "quarantine it explicitly."
+                    ),
+                })
+                concrete_patches.append({
+                    "op": "add_effect",
+                    "action_id": action_id,
+                    "field": "effects",
+                    "value": {
+                        "outcome": consequence,
+                        "polarity": "UNRESOLVED",
+                        "effect_kind": "HEALTH_OUTCOME",
+                        "directness": "DIRECT",
+                        "modality": "CERTAIN",
+                        "source_proposition": consequence,
+                    },
+                    "why": (
+                        "Explicit UNRESOLVED quarantine when the stake is "
+                        "acknowledged but not yet settled."
+                    ),
+                })
+            card.update({
+                "action_id": action_id,
+                "stipulated_outcome": consequence,
+                "available_clause_spans": available_spans[:4],
+                "allowed_operations": ["add_effect"],
+                "concrete_patches": concrete_patches,
+                "fix_examples": [
+                    patch.get("why") or patch.get("op")
+                    for patch in concrete_patches
+                ],
+            })
+        elif code == "QUANTITY_BEARING_CONSEQUENCE_MISSING":
+            message = str(row.get("message") or "")
+            qty_match = re.search(
+                r"source quantity '([^']+)'", message, re.IGNORECASE,
+            )
+            cons_match = re.search(
+                r"quantity-bearing consequence '([^']+)'|"
+                r'quantity-bearing consequence "([^"]+)"',
+                message,
+                re.IGNORECASE,
+            )
+            quantity = qty_match.group(1) if qty_match else ""
+            consequence = ""
+            if cons_match:
+                consequence = cons_match.group(1) or cons_match.group(2) or ""
+            # Prefer membership in the candidate effect index so action-scoped
+            # ids like A1_e2 still get quantity DET, not a blind add_effect.
+            effect_id = entity_id if entity_id in effects_by_id else (
+                entity_id if entity_id.startswith("E") else ""
+            )
+            action_id = entity_id if re.fullmatch(r"A\d+", entity_id) else ""
+            if effect_id and effect_id in effects_by_id:
+                action_id = str(effects_by_id[effect_id].get("action_id") or action_id)
+            # Prefer detector-carried licensing clause; text search is fallback only.
+            licensing_clause_id = ""
+            lic_match = re.search(
+                r"licensing_clause_id=([A-Za-z0-9_]+)", message,
+            )
+            if lic_match:
+                licensing_clause_id = lic_match.group(1)
+            else:
+                for related in row.get("related_ids") or ():
+                    related_id = str(related or "").strip()
+                    if re.fullmatch(r"C\d+(?:_[A-Za-z0-9]+)?", related_id):
+                        licensing_clause_id = related_id
+                        break
+            if not licensing_clause_id:
+                licensing_clause_id = _licensing_clause_id_for_quantity(
+                    quantity=quantity,
+                    consequence=consequence,
+                    clause_by_id=clause_by_id,
+                )
+            concrete_patches: list[dict[str, object]] = []
+            if quantity and effect_id:
+                concrete_patches.append({
+                    "op": "add_quantity",
+                    "effect_id": effect_id,
+                    "field": "quantities",
+                    "value": quantity,
+                    "patch_kind": "semantic_patch",
+                    "why": (
+                        "Copy the source quantity span onto the matched "
+                        "consequence effect (or its population party)."
+                    ),
+                })
+                if licensing_clause_id:
+                    concrete_patches.append({
+                        "op": "add_provenance",
+                        "effect_id": effect_id,
+                        "field": "clause_ids",
+                        "value": licensing_clause_id,
+                        "patch_kind": "licensing_patch",
+                        "why": (
+                            "Add only the detector-named provenance edge that "
+                            "licenses this quantity under compile; do not cite "
+                            "sibling clauses."
+                        ),
+                    })
+            elif quantity and action_id:
+                value: dict[str, object] = {
+                    "outcome": consequence or quantity,
+                    "polarity": "ADVERSE",
+                    "effect_kind": "HEALTH_OUTCOME",
+                    "directness": "DIRECT",
+                    "modality": "CERTAIN",
+                    "quantities": [quantity],
+                    "source_proposition": consequence or quantity,
+                }
+                if licensing_clause_id:
+                    value["clause_ids"] = [licensing_clause_id]
+                concrete_patches.append({
+                    "op": "add_effect",
+                    "action_id": action_id,
+                    "field": "effects",
+                    "value": value,
+                    "patch_kind": "semantic_patch",
+                    "why": (
+                        "Admit the quantity-bearing consequence and record "
+                        "the source quantity span on that effect."
+                    ),
+                })
+            allowed_ops: list[str] = []
+            if effect_id:
+                allowed_ops.append("add_quantity")
+                if licensing_clause_id:
+                    allowed_ops.append("add_provenance")
+            else:
+                allowed_ops.append("add_effect")
+            card.update({
+                "action_id": action_id,
+                "entity_id": entity_id,
+                "missing_quantity": quantity,
+                "stipulated_outcome": consequence,
+                "licensing_clause_id": licensing_clause_id,
+                "allowed_operations": allowed_ops,
+                "concrete_patches": concrete_patches,
+                "fix_examples": [
+                    patch.get("why") or patch.get("op")
+                    for patch in concrete_patches
+                ],
+            })
+        elif code in {
+            "LIKELIHOOD_QUALIFIER_MISSING",
+            "TEMPORAL_QUALIFIER_MISSING",
+            "SCOPE_QUALIFIER_MISSING",
+        } and entity_id in effects_by_id:
+            message = str(row.get("message") or "")
+            field = {
+                "LIKELIHOOD_QUALIFIER_MISSING": "likelihood_qualifiers",
+                "TEMPORAL_QUALIFIER_MISSING": "temporal_qualifiers",
+                "SCOPE_QUALIFIER_MISSING": "scope_qualifiers",
+            }[code]
+            op = {
+                "LIKELIHOOD_QUALIFIER_MISSING": "add_likelihood_qualifier",
+                "TEMPORAL_QUALIFIER_MISSING": "add_temporal_qualifier",
+                "SCOPE_QUALIFIER_MISSING": "add_scope_qualifier",
+            }[code]
+            missing_match = re.search(
+                r"qualifiers:\s*\[([^\]]*)\]", message, re.IGNORECASE,
+            )
+            missing: list[str] = []
+            if missing_match:
+                missing = [
+                    item.strip().strip("'\"")
+                    for item in missing_match.group(1).split(",")
+                    if item.strip().strip("'\"")
+                ]
+            concrete_patches = []
+            for span in missing[:3]:
+                concrete_patches.append({
+                    "op": op,
+                    "effect_id": entity_id,
+                    "field": field,
+                    "value": span,
+                    "why": (
+                        f"Copy the source {field.replace('_', ' ')} span "
+                        "onto the effect whose outcome it modifies."
+                    ),
+                })
+            effect = effects_by_id[entity_id]
+            card.update({
+                "action_id": str(effect.get("action_id") or ""),
+                "missing_qualifiers": missing,
+                "allowed_operations": [op],
+                "concrete_patches": concrete_patches,
+                "fix_examples": [
+                    patch.get("why") or patch.get("op")
+                    for patch in concrete_patches
+                ],
+            })
+        elif code == "VERB_LEMMA_MISMATCH" and entity_id in effects_by_id:
+            effect = effects_by_id[entity_id]
+            outcome = str(effect.get("outcome") or "")
+            proposition = str(effect.get("source_proposition") or "")
+            action_id = str(effect.get("action_id") or "")
+            cited = [
+                str(item) for item in (effect.get("clause_ids") or [])
+                if str(item).strip()
+            ]
+            available_spans = [
+                clause_by_id[cid] for cid in cited if cid in clause_by_id
+            ]
+            concrete_patches: list[dict[str, object]] = list(
+                _source_binding_outcome_suggestions(
+                    outcome=outcome,
+                    proposition=proposition,
+                    clause_spans=available_spans,
+                )
+            )
+            if proposition and outcome:
+                concrete_patches.insert(0, {
+                    "op": "replace_outcome",
+                    "field": "outcome",
+                    "value": proposition,
+                    "why": (
+                        "Rewrite the outcome to a morphological variant of "
+                        "the bound source event lemma."
+                    ),
+                })
+            if row.get("permits_removal"):
+                concrete_patches.append({
+                    "op": "remove_effect",
+                    "remove_effect_id": entity_id,
+                    "also_update": [
+                        f"{action_id}.effect_ids" if action_id else "action.effect_ids",
+                        "causal_links",
+                        "counterfactual_links",
+                    ],
+                    "why": (
+                        "Omit this derived world effect when no lemma-compatible "
+                        "outcome can be sourced."
+                    ),
+                })
+            card.update({
+                "action_id": action_id,
+                "current_outcome": outcome,
+                "current_source_proposition": proposition,
+                "cited_clause_ids": cited,
+                "available_clause_spans": available_spans,
+                "allowed_operations": (
+                    ["replace_outcome", "replace_source_proposition", "remove_effect"]
+                    if row.get("permits_removal")
+                    else ["replace_outcome", "replace_source_proposition"]
+                ),
+                "concrete_patches": concrete_patches,
+                "fix_examples": [
+                    patch.get("why") or patch.get("op")
+                    for patch in concrete_patches
+                ],
+            })
+        elif code == "QUANTIFIER_PARTY_LEAK":
+            message = str(row.get("message") or "")
+            qty_match = re.search(
+                r"(\w+) records quantity '([^']+)' that source binds to (\w+)",
+                message,
+                re.IGNORECASE,
+            )
+            leak_id = qty_match.group(1) if qty_match else (
+                entity_id if entity_id.startswith("P") else ""
+            )
+            quantity = qty_match.group(2) if qty_match else ""
+            owner_id = qty_match.group(3) if qty_match else ""
+            concrete_patches: list[dict[str, object]] = []
+            if quantity and owner_id:
+                concrete_patches.append({
+                    "op": "move_quantity",
+                    "from_party_id": leak_id,
+                    "to_party_id": owner_id,
+                    "field": "quantities",
+                    "value": quantity,
+                    "why": (
+                        "Move the source quantity span onto the uniquely "
+                        "owning population party."
+                    ),
+                })
+            if quantity and leak_id:
+                concrete_patches.append({
+                    "op": "clear_quantity",
+                    "party_id": leak_id,
+                    "field": "quantities",
+                    "value": quantity,
+                    "why": (
+                        "Clear the leaked span from the non-owner party "
+                        "(owner must still record it)."
+                    ),
+                })
+            card.update({
+                "party_id": leak_id,
+                "owner_party_id": owner_id,
+                "leaked_quantity": quantity,
+                "allowed_operations": ["move_quantity", "clear_quantity"],
+                "concrete_patches": concrete_patches,
+                "fix_examples": [
+                    patch.get("why") or patch.get("op")
+                    for patch in concrete_patches
+                ],
+            })
+        cards.append(card)
+    return cards
+
+
+def issue_repair_fingerprint(
+    issue: ValidationIssue | dict[str, object],
+) -> tuple[str, str, str]:
+    """Stable (code, entity_id, field) key for unstable-repair detection."""
+    row = issue.as_dict() if isinstance(issue, ValidationIssue) else dict(issue)
+    return (
+        str(row.get("code") or "").strip(),
+        str(row.get("entity_id") or "").strip(),
+        str(row.get("field") or "").strip(),
+    )
+
+
+def repair_no_effect_issues(
+    before_issues: Sequence[ValidationIssue | dict[str, object]],
+    after_issues: Sequence[ValidationIssue | dict[str, object]],
+    applied_patches: Sequence[dict[str, object]] | None = None,
+) -> tuple[ValidationIssue, ...]:
+    """Return REPAIR_NO_EFFECT issues when a patch left the same target failing.
+
+    Generic property: repair(op) -> validate -> same violation on same target
+    means the repair was non-effective. Requires that patches were actually
+    applied; an empty applied list is a different failure mode.
+    """
+    applied = [dict(row) for row in (applied_patches or ()) if isinstance(row, dict)]
+    if not applied:
+        return ()
+    before_fps = {
+        issue_repair_fingerprint(row)
+        for row in before_issues
+        if issue_repair_fingerprint(row)[0]
+        and issue_repair_fingerprint(row)[0] != "REPAIR_NO_EFFECT"
+    }
+    after_fps = {
+        issue_repair_fingerprint(row)
+        for row in after_issues
+        if issue_repair_fingerprint(row)[0]
+        and issue_repair_fingerprint(row)[0] != "REPAIR_NO_EFFECT"
+    }
+    lingering = before_fps & after_fps
+    if not lingering:
+        return ()
+    targeted_entities = {
+        str(row.get("effect_id") or row.get("entity_id") or "").strip()
+        for row in applied
+    }
+    targeted_entities.discard("")
+    unstable: list[ValidationIssue] = []
+    for code, entity_id, field in sorted(lingering):
+        if entity_id:
+            # Blame only patches that named this entity. Same issue codes on
+            # siblings are a different failure, not this repair's no-effect.
+            if entity_id not in targeted_entities:
+                continue
+        elif targeted_entities:
+            # World-level residual while patches named concrete entities:
+            # do not treat as this DET's unstable fingerprint.
+            continue
+        target_label = entity_id or "world"
+        unstable.append(ValidationIssue(
+            code="REPAIR_NO_EFFECT",
+            message=(
+                f"repair had no effect on {code} for {target_label}; "
+                "same violation remains after deterministic patch "
+                "(unstable repair)"
+            ),
+            entity_kind="effect" if entity_id.startswith("E") else (
+                "action" if entity_id.startswith("A") else "world_model"
+            ),
+            entity_id=entity_id,
+            field=field or "repair",
+            related_ids=(code,) if code else (),
+            repair_class="QUARANTINE",
+            permits_removal=False,
+        ))
+    return tuple(unstable)
+
+
+def should_skip_deterministic_local_patch(
+    issues: Sequence[ValidationIssue | dict[str, object]],
+) -> bool:
+    """Once REPAIR_NO_EFFECT is flagged, do not re-run the same DET path."""
+    return any(
+        str(row.get("code") or "") == "REPAIR_NO_EFFECT"
+        for row in _issue_rows(issues)
+    )
+
+
+def annotate_admit_with_repair_no_effect(
+    admit_result: dict[str, object],
+    *,
+    before_issues: Sequence[ValidationIssue | dict[str, object]],
+    applied_patches: Sequence[dict[str, object]],
+) -> dict[str, object]:
+    """Attach REPAIR_NO_EFFECT issues when DET left the same failures intact."""
+    if admit_result.get("status") == "COMMITTED":
+        return admit_result
+    after_issues = list(admit_result.get("validation_issues") or [])
+    unstable = repair_no_effect_issues(
+        before_issues, after_issues, applied_patches,
+    )
+    if not unstable:
+        return admit_result
+    out = copy.deepcopy(admit_result)
+    messages = [issue.message for issue in unstable]
+    out["errors"] = list(dict.fromkeys([
+        *[str(item) for item in (out.get("errors") or [])],
+        *messages,
+    ]))
+    out["validation_issues"] = [
+        *after_issues,
+        *[issue.as_dict() for issue in unstable],
+    ]
+    out["repair_no_effect"] = [issue.as_dict() for issue in unstable]
+    if out.get("status") == "COMMITTED":
+        out["status"] = "REJECTED"
+    return out
+
+
+def apply_deterministic_local_patches(
+    candidate: object | None,
+    issues: Sequence[ValidationIssue | dict[str, object]],
+    *,
+    clauses: Sequence[dict[str, object]] | None = None,
+) -> tuple[dict[str, object], list[dict[str, object]]]:
+    """Apply unambiguous LOCAL_PATCH ops that need no reinterpretation.
+
+    Mechanical defects where the repair card already names the target entity
+    and missing payload are corrected here before any model re-grounding.
+
+    Supports:
+    - ``QUANTITY_BEARING_CONSEQUENCE_MISSING`` → ``semantic_patch``
+      ``add_quantity`` and, when the detector names a clause,
+      ``licensing_patch`` ``add_provenance`` for that single clause only
+      (``REPAIR_PROVENANCE_MINIMALITY``; legacy op ``add_clause_id`` accepted)
+    - ``LIKELIHOOD_QUALIFIER_MISSING`` → ``add_likelihood_qualifier``
+    - ``TEMPORAL_QUALIFIER_MISSING`` → ``add_temporal_qualifier``
+    - ``SCOPE_QUALIFIER_MISSING`` → ``add_scope_qualifier``
+
+    Ambiguous repairs (``add_effect``, coreference, lemma rewrite) are left
+    untouched.
+    """
+    if not isinstance(candidate, dict):
+        return {}, []
+    cards = repair_guidance_cards(issues, candidate, clauses=clauses)
+    working = copy.deepcopy(candidate)
+    world = working.get("world_model")
+    if not isinstance(world, dict):
+        return working, []
+    effects = world.get("effects")
+    if not isinstance(effects, list):
+        return working, []
+    effects_by_id: dict[str, dict[str, object]] = {
+        str(effect["effect_id"]): effect
+        for effect in effects
+        if isinstance(effect, dict) and effect.get("effect_id")
+    }
+    applied: list[dict[str, object]] = []
+    qualifier_ops = {
+        "add_likelihood_qualifier": "likelihood_qualifiers",
+        "add_temporal_qualifier": "temporal_qualifiers",
+        "add_scope_qualifier": "scope_qualifiers",
+    }
+    for card in cards:
+        code = str(card.get("code") or "")
+        if code == "QUANTITY_BEARING_CONSEQUENCE_MISSING":
+            for patch in card.get("concrete_patches") or []:
+                if not isinstance(patch, dict):
+                    continue
+                op = str(patch.get("op") or "")
+                effect_id = str(patch.get("effect_id") or "").strip()
+                value = str(patch.get("value") or "").strip()
+                effect = effects_by_id.get(effect_id)
+                if effect is None or not value:
+                    continue
+                if op == "add_quantity":
+                    from .world_state import merge_recorded_quantity_spans
+
+                    existing = [
+                        str(item).strip()
+                        for item in (effect.get("quantities") or [])
+                        if str(item).strip()
+                    ]
+                    merged = list(merge_recorded_quantity_spans(existing, value))
+                    if merged == existing:
+                        continue
+                    effect["quantities"] = merged
+                    applied.append({
+                        "op": op,
+                        "effect_id": effect_id,
+                        "field": "quantities",
+                        "value": value,
+                        "code": code,
+                        "patch_kind": "semantic_patch",
+                        "deterministic": True,
+                    })
+                elif op in {"add_provenance", "add_clause_id"}:
+                    existing_ids = [
+                        str(item).strip()
+                        for item in (effect.get("clause_ids") or [])
+                        if str(item).strip()
+                    ]
+                    if any(item.casefold() == value.casefold() for item in existing_ids):
+                        continue
+                    effect["clause_ids"] = [*existing_ids, value]
+                    applied.append({
+                        "op": "add_provenance",
+                        "effect_id": effect_id,
+                        "field": "clause_ids",
+                        "value": value,
+                        "code": code,
+                        "patch_kind": "licensing_patch",
+                        "deterministic": True,
+                    })
+            continue
+        for patch in card.get("concrete_patches") or []:
+            if not isinstance(patch, dict):
+                continue
+            op = str(patch.get("op") or "")
+            effect_id = str(patch.get("effect_id") or "").strip()
+            value = str(patch.get("value") or "").strip()
+            effect = effects_by_id.get(effect_id)
+            if effect is None or not value:
+                continue
+            if op in qualifier_ops and code in {
+                "LIKELIHOOD_QUALIFIER_MISSING",
+                "TEMPORAL_QUALIFIER_MISSING",
+                "SCOPE_QUALIFIER_MISSING",
+            }:
+                field = qualifier_ops[op]
+            else:
+                continue
+            existing = [
+                str(item).strip()
+                for item in (effect.get(field) or [])
+                if str(item).strip()
+            ]
+            if any(item.casefold() == value.casefold() for item in existing):
+                break
+            effect[field] = [*existing, value]
+            # Chance hedges on CERTAIN rows must untype when likelihood is attached.
+            if field == "likelihood_qualifiers":
+                modality = str(effect.get("modality") or "").upper()
+                if modality == "CERTAIN":
+                    effect["modality"] = "PROBABILISTIC"
+            applied.append({
+                "op": op,
+                "effect_id": effect_id,
+                "field": field,
+                "value": value,
+                "code": code,
+                "deterministic": True,
+            })
+            break
+    return working, applied
+
+
+def format_repair_guidance_for_prompt(
+    cards: Sequence[dict[str, object]],
+) -> str:
+    """Render guidance cards as compact, model-readable repair instructions."""
+    if not cards:
+        return ""
+    blocks: list[str] = []
+    for index, card in enumerate(cards, start=1):
+        code = str(card.get("code") or "ISSUE")
+        entity = str(card.get("entity_id") or "world")
+        lines = [f"{index}. {entity} [{code}]"]
+        message = str(card.get("message") or "").strip()
+        if message:
+            lines.append(f"   error: {message}")
+        outcome = str(card.get("current_outcome") or "").strip()
+        proposition = str(card.get("current_source_proposition") or "").strip()
+        if outcome or proposition:
+            lines.append(f"   current outcome: {outcome!r}")
+            lines.append(f"   current source_proposition: {proposition!r}")
+        spans = [
+            str(item) for item in (card.get("available_clause_spans") or [])
+            if str(item).strip()
+        ]
+        if spans:
+            lines.append("   available clause spans:")
+            for span in spans[:4]:
+                lines.append(f"     - {span}")
+        patches = list(card.get("concrete_patches") or [])
+        if patches:
+            quantity_pair = (
+                str(card.get("code") or "") == "QUANTITY_BEARING_CONSEQUENCE_MISSING"
+                and any(
+                    str(patch.get("op") or "") in {
+                        "add_clause_id", "add_provenance",
+                    }
+                    for patch in patches
+                    if isinstance(patch, dict)
+                )
+            )
+            lines.append(
+                "   apply these patches together:"
+                if quantity_pair else
+                "   apply exactly one patch:"
+            )
+            for patch in patches[:4]:
+                op = str(patch.get("op") or "")
+                if op == "replace_outcome":
+                    lines.append(
+                        f"     • set outcome={patch.get('value')!r}"
+                    )
+                elif op == "replace_source_proposition":
+                    lines.append(
+                        f"     • set source_proposition={patch.get('value')!r}"
+                    )
+                elif op == "add_effect":
+                    value = patch.get("value") or {}
+                    lines.append(
+                        f"     • add effect on {patch.get('action_id') or entity}: "
+                        f"outcome={value.get('outcome')!r}, "
+                        f"polarity={value.get('polarity')!r}"
+                    )
+                elif op == "add_quantity":
+                    lines.append(
+                        f"     • semantic_patch add quantities+={patch.get('value')!r} "
+                        f"on {patch.get('effect_id') or entity}"
+                    )
+                elif op in {"add_clause_id", "add_provenance"}:
+                    lines.append(
+                        f"     • licensing_patch add provenance "
+                        f"clause_ids+={patch.get('value')!r} "
+                        f"on {patch.get('effect_id') or entity}"
+                    )
+                elif op in {
+                    "add_likelihood_qualifier",
+                    "add_temporal_qualifier",
+                    "add_scope_qualifier",
+                }:
+                    lines.append(
+                        f"     • add {patch.get('field')}+={patch.get('value')!r} "
+                        f"on {patch.get('effect_id') or entity}"
+                    )
+                elif op == "move_quantity":
+                    lines.append(
+                        f"     • move quantity={patch.get('value')!r} "
+                        f"from {patch.get('from_party_id')} to "
+                        f"{patch.get('to_party_id')}"
+                    )
+                elif op == "clear_quantity":
+                    lines.append(
+                        f"     • clear quantity={patch.get('value')!r} "
+                        f"from {patch.get('party_id') or entity}"
+                    )
+                elif op == "remove_effect":
+                    lines.append(
+                        f"     • remove effect {patch.get('remove_effect_id')}; "
+                        f"also update {', '.join(patch.get('also_update') or [])}"
+                    )
+                else:
+                    lines.append(f"     • {op}: {patch}")
+                why = str(patch.get("why") or "").strip()
+                if why:
+                    lines.append(f"       ({why})")
+        elif card.get("fix_examples"):
+            lines.append("   fix options:")
+            for example in card.get("fix_examples") or []:
+                lines.append(f"     • {example}")
+        blocks.append("\n".join(lines))
+    return "\n".join(blocks)
+
+
+def apply_stuck_source_binding_scope(
+    contract: dict[str, object],
+    *,
+    issues: Sequence[ValidationIssue | dict[str, object]],
+    candidate: object | None = None,
+    prior_attempt_scopes: Sequence[str] = (),
+    prior_attempt_issue_codes: Sequence[Sequence[str]] = (),
+) -> dict[str, object]:
+    """Return a repair contract with stuck SOURCE_PROPOSITION_BINDING widened."""
+    widened = widen_stuck_source_binding_repair_scope(
+        str(contract.get("repair_scope") or LOCAL_PATCH),
+        issue_codes=[str(code) for code in contract.get("issue_codes") or ()],
+        prior_attempt_scopes=prior_attempt_scopes,
+        prior_attempt_issue_codes=prior_attempt_issue_codes,
+    )
+    if widened == contract.get("repair_scope"):
+        return contract
+    issue_rows = _issue_rows(issues)
+    updated = dict(contract)
+    updated["repair_scope"] = widened
+    updated["implicated_action_ids"] = list(
+        implicated_action_ids(issue_rows, candidate)
+        if widened == SUBGRAPH_REBUILD else ()
+    )
+    return updated
 
 
 def issue_mentions_identifier(issue: ValidationIssue | dict[str, object], identifier: str) -> bool:

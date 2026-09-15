@@ -412,9 +412,20 @@ def evaluate_framework_vote(
     ]
     context = {"ledger_kind": ledger_kind, "ledger_status": ledger_status}
     if ledger_kind != expected_kind:
+        detail = (
+            f"expected {expected_kind}, but no matching committed ledger is operative"
+        )
+        validation = [
+            str(item) for item in (
+                getattr(candidate, "framework_validation_errors", []) or []
+            )
+            if str(item).strip()
+        ]
+        if specialist == "rawlsian" and validation:
+            detail = f"{detail}; blocked by: {validation[0]}"
         return _decision(
             "ABSTAIN",
-            f"expected {expected_kind}, but no matching committed ledger is operative",
+            detail,
             **context,
         )
     if not ledger_status.startswith("COMMITTED") or not records:
