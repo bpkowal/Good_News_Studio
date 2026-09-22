@@ -1,0 +1,1332 @@
+{
+  "id": "embedded_request",
+  "source_stage_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_233551_827441.json",
+  "obligations": {
+    "version": "1.0",
+    "mode": "READ_ONLY_RESOLUTION_QUESTIONS",
+    "obligations": [
+      {
+        "obligation_id": "SRO_1",
+        "type": "EMBEDDED_CLAUSE",
+        "clause_ids": [
+          "C0"
+        ],
+        "source_span": "The physician asks the nurse to administer the antidote.",
+        "predicate_ids": [
+          "S0_T6"
+        ],
+        "predicate_lemmas": [
+          "administer"
+        ],
+        "question": "Is the embedded predicate asserted, merely enabled, requested, intended, or otherwise modal?",
+        "required_handling": "REPRESENT_OR_QUARANTINE",
+        "authority": "SYNTACTIC_CUE_ONLY"
+      },
+      {
+        "obligation_id": "SRO_2",
+        "type": "EMBEDDED_CLAUSE",
+        "clause_ids": [
+          "C2"
+        ],
+        "source_span": "Alternatively, the physician asks the nurse to wait.",
+        "predicate_ids": [
+          "S0_T8"
+        ],
+        "predicate_lemmas": [
+          "wait"
+        ],
+        "question": "Is the embedded predicate asserted, merely enabled, requested, intended, or otherwise modal?",
+        "required_handling": "REPRESENT_OR_QUARANTINE",
+        "authority": "SYNTACTIC_CUE_ONLY"
+      }
+    ],
+    "annotations": [
+      {
+        "clause_id": "C0",
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "The physician asks the nurse to administer the antidote.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "The physician asks the nurse to administer the antidote.",
+            "start_char": 0,
+            "end_char": 56,
+            "predicate_ids": [
+              "S0_T2",
+              "S0_T6"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T2",
+            "sentence_index": 0,
+            "token_index": 2,
+            "start_char": 14,
+            "end_char": 18,
+            "text": "asks",
+            "lemma": "ask",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 2,
+            "head_text": "asks",
+            "clause_head": true,
+            "subtree_span": "The physician asks the nurse to administer the antidote.",
+            "subjects": [
+              "physician"
+            ],
+            "objects": [
+              "nurse"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "physician",
+                "lemma": "physician",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "nurse",
+                "lemma": "nurse",
+                "dependency": "dobj"
+              },
+              {
+                "text": "administer",
+                "lemma": "administer",
+                "dependency": "xcomp"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T6",
+            "sentence_index": 0,
+            "token_index": 6,
+            "start_char": 32,
+            "end_char": 42,
+            "text": "administer",
+            "lemma": "administer",
+            "pos": "VERB",
+            "dependency": "xcomp",
+            "head_token_index": 2,
+            "head_text": "asks",
+            "clause_head": true,
+            "subtree_span": "to administer the antidote",
+            "subjects": [],
+            "objects": [
+              "antidote"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "to",
+                "lemma": "to",
+                "dependency": "aux"
+              },
+              {
+                "text": "antidote",
+                "lemma": "antidote",
+                "dependency": "dobj"
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "start_char": 0,
+            "end_char": 3,
+            "text": "The",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 1
+          },
+          {
+            "token_index": 1,
+            "start_char": 4,
+            "end_char": 13,
+            "text": "physician",
+            "lemma": "physician",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 2,
+            "start_char": 14,
+            "end_char": 18,
+            "text": "asks",
+            "lemma": "ask",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 3,
+            "start_char": 19,
+            "end_char": 22,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 4,
+            "start_char": 23,
+            "end_char": 28,
+            "text": "nurse",
+            "lemma": "nurse",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 5,
+            "start_char": 29,
+            "end_char": 31,
+            "text": "to",
+            "lemma": "to",
+            "pos": "PART",
+            "dependency": "aux",
+            "head_token_index": 6
+          },
+          {
+            "token_index": 6,
+            "start_char": 32,
+            "end_char": 42,
+            "text": "administer",
+            "lemma": "administer",
+            "pos": "VERB",
+            "dependency": "xcomp",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 7,
+            "start_char": 43,
+            "end_char": 46,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 8
+          },
+          {
+            "token_index": 8,
+            "start_char": 47,
+            "end_char": 55,
+            "text": "antidote",
+            "lemma": "antidote",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 6
+          },
+          {
+            "token_index": 9,
+            "start_char": 55,
+            "end_char": 56,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 2
+          }
+        ]
+      },
+      {
+        "clause_id": "C1",
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "Administering it may save the patient.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "Administering it may save the patient.",
+            "start_char": 0,
+            "end_char": 38,
+            "predicate_ids": [
+              "S0_T0",
+              "S0_T3"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T0",
+            "sentence_index": 0,
+            "token_index": 0,
+            "start_char": 0,
+            "end_char": 13,
+            "text": "Administering",
+            "lemma": "administer",
+            "pos": "VERB",
+            "dependency": "advcl",
+            "head_token_index": 3,
+            "head_text": "save",
+            "clause_head": true,
+            "subtree_span": "Administering",
+            "subjects": [],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": []
+          },
+          {
+            "predicate_id": "S0_T3",
+            "sentence_index": 0,
+            "token_index": 3,
+            "start_char": 21,
+            "end_char": 25,
+            "text": "save",
+            "lemma": "save",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 3,
+            "head_text": "save",
+            "clause_head": true,
+            "subtree_span": "Administering it may save the patient.",
+            "subjects": [
+              "it"
+            ],
+            "objects": [
+              "patient"
+            ],
+            "negations": [],
+            "modals": [
+              "may"
+            ],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "Administering",
+                "lemma": "administer",
+                "dependency": "advcl"
+              },
+              {
+                "text": "it",
+                "lemma": "it",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "may",
+                "lemma": "may",
+                "dependency": "aux"
+              },
+              {
+                "text": "patient",
+                "lemma": "patient",
+                "dependency": "dobj"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "start_char": 0,
+            "end_char": 13,
+            "text": "Administering",
+            "lemma": "administer",
+            "pos": "VERB",
+            "dependency": "advcl",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 1,
+            "start_char": 14,
+            "end_char": 16,
+            "text": "it",
+            "lemma": "it",
+            "pos": "PRON",
+            "dependency": "nsubj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 2,
+            "start_char": 17,
+            "end_char": 20,
+            "text": "may",
+            "lemma": "may",
+            "pos": "AUX",
+            "dependency": "aux",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 3,
+            "start_char": 21,
+            "end_char": 25,
+            "text": "save",
+            "lemma": "save",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 4,
+            "start_char": 26,
+            "end_char": 29,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 5,
+            "start_char": 30,
+            "end_char": 37,
+            "text": "patient",
+            "lemma": "patient",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 6,
+            "start_char": 37,
+            "end_char": 38,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 3
+          }
+        ]
+      },
+      {
+        "clause_id": "C2",
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "Alternatively, the physician asks the nurse to wait.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "Alternatively, the physician asks the nurse to wait.",
+            "start_char": 0,
+            "end_char": 52,
+            "predicate_ids": [
+              "S0_T4",
+              "S0_T8"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T4",
+            "sentence_index": 0,
+            "token_index": 4,
+            "start_char": 29,
+            "end_char": 33,
+            "text": "asks",
+            "lemma": "ask",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 4,
+            "head_text": "asks",
+            "clause_head": true,
+            "subtree_span": "Alternatively, the physician asks the nurse to wait.",
+            "subjects": [
+              "physician"
+            ],
+            "objects": [
+              "nurse"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "Alternatively",
+                "lemma": "alternatively",
+                "dependency": "advmod"
+              },
+              {
+                "text": ",",
+                "lemma": ",",
+                "dependency": "punct"
+              },
+              {
+                "text": "physician",
+                "lemma": "physician",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "nurse",
+                "lemma": "nurse",
+                "dependency": "dobj"
+              },
+              {
+                "text": "wait",
+                "lemma": "wait",
+                "dependency": "xcomp"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T8",
+            "sentence_index": 0,
+            "token_index": 8,
+            "start_char": 47,
+            "end_char": 51,
+            "text": "wait",
+            "lemma": "wait",
+            "pos": "VERB",
+            "dependency": "xcomp",
+            "head_token_index": 4,
+            "head_text": "asks",
+            "clause_head": true,
+            "subtree_span": "to wait",
+            "subjects": [],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "to",
+                "lemma": "to",
+                "dependency": "aux"
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "start_char": 0,
+            "end_char": 13,
+            "text": "Alternatively",
+            "lemma": "alternatively",
+            "pos": "ADV",
+            "dependency": "advmod",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 1,
+            "start_char": 13,
+            "end_char": 14,
+            "text": ",",
+            "lemma": ",",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 2,
+            "start_char": 15,
+            "end_char": 18,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 3,
+            "start_char": 19,
+            "end_char": 28,
+            "text": "physician",
+            "lemma": "physician",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 4,
+            "start_char": 29,
+            "end_char": 33,
+            "text": "asks",
+            "lemma": "ask",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 5,
+            "start_char": 34,
+            "end_char": 37,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 6
+          },
+          {
+            "token_index": 6,
+            "start_char": 38,
+            "end_char": 43,
+            "text": "nurse",
+            "lemma": "nurse",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 7,
+            "start_char": 44,
+            "end_char": 46,
+            "text": "to",
+            "lemma": "to",
+            "pos": "PART",
+            "dependency": "aux",
+            "head_token_index": 8
+          },
+          {
+            "token_index": 8,
+            "start_char": 47,
+            "end_char": 51,
+            "text": "wait",
+            "lemma": "wait",
+            "pos": "VERB",
+            "dependency": "xcomp",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 9,
+            "start_char": 51,
+            "end_char": 52,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 4
+          }
+        ]
+      },
+      {
+        "clause_id": "C3",
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "The physician must request administration or request delay.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "The physician must request administration or request delay.",
+            "start_char": 0,
+            "end_char": 59,
+            "predicate_ids": [
+              "S0_T3"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T3",
+            "sentence_index": 0,
+            "token_index": 3,
+            "start_char": 19,
+            "end_char": 26,
+            "text": "request",
+            "lemma": "request",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 3,
+            "head_text": "request",
+            "clause_head": true,
+            "subtree_span": "The physician must request administration or request delay.",
+            "subjects": [
+              "physician"
+            ],
+            "objects": [
+              "administration"
+            ],
+            "negations": [],
+            "modals": [
+              "must"
+            ],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "physician",
+                "lemma": "physician",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "must",
+                "lemma": "must",
+                "dependency": "aux"
+              },
+              {
+                "text": "administration",
+                "lemma": "administration",
+                "dependency": "dobj"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "start_char": 0,
+            "end_char": 3,
+            "text": "The",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 1
+          },
+          {
+            "token_index": 1,
+            "start_char": 4,
+            "end_char": 13,
+            "text": "physician",
+            "lemma": "physician",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 2,
+            "start_char": 14,
+            "end_char": 18,
+            "text": "must",
+            "lemma": "must",
+            "pos": "AUX",
+            "dependency": "aux",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 3,
+            "start_char": 19,
+            "end_char": 26,
+            "text": "request",
+            "lemma": "request",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 4,
+            "start_char": 27,
+            "end_char": 41,
+            "text": "administration",
+            "lemma": "administration",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 5,
+            "start_char": 42,
+            "end_char": 44,
+            "text": "or",
+            "lemma": "or",
+            "pos": "CCONJ",
+            "dependency": "cc",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 6,
+            "start_char": 45,
+            "end_char": 52,
+            "text": "request",
+            "lemma": "request",
+            "pos": "NOUN",
+            "dependency": "compound",
+            "head_token_index": 7
+          },
+          {
+            "token_index": 7,
+            "start_char": 53,
+            "end_char": 58,
+            "text": "delay",
+            "lemma": "delay",
+            "pos": "NOUN",
+            "dependency": "conj",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 8,
+            "start_char": 58,
+            "end_char": 59,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 3
+          }
+        ]
+      }
+    ]
+  },
+  "coverage_before": [
+    {
+      "obligation_id": "SRO_1",
+      "type": "EMBEDDED_CLAUSE",
+      "status": "CANDIDATE_NODES_PRESENT_REVIEW_REQUIRED",
+      "matching_proposition_ids": [
+        "P0"
+      ],
+      "missing_predicate_lemmas": []
+    },
+    {
+      "obligation_id": "SRO_2",
+      "type": "EMBEDDED_CLAUSE",
+      "status": "CANDIDATE_NODES_PRESENT_REVIEW_REQUIRED",
+      "matching_proposition_ids": [
+        "P3"
+      ],
+      "missing_predicate_lemmas": []
+    }
+  ],
+  "jobs": [],
+  "responses": [],
+  "audit": [],
+  "neutral_before": {
+    "parties": [
+      {
+        "party_id": "PHYS",
+        "label": "physician",
+        "kind": "HUMAN",
+        "quantities": [],
+        "clause_ids": [
+          "C0",
+          "C2",
+          "C3"
+        ]
+      },
+      {
+        "party_id": "NURSE",
+        "label": "nurse",
+        "kind": "HUMAN",
+        "quantities": [],
+        "clause_ids": [
+          "C0",
+          "C2"
+        ]
+      },
+      {
+        "party_id": "PAT",
+        "label": "patient",
+        "kind": "HUMAN",
+        "quantities": [],
+        "clause_ids": [
+          "C1"
+        ]
+      }
+    ],
+    "propositions": [
+      {
+        "proposition_id": "P0",
+        "party_id": "PHYS",
+        "outcome": "asks the nurse to administer the antidote",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "REQUEST",
+        "quantities": [],
+        "source_proposition": "The physician asks the nurse to administer the antidote.",
+        "clause_ids": [
+          "C0"
+        ],
+        "generated_source_proposition": "/",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "UNIQUE_ATOMIC_SPAN_OVERLAP",
+          "original_span": "/",
+          "bound_span": "The physician asks the nurse to administer the antidote.",
+          "bound_clause_id": "C0",
+          "score": 0.8
+        }
+      },
+      {
+        "proposition_id": "P1",
+        "party_id": "NURSE",
+        "outcome": "the antidote is administered",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "POSSIBLE",
+        "effect_kind": "ACTION",
+        "quantities": [],
+        "source_proposition": "/",
+        "clause_ids": [
+          "C1"
+        ],
+        "provenance_binding": {
+          "status": "UNRESOLVED",
+          "method": null,
+          "original_span": "/",
+          "bound_span": null,
+          "bound_clause_id": null,
+          "score": null
+        }
+      },
+      {
+        "proposition_id": "P2",
+        "party_id": "PAT",
+        "outcome": "the patient is saved",
+        "polarity": "BENEFICIAL",
+        "directness": "DOWNSTREAM",
+        "modality": "PROBABILISTIC",
+        "effect_kind": "OUTCOME",
+        "quantities": [],
+        "source_proposition": "P1",
+        "clause_ids": [
+          "C1"
+        ],
+        "provenance_binding": {
+          "status": "UNRESOLVED",
+          "method": null,
+          "original_span": "P1",
+          "bound_span": null,
+          "bound_clause_id": null,
+          "score": null
+        }
+      },
+      {
+        "proposition_id": "P3",
+        "party_id": "PHYS",
+        "outcome": "asks the nurse to wait",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "REQUEST",
+        "quantities": [],
+        "source_proposition": "the physician asks the nurse to wait.",
+        "clause_ids": [
+          "C2"
+        ],
+        "generated_source_proposition": "/",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "UNIQUE_ATOMIC_SPAN_OVERLAP",
+          "original_span": "/",
+          "bound_span": "the physician asks the nurse to wait.",
+          "bound_clause_id": "C2",
+          "score": 0.75
+        }
+      },
+      {
+        "proposition_id": "P4",
+        "party_id": "PHYS",
+        "outcome": "must request administration",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "OBLIGATION",
+        "quantities": [],
+        "source_proposition": "/",
+        "clause_ids": [
+          "C3"
+        ],
+        "provenance_binding": {
+          "status": "UNRESOLVED",
+          "method": null,
+          "original_span": "/",
+          "bound_span": null,
+          "bound_clause_id": null,
+          "score": null
+        }
+      },
+      {
+        "proposition_id": "P5",
+        "party_id": "PHYS",
+        "outcome": "must request delay",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "OBLIGATION",
+        "quantities": [],
+        "source_proposition": "/",
+        "clause_ids": [
+          "C3"
+        ],
+        "provenance_binding": {
+          "status": "UNRESOLVED",
+          "method": null,
+          "original_span": "/",
+          "bound_span": null,
+          "bound_clause_id": null,
+          "score": null
+        }
+      }
+    ],
+    "unresolved_source_spans": [],
+    "provenance_bindings": [
+      {
+        "proposition_id": "P0",
+        "status": "BOUND",
+        "method": "UNIQUE_ATOMIC_SPAN_OVERLAP",
+        "original_span": "/",
+        "bound_span": "The physician asks the nurse to administer the antidote.",
+        "bound_clause_id": "C0",
+        "score": 0.8
+      },
+      {
+        "proposition_id": "P1",
+        "status": "UNRESOLVED",
+        "method": null,
+        "original_span": "/",
+        "bound_span": null,
+        "bound_clause_id": null,
+        "score": null
+      },
+      {
+        "proposition_id": "P2",
+        "status": "UNRESOLVED",
+        "method": null,
+        "original_span": "P1",
+        "bound_span": null,
+        "bound_clause_id": null,
+        "score": null
+      },
+      {
+        "proposition_id": "P3",
+        "status": "BOUND",
+        "method": "UNIQUE_ATOMIC_SPAN_OVERLAP",
+        "original_span": "/",
+        "bound_span": "the physician asks the nurse to wait.",
+        "bound_clause_id": "C2",
+        "score": 0.75
+      },
+      {
+        "proposition_id": "P4",
+        "status": "UNRESOLVED",
+        "method": null,
+        "original_span": "/",
+        "bound_span": null,
+        "bound_clause_id": null,
+        "score": null
+      },
+      {
+        "proposition_id": "P5",
+        "status": "UNRESOLVED",
+        "method": null,
+        "original_span": "/",
+        "bound_span": null,
+        "bound_clause_id": null,
+        "score": null
+      }
+    ]
+  },
+  "neutral_after": {
+    "parties": [
+      {
+        "party_id": "PHYS",
+        "label": "physician",
+        "kind": "HUMAN",
+        "quantities": [],
+        "clause_ids": [
+          "C0",
+          "C2",
+          "C3"
+        ]
+      },
+      {
+        "party_id": "NURSE",
+        "label": "nurse",
+        "kind": "HUMAN",
+        "quantities": [],
+        "clause_ids": [
+          "C0",
+          "C2"
+        ]
+      },
+      {
+        "party_id": "PAT",
+        "label": "patient",
+        "kind": "HUMAN",
+        "quantities": [],
+        "clause_ids": [
+          "C1"
+        ]
+      }
+    ],
+    "propositions": [
+      {
+        "proposition_id": "P0",
+        "party_id": "PHYS",
+        "outcome": "asks the nurse to administer the antidote",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "REQUEST",
+        "quantities": [],
+        "source_proposition": "The physician asks the nurse to administer the antidote.",
+        "clause_ids": [
+          "C0"
+        ],
+        "generated_source_proposition": "/",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "UNIQUE_ATOMIC_SPAN_OVERLAP",
+          "original_span": "/",
+          "bound_span": "The physician asks the nurse to administer the antidote.",
+          "bound_clause_id": "C0",
+          "score": 0.8
+        }
+      },
+      {
+        "proposition_id": "P1",
+        "party_id": "NURSE",
+        "outcome": "the antidote is administered",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "POSSIBLE",
+        "effect_kind": "ACTION",
+        "quantities": [],
+        "source_proposition": "/",
+        "clause_ids": [
+          "C1"
+        ],
+        "provenance_binding": {
+          "status": "UNRESOLVED",
+          "method": null,
+          "original_span": "/",
+          "bound_span": null,
+          "bound_clause_id": null,
+          "score": null
+        }
+      },
+      {
+        "proposition_id": "P2",
+        "party_id": "PAT",
+        "outcome": "the patient is saved",
+        "polarity": "BENEFICIAL",
+        "directness": "DOWNSTREAM",
+        "modality": "PROBABILISTIC",
+        "effect_kind": "OUTCOME",
+        "quantities": [],
+        "source_proposition": "P1",
+        "clause_ids": [
+          "C1"
+        ],
+        "provenance_binding": {
+          "status": "UNRESOLVED",
+          "method": null,
+          "original_span": "P1",
+          "bound_span": null,
+          "bound_clause_id": null,
+          "score": null
+        }
+      },
+      {
+        "proposition_id": "P3",
+        "party_id": "PHYS",
+        "outcome": "asks the nurse to wait",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "REQUEST",
+        "quantities": [],
+        "source_proposition": "the physician asks the nurse to wait.",
+        "clause_ids": [
+          "C2"
+        ],
+        "generated_source_proposition": "/",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "UNIQUE_ATOMIC_SPAN_OVERLAP",
+          "original_span": "/",
+          "bound_span": "the physician asks the nurse to wait.",
+          "bound_clause_id": "C2",
+          "score": 0.75
+        }
+      },
+      {
+        "proposition_id": "P4",
+        "party_id": "PHYS",
+        "outcome": "must request administration",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "OBLIGATION",
+        "quantities": [],
+        "source_proposition": "/",
+        "clause_ids": [
+          "C3"
+        ],
+        "provenance_binding": {
+          "status": "UNRESOLVED",
+          "method": null,
+          "original_span": "/",
+          "bound_span": null,
+          "bound_clause_id": null,
+          "score": null
+        }
+      },
+      {
+        "proposition_id": "P5",
+        "party_id": "PHYS",
+        "outcome": "must request delay",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "OBLIGATION",
+        "quantities": [],
+        "source_proposition": "/",
+        "clause_ids": [
+          "C3"
+        ],
+        "provenance_binding": {
+          "status": "UNRESOLVED",
+          "method": null,
+          "original_span": "/",
+          "bound_span": null,
+          "bound_clause_id": null,
+          "score": null
+        }
+      }
+    ],
+    "unresolved_source_spans": [],
+    "provenance_bindings": [
+      {
+        "proposition_id": "P0",
+        "status": "BOUND",
+        "method": "UNIQUE_ATOMIC_SPAN_OVERLAP",
+        "original_span": "/",
+        "bound_span": "The physician asks the nurse to administer the antidote.",
+        "bound_clause_id": "C0",
+        "score": 0.8
+      },
+      {
+        "proposition_id": "P1",
+        "status": "UNRESOLVED",
+        "method": null,
+        "original_span": "/",
+        "bound_span": null,
+        "bound_clause_id": null,
+        "score": null
+      },
+      {
+        "proposition_id": "P2",
+        "status": "UNRESOLVED",
+        "method": null,
+        "original_span": "P1",
+        "bound_span": null,
+        "bound_clause_id": null,
+        "score": null
+      },
+      {
+        "proposition_id": "P3",
+        "status": "BOUND",
+        "method": "UNIQUE_ATOMIC_SPAN_OVERLAP",
+        "original_span": "/",
+        "bound_span": "the physician asks the nurse to wait.",
+        "bound_clause_id": "C2",
+        "score": 0.75
+      },
+      {
+        "proposition_id": "P4",
+        "status": "UNRESOLVED",
+        "method": null,
+        "original_span": "/",
+        "bound_span": null,
+        "bound_clause_id": null,
+        "score": null
+      },
+      {
+        "proposition_id": "P5",
+        "status": "UNRESOLVED",
+        "method": null,
+        "original_span": "/",
+        "bound_span": null,
+        "bound_clause_id": null,
+        "score": null
+      }
+    ],
+    "targeted_resolution_audit": []
+  },
+  "diagnostic_before": {
+    "gold_node_count": 2,
+    "present_neutral_node_count": 1,
+    "neutral_node_recall": 0.5,
+    "fused_gold_node_count": 0,
+    "alignments": [
+      {
+        "action_id": "A0",
+        "gold_event": "physician asks the nurse",
+        "matched_proposition_id": "P3__NEUTRAL__A0",
+        "method": "TOKEN_LEMMA",
+        "score": 0.75,
+        "status": "MATCHED",
+        "candidate_count": 6,
+        "unresolved_reason": null
+      },
+      {
+        "action_id": "A0",
+        "gold_event": "nurse administers the antidote",
+        "matched_proposition_id": null,
+        "method": null,
+        "score": null,
+        "status": "UNRESOLVED",
+        "candidate_count": 6,
+        "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+      }
+    ]
+  },
+  "diagnostic_after": {
+    "gold_node_count": 2,
+    "present_neutral_node_count": 1,
+    "neutral_node_recall": 0.5,
+    "fused_gold_node_count": 0,
+    "alignments": [
+      {
+        "action_id": "A0",
+        "gold_event": "physician asks the nurse",
+        "matched_proposition_id": "P3__NEUTRAL__A0",
+        "method": "TOKEN_LEMMA",
+        "score": 0.75,
+        "status": "MATCHED",
+        "candidate_count": 6,
+        "unresolved_reason": null
+      },
+      {
+        "action_id": "A0",
+        "gold_event": "nurse administers the antidote",
+        "matched_proposition_id": null,
+        "method": null,
+        "score": null,
+        "status": "UNRESOLVED",
+        "candidate_count": 6,
+        "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+      }
+    ]
+  },
+  "accepted_addition_ids": [],
+  "gold_useful_added_ids": []
+}

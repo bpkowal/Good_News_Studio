@@ -21,6 +21,7 @@ from global_workspace.world_state import (
     WorldCondition,
     WorldEffect,
     WorldParty,
+    normalize_redundant_link_gates,
 )
 from strategies.worlds import unique_tokens
 
@@ -255,6 +256,16 @@ def _head_world(
         CausalLink("E0", "ENABLES", "E1", "CERTAIN", provenance=ref, action_id="A0"),
         CausalLink("E1", "CAUSES", "E2", "CERTAIN", provenance=ref, action_id="A0"),
     )
+    effects = (
+        WorldEffect(
+            "E0", "A0", "P1", f"{verb} on the {facility}", "PERFORMS",
+            "NEUTRAL", "DIRECT", "CERTAIN", "INTERVENTION",
+            provenance=ref,
+        ),
+        process,
+        health,
+        *((mediated,) if percent_family else ()),
+    )
     world = ScenarioWorldModel(
         schema_version="1.2",
         parties=(
@@ -270,18 +281,9 @@ def _head_world(
                 ref,
             ),
         ),
-        effects=(
-            WorldEffect(
-                "E0", "A0", "P1", f"{verb} on the {facility}", "PERFORMS",
-                "NEUTRAL", "DIRECT", "CERTAIN", "INTERVENTION",
-                provenance=ref,
-            ),
-            process,
-            health,
-            *((mediated,) if percent_family else ()),
-        ),
+        effects=effects,
         conditions=conditions,
-        causal_links=links,
+        causal_links=normalize_redundant_link_gates(links, effects),
     )
     return world, owner_id, sibling_id
 

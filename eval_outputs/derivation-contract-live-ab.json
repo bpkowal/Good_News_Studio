@@ -1,0 +1,1294 @@
+{
+  "experiment_version": "1.0",
+  "model": "o3",
+  "source_diagnostic": "workspace_outputs/world_grounding_failure_workspace_20260921_234707_077701_20260921_234832_986393.json",
+  "arms": [
+    {
+      "arm": "A_LEGACY_BRANCH_RECONSTRUCTION",
+      "elapsed_seconds": 20.276,
+      "status": "REJECTED",
+      "world_model_status": "REJECTED",
+      "validation_issues": [
+        {
+          "code": "MISSING_PROCESS_INTERMEDIATE",
+          "message": "E2 is caused directly by another party's act or bodily outcome (E1); insert a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as the immediate parent. A person's framing, execution, or death is not that intermediate. Do not delete E2 or drop its causal_link without a replacement parent; the source also names P4 (RESOURCE dose of medicine), a plausible missing process-state parent for E2 \u2014 confirm that reading from the source; an unused facility or resource is not automatically the correct intermediary",
+          "entity_kind": "effect",
+          "entity_id": "E2",
+          "field": "causal_links",
+          "related_ids": [
+            "E1",
+            "FACILITY",
+            "P4"
+          ],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "MISSING_PROCESS_INTERMEDIATE",
+          "message": "E4 is caused directly by another party's act or bodily outcome (E3); insert a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as the immediate parent. A person's framing, execution, or death is not that intermediate. Do not delete E4 or drop its causal_link without a replacement parent; the source also names P4 (RESOURCE dose of medicine), a plausible missing process-state parent for E4 \u2014 confirm that reading from the source; an unused facility or resource is not automatically the correct intermediary",
+          "entity_kind": "effect",
+          "entity_id": "E4",
+          "field": "causal_links",
+          "related_ids": [
+            "E3",
+            "FACILITY",
+            "P4"
+          ],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "DERIVATION_CONTRACT_OPERATION_MISMATCH",
+          "message": "E1D derivation contract operation mismatch: the semantically valid nonreceipt effect existed in the raw candidate but was removed during SOURCE_BINDING because derivation_operation=SOURCE_STIPULATED_CAUSAL; preserve the effect and its topology, set derivation_operation=EXCLUSIVE_ALLOCATION_COMPLEMENT, bind source_proposition and clause_ids to the exact scarcity/indivisibility span, and copy that span's resource quantity",
+          "entity_kind": "effect",
+          "entity_id": "E1D",
+          "field": "derivation_operation,source_proposition,clause_ids,quantities",
+          "related_ids": [
+            "SOURCE_BINDING",
+            "SOURCE_STIPULATED_CAUSAL",
+            "EXCLUSIVE_ALLOCATION_COMPLEMENT"
+          ],
+          "repair_class": "SOURCE_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "DERIVATION_CONTRACT_OPERATION_MISMATCH",
+          "message": "E3D derivation contract operation mismatch: the semantically valid nonreceipt effect existed in the raw candidate but was removed during SOURCE_BINDING because derivation_operation=SOURCE_STIPULATED_CAUSAL; preserve the effect and its topology, set derivation_operation=EXCLUSIVE_ALLOCATION_COMPLEMENT, bind source_proposition and clause_ids to the exact scarcity/indivisibility span, and copy that span's resource quantity",
+          "entity_kind": "effect",
+          "entity_id": "E3D",
+          "field": "derivation_operation,source_proposition,clause_ids,quantities",
+          "related_ids": [
+            "SOURCE_BINDING",
+            "SOURCE_STIPULATED_CAUSAL",
+            "EXCLUSIVE_ALLOCATION_COMPLEMENT"
+          ],
+          "repair_class": "SOURCE_PATCH",
+          "permits_removal": false
+        }
+      ],
+      "compiler_loss_telemetry": {
+        "candidate_effect_count": 7,
+        "compiled_effect_count": 5,
+        "compiler_loss_count": 2,
+        "loss_reason_counts": {
+          "INVALID_DERIVATION_OPERATION": 2
+        },
+        "losses": [
+          {
+            "effect_id": "E1D",
+            "action_id": "A0",
+            "party_id": "P2",
+            "outcome": "Maria does not receive the allocated resource",
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "removed_during_stage": "SOURCE_BINDING",
+            "loss_reason": "INVALID_DERIVATION_OPERATION",
+            "failure_class": "ENCODING_FAILURE"
+          },
+          {
+            "effect_id": "E3D",
+            "action_id": "A1",
+            "party_id": "P3",
+            "outcome": "David does not receive the allocated resource",
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "removed_during_stage": "SOURCE_BINDING",
+            "loss_reason": "INVALID_DERIVATION_OPERATION",
+            "failure_class": "ENCODING_FAILURE"
+          }
+        ]
+      },
+      "semantic_nodes_preserved": false,
+      "causal_links_preserved": false,
+      "effects_added": [
+        "E1D",
+        "E3D"
+      ],
+      "effects_removed": [
+        "E1B",
+        "E1C",
+        "E3B",
+        "E3C"
+      ],
+      "links_added": [
+        [
+          "A0",
+          "E1",
+          "CAUSES",
+          "E1D"
+        ],
+        [
+          "A0",
+          "E1D",
+          "CAUSES",
+          "E2"
+        ],
+        [
+          "A1",
+          "E3",
+          "CAUSES",
+          "E3D"
+        ],
+        [
+          "A1",
+          "E3D",
+          "CAUSES",
+          "E4"
+        ]
+      ],
+      "links_removed": [
+        [
+          "A0",
+          "E1",
+          "CAUSES",
+          "E1B"
+        ],
+        [
+          "A0",
+          "E1B",
+          "CAUSES",
+          "E1C"
+        ],
+        [
+          "A0",
+          "E1C",
+          "CAUSES",
+          "E2"
+        ],
+        [
+          "A1",
+          "E3",
+          "CAUSES",
+          "E3B"
+        ],
+        [
+          "A1",
+          "E3B",
+          "CAUSES",
+          "E3C"
+        ],
+        [
+          "A1",
+          "E3C",
+          "CAUSES",
+          "E4"
+        ]
+      ],
+      "unrelated_changed_nodes": [
+        {
+          "node": "actions:A0",
+          "fields": [
+            "effect_ids"
+          ]
+        },
+        {
+          "node": "actions:A1",
+          "fields": [
+            "effect_ids"
+          ]
+        },
+        {
+          "node": "effects:E2",
+          "fields": [
+            "source_effect_ids"
+          ]
+        },
+        {
+          "node": "effects:E4",
+          "fields": [
+            "source_effect_ids"
+          ]
+        }
+      ],
+      "graph_diff": {
+        "before_fingerprint": "4034b3a2cf74c5452d24ec10",
+        "after_fingerprint": "8a224b6126bccfed04ce38a5",
+        "collections": {
+          "parties": {
+            "added": [],
+            "removed": [],
+            "changed": []
+          },
+          "actions": {
+            "added": [],
+            "removed": [],
+            "changed": [
+              {
+                "id": "A0",
+                "fields": [
+                  "effect_ids"
+                ]
+              },
+              {
+                "id": "A1",
+                "fields": [
+                  "effect_ids"
+                ]
+              }
+            ]
+          },
+          "effects": {
+            "added": [
+              "E1D",
+              "E3D"
+            ],
+            "removed": [
+              "E1B",
+              "E1C",
+              "E3B",
+              "E3C"
+            ],
+            "changed": [
+              {
+                "id": "E2",
+                "fields": [
+                  "source_effect_ids"
+                ]
+              },
+              {
+                "id": "E4",
+                "fields": [
+                  "source_effect_ids"
+                ]
+              }
+            ]
+          },
+          "conditions": {
+            "added": [],
+            "removed": [],
+            "changed": []
+          },
+          "temporal_relations": {
+            "added": [],
+            "removed": [],
+            "changed": []
+          },
+          "causal_links": {
+            "added": [
+              "A0|E1D|CAUSES|E2",
+              "A0|E1|CAUSES|E1D",
+              "A1|E3D|CAUSES|E4",
+              "A1|E3|CAUSES|E3D"
+            ],
+            "removed": [
+              "A0|E1B|CAUSES|E1C",
+              "A0|E1C|CAUSES|E2",
+              "A0|E1|CAUSES|E1B",
+              "A1|E3B|CAUSES|E3C",
+              "A1|E3C|CAUSES|E4",
+              "A1|E3|CAUSES|E3B"
+            ]
+          },
+          "counterfactual_links": {
+            "added": [],
+            "removed": []
+          }
+        },
+        "nodes_added": [
+          "effects:E1D",
+          "effects:E3D"
+        ],
+        "nodes_removed": [
+          "effects:E1B",
+          "effects:E1C",
+          "effects:E3B",
+          "effects:E3C"
+        ],
+        "nodes_changed": [
+          {
+            "node": "actions:A0",
+            "fields": [
+              "effect_ids"
+            ]
+          },
+          {
+            "node": "actions:A1",
+            "fields": [
+              "effect_ids"
+            ]
+          },
+          {
+            "node": "effects:E2",
+            "fields": [
+              "source_effect_ids"
+            ]
+          },
+          {
+            "node": "effects:E4",
+            "fields": [
+              "source_effect_ids"
+            ]
+          }
+        ],
+        "edges_added": [
+          "causal_links:A0|E1D|CAUSES|E2",
+          "causal_links:A0|E1|CAUSES|E1D",
+          "causal_links:A1|E3D|CAUSES|E4",
+          "causal_links:A1|E3|CAUSES|E3D"
+        ],
+        "edges_removed": [
+          "causal_links:A0|E1B|CAUSES|E1C",
+          "causal_links:A0|E1C|CAUSES|E2",
+          "causal_links:A0|E1|CAUSES|E1B",
+          "causal_links:A1|E3B|CAUSES|E3C",
+          "causal_links:A1|E3C|CAUSES|E4",
+          "causal_links:A1|E3|CAUSES|E3B"
+        ],
+        "certainty_changes": [],
+        "ownership_changes": [],
+        "provenance_changes": []
+      },
+      "candidate": {
+        "actions": {
+          "A0": {
+            "clause_ids": [
+              "C0",
+              "C2",
+              "C6"
+            ],
+            "reason": "C0 says there is only ONE dose, C2 identifies David as a person who needs it, and C6 names giving the dose to David as one of the two required options."
+          },
+          "A1": {
+            "clause_ids": [
+              "C0",
+              "C1",
+              "C3",
+              "C5"
+            ],
+            "reason": "C0 says there is only ONE dose, C1 identifies Maria as a person who needs it, C3 warns she will die without it, and C5 states she has a slightly better survival"
+          }
+        },
+        "ellipsis_resolutions": [],
+        "world_model": {
+          "actions": [
+            {
+              "action_id": "A0",
+              "actor_party_id": "P1",
+              "clause_ids": [
+                "C6",
+                "C0"
+              ],
+              "effect_ids": [
+                "E1",
+                "E1D",
+                "E2"
+              ],
+              "intervention": "give the medicine to David",
+              "recipient_party_ids": [
+                "P3"
+              ]
+            },
+            {
+              "action_id": "A1",
+              "actor_party_id": "P1",
+              "clause_ids": [
+                "C6",
+                "C0"
+              ],
+              "effect_ids": [
+                "E3",
+                "E3D",
+                "E4",
+                "E5"
+              ],
+              "intervention": "give the medicine to Maria",
+              "recipient_party_ids": [
+                "P2"
+              ]
+            }
+          ],
+          "causal_links": [
+            {
+              "action_id": "A0",
+              "clause_ids": [
+                "C6",
+                "C0"
+              ],
+              "condition_ids": [],
+              "link_relation": "CAUSES",
+              "modality": "CERTAIN",
+              "source_id": "E1",
+              "target_id": "E1D"
+            },
+            {
+              "action_id": "A0",
+              "clause_ids": [
+                "C3"
+              ],
+              "condition_ids": [],
+              "link_relation": "CAUSES",
+              "modality": "CERTAIN",
+              "source_id": "E1D",
+              "target_id": "E2"
+            },
+            {
+              "action_id": "A1",
+              "clause_ids": [
+                "C6",
+                "C0"
+              ],
+              "condition_ids": [],
+              "link_relation": "CAUSES",
+              "modality": "CERTAIN",
+              "source_id": "E3",
+              "target_id": "E3D"
+            },
+            {
+              "action_id": "A1",
+              "clause_ids": [
+                "C4"
+              ],
+              "condition_ids": [],
+              "link_relation": "CAUSES",
+              "modality": "CERTAIN",
+              "source_id": "E3D",
+              "target_id": "E4"
+            },
+            {
+              "action_id": "A1",
+              "clause_ids": [
+                "C5"
+              ],
+              "condition_ids": [],
+              "link_relation": "CAUSES",
+              "modality": "CERTAIN",
+              "source_id": "E3",
+              "target_id": "E5"
+            }
+          ],
+          "conditions": [],
+          "counterfactual_links": [],
+          "effects": [
+            {
+              "action_id": "A0",
+              "clause_ids": [
+                "A0",
+                "C6",
+                "C0"
+              ],
+              "condition_ids": [],
+              "condition_join": "AND",
+              "derivation_assumptions": [],
+              "derivation_explanation": "",
+              "derivation_operation": "DIRECT_COPY",
+              "directness": "DIRECT",
+              "effect_id": "E1",
+              "effect_kind": "RESOURCE_TRANSFER",
+              "likelihood_qualifiers": [],
+              "modality": "CERTAIN",
+              "outcome": "David receives the medicine",
+              "outcome_type_transformation": "PRESERVED",
+              "overall_likelihood_qualifiers": [],
+              "party_id": "P3",
+              "polarity": "NEUTRAL",
+              "predicate": "RECEIVES",
+              "quantities": [],
+              "scope_qualifiers": [],
+              "source_effect_ids": [],
+              "source_proposition": "Give the medicine to David",
+              "temporal_qualifiers": []
+            },
+            {
+              "action_id": "A0",
+              "clause_ids": [
+                "C6",
+                "C0"
+              ],
+              "condition_ids": [],
+              "condition_join": "AND",
+              "derivation_assumptions": [],
+              "derivation_explanation": "Because the single dose is given to David, Maria necessarily does not receive the allocated resource.",
+              "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+              "directness": "DOWNSTREAM",
+              "effect_id": "E1D",
+              "effect_kind": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+              "likelihood_qualifiers": [],
+              "modality": "CERTAIN",
+              "outcome": "Maria does not receive the allocated resource",
+              "outcome_type_transformation": "PRESERVED",
+              "overall_likelihood_qualifiers": [],
+              "party_id": "P2",
+              "polarity": "NEUTRAL",
+              "predicate": "DOES_NOT_RECEIVE",
+              "quantities": [],
+              "scope_qualifiers": [],
+              "source_effect_ids": [
+                "E1"
+              ],
+              "source_proposition": "The doctor must give the dose to Maria or to David.",
+              "temporal_qualifiers": []
+            },
+            {
+              "action_id": "A0",
+              "clause_ids": [
+                "C3"
+              ],
+              "condition_ids": [],
+              "condition_join": "AND",
+              "derivation_assumptions": [],
+              "derivation_explanation": "Clause C3 states death follows if Maria does not receive the medicine.",
+              "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+              "directness": "DOWNSTREAM",
+              "effect_id": "E2",
+              "effect_kind": "HEALTH_OUTCOME",
+              "likelihood_qualifiers": [],
+              "modality": "CERTAIN",
+              "outcome": "Maria dies",
+              "outcome_type_transformation": "PRESERVED",
+              "overall_likelihood_qualifiers": [],
+              "party_id": "P2",
+              "polarity": "ADVERSE",
+              "predicate": "DIES",
+              "quantities": [],
+              "scope_qualifiers": [],
+              "source_effect_ids": [
+                "E1D"
+              ],
+              "source_proposition": "Maria will die without it.",
+              "temporal_qualifiers": []
+            },
+            {
+              "action_id": "A1",
+              "clause_ids": [
+                "A1",
+                "C6",
+                "C0"
+              ],
+              "condition_ids": [],
+              "condition_join": "AND",
+              "derivation_assumptions": [],
+              "derivation_explanation": "",
+              "derivation_operation": "DIRECT_COPY",
+              "directness": "DIRECT",
+              "effect_id": "E3",
+              "effect_kind": "RESOURCE_TRANSFER",
+              "likelihood_qualifiers": [],
+              "modality": "CERTAIN",
+              "outcome": "Maria receives the medicine",
+              "outcome_type_transformation": "PRESERVED",
+              "overall_likelihood_qualifiers": [],
+              "party_id": "P2",
+              "polarity": "NEUTRAL",
+              "predicate": "RECEIVES",
+              "quantities": [],
+              "scope_qualifiers": [],
+              "source_effect_ids": [],
+              "source_proposition": "Give the medicine to Maria",
+              "temporal_qualifiers": []
+            },
+            {
+              "action_id": "A1",
+              "clause_ids": [
+                "C6",
+                "C0"
+              ],
+              "condition_ids": [],
+              "condition_join": "AND",
+              "derivation_assumptions": [],
+              "derivation_explanation": "Because the single dose is given to Maria, David necessarily does not receive the allocated resource.",
+              "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+              "directness": "DOWNSTREAM",
+              "effect_id": "E3D",
+              "effect_kind": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+              "likelihood_qualifiers": [],
+              "modality": "CERTAIN",
+              "outcome": "David does not receive the allocated resource",
+              "outcome_type_transformation": "PRESERVED",
+              "overall_likelihood_qualifiers": [],
+              "party_id": "P3",
+              "polarity": "NEUTRAL",
+              "predicate": "DOES_NOT_RECEIVE",
+              "quantities": [],
+              "scope_qualifiers": [],
+              "source_effect_ids": [
+                "E3"
+              ],
+              "source_proposition": "The doctor must give the dose to Maria or to David.",
+              "temporal_qualifiers": []
+            },
+            {
+              "action_id": "A1",
+              "clause_ids": [
+                "C4"
+              ],
+              "condition_ids": [],
+              "condition_join": "AND",
+              "derivation_assumptions": [],
+              "derivation_explanation": "Clause C4 states death follows if David does not receive the medicine.",
+              "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+              "directness": "DOWNSTREAM",
+              "effect_id": "E4",
+              "effect_kind": "HEALTH_OUTCOME",
+              "likelihood_qualifiers": [],
+              "modality": "CERTAIN",
+              "outcome": "David dies",
+              "outcome_type_transformation": "PRESERVED",
+              "overall_likelihood_qualifiers": [],
+              "party_id": "P3",
+              "polarity": "ADVERSE",
+              "predicate": "DIES",
+              "quantities": [],
+              "scope_qualifiers": [],
+              "source_effect_ids": [
+                "E3D"
+              ],
+              "source_proposition": "David will die without it.",
+              "temporal_qualifiers": []
+            },
+            {
+              "action_id": "A1",
+              "clause_ids": [
+                "C5"
+              ],
+              "condition_ids": [],
+              "condition_join": "AND",
+              "derivation_assumptions": [],
+              "derivation_explanation": "Clause C5 links receipt of medicine to increased survival probability for Maria.",
+              "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+              "directness": "DOWNSTREAM",
+              "effect_id": "E5",
+              "effect_kind": "HEALTH_OUTCOME",
+              "likelihood_qualifiers": [
+                "slightly better chance",
+                "chance"
+              ],
+              "modality": "PROBABILISTIC",
+              "outcome": "Maria has a slightly better chance of survival",
+              "outcome_type_transformation": "PRESERVED",
+              "overall_likelihood_qualifiers": [],
+              "party_id": "P2",
+              "polarity": "BENEFICIAL",
+              "predicate": "SURVIVAL_CHANCE",
+              "quantities": [],
+              "scope_qualifiers": [],
+              "source_effect_ids": [
+                "E3"
+              ],
+              "source_proposition": "Maria has a slightly better chance of survival.",
+              "temporal_qualifiers": []
+            }
+          ],
+          "parties": [
+            {
+              "clause_ids": [
+                "C0",
+                "C6"
+              ],
+              "kind": "PERSON",
+              "label": "doctor",
+              "party_id": "P1",
+              "quantities": [
+                "one dose"
+              ]
+            },
+            {
+              "clause_ids": [
+                "C1",
+                "C3",
+                "C5",
+                "C6"
+              ],
+              "kind": "PERSON",
+              "label": "Maria",
+              "party_id": "P2",
+              "quantities": []
+            },
+            {
+              "clause_ids": [
+                "C2",
+                "C4",
+                "C6"
+              ],
+              "kind": "PERSON",
+              "label": "David",
+              "party_id": "P3",
+              "quantities": []
+            },
+            {
+              "clause_ids": [
+                "C0"
+              ],
+              "kind": "RESOURCE",
+              "label": "dose of medicine",
+              "party_id": "P4",
+              "quantities": [
+                "one"
+              ]
+            }
+          ],
+          "schema_version": "1.3",
+          "temporal_relations": []
+        }
+      }
+    },
+    {
+      "arm": "B_METADATA_ONLY",
+      "elapsed_seconds": 14.412,
+      "status": "COMMITTED",
+      "world_model_status": "COMMITTED",
+      "validation_issues": [],
+      "compiler_loss_telemetry": {},
+      "semantic_nodes_preserved": true,
+      "causal_links_preserved": true,
+      "effects_added": [],
+      "effects_removed": [],
+      "links_added": [],
+      "links_removed": [],
+      "unrelated_changed_nodes": [],
+      "graph_diff": {
+        "before_fingerprint": "4034b3a2cf74c5452d24ec10",
+        "after_fingerprint": "6d39605f7f7b3e0be2e77a2e",
+        "collections": {
+          "parties": {
+            "added": [],
+            "removed": [],
+            "changed": []
+          },
+          "actions": {
+            "added": [],
+            "removed": [],
+            "changed": []
+          },
+          "effects": {
+            "added": [],
+            "removed": [],
+            "changed": [
+              {
+                "id": "E1C",
+                "fields": [
+                  "clause_ids",
+                  "derivation_operation",
+                  "quantities",
+                  "source_proposition"
+                ]
+              },
+              {
+                "id": "E3C",
+                "fields": [
+                  "clause_ids",
+                  "derivation_operation",
+                  "quantities",
+                  "source_proposition"
+                ]
+              }
+            ]
+          },
+          "conditions": {
+            "added": [],
+            "removed": [],
+            "changed": []
+          },
+          "temporal_relations": {
+            "added": [],
+            "removed": [],
+            "changed": []
+          },
+          "causal_links": {
+            "added": [],
+            "removed": []
+          },
+          "counterfactual_links": {
+            "added": [],
+            "removed": []
+          }
+        },
+        "nodes_added": [],
+        "nodes_removed": [],
+        "nodes_changed": [
+          {
+            "node": "effects:E1C",
+            "fields": [
+              "clause_ids",
+              "derivation_operation",
+              "quantities",
+              "source_proposition"
+            ]
+          },
+          {
+            "node": "effects:E3C",
+            "fields": [
+              "clause_ids",
+              "derivation_operation",
+              "quantities",
+              "source_proposition"
+            ]
+          }
+        ],
+        "edges_added": [],
+        "edges_removed": [],
+        "certainty_changes": [],
+        "ownership_changes": [],
+        "provenance_changes": [
+          "E1C",
+          "E3C"
+        ]
+      },
+      "candidate": {
+        "actions": {
+          "A0": {
+            "clause_ids": [
+              "C0",
+              "C2",
+              "C6"
+            ],
+            "reason": "C0 says there is only ONE dose, C2 identifies David as a person who needs it, and C6 names giving the dose to David as one of the two required options."
+          },
+          "A1": {
+            "clause_ids": [
+              "C0",
+              "C1",
+              "C3",
+              "C5"
+            ],
+            "reason": "C0 says there is only ONE dose, C1 identifies Maria as a person who needs it, C3 warns she will die without it, and C5 states she has a slightly better survival"
+          }
+        },
+        "ellipsis_resolutions": [],
+        "world_model": {
+          "actions": [
+            {
+              "action_id": "A0",
+              "actor_party_id": "P1",
+              "clause_ids": [
+                "C6",
+                "C0"
+              ],
+              "effect_ids": [
+                "E1",
+                "E1B",
+                "E1C",
+                "E2"
+              ],
+              "intervention": "give the medicine to David",
+              "recipient_party_ids": [
+                "P3"
+              ]
+            },
+            {
+              "action_id": "A1",
+              "actor_party_id": "P1",
+              "clause_ids": [
+                "C6",
+                "C0"
+              ],
+              "effect_ids": [
+                "E3",
+                "E3B",
+                "E3C",
+                "E4",
+                "E5"
+              ],
+              "intervention": "give the medicine to Maria",
+              "recipient_party_ids": [
+                "P2"
+              ]
+            }
+          ],
+          "causal_links": [
+            {
+              "action_id": "A0",
+              "clause_ids": [
+                "C6",
+                "C0"
+              ],
+              "condition_ids": [],
+              "link_relation": "CAUSES",
+              "modality": "CERTAIN",
+              "source_id": "E1",
+              "target_id": "E1B"
+            },
+            {
+              "action_id": "A0",
+              "clause_ids": [
+                "C6"
+              ],
+              "condition_ids": [],
+              "link_relation": "CAUSES",
+              "modality": "CERTAIN",
+              "source_id": "E1B",
+              "target_id": "E1C"
+            },
+            {
+              "action_id": "A0",
+              "clause_ids": [
+                "C3"
+              ],
+              "condition_ids": [],
+              "link_relation": "CAUSES",
+              "modality": "CERTAIN",
+              "source_id": "E1C",
+              "target_id": "E2"
+            },
+            {
+              "action_id": "A1",
+              "clause_ids": [
+                "C6",
+                "C0"
+              ],
+              "condition_ids": [],
+              "link_relation": "CAUSES",
+              "modality": "CERTAIN",
+              "source_id": "E3",
+              "target_id": "E3B"
+            },
+            {
+              "action_id": "A1",
+              "clause_ids": [
+                "C6"
+              ],
+              "condition_ids": [],
+              "link_relation": "CAUSES",
+              "modality": "CERTAIN",
+              "source_id": "E3B",
+              "target_id": "E3C"
+            },
+            {
+              "action_id": "A1",
+              "clause_ids": [
+                "C4"
+              ],
+              "condition_ids": [],
+              "link_relation": "CAUSES",
+              "modality": "CERTAIN",
+              "source_id": "E3C",
+              "target_id": "E4"
+            },
+            {
+              "action_id": "A1",
+              "clause_ids": [
+                "C5"
+              ],
+              "condition_ids": [],
+              "link_relation": "CAUSES",
+              "modality": "CERTAIN",
+              "source_id": "E3",
+              "target_id": "E5"
+            }
+          ],
+          "conditions": [],
+          "counterfactual_links": [],
+          "effects": [
+            {
+              "action_id": "A0",
+              "clause_ids": [
+                "A0",
+                "C6",
+                "C0"
+              ],
+              "condition_ids": [],
+              "condition_join": "AND",
+              "derivation_assumptions": [],
+              "derivation_explanation": "",
+              "derivation_operation": "DIRECT_COPY",
+              "directness": "DIRECT",
+              "effect_id": "E1",
+              "effect_kind": "RESOURCE_TRANSFER",
+              "likelihood_qualifiers": [],
+              "modality": "CERTAIN",
+              "outcome": "David receives the medicine",
+              "outcome_type_transformation": "PRESERVED",
+              "overall_likelihood_qualifiers": [],
+              "party_id": "P3",
+              "polarity": "NEUTRAL",
+              "predicate": "RECEIVES",
+              "quantities": [],
+              "scope_qualifiers": [],
+              "source_effect_ids": [],
+              "source_proposition": "Give the medicine to David",
+              "temporal_qualifiers": []
+            },
+            {
+              "action_id": "A0",
+              "clause_ids": [
+                "C6",
+                "C0"
+              ],
+              "condition_ids": [],
+              "condition_join": "AND",
+              "derivation_assumptions": [],
+              "derivation_explanation": "The single dose given to David means the dose is unavailable for Maria.",
+              "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+              "directness": "DOWNSTREAM",
+              "effect_id": "E1B",
+              "effect_kind": "PHYSICAL_STATE",
+              "likelihood_qualifiers": [],
+              "modality": "CERTAIN",
+              "outcome": "the medicine is not given to Maria",
+              "outcome_type_transformation": "PRESERVED",
+              "overall_likelihood_qualifiers": [],
+              "party_id": "P4",
+              "polarity": "NEUTRAL",
+              "predicate": "NOT_GIVEN",
+              "quantities": [],
+              "scope_qualifiers": [],
+              "source_effect_ids": [
+                "E1"
+              ],
+              "source_proposition": "The doctor must give the dose to Maria or to David.",
+              "temporal_qualifiers": []
+            },
+            {
+              "action_id": "A0",
+              "clause_ids": [
+                "C0"
+              ],
+              "condition_ids": [],
+              "condition_join": "AND",
+              "derivation_assumptions": [],
+              "derivation_explanation": "Because the medicine is not given to her, Maria is in a state of non-receipt.",
+              "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+              "directness": "DOWNSTREAM",
+              "effect_id": "E1C",
+              "effect_kind": "PHYSICAL_STATE",
+              "likelihood_qualifiers": [],
+              "modality": "CERTAIN",
+              "outcome": "Maria does not receive the medicine",
+              "outcome_type_transformation": "PRESERVED",
+              "overall_likelihood_qualifiers": [],
+              "party_id": "P2",
+              "polarity": "NEUTRAL",
+              "predicate": "DOES_NOT_RECEIVE",
+              "quantities": [
+                "one"
+              ],
+              "scope_qualifiers": [],
+              "source_effect_ids": [
+                "E1B"
+              ],
+              "source_proposition": "A doctor has one dose of medicine.",
+              "temporal_qualifiers": []
+            },
+            {
+              "action_id": "A0",
+              "clause_ids": [
+                "C3"
+              ],
+              "condition_ids": [],
+              "condition_join": "AND",
+              "derivation_assumptions": [],
+              "derivation_explanation": "Clause C3 states death follows if Maria does not receive the medicine.",
+              "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+              "directness": "DOWNSTREAM",
+              "effect_id": "E2",
+              "effect_kind": "HEALTH_OUTCOME",
+              "likelihood_qualifiers": [],
+              "modality": "CERTAIN",
+              "outcome": "Maria dies",
+              "outcome_type_transformation": "PRESERVED",
+              "overall_likelihood_qualifiers": [],
+              "party_id": "P2",
+              "polarity": "ADVERSE",
+              "predicate": "DIES",
+              "quantities": [],
+              "scope_qualifiers": [],
+              "source_effect_ids": [
+                "E1C"
+              ],
+              "source_proposition": "Maria will die without it.",
+              "temporal_qualifiers": []
+            },
+            {
+              "action_id": "A1",
+              "clause_ids": [
+                "A1",
+                "C6",
+                "C0"
+              ],
+              "condition_ids": [],
+              "condition_join": "AND",
+              "derivation_assumptions": [],
+              "derivation_explanation": "",
+              "derivation_operation": "DIRECT_COPY",
+              "directness": "DIRECT",
+              "effect_id": "E3",
+              "effect_kind": "RESOURCE_TRANSFER",
+              "likelihood_qualifiers": [],
+              "modality": "CERTAIN",
+              "outcome": "Maria receives the medicine",
+              "outcome_type_transformation": "PRESERVED",
+              "overall_likelihood_qualifiers": [],
+              "party_id": "P2",
+              "polarity": "NEUTRAL",
+              "predicate": "RECEIVES",
+              "quantities": [],
+              "scope_qualifiers": [],
+              "source_effect_ids": [],
+              "source_proposition": "Give the medicine to Maria",
+              "temporal_qualifiers": []
+            },
+            {
+              "action_id": "A1",
+              "clause_ids": [
+                "C6",
+                "C0"
+              ],
+              "condition_ids": [],
+              "condition_join": "AND",
+              "derivation_assumptions": [],
+              "derivation_explanation": "The single dose given to Maria means it is unavailable for David.",
+              "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+              "directness": "DOWNSTREAM",
+              "effect_id": "E3B",
+              "effect_kind": "PHYSICAL_STATE",
+              "likelihood_qualifiers": [],
+              "modality": "CERTAIN",
+              "outcome": "the medicine is not given to David",
+              "outcome_type_transformation": "PRESERVED",
+              "overall_likelihood_qualifiers": [],
+              "party_id": "P4",
+              "polarity": "NEUTRAL",
+              "predicate": "NOT_GIVEN",
+              "quantities": [],
+              "scope_qualifiers": [],
+              "source_effect_ids": [
+                "E3"
+              ],
+              "source_proposition": "The doctor must give the dose to Maria or to David.",
+              "temporal_qualifiers": []
+            },
+            {
+              "action_id": "A1",
+              "clause_ids": [
+                "C0"
+              ],
+              "condition_ids": [],
+              "condition_join": "AND",
+              "derivation_assumptions": [],
+              "derivation_explanation": "Because the medicine is not given to him, David is in a state of non-receipt.",
+              "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+              "directness": "DOWNSTREAM",
+              "effect_id": "E3C",
+              "effect_kind": "PHYSICAL_STATE",
+              "likelihood_qualifiers": [],
+              "modality": "CERTAIN",
+              "outcome": "David does not receive the medicine",
+              "outcome_type_transformation": "PRESERVED",
+              "overall_likelihood_qualifiers": [],
+              "party_id": "P3",
+              "polarity": "NEUTRAL",
+              "predicate": "DOES_NOT_RECEIVE",
+              "quantities": [
+                "one"
+              ],
+              "scope_qualifiers": [],
+              "source_effect_ids": [
+                "E3B"
+              ],
+              "source_proposition": "A doctor has one dose of medicine.",
+              "temporal_qualifiers": []
+            },
+            {
+              "action_id": "A1",
+              "clause_ids": [
+                "C4"
+              ],
+              "condition_ids": [],
+              "condition_join": "AND",
+              "derivation_assumptions": [],
+              "derivation_explanation": "Clause C4 states death follows if David does not receive the medicine.",
+              "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+              "directness": "DOWNSTREAM",
+              "effect_id": "E4",
+              "effect_kind": "HEALTH_OUTCOME",
+              "likelihood_qualifiers": [],
+              "modality": "CERTAIN",
+              "outcome": "David dies",
+              "outcome_type_transformation": "PRESERVED",
+              "overall_likelihood_qualifiers": [],
+              "party_id": "P3",
+              "polarity": "ADVERSE",
+              "predicate": "DIES",
+              "quantities": [],
+              "scope_qualifiers": [],
+              "source_effect_ids": [
+                "E3C"
+              ],
+              "source_proposition": "David will die without it.",
+              "temporal_qualifiers": []
+            },
+            {
+              "action_id": "A1",
+              "clause_ids": [
+                "C5"
+              ],
+              "condition_ids": [],
+              "condition_join": "AND",
+              "derivation_assumptions": [],
+              "derivation_explanation": "Clause C5 links receipt of medicine to increased survival probability for Maria.",
+              "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+              "directness": "DOWNSTREAM",
+              "effect_id": "E5",
+              "effect_kind": "HEALTH_OUTCOME",
+              "likelihood_qualifiers": [
+                "slightly better chance",
+                "chance"
+              ],
+              "modality": "PROBABILISTIC",
+              "outcome": "Maria has a slightly better chance of survival",
+              "outcome_type_transformation": "PRESERVED",
+              "overall_likelihood_qualifiers": [],
+              "party_id": "P2",
+              "polarity": "BENEFICIAL",
+              "predicate": "SURVIVAL_CHANCE",
+              "quantities": [],
+              "scope_qualifiers": [],
+              "source_effect_ids": [
+                "E3"
+              ],
+              "source_proposition": "Maria has a slightly better chance of survival.",
+              "temporal_qualifiers": []
+            }
+          ],
+          "parties": [
+            {
+              "clause_ids": [
+                "C0",
+                "C6"
+              ],
+              "kind": "PERSON",
+              "label": "doctor",
+              "party_id": "P1",
+              "quantities": [
+                "one dose"
+              ]
+            },
+            {
+              "clause_ids": [
+                "C1",
+                "C3",
+                "C5",
+                "C6"
+              ],
+              "kind": "PERSON",
+              "label": "Maria",
+              "party_id": "P2",
+              "quantities": []
+            },
+            {
+              "clause_ids": [
+                "C2",
+                "C4",
+                "C6"
+              ],
+              "kind": "PERSON",
+              "label": "David",
+              "party_id": "P3",
+              "quantities": []
+            },
+            {
+              "clause_ids": [
+                "C0"
+              ],
+              "kind": "RESOURCE",
+              "label": "dose of medicine",
+              "party_id": "P4",
+              "quantities": [
+                "one"
+              ]
+            }
+          ],
+          "schema_version": "1.3",
+          "temporal_relations": []
+        }
+      }
+    }
+  ]
+}

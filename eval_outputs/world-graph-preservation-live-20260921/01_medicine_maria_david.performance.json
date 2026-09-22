@@ -1,0 +1,3394 @@
+{
+  "schema_version": 2,
+  "run_id": "workspace_20260921_233553_163947_20260921_233553_632774",
+  "started_at": "2026-09-22T03:35:53.632802+00:00",
+  "elapsed_seconds": 62.990426,
+  "counts": {
+    "events": 14,
+    "by_category": {
+      "model_call": 4,
+      "provider_attempt": 4,
+      "semantic_telemetry": 2,
+      "stage": 4
+    },
+    "by_status": {
+      "NONZERO_EXIT": 1,
+      "OK": 11,
+      "REJECTED": 2
+    },
+    "logical_model_calls": 4,
+    "model_call_count": 4,
+    "original_agent_model_calls": 0,
+    "compact_primary_calls": 0,
+    "compact_repair_calls": 0,
+    "repair_count": 2,
+    "timeout_count": 0,
+    "abstention_count": 0,
+    "budget_blocked_calls": 0,
+    "model_cache_hits": 0,
+    "grounded_projection_materializations": 0,
+    "grounded_projection_cache_hits": 0,
+    "provider_attempts": 4,
+    "provider_failures": 0
+  },
+  "timings_by_name_seconds": {
+    "action_planning": 3e-06,
+    "openai.chat.completions": 62.333867,
+    "pipeline_total": 62.990062,
+    "world_grounding": 62.451005,
+    "world_grounding_failure_serialization": 0.013919,
+    "world_grounding_invariant_card_telemetry": 0.0,
+    "world_grounding_primary": 14.685892,
+    "world_grounding_repair": 34.630962,
+    "world_grounding_repair_experiments": 0.0,
+    "world_grounding_skeleton": 13.019855
+  },
+  "original_agents": {},
+  "compact_specialists": {},
+  "ledger_commits": {},
+  "events": [
+    {
+      "category": "stage",
+      "name": "action_planning",
+      "status": "OK",
+      "duration_seconds": 3e-06,
+      "finished_at": "2026-09-22T03:35:54.148122+00:00",
+      "metadata": {}
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 13.019548,
+      "finished_at": "2026-09-22T03:36:07.172120+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_skeleton",
+      "status": "OK",
+      "duration_seconds": 13.019855,
+      "finished_at": "2026-09-22T03:36:07.172312+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_skeleton",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 3072,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 14.685248,
+      "finished_at": "2026-09-22T03:36:21.861667+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_primary",
+      "status": "OK",
+      "duration_seconds": 14.685892,
+      "finished_at": "2026-09-22T03:36:21.861740+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 6144,
+        "structured": true,
+        "cycle": 0,
+        "attempt": 1,
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 15.158594,
+      "finished_at": "2026-09-22T03:36:37.063954+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_repair",
+      "status": "OK",
+      "duration_seconds": 15.159447,
+      "finished_at": "2026-09-22T03:36:37.064299+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_repair",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 6144,
+        "structured": true,
+        "cycle": 0,
+        "attempt": 2,
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 19.470477,
+      "finished_at": "2026-09-22T03:36:56.570775+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_repair",
+      "status": "OK",
+      "duration_seconds": 19.471515,
+      "finished_at": "2026-09-22T03:36:56.571109+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_repair",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 6144,
+        "structured": true,
+        "cycle": 0,
+        "attempt": 3,
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "world_grounding",
+      "status": "OK",
+      "duration_seconds": 62.451005,
+      "finished_at": "2026-09-22T03:36:56.599683+00:00",
+      "metadata": {}
+    },
+    {
+      "category": "semantic_telemetry",
+      "name": "world_grounding_invariant_card_telemetry",
+      "status": "REJECTED",
+      "duration_seconds": 0.0,
+      "finished_at": "2026-09-22T03:36:56.600948+00:00",
+      "metadata": {
+        "telemetry": {
+          "telemetry_schema_version": 1,
+          "terminal_status": "REJECTED",
+          "attempt_count": 5,
+          "repair_transition_count": 4,
+          "distinct_issue_codes": 8,
+          "terminal_issue_codes": [
+            "STAGE_SKELETON_DRIFT",
+            "WORLD_VALIDATION_ERROR"
+          ],
+          "definitions": {
+            "attempt_firing": "Issue code appears at least once in one attempt.",
+            "repair_opportunity": "Issue code precedes another attempt and therefore could target the next deterministic or model repair.",
+            "resolved_after_repair": "Target code is absent from the next attempt.",
+            "introduced_after_repair": "Code is absent before a repair transition and present afterward."
+          },
+          "invariants": {
+            "EXCLUSIVE_ALLOCATION_BRANCH_MISSING": {
+              "attempt_firings": 2,
+              "entity_firings": 4,
+              "attempt_indices": [
+                2,
+                2
+              ],
+              "repair_opportunities": 2,
+              "resolved_after_repair": 1,
+              "persisted_after_repair": 1,
+              "introduced_after_repair": 1,
+              "commit_after_target": 0,
+              "terminal_present": false,
+              "affected_entity_ids": [
+                "A0",
+                "A1"
+              ],
+              "repair_scopes": {
+                "DETERMINISTIC_LOCAL_PATCH": 1,
+                "SUBGRAPH_REBUILD": 1
+              },
+              "introduced_issue_codes_while_targeted": [
+                "STAGE_SKELETON_DRIFT"
+              ],
+              "resolution_rate": 0.5,
+              "persistence_rate": 0.5
+            },
+            "LIKELIHOOD_QUALIFIER_MISSING": {
+              "attempt_firings": 2,
+              "entity_firings": 2,
+              "attempt_indices": [
+                1,
+                2
+              ],
+              "repair_opportunities": 2,
+              "resolved_after_repair": 2,
+              "persisted_after_repair": 0,
+              "introduced_after_repair": 1,
+              "commit_after_target": 0,
+              "terminal_present": false,
+              "affected_entity_ids": [
+                "E5",
+                "E7"
+              ],
+              "repair_scopes": {
+                "DETERMINISTIC_LOCAL_PATCH": 2
+              },
+              "introduced_issue_codes_while_targeted": [],
+              "resolution_rate": 1.0,
+              "persistence_rate": 0.0
+            },
+            "MISSING_CAUSAL_PARENT": {
+              "attempt_firings": 2,
+              "entity_firings": 8,
+              "attempt_indices": [
+                2,
+                2
+              ],
+              "repair_opportunities": 2,
+              "resolved_after_repair": 1,
+              "persisted_after_repair": 1,
+              "introduced_after_repair": 1,
+              "commit_after_target": 0,
+              "terminal_present": false,
+              "affected_entity_ids": [
+                "E2",
+                "E4",
+                "E5",
+                "E7"
+              ],
+              "repair_scopes": {
+                "DETERMINISTIC_LOCAL_PATCH": 1,
+                "SUBGRAPH_REBUILD": 1
+              },
+              "introduced_issue_codes_while_targeted": [
+                "STAGE_SKELETON_DRIFT"
+              ],
+              "resolution_rate": 0.5,
+              "persistence_rate": 0.5
+            },
+            "MISSING_PROCESS_INTERMEDIATE": {
+              "attempt_firings": 2,
+              "entity_firings": 6,
+              "attempt_indices": [
+                2,
+                2
+              ],
+              "repair_opportunities": 2,
+              "resolved_after_repair": 1,
+              "persisted_after_repair": 1,
+              "introduced_after_repair": 1,
+              "commit_after_target": 0,
+              "terminal_present": false,
+              "affected_entity_ids": [
+                "E2",
+                "E4",
+                "E7"
+              ],
+              "repair_scopes": {
+                "DETERMINISTIC_LOCAL_PATCH": 1,
+                "SUBGRAPH_REBUILD": 1
+              },
+              "introduced_issue_codes_while_targeted": [
+                "STAGE_SKELETON_DRIFT"
+              ],
+              "resolution_rate": 0.5,
+              "persistence_rate": 0.5
+            },
+            "OUTCOME_POLARITY_CONTRADICTION": {
+              "attempt_firings": 2,
+              "entity_firings": 4,
+              "attempt_indices": [
+                1,
+                1
+              ],
+              "repair_opportunities": 2,
+              "resolved_after_repair": 1,
+              "persisted_after_repair": 1,
+              "introduced_after_repair": 0,
+              "commit_after_target": 0,
+              "terminal_present": false,
+              "affected_entity_ids": [
+                "E3",
+                "E6"
+              ],
+              "repair_scopes": {
+                "DETERMINISTIC_LOCAL_PATCH": 1,
+                "LOCAL_PATCH": 1
+              },
+              "introduced_issue_codes_while_targeted": [
+                "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "LIKELIHOOD_QUALIFIER_MISSING",
+                "MISSING_CAUSAL_PARENT",
+                "MISSING_PROCESS_INTERMEDIATE",
+                "STAGE_SKELETON_DRIFT"
+              ],
+              "resolution_rate": 0.5,
+              "persistence_rate": 0.5
+            },
+            "STAGE_SKELETON_DRIFT": {
+              "attempt_firings": 3,
+              "entity_firings": 12,
+              "attempt_indices": [
+                1,
+                2,
+                3
+              ],
+              "repair_opportunities": 2,
+              "resolved_after_repair": 2,
+              "persisted_after_repair": 0,
+              "introduced_after_repair": 2,
+              "commit_after_target": 0,
+              "terminal_present": true,
+              "affected_entity_ids": [
+                "P2",
+                "P3",
+                "P4",
+                "P5"
+              ],
+              "repair_scopes": {
+                "DETERMINISTIC_LOCAL_PATCH": 2
+              },
+              "introduced_issue_codes_while_targeted": [],
+              "resolution_rate": 1.0,
+              "persistence_rate": 0.0
+            },
+            "UNSUPPORTED_WORLD_DERIVATION": {
+              "attempt_firings": 4,
+              "entity_firings": 8,
+              "attempt_indices": [
+                1,
+                1,
+                2,
+                2
+              ],
+              "repair_opportunities": 4,
+              "resolved_after_repair": 1,
+              "persisted_after_repair": 3,
+              "introduced_after_repair": 0,
+              "commit_after_target": 0,
+              "terminal_present": false,
+              "affected_entity_ids": [
+                "E3",
+                "E6",
+                "E7"
+              ],
+              "repair_scopes": {
+                "DETERMINISTIC_LOCAL_PATCH": 2,
+                "LOCAL_PATCH": 1,
+                "SUBGRAPH_REBUILD": 1
+              },
+              "introduced_issue_codes_while_targeted": [
+                "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "LIKELIHOOD_QUALIFIER_MISSING",
+                "MISSING_CAUSAL_PARENT",
+                "MISSING_PROCESS_INTERMEDIATE",
+                "STAGE_SKELETON_DRIFT"
+              ],
+              "resolution_rate": 0.25,
+              "persistence_rate": 0.75
+            },
+            "WORLD_VALIDATION_ERROR": {
+              "attempt_firings": 5,
+              "entity_firings": 12,
+              "attempt_indices": [
+                1,
+                1,
+                2,
+                2,
+                3
+              ],
+              "repair_opportunities": 4,
+              "resolved_after_repair": 0,
+              "persisted_after_repair": 4,
+              "introduced_after_repair": 0,
+              "commit_after_target": 0,
+              "terminal_present": true,
+              "affected_entity_ids": [
+                "0",
+                "E2",
+                "E5"
+              ],
+              "repair_scopes": {
+                "DETERMINISTIC_LOCAL_PATCH": 2,
+                "LOCAL_PATCH": 1,
+                "SUBGRAPH_REBUILD": 1
+              },
+              "introduced_issue_codes_while_targeted": [
+                "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "LIKELIHOOD_QUALIFIER_MISSING",
+                "MISSING_CAUSAL_PARENT",
+                "MISSING_PROCESS_INTERMEDIATE",
+                "STAGE_SKELETON_DRIFT"
+              ],
+              "resolution_rate": 0.0,
+              "persistence_rate": 1.0
+            }
+          },
+          "transitions": [
+            {
+              "from_attempt": 1,
+              "to_attempt": 1,
+              "repair_scope": "DETERMINISTIC_LOCAL_PATCH",
+              "target_issue_codes": [
+                "LIKELIHOOD_QUALIFIER_MISSING",
+                "OUTCOME_POLARITY_CONTRADICTION",
+                "STAGE_SKELETON_DRIFT",
+                "UNSUPPORTED_WORLD_DERIVATION",
+                "WORLD_VALIDATION_ERROR"
+              ],
+              "after_issue_codes": [
+                "OUTCOME_POLARITY_CONTRADICTION",
+                "UNSUPPORTED_WORLD_DERIVATION",
+                "WORLD_VALIDATION_ERROR"
+              ],
+              "resolved_issue_codes": [
+                "LIKELIHOOD_QUALIFIER_MISSING",
+                "STAGE_SKELETON_DRIFT"
+              ],
+              "persistent_issue_codes": [
+                "OUTCOME_POLARITY_CONTRADICTION",
+                "UNSUPPORTED_WORLD_DERIVATION",
+                "WORLD_VALIDATION_ERROR"
+              ],
+              "introduced_issue_codes": [],
+              "committed_after": false
+            },
+            {
+              "from_attempt": 1,
+              "to_attempt": 2,
+              "repair_scope": "LOCAL_PATCH",
+              "target_issue_codes": [
+                "OUTCOME_POLARITY_CONTRADICTION",
+                "UNSUPPORTED_WORLD_DERIVATION",
+                "WORLD_VALIDATION_ERROR"
+              ],
+              "after_issue_codes": [
+                "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "LIKELIHOOD_QUALIFIER_MISSING",
+                "MISSING_CAUSAL_PARENT",
+                "MISSING_PROCESS_INTERMEDIATE",
+                "STAGE_SKELETON_DRIFT",
+                "UNSUPPORTED_WORLD_DERIVATION",
+                "WORLD_VALIDATION_ERROR"
+              ],
+              "resolved_issue_codes": [
+                "OUTCOME_POLARITY_CONTRADICTION"
+              ],
+              "persistent_issue_codes": [
+                "UNSUPPORTED_WORLD_DERIVATION",
+                "WORLD_VALIDATION_ERROR"
+              ],
+              "introduced_issue_codes": [
+                "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "LIKELIHOOD_QUALIFIER_MISSING",
+                "MISSING_CAUSAL_PARENT",
+                "MISSING_PROCESS_INTERMEDIATE",
+                "STAGE_SKELETON_DRIFT"
+              ],
+              "committed_after": false
+            },
+            {
+              "from_attempt": 2,
+              "to_attempt": 2,
+              "repair_scope": "DETERMINISTIC_LOCAL_PATCH",
+              "target_issue_codes": [
+                "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "LIKELIHOOD_QUALIFIER_MISSING",
+                "MISSING_CAUSAL_PARENT",
+                "MISSING_PROCESS_INTERMEDIATE",
+                "STAGE_SKELETON_DRIFT",
+                "UNSUPPORTED_WORLD_DERIVATION",
+                "WORLD_VALIDATION_ERROR"
+              ],
+              "after_issue_codes": [
+                "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "MISSING_CAUSAL_PARENT",
+                "MISSING_PROCESS_INTERMEDIATE",
+                "UNSUPPORTED_WORLD_DERIVATION",
+                "WORLD_VALIDATION_ERROR"
+              ],
+              "resolved_issue_codes": [
+                "LIKELIHOOD_QUALIFIER_MISSING",
+                "STAGE_SKELETON_DRIFT"
+              ],
+              "persistent_issue_codes": [
+                "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "MISSING_CAUSAL_PARENT",
+                "MISSING_PROCESS_INTERMEDIATE",
+                "UNSUPPORTED_WORLD_DERIVATION",
+                "WORLD_VALIDATION_ERROR"
+              ],
+              "introduced_issue_codes": [],
+              "committed_after": false
+            },
+            {
+              "from_attempt": 2,
+              "to_attempt": 3,
+              "repair_scope": "SUBGRAPH_REBUILD",
+              "target_issue_codes": [
+                "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "MISSING_CAUSAL_PARENT",
+                "MISSING_PROCESS_INTERMEDIATE",
+                "UNSUPPORTED_WORLD_DERIVATION",
+                "WORLD_VALIDATION_ERROR"
+              ],
+              "after_issue_codes": [
+                "STAGE_SKELETON_DRIFT",
+                "WORLD_VALIDATION_ERROR"
+              ],
+              "resolved_issue_codes": [
+                "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "MISSING_CAUSAL_PARENT",
+                "MISSING_PROCESS_INTERMEDIATE",
+                "UNSUPPORTED_WORLD_DERIVATION"
+              ],
+              "persistent_issue_codes": [
+                "WORLD_VALIDATION_ERROR"
+              ],
+              "introduced_issue_codes": [
+                "STAGE_SKELETON_DRIFT"
+              ],
+              "committed_after": false
+            }
+          ]
+        }
+      }
+    },
+    {
+      "category": "semantic_telemetry",
+      "name": "world_grounding_repair_experiments",
+      "status": "REJECTED",
+      "duration_seconds": 0.0,
+      "finished_at": "2026-09-22T03:36:56.600958+00:00",
+      "metadata": {
+        "repair_events": [
+          {
+            "repair_event_schema_version": 1,
+            "repair_event_id": "R001",
+            "recorded_at": "2026-09-22T03:36:21.904307+00:00",
+            "execution_mode": "DETERMINISTIC_PATCH",
+            "repair_scope": "DETERMINISTIC_LOCAL_PATCH",
+            "context": {
+              "validator_version": "world-validator-2026-09-21-v1",
+              "repair_prompt_version": "world-repair-prompt-v1",
+              "model": "o3",
+              "temperature": 0.0,
+              "max_attempts": 3,
+              "stage_one_guidance_mode": "AUTHORITATIVE",
+              "deterministic_repair_guidance_mode": "OFF",
+              "git_commit": "UNKNOWN",
+              "working_tree_state": "NOT_CAPTURED",
+              "backend": "openai",
+              "scenario_id": "workspace_20260921_233553_163947",
+              "scenario_family": "UNCLASSIFIED",
+              "benchmark_id": "LIVE_INTERACTIVE"
+            },
+            "target_issues": [
+              {
+                "issue_instance_id": "R001:BEFORE:I1:a78bf00a82",
+                "code": "OUTCOME_POLARITY_CONTRADICTION",
+                "entity_kind": "effect",
+                "entity_id": "E3",
+                "field": "polarity",
+                "message": "E3 outcome 'will die without it' contradicts polarity ADVERSE: it negates an adverse event; preserve the source event and correct either its explicit negation or polarity",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": []
+              },
+              {
+                "issue_instance_id": "R001:BEFORE:I2:04fc6b6dbd",
+                "code": "OUTCOME_POLARITY_CONTRADICTION",
+                "entity_kind": "effect",
+                "entity_id": "E6",
+                "field": "polarity",
+                "message": "E6 outcome 'will die without it' contradicts polarity ADVERSE: it negates an adverse event; preserve the source event and correct either its explicit negation or polarity",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": []
+              },
+              {
+                "issue_instance_id": "R001:BEFORE:I3:2ec7ddf9a6",
+                "code": "LIKELIHOOD_QUALIFIER_MISSING",
+                "entity_kind": "effect",
+                "entity_id": "E7",
+                "field": "likelihood_qualifiers",
+                "message": "E7 omits source-grounded likelihood qualifiers: ['chance']",
+                "invariant_version": 1,
+                "repair_class": "SOURCE_PATCH",
+                "related_ids": []
+              },
+              {
+                "issue_instance_id": "R001:BEFORE:I4:5a5eba9c75",
+                "code": "WORLD_VALIDATION_ERROR",
+                "entity_kind": "effect",
+                "entity_id": "E2",
+                "field": "",
+                "message": "E2 STRUCTURAL_ABSTRACTION must be an actual NEUTRAL process or physical-state effect",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "STRUCTURAL_ABSTRACTION"
+                ]
+              },
+              {
+                "issue_instance_id": "R001:BEFORE:I5:c809a8364e",
+                "code": "WORLD_VALIDATION_ERROR",
+                "entity_kind": "effect",
+                "entity_id": "E2",
+                "field": "",
+                "message": "E2 STRUCTURAL_ABSTRACTION has no lexical anchor in its source proposition",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "STRUCTURAL_ABSTRACTION"
+                ]
+              },
+              {
+                "issue_instance_id": "R001:BEFORE:I6:9264e9be5b",
+                "code": "UNSUPPORTED_WORLD_DERIVATION",
+                "entity_kind": "effect",
+                "entity_id": "E3",
+                "field": "derivation_operation",
+                "message": "E3 changes source outcome type to MORTALITY; quarantine the transformation",
+                "invariant_version": 1,
+                "repair_class": "QUARANTINE",
+                "related_ids": []
+              },
+              {
+                "issue_instance_id": "R001:BEFORE:I7:5171a87920",
+                "code": "WORLD_VALIDATION_ERROR",
+                "entity_kind": "effect",
+                "entity_id": "E5",
+                "field": "",
+                "message": "E5 STRUCTURAL_ABSTRACTION must be an actual NEUTRAL process or physical-state effect",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "STRUCTURAL_ABSTRACTION"
+                ]
+              },
+              {
+                "issue_instance_id": "R001:BEFORE:I8:81324a78f4",
+                "code": "WORLD_VALIDATION_ERROR",
+                "entity_kind": "effect",
+                "entity_id": "E5",
+                "field": "",
+                "message": "E5 STRUCTURAL_ABSTRACTION has no lexical anchor in its source proposition",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "STRUCTURAL_ABSTRACTION"
+                ]
+              },
+              {
+                "issue_instance_id": "R001:BEFORE:I9:eedf19a929",
+                "code": "UNSUPPORTED_WORLD_DERIVATION",
+                "entity_kind": "effect",
+                "entity_id": "E6",
+                "field": "derivation_operation",
+                "message": "E6 changes source outcome type to MORTALITY; quarantine the transformation",
+                "invariant_version": 1,
+                "repair_class": "QUARANTINE",
+                "related_ids": []
+              },
+              {
+                "issue_instance_id": "R001:BEFORE:I10:d5a55d9ebf",
+                "code": "UNSUPPORTED_WORLD_DERIVATION",
+                "entity_kind": "effect",
+                "entity_id": "E7",
+                "field": "derivation_operation",
+                "message": "E7 changes source outcome type to HEALTH; quarantine the transformation",
+                "invariant_version": 1,
+                "repair_class": "QUARANTINE",
+                "related_ids": []
+              },
+              {
+                "issue_instance_id": "R001:BEFORE:I11:8d61d8e0c7",
+                "code": "STAGE_SKELETON_DRIFT",
+                "entity_kind": "party",
+                "entity_id": "P2",
+                "field": "effects",
+                "message": "P2 stage-one proposition drift for A1: Stage 2 must restore party 'Maria', source_proposition 'Maria needs the medicine.', polarity ADVERSE, modality CERTAIN, directness DIRECT, and quantities []; add or correct the matching actual effect without changing the admitted Stage 1 factual claim",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "A1",
+                  "Stage"
+                ]
+              },
+              {
+                "issue_instance_id": "R001:BEFORE:I12:177f787539",
+                "code": "STAGE_SKELETON_DRIFT",
+                "entity_kind": "party",
+                "entity_id": "P3",
+                "field": "effects",
+                "message": "P3 stage-one proposition drift for A0: Stage 2 must restore party 'David', source_proposition 'David also needs the medicine.', polarity ADVERSE, modality CERTAIN, directness DIRECT, and quantities []; add or correct the matching actual effect without changing the admitted Stage 1 factual claim",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "A0",
+                  "Stage"
+                ]
+              },
+              {
+                "issue_instance_id": "R001:BEFORE:I13:e2583e3afc",
+                "code": "STAGE_SKELETON_DRIFT",
+                "entity_kind": "party",
+                "entity_id": "P4",
+                "field": "effects",
+                "message": "P4 stage-one proposition drift for A1: Stage 2 must restore party 'Maria', source_proposition 'Maria will die without it.', polarity ADVERSE, modality CERTAIN, directness DOWNSTREAM, and quantities []; add or correct the matching actual effect without changing the admitted Stage 1 factual claim",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "A1",
+                  "Stage"
+                ]
+              },
+              {
+                "issue_instance_id": "R001:BEFORE:I14:27e37bf651",
+                "code": "STAGE_SKELETON_DRIFT",
+                "entity_kind": "party",
+                "entity_id": "P5",
+                "field": "effects",
+                "message": "P5 stage-one proposition drift for A0: Stage 2 must restore party 'David', source_proposition 'David will die without it.', polarity ADVERSE, modality CERTAIN, directness DOWNSTREAM, and quantities []; add or correct the matching actual effect without changing the admitted Stage 1 factual claim",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "A0",
+                  "Stage"
+                ]
+              }
+            ],
+            "after_issues": [
+              {
+                "issue_instance_id": "R001:AFTER:I1:a78bf00a82",
+                "code": "OUTCOME_POLARITY_CONTRADICTION",
+                "entity_kind": "effect",
+                "entity_id": "E3",
+                "field": "polarity",
+                "message": "E3 outcome 'will die without it' contradicts polarity ADVERSE: it negates an adverse event; preserve the source event and correct either its explicit negation or polarity",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": []
+              },
+              {
+                "issue_instance_id": "R001:AFTER:I2:04fc6b6dbd",
+                "code": "OUTCOME_POLARITY_CONTRADICTION",
+                "entity_kind": "effect",
+                "entity_id": "E6",
+                "field": "polarity",
+                "message": "E6 outcome 'will die without it' contradicts polarity ADVERSE: it negates an adverse event; preserve the source event and correct either its explicit negation or polarity",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": []
+              },
+              {
+                "issue_instance_id": "R001:AFTER:I3:5a5eba9c75",
+                "code": "WORLD_VALIDATION_ERROR",
+                "entity_kind": "effect",
+                "entity_id": "E2",
+                "field": "",
+                "message": "E2 STRUCTURAL_ABSTRACTION must be an actual NEUTRAL process or physical-state effect",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "STRUCTURAL_ABSTRACTION"
+                ]
+              },
+              {
+                "issue_instance_id": "R001:AFTER:I4:c809a8364e",
+                "code": "WORLD_VALIDATION_ERROR",
+                "entity_kind": "effect",
+                "entity_id": "E2",
+                "field": "",
+                "message": "E2 STRUCTURAL_ABSTRACTION has no lexical anchor in its source proposition",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "STRUCTURAL_ABSTRACTION"
+                ]
+              },
+              {
+                "issue_instance_id": "R001:AFTER:I5:9264e9be5b",
+                "code": "UNSUPPORTED_WORLD_DERIVATION",
+                "entity_kind": "effect",
+                "entity_id": "E3",
+                "field": "derivation_operation",
+                "message": "E3 changes source outcome type to MORTALITY; quarantine the transformation",
+                "invariant_version": 1,
+                "repair_class": "QUARANTINE",
+                "related_ids": []
+              },
+              {
+                "issue_instance_id": "R001:AFTER:I6:5171a87920",
+                "code": "WORLD_VALIDATION_ERROR",
+                "entity_kind": "effect",
+                "entity_id": "E5",
+                "field": "",
+                "message": "E5 STRUCTURAL_ABSTRACTION must be an actual NEUTRAL process or physical-state effect",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "STRUCTURAL_ABSTRACTION"
+                ]
+              },
+              {
+                "issue_instance_id": "R001:AFTER:I7:81324a78f4",
+                "code": "WORLD_VALIDATION_ERROR",
+                "entity_kind": "effect",
+                "entity_id": "E5",
+                "field": "",
+                "message": "E5 STRUCTURAL_ABSTRACTION has no lexical anchor in its source proposition",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "STRUCTURAL_ABSTRACTION"
+                ]
+              },
+              {
+                "issue_instance_id": "R001:AFTER:I8:eedf19a929",
+                "code": "UNSUPPORTED_WORLD_DERIVATION",
+                "entity_kind": "effect",
+                "entity_id": "E6",
+                "field": "derivation_operation",
+                "message": "E6 changes source outcome type to MORTALITY; quarantine the transformation",
+                "invariant_version": 1,
+                "repair_class": "QUARANTINE",
+                "related_ids": []
+              },
+              {
+                "issue_instance_id": "R001:AFTER:I9:d5a55d9ebf",
+                "code": "UNSUPPORTED_WORLD_DERIVATION",
+                "entity_kind": "effect",
+                "entity_id": "E7",
+                "field": "derivation_operation",
+                "message": "E7 changes source outcome type to HEALTH; quarantine the transformation",
+                "invariant_version": 1,
+                "repair_class": "QUARANTINE",
+                "related_ids": []
+              }
+            ],
+            "selected_cards": [],
+            "suppressed_cards": [
+              {
+                "card_id": "OUTCOME_POLARITY_CONTRADICTION_V1",
+                "card_version": 1,
+                "issue_code": "OUTCOME_POLARITY_CONTRADICTION",
+                "entity_id": "E3",
+                "selected": false
+              },
+              {
+                "card_id": "OUTCOME_POLARITY_CONTRADICTION_V1",
+                "card_version": 1,
+                "issue_code": "OUTCOME_POLARITY_CONTRADICTION",
+                "entity_id": "E6",
+                "selected": false
+              },
+              {
+                "card_id": "LIKELIHOOD_QUALIFIER_MISSING_V1",
+                "card_version": 1,
+                "issue_code": "LIKELIHOOD_QUALIFIER_MISSING",
+                "entity_id": "E7",
+                "selected": false
+              },
+              {
+                "card_id": "WORLD_VALIDATION_ERROR_V1",
+                "card_version": 1,
+                "issue_code": "WORLD_VALIDATION_ERROR",
+                "entity_id": "E2",
+                "selected": false
+              },
+              {
+                "card_id": "WORLD_VALIDATION_ERROR_V1",
+                "card_version": 1,
+                "issue_code": "WORLD_VALIDATION_ERROR",
+                "entity_id": "E2",
+                "selected": false
+              },
+              {
+                "card_id": "UNSUPPORTED_WORLD_DERIVATION_V1",
+                "card_version": 1,
+                "issue_code": "UNSUPPORTED_WORLD_DERIVATION",
+                "entity_id": "E3",
+                "selected": false
+              },
+              {
+                "card_id": "WORLD_VALIDATION_ERROR_V1",
+                "card_version": 1,
+                "issue_code": "WORLD_VALIDATION_ERROR",
+                "entity_id": "E5",
+                "selected": false
+              },
+              {
+                "card_id": "WORLD_VALIDATION_ERROR_V1",
+                "card_version": 1,
+                "issue_code": "WORLD_VALIDATION_ERROR",
+                "entity_id": "E5",
+                "selected": false
+              },
+              {
+                "card_id": "UNSUPPORTED_WORLD_DERIVATION_V1",
+                "card_version": 1,
+                "issue_code": "UNSUPPORTED_WORLD_DERIVATION",
+                "entity_id": "E6",
+                "selected": false
+              },
+              {
+                "card_id": "UNSUPPORTED_WORLD_DERIVATION_V1",
+                "card_version": 1,
+                "issue_code": "UNSUPPORTED_WORLD_DERIVATION",
+                "entity_id": "E7",
+                "selected": false
+              },
+              {
+                "card_id": "STAGE_SKELETON_DRIFT_V1",
+                "card_version": 1,
+                "issue_code": "STAGE_SKELETON_DRIFT",
+                "entity_id": "P2",
+                "selected": false
+              },
+              {
+                "card_id": "STAGE_SKELETON_DRIFT_V1",
+                "card_version": 1,
+                "issue_code": "STAGE_SKELETON_DRIFT",
+                "entity_id": "P3",
+                "selected": false
+              },
+              {
+                "card_id": "STAGE_SKELETON_DRIFT_V1",
+                "card_version": 1,
+                "issue_code": "STAGE_SKELETON_DRIFT",
+                "entity_id": "P4",
+                "selected": false
+              },
+              {
+                "card_id": "STAGE_SKELETON_DRIFT_V1",
+                "card_version": 1,
+                "issue_code": "STAGE_SKELETON_DRIFT",
+                "entity_id": "P5",
+                "selected": false
+              }
+            ],
+            "deterministic_patches": [
+              {
+                "op": "add_likelihood_qualifier",
+                "effect_id": "E7",
+                "field": "likelihood_qualifiers",
+                "value": "chance",
+                "code": "LIKELIHOOD_QUALIFIER_MISSING",
+                "deterministic": true
+              }
+            ],
+            "graph_diff": {
+              "before_fingerprint": "5d523603e08d1619c328217c",
+              "after_fingerprint": "8908086f777f3346221c48de",
+              "collections": {
+                "parties": {
+                  "added": [],
+                  "removed": [],
+                  "changed": []
+                },
+                "actions": {
+                  "added": [],
+                  "removed": [],
+                  "changed": []
+                },
+                "effects": {
+                  "added": [],
+                  "removed": [],
+                  "changed": [
+                    {
+                      "id": "E7",
+                      "fields": [
+                        "likelihood_qualifiers"
+                      ]
+                    }
+                  ]
+                },
+                "conditions": {
+                  "added": [],
+                  "removed": [],
+                  "changed": []
+                },
+                "temporal_relations": {
+                  "added": [],
+                  "removed": [],
+                  "changed": []
+                },
+                "causal_links": {
+                  "added": [],
+                  "removed": []
+                },
+                "counterfactual_links": {
+                  "added": [],
+                  "removed": []
+                }
+              },
+              "nodes_added": [],
+              "nodes_removed": [],
+              "nodes_changed": [
+                {
+                  "node": "effects:E7",
+                  "fields": [
+                    "likelihood_qualifiers"
+                  ]
+                }
+              ],
+              "edges_added": [],
+              "edges_removed": [],
+              "certainty_changes": [
+                "E7"
+              ],
+              "ownership_changes": [],
+              "provenance_changes": []
+            },
+            "outside_target_entity_changes": [],
+            "outcome": {
+              "target_issue_codes": [
+                "LIKELIHOOD_QUALIFIER_MISSING",
+                "OUTCOME_POLARITY_CONTRADICTION",
+                "STAGE_SKELETON_DRIFT",
+                "UNSUPPORTED_WORLD_DERIVATION",
+                "WORLD_VALIDATION_ERROR"
+              ],
+              "remaining_target_issue_codes": [
+                "OUTCOME_POLARITY_CONTRADICTION",
+                "UNSUPPORTED_WORLD_DERIVATION",
+                "WORLD_VALIDATION_ERROR"
+              ],
+              "resolved_target_issue_codes": [
+                "LIKELIHOOD_QUALIFIER_MISSING",
+                "STAGE_SKELETON_DRIFT"
+              ],
+              "remaining_target_signatures": [
+                [
+                  "OUTCOME_POLARITY_CONTRADICTION",
+                  "effect",
+                  "E3",
+                  "polarity"
+                ],
+                [
+                  "OUTCOME_POLARITY_CONTRADICTION",
+                  "effect",
+                  "E6",
+                  "polarity"
+                ],
+                [
+                  "UNSUPPORTED_WORLD_DERIVATION",
+                  "effect",
+                  "E3",
+                  "derivation_operation"
+                ],
+                [
+                  "UNSUPPORTED_WORLD_DERIVATION",
+                  "effect",
+                  "E6",
+                  "derivation_operation"
+                ],
+                [
+                  "UNSUPPORTED_WORLD_DERIVATION",
+                  "effect",
+                  "E7",
+                  "derivation_operation"
+                ],
+                [
+                  "WORLD_VALIDATION_ERROR",
+                  "effect",
+                  "E2",
+                  ""
+                ],
+                [
+                  "WORLD_VALIDATION_ERROR",
+                  "effect",
+                  "E5",
+                  ""
+                ]
+              ],
+              "resolved_target_signatures": [
+                [
+                  "LIKELIHOOD_QUALIFIER_MISSING",
+                  "effect",
+                  "E7",
+                  "likelihood_qualifiers"
+                ],
+                [
+                  "STAGE_SKELETON_DRIFT",
+                  "party",
+                  "P2",
+                  "effects"
+                ],
+                [
+                  "STAGE_SKELETON_DRIFT",
+                  "party",
+                  "P3",
+                  "effects"
+                ],
+                [
+                  "STAGE_SKELETON_DRIFT",
+                  "party",
+                  "P4",
+                  "effects"
+                ],
+                [
+                  "STAGE_SKELETON_DRIFT",
+                  "party",
+                  "P5",
+                  "effects"
+                ]
+              ],
+              "introduced_issue_signatures": [],
+              "introduced_issue_codes": [],
+              "target_fixed": false,
+              "clean_repair": false,
+              "final_world_committed": false,
+              "repair_yield": false
+            }
+          },
+          {
+            "repair_event_schema_version": 1,
+            "repair_event_id": "R002",
+            "recorded_at": "2026-09-22T03:36:37.085930+00:00",
+            "execution_mode": "LLM_REPAIR",
+            "repair_scope": "LOCAL_PATCH",
+            "context": {
+              "validator_version": "world-validator-2026-09-21-v1",
+              "repair_prompt_version": "world-repair-prompt-v1",
+              "model": "o3",
+              "temperature": 0.0,
+              "max_attempts": 3,
+              "stage_one_guidance_mode": "AUTHORITATIVE",
+              "deterministic_repair_guidance_mode": "OFF",
+              "git_commit": "UNKNOWN",
+              "working_tree_state": "NOT_CAPTURED",
+              "backend": "openai",
+              "scenario_id": "workspace_20260921_233553_163947",
+              "scenario_family": "UNCLASSIFIED",
+              "benchmark_id": "LIVE_INTERACTIVE"
+            },
+            "target_issues": [
+              {
+                "issue_instance_id": "R002:BEFORE:I1:a78bf00a82",
+                "code": "OUTCOME_POLARITY_CONTRADICTION",
+                "entity_kind": "effect",
+                "entity_id": "E3",
+                "field": "polarity",
+                "message": "E3 outcome 'will die without it' contradicts polarity ADVERSE: it negates an adverse event; preserve the source event and correct either its explicit negation or polarity",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": []
+              },
+              {
+                "issue_instance_id": "R002:BEFORE:I2:04fc6b6dbd",
+                "code": "OUTCOME_POLARITY_CONTRADICTION",
+                "entity_kind": "effect",
+                "entity_id": "E6",
+                "field": "polarity",
+                "message": "E6 outcome 'will die without it' contradicts polarity ADVERSE: it negates an adverse event; preserve the source event and correct either its explicit negation or polarity",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": []
+              },
+              {
+                "issue_instance_id": "R002:BEFORE:I3:5a5eba9c75",
+                "code": "WORLD_VALIDATION_ERROR",
+                "entity_kind": "effect",
+                "entity_id": "E2",
+                "field": "",
+                "message": "E2 STRUCTURAL_ABSTRACTION must be an actual NEUTRAL process or physical-state effect",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "STRUCTURAL_ABSTRACTION"
+                ]
+              },
+              {
+                "issue_instance_id": "R002:BEFORE:I4:c809a8364e",
+                "code": "WORLD_VALIDATION_ERROR",
+                "entity_kind": "effect",
+                "entity_id": "E2",
+                "field": "",
+                "message": "E2 STRUCTURAL_ABSTRACTION has no lexical anchor in its source proposition",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "STRUCTURAL_ABSTRACTION"
+                ]
+              },
+              {
+                "issue_instance_id": "R002:BEFORE:I5:9264e9be5b",
+                "code": "UNSUPPORTED_WORLD_DERIVATION",
+                "entity_kind": "effect",
+                "entity_id": "E3",
+                "field": "derivation_operation",
+                "message": "E3 changes source outcome type to MORTALITY; quarantine the transformation",
+                "invariant_version": 1,
+                "repair_class": "QUARANTINE",
+                "related_ids": []
+              },
+              {
+                "issue_instance_id": "R002:BEFORE:I6:5171a87920",
+                "code": "WORLD_VALIDATION_ERROR",
+                "entity_kind": "effect",
+                "entity_id": "E5",
+                "field": "",
+                "message": "E5 STRUCTURAL_ABSTRACTION must be an actual NEUTRAL process or physical-state effect",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "STRUCTURAL_ABSTRACTION"
+                ]
+              },
+              {
+                "issue_instance_id": "R002:BEFORE:I7:81324a78f4",
+                "code": "WORLD_VALIDATION_ERROR",
+                "entity_kind": "effect",
+                "entity_id": "E5",
+                "field": "",
+                "message": "E5 STRUCTURAL_ABSTRACTION has no lexical anchor in its source proposition",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "STRUCTURAL_ABSTRACTION"
+                ]
+              },
+              {
+                "issue_instance_id": "R002:BEFORE:I8:eedf19a929",
+                "code": "UNSUPPORTED_WORLD_DERIVATION",
+                "entity_kind": "effect",
+                "entity_id": "E6",
+                "field": "derivation_operation",
+                "message": "E6 changes source outcome type to MORTALITY; quarantine the transformation",
+                "invariant_version": 1,
+                "repair_class": "QUARANTINE",
+                "related_ids": []
+              },
+              {
+                "issue_instance_id": "R002:BEFORE:I9:d5a55d9ebf",
+                "code": "UNSUPPORTED_WORLD_DERIVATION",
+                "entity_kind": "effect",
+                "entity_id": "E7",
+                "field": "derivation_operation",
+                "message": "E7 changes source outcome type to HEALTH; quarantine the transformation",
+                "invariant_version": 1,
+                "repair_class": "QUARANTINE",
+                "related_ids": []
+              }
+            ],
+            "after_issues": [
+              {
+                "issue_instance_id": "R002:AFTER:I1:0dd3bb8bb0",
+                "code": "LIKELIHOOD_QUALIFIER_MISSING",
+                "entity_kind": "effect",
+                "entity_id": "E5",
+                "field": "likelihood_qualifiers",
+                "message": "E5 omits source-grounded likelihood qualifiers: ['chance']",
+                "invariant_version": 1,
+                "repair_class": "SOURCE_PATCH",
+                "related_ids": []
+              },
+              {
+                "issue_instance_id": "R002:AFTER:I2:8917fb4873",
+                "code": "WORLD_VALIDATION_ERROR",
+                "entity_kind": "causal_link",
+                "entity_id": "0",
+                "field": "",
+                "message": "causal_link[0] crosses action boundaries ['A0', 'A1']; use counterfactual_links for alternative-action comparisons",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "A0",
+                  "A1"
+                ]
+              },
+              {
+                "issue_instance_id": "R002:AFTER:I3:d5a55d9ebf",
+                "code": "UNSUPPORTED_WORLD_DERIVATION",
+                "entity_kind": "effect",
+                "entity_id": "E7",
+                "field": "derivation_operation",
+                "message": "E7 changes source outcome type to HEALTH; quarantine the transformation",
+                "invariant_version": 1,
+                "repair_class": "QUARANTINE",
+                "related_ids": []
+              },
+              {
+                "issue_instance_id": "R002:AFTER:I4:62d70c074a",
+                "code": "MISSING_CAUSAL_PARENT",
+                "entity_kind": "effect",
+                "entity_id": "E2",
+                "field": "causal_links",
+                "message": "E2 is a downstream human outcome with no causal parent; connect it through the source-named process. Do not drop E2; insert or reuse a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as its parent",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "FACILITY"
+                ]
+              },
+              {
+                "issue_instance_id": "R002:AFTER:I5:42391e5cd2",
+                "code": "MISSING_CAUSAL_PARENT",
+                "entity_kind": "effect",
+                "entity_id": "E4",
+                "field": "causal_links",
+                "message": "E4 is a downstream human outcome with no causal parent; connect it through the source-named process. Do not drop E4; insert or reuse a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as its parent",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "FACILITY"
+                ]
+              },
+              {
+                "issue_instance_id": "R002:AFTER:I6:5de11263d2",
+                "code": "MISSING_CAUSAL_PARENT",
+                "entity_kind": "effect",
+                "entity_id": "E5",
+                "field": "causal_links",
+                "message": "E5 is a downstream human outcome with no causal parent; connect it through the source-named process. Do not drop E5; insert or reuse a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as its parent",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "FACILITY"
+                ]
+              },
+              {
+                "issue_instance_id": "R002:AFTER:I7:b5041e8e4c",
+                "code": "MISSING_PROCESS_INTERMEDIATE",
+                "entity_kind": "effect",
+                "entity_id": "E7",
+                "field": "causal_links",
+                "message": "E7 is caused directly by another party's act or bodily outcome (E4); insert a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as the immediate parent. A person's framing, execution, or death is not that intermediate. Do not delete E7 or drop its causal_link without a replacement parent",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "E4",
+                  "FACILITY"
+                ]
+              },
+              {
+                "issue_instance_id": "R002:AFTER:I8:24afb4e4c5",
+                "code": "MISSING_CAUSAL_PARENT",
+                "entity_kind": "effect",
+                "entity_id": "E7",
+                "field": "causal_links",
+                "message": "E7 is a downstream human outcome whose causal ancestry never reaches a DIRECT act on the actor or a named recipient; connect this action's intervention to the action-mediated process that produces the outcome. If the source does not attribute a stochastic process to the intervention, do not invent that causal link; generate the missing mediated branch",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": []
+              },
+              {
+                "issue_instance_id": "R002:AFTER:I9:436ad1dc3d",
+                "code": "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "entity_kind": "action",
+                "entity_id": "A0",
+                "field": "effects",
+                "message": "A0 omits exclusive-allocation branch for nonrecipient P1: missing nonreceipt state; add the action-specific nonreceipt state and preserve every source-stipulated consequence",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "P1"
+                ]
+              },
+              {
+                "issue_instance_id": "R002:AFTER:I10:26f2247ba4",
+                "code": "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "entity_kind": "action",
+                "entity_id": "A1",
+                "field": "effects",
+                "message": "A1 omits exclusive-allocation branch for nonrecipient P2: missing nonreceipt state; add the action-specific nonreceipt state and preserve every source-stipulated consequence",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "P2"
+                ]
+              },
+              {
+                "issue_instance_id": "R002:AFTER:I11:3f3d54cde6",
+                "code": "MISSING_PROCESS_INTERMEDIATE",
+                "entity_kind": "effect",
+                "entity_id": "E2",
+                "field": "causal_links",
+                "message": "E2 is harm to unselected party P1 under an exclusive indivisible allocation but lacks an action-specific nonreceipt or untreated state as its immediate parent; keep scarcity/indivisibility global and insert P1 does not receive the allocated resource -> E2",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "P1"
+                ]
+              },
+              {
+                "issue_instance_id": "R002:AFTER:I12:e2a3639585",
+                "code": "MISSING_PROCESS_INTERMEDIATE",
+                "entity_kind": "effect",
+                "entity_id": "E4",
+                "field": "causal_links",
+                "message": "E4 is harm to unselected party P2 under an exclusive indivisible allocation but lacks an action-specific nonreceipt or untreated state as its immediate parent; keep scarcity/indivisibility global and insert P2 does not receive the allocated resource -> E4",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "P2"
+                ]
+              },
+              {
+                "issue_instance_id": "R002:AFTER:I13:8d61d8e0c7",
+                "code": "STAGE_SKELETON_DRIFT",
+                "entity_kind": "party",
+                "entity_id": "P2",
+                "field": "effects",
+                "message": "P2 stage-one proposition drift for A1: Stage 2 must restore party 'Maria', source_proposition 'Maria needs the medicine.', polarity ADVERSE, modality CERTAIN, directness DIRECT, and quantities []; add or correct the matching actual effect without changing the admitted Stage 1 factual claim",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "A1",
+                  "Stage"
+                ]
+              },
+              {
+                "issue_instance_id": "R002:AFTER:I14:177f787539",
+                "code": "STAGE_SKELETON_DRIFT",
+                "entity_kind": "party",
+                "entity_id": "P3",
+                "field": "effects",
+                "message": "P3 stage-one proposition drift for A0: Stage 2 must restore party 'David', source_proposition 'David also needs the medicine.', polarity ADVERSE, modality CERTAIN, directness DIRECT, and quantities []; add or correct the matching actual effect without changing the admitted Stage 1 factual claim",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "A0",
+                  "Stage"
+                ]
+              },
+              {
+                "issue_instance_id": "R002:AFTER:I15:e2583e3afc",
+                "code": "STAGE_SKELETON_DRIFT",
+                "entity_kind": "party",
+                "entity_id": "P4",
+                "field": "effects",
+                "message": "P4 stage-one proposition drift for A1: Stage 2 must restore party 'Maria', source_proposition 'Maria will die without it.', polarity ADVERSE, modality CERTAIN, directness DOWNSTREAM, and quantities []; add or correct the matching actual effect without changing the admitted Stage 1 factual claim",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "A1",
+                  "Stage"
+                ]
+              },
+              {
+                "issue_instance_id": "R002:AFTER:I16:27e37bf651",
+                "code": "STAGE_SKELETON_DRIFT",
+                "entity_kind": "party",
+                "entity_id": "P5",
+                "field": "effects",
+                "message": "P5 stage-one proposition drift for A0: Stage 2 must restore party 'David', source_proposition 'David will die without it.', polarity ADVERSE, modality CERTAIN, directness DOWNSTREAM, and quantities []; add or correct the matching actual effect without changing the admitted Stage 1 factual claim",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "A0",
+                  "Stage"
+                ]
+              }
+            ],
+            "selected_cards": [
+              {
+                "card_id": "OUTCOME_POLARITY_CONTRADICTION_V1",
+                "card_version": 1,
+                "issue_code": "OUTCOME_POLARITY_CONTRADICTION",
+                "entity_id": "E3",
+                "selected": true
+              },
+              {
+                "card_id": "OUTCOME_POLARITY_CONTRADICTION_V1",
+                "card_version": 1,
+                "issue_code": "OUTCOME_POLARITY_CONTRADICTION",
+                "entity_id": "E6",
+                "selected": true
+              },
+              {
+                "card_id": "WORLD_VALIDATION_ERROR_V1",
+                "card_version": 1,
+                "issue_code": "WORLD_VALIDATION_ERROR",
+                "entity_id": "E2",
+                "selected": true
+              },
+              {
+                "card_id": "WORLD_VALIDATION_ERROR_V1",
+                "card_version": 1,
+                "issue_code": "WORLD_VALIDATION_ERROR",
+                "entity_id": "E2",
+                "selected": true
+              },
+              {
+                "card_id": "UNSUPPORTED_WORLD_DERIVATION_V1",
+                "card_version": 1,
+                "issue_code": "UNSUPPORTED_WORLD_DERIVATION",
+                "entity_id": "E3",
+                "selected": true
+              },
+              {
+                "card_id": "WORLD_VALIDATION_ERROR_V1",
+                "card_version": 1,
+                "issue_code": "WORLD_VALIDATION_ERROR",
+                "entity_id": "E5",
+                "selected": true
+              },
+              {
+                "card_id": "WORLD_VALIDATION_ERROR_V1",
+                "card_version": 1,
+                "issue_code": "WORLD_VALIDATION_ERROR",
+                "entity_id": "E5",
+                "selected": true
+              },
+              {
+                "card_id": "UNSUPPORTED_WORLD_DERIVATION_V1",
+                "card_version": 1,
+                "issue_code": "UNSUPPORTED_WORLD_DERIVATION",
+                "entity_id": "E6",
+                "selected": true
+              },
+              {
+                "card_id": "UNSUPPORTED_WORLD_DERIVATION_V1",
+                "card_version": 1,
+                "issue_code": "UNSUPPORTED_WORLD_DERIVATION",
+                "entity_id": "E7",
+                "selected": true
+              }
+            ],
+            "suppressed_cards": [],
+            "deterministic_patches": [],
+            "graph_diff": {
+              "before_fingerprint": "8908086f777f3346221c48de",
+              "after_fingerprint": "b31a2ae909dc5a8f2647bb86",
+              "collections": {
+                "parties": {
+                  "added": [],
+                  "removed": [],
+                  "changed": [
+                    {
+                      "id": "P0",
+                      "fields": [
+                        "clause_ids"
+                      ]
+                    },
+                    {
+                      "id": "R0",
+                      "fields": [
+                        "label",
+                        "quantities"
+                      ]
+                    }
+                  ]
+                },
+                "actions": {
+                  "added": [],
+                  "removed": [],
+                  "changed": [
+                    {
+                      "id": "A0",
+                      "fields": [
+                        "effect_ids"
+                      ]
+                    },
+                    {
+                      "id": "A1",
+                      "fields": [
+                        "effect_ids"
+                      ]
+                    }
+                  ]
+                },
+                "effects": {
+                  "added": [],
+                  "removed": [
+                    "E6"
+                  ],
+                  "changed": [
+                    {
+                      "id": "E2",
+                      "fields": [
+                        "clause_ids",
+                        "derivation_explanation",
+                        "derivation_operation",
+                        "effect_kind",
+                        "outcome",
+                        "predicate",
+                        "source_effect_ids",
+                        "source_proposition"
+                      ]
+                    },
+                    {
+                      "id": "E3",
+                      "fields": [
+                        "action_id",
+                        "clause_ids",
+                        "derivation_explanation",
+                        "derivation_operation",
+                        "directness",
+                        "effect_kind",
+                        "outcome",
+                        "outcome_type_transformation",
+                        "polarity",
+                        "predicate",
+                        "source_effect_ids",
+                        "source_proposition"
+                      ]
+                    },
+                    {
+                      "id": "E4",
+                      "fields": [
+                        "clause_ids",
+                        "directness",
+                        "effect_kind",
+                        "outcome",
+                        "party_id",
+                        "polarity",
+                        "predicate",
+                        "source_proposition"
+                      ]
+                    },
+                    {
+                      "id": "E5",
+                      "fields": [
+                        "clause_ids",
+                        "derivation_explanation",
+                        "derivation_operation",
+                        "effect_kind",
+                        "likelihood_qualifiers",
+                        "modality",
+                        "outcome",
+                        "party_id",
+                        "polarity",
+                        "predicate",
+                        "source_effect_ids",
+                        "source_proposition"
+                      ]
+                    }
+                  ]
+                },
+                "conditions": {
+                  "added": [],
+                  "removed": [],
+                  "changed": []
+                },
+                "temporal_relations": {
+                  "added": [],
+                  "removed": [],
+                  "changed": []
+                },
+                "causal_links": {
+                  "added": [],
+                  "removed": [
+                    "A1|E5|CAUSES|E6"
+                  ]
+                },
+                "counterfactual_links": {
+                  "added": [],
+                  "removed": []
+                }
+              },
+              "nodes_added": [],
+              "nodes_removed": [
+                "effects:E6"
+              ],
+              "nodes_changed": [
+                {
+                  "node": "parties:P0",
+                  "fields": [
+                    "clause_ids"
+                  ]
+                },
+                {
+                  "node": "parties:R0",
+                  "fields": [
+                    "label",
+                    "quantities"
+                  ]
+                },
+                {
+                  "node": "actions:A0",
+                  "fields": [
+                    "effect_ids"
+                  ]
+                },
+                {
+                  "node": "actions:A1",
+                  "fields": [
+                    "effect_ids"
+                  ]
+                },
+                {
+                  "node": "effects:E2",
+                  "fields": [
+                    "clause_ids",
+                    "derivation_explanation",
+                    "derivation_operation",
+                    "effect_kind",
+                    "outcome",
+                    "predicate",
+                    "source_effect_ids",
+                    "source_proposition"
+                  ]
+                },
+                {
+                  "node": "effects:E3",
+                  "fields": [
+                    "action_id",
+                    "clause_ids",
+                    "derivation_explanation",
+                    "derivation_operation",
+                    "directness",
+                    "effect_kind",
+                    "outcome",
+                    "outcome_type_transformation",
+                    "polarity",
+                    "predicate",
+                    "source_effect_ids",
+                    "source_proposition"
+                  ]
+                },
+                {
+                  "node": "effects:E4",
+                  "fields": [
+                    "clause_ids",
+                    "directness",
+                    "effect_kind",
+                    "outcome",
+                    "party_id",
+                    "polarity",
+                    "predicate",
+                    "source_proposition"
+                  ]
+                },
+                {
+                  "node": "effects:E5",
+                  "fields": [
+                    "clause_ids",
+                    "derivation_explanation",
+                    "derivation_operation",
+                    "effect_kind",
+                    "likelihood_qualifiers",
+                    "modality",
+                    "outcome",
+                    "party_id",
+                    "polarity",
+                    "predicate",
+                    "source_effect_ids",
+                    "source_proposition"
+                  ]
+                }
+              ],
+              "edges_added": [],
+              "edges_removed": [
+                "causal_links:A1|E5|CAUSES|E6"
+              ],
+              "certainty_changes": [
+                "E5"
+              ],
+              "ownership_changes": [
+                "E3",
+                "E4",
+                "E5"
+              ],
+              "provenance_changes": [
+                "P0",
+                "E2",
+                "E3",
+                "E4",
+                "E5"
+              ]
+            },
+            "outside_target_entity_changes": [
+              "A0",
+              "A1",
+              "E4",
+              "P0",
+              "R0"
+            ],
+            "outcome": {
+              "target_issue_codes": [
+                "OUTCOME_POLARITY_CONTRADICTION",
+                "UNSUPPORTED_WORLD_DERIVATION",
+                "WORLD_VALIDATION_ERROR"
+              ],
+              "remaining_target_issue_codes": [
+                "UNSUPPORTED_WORLD_DERIVATION"
+              ],
+              "resolved_target_issue_codes": [
+                "OUTCOME_POLARITY_CONTRADICTION",
+                "UNSUPPORTED_WORLD_DERIVATION",
+                "WORLD_VALIDATION_ERROR"
+              ],
+              "remaining_target_signatures": [
+                [
+                  "UNSUPPORTED_WORLD_DERIVATION",
+                  "effect",
+                  "E7",
+                  "derivation_operation"
+                ]
+              ],
+              "resolved_target_signatures": [
+                [
+                  "OUTCOME_POLARITY_CONTRADICTION",
+                  "effect",
+                  "E3",
+                  "polarity"
+                ],
+                [
+                  "OUTCOME_POLARITY_CONTRADICTION",
+                  "effect",
+                  "E6",
+                  "polarity"
+                ],
+                [
+                  "UNSUPPORTED_WORLD_DERIVATION",
+                  "effect",
+                  "E3",
+                  "derivation_operation"
+                ],
+                [
+                  "UNSUPPORTED_WORLD_DERIVATION",
+                  "effect",
+                  "E6",
+                  "derivation_operation"
+                ],
+                [
+                  "WORLD_VALIDATION_ERROR",
+                  "effect",
+                  "E2",
+                  ""
+                ],
+                [
+                  "WORLD_VALIDATION_ERROR",
+                  "effect",
+                  "E5",
+                  ""
+                ]
+              ],
+              "introduced_issue_signatures": [
+                [
+                  "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                  "action",
+                  "A0",
+                  "effects"
+                ],
+                [
+                  "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                  "action",
+                  "A1",
+                  "effects"
+                ],
+                [
+                  "LIKELIHOOD_QUALIFIER_MISSING",
+                  "effect",
+                  "E5",
+                  "likelihood_qualifiers"
+                ],
+                [
+                  "MISSING_CAUSAL_PARENT",
+                  "effect",
+                  "E2",
+                  "causal_links"
+                ],
+                [
+                  "MISSING_CAUSAL_PARENT",
+                  "effect",
+                  "E4",
+                  "causal_links"
+                ],
+                [
+                  "MISSING_CAUSAL_PARENT",
+                  "effect",
+                  "E5",
+                  "causal_links"
+                ],
+                [
+                  "MISSING_CAUSAL_PARENT",
+                  "effect",
+                  "E7",
+                  "causal_links"
+                ],
+                [
+                  "MISSING_PROCESS_INTERMEDIATE",
+                  "effect",
+                  "E2",
+                  "causal_links"
+                ],
+                [
+                  "MISSING_PROCESS_INTERMEDIATE",
+                  "effect",
+                  "E4",
+                  "causal_links"
+                ],
+                [
+                  "MISSING_PROCESS_INTERMEDIATE",
+                  "effect",
+                  "E7",
+                  "causal_links"
+                ],
+                [
+                  "STAGE_SKELETON_DRIFT",
+                  "party",
+                  "P2",
+                  "effects"
+                ],
+                [
+                  "STAGE_SKELETON_DRIFT",
+                  "party",
+                  "P3",
+                  "effects"
+                ],
+                [
+                  "STAGE_SKELETON_DRIFT",
+                  "party",
+                  "P4",
+                  "effects"
+                ],
+                [
+                  "STAGE_SKELETON_DRIFT",
+                  "party",
+                  "P5",
+                  "effects"
+                ],
+                [
+                  "WORLD_VALIDATION_ERROR",
+                  "causal_link",
+                  "0",
+                  ""
+                ]
+              ],
+              "introduced_issue_codes": [
+                "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "LIKELIHOOD_QUALIFIER_MISSING",
+                "MISSING_CAUSAL_PARENT",
+                "MISSING_PROCESS_INTERMEDIATE",
+                "STAGE_SKELETON_DRIFT",
+                "WORLD_VALIDATION_ERROR"
+              ],
+              "target_fixed": false,
+              "clean_repair": false,
+              "final_world_committed": false,
+              "repair_yield": false
+            }
+          },
+          {
+            "repair_event_schema_version": 1,
+            "repair_event_id": "R003",
+            "recorded_at": "2026-09-22T03:36:37.098993+00:00",
+            "execution_mode": "DETERMINISTIC_PATCH",
+            "repair_scope": "DETERMINISTIC_LOCAL_PATCH",
+            "context": {
+              "validator_version": "world-validator-2026-09-21-v1",
+              "repair_prompt_version": "world-repair-prompt-v1",
+              "model": "o3",
+              "temperature": 0.0,
+              "max_attempts": 3,
+              "stage_one_guidance_mode": "AUTHORITATIVE",
+              "deterministic_repair_guidance_mode": "OFF",
+              "git_commit": "UNKNOWN",
+              "working_tree_state": "NOT_CAPTURED",
+              "backend": "openai",
+              "scenario_id": "workspace_20260921_233553_163947",
+              "scenario_family": "UNCLASSIFIED",
+              "benchmark_id": "LIVE_INTERACTIVE"
+            },
+            "target_issues": [
+              {
+                "issue_instance_id": "R003:BEFORE:I1:0dd3bb8bb0",
+                "code": "LIKELIHOOD_QUALIFIER_MISSING",
+                "entity_kind": "effect",
+                "entity_id": "E5",
+                "field": "likelihood_qualifiers",
+                "message": "E5 omits source-grounded likelihood qualifiers: ['chance']",
+                "invariant_version": 1,
+                "repair_class": "SOURCE_PATCH",
+                "related_ids": []
+              },
+              {
+                "issue_instance_id": "R003:BEFORE:I2:8917fb4873",
+                "code": "WORLD_VALIDATION_ERROR",
+                "entity_kind": "causal_link",
+                "entity_id": "0",
+                "field": "",
+                "message": "causal_link[0] crosses action boundaries ['A0', 'A1']; use counterfactual_links for alternative-action comparisons",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "A0",
+                  "A1"
+                ]
+              },
+              {
+                "issue_instance_id": "R003:BEFORE:I3:d5a55d9ebf",
+                "code": "UNSUPPORTED_WORLD_DERIVATION",
+                "entity_kind": "effect",
+                "entity_id": "E7",
+                "field": "derivation_operation",
+                "message": "E7 changes source outcome type to HEALTH; quarantine the transformation",
+                "invariant_version": 1,
+                "repair_class": "QUARANTINE",
+                "related_ids": []
+              },
+              {
+                "issue_instance_id": "R003:BEFORE:I4:62d70c074a",
+                "code": "MISSING_CAUSAL_PARENT",
+                "entity_kind": "effect",
+                "entity_id": "E2",
+                "field": "causal_links",
+                "message": "E2 is a downstream human outcome with no causal parent; connect it through the source-named process. Do not drop E2; insert or reuse a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as its parent",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "FACILITY"
+                ]
+              },
+              {
+                "issue_instance_id": "R003:BEFORE:I5:42391e5cd2",
+                "code": "MISSING_CAUSAL_PARENT",
+                "entity_kind": "effect",
+                "entity_id": "E4",
+                "field": "causal_links",
+                "message": "E4 is a downstream human outcome with no causal parent; connect it through the source-named process. Do not drop E4; insert or reuse a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as its parent",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "FACILITY"
+                ]
+              },
+              {
+                "issue_instance_id": "R003:BEFORE:I6:5de11263d2",
+                "code": "MISSING_CAUSAL_PARENT",
+                "entity_kind": "effect",
+                "entity_id": "E5",
+                "field": "causal_links",
+                "message": "E5 is a downstream human outcome with no causal parent; connect it through the source-named process. Do not drop E5; insert or reuse a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as its parent",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "FACILITY"
+                ]
+              },
+              {
+                "issue_instance_id": "R003:BEFORE:I7:b5041e8e4c",
+                "code": "MISSING_PROCESS_INTERMEDIATE",
+                "entity_kind": "effect",
+                "entity_id": "E7",
+                "field": "causal_links",
+                "message": "E7 is caused directly by another party's act or bodily outcome (E4); insert a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as the immediate parent. A person's framing, execution, or death is not that intermediate. Do not delete E7 or drop its causal_link without a replacement parent",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "E4",
+                  "FACILITY"
+                ]
+              },
+              {
+                "issue_instance_id": "R003:BEFORE:I8:24afb4e4c5",
+                "code": "MISSING_CAUSAL_PARENT",
+                "entity_kind": "effect",
+                "entity_id": "E7",
+                "field": "causal_links",
+                "message": "E7 is a downstream human outcome whose causal ancestry never reaches a DIRECT act on the actor or a named recipient; connect this action's intervention to the action-mediated process that produces the outcome. If the source does not attribute a stochastic process to the intervention, do not invent that causal link; generate the missing mediated branch",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": []
+              },
+              {
+                "issue_instance_id": "R003:BEFORE:I9:436ad1dc3d",
+                "code": "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "entity_kind": "action",
+                "entity_id": "A0",
+                "field": "effects",
+                "message": "A0 omits exclusive-allocation branch for nonrecipient P1: missing nonreceipt state; add the action-specific nonreceipt state and preserve every source-stipulated consequence",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "P1"
+                ]
+              },
+              {
+                "issue_instance_id": "R003:BEFORE:I10:26f2247ba4",
+                "code": "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "entity_kind": "action",
+                "entity_id": "A1",
+                "field": "effects",
+                "message": "A1 omits exclusive-allocation branch for nonrecipient P2: missing nonreceipt state; add the action-specific nonreceipt state and preserve every source-stipulated consequence",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "P2"
+                ]
+              },
+              {
+                "issue_instance_id": "R003:BEFORE:I11:3f3d54cde6",
+                "code": "MISSING_PROCESS_INTERMEDIATE",
+                "entity_kind": "effect",
+                "entity_id": "E2",
+                "field": "causal_links",
+                "message": "E2 is harm to unselected party P1 under an exclusive indivisible allocation but lacks an action-specific nonreceipt or untreated state as its immediate parent; keep scarcity/indivisibility global and insert P1 does not receive the allocated resource -> E2",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "P1"
+                ]
+              },
+              {
+                "issue_instance_id": "R003:BEFORE:I12:e2a3639585",
+                "code": "MISSING_PROCESS_INTERMEDIATE",
+                "entity_kind": "effect",
+                "entity_id": "E4",
+                "field": "causal_links",
+                "message": "E4 is harm to unselected party P2 under an exclusive indivisible allocation but lacks an action-specific nonreceipt or untreated state as its immediate parent; keep scarcity/indivisibility global and insert P2 does not receive the allocated resource -> E4",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "P2"
+                ]
+              },
+              {
+                "issue_instance_id": "R003:BEFORE:I13:8d61d8e0c7",
+                "code": "STAGE_SKELETON_DRIFT",
+                "entity_kind": "party",
+                "entity_id": "P2",
+                "field": "effects",
+                "message": "P2 stage-one proposition drift for A1: Stage 2 must restore party 'Maria', source_proposition 'Maria needs the medicine.', polarity ADVERSE, modality CERTAIN, directness DIRECT, and quantities []; add or correct the matching actual effect without changing the admitted Stage 1 factual claim",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "A1",
+                  "Stage"
+                ]
+              },
+              {
+                "issue_instance_id": "R003:BEFORE:I14:177f787539",
+                "code": "STAGE_SKELETON_DRIFT",
+                "entity_kind": "party",
+                "entity_id": "P3",
+                "field": "effects",
+                "message": "P3 stage-one proposition drift for A0: Stage 2 must restore party 'David', source_proposition 'David also needs the medicine.', polarity ADVERSE, modality CERTAIN, directness DIRECT, and quantities []; add or correct the matching actual effect without changing the admitted Stage 1 factual claim",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "A0",
+                  "Stage"
+                ]
+              },
+              {
+                "issue_instance_id": "R003:BEFORE:I15:e2583e3afc",
+                "code": "STAGE_SKELETON_DRIFT",
+                "entity_kind": "party",
+                "entity_id": "P4",
+                "field": "effects",
+                "message": "P4 stage-one proposition drift for A1: Stage 2 must restore party 'Maria', source_proposition 'Maria will die without it.', polarity ADVERSE, modality CERTAIN, directness DOWNSTREAM, and quantities []; add or correct the matching actual effect without changing the admitted Stage 1 factual claim",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "A1",
+                  "Stage"
+                ]
+              },
+              {
+                "issue_instance_id": "R003:BEFORE:I16:27e37bf651",
+                "code": "STAGE_SKELETON_DRIFT",
+                "entity_kind": "party",
+                "entity_id": "P5",
+                "field": "effects",
+                "message": "P5 stage-one proposition drift for A0: Stage 2 must restore party 'David', source_proposition 'David will die without it.', polarity ADVERSE, modality CERTAIN, directness DOWNSTREAM, and quantities []; add or correct the matching actual effect without changing the admitted Stage 1 factual claim",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "A0",
+                  "Stage"
+                ]
+              }
+            ],
+            "after_issues": [
+              {
+                "issue_instance_id": "R003:AFTER:I1:8917fb4873",
+                "code": "WORLD_VALIDATION_ERROR",
+                "entity_kind": "causal_link",
+                "entity_id": "0",
+                "field": "",
+                "message": "causal_link[0] crosses action boundaries ['A0', 'A1']; use counterfactual_links for alternative-action comparisons",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "A0",
+                  "A1"
+                ]
+              },
+              {
+                "issue_instance_id": "R003:AFTER:I2:d5a55d9ebf",
+                "code": "UNSUPPORTED_WORLD_DERIVATION",
+                "entity_kind": "effect",
+                "entity_id": "E7",
+                "field": "derivation_operation",
+                "message": "E7 changes source outcome type to HEALTH; quarantine the transformation",
+                "invariant_version": 1,
+                "repair_class": "QUARANTINE",
+                "related_ids": []
+              },
+              {
+                "issue_instance_id": "R003:AFTER:I3:62d70c074a",
+                "code": "MISSING_CAUSAL_PARENT",
+                "entity_kind": "effect",
+                "entity_id": "E2",
+                "field": "causal_links",
+                "message": "E2 is a downstream human outcome with no causal parent; connect it through the source-named process. Do not drop E2; insert or reuse a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as its parent",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "FACILITY"
+                ]
+              },
+              {
+                "issue_instance_id": "R003:AFTER:I4:42391e5cd2",
+                "code": "MISSING_CAUSAL_PARENT",
+                "entity_kind": "effect",
+                "entity_id": "E4",
+                "field": "causal_links",
+                "message": "E4 is a downstream human outcome with no causal parent; connect it through the source-named process. Do not drop E4; insert or reuse a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as its parent",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "FACILITY"
+                ]
+              },
+              {
+                "issue_instance_id": "R003:AFTER:I5:5de11263d2",
+                "code": "MISSING_CAUSAL_PARENT",
+                "entity_kind": "effect",
+                "entity_id": "E5",
+                "field": "causal_links",
+                "message": "E5 is a downstream human outcome with no causal parent; connect it through the source-named process. Do not drop E5; insert or reuse a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as its parent",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "FACILITY"
+                ]
+              },
+              {
+                "issue_instance_id": "R003:AFTER:I6:b5041e8e4c",
+                "code": "MISSING_PROCESS_INTERMEDIATE",
+                "entity_kind": "effect",
+                "entity_id": "E7",
+                "field": "causal_links",
+                "message": "E7 is caused directly by another party's act or bodily outcome (E4); insert a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as the immediate parent. A person's framing, execution, or death is not that intermediate. Do not delete E7 or drop its causal_link without a replacement parent",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "E4",
+                  "FACILITY"
+                ]
+              },
+              {
+                "issue_instance_id": "R003:AFTER:I7:24afb4e4c5",
+                "code": "MISSING_CAUSAL_PARENT",
+                "entity_kind": "effect",
+                "entity_id": "E7",
+                "field": "causal_links",
+                "message": "E7 is a downstream human outcome whose causal ancestry never reaches a DIRECT act on the actor or a named recipient; connect this action's intervention to the action-mediated process that produces the outcome. If the source does not attribute a stochastic process to the intervention, do not invent that causal link; generate the missing mediated branch",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": []
+              },
+              {
+                "issue_instance_id": "R003:AFTER:I8:436ad1dc3d",
+                "code": "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "entity_kind": "action",
+                "entity_id": "A0",
+                "field": "effects",
+                "message": "A0 omits exclusive-allocation branch for nonrecipient P1: missing nonreceipt state; add the action-specific nonreceipt state and preserve every source-stipulated consequence",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "P1"
+                ]
+              },
+              {
+                "issue_instance_id": "R003:AFTER:I9:26f2247ba4",
+                "code": "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "entity_kind": "action",
+                "entity_id": "A1",
+                "field": "effects",
+                "message": "A1 omits exclusive-allocation branch for nonrecipient P2: missing nonreceipt state; add the action-specific nonreceipt state and preserve every source-stipulated consequence",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "P2"
+                ]
+              },
+              {
+                "issue_instance_id": "R003:AFTER:I10:3f3d54cde6",
+                "code": "MISSING_PROCESS_INTERMEDIATE",
+                "entity_kind": "effect",
+                "entity_id": "E2",
+                "field": "causal_links",
+                "message": "E2 is harm to unselected party P1 under an exclusive indivisible allocation but lacks an action-specific nonreceipt or untreated state as its immediate parent; keep scarcity/indivisibility global and insert P1 does not receive the allocated resource -> E2",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "P1"
+                ]
+              },
+              {
+                "issue_instance_id": "R003:AFTER:I11:e2a3639585",
+                "code": "MISSING_PROCESS_INTERMEDIATE",
+                "entity_kind": "effect",
+                "entity_id": "E4",
+                "field": "causal_links",
+                "message": "E4 is harm to unselected party P2 under an exclusive indivisible allocation but lacks an action-specific nonreceipt or untreated state as its immediate parent; keep scarcity/indivisibility global and insert P2 does not receive the allocated resource -> E4",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "P2"
+                ]
+              }
+            ],
+            "selected_cards": [],
+            "suppressed_cards": [
+              {
+                "card_id": "LIKELIHOOD_QUALIFIER_MISSING_V1",
+                "card_version": 1,
+                "issue_code": "LIKELIHOOD_QUALIFIER_MISSING",
+                "entity_id": "E5",
+                "selected": false
+              },
+              {
+                "card_id": "WORLD_VALIDATION_ERROR_V1",
+                "card_version": 1,
+                "issue_code": "WORLD_VALIDATION_ERROR",
+                "entity_id": "0",
+                "selected": false
+              },
+              {
+                "card_id": "UNSUPPORTED_WORLD_DERIVATION_V1",
+                "card_version": 1,
+                "issue_code": "UNSUPPORTED_WORLD_DERIVATION",
+                "entity_id": "E7",
+                "selected": false
+              },
+              {
+                "card_id": "MISSING_CAUSAL_PARENT_V1",
+                "card_version": 1,
+                "issue_code": "MISSING_CAUSAL_PARENT",
+                "entity_id": "E2",
+                "selected": false
+              },
+              {
+                "card_id": "MISSING_CAUSAL_PARENT_V1",
+                "card_version": 1,
+                "issue_code": "MISSING_CAUSAL_PARENT",
+                "entity_id": "E4",
+                "selected": false
+              },
+              {
+                "card_id": "MISSING_CAUSAL_PARENT_V1",
+                "card_version": 1,
+                "issue_code": "MISSING_CAUSAL_PARENT",
+                "entity_id": "E5",
+                "selected": false
+              },
+              {
+                "card_id": "MISSING_PROCESS_INTERMEDIATE_V1",
+                "card_version": 1,
+                "issue_code": "MISSING_PROCESS_INTERMEDIATE",
+                "entity_id": "E7",
+                "selected": false
+              },
+              {
+                "card_id": "MISSING_CAUSAL_PARENT_V1",
+                "card_version": 1,
+                "issue_code": "MISSING_CAUSAL_PARENT",
+                "entity_id": "E7",
+                "selected": false
+              },
+              {
+                "card_id": "EXCLUSIVE_ALLOCATION_BRANCH_MISSING_V1",
+                "card_version": 1,
+                "issue_code": "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "entity_id": "A0",
+                "selected": false
+              },
+              {
+                "card_id": "EXCLUSIVE_ALLOCATION_BRANCH_MISSING_V1",
+                "card_version": 1,
+                "issue_code": "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "entity_id": "A1",
+                "selected": false
+              },
+              {
+                "card_id": "MISSING_PROCESS_INTERMEDIATE_V1",
+                "card_version": 1,
+                "issue_code": "MISSING_PROCESS_INTERMEDIATE",
+                "entity_id": "E2",
+                "selected": false
+              },
+              {
+                "card_id": "MISSING_PROCESS_INTERMEDIATE_V1",
+                "card_version": 1,
+                "issue_code": "MISSING_PROCESS_INTERMEDIATE",
+                "entity_id": "E4",
+                "selected": false
+              },
+              {
+                "card_id": "STAGE_SKELETON_DRIFT_V1",
+                "card_version": 1,
+                "issue_code": "STAGE_SKELETON_DRIFT",
+                "entity_id": "P2",
+                "selected": false
+              },
+              {
+                "card_id": "STAGE_SKELETON_DRIFT_V1",
+                "card_version": 1,
+                "issue_code": "STAGE_SKELETON_DRIFT",
+                "entity_id": "P3",
+                "selected": false
+              },
+              {
+                "card_id": "STAGE_SKELETON_DRIFT_V1",
+                "card_version": 1,
+                "issue_code": "STAGE_SKELETON_DRIFT",
+                "entity_id": "P4",
+                "selected": false
+              },
+              {
+                "card_id": "STAGE_SKELETON_DRIFT_V1",
+                "card_version": 1,
+                "issue_code": "STAGE_SKELETON_DRIFT",
+                "entity_id": "P5",
+                "selected": false
+              }
+            ],
+            "deterministic_patches": [
+              {
+                "op": "add_likelihood_qualifier",
+                "effect_id": "E5",
+                "field": "likelihood_qualifiers",
+                "value": "chance",
+                "code": "LIKELIHOOD_QUALIFIER_MISSING",
+                "deterministic": true
+              }
+            ],
+            "graph_diff": {
+              "before_fingerprint": "b31a2ae909dc5a8f2647bb86",
+              "after_fingerprint": "1ec1539fb893ceda19b01c86",
+              "collections": {
+                "parties": {
+                  "added": [],
+                  "removed": [],
+                  "changed": []
+                },
+                "actions": {
+                  "added": [],
+                  "removed": [],
+                  "changed": []
+                },
+                "effects": {
+                  "added": [],
+                  "removed": [],
+                  "changed": [
+                    {
+                      "id": "E5",
+                      "fields": [
+                        "likelihood_qualifiers"
+                      ]
+                    }
+                  ]
+                },
+                "conditions": {
+                  "added": [],
+                  "removed": [],
+                  "changed": []
+                },
+                "temporal_relations": {
+                  "added": [],
+                  "removed": [],
+                  "changed": []
+                },
+                "causal_links": {
+                  "added": [],
+                  "removed": []
+                },
+                "counterfactual_links": {
+                  "added": [],
+                  "removed": []
+                }
+              },
+              "nodes_added": [],
+              "nodes_removed": [],
+              "nodes_changed": [
+                {
+                  "node": "effects:E5",
+                  "fields": [
+                    "likelihood_qualifiers"
+                  ]
+                }
+              ],
+              "edges_added": [],
+              "edges_removed": [],
+              "certainty_changes": [
+                "E5"
+              ],
+              "ownership_changes": [],
+              "provenance_changes": []
+            },
+            "outside_target_entity_changes": [],
+            "outcome": {
+              "target_issue_codes": [
+                "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "LIKELIHOOD_QUALIFIER_MISSING",
+                "MISSING_CAUSAL_PARENT",
+                "MISSING_PROCESS_INTERMEDIATE",
+                "STAGE_SKELETON_DRIFT",
+                "UNSUPPORTED_WORLD_DERIVATION",
+                "WORLD_VALIDATION_ERROR"
+              ],
+              "remaining_target_issue_codes": [
+                "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "MISSING_CAUSAL_PARENT",
+                "MISSING_PROCESS_INTERMEDIATE",
+                "UNSUPPORTED_WORLD_DERIVATION",
+                "WORLD_VALIDATION_ERROR"
+              ],
+              "resolved_target_issue_codes": [
+                "LIKELIHOOD_QUALIFIER_MISSING",
+                "STAGE_SKELETON_DRIFT"
+              ],
+              "remaining_target_signatures": [
+                [
+                  "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                  "action",
+                  "A0",
+                  "effects"
+                ],
+                [
+                  "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                  "action",
+                  "A1",
+                  "effects"
+                ],
+                [
+                  "MISSING_CAUSAL_PARENT",
+                  "effect",
+                  "E2",
+                  "causal_links"
+                ],
+                [
+                  "MISSING_CAUSAL_PARENT",
+                  "effect",
+                  "E4",
+                  "causal_links"
+                ],
+                [
+                  "MISSING_CAUSAL_PARENT",
+                  "effect",
+                  "E5",
+                  "causal_links"
+                ],
+                [
+                  "MISSING_CAUSAL_PARENT",
+                  "effect",
+                  "E7",
+                  "causal_links"
+                ],
+                [
+                  "MISSING_PROCESS_INTERMEDIATE",
+                  "effect",
+                  "E2",
+                  "causal_links"
+                ],
+                [
+                  "MISSING_PROCESS_INTERMEDIATE",
+                  "effect",
+                  "E4",
+                  "causal_links"
+                ],
+                [
+                  "MISSING_PROCESS_INTERMEDIATE",
+                  "effect",
+                  "E7",
+                  "causal_links"
+                ],
+                [
+                  "UNSUPPORTED_WORLD_DERIVATION",
+                  "effect",
+                  "E7",
+                  "derivation_operation"
+                ],
+                [
+                  "WORLD_VALIDATION_ERROR",
+                  "causal_link",
+                  "0",
+                  ""
+                ]
+              ],
+              "resolved_target_signatures": [
+                [
+                  "LIKELIHOOD_QUALIFIER_MISSING",
+                  "effect",
+                  "E5",
+                  "likelihood_qualifiers"
+                ],
+                [
+                  "STAGE_SKELETON_DRIFT",
+                  "party",
+                  "P2",
+                  "effects"
+                ],
+                [
+                  "STAGE_SKELETON_DRIFT",
+                  "party",
+                  "P3",
+                  "effects"
+                ],
+                [
+                  "STAGE_SKELETON_DRIFT",
+                  "party",
+                  "P4",
+                  "effects"
+                ],
+                [
+                  "STAGE_SKELETON_DRIFT",
+                  "party",
+                  "P5",
+                  "effects"
+                ]
+              ],
+              "introduced_issue_signatures": [],
+              "introduced_issue_codes": [],
+              "target_fixed": false,
+              "clean_repair": false,
+              "final_world_committed": false,
+              "repair_yield": false
+            }
+          },
+          {
+            "repair_event_schema_version": 1,
+            "repair_event_id": "R004",
+            "recorded_at": "2026-09-22T03:36:56.596015+00:00",
+            "execution_mode": "LLM_REPAIR",
+            "repair_scope": "SUBGRAPH_REBUILD",
+            "context": {
+              "validator_version": "world-validator-2026-09-21-v1",
+              "repair_prompt_version": "world-repair-prompt-v1",
+              "model": "o3",
+              "temperature": 0.0,
+              "max_attempts": 3,
+              "stage_one_guidance_mode": "AUTHORITATIVE",
+              "deterministic_repair_guidance_mode": "OFF",
+              "git_commit": "UNKNOWN",
+              "working_tree_state": "NOT_CAPTURED",
+              "backend": "openai",
+              "scenario_id": "workspace_20260921_233553_163947",
+              "scenario_family": "UNCLASSIFIED",
+              "benchmark_id": "LIVE_INTERACTIVE"
+            },
+            "target_issues": [
+              {
+                "issue_instance_id": "R004:BEFORE:I1:8917fb4873",
+                "code": "WORLD_VALIDATION_ERROR",
+                "entity_kind": "causal_link",
+                "entity_id": "0",
+                "field": "",
+                "message": "causal_link[0] crosses action boundaries ['A0', 'A1']; use counterfactual_links for alternative-action comparisons",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "A0",
+                  "A1"
+                ]
+              },
+              {
+                "issue_instance_id": "R004:BEFORE:I2:d5a55d9ebf",
+                "code": "UNSUPPORTED_WORLD_DERIVATION",
+                "entity_kind": "effect",
+                "entity_id": "E7",
+                "field": "derivation_operation",
+                "message": "E7 changes source outcome type to HEALTH; quarantine the transformation",
+                "invariant_version": 1,
+                "repair_class": "QUARANTINE",
+                "related_ids": []
+              },
+              {
+                "issue_instance_id": "R004:BEFORE:I3:62d70c074a",
+                "code": "MISSING_CAUSAL_PARENT",
+                "entity_kind": "effect",
+                "entity_id": "E2",
+                "field": "causal_links",
+                "message": "E2 is a downstream human outcome with no causal parent; connect it through the source-named process. Do not drop E2; insert or reuse a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as its parent",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "FACILITY"
+                ]
+              },
+              {
+                "issue_instance_id": "R004:BEFORE:I4:42391e5cd2",
+                "code": "MISSING_CAUSAL_PARENT",
+                "entity_kind": "effect",
+                "entity_id": "E4",
+                "field": "causal_links",
+                "message": "E4 is a downstream human outcome with no causal parent; connect it through the source-named process. Do not drop E4; insert or reuse a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as its parent",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "FACILITY"
+                ]
+              },
+              {
+                "issue_instance_id": "R004:BEFORE:I5:5de11263d2",
+                "code": "MISSING_CAUSAL_PARENT",
+                "entity_kind": "effect",
+                "entity_id": "E5",
+                "field": "causal_links",
+                "message": "E5 is a downstream human outcome with no causal parent; connect it through the source-named process. Do not drop E5; insert or reuse a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as its parent",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "FACILITY"
+                ]
+              },
+              {
+                "issue_instance_id": "R004:BEFORE:I6:b5041e8e4c",
+                "code": "MISSING_PROCESS_INTERMEDIATE",
+                "entity_kind": "effect",
+                "entity_id": "E7",
+                "field": "causal_links",
+                "message": "E7 is caused directly by another party's act or bodily outcome (E4); insert a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as the immediate parent. A person's framing, execution, or death is not that intermediate. Do not delete E7 or drop its causal_link without a replacement parent",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "E4",
+                  "FACILITY"
+                ]
+              },
+              {
+                "issue_instance_id": "R004:BEFORE:I7:24afb4e4c5",
+                "code": "MISSING_CAUSAL_PARENT",
+                "entity_kind": "effect",
+                "entity_id": "E7",
+                "field": "causal_links",
+                "message": "E7 is a downstream human outcome whose causal ancestry never reaches a DIRECT act on the actor or a named recipient; connect this action's intervention to the action-mediated process that produces the outcome. If the source does not attribute a stochastic process to the intervention, do not invent that causal link; generate the missing mediated branch",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": []
+              },
+              {
+                "issue_instance_id": "R004:BEFORE:I8:436ad1dc3d",
+                "code": "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "entity_kind": "action",
+                "entity_id": "A0",
+                "field": "effects",
+                "message": "A0 omits exclusive-allocation branch for nonrecipient P1: missing nonreceipt state; add the action-specific nonreceipt state and preserve every source-stipulated consequence",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "P1"
+                ]
+              },
+              {
+                "issue_instance_id": "R004:BEFORE:I9:26f2247ba4",
+                "code": "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "entity_kind": "action",
+                "entity_id": "A1",
+                "field": "effects",
+                "message": "A1 omits exclusive-allocation branch for nonrecipient P2: missing nonreceipt state; add the action-specific nonreceipt state and preserve every source-stipulated consequence",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "P2"
+                ]
+              },
+              {
+                "issue_instance_id": "R004:BEFORE:I10:3f3d54cde6",
+                "code": "MISSING_PROCESS_INTERMEDIATE",
+                "entity_kind": "effect",
+                "entity_id": "E2",
+                "field": "causal_links",
+                "message": "E2 is harm to unselected party P1 under an exclusive indivisible allocation but lacks an action-specific nonreceipt or untreated state as its immediate parent; keep scarcity/indivisibility global and insert P1 does not receive the allocated resource -> E2",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "P1"
+                ]
+              },
+              {
+                "issue_instance_id": "R004:BEFORE:I11:e2a3639585",
+                "code": "MISSING_PROCESS_INTERMEDIATE",
+                "entity_kind": "effect",
+                "entity_id": "E4",
+                "field": "causal_links",
+                "message": "E4 is harm to unselected party P2 under an exclusive indivisible allocation but lacks an action-specific nonreceipt or untreated state as its immediate parent; keep scarcity/indivisibility global and insert P2 does not receive the allocated resource -> E4",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "P2"
+                ]
+              }
+            ],
+            "after_issues": [
+              {
+                "issue_instance_id": "R004:AFTER:I1:c809a8364e",
+                "code": "WORLD_VALIDATION_ERROR",
+                "entity_kind": "effect",
+                "entity_id": "E2",
+                "field": "",
+                "message": "E2 STRUCTURAL_ABSTRACTION has no lexical anchor in its source proposition",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "STRUCTURAL_ABSTRACTION"
+                ]
+              },
+              {
+                "issue_instance_id": "R004:AFTER:I2:81324a78f4",
+                "code": "WORLD_VALIDATION_ERROR",
+                "entity_kind": "effect",
+                "entity_id": "E5",
+                "field": "",
+                "message": "E5 STRUCTURAL_ABSTRACTION has no lexical anchor in its source proposition",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "STRUCTURAL_ABSTRACTION"
+                ]
+              },
+              {
+                "issue_instance_id": "R004:AFTER:I3:8d61d8e0c7",
+                "code": "STAGE_SKELETON_DRIFT",
+                "entity_kind": "party",
+                "entity_id": "P2",
+                "field": "effects",
+                "message": "P2 stage-one proposition drift for A1: Stage 2 must restore party 'Maria', source_proposition 'Maria needs the medicine.', polarity ADVERSE, modality CERTAIN, directness DIRECT, and quantities []; add or correct the matching actual effect without changing the admitted Stage 1 factual claim",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "A1",
+                  "Stage"
+                ]
+              },
+              {
+                "issue_instance_id": "R004:AFTER:I4:177f787539",
+                "code": "STAGE_SKELETON_DRIFT",
+                "entity_kind": "party",
+                "entity_id": "P3",
+                "field": "effects",
+                "message": "P3 stage-one proposition drift for A0: Stage 2 must restore party 'David', source_proposition 'David also needs the medicine.', polarity ADVERSE, modality CERTAIN, directness DIRECT, and quantities []; add or correct the matching actual effect without changing the admitted Stage 1 factual claim",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "A0",
+                  "Stage"
+                ]
+              },
+              {
+                "issue_instance_id": "R004:AFTER:I5:e2583e3afc",
+                "code": "STAGE_SKELETON_DRIFT",
+                "entity_kind": "party",
+                "entity_id": "P4",
+                "field": "effects",
+                "message": "P4 stage-one proposition drift for A1: Stage 2 must restore party 'Maria', source_proposition 'Maria will die without it.', polarity ADVERSE, modality CERTAIN, directness DOWNSTREAM, and quantities []; add or correct the matching actual effect without changing the admitted Stage 1 factual claim",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "A1",
+                  "Stage"
+                ]
+              },
+              {
+                "issue_instance_id": "R004:AFTER:I6:27e37bf651",
+                "code": "STAGE_SKELETON_DRIFT",
+                "entity_kind": "party",
+                "entity_id": "P5",
+                "field": "effects",
+                "message": "P5 stage-one proposition drift for A0: Stage 2 must restore party 'David', source_proposition 'David will die without it.', polarity ADVERSE, modality CERTAIN, directness DOWNSTREAM, and quantities []; add or correct the matching actual effect without changing the admitted Stage 1 factual claim",
+                "invariant_version": 1,
+                "repair_class": "SEMANTIC_PATCH",
+                "related_ids": [
+                  "A0",
+                  "Stage"
+                ]
+              }
+            ],
+            "selected_cards": [
+              {
+                "card_id": "WORLD_VALIDATION_ERROR_V1",
+                "card_version": 1,
+                "issue_code": "WORLD_VALIDATION_ERROR",
+                "entity_id": "0",
+                "selected": true
+              },
+              {
+                "card_id": "UNSUPPORTED_WORLD_DERIVATION_V1",
+                "card_version": 1,
+                "issue_code": "UNSUPPORTED_WORLD_DERIVATION",
+                "entity_id": "E7",
+                "selected": true
+              },
+              {
+                "card_id": "MISSING_CAUSAL_PARENT_V1",
+                "card_version": 1,
+                "issue_code": "MISSING_CAUSAL_PARENT",
+                "entity_id": "E2",
+                "selected": true
+              },
+              {
+                "card_id": "MISSING_CAUSAL_PARENT_V1",
+                "card_version": 1,
+                "issue_code": "MISSING_CAUSAL_PARENT",
+                "entity_id": "E4",
+                "selected": true
+              },
+              {
+                "card_id": "MISSING_CAUSAL_PARENT_V1",
+                "card_version": 1,
+                "issue_code": "MISSING_CAUSAL_PARENT",
+                "entity_id": "E5",
+                "selected": true
+              },
+              {
+                "card_id": "MISSING_PROCESS_INTERMEDIATE_V1",
+                "card_version": 1,
+                "issue_code": "MISSING_PROCESS_INTERMEDIATE",
+                "entity_id": "E7",
+                "selected": true
+              },
+              {
+                "card_id": "MISSING_CAUSAL_PARENT_V1",
+                "card_version": 1,
+                "issue_code": "MISSING_CAUSAL_PARENT",
+                "entity_id": "E7",
+                "selected": true
+              },
+              {
+                "card_id": "EXCLUSIVE_ALLOCATION_BRANCH_MISSING_V1",
+                "card_version": 1,
+                "issue_code": "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "entity_id": "A0",
+                "selected": true
+              },
+              {
+                "card_id": "EXCLUSIVE_ALLOCATION_BRANCH_MISSING_V1",
+                "card_version": 1,
+                "issue_code": "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "entity_id": "A1",
+                "selected": true
+              },
+              {
+                "card_id": "MISSING_PROCESS_INTERMEDIATE_V1",
+                "card_version": 1,
+                "issue_code": "MISSING_PROCESS_INTERMEDIATE",
+                "entity_id": "E2",
+                "selected": true
+              },
+              {
+                "card_id": "MISSING_PROCESS_INTERMEDIATE_V1",
+                "card_version": 1,
+                "issue_code": "MISSING_PROCESS_INTERMEDIATE",
+                "entity_id": "E4",
+                "selected": true
+              }
+            ],
+            "suppressed_cards": [],
+            "deterministic_patches": [],
+            "graph_diff": {
+              "before_fingerprint": "1ec1539fb893ceda19b01c86",
+              "after_fingerprint": "a8a1afc3626088636422e292",
+              "collections": {
+                "parties": {
+                  "added": [],
+                  "removed": [],
+                  "changed": []
+                },
+                "actions": {
+                  "added": [],
+                  "removed": [],
+                  "changed": [
+                    {
+                      "id": "A0",
+                      "fields": [
+                        "effect_ids"
+                      ]
+                    },
+                    {
+                      "id": "A1",
+                      "fields": [
+                        "effect_ids"
+                      ]
+                    }
+                  ]
+                },
+                "effects": {
+                  "added": [
+                    "E6"
+                  ],
+                  "removed": [],
+                  "changed": [
+                    {
+                      "id": "E2",
+                      "fields": [
+                        "clause_ids",
+                        "derivation_explanation",
+                        "derivation_operation",
+                        "effect_kind",
+                        "outcome",
+                        "polarity",
+                        "predicate",
+                        "source_effect_ids",
+                        "source_proposition"
+                      ]
+                    },
+                    {
+                      "id": "E3",
+                      "fields": [
+                        "action_id",
+                        "clause_ids",
+                        "derivation_explanation",
+                        "derivation_operation",
+                        "directness",
+                        "effect_kind",
+                        "outcome",
+                        "polarity",
+                        "predicate",
+                        "source_effect_ids",
+                        "source_proposition"
+                      ]
+                    },
+                    {
+                      "id": "E4",
+                      "fields": [
+                        "clause_ids",
+                        "directness",
+                        "effect_kind",
+                        "outcome",
+                        "party_id",
+                        "polarity",
+                        "predicate",
+                        "source_proposition"
+                      ]
+                    },
+                    {
+                      "id": "E5",
+                      "fields": [
+                        "clause_ids",
+                        "derivation_explanation",
+                        "derivation_operation",
+                        "effect_kind",
+                        "likelihood_qualifiers",
+                        "modality",
+                        "outcome",
+                        "party_id",
+                        "polarity",
+                        "predicate",
+                        "source_effect_ids",
+                        "source_proposition"
+                      ]
+                    },
+                    {
+                      "id": "E7",
+                      "fields": [
+                        "derivation_explanation",
+                        "outcome_type_transformation",
+                        "predicate"
+                      ]
+                    }
+                  ]
+                },
+                "conditions": {
+                  "added": [],
+                  "removed": [],
+                  "changed": []
+                },
+                "temporal_relations": {
+                  "added": [],
+                  "removed": [],
+                  "changed": []
+                },
+                "causal_links": {
+                  "added": [
+                    "A0|E1|CAUSES|E2",
+                    "A1|E4|CAUSES|E5",
+                    "A1|E4|CAUSES|E7",
+                    "A1|E5|CAUSES|E6"
+                  ],
+                  "removed": [
+                    "A1|E4|ENABLES|E7"
+                  ]
+                },
+                "counterfactual_links": {
+                  "added": [],
+                  "removed": []
+                }
+              },
+              "nodes_added": [
+                "effects:E6"
+              ],
+              "nodes_removed": [],
+              "nodes_changed": [
+                {
+                  "node": "actions:A0",
+                  "fields": [
+                    "effect_ids"
+                  ]
+                },
+                {
+                  "node": "actions:A1",
+                  "fields": [
+                    "effect_ids"
+                  ]
+                },
+                {
+                  "node": "effects:E2",
+                  "fields": [
+                    "clause_ids",
+                    "derivation_explanation",
+                    "derivation_operation",
+                    "effect_kind",
+                    "outcome",
+                    "polarity",
+                    "predicate",
+                    "source_effect_ids",
+                    "source_proposition"
+                  ]
+                },
+                {
+                  "node": "effects:E3",
+                  "fields": [
+                    "action_id",
+                    "clause_ids",
+                    "derivation_explanation",
+                    "derivation_operation",
+                    "directness",
+                    "effect_kind",
+                    "outcome",
+                    "polarity",
+                    "predicate",
+                    "source_effect_ids",
+                    "source_proposition"
+                  ]
+                },
+                {
+                  "node": "effects:E4",
+                  "fields": [
+                    "clause_ids",
+                    "directness",
+                    "effect_kind",
+                    "outcome",
+                    "party_id",
+                    "polarity",
+                    "predicate",
+                    "source_proposition"
+                  ]
+                },
+                {
+                  "node": "effects:E5",
+                  "fields": [
+                    "clause_ids",
+                    "derivation_explanation",
+                    "derivation_operation",
+                    "effect_kind",
+                    "likelihood_qualifiers",
+                    "modality",
+                    "outcome",
+                    "party_id",
+                    "polarity",
+                    "predicate",
+                    "source_effect_ids",
+                    "source_proposition"
+                  ]
+                },
+                {
+                  "node": "effects:E7",
+                  "fields": [
+                    "derivation_explanation",
+                    "outcome_type_transformation",
+                    "predicate"
+                  ]
+                }
+              ],
+              "edges_added": [
+                "causal_links:A0|E1|CAUSES|E2",
+                "causal_links:A1|E4|CAUSES|E5",
+                "causal_links:A1|E4|CAUSES|E7",
+                "causal_links:A1|E5|CAUSES|E6"
+              ],
+              "edges_removed": [
+                "causal_links:A1|E4|ENABLES|E7"
+              ],
+              "certainty_changes": [
+                "E5"
+              ],
+              "ownership_changes": [
+                "E3",
+                "E4",
+                "E5"
+              ],
+              "provenance_changes": [
+                "E2",
+                "E3",
+                "E4",
+                "E5"
+              ]
+            },
+            "outside_target_entity_changes": [
+              "E3"
+            ],
+            "outcome": {
+              "target_issue_codes": [
+                "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "MISSING_CAUSAL_PARENT",
+                "MISSING_PROCESS_INTERMEDIATE",
+                "UNSUPPORTED_WORLD_DERIVATION",
+                "WORLD_VALIDATION_ERROR"
+              ],
+              "remaining_target_issue_codes": [],
+              "resolved_target_issue_codes": [
+                "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                "MISSING_CAUSAL_PARENT",
+                "MISSING_PROCESS_INTERMEDIATE",
+                "UNSUPPORTED_WORLD_DERIVATION",
+                "WORLD_VALIDATION_ERROR"
+              ],
+              "remaining_target_signatures": [],
+              "resolved_target_signatures": [
+                [
+                  "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                  "action",
+                  "A0",
+                  "effects"
+                ],
+                [
+                  "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+                  "action",
+                  "A1",
+                  "effects"
+                ],
+                [
+                  "MISSING_CAUSAL_PARENT",
+                  "effect",
+                  "E2",
+                  "causal_links"
+                ],
+                [
+                  "MISSING_CAUSAL_PARENT",
+                  "effect",
+                  "E4",
+                  "causal_links"
+                ],
+                [
+                  "MISSING_CAUSAL_PARENT",
+                  "effect",
+                  "E5",
+                  "causal_links"
+                ],
+                [
+                  "MISSING_CAUSAL_PARENT",
+                  "effect",
+                  "E7",
+                  "causal_links"
+                ],
+                [
+                  "MISSING_PROCESS_INTERMEDIATE",
+                  "effect",
+                  "E2",
+                  "causal_links"
+                ],
+                [
+                  "MISSING_PROCESS_INTERMEDIATE",
+                  "effect",
+                  "E4",
+                  "causal_links"
+                ],
+                [
+                  "MISSING_PROCESS_INTERMEDIATE",
+                  "effect",
+                  "E7",
+                  "causal_links"
+                ],
+                [
+                  "UNSUPPORTED_WORLD_DERIVATION",
+                  "effect",
+                  "E7",
+                  "derivation_operation"
+                ],
+                [
+                  "WORLD_VALIDATION_ERROR",
+                  "causal_link",
+                  "0",
+                  ""
+                ]
+              ],
+              "introduced_issue_signatures": [
+                [
+                  "STAGE_SKELETON_DRIFT",
+                  "party",
+                  "P2",
+                  "effects"
+                ],
+                [
+                  "STAGE_SKELETON_DRIFT",
+                  "party",
+                  "P3",
+                  "effects"
+                ],
+                [
+                  "STAGE_SKELETON_DRIFT",
+                  "party",
+                  "P4",
+                  "effects"
+                ],
+                [
+                  "STAGE_SKELETON_DRIFT",
+                  "party",
+                  "P5",
+                  "effects"
+                ],
+                [
+                  "WORLD_VALIDATION_ERROR",
+                  "effect",
+                  "E2",
+                  ""
+                ],
+                [
+                  "WORLD_VALIDATION_ERROR",
+                  "effect",
+                  "E5",
+                  ""
+                ]
+              ],
+              "introduced_issue_codes": [
+                "STAGE_SKELETON_DRIFT",
+                "WORLD_VALIDATION_ERROR"
+              ],
+              "target_fixed": true,
+              "clean_repair": false,
+              "final_world_committed": false,
+              "repair_yield": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "category": "stage",
+      "name": "world_grounding_failure_serialization",
+      "status": "OK",
+      "duration_seconds": 0.013919,
+      "finished_at": "2026-09-22T03:36:56.615140+00:00",
+      "metadata": {}
+    },
+    {
+      "category": "stage",
+      "name": "pipeline_total",
+      "status": "NONZERO_EXIT",
+      "duration_seconds": 62.990062,
+      "finished_at": "2026-09-22T03:36:56.620151+00:00",
+      "metadata": {}
+    }
+  ],
+  "content_recording": "DISABLED"
+}

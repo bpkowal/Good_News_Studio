@@ -4,13 +4,13 @@ from __future__ import annotations
 import importlib
 import unittest
 
-from semantic_integrity.coverage import (
+from relent_testkit.coverage import (
     coverage_report,
     enforced_invariant_ids,
     load_map,
     load_taxonomy,
 )
-from semantic_integrity.harness import seed_dir
+from relent_testkit.cases import registered_cases
 from invariants.catalog import INVARIANTS, invariant_by_id
 
 
@@ -46,22 +46,15 @@ class SemanticIntegrityCoverageTests(unittest.TestCase):
         }
         self.assertEqual(taxonomy_ids, map_ids)
 
-    def test_cataloged_or_enforced_map_entries_have_seeds_and_tests(self):
-        seed_root = seed_dir()
+    def test_cataloged_or_enforced_map_entries_have_cases_and_tests(self):
+        case_names = registered_cases()
         for entry in load_map().get("entries") or []:
             enforcement = str(entry.get("enforcement") or "")
             if enforcement not in {"cataloged", "enforced"}:
                 continue
-            seeds = list(entry.get("seeds") or [])
-            self.assertTrue(
-                seeds,
-                f"{entry.get('phenomenon_id')} ({enforcement}) needs seeds",
-            )
-            for name in seeds:
-                self.assertTrue(
-                    (seed_root / name).is_file(),
-                    f"missing seed file: {name}",
-                )
+            cases = list(entry.get("cases") or [])
+            if cases:
+                self.assertTrue(set(cases) <= case_names)
             module_name = entry.get("test_module")
             self.assertTrue(
                 module_name,

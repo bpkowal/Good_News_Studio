@@ -13,6 +13,24 @@ from strategies.quantity_precision import (
 
 
 class QuantityPrecisionNonEscalationTests(unittest.TestCase):
+    def test_digit_suffix_and_word_collectives_are_equivalent_classes(self):
+        self.assertEqual(quantity_precision_escalation_errors(
+            source_texts=("The failure threatens 1000s of residents.",),
+            claim_text="Thousands of residents remain threatened.",
+        ), [])
+        self.assertEqual(quantity_precision_escalation_errors(
+            source_texts=("Hundreds of residents are affected.",),
+            claim_text="The affected population remains in the 100s.",
+        ), [])
+
+    def test_compositional_tens_are_not_silently_collapsed_to_hundreds(self):
+        errors = quantity_precision_escalation_errors(
+            source_texts=("10s of tens of records require review.",),
+            claim_text="Hundreds of records require review.",
+        )
+        self.assertTrue(errors)
+        self.assertIn("not normalization", errors[0])
+
     def test_thousands_may_not_become_10000(self):
         errors = quantity_precision_escalation_errors(
             source_texts=(

@@ -20,6 +20,7 @@ from dotenv import load_dotenv
 
 from global_workspace.openai_backend import OpenAIWorkspaceLLM
 from global_workspace.presentation import render_public_judgment
+from study1_adapter import SOLO_RESPONSE_SCHEMA, build_structured_solo_prompt
 from solo_ethics import build_prompt as build_plain_solo_prompt
 
 
@@ -153,6 +154,8 @@ def run_parliament(case: dict[str, Any], case_dir: Path, args: argparse.Namespac
         "--delegate-tokens", str(args.delegate_tokens),
         "--output-dir", str(output_dir), "--no-cycle-extension",
     ]
+    if getattr(args, "escalate_world_model", False):
+        command.append("--escalate-world-model")
     env = os.environ.copy()
     env["ETHICS_USAGE_LOG"] = str(usage_path)
     stdout_path = case_dir / "parliament_stdout.txt"
@@ -196,12 +199,17 @@ def run_solo(case: dict[str, Any], case_dir: Path, args: argparse.Namespace, par
     measured = parliament_usage["completion_tokens"]
     if measured <= 0:
         raise RuntimeError(f"No Parliament completion-token usage was measured for {case['id']}")
-    budget = min(measured, args.max_solo_completion_tokens, O3_MAX_COMPLETION_TOKENS)
+    # Structured solo responses are short; keep a conservative API ceiling so
+    # hidden reasoning overhead cannot push the request above model limits.
+    budget = min(measured, args.max_solo_completion_tokens, O3_MAX_COMPLETION_TOKENS, 50_000)
     if result_path.exists() and budget_path.exists() and not args.force:
         old = read_json(budget_path)
         if (
             old.get("max_completion_tokens") == budget
-            and old.get("response_protocol") == "plain_text_single_call_v1"
+            and old.get("response_protocol") == (
+                "structured_state_single_call_v1"
+                if args.structured_solo else "plain_text_single_call_v1"
+            )
             and old.get("reasoning_effort") == args.solo_reasoning_effort
         ):
             return read_json(result_path), usage_totals(usage_path), budget
@@ -209,21 +217,38 @@ def run_solo(case: dict[str, Any], case_dir: Path, args: argparse.Namespace, par
         usage_path.unlink()
     llm = OpenAIWorkspaceLLM(args.model, timeout=args.agent_timeout)
     with usage_log(usage_path):
-        raw = llm(
-            solo_prompt(case),
-            max_tokens=budget,
-            temperature=0.0,
-            reasoning_effort=args.solo_reasoning_effort,
-            retry_on_empty=False,
-        )
-    result = {
-        "ethical_question": case["question"],
-        "model": args.model,
-        "answer": str(raw["choices"][0]["text"]).strip(),
-        "max_completion_tokens": budget,
-        "reasoning_effort": args.solo_reasoning_effort,
-        "response_protocol": "plain_text_single_call_v1",
-    }
+        if args.structured_solo:
+            raw = llm.complete_json(
+                build_structured_solo_prompt(case["question"], case["actions"]),
+                schema=SOLO_RESPONSE_SCHEMA,
+                max_tokens=budget,
+                temperature=0.0,
+            )
+            result = {
+                "ethical_question": case["question"],
+                "actions": list(case["actions"]),
+                "model": args.model,
+                "state": json.loads(str(raw["choices"][0]["text"])),
+                "max_completion_tokens": budget,
+                "reasoning_effort": args.solo_reasoning_effort,
+                "response_protocol": "structured_state_single_call_v1",
+            }
+        else:
+            raw = llm(
+                solo_prompt(case),
+                max_tokens=budget,
+                temperature=0.0,
+                reasoning_effort=args.solo_reasoning_effort,
+                retry_on_empty=False,
+            )
+            result = {
+                "ethical_question": case["question"],
+                "model": args.model,
+                "answer": str(raw["choices"][0]["text"]).strip(),
+                "max_completion_tokens": budget,
+                "reasoning_effort": args.solo_reasoning_effort,
+                "response_protocol": "plain_text_single_call_v1",
+            }
     write_json(result_path, result)
     write_json(budget_path, {
         "matching_basis": "Parliament actual completion tokens, including reasoning tokens",
@@ -231,7 +256,11 @@ def run_solo(case: dict[str, Any], case_dir: Path, args: argparse.Namespace, par
         "max_completion_tokens": budget,
         "capped": budget < measured,
         "reasoning_effort": args.solo_reasoning_effort,
-        "response_protocol": "plain_text_single_call_v1",
+        "response_protocol": (
+            "structured_state_single_call_v1"
+            if args.structured_solo else "plain_text_single_call_v1"
+        ),
+        "structured_solo": bool(args.structured_solo),
     })
     return result, usage_totals(usage_path), budget
 
@@ -499,6 +528,14 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--judge-tokens", type=int, default=4096)
     parser.add_argument("--seed", type=int, default=7319)
     parser.add_argument("--force", action="store_true", help="Overwrite completed stages")
+    parser.add_argument(
+        "--structured-solo", action="store_true",
+        help="Use the Study 1 structured response-state adapter for solo calls",
+    )
+    parser.add_argument(
+        "--escalate-world-model", action="store_true",
+        help="Allow the configured stronger grounding retry after validation failure",
+    )
     parser.add_argument(
         "--rejudge", action="store_true",
         help="Regenerate final-answer artifacts and judge them without rerunning completed contestants",

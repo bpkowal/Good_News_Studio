@@ -1,0 +1,216 @@
+{
+  "schema_version": 2,
+  "run_id": "workspace_20260921_092927_651109_20260921_092928_091325",
+  "started_at": "2026-09-21T13:29:28.091347+00:00",
+  "elapsed_seconds": 138.106566,
+  "counts": {
+    "events": 14,
+    "by_category": {
+      "model_call": 5,
+      "provider_attempt": 5,
+      "stage": 4
+    },
+    "by_status": {
+      "NONZERO_EXIT": 1,
+      "OK": 13
+    },
+    "logical_model_calls": 5,
+    "model_call_count": 5,
+    "original_agent_model_calls": 0,
+    "compact_primary_calls": 0,
+    "compact_repair_calls": 0,
+    "repair_count": 2,
+    "timeout_count": 0,
+    "abstention_count": 0,
+    "budget_blocked_calls": 0,
+    "model_cache_hits": 0,
+    "grounded_projection_materializations": 0,
+    "grounded_projection_cache_hits": 0,
+    "provider_attempts": 5,
+    "provider_failures": 0
+  },
+  "timings_by_name_seconds": {
+    "action_planning": 3e-06,
+    "openai.chat.completions": 137.533503,
+    "pipeline_total": 138.106283,
+    "world_grounding": 137.614614,
+    "world_grounding_failure_serialization": 0.007326,
+    "world_grounding_neutral_nodes": 15.013458,
+    "world_grounding_node_ownership": 17.882934,
+    "world_grounding_primary": 33.192453,
+    "world_grounding_repair": 71.448755
+  },
+  "original_agents": {},
+  "compact_specialists": {},
+  "ledger_commits": {},
+  "events": [
+    {
+      "category": "stage",
+      "name": "action_planning",
+      "status": "OK",
+      "duration_seconds": 3e-06,
+      "finished_at": "2026-09-21T13:29:28.561830+00:00",
+      "metadata": {}
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 15.01307,
+      "finished_at": "2026-09-21T13:29:43.578797+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_neutral_nodes",
+      "status": "OK",
+      "duration_seconds": 15.013458,
+      "finished_at": "2026-09-21T13:29:43.579045+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_neutral_nodes",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 3072,
+        "structured": true,
+        "cycle": 0,
+        "stage": "1A",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 17.882319,
+      "finished_at": "2026-09-21T13:30:01.461738+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_node_ownership",
+      "status": "OK",
+      "duration_seconds": 17.882934,
+      "finished_at": "2026-09-21T13:30:01.462107+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_node_ownership",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 1536,
+        "structured": true,
+        "cycle": 0,
+        "stage": "1B",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 33.191353,
+      "finished_at": "2026-09-21T13:30:34.662340+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_primary",
+      "status": "OK",
+      "duration_seconds": 33.192453,
+      "finished_at": "2026-09-21T13:30:34.662635+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 6144,
+        "structured": true,
+        "cycle": 0,
+        "attempt": 1,
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 39.325597,
+      "finished_at": "2026-09-21T13:31:14.005509+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_repair",
+      "status": "OK",
+      "duration_seconds": 39.326699,
+      "finished_at": "2026-09-21T13:31:14.005868+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_repair",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 6144,
+        "structured": true,
+        "cycle": 0,
+        "attempt": 2,
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 32.121164,
+      "finished_at": "2026-09-21T13:31:46.154138+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_repair",
+      "status": "OK",
+      "duration_seconds": 32.122056,
+      "finished_at": "2026-09-21T13:31:46.154326+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_repair",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 6144,
+        "structured": true,
+        "cycle": 0,
+        "attempt": 3,
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "world_grounding",
+      "status": "OK",
+      "duration_seconds": 137.614614,
+      "finished_at": "2026-09-21T13:31:46.174178+00:00",
+      "metadata": {}
+    },
+    {
+      "category": "stage",
+      "name": "world_grounding_failure_serialization",
+      "status": "OK",
+      "duration_seconds": 0.007326,
+      "finished_at": "2026-09-21T13:31:46.189197+00:00",
+      "metadata": {}
+    },
+    {
+      "category": "stage",
+      "name": "pipeline_total",
+      "status": "NONZERO_EXIT",
+      "duration_seconds": 138.106283,
+      "finished_at": "2026-09-21T13:31:46.192079+00:00",
+      "metadata": {}
+    }
+  ],
+  "content_recording": "DISABLED"
+}

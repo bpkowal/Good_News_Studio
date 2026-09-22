@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import unittest
 
-from semantic_integrity.coverage import load_map, load_taxonomy
-from semantic_integrity.harness import (
+from relent_testkit.coverage import load_map, load_taxonomy
+from relent_testkit.harness import (
     admit_world_from_discourse,
     load_seed,
     structured_world_from_seed,
@@ -109,6 +109,99 @@ class VerbLemmaOutcomeBindingTests(unittest.TestCase):
             effects=(effect,),
         )
         self.assertEqual(_verb_lemma_binding_errors(world), [])
+
+    def test_typed_allocation_predicate_does_not_break_active_passive_binding(self):
+        """Ontology predicates must not dilute given/give event identity."""
+        from global_workspace.world_state import (
+            ScenarioWorldModel,
+            SourceRef,
+            WorldAction,
+            WorldEffect,
+            WorldParty,
+            _source_proposition_supports_outcome,
+            _verb_lemma_binding_errors,
+        )
+
+        ref = (SourceRef("C4", "give it to Patient B"),)
+        patient = WorldParty("P2", "Patient B", "PATIENT", ref)
+        effect = WorldEffect(
+            "E9", "A1", "P2", "is given the medicine", "RECEIVES_MEDICINE",
+            "BENEFICIAL", "DIRECT", "CERTAIN", "RESOURCE_TRANSFER",
+            provenance=ref,
+            source_proposition="give it to Patient B",
+            derivation_operation="DIRECT_COPY",
+        )
+        world = ScenarioWorldModel(
+            schema_version="1.3",
+            parties=(patient,),
+            actions=(WorldAction(
+                "A1", "Give it to Patient B", "", ("P2",), ("E9",), ref,
+            ),),
+            effects=(effect,),
+        )
+        self.assertTrue(_source_proposition_supports_outcome(effect, patient))
+        self.assertEqual([], _verb_lemma_binding_errors(world))
+
+    def test_short_dies_form_binds_to_source_die_lemma(self):
+        from global_workspace.world_state import (
+            ScenarioWorldModel,
+            SourceRef,
+            WorldAction,
+            WorldEffect,
+            WorldParty,
+            _source_proposition_supports_outcome,
+            _verb_lemma_binding_errors,
+        )
+
+        ref = (SourceRef("C0", "two patients who will die without it"),)
+        patient = WorldParty("PB", "Patient B", "PATIENT", ref)
+        effect = WorldEffect(
+            "E_DEATH", "A0", "PB", "dies", "DIES", "ADVERSE",
+            "DOWNSTREAM", "CERTAIN", "HEALTH_OUTCOME", provenance=ref,
+            source_proposition="will die without it",
+            source_effect_ids=("E_NORECV",),
+            derivation_operation="SOURCE_STIPULATED_CAUSAL",
+            derivation_explanation="The patient without the dose dies.",
+        )
+        world = ScenarioWorldModel(
+            schema_version="1.3", parties=(patient,),
+            actions=(WorldAction("A0", "allocate the dose"),),
+            effects=(effect,),
+        )
+        self.assertTrue(_source_proposition_supports_outcome(effect, patient))
+        self.assertEqual([], _verb_lemma_binding_errors(world))
+
+    def test_elliptical_likelihood_expands_to_containing_source_clause(self):
+        from global_workspace.world_state import (
+            ScenarioWorldModel,
+            SourceRef,
+            WorldAction,
+            WorldEffect,
+            WorldParty,
+            compile_source_proposition_spans,
+        )
+
+        clause = (
+            "Patient A has a 90% chance of surviving if given the medicine, "
+            "while Patient B has a 40% chance."
+        )
+        ref = (SourceRef("C1", clause),)
+        patient = WorldParty("PB", "Patient B", "PATIENT", ref)
+        effect = WorldEffect(
+            "EB", "A1", "PB", "survives", "SURVIVES", "BENEFICIAL",
+            "DOWNSTREAM", "PROBABILISTIC", "HEALTH_OUTCOME",
+            provenance=ref, likelihood_qualifiers=("40% chance",),
+            source_proposition="Patient B has a 40% chance",
+            derivation_operation="SOURCE_STIPULATED_CAUSAL",
+            source_effect_ids=("EA",), derivation_explanation="Treatment chance.",
+        )
+        world = ScenarioWorldModel(
+            schema_version="1.3", parties=(patient,),
+            actions=(WorldAction("A1", "give to Patient B"),),
+            effects=(effect,),
+        )
+        compiled = compile_source_proposition_spans(world)
+        self.assertEqual(clause, compiled.effects[0].source_proposition)
 
 
 if __name__ == "__main__":

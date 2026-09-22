@@ -1,0 +1,67 @@
+{
+  "manifest_version": "1.0",
+  "purpose": "Held-out live grounding cases. Do not import these prompts into deterministic or property-based tests before the live evaluation.",
+  "status": "HELD_OUT_NOT_EXECUTED",
+  "cases": [
+    {
+      "id": "live_alloc_01_organ_passive",
+      "prompt": "A transplant team has two compatible patients, Imani and Luca. The sole donor kidney can be transplanted into either patient, but transplantation into one rules out transplantation into the other. Without a transplant, the unselected patient will die. Should the kidney be transplanted into Imani or Luca?",
+      "actions": ["Transplant the kidney into Imani", "Transplant the kidney into Luca"],
+      "oracle": "EXCLUSIVE_ASSERTED"
+    },
+    {
+      "id": "live_alloc_02_ventilator_capacity",
+      "prompt": "Only one ventilator remains operational. Three patients need ventilation, but the immediate decision is between assigning it to Noor or assigning it to Ellis. Whoever is not assigned the ventilator will remain untreated and is expected to die. Which assignment should be made?",
+      "actions": ["Assign the ventilator to Noor", "Assign the ventilator to Ellis"],
+      "oracle": "EXCLUSIVE_ASSERTED"
+    },
+    {
+      "id": "live_alloc_03_whichever_antidote",
+      "prompt": "Whichever poisoned worker receives the antidote will have a strong chance of recovery. The other worker receives none because the entire stock is consumed by one treatment. The clinician must select Mara or Jo. Which worker should receive the antidote?",
+      "actions": ["Give the antidote to Mara", "Give the antidote to Jo"],
+      "oracle": "EXCLUSIVE_ASSERTED"
+    },
+    {
+      "id": "live_alloc_04_bed_nominalization",
+      "prompt": "Allocation of the last intensive-care bed is between Patient Chen and Patient Alvarez. Admission of either patient precludes admission of the other tonight. Both will deteriorate without intensive care. Who should be admitted?",
+      "actions": ["Admit Patient Chen to the intensive-care bed", "Admit Patient Alvarez to the intensive-care bed"],
+      "oracle": "EXCLUSIVE_ASSERTED"
+    },
+    {
+      "id": "live_alloc_05_supply_exhaustion",
+      "prompt": "Treating District East would exhaust the emergency water stock. Treating District West would do the same. The authority must select one district; the district left without water will face severe illness. Which district should receive the stock?",
+      "actions": ["Send the emergency water stock to District East", "Send the emergency water stock to District West"],
+      "oracle": "EXCLUSIVE_ASSERTED"
+    },
+    {
+      "id": "live_alloc_06_order_only",
+      "prompt": "There is enough medication for both patients, and both will receive it today. The doctor must choose only the order: treat Priya first or treat Mateo first. Which ordering should the doctor use?",
+      "actions": ["Treat Priya first and Mateo second", "Treat Mateo first and Priya second"],
+      "oracle": "NONEXCLUSIVE_ASSERTED"
+    },
+    {
+      "id": "live_alloc_07_divisible_resource",
+      "prompt": "The relief fund can be divided, and each village can receive a share. Officials must choose whether Village North or Village South receives the first disbursement, but the choice does not prevent the later disbursement. Which village should receive funds first?",
+      "actions": ["Disburse funds to Village North first", "Disburse funds to Village South first"],
+      "oracle": "NONEXCLUSIVE_ASSERTED"
+    },
+    {
+      "id": "live_alloc_08_temporal_correction",
+      "prompt": "At dawn the hospital had only one dose, so staff expected to choose between Ada and Ben. Before the treatment decision, another dose arrived. There is now one dose for each patient, and both can be treated. Should Ada or Ben be treated first?",
+      "actions": ["Treat Ada first and Ben second", "Treat Ben first and Ada second"],
+      "oracle": "NONEXCLUSIVE_ASSERTED"
+    },
+    {
+      "id": "live_alloc_09_conditional_shortage",
+      "prompt": "If the resupply flight is cancelled, only one course of medicine will remain for Hana and Oren. The flight's status is unknown. If it arrives, both can be treated. The physician must prepare either to prioritize Hana or to prioritize Oren if the shortage occurs. Which contingency plan should be adopted?",
+      "actions": ["Prioritize Hana if the shortage occurs", "Prioritize Oren if the shortage occurs"],
+      "oracle": "CONDITIONAL_EXCLUSIVITY"
+    },
+    {
+      "id": "live_alloc_10_n_a_factive_report",
+      "prompt": "A trainee believes that only one infusion is available and recommends choosing between Sora and Malik. The pharmacy count has not been completed, and the supervising physician does not know whether one or two infusions remain. Which patient, if either, should be provisionally prioritized?",
+      "actions": ["Provisionally prioritize Sora", "Provisionally prioritize Malik"],
+      "oracle": "UNRESOLVED_NONFACTIVE"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "control_report": "eval_outputs/topology-expanded-stage1-20260920/report.json",
+  "experimental_report": "eval_outputs/topology-expanded-targeted-resolution-20260921/report.json",
+  "summary": {
+    "control_node_recall": 0.5294117647058824,
+    "experimental_node_recall": 0.5882352941176471,
+    "control_aligned_gold_nodes": 18,
+    "experimental_aligned_gold_nodes": 20,
+    "control_evaluable_gold_edges": 6,
+    "experimental_evaluable_gold_edges": 8,
+    "resolver_call_count": 12,
+    "resolver_status_counts": {
+      "ADD_NODES": 5,
+      "NO_CHANGE": 7
+    },
+    "resolver_route_counts": {
+      "APPOSITIVE_IDENTITY": 2,
+      "CONDITIONAL_SCOPE": 6,
+      "ELLIPSIS_OR_LIGHT_VERB": 1,
+      "EMBEDDED_CLAUSE": 1,
+      "NEGATED_SUBORDINATE_SCOPE": 1,
+      "SHARED_ARGUMENT_CONJUNCTION": 1
+    },
+    "accepted_addition_count": 1,
+    "gold_aligned_accepted_addition_count": 0,
+    "non_gold_aligned_addition_count": 1,
+    "resolver_precision": null,
+    "resolver_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+    "rejected_addition_reasons": {
+      "DUPLICATES_EXISTING_SOURCE_SPAN": 1,
+      "DUPLICATE_OR_EMPTY_ID": 3
+    }
+  },
+  "accepted_additions": [
+    {
+      "case_id": "appositive_engineer",
+      "route": "EMBEDDED_CLAUSE",
+      "proposition_id": "Z1"
+    }
+  ],
+  "gold_aligned_accepted_additions": [],
+  "interpretation": "Changes in aggregate recall cannot be attributed to the resolver unless an accepted resolver node aligns to gold. Sparse gold cannot label every non-aligned addition false."
+}

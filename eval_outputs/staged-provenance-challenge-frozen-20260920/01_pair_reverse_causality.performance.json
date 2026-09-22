@@ -1,0 +1,889 @@
+{
+  "schema_version": 2,
+  "run_id": "workspace_20260920_095254_872534_20260920_095255_409628",
+  "started_at": "2026-09-20T13:52:55.409689+00:00",
+  "elapsed_seconds": 101.171998,
+  "counts": {
+    "events": 62,
+    "by_category": {
+      "model_call": 29,
+      "provider_attempt": 29,
+      "stage": 4
+    },
+    "by_status": {
+      "NONZERO_EXIT": 1,
+      "OK": 61
+    },
+    "logical_model_calls": 29,
+    "model_call_count": 29,
+    "original_agent_model_calls": 0,
+    "compact_primary_calls": 0,
+    "compact_repair_calls": 0,
+    "repair_count": 2,
+    "timeout_count": 0,
+    "abstention_count": 0,
+    "budget_blocked_calls": 0,
+    "model_cache_hits": 0,
+    "grounded_projection_materializations": 0,
+    "grounded_projection_cache_hits": 0,
+    "provider_attempts": 29,
+    "provider_failures": 0
+  },
+  "timings_by_name_seconds": {
+    "action_planning": 4e-06,
+    "openai.chat.completions": 100.512836,
+    "pipeline_total": 101.171685,
+    "world_grounding": 100.588454,
+    "world_grounding_failure_serialization": 0.005914,
+    "world_grounding_neutral_nodes": 6.384587,
+    "world_grounding_node_ownership": 5.291133,
+    "world_grounding_pairwise_relation_audit": 53.52146,
+    "world_grounding_primary": 9.050321,
+    "world_grounding_repair": 26.274551
+  },
+  "original_agents": {},
+  "compact_specialists": {},
+  "ledger_commits": {},
+  "events": [
+    {
+      "category": "stage",
+      "name": "action_planning",
+      "status": "OK",
+      "duration_seconds": 4e-06,
+      "finished_at": "2026-09-20T13:52:55.971771+00:00",
+      "metadata": {}
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 6.384324,
+      "finished_at": "2026-09-20T13:53:02.360548+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_neutral_nodes",
+      "status": "OK",
+      "duration_seconds": 6.384587,
+      "finished_at": "2026-09-20T13:53:02.360689+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_neutral_nodes",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 3072,
+        "structured": true,
+        "cycle": 0,
+        "stage": "1A",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 5.290989,
+      "finished_at": "2026-09-20T13:53:07.652140+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_node_ownership",
+      "status": "OK",
+      "duration_seconds": 5.291133,
+      "finished_at": "2026-09-20T13:53:07.652185+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_node_ownership",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 1536,
+        "structured": true,
+        "cycle": 0,
+        "stage": "1B",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 2.268702,
+      "finished_at": "2026-09-20T13:53:09.923975+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_pairwise_relation_audit",
+      "status": "OK",
+      "duration_seconds": 2.269203,
+      "finished_at": "2026-09-20T13:53:09.924347+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_pairwise_relation_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 384,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "audit_id": "PAIR_1",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 2.344665,
+      "finished_at": "2026-09-20T13:53:12.269564+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_pairwise_relation_audit",
+      "status": "OK",
+      "duration_seconds": 2.34489,
+      "finished_at": "2026-09-20T13:53:12.269602+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_pairwise_relation_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 384,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "audit_id": "PAIR_2",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 2.76812,
+      "finished_at": "2026-09-20T13:53:15.037858+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_pairwise_relation_audit",
+      "status": "OK",
+      "duration_seconds": 2.768467,
+      "finished_at": "2026-09-20T13:53:15.038089+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_pairwise_relation_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 384,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "audit_id": "PAIR_3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 2.108885,
+      "finished_at": "2026-09-20T13:53:17.147296+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_pairwise_relation_audit",
+      "status": "OK",
+      "duration_seconds": 2.109039,
+      "finished_at": "2026-09-20T13:53:17.147358+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_pairwise_relation_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 384,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "audit_id": "PAIR_4",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 2.08719,
+      "finished_at": "2026-09-20T13:53:19.234653+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_pairwise_relation_audit",
+      "status": "OK",
+      "duration_seconds": 2.087304,
+      "finished_at": "2026-09-20T13:53:19.234700+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_pairwise_relation_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 384,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "audit_id": "PAIR_5",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 1.943391,
+      "finished_at": "2026-09-20T13:53:21.178296+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_pairwise_relation_audit",
+      "status": "OK",
+      "duration_seconds": 1.943512,
+      "finished_at": "2026-09-20T13:53:21.178339+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_pairwise_relation_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 384,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "audit_id": "PAIR_6",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 1.68068,
+      "finished_at": "2026-09-20T13:53:22.859146+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_pairwise_relation_audit",
+      "status": "OK",
+      "duration_seconds": 1.680891,
+      "finished_at": "2026-09-20T13:53:22.859277+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_pairwise_relation_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 384,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "audit_id": "PAIR_7",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 2.146276,
+      "finished_at": "2026-09-20T13:53:25.005857+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_pairwise_relation_audit",
+      "status": "OK",
+      "duration_seconds": 2.146413,
+      "finished_at": "2026-09-20T13:53:25.005888+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_pairwise_relation_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 384,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "audit_id": "PAIR_8",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 2.620871,
+      "finished_at": "2026-09-20T13:53:27.626815+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_pairwise_relation_audit",
+      "status": "OK",
+      "duration_seconds": 2.620953,
+      "finished_at": "2026-09-20T13:53:27.626846+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_pairwise_relation_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 384,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "audit_id": "PAIR_9",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 2.139906,
+      "finished_at": "2026-09-20T13:53:29.766831+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_pairwise_relation_audit",
+      "status": "OK",
+      "duration_seconds": 2.140056,
+      "finished_at": "2026-09-20T13:53:29.766914+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_pairwise_relation_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 384,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "audit_id": "PAIR_10",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 2.061267,
+      "finished_at": "2026-09-20T13:53:31.828359+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_pairwise_relation_audit",
+      "status": "OK",
+      "duration_seconds": 2.061388,
+      "finished_at": "2026-09-20T13:53:31.828400+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_pairwise_relation_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 384,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "audit_id": "PAIR_11",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 1.625753,
+      "finished_at": "2026-09-20T13:53:33.454306+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_pairwise_relation_audit",
+      "status": "OK",
+      "duration_seconds": 1.625873,
+      "finished_at": "2026-09-20T13:53:33.454347+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_pairwise_relation_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 384,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "audit_id": "PAIR_12",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 2.31706,
+      "finished_at": "2026-09-20T13:53:35.771512+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_pairwise_relation_audit",
+      "status": "OK",
+      "duration_seconds": 2.317167,
+      "finished_at": "2026-09-20T13:53:35.771549+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_pairwise_relation_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 384,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "audit_id": "PAIR_13",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 2.324291,
+      "finished_at": "2026-09-20T13:53:38.095908+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_pairwise_relation_audit",
+      "status": "OK",
+      "duration_seconds": 2.324374,
+      "finished_at": "2026-09-20T13:53:38.095934+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_pairwise_relation_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 384,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "audit_id": "PAIR_14",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 1.514657,
+      "finished_at": "2026-09-20T13:53:39.610653+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_pairwise_relation_audit",
+      "status": "OK",
+      "duration_seconds": 1.514747,
+      "finished_at": "2026-09-20T13:53:39.610698+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_pairwise_relation_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 384,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "audit_id": "PAIR_15",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 1.739819,
+      "finished_at": "2026-09-20T13:53:41.350659+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_pairwise_relation_audit",
+      "status": "OK",
+      "duration_seconds": 1.740004,
+      "finished_at": "2026-09-20T13:53:41.350760+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_pairwise_relation_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 384,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "audit_id": "PAIR_16",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 2.661799,
+      "finished_at": "2026-09-20T13:53:44.012740+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_pairwise_relation_audit",
+      "status": "OK",
+      "duration_seconds": 2.661928,
+      "finished_at": "2026-09-20T13:53:44.012782+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_pairwise_relation_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 384,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "audit_id": "PAIR_17",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 2.406471,
+      "finished_at": "2026-09-20T13:53:46.359129+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_pairwise_relation_audit",
+      "status": "OK",
+      "duration_seconds": 2.406581,
+      "finished_at": "2026-09-20T13:53:46.359171+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_pairwise_relation_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 384,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "audit_id": "PAIR_18",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 2.816359,
+      "finished_at": "2026-09-20T13:53:49.175588+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_pairwise_relation_audit",
+      "status": "OK",
+      "duration_seconds": 2.816524,
+      "finished_at": "2026-09-20T13:53:49.175678+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_pairwise_relation_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 384,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "audit_id": "PAIR_19",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 3.376831,
+      "finished_at": "2026-09-20T13:53:52.552600+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_pairwise_relation_audit",
+      "status": "OK",
+      "duration_seconds": 3.376947,
+      "finished_at": "2026-09-20T13:53:52.552635+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_pairwise_relation_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 384,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "audit_id": "PAIR_20",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 2.561718,
+      "finished_at": "2026-09-20T13:53:55.114418+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_pairwise_relation_audit",
+      "status": "OK",
+      "duration_seconds": 2.561826,
+      "finished_at": "2026-09-20T13:53:55.114461+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_pairwise_relation_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 384,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "audit_id": "PAIR_21",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 2.415571,
+      "finished_at": "2026-09-20T13:53:57.530101+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_pairwise_relation_audit",
+      "status": "OK",
+      "duration_seconds": 2.415677,
+      "finished_at": "2026-09-20T13:53:57.530140+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_pairwise_relation_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 384,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "audit_id": "PAIR_22",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 1.781636,
+      "finished_at": "2026-09-20T13:53:59.311869+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_pairwise_relation_audit",
+      "status": "OK",
+      "duration_seconds": 1.781745,
+      "finished_at": "2026-09-20T13:53:59.311910+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_pairwise_relation_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 384,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "audit_id": "PAIR_23",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 1.805766,
+      "finished_at": "2026-09-20T13:54:01.117770+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_pairwise_relation_audit",
+      "status": "OK",
+      "duration_seconds": 1.805951,
+      "finished_at": "2026-09-20T13:54:01.117876+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_pairwise_relation_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 384,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "audit_id": "PAIR_24",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 9.049696,
+      "finished_at": "2026-09-20T13:54:10.168809+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_primary",
+      "status": "OK",
+      "duration_seconds": 9.050321,
+      "finished_at": "2026-09-20T13:54:10.168842+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 6144,
+        "structured": true,
+        "cycle": 0,
+        "attempt": 1,
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 12.464201,
+      "finished_at": "2026-09-20T13:54:22.647173+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_repair",
+      "status": "OK",
+      "duration_seconds": 12.464999,
+      "finished_at": "2026-09-20T13:54:22.647425+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_repair",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 6144,
+        "structured": true,
+        "cycle": 0,
+        "attempt": 2,
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 13.805942,
+      "finished_at": "2026-09-20T13:54:36.479700+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_repair",
+      "status": "OK",
+      "duration_seconds": 13.809552,
+      "finished_at": "2026-09-20T13:54:36.482712+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_repair",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 6144,
+        "structured": true,
+        "cycle": 0,
+        "attempt": 3,
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "world_grounding",
+      "status": "OK",
+      "duration_seconds": 100.588454,
+      "finished_at": "2026-09-20T13:54:36.499829+00:00",
+      "metadata": {}
+    },
+    {
+      "category": "stage",
+      "name": "world_grounding_failure_serialization",
+      "status": "OK",
+      "duration_seconds": 0.005914,
+      "finished_at": "2026-09-20T13:54:36.513752+00:00",
+      "metadata": {}
+    },
+    {
+      "category": "stage",
+      "name": "pipeline_total",
+      "status": "NONZERO_EXIT",
+      "duration_seconds": 101.171685,
+      "finished_at": "2026-09-20T13:54:36.517908+00:00",
+      "metadata": {}
+    }
+  ],
+  "content_recording": "DISABLED"
+}

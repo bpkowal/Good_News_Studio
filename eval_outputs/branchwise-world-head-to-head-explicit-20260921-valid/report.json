@@ -1,0 +1,557 @@
+{
+  "actions": [
+    "Give the oxygen unit to Eli",
+    "Give the oxygen unit to Noor"
+  ],
+  "branchwise": {
+    "branch_elapsed_seconds": [
+      61.651,
+      44.799
+    ],
+    "branch_errors": [
+      [
+        "typed world model rejected: E3 is DIRECT on P3, who is neither the actor nor a named recipient; non-recipient process and population states are DOWNSTREAM or FOREGONE. If this row is later conduct (assist, remain, use a road), recast it DOWNSTREAM with a non-INTERVENTION kind; do not add that party as a recipient to make the conduct DIRECT. If this row is the actor assigning or allocating that party, they may be a recipient of a separate DIRECT assignment, not of this later conduct; E4 is a downstream human outcome whose causal ancestry never reaches a DIRECT act on the actor or a named recipient; connect this action's intervention to the action-mediated process that produces the outcome. If the source does not attribute a stochastic process to the intervention, do not invent that causal link; generate the missing mediated branch"
+      ],
+      [
+        "typed world model rejected: E2 is DIRECT on P3, who is neither the actor nor a named recipient; non-recipient process and population states are DOWNSTREAM or FOREGONE. If this row is later conduct (assist, remain, use a road), recast it DOWNSTREAM with a non-INTERVENTION kind; do not add that party as a recipient to make the conduct DIRECT. If this row is the actor assigning or allocating that party, they may be a recipient of a separate DIRECT assignment, not of this later conduct"
+      ]
+    ],
+    "branch_repair_attempts": [
+      3,
+      3
+    ],
+    "branch_statuses": [
+      "REJECTED",
+      "REJECTED"
+    ],
+    "merge_conflicts": [],
+    "merged_errors": [
+      "one or more branches did not commit"
+    ],
+    "merged_status": "NOT_RUN",
+    "merged_validation_issues": [],
+    "merged_world_model": {}
+  },
+  "experiment_version": "1.0",
+  "intentionally_not_compared": [
+    "ethical framework deliberation",
+    "final ethical recommendation",
+    "counterfactual overlay quality",
+    "cost-normalized performance beyond this single scenario"
+  ],
+  "model": "o3",
+  "scenario": "A rural clinic has one portable oxygen unit and two patients, Eli and Noor. The unit cannot be divided, and no replacement can arrive in time. Under the first available action, the clinician gives the oxygen unit to Eli; Eli receives oxygen and avoids respiratory injury, while Noor receives no oxygen and suffers respiratory injury. Under the second available action, the clinician gives the oxygen unit to Noor; Noor receives oxygen and avoids respiratory injury, while Eli receives no oxygen and suffers respiratory injury. The clinician must select one of these two actions.",
+  "whole_world": {
+    "elapsed_seconds": 65.946,
+    "errors": [],
+    "repair_attempts": 2,
+    "status": "COMMITTED",
+    "validation_issues": [],
+    "world_model": {
+      "actions": [
+        {
+          "action_id": "A0",
+          "actor_party_id": "P_CLIN",
+          "effect_ids": [
+            "E1_A0",
+            "E2_A0",
+            "E3_A0",
+            "E4_A0"
+          ],
+          "intervention": "Give the oxygen unit to Eli",
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "Under the first available action, the clinician gives the oxygen unit to Eli"
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "Eli receives oxygen and avoids respiratory injury, while Noor receives no oxygen and suffers respiratory injury."
+            }
+          ],
+          "recipient_party_ids": [
+            "P_ELI"
+          ]
+        },
+        {
+          "action_id": "A1",
+          "actor_party_id": "P_CLIN",
+          "effect_ids": [
+            "E1_A1",
+            "E2_A1",
+            "E3_A1",
+            "E4_A1"
+          ],
+          "intervention": "Give the oxygen unit to Noor",
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "Under the second available action, the clinician gives the oxygen unit to Noor"
+            },
+            {
+              "clause_id": "C5",
+              "excerpt": "Noor receives oxygen and avoids respiratory injury, while Eli receives no oxygen and suffers respiratory injury."
+            }
+          ],
+          "recipient_party_ids": [
+            "P_NOOR"
+          ]
+        }
+      ],
+      "admission": {
+        "admitted_effect_ids": [
+          "E1_A0",
+          "E2_A0",
+          "E3_A0",
+          "E4_A0",
+          "E1_A1",
+          "E2_A1",
+          "E3_A1",
+          "E4_A1"
+        ],
+        "override_reason": "",
+        "quarantined_effects": [],
+        "status": "COMMITTED",
+        "user_override": false
+      },
+      "causal_links": [
+        {
+          "action_id": "A0",
+          "condition_ids": [],
+          "modality": "CERTAIN",
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "Eli receives oxygen and avoids respiratory injury, while Noor receives no oxygen and suffers respiratory injury."
+            }
+          ],
+          "relation": "CAUSES",
+          "source_id": "E1_A0",
+          "target_id": "E3_A0"
+        },
+        {
+          "action_id": "A0",
+          "condition_ids": [],
+          "modality": "CERTAIN",
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "Eli receives oxygen and avoids respiratory injury, while Noor receives no oxygen and suffers respiratory injury."
+            }
+          ],
+          "relation": "CAUSES",
+          "source_id": "E1_A0",
+          "target_id": "E2_A0"
+        },
+        {
+          "action_id": "A0",
+          "condition_ids": [],
+          "modality": "CERTAIN",
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "Eli receives oxygen and avoids respiratory injury, while Noor receives no oxygen and suffers respiratory injury."
+            }
+          ],
+          "relation": "CAUSES",
+          "source_id": "E2_A0",
+          "target_id": "E4_A0"
+        },
+        {
+          "action_id": "A1",
+          "condition_ids": [],
+          "modality": "CERTAIN",
+          "provenance": [
+            {
+              "clause_id": "C5",
+              "excerpt": "Noor receives oxygen and avoids respiratory injury, while Eli receives no oxygen and suffers respiratory injury."
+            }
+          ],
+          "relation": "CAUSES",
+          "source_id": "E1_A1",
+          "target_id": "E3_A1"
+        },
+        {
+          "action_id": "A1",
+          "condition_ids": [],
+          "modality": "CERTAIN",
+          "provenance": [
+            {
+              "clause_id": "C5",
+              "excerpt": "Noor receives oxygen and avoids respiratory injury, while Eli receives no oxygen and suffers respiratory injury."
+            }
+          ],
+          "relation": "CAUSES",
+          "source_id": "E1_A1",
+          "target_id": "E2_A1"
+        },
+        {
+          "action_id": "A1",
+          "condition_ids": [],
+          "modality": "CERTAIN",
+          "provenance": [
+            {
+              "clause_id": "C5",
+              "excerpt": "Noor receives oxygen and avoids respiratory injury, while Eli receives no oxygen and suffers respiratory injury."
+            }
+          ],
+          "relation": "CAUSES",
+          "source_id": "E2_A1",
+          "target_id": "E4_A1"
+        }
+      ],
+      "conditions": [],
+      "counterfactual_links": [],
+      "effects": [
+        {
+          "action_id": "A0",
+          "condition_ids": [],
+          "condition_join": "AND",
+          "derivation_assumptions": [],
+          "derivation_explanation": "",
+          "derivation_operation": "DIRECT_COPY",
+          "directness": "DIRECT",
+          "effect_id": "E1_A0",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "likelihood_qualifiers": [],
+          "modality": "CERTAIN",
+          "outcome": "receives oxygen",
+          "outcome_type_transformation": "PRESERVED",
+          "overall_likelihood_qualifiers": [],
+          "party_id": "P_ELI",
+          "polarity": "BENEFICIAL",
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "Eli receives oxygen and avoids respiratory injury, while Noor receives no oxygen and suffers respiratory injury."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "Under the first available action, the clinician gives the oxygen unit to Eli"
+            }
+          ],
+          "quantities": [],
+          "relation": "RECEIVES",
+          "scope_qualifiers": [],
+          "source_effect_ids": [],
+          "source_proposition": "Eli receives oxygen",
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A0",
+          "condition_ids": [],
+          "condition_join": "AND",
+          "derivation_assumptions": [],
+          "derivation_explanation": "Noor\u2019s non-receipt follows exclusively from giving the single unit to Eli.",
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "directness": "DOWNSTREAM",
+          "effect_id": "E2_A0",
+          "effect_kind": "OTHER",
+          "likelihood_qualifiers": [],
+          "modality": "CERTAIN",
+          "outcome": "does not receive oxygen",
+          "outcome_type_transformation": "PRESERVED",
+          "overall_likelihood_qualifiers": [],
+          "party_id": "P_NOOR",
+          "polarity": "ADVERSE",
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "Eli receives oxygen and avoids respiratory injury, while Noor receives no oxygen and suffers respiratory injury."
+            }
+          ],
+          "quantities": [],
+          "relation": "DOES_NOT_RECEIVE",
+          "scope_qualifiers": [],
+          "source_effect_ids": [
+            "E1_A0"
+          ],
+          "source_proposition": "Noor receives no oxygen",
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A0",
+          "condition_ids": [],
+          "condition_join": "AND",
+          "derivation_assumptions": [],
+          "derivation_explanation": "Source links oxygen receipt to avoidance of injury for Eli.",
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "directness": "DOWNSTREAM",
+          "effect_id": "E3_A0",
+          "effect_kind": "HEALTH_OUTCOME",
+          "likelihood_qualifiers": [],
+          "modality": "CERTAIN",
+          "outcome": "avoids respiratory injury",
+          "outcome_type_transformation": "PRESERVED",
+          "overall_likelihood_qualifiers": [],
+          "party_id": "P_ELI",
+          "polarity": "BENEFICIAL",
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "Eli receives oxygen and avoids respiratory injury, while Noor receives no oxygen and suffers respiratory injury."
+            }
+          ],
+          "quantities": [],
+          "relation": "AVOIDS_INJURY",
+          "scope_qualifiers": [],
+          "source_effect_ids": [
+            "E1_A0"
+          ],
+          "source_proposition": "avoids respiratory injury",
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A0",
+          "condition_ids": [],
+          "condition_join": "AND",
+          "derivation_assumptions": [],
+          "derivation_explanation": "Source links lack of oxygen to injury for Noor.",
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "directness": "DOWNSTREAM",
+          "effect_id": "E4_A0",
+          "effect_kind": "HEALTH_OUTCOME",
+          "likelihood_qualifiers": [],
+          "modality": "CERTAIN",
+          "outcome": "suffers respiratory injury",
+          "outcome_type_transformation": "PRESERVED",
+          "overall_likelihood_qualifiers": [],
+          "party_id": "P_NOOR",
+          "polarity": "ADVERSE",
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "Eli receives oxygen and avoids respiratory injury, while Noor receives no oxygen and suffers respiratory injury."
+            }
+          ],
+          "quantities": [],
+          "relation": "SUFFERS_INJURY",
+          "scope_qualifiers": [],
+          "source_effect_ids": [
+            "E2_A0"
+          ],
+          "source_proposition": "suffers respiratory injury",
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A1",
+          "condition_ids": [],
+          "condition_join": "AND",
+          "derivation_assumptions": [],
+          "derivation_explanation": "",
+          "derivation_operation": "DIRECT_COPY",
+          "directness": "DIRECT",
+          "effect_id": "E1_A1",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "likelihood_qualifiers": [],
+          "modality": "CERTAIN",
+          "outcome": "receives oxygen",
+          "outcome_type_transformation": "PRESERVED",
+          "overall_likelihood_qualifiers": [],
+          "party_id": "P_NOOR",
+          "polarity": "BENEFICIAL",
+          "provenance": [
+            {
+              "clause_id": "C5",
+              "excerpt": "Noor receives oxygen and avoids respiratory injury, while Eli receives no oxygen and suffers respiratory injury."
+            },
+            {
+              "clause_id": "C4",
+              "excerpt": "Under the second available action, the clinician gives the oxygen unit to Noor"
+            }
+          ],
+          "quantities": [],
+          "relation": "RECEIVES",
+          "scope_qualifiers": [],
+          "source_effect_ids": [],
+          "source_proposition": "Noor receives oxygen",
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A1",
+          "condition_ids": [],
+          "condition_join": "AND",
+          "derivation_assumptions": [],
+          "derivation_explanation": "Eli\u2019s non-receipt follows exclusively from giving the single unit to Noor.",
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "directness": "DOWNSTREAM",
+          "effect_id": "E2_A1",
+          "effect_kind": "OTHER",
+          "likelihood_qualifiers": [],
+          "modality": "CERTAIN",
+          "outcome": "does not receive oxygen",
+          "outcome_type_transformation": "PRESERVED",
+          "overall_likelihood_qualifiers": [],
+          "party_id": "P_ELI",
+          "polarity": "ADVERSE",
+          "provenance": [
+            {
+              "clause_id": "C5",
+              "excerpt": "Noor receives oxygen and avoids respiratory injury, while Eli receives no oxygen and suffers respiratory injury."
+            }
+          ],
+          "quantities": [],
+          "relation": "DOES_NOT_RECEIVE",
+          "scope_qualifiers": [],
+          "source_effect_ids": [
+            "E1_A1"
+          ],
+          "source_proposition": "Eli receives no oxygen",
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A1",
+          "condition_ids": [],
+          "condition_join": "AND",
+          "derivation_assumptions": [],
+          "derivation_explanation": "Source links oxygen receipt to avoidance of injury for Noor.",
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "directness": "DOWNSTREAM",
+          "effect_id": "E3_A1",
+          "effect_kind": "HEALTH_OUTCOME",
+          "likelihood_qualifiers": [],
+          "modality": "CERTAIN",
+          "outcome": "avoids respiratory injury",
+          "outcome_type_transformation": "PRESERVED",
+          "overall_likelihood_qualifiers": [],
+          "party_id": "P_NOOR",
+          "polarity": "BENEFICIAL",
+          "provenance": [
+            {
+              "clause_id": "C5",
+              "excerpt": "Noor receives oxygen and avoids respiratory injury, while Eli receives no oxygen and suffers respiratory injury."
+            }
+          ],
+          "quantities": [],
+          "relation": "AVOIDS_INJURY",
+          "scope_qualifiers": [],
+          "source_effect_ids": [
+            "E1_A1"
+          ],
+          "source_proposition": "avoids respiratory injury",
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A1",
+          "condition_ids": [],
+          "condition_join": "AND",
+          "derivation_assumptions": [],
+          "derivation_explanation": "Source links lack of oxygen to injury for Eli.",
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "directness": "DOWNSTREAM",
+          "effect_id": "E4_A1",
+          "effect_kind": "HEALTH_OUTCOME",
+          "likelihood_qualifiers": [],
+          "modality": "CERTAIN",
+          "outcome": "suffers respiratory injury",
+          "outcome_type_transformation": "PRESERVED",
+          "overall_likelihood_qualifiers": [],
+          "party_id": "P_ELI",
+          "polarity": "ADVERSE",
+          "provenance": [
+            {
+              "clause_id": "C5",
+              "excerpt": "Noor receives oxygen and avoids respiratory injury, while Eli receives no oxygen and suffers respiratory injury."
+            }
+          ],
+          "quantities": [],
+          "relation": "SUFFERS_INJURY",
+          "scope_qualifiers": [],
+          "source_effect_ids": [
+            "E2_A1"
+          ],
+          "source_proposition": "suffers respiratory injury",
+          "temporal_qualifiers": []
+        }
+      ],
+      "parties": [
+        {
+          "kind": "PERSON",
+          "label": "clinician",
+          "party_id": "P_CLIN",
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "Under the first available action, the clinician gives the oxygen unit to Eli"
+            },
+            {
+              "clause_id": "C4",
+              "excerpt": "Under the second available action, the clinician gives the oxygen unit to Noor"
+            },
+            {
+              "clause_id": "C6",
+              "excerpt": "The clinician must select one of these two actions."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "kind": "HUMAN",
+          "label": "Eli",
+          "party_id": "P_ELI",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A rural clinic has one portable oxygen unit and two patients, Eli and Noor."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "Under the first available action, the clinician gives the oxygen unit to Eli"
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "Eli receives oxygen and avoids respiratory injury, while Noor receives no oxygen and suffers respiratory injury."
+            },
+            {
+              "clause_id": "C5",
+              "excerpt": "Noor receives oxygen and avoids respiratory injury, while Eli receives no oxygen and suffers respiratory injury."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "kind": "HUMAN",
+          "label": "Noor",
+          "party_id": "P_NOOR",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A rural clinic has one portable oxygen unit and two patients, Eli and Noor."
+            },
+            {
+              "clause_id": "C4",
+              "excerpt": "Under the second available action, the clinician gives the oxygen unit to Noor"
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "Eli receives oxygen and avoids respiratory injury, while Noor receives no oxygen and suffers respiratory injury."
+            },
+            {
+              "clause_id": "C5",
+              "excerpt": "Noor receives oxygen and avoids respiratory injury, while Eli receives no oxygen and suffers respiratory injury."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "kind": "RESOURCE",
+          "label": "portable oxygen unit",
+          "party_id": "P_O2",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A rural clinic has one portable oxygen unit and two patients, Eli and Noor."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "The unit cannot be divided, and no replacement can arrive in time."
+            }
+          ],
+          "quantities": []
+        }
+      ],
+      "schema_version": "1.3",
+      "temporal_relations": []
+    }
+  }
+}

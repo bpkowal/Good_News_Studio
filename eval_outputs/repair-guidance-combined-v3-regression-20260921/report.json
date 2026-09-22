@@ -1,0 +1,512 @@
+{
+  "aggregate": {
+    "aligned_gold_edge_count": 6,
+    "aligned_gold_node_count": 9,
+    "audit_complete_count": 0,
+    "audit_novelty_rate": 0.0,
+    "audit_only_precision": null,
+    "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+    "audit_only_relation_count": 0,
+    "case_count": 3,
+    "correct_audit_only_relation_count": 0,
+    "correct_audit_only_relations": 0,
+    "final_graph_aligned_gold_edge_count": 1,
+    "final_graph_aligned_gold_node_count": 3,
+    "final_graph_gold_node_count": 9,
+    "final_graph_node_recall": 0.3333333333333333,
+    "final_graph_relation_accuracy_given_aligned_nodes": 1.0,
+    "gold_edge_count": 6,
+    "gold_node_count": 9,
+    "gold_relations_absent_from_scaffold": 5,
+    "node_recall": 1.0,
+    "pairwise_gold_accuracy_given_aligned_nodes": 0.0,
+    "scaffold_gold_accuracy_given_aligned_nodes": 0.16666666666666666,
+    "stage_one_admitted_count": 3,
+    "stage_one_partially_admitted_count": 1,
+    "world_committed_count": 2
+  },
+  "deterministic_repair_guidance": "combined",
+  "evidence_augmented": true,
+  "manifest": "evals/topology_structure_expanded_challenge.json",
+  "max_pairs": 0,
+  "model": "o3",
+  "protocol": "FROZEN_FIRST_EIGHT_CASE_CHALLENGE",
+  "report_version": "1.0",
+  "results": [
+    {
+      "alignments": [
+        {
+          "action_id": "A0",
+          "candidate_count": 6,
+          "gold_event": "technician closes the intake valve",
+          "matched_proposition_id": "PR1",
+          "method": "EXACT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 6,
+          "gold_event": "pressure is reduced",
+          "matched_proposition_id": "PR3",
+          "method": "GOLD_LEMMA_CONTAINMENT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 6,
+          "gold_event": "technician opens the relief valve",
+          "matched_proposition_id": "PR2",
+          "method": "TOKEN_LEMMA",
+          "score": 0.75,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        }
+      ],
+      "audit_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_relation_audit_workspace_20260921_121726_137850.json",
+      "audit_status": "EMPTY_NO_PAIRS",
+      "elapsed_seconds": 22.631,
+      "exit_code": 0,
+      "family": "SHARED_SUBJECT_CONJUNCTION",
+      "final_graph_alignments": [
+        {
+          "action_id": "A0",
+          "candidate_count": 3,
+          "gold_event": "technician closes the intake valve",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 3,
+          "gold_event": "pressure is reduced",
+          "matched_proposition_id": "E3",
+          "method": "GOLD_LEMMA_CONTAINMENT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 3,
+          "gold_event": "technician opens the relief valve",
+          "matched_proposition_id": "E2",
+          "method": "TOKEN_LEMMA",
+          "score": 0.75,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        }
+      ],
+      "final_graph_metrics": {
+        "aligned_gold_edge_count": 1,
+        "aligned_gold_node_count": 2,
+        "audit_novelty_rate": null,
+        "audit_only_precision": null,
+        "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [
+          {
+            "action_id": "A0",
+            "audit_correct": false,
+            "audit_relation": "NONE",
+            "gold_relation": "CAUSES",
+            "scaffold_correct": true,
+            "scaffold_relations": [
+              "CAUSES"
+            ],
+            "source_proposition_id": "E2",
+            "target_proposition_id": "E3"
+          }
+        ],
+        "gold_edge_count": 2,
+        "gold_node_count": 3,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 0.6666666666666666,
+        "pairwise_gold_accuracy_given_aligned_nodes": 0.0,
+        "relation_recall_conditional_on_node_availability": 0.0,
+        "scaffold_gold_accuracy_given_aligned_nodes": 1.0
+      },
+      "id": "shared_subject_valves",
+      "index": 0,
+      "log": "eval_outputs/repair-guidance-combined-v3-regression-20260921/01_shared_subject_valves.log",
+      "metrics": {
+        "aligned_gold_edge_count": 2,
+        "aligned_gold_node_count": 3,
+        "audit_novelty_rate": 0.0,
+        "audit_only_precision": null,
+        "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [
+          {
+            "action_id": "A0",
+            "audit_correct": false,
+            "audit_relation": null,
+            "gold_relation": "CAUSES",
+            "scaffold_correct": false,
+            "scaffold_relations": [],
+            "source_proposition_id": "PR1",
+            "target_proposition_id": "PR3"
+          },
+          {
+            "action_id": "A0",
+            "audit_correct": false,
+            "audit_relation": null,
+            "gold_relation": "CAUSES",
+            "scaffold_correct": false,
+            "scaffold_relations": [],
+            "source_proposition_id": "PR2",
+            "target_proposition_id": "PR3"
+          }
+        ],
+        "gold_edge_count": 2,
+        "gold_node_count": 3,
+        "gold_relations_absent_from_scaffold": 2,
+        "node_recall": 1.0,
+        "pairwise_gold_accuracy_given_aligned_nodes": 0.0,
+        "relation_recall_conditional_on_node_availability": 0.0,
+        "scaffold_gold_accuracy_given_aligned_nodes": 0.0
+      },
+      "performance": "eval_outputs/repair-guidance-combined-v3-regression-20260921/01_shared_subject_valves.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A0",
+        "A1": "A1"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A0",
+          "relation": "CAUSES",
+          "source_event": "technician closes the intake valve",
+          "target_event": "pressure is reduced"
+        },
+        {
+          "action_id": "A0",
+          "relation": "CAUSES",
+          "source_event": "technician opens the relief valve",
+          "target_event": "pressure is reduced"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260921_121726_137850.json",
+      "stage_one_status": "ADMITTED",
+      "world_committed": true
+    },
+    {
+      "alignments": [
+        {
+          "action_id": "A0",
+          "candidate_count": 4,
+          "gold_event": "director authorizes the engineer",
+          "matched_proposition_id": "p1",
+          "method": "EXACT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 4,
+          "gold_event": "engineer restarts ventilation",
+          "matched_proposition_id": "PR_AUTO_1",
+          "method": "TOKEN_LEMMA",
+          "score": 0.75,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 4,
+          "gold_event": "smoke clears from the shelter",
+          "matched_proposition_id": "p3",
+          "method": "TOKEN_LEMMA",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        }
+      ],
+      "audit_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_relation_audit_workspace_20260921_121748_883259.json",
+      "audit_status": "EMPTY_NO_PAIRS",
+      "elapsed_seconds": 28.048,
+      "exit_code": 0,
+      "family": "EMBEDDED_CLAUSE",
+      "final_graph_alignments": [
+        {
+          "action_id": "A0",
+          "candidate_count": 3,
+          "gold_event": "director authorizes the engineer",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 3,
+          "gold_event": "engineer restarts ventilation",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 3,
+          "gold_event": "smoke clears from the shelter",
+          "matched_proposition_id": "E3",
+          "method": "TOKEN_LEMMA",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        }
+      ],
+      "final_graph_metrics": {
+        "aligned_gold_edge_count": 0,
+        "aligned_gold_node_count": 1,
+        "audit_novelty_rate": null,
+        "audit_only_precision": null,
+        "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [],
+        "gold_edge_count": 2,
+        "gold_node_count": 3,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 0.3333333333333333,
+        "pairwise_gold_accuracy_given_aligned_nodes": null,
+        "relation_recall_conditional_on_node_availability": null,
+        "scaffold_gold_accuracy_given_aligned_nodes": null
+      },
+      "id": "embedded_authorization",
+      "index": 1,
+      "log": "eval_outputs/repair-guidance-combined-v3-regression-20260921/02_embedded_authorization.log",
+      "metrics": {
+        "aligned_gold_edge_count": 2,
+        "aligned_gold_node_count": 3,
+        "audit_novelty_rate": 0.0,
+        "audit_only_precision": null,
+        "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [
+          {
+            "action_id": "A0",
+            "audit_correct": false,
+            "audit_relation": null,
+            "gold_relation": "ENABLES",
+            "scaffold_correct": false,
+            "scaffold_relations": [],
+            "source_proposition_id": "p1",
+            "target_proposition_id": "PR_AUTO_1"
+          },
+          {
+            "action_id": "A0",
+            "audit_correct": false,
+            "audit_relation": null,
+            "gold_relation": "CAUSES",
+            "scaffold_correct": false,
+            "scaffold_relations": [],
+            "source_proposition_id": "PR_AUTO_1",
+            "target_proposition_id": "p3"
+          }
+        ],
+        "gold_edge_count": 2,
+        "gold_node_count": 3,
+        "gold_relations_absent_from_scaffold": 2,
+        "node_recall": 1.0,
+        "pairwise_gold_accuracy_given_aligned_nodes": 0.0,
+        "relation_recall_conditional_on_node_availability": 0.0,
+        "scaffold_gold_accuracy_given_aligned_nodes": 0.0
+      },
+      "performance": "eval_outputs/repair-guidance-combined-v3-regression-20260921/02_embedded_authorization.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A0",
+        "A1": "A1"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A0",
+          "relation": "ENABLES",
+          "source_event": "director authorizes the engineer",
+          "target_event": "engineer restarts ventilation"
+        },
+        {
+          "action_id": "A0",
+          "relation": "CAUSES",
+          "source_event": "engineer restarts ventilation",
+          "target_event": "smoke clears from the shelter"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260921_121748_883259.json",
+      "stage_one_status": "PARTIALLY_ADMITTED",
+      "world_committed": true
+    },
+    {
+      "alignments": [
+        {
+          "action_id": "A1",
+          "candidate_count": 4,
+          "gold_event": "activating the backup",
+          "matched_proposition_id": "P1",
+          "method": "EXACT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A1",
+          "candidate_count": 4,
+          "gold_event": "main server shuts down",
+          "matched_proposition_id": "P2",
+          "method": "GOLD_LEMMA_CONTAINMENT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A1",
+          "candidate_count": 4,
+          "gold_event": "cooling fan starts",
+          "matched_proposition_id": "P3",
+          "method": "EXACT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        }
+      ],
+      "audit_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_relation_audit_workspace_20260921_121816_973925.json",
+      "audit_status": "EMPTY_NO_PAIRS",
+      "elapsed_seconds": 48.531,
+      "exit_code": 0,
+      "family": "NEGATED_SUBORDINATE_CLAUSE",
+      "final_graph_alignments": [
+        {
+          "action_id": "A1",
+          "candidate_count": 0,
+          "gold_event": "activating the backup",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NO_ACTION_NODES"
+        },
+        {
+          "action_id": "A1",
+          "candidate_count": 0,
+          "gold_event": "main server shuts down",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NO_ACTION_NODES"
+        },
+        {
+          "action_id": "A1",
+          "candidate_count": 0,
+          "gold_event": "cooling fan starts",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NO_ACTION_NODES"
+        }
+      ],
+      "final_graph_metrics": {
+        "aligned_gold_edge_count": 0,
+        "aligned_gold_node_count": 0,
+        "audit_novelty_rate": null,
+        "audit_only_precision": null,
+        "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [],
+        "gold_edge_count": 2,
+        "gold_node_count": 3,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 0.0,
+        "pairwise_gold_accuracy_given_aligned_nodes": null,
+        "relation_recall_conditional_on_node_availability": null,
+        "scaffold_gold_accuracy_given_aligned_nodes": null
+      },
+      "id": "negated_subordinate_backup",
+      "index": 2,
+      "log": "eval_outputs/repair-guidance-combined-v3-regression-20260921/03_negated_subordinate_backup.log",
+      "metrics": {
+        "aligned_gold_edge_count": 2,
+        "aligned_gold_node_count": 3,
+        "audit_novelty_rate": 0.0,
+        "audit_only_precision": null,
+        "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [
+          {
+            "action_id": "A1",
+            "audit_correct": false,
+            "audit_relation": null,
+            "gold_relation": "NONE",
+            "scaffold_correct": true,
+            "scaffold_relations": [],
+            "source_proposition_id": "P1",
+            "target_proposition_id": "P2"
+          },
+          {
+            "action_id": "A1",
+            "audit_correct": false,
+            "audit_relation": null,
+            "gold_relation": "CAUSES",
+            "scaffold_correct": false,
+            "scaffold_relations": [],
+            "source_proposition_id": "P1",
+            "target_proposition_id": "P3"
+          }
+        ],
+        "gold_edge_count": 2,
+        "gold_node_count": 3,
+        "gold_relations_absent_from_scaffold": 1,
+        "node_recall": 1.0,
+        "pairwise_gold_accuracy_given_aligned_nodes": 0.0,
+        "relation_recall_conditional_on_node_availability": 0.0,
+        "scaffold_gold_accuracy_given_aligned_nodes": 0.5
+      },
+      "performance": "eval_outputs/repair-guidance-combined-v3-regression-20260921/03_negated_subordinate_backup.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A1",
+        "A1": "A0"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A1",
+          "relation": "NONE",
+          "source_event": "activating the backup",
+          "target_event": "main server shuts down"
+        },
+        {
+          "action_id": "A1",
+          "relation": "CAUSES",
+          "source_event": "activating the backup",
+          "target_event": "cooling fan starts"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260921_121816_973925.json",
+      "stage_one_status": "ADMITTED",
+      "world_committed": false
+    }
+  ],
+  "stage_one_guidance_mode": "authoritative",
+  "syntactic_resolution_obligations": false,
+  "targeted_semantic_resolution": false
+}

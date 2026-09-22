@@ -1,0 +1,151 @@
+{
+  "schema_version": 2,
+  "run_id": "workspace_20260921_083621_767954_20260921_083622_222079",
+  "started_at": "2026-09-21T12:36:22.222104+00:00",
+  "elapsed_seconds": 29.484506,
+  "counts": {
+    "events": 9,
+    "by_category": {
+      "model_call": 3,
+      "provider_attempt": 3,
+      "stage": 3
+    },
+    "by_status": {
+      "OK": 9
+    },
+    "logical_model_calls": 3,
+    "model_call_count": 3,
+    "original_agent_model_calls": 0,
+    "compact_primary_calls": 0,
+    "compact_repair_calls": 0,
+    "repair_count": 1,
+    "timeout_count": 0,
+    "abstention_count": 0,
+    "budget_blocked_calls": 0,
+    "model_cache_hits": 0,
+    "grounded_projection_materializations": 0,
+    "grounded_projection_cache_hits": 0,
+    "provider_attempts": 3,
+    "provider_failures": 0
+  },
+  "timings_by_name_seconds": {
+    "action_planning": 3e-06,
+    "openai.chat.completions": 28.984592,
+    "pipeline_total": 29.484268,
+    "world_grounding": 29.017919,
+    "world_grounding_primary": 9.707943,
+    "world_grounding_repair": 10.330786,
+    "world_grounding_skeleton": 8.947671
+  },
+  "original_agents": {},
+  "compact_specialists": {},
+  "ledger_commits": {},
+  "events": [
+    {
+      "category": "stage",
+      "name": "action_planning",
+      "status": "OK",
+      "duration_seconds": 3e-06,
+      "finished_at": "2026-09-21T12:36:22.663891+00:00",
+      "metadata": {}
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 8.947358,
+      "finished_at": "2026-09-21T12:36:31.615794+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_skeleton",
+      "status": "OK",
+      "duration_seconds": 8.947671,
+      "finished_at": "2026-09-21T12:36:31.615971+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_skeleton",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 3072,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 9.707289,
+      "finished_at": "2026-09-21T12:36:41.325714+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_primary",
+      "status": "OK",
+      "duration_seconds": 9.707943,
+      "finished_at": "2026-09-21T12:36:41.325801+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 6144,
+        "structured": true,
+        "cycle": 0,
+        "attempt": 1,
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 10.329945,
+      "finished_at": "2026-09-21T12:36:51.670749+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_repair",
+      "status": "OK",
+      "duration_seconds": 10.330786,
+      "finished_at": "2026-09-21T12:36:51.671040+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_repair",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 6144,
+        "structured": true,
+        "cycle": 0,
+        "attempt": 2,
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "world_grounding",
+      "status": "OK",
+      "duration_seconds": 29.017919,
+      "finished_at": "2026-09-21T12:36:51.684579+00:00",
+      "metadata": {}
+    },
+    {
+      "category": "stage",
+      "name": "pipeline_total",
+      "status": "OK",
+      "duration_seconds": 29.484268,
+      "finished_at": "2026-09-21T12:36:51.705975+00:00",
+      "metadata": {}
+    }
+  ],
+  "content_recording": "DISABLED"
+}

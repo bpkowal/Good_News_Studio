@@ -10,7 +10,7 @@ import unittest
 
 from hypothesis import given, settings
 
-from semantic_integrity.harness import (
+from relent_testkit.harness import (
     anaphor_entity_identity_holds,
     discourse_role_field_for_party,
     negation_scope_siblings_holds,

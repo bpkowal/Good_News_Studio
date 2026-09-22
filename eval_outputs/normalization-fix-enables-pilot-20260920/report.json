@@ -1,0 +1,103 @@
+{
+  "aggregate": {
+    "aligned_gold_edge_count": 1,
+    "aligned_gold_node_count": 2,
+    "audit_complete_count": 0,
+    "audit_novelty_rate": 0.0,
+    "audit_only_precision": null,
+    "audit_only_relation_count": 0,
+    "case_count": 1,
+    "correct_audit_only_relation_count": 0,
+    "correct_audit_only_relations": 0,
+    "gold_edge_count": 1,
+    "gold_node_count": 2,
+    "gold_relations_absent_from_scaffold": 1,
+    "node_recall": 1.0,
+    "pairwise_gold_accuracy_given_aligned_nodes": 0.0,
+    "scaffold_gold_accuracy_given_aligned_nodes": 0.0,
+    "stage_one_admitted_count": 0
+  },
+  "manifest": "evals/pairwise_relation_challenge_set.json",
+  "max_pairs": 24,
+  "model": "o3",
+  "protocol": "STAGED_NODE_GENERATION_PILOT",
+  "report_version": "1.0",
+  "results": [
+    {
+      "alignments": [
+        {
+          "action_id": "A1",
+          "candidate_count": 5,
+          "gold_event": "issuing the access card",
+          "matched_proposition_id": "PR3",
+          "method": "EXACT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A1",
+          "candidate_count": 5,
+          "gold_event": "Noor enters the laboratory",
+          "matched_proposition_id": "PR4",
+          "method": "EXACT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        }
+      ],
+      "audit_artifact": null,
+      "audit_status": "NOT_RUN",
+      "elapsed_seconds": 51.566,
+      "exit_code": 2,
+      "family": "WRONG_CAUSAL_LABEL",
+      "id": "pair_enable_not_cause",
+      "index": 2,
+      "log": "eval_outputs/normalization-fix-enables-pilot-20260920/03_pair_enable_not_cause.log",
+      "metrics": {
+        "aligned_gold_edge_count": 1,
+        "aligned_gold_node_count": 2,
+        "audit_novelty_rate": 0.0,
+        "audit_only_precision": null,
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [
+          {
+            "action_id": "A1",
+            "audit_correct": false,
+            "audit_relation": null,
+            "gold_relation": "ENABLES",
+            "scaffold_correct": false,
+            "scaffold_relations": [],
+            "source_proposition_id": "PR3",
+            "target_proposition_id": "PR4"
+          }
+        ],
+        "gold_edge_count": 1,
+        "gold_node_count": 2,
+        "gold_relations_absent_from_scaffold": 1,
+        "node_recall": 1.0,
+        "pairwise_gold_accuracy_given_aligned_nodes": 0.0,
+        "relation_recall_conditional_on_node_availability": 0.0,
+        "scaffold_gold_accuracy_given_aligned_nodes": 0.0
+      },
+      "performance": "eval_outputs/normalization-fix-enables-pilot-20260920/03_pair_enable_not_cause.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A1",
+        "A1": "A0"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A1",
+          "relation": "ENABLES",
+          "source_event": "issuing the access card",
+          "target_event": "Noor enters the laboratory"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_094222_467402.json",
+      "stage_one_status": "REJECTED",
+      "world_committed": false
+    }
+  ]
+}

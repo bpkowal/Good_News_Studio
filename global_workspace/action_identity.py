@@ -274,6 +274,13 @@ def action_clause_looks_complete(action: str) -> bool:
         return True
     if tokens[-1] in _ACTION_OPEN_ENDINGS:
         return False
+    # Ordinals are often complete adverbial modifiers ("treat Priya first",
+    # "treat Priya first and Mateo second"). They are dangling only in an
+    # unfinished determiner phrase such as "send the first". Treating every
+    # final ordinal as truncation prevented otherwise explicit ordering choices
+    # from reaching world grounding at all.
+    if tokens[-1] in {"first", "second"}:
+        return len(tokens) >= 2 and tokens[-2] != "the"
     if tokens[-1] in _ACTION_DANGLING_ENDINGS:
         return False
     return True
@@ -2078,8 +2085,9 @@ def build_canonical_action_records(
     action_origin: str = "SOURCE_EXTRACTED",
 ) -> list[CanonicalActionRecord]:
     if world_model:
-        from .world_state import project_world_action_roles, source_plan_label, world_model_from_dict
-        typed = world_model_from_dict(world_model)
+        from .world_admission import restore_admitted_world
+        from .world_state import project_world_action_roles, source_plan_label
+        typed = restore_admitted_world(world_model)
         if typed is not None:
             party_by_id = {party.party_id: party for party in typed.parties}
             action_text_by_id = {f"A{index}": action for index, action in enumerate(actions)}
@@ -2122,9 +2130,18 @@ def build_canonical_action_records(
                         return world_action.intervention
                     effect = effect_by_id.get(endpoint_id)
                     return effect.outcome if effect is not None else endpoint_id
+                def _mechanism_relation(link) -> str:
+                    target = effect_by_id.get(link.target_id)
+                    if (
+                        target is not None
+                        and target.derivation_operation
+                        == "EXCLUSIVE_ALLOCATION_COMPLEMENT"
+                    ):
+                        return "exclusively entails"
+                    return link.relation.casefold()
                 mechanism = "; ".join(
                     f"{_mechanism_endpoint(link.source_id)} "
-                    f"{link.relation.casefold()} {_mechanism_endpoint(link.target_id)}"
+                    f"{_mechanism_relation(link)} {_mechanism_endpoint(link.target_id)}"
                     for link in causal
                 )
                 actor_party = party_by_id.get(world_action.actor_party_id)
@@ -2232,12 +2249,13 @@ def action_world_correspondence_errors(
     provenance for effects; only source clauses or explicit user-authored input
     can establish factual consequences.
     """
-    from .world_state import ScenarioWorldModel, world_model_from_dict
+    from .world_admission import restore_admitted_world
+    from .world_state import ScenarioWorldModel
 
     typed = (
         world_model
         if isinstance(world_model, ScenarioWorldModel)
-        else world_model_from_dict(world_model)
+        else restore_admitted_world(world_model)
     )
     if typed is None:
         return ("typed world state could not be restored for action correspondence",)

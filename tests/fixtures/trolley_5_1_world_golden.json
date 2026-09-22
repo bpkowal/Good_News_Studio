@@ -1,0 +1,24 @@
+{
+  "fixture_version": "1.0",
+  "scenario": "A runaway trolley is traveling toward 5 people on the main track. The decision-maker must choose either to pull the lever, moving the trolley onto a side track where it will hit exactly 1 person, or to refrain from pulling the lever, leaving the trolley on the main track where it will hit exactly 5 people. No other intervention is available. Which action should the decision-maker take?",
+  "actions": [
+    "To pull the lever, moving the trolley onto a side track where it will hit exactly 1 person",
+    "To refrain from pulling the lever, leaving the trolley on the main track where it will hit exactly 5 people"
+  ],
+  "deterministic_route": "BINARY_CERTAIN_TROLLEY_LEVER_DIVERSION_V1",
+  "expected": {
+    "actual_adverse": [
+      ["A0", "P_SIDE", "1"],
+      ["A1", "P_MAIN", "5"]
+    ],
+    "causal_edges": [
+      ["DET_MAIN", "DET_MAIN_HIT"],
+      ["DET_PULL", "DET_SIDE"],
+      ["DET_REFRAIN", "DET_MAIN"],
+      ["DET_SIDE", "DET_SIDE_HIT"]
+    ],
+    "derived_counterfactual_effect_count": 2,
+    "foregone_effect_count": 0,
+    "counterfactual_link_count": 2
+  }
+}

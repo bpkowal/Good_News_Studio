@@ -1,0 +1,189 @@
+{
+  "status": "COMMITTED",
+  "world_model_status": "COMMITTED",
+  "repair_attempts": 0,
+  "repairs": [
+    {
+      "attempt": 1,
+      "repair_scope": "LOCAL_PATCH",
+      "inherited_candidate": true,
+      "rebuild_action_ids": [],
+      "errors": [],
+      "validation_issues": [],
+      "repair_delta": {
+        "dropped": {},
+        "added": {
+          "quantities": [
+            "effect|E4|five"
+          ]
+        },
+        "illegal_drops": []
+      }
+    }
+  ],
+  "action_propositions": [
+    {
+      "action_id": "A0",
+      "text": "pull lever",
+      "propositions": []
+    },
+    {
+      "action_id": "A1",
+      "text": "do not pull lever",
+      "propositions": []
+    }
+  ],
+  "compact_role_assignments": [
+    {
+      "action_id": "A0",
+      "bucket": "harmed",
+      "label": "One person on side track",
+      "effect_id": "E2",
+      "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; affected quantity one, five; compact harmed"
+    },
+    {
+      "action_id": "A1",
+      "bucket": "harmed",
+      "label": "Five people on main track",
+      "effect_id": "E5",
+      "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; affected quantity five; compact harmed"
+    }
+  ],
+  "chains": [
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C0",
+          "text": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "pull lever"
+      },
+      "world": {
+        "effect_id": "E1",
+        "party_id": "P1",
+        "party_label": "Runaway trolley",
+        "outcome": "is redirected onto side track",
+        "directness": "DIRECT",
+        "effect_kind": "INTERVENTION",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C0",
+          "text": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "pull lever"
+      },
+      "world": {
+        "effect_id": "E2",
+        "party_id": "P3",
+        "party_label": "One person on side track",
+        "outcome": "is killed",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "HEALTH_OUTCOME",
+        "polarity": "ADVERSE",
+        "modality": "CERTAIN",
+        "quantities": [
+          "one",
+          "five"
+        ],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A0",
+        "bucket": "harmed",
+        "label": "One person on side track",
+        "effect_id": "E2",
+        "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; affected quantity one, five; compact harmed"
+      }
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C0",
+          "text": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "do not pull lever"
+      },
+      "world": {
+        "effect_id": "E4",
+        "party_id": "P1",
+        "party_label": "Runaway trolley",
+        "outcome": "will kill five people",
+        "directness": "DIRECT",
+        "effect_kind": "INTERVENTION",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [
+          "five"
+        ],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C0",
+          "text": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "do not pull lever"
+      },
+      "world": {
+        "effect_id": "E5",
+        "party_id": "P2",
+        "party_label": "Five people on main track",
+        "outcome": "are killed",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "HEALTH_OUTCOME",
+        "polarity": "ADVERSE",
+        "modality": "CERTAIN",
+        "quantities": [
+          "five"
+        ],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A1",
+        "bucket": "harmed",
+        "label": "Five people on main track",
+        "effect_id": "E5",
+        "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; affected quantity five; compact harmed"
+      }
+    }
+  ]
+}

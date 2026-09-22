@@ -11,6 +11,7 @@ ESTABLISHED (not hypothetical).
 from __future__ import annotations
 
 import unittest
+from dataclasses import replace
 
 from hypothesis import given, settings
 
@@ -20,14 +21,15 @@ from global_workspace.scenario_semantics import compile_scenario_graph
 from global_workspace.world_state import (
     compile_averted_alternative_harm_overlays,
     compile_chance_gated_world,
+    compile_foregone_overlays,
     compile_grounded_quantities,
     is_averted_alternative_harm_effect,
     validate_effect_source_bindings,
     validate_world_model,
 )
 from invariants.catalog import invariant_by_id
-from semantic_integrity.coverage import load_map, load_taxonomy
-from semantic_integrity.harness import admit_world_from_discourse, load_seed
+from relent_testkit.coverage import load_map, load_taxonomy
+from relent_testkit.harness import admit_world_from_discourse, load_seed
 from strategies.averted_alternative_harm import (
     AvertedAlternativeHarmCase,
     averted_alternative_harm_cases,
@@ -53,6 +55,78 @@ def _licensed_averted_quantity(case: AvertedAlternativeHarmCase) -> bool:
 
 
 class AvertedAlternativeHarmHypothesisTests(unittest.TestCase):
+    @given(
+        averted_alternative_harm_cases().filter(
+            lambda case: case.mutation == "adverse_only",
+        ),
+    )
+    @settings(max_examples=25, deadline=None)
+    def test_alternative_harm_projects_benefit_when_own_branch_omits_survival(
+        self, case: AvertedAlternativeHarmCase,
+    ):
+        harm_only = replace(
+            case.world,
+            effects=tuple(
+                effect for effect in case.world.effects
+                if effect.effect_id != case.survival_effect_id
+            ),
+        )
+        compiled = compile_averted_alternative_harm_overlays(harm_only)
+        derived = [
+            effect for effect in compiled.effects
+            if is_averted_alternative_harm_effect(effect)
+        ]
+        self.assertTrue(derived, compiled.effects)
+        self.assertTrue(
+            any(case.life_quantity in effect.quantities for effect in derived),
+            derived,
+        )
+        compact = compile_foregone_overlays(compiled)
+        self.assertFalse(
+            any(effect.directness == "FOREGONE" for effect in compact.effects),
+            "an averted projection must not generate a projection-of-projection",
+        )
+
+    @given(
+        averted_alternative_harm_cases().filter(
+            lambda case: case.mutation == "adverse_only",
+        ),
+    )
+    @settings(max_examples=25, deadline=None)
+    def test_compile_does_not_duplicate_quantity_complete_actual_benefit(
+        self, case: AvertedAlternativeHarmCase,
+    ):
+        effects = tuple(
+            replace(effect, quantities=(case.life_quantity,))
+            if effect.effect_id == case.survival_effect_id else effect
+            for effect in case.world.effects
+        )
+        compiled = compile_averted_alternative_harm_overlays(
+            replace(case.world, effects=effects),
+        )
+        self.assertFalse(
+            any(is_averted_alternative_harm_effect(effect)
+                for effect in compiled.effects),
+            compiled.effects,
+        )
+        self.assertTrue(
+            any(
+                link.relation == "PRECLUDES_ALTERNATIVE_EFFECT"
+                and link.alternative_effect_id == case.death_effect_id
+                for link in compiled.counterfactual_links
+            ),
+            compiled.counterfactual_links,
+        )
+        compact = compile_foregone_overlays(compiled)
+        self.assertFalse(
+            any(
+                effect.action_id == "A0" and effect.directness == "FOREGONE"
+                for effect in compact.effects
+            ),
+            "a direct PRECLUDES relation must not trigger a same-action "
+            "FOREGONE duplicate",
+        )
+
     @given(averted_alternative_harm_cases())
     @settings(max_examples=40, deadline=None)
     def test_oracle_rejects_silent_source_copy(
@@ -365,7 +439,7 @@ class AvertedAlternativeHarmGroundingTests(unittest.TestCase):
         graph = compile_scenario_graph(
             discourse,
             list(seed["actions"]),
-            world_model=compiled.as_dict(),
+            world_model=compiled,
         )
         ledger = seed_proposition_ledger(graph)
         prop_id = f"PROP:WORLD:{averted.effect_id}"

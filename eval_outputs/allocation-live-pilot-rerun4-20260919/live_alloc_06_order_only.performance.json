@@ -1,0 +1,123 @@
+{
+  "schema_version": 2,
+  "run_id": "workspace_20260919_095917_904825_20260919_095918_313870",
+  "started_at": "2026-09-19T13:59:18.313893+00:00",
+  "elapsed_seconds": 23.873487,
+  "counts": {
+    "events": 7,
+    "by_category": {
+      "model_call": 2,
+      "provider_attempt": 2,
+      "stage": 3
+    },
+    "by_status": {
+      "OK": 7
+    },
+    "logical_model_calls": 2,
+    "model_call_count": 2,
+    "original_agent_model_calls": 0,
+    "compact_primary_calls": 0,
+    "compact_repair_calls": 0,
+    "repair_count": 0,
+    "timeout_count": 0,
+    "abstention_count": 0,
+    "budget_blocked_calls": 0,
+    "model_cache_hits": 0,
+    "grounded_projection_materializations": 0,
+    "grounded_projection_cache_hits": 0,
+    "provider_attempts": 2,
+    "provider_failures": 0
+  },
+  "timings_by_name_seconds": {
+    "action_planning": 3e-06,
+    "openai.chat.completions": 23.306664,
+    "pipeline_total": 23.873334,
+    "world_grounding": 23.341,
+    "world_grounding_primary": 12.665148,
+    "world_grounding_skeleton": 10.642653
+  },
+  "original_agents": {},
+  "compact_specialists": {},
+  "ledger_commits": {},
+  "events": [
+    {
+      "category": "stage",
+      "name": "action_planning",
+      "status": "OK",
+      "duration_seconds": 3e-06,
+      "finished_at": "2026-09-19T13:59:18.815712+00:00",
+      "metadata": {}
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 10.642309,
+      "finished_at": "2026-09-19T13:59:29.462273+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_skeleton",
+      "status": "OK",
+      "duration_seconds": 10.642653,
+      "finished_at": "2026-09-19T13:59:29.462496+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_skeleton",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 3072,
+        "structured": true,
+        "cycle": 0,
+        "stage": 1,
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 12.664355,
+      "finished_at": "2026-09-19T13:59:42.128072+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_primary",
+      "status": "OK",
+      "duration_seconds": 12.665148,
+      "finished_at": "2026-09-19T13:59:42.128145+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 6144,
+        "structured": true,
+        "cycle": 0,
+        "attempt": 1,
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "world_grounding",
+      "status": "OK",
+      "duration_seconds": 23.341,
+      "finished_at": "2026-09-19T13:59:42.159524+00:00",
+      "metadata": {}
+    },
+    {
+      "category": "stage",
+      "name": "pipeline_total",
+      "status": "OK",
+      "duration_seconds": 23.873334,
+      "finished_at": "2026-09-19T13:59:42.186638+00:00",
+      "metadata": {}
+    }
+  ],
+  "content_recording": "DISABLED"
+}

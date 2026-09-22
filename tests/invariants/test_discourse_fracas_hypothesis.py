@@ -9,7 +9,7 @@ import unittest
 
 from hypothesis import given, settings
 
-from semantic_integrity.harness import (
+from relent_testkit.harness import (
     adjective_modifier_binding_holds,
     attitude_factivity_holds,
     ellipsis_predicate_resolution_holds,

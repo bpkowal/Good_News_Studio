@@ -2,11 +2,17 @@
 from __future__ import annotations
 
 import unittest
+from dataclasses import replace
 
 from global_workspace.world_state import (
+    QuantityBearingConsequence,
+    WorldAction,
+    _best_action_for_quantity_consequence,
+    _effect_covers_quantity_consequence,
     explicit_quantity_spans,
     extract_quantity_bearing_consequences,
     validate_world_completeness,
+    validate_world_model,
 )
 from global_workspace.world_validation import (
     apply_deterministic_local_patches,
@@ -14,8 +20,8 @@ from global_workspace.world_validation import (
     validation_issues_from_messages,
 )
 from invariants.catalog import invariant_by_id
-from semantic_integrity.coverage import load_map, load_taxonomy
-from semantic_integrity.harness import (
+from relent_testkit.coverage import load_map, load_taxonomy
+from relent_testkit.harness import (
     admit_world_from_discourse,
     load_seed,
     quantity_bearing_consequence_preservation_holds,
@@ -24,6 +30,177 @@ from semantic_integrity.harness import (
 
 
 class QuantityBearingConsequencePreservationTests(unittest.TestCase):
+    def test_negated_canonical_action_owns_refrain_side_quantity(self):
+        actions = (
+            WorldAction("A0", "pulls the lever", "P0"),
+            WorldAction("A1", "does not pull the lever", "P0"),
+        )
+        consequence = QuantityBearingConsequence(
+            consequence_span="hit exactly 500 people",
+            quantity_spans=("500",),
+            polarity="ADVERSE",
+            side_cue=(
+                "to refrain from pulling the lever, leaving the trolley "
+                "on the main track"
+            ),
+            clause_excerpt="either pull the lever or refrain from pulling it",
+        )
+        matched = _best_action_for_quantity_consequence(consequence, actions)
+        self.assertIsNotNone(matched)
+        self.assertEqual("A1", matched.action_id)
+
+    def test_quantity_mismatch_blocks_cross_branch_effect_match(self):
+        model = structured_world_from_seed(
+            load_seed("quantity_bearing_purge_structured.yaml"),
+        )
+        base = next(effect for effect in model.effects if effect.effect_id == "E_loss")
+        one_person_effect = replace(
+            base,
+            outcome="one person is hit",
+            source_proposition="exactly one person is hit",
+            quantities=("one",),
+        )
+        five_hundred = QuantityBearingConsequence(
+            consequence_span="exactly 500 people are hit",
+            quantity_spans=("500",),
+            polarity="ADVERSE",
+            side_cue="refrain",
+            clause_excerpt="exactly 500 people are hit",
+        )
+        self.assertFalse(
+            _effect_covers_quantity_consequence(one_person_effect, five_hundred),
+        )
+
+    def test_quantified_physical_harm_is_a_required_consequence(self):
+        text = (
+            "The decision-maker must choose either to pull the lever, moving "
+            "the trolley where it will hit exactly one person, or to refrain, "
+            "leaving it where it will hit exactly 500 people."
+        )
+        items = extract_quantity_bearing_consequences([text])
+        quantities = {
+            quantity
+            for item in items
+            for quantity in item.quantity_spans
+        }
+        self.assertEqual(quantities, {"one", "500"})
+        self.assertTrue(all(item.polarity == "ADVERSE" for item in items))
+        by_quantity = {
+            item.quantity_spans[0]: item.side_cue.casefold() for item in items
+        }
+        self.assertIn("pull the lever", by_quantity["one"])
+        self.assertIn("refrain", by_quantity["500"])
+
+    def test_bound_source_quantity_is_required_when_normalized_outcome_omits_it(self):
+        seed = load_seed("quantity_bearing_purge_structured.yaml")
+        model = structured_world_from_seed(seed, world_key="party_quantity_world")
+        effects = tuple(
+            replace(
+                effect,
+                quantities=(),
+                source_proposition="thousands of lives",
+            ) if effect.effect_id == "E_loss" else effect
+            for effect in model.effects
+        )
+        errors, _ = validate_world_model(
+            replace(model, effects=effects), action_ids=["A0", "A1"],
+        )
+        self.assertTrue(
+            any(
+                "E_loss omits quantities stated" in error
+                and "thousands" in error
+                for error in errors
+            ),
+            errors,
+        )
+
+    def test_effect_local_quantity_omission_is_typed_and_repaired_generally(self):
+        candidate = {
+            "world_model": {
+                "effects": [{
+                    "effect_id": "E1a",
+                    "action_id": "A0",
+                    "outcome": "exactly one person is harmed",
+                    "source_proposition": "exactly one person is harmed",
+                    "quantities": [],
+                }],
+            },
+        }
+        issues = validation_issues_from_messages([
+            "E1a omits quantities stated in its outcome and provenance: ['one']",
+        ])
+        self.assertEqual(issues[0].code, "EFFECT_QUANTITY_MISSING")
+        patched, applied = apply_deterministic_local_patches(candidate, issues)
+        self.assertEqual(
+            patched["world_model"]["effects"][0]["quantities"], ["one"],
+        )
+        self.assertEqual(applied[0]["code"], "EFFECT_QUANTITY_MISSING")
+
+    def test_lemma_mismatch_copies_bound_source_proposition_then_revalidates(self):
+        candidate = {
+            "world_model": {
+                "effects": [{
+                    "effect_id": "E1",
+                    "action_id": "A0",
+                    "outcome": "is by vehicle",
+                    "source_proposition": "the vehicle hits one person",
+                    "clause_ids": ["C0"],
+                }],
+            },
+        }
+        issues = validation_issues_from_messages([
+            "E1 outcome lemma does not bind to source_proposition; rewrite the outcome to a morphological variant of the source event or omit the derived world effect",
+        ])
+        patched, applied = apply_deterministic_local_patches(
+            candidate,
+            issues,
+            clauses=[{"clause_id": "C0", "text": "the vehicle hits one person"}],
+        )
+        self.assertEqual(
+            patched["world_model"]["effects"][0]["outcome"],
+            "the vehicle hits one person",
+        )
+        self.assertEqual(applied[0]["code"], "VERB_LEMMA_MISMATCH")
+
+    def test_effect_local_quantity_repair_preserves_comma_formatted_span(self):
+        candidate = {
+            "world_model": {
+                "effects": [{
+                    "effect_id": "E12",
+                    "action_id": "A1",
+                    "outcome": "treatment reaches 12,000 patients",
+                    "source_proposition": "treatment reaches 12,000 patients",
+                    "quantities": [],
+                }],
+            },
+        }
+        issues = validation_issues_from_messages([
+            "E12 omits quantities stated in its outcome and provenance: ['12,000']",
+        ])
+        patched, _ = apply_deterministic_local_patches(candidate, issues)
+        self.assertEqual(
+            patched["world_model"]["effects"][0]["quantities"], ["12,000"],
+        )
+
+    def test_cross_effect_quantity_leak_is_removed_from_derived_effect_id(self):
+        candidate = {"world_model": {"effects": [{
+            "effect_id": "AV1",
+            "action_id": "A1",
+            "outcome": "averts harm to one person",
+            "source_proposition": "one person is harmed",
+            "quantities": ["one", "500"],
+        }]}}
+        issues = validation_issues_from_messages([
+            "AV1 quantity '500' is not bound to its outcome, source_proposition, affected party, or inherited alternative effect; remove the cross-effect quantity leak",
+        ])
+        self.assertEqual(issues[0].entity_id, "AV1")
+        self.assertEqual(issues[0].code, "EFFECT_QUANTITY_LEAK")
+        patched, applied = apply_deterministic_local_patches(candidate, issues)
+        self.assertEqual(
+            patched["world_model"]["effects"][0]["quantities"], ["one"],
+        )
+        self.assertEqual(applied[0]["op"], "remove_quantity")
+
     def test_taxonomy_marks_parliament_extension(self):
         row = next(
             item for item in load_taxonomy()["phenomena"]

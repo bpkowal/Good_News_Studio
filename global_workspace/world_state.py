@@ -8,6 +8,8 @@ contradictory facts from the same prose.
 """
 from __future__ import annotations
 
+import hashlib
+import json
 import re
 from dataclasses import asdict, dataclass, field, replace
 from typing import Any, Iterable, Sequence
@@ -69,6 +71,10 @@ _COMPARISON_CUE = re.compile(
     r"|option\s+(?:1|2|a|b)\b.*\boption\s+(?:1|2|a|b)\b"
     r"|action\s+a\d+.*action\s+a\d+)\b",
     re.IGNORECASE | re.DOTALL,
+)
+_STATED_FUTURE_EVENT_CUE = re.compile(
+    r"\b(?:will|would)\s+(?!choose\b|decide\b|select\b|compare\b)[a-z][a-z-]*\b",
+    re.IGNORECASE,
 )
 _DURATION_UNIT = (
     r"(?:seconds?|minutes?|hours?|days?|weeks?|months?|years?|percent|%)"
@@ -178,6 +184,8 @@ _LIKELIHOOD_HEDGES = (
     ("a chance", r"a\s+chance", False, False),
     ("remote chance", r"remote\s+chance", False, False),
     ("some chance", r"some\s+chance", False, False),
+    ("threatening", r"threaten(?:s|ed|ing)?", False, False),
+    ("risking", r"risk(?:s|ed|ing)", False, False),
     ("near-certain", r"near[- ]certain", True, False),
     ("almost certain", r"almost\s+certain", True, False),
     ("virtually certain", r"virtually\s+certain", True, False),
@@ -188,6 +196,7 @@ _LIKELIHOOD_HEDGES = (
     ("might", r"might", False, False),
     ("may", r"may", False, False),
     ("probably", r"probably", False, False),
+    ("expected", r"expected(?:\s+to)?", False, False),
     ("possibly", r"possibly", False, False),
     ("likely", r"likely", False, False),
     ("unlikely", r"unlikely", False, False),
@@ -301,6 +310,8 @@ def classify_clause_role(text: str) -> str:
     if cleaned.endswith("?"):
         return "INTERROGATIVE"
     if _COMPARISON_CUE.search(cleaned):
+        if _STATED_FUTURE_EVENT_CUE.search(cleaned):
+            return "MIXED_FACT_COMPARISON"
         return "COMPARISON"
     return "FACT"
 
@@ -313,7 +324,7 @@ def is_supporting_source(ref: SourceRef) -> bool:
     """
     if _ACTION_SOURCE_ID.match(ref.clause_id or ""):
         return True
-    return classify_clause_role(ref.excerpt) == "FACT"
+    return classify_clause_role(ref.excerpt) in {"FACT", "MIXED_FACT_COMPARISON"}
 
 
 _CARDINAL_MAGNITUDE = {
@@ -531,6 +542,18 @@ def explicit_likelihood_span_records(text: str) -> tuple[QualifierSpan, ...]:
             start=match.start(),
             end=match.end(),
         ))
+    # Event verbs such as "risks" and "threatening" express a generic
+    # probabilistic relation.  When the same grammatical region contains a
+    # more specific likelihood phrase ("near-certain", "20% chance", etc.),
+    # the specific phrase is the qualifier identity.  Requiring both creates
+    # a false omission and causes deterministic repair to attach the verb
+    # instead of the stated degree.
+    generic = {"risk", "risks", "risking", "threatening"}
+    if any(record.canonical.casefold() not in generic for record in kept):
+        kept = [
+            record for record in kept
+            if record.canonical.casefold() not in generic
+        ]
     return tuple(kept)
 
 
@@ -594,13 +617,53 @@ def _quantity_core(span: str) -> str:
     return _QUANTITY_CORE_PREFIX.sub("", _normalize_quantity_key(span)).strip()
 
 
+def _quantity_identity_core(span: str) -> str:
+    """Count identity without an attached population-unit noun.
+
+    Models may record ``1 person`` while the source extractor returns ``1``.
+    The population noun belongs to the affected party, not to the numeric
+    identity. Preserve the extractor's longest qualifier-bearing count span.
+    """
+    extracted = explicit_quantity_spans(span)
+    candidate = extracted[0] if len(extracted) == 1 else span
+    return _quantity_core(candidate)
+
+
+@dataclass(frozen=True, slots=True)
+class QuantityIdentity:
+    """Canonical identity for a source-grounded quantity expression."""
+
+    literal: str
+    canonical: str
+    core: str
+    magnitude: int | None
+
+
+def quantity_identity(span: str) -> QuantityIdentity:
+    """Preserve source wording while exposing one comparison identity."""
+    literal = str(span or "").strip()
+    canonical = canonical_quantity_span(literal)
+    return QuantityIdentity(
+        literal=literal,
+        canonical=canonical,
+        core=_quantity_identity_core(canonical),
+        magnitude=quantity_magnitude(canonical),
+    )
+
+
 def _quantities_equivalent(left: str, right: str) -> bool:
     if not left or not right:
         return False
     if left.casefold() == right.casefold():
         return True
-    core = _quantity_core(left)
-    return bool(core) and core == _quantity_core(right)
+    left_identity = quantity_identity(left)
+    right_identity = quantity_identity(right)
+    if left_identity.core and left_identity.core == right_identity.core:
+        return True
+    return (
+        left_identity.magnitude is not None
+        and left_identity.magnitude == right_identity.magnitude
+    )
 
 
 def _quantity_grounded_in_text(span: str, text: str) -> bool:
@@ -1158,6 +1221,54 @@ def _qualifier_binds_to_effect(
     return True
 
 
+def _effect_qualifier_source_texts(effect: WorldEffect) -> tuple[str, ...]:
+    """Return the smallest source segments that contain this atomic claim.
+
+    A provenance excerpt can state several opposed consequences.  Once an
+    effect carries a literal atomic ``source_proposition``, qualifiers from a
+    sibling segment must not be rebound merely because both segments mention
+    similar parties or welfare terms.  If the proposition cannot be located
+    reliably, retain the full excerpt so older and non-atomic records keep the
+    existing conservative validation behavior.
+    """
+    proposition = " ".join(str(effect.source_proposition or "").split())
+    texts: list[str] = []
+    for ref in effect.provenance:
+        excerpt = str(ref.excerpt or "")
+        if not excerpt:
+            continue
+        if not proposition:
+            texts.append(excerpt)
+            continue
+        pattern = re.compile(
+            r"\s+".join(re.escape(part) for part in proposition.split()),
+            flags=re.IGNORECASE,
+        )
+        match = pattern.search(excerpt)
+        if match is None:
+            texts.append(excerpt)
+            continue
+        boundaries = list(_QUALIFIER_CLAUSE_BOUNDARY.finditer(excerpt))
+        left = max(
+            (item.end() for item in boundaries if item.end() <= match.start()),
+            default=0,
+        )
+        right = min(
+            (item.start() for item in boundaries if item.start() >= match.end()),
+            default=len(excerpt),
+        )
+        segment = _QUALIFIER_LEADING_COORDINATOR.sub(
+            "", excerpt[left:right].strip(" ,;.")
+        ).strip()
+        # A source proposition that crosses a detected boundary is not safely
+        # atomized by this routine; keep the full source in that rare case.
+        if segment and pattern.search(segment):
+            texts.append(segment)
+        else:
+            texts.append(excerpt)
+    return tuple(dict.fromkeys(texts))
+
+
 def effect_expected_qualifiers(
     effect: WorldEffect, extractor: Any,
 ) -> tuple[str, ...]:
@@ -1174,9 +1285,19 @@ def effect_expected_qualifiers(
     all call this. Downstream graph, ledger, and compact copy the resulting
     tuples; they must not re-bind from prose.
     """
+    if extractor is explicit_likelihood_spans:
+        proposition_spans = explicit_likelihood_spans(effect.source_proposition)
+        recorded = tuple(
+            value for value in effect.likelihood_qualifiers
+            if _qualifier_grounded_in_text(value, effect.source_proposition)
+        )
+        if len(proposition_spans) > 1 and recorded:
+            # The proposition may be the full containing clause solely to
+            # resolve an elliptical event. Preserve the atomic row's grounded
+            # subject-specific probability rather than binding its sibling.
+            return _unique_likelihood_spans(recorded)
     found: list[str] = []
-    for ref in effect.provenance:
-        text = ref.excerpt
+    for text in _effect_qualifier_source_texts(effect):
         if extractor is explicit_likelihood_spans:
             attachments = [
                 (record.start, record.end, record.canonical)
@@ -1229,6 +1350,20 @@ class WorldCondition:
     decision_relevance: str = "MATERIAL"
     provenance: tuple[SourceRef, ...] = ()
     event_effect_id: str = ""
+    polarity: str = "POSITIVE"
+    operator: str = "IF"
+
+    def as_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True, slots=True)
+class WorldTemporalRelation:
+    relation_id: str
+    source_id: str
+    relation: str
+    target_id: str
+    provenance: tuple[SourceRef, ...] = ()
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -1306,30 +1441,35 @@ def normalize_redundant_link_gates(
     links: Sequence[CausalLink],
     effects: Sequence[WorldEffect],
 ) -> tuple[CausalLink, ...]:
-    """Remove only gates already owned by a conditional target effect.
+    """Synchronize a conditional target's gates onto its incoming links.
 
-    A link's modality describes the causal relationship.  Whether its target
-    is activated belongs to the target effect.  Models sometimes duplicate the
-    target's gate on an otherwise CERTAIN incoming link; that representation is
-    both redundant and rejected by the schema.  Removing the duplicate does
-    not weaken or invent a proposition because the same condition remains on
-    the target.  Conditions unique to a link are left untouched for validation
-    or semantic repair.
+    Effect and edge records are two projections of one causal assertion.  A
+    conditional target paired with an unconditional-looking incoming edge can
+    be read downstream as ``action certainly causes outcome`` even though the
+    effect says ``outcome only if C``.  Preserve link-local conditions, add the
+    target's gates, and type the relationship as conditional.  The legacy name
+    is retained because callers already use this function at parse and final
+    compilation boundaries.
     """
     effect_by_id = {effect.effect_id: effect for effect in effects}
     normalized: list[CausalLink] = []
     for link in links:
         target = effect_by_id.get(link.target_id)
-        duplicated = (
-            link.modality == "CERTAIN"
-            and bool(link.condition_ids)
-            and target is not None
-            and target.modality != "CERTAIN"
-            and set(link.condition_ids).issubset(set(target.condition_ids))
-        )
-        normalized.append(
-            replace(link, condition_ids=()) if duplicated else link
-        )
+        if target is None or not target.condition_ids:
+            normalized.append(link)
+            continue
+        gates = tuple(dict.fromkeys((
+            *link.condition_ids,
+            *target.condition_ids,
+        )))
+        modality = link.modality
+        if modality == "CERTAIN" or not modality:
+            modality = "STIPULATED_CONDITIONAL"
+        normalized.append(replace(
+            link,
+            modality=modality,
+            condition_ids=gates,
+        ))
     return tuple(normalized)
 
 
@@ -1381,6 +1521,7 @@ class ScenarioWorldModel:
     counterfactual_links: tuple[CounterfactualLink, ...] = ()
     admission: WorldStateAdmission = field(default_factory=WorldStateAdmission)
     schema_version: str = "1.0"
+    temporal_relations: tuple[WorldTemporalRelation, ...] = ()
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -1396,6 +1537,22 @@ class ScenarioWorldModel:
             if effect.action_id == action_id
             and (not filter_admission or effect.effect_id in admitted)
         )
+
+
+ACTUAL_WORLD_LAYER = "ACTUAL"
+DERIVED_COUNTERFACTUAL_LAYER = "DERIVED_COUNTERFACTUAL"
+FOREGONE_WORLD_LAYER = "FOREGONE"
+
+
+def effect_semantic_layer(effect: WorldEffect) -> str:
+    """Return the mutually exclusive semantic layer of an admitted effect."""
+    if effect.directness == "FOREGONE" or effect.polarity == "FOREGONE":
+        return FOREGONE_WORLD_LAYER
+    if effect.derivation_operation in {
+        "COUNTERFACTUAL_PROJECTION", "AVERTED_ALTERNATIVE_HARM",
+    }:
+        return DERIVED_COUNTERFACTUAL_LAYER
+    return ACTUAL_WORLD_LAYER
 
 
 _ROLE_WELFARE_KINDS = {"HEALTH_OUTCOME", "WELFARE_OUTCOME"}
@@ -2242,9 +2399,31 @@ def _effect_outcome_and_predicate(row: dict[str, Any]) -> tuple[str, str]:
 def _likelihood_fill_values(effect: WorldEffect) -> tuple[str, ...]:
     """Keep recorded hedges that match a bound span; fill from the literal."""
     provenance_text = _provenance_text(effect)
+    proposition_likelihoods = explicit_likelihood_spans(effect.source_proposition)
+    grounded_recorded = [
+        value for value in effect.likelihood_qualifiers
+        if _qualifier_grounded_in_text(value, provenance_text)
+        and _qualifier_grounded_in_text(value, effect.source_proposition)
+    ]
+    if grounded_recorded and (
+        len(proposition_likelihoods) > 1
+        or _source_proposition_supports_outcome(effect)
+        or bool(
+            _deverbal_identity_stems(_condition_content_stems(effect.outcome))
+            & _deverbal_identity_stems(
+                _condition_content_stems(effect.source_proposition)
+            )
+        )
+    ):
+        # A full clause may be retained to resolve an elliptical predicate while
+        # containing probabilities for multiple named subjects.  The atomic
+        # row's already source-grounded qualifier identifies its own subject;
+        # do not replace it with the first sibling probability in the clause.
+        # The same applies before span snapping when an atomic paraphrase binds
+        # the right event and copies a qualifier that really occurs in provenance.
+        return _unique_likelihood_spans(grounded_recorded)
     bound: list[QualifierSpan] = []
-    for ref in effect.provenance:
-        text = ref.excerpt
+    for text in _effect_qualifier_source_texts(effect):
         for record in explicit_likelihood_span_records(text):
             if _qualifier_binds_to_effect(
                 effect, text, record.start, record.end,
@@ -2705,7 +2884,16 @@ def parse_world_model(
         decision_relevance=_clean(row.get("decision_relevance"), 48).upper() or "MATERIAL",
         provenance=_refs(row.get("clause_ids", []), lookup),
         event_effect_id=_clean(row.get("event_effect_id"), 80),
+        polarity=_clean(row.get("polarity"), 16).upper() or "POSITIVE",
+        operator=_clean(row.get("operator"), 16).upper() or "IF",
     ) for row in raw.get("conditions", []) if isinstance(row, dict))
+    temporal_relations = tuple(WorldTemporalRelation(
+        relation_id=_clean(row.get("relation_id"), 80).upper(),
+        source_id=_clean(row.get("source_id"), 80),
+        relation=_clean(row.get("relation"), 16).upper(),
+        target_id=_clean(row.get("target_id"), 80),
+        provenance=_refs(row.get("clause_ids", []), lookup),
+    ) for row in raw.get("temporal_relations", []) if isinstance(row, dict))
     parsed_effects: list[WorldEffect] = []
     for row in raw.get("effects", []):
         if not isinstance(row, dict):
@@ -2895,20 +3083,32 @@ def parse_world_model(
             admitted_effect_ids=tuple(effect.effect_id for effect in effects),
         ),
         schema_version=schema_version,
+        temporal_relations=temporal_relations,
     )
+    precompiled_model = model
+    compilation_trace: tuple[WorldCompilationStage, ...] = ()
     if schema_version != "1.0":
-        model = compile_chance_gated_world(model)
+        model, compilation_trace = compile_world_model_with_trace(model)
     errors, _ = validate_world_model(model, action_ids=action_ids)
     if require_completeness:
-        errors.extend(validate_world_completeness(
+        completeness_errors = validate_world_completeness(
             model,
             action_ids=action_ids,
             source_texts=tuple(lookup.values()),
+        )
+        errors.extend(_completion_errors_with_compiler_witnesses(
+            completeness_errors,
+            before=precompiled_model,
+            after=model,
+            stages=compilation_trace,
         ))
     if errors:
         raise WorldModelValidationError(
             errors,
             validation_issues_from_messages(errors),
+            compiler_loss_telemetry=world_compilation_loss_telemetry(
+                precompiled_model, model, compilation_trace,
+            ),
         )
     return model
 
@@ -2937,6 +3137,37 @@ def validate_world_model(
     condition_ids = {condition.condition_id for condition in model.conditions}
     effect_ids = [effect.effect_id for effect in model.effects]
     effect_by_id = {effect.effect_id: effect for effect in model.effects}
+    temporal_endpoint_ids = condition_ids | set(effect_ids)
+    for condition in model.conditions:
+        if condition.polarity not in {"POSITIVE", "NEGATED"}:
+            errors.append(
+                f"{condition.condition_id} has invalid condition polarity "
+                f"{condition.polarity!r}"
+            )
+        if condition.operator not in {"IF", "UNLESS"}:
+            errors.append(
+                f"{condition.condition_id} has invalid condition operator "
+                f"{condition.operator!r}"
+            )
+        if condition.operator == "UNLESS" and condition.polarity != "NEGATED":
+            errors.append(
+                f"{condition.condition_id} uses UNLESS but is not NEGATED"
+            )
+    relation_ids = [item.relation_id for item in model.temporal_relations]
+    if len(set(relation_ids)) != len(relation_ids) or any(not item for item in relation_ids):
+        errors.append("temporal relations require unique non-empty relation_id values")
+    for relation in model.temporal_relations:
+        prefix = relation.relation_id or "temporal relation"
+        unknown = {
+            endpoint for endpoint in (relation.source_id, relation.target_id)
+            if endpoint not in temporal_endpoint_ids
+        }
+        if unknown:
+            errors.append(
+                f"{prefix} cites unknown temporal endpoints: {sorted(unknown)}"
+            )
+        if not relation.provenance:
+            errors.append(f"{prefix} lacks source provenance")
     if len(party_ids) != len(model.parties):
         errors.append("parties require unique non-empty party_id values")
     for party in model.parties:
@@ -3020,12 +3251,30 @@ def validate_world_model(
                 "predicate; finish the state or event (not a dangling "
                 "copula or preposition)"
             )
+        elif (
+            model.schema_version != "1.0"
+            and effect.effect_kind == "RESOURCE_TRANSFER"
+            and not _RESOURCE_TRANSFER_EVENT.search(effect.outcome)
+        ):
+            errors.append(
+                f"{prefix} outcome {effect.outcome!r} is an incomplete predicate "
+                "for RESOURCE_TRANSFER; state the source-licensed giving, receipt, "
+                "allocation, delivery, or administration event rather than only "
+                "naming the resource"
+            )
         if effect.directness not in DIRECTNESSES:
             errors.append(f"{prefix} has invalid directness {effect.directness}")
         if effect.modality not in MODALITIES:
             errors.append(f"{prefix} has invalid modality {effect.modality}")
         if effect.polarity not in POLARITIES:
             errors.append(f"{prefix} has invalid polarity {effect.polarity}")
+        polarity_contradiction = outcome_polarity_contradiction(effect)
+        if polarity_contradiction:
+            errors.append(
+                f"{prefix} outcome {effect.outcome!r} contradicts polarity "
+                f"{effect.polarity}: it {polarity_contradiction}; preserve the "
+                "source event and correct either its explicit negation or polarity"
+            )
         if effect.effect_kind not in EFFECT_KINDS:
             errors.append(f"{prefix} has invalid effect_kind {effect.effect_kind}")
         if model.schema_version != "1.0":
@@ -3156,20 +3405,46 @@ def validate_world_model(
         # A party-recorded population count may ground the same count on that
         # party's effects when an anaphoric clause omits the numeral.
         provenance_text = _provenance_text(effect)
-        inherited_averted = {
-            str(item).casefold()
-            for item in _averted_alternative_inherited_quantities(
+        inherited_averted = tuple(
+            str(item) for item in _averted_alternative_inherited_quantities(
                 effect, model, effect_by_id,
             )
-        }
-        claimed = explicit_quantity_spans(effect.outcome)
-        recorded = {item.casefold() for item in effect.quantities}
+        )
+        # Normalized outcomes often omit a numeral while their exact bound
+        # source proposition retains it (for example, "are hit" bound to
+        # "will hit exactly 500 people").  The typed effect must preserve
+        # quantities from both representations; otherwise semantic
+        # normalization silently erases decision-critical magnitude.
+        claimed = tuple(dict.fromkeys([
+            *explicit_quantity_spans(effect.outcome),
+            *explicit_quantity_spans(effect.source_proposition),
+        ]))
+        # A group premise can license the same predicate for each named member
+        # without assigning the cohort cardinality to either individual.  For
+        # example, "two patients ... die without it" supports Patient A dies
+        # and Patient B dies, but neither individual death has quantity two.
+        if party is not None and party.kind in {"PERSON", "HUMAN", "PATIENT"}:
+            proposition_text = str(effect.source_proposition or "")
+            claimed = tuple(
+                span for span in claimed
+                if not (
+                    (quantity_magnitude(span) or 0) > 1
+                    and re.search(
+                        rf"(?<!\w){re.escape(str(span))}(?!\w)\s+"
+                        r"(?:patients?|people|persons?|residents?|workers?|children|"
+                        r"adults?|families|households?)\b",
+                        proposition_text,
+                        re.IGNORECASE,
+                    )
+                )
+            )
+        recorded = tuple(str(item) for item in effect.quantities)
 
         def quantity_is_grounded(span: str) -> bool:
             return (
                 _quantity_grounded_in_text(span, provenance_text)
                 or _party_licenses_quantity(party, span)
-                or str(span).casefold() in inherited_averted
+                or any(_quantities_equivalent(span, item) for item in inherited_averted)
             )
 
         ungrounded = [span for span in claimed if not quantity_is_grounded(span)]
@@ -3180,18 +3455,53 @@ def validate_world_model(
             )
         omitted = [
             span for span in claimed
-            if quantity_is_grounded(span) and span.casefold() not in recorded
+            if quantity_is_grounded(span)
+            and not any(_quantities_equivalent(span, item) for item in recorded)
         ]
         if omitted:
             errors.append(
                 f"{prefix} omits quantities stated in its outcome and provenance: "
                 f"{omitted}"
             )
+        local_quantity_claims = tuple(
+            span
+            for span in (
+                *explicit_quantity_spans(effect.outcome),
+                *explicit_quantity_spans(effect.source_proposition),
+            )
+        )
+        provenance_quantity_claims = tuple(
+            explicit_quantity_spans(provenance_text)
+        )
         for quantity in effect.quantities:
             if not quantity_is_grounded(quantity):
                 errors.append(
                     f"{prefix} quantity {quantity!r} is not stated in its "
                     "provenance (outcome text alone cannot ground a quantity)"
+                )
+                continue
+            if not (
+                any(
+                    _quantities_equivalent(quantity, item)
+                    for item in local_quantity_claims
+                )
+                or _party_licenses_quantity(party, quantity)
+                or any(
+                    _quantities_equivalent(quantity, item)
+                    for item in inherited_averted
+                )
+                or (
+                    provenance_quantity_claims
+                    and all(
+                        _quantities_equivalent(quantity, item)
+                        for item in provenance_quantity_claims
+                    )
+                )
+            ):
+                errors.append(
+                    f"{prefix} quantity {quantity!r} is not bound to its "
+                    "outcome, source_proposition, affected party, or inherited "
+                    "alternative effect; remove the cross-effect quantity leak"
                 )
         errors.extend(pseudo_quantity_errors(effect.quantities, prefix=prefix))
         qualifier_fields = _qualifier_channels()
@@ -3247,6 +3557,27 @@ def validate_world_model(
                 f"{prefix} is CERTAIN but lists conditions; CERTAIN links "
                 "must not carry condition_ids"
             )
+        target_effect = effect_by_id.get(link.target_id)
+        if (
+            model.schema_version != "1.0"
+            and
+            target_effect is not None
+            and target_effect.condition_ids
+            and _link_parents_target(link)
+        ):
+            missing_target_gates = (
+                set(target_effect.condition_ids) - set(link.condition_ids)
+            )
+            if missing_target_gates:
+                errors.append(
+                    f"{prefix} omits target effect conditions: "
+                    f"{sorted(missing_target_gates)}"
+                )
+            if link.modality == "CERTAIN":
+                errors.append(
+                    f"{prefix} is unconditional but target effect "
+                    f"{target_effect.effect_id} is conditional"
+                )
         if not link.provenance:
             errors.append(f"{prefix} lacks source provenance")
         endpoint_owners = {
@@ -3296,10 +3627,19 @@ def validate_world_model(
                     "keep the same endpoints. Averted opposites belong on FOREGONE "
                     "counterfactual_links."
                 )
+    counterfactual_signatures: set[tuple[str, str, str, str, str]] = set()
+    averted_targets: set[tuple[str, str, str]] = set()
     for index, link in enumerate(model.counterfactual_links):
         prefix = f"counterfactual_link[{index}]"
         source = effect_by_id.get(link.source_effect_id)
         alternative = effect_by_id.get(link.alternative_effect_id)
+        signature = (
+            link.action_id, link.source_effect_id, link.relation,
+            link.alternative_action_id, link.alternative_effect_id,
+        )
+        if signature in counterfactual_signatures:
+            errors.append(f"{prefix} duplicates an existing counterfactual link")
+        counterfactual_signatures.add(signature)
         if link.action_id not in expected_actions:
             errors.append(f"{prefix} cites unknown action {link.action_id}")
         if link.alternative_action_id not in expected_actions:
@@ -3315,11 +3655,27 @@ def validate_world_model(
         elif (
             source.directness != "FOREGONE"
             and not is_averted_alternative_harm_effect(source)
+            and not (
+                link.relation == "PRECLUDES_ALTERNATIVE_EFFECT"
+                and source.polarity == "BENEFICIAL"
+            )
         ):
             errors.append(
                 f"{prefix} source effect must be typed FOREGONE "
-                "(or AVERTED_ALTERNATIVE_HARM for CERTAIN-alternative quantity inheritance)"
+                "(or an actual BENEFICIAL effect may PRECLUDE the alternative "
+                "effect; AVERTED_ALTERNATIVE_HARM remains available for "
+                "derived quantity inheritance)"
             )
+        if source is not None and is_averted_alternative_harm_effect(source):
+            averted_key = (
+                link.action_id, source.party_id, link.alternative_effect_id,
+            )
+            if averted_key in averted_targets:
+                errors.append(
+                    f"{prefix} duplicates an averted-alternative benefit for "
+                    f"{source.party_id} and {link.alternative_effect_id}"
+                )
+            averted_targets.add(averted_key)
         if alternative is None or alternative.action_id != link.alternative_action_id:
             errors.append(
                 f"{prefix} alternative effect does not belong to the alternative action"
@@ -3349,10 +3705,12 @@ def validate_world_model(
         averted_alternative_relational_errors,
         directionality_relational_errors,
         identity_relational_errors,
+        temporal_relation_errors,
     )
     errors.extend(averted_alternative_relational_errors(model))
     errors.extend(identity_relational_errors(model))
     errors.extend(directionality_relational_errors(model))
+    errors.extend(temporal_relation_errors(model.temporal_relations))
     contradictions: list[tuple[str, ...]] = []
     direct = [effect for effect in model.effects if effect.directness == "DIRECT"]
     for index, left in enumerate(direct):
@@ -3604,12 +3962,45 @@ def _parent_is_foreign_act_or_body(
     """
     if parent.party_id == child.party_id:
         return False
-    if parent.effect_kind not in _SKIP_INTERMEDIATE_PARENT_KINDS:
+    if (
+        parent.effect_kind not in _SKIP_INTERMEDIATE_PARENT_KINDS
+        and parent.directness != "DIRECT"
+    ):
         return False
     bearer = party_by_id.get(parent.party_id)
     if bearer is not None and bearer.kind in _INTERMEDIATE_BEARER_KINDS:
         return False
     return True
+
+
+def _direct_parents_skip_named_process(
+    effect: WorldEffect,
+    parents: Sequence[WorldEffect],
+    action: WorldAction,
+    model: ScenarioWorldModel,
+    party_by_id: dict[str, WorldParty],
+) -> tuple[WorldParty, ...]:
+    """Find a source-named process omitted between a direct act and harm.
+
+    Effect-kind typing alone is insufficient: generators sometimes type
+    ``lever is pulled`` as OTHER/PHYSICAL_STATE on the switch. If the harm
+    itself names a different process bearer (for example, "hit by trolley")
+    and every current parent is DIRECT, that named bearer needs its own state
+    node before the bodily outcome.
+    """
+    if not parents or any(parent.directness != "DIRECT" for parent in parents):
+        return ()
+    unused = _unused_cited_intermediate_parties(
+        effect, action, model, party_by_id,
+    )
+    child_text = " ".join((
+        effect.outcome,
+        effect.source_proposition,
+        *(ref.excerpt for ref in effect.provenance if ref.excerpt),
+    ))
+    return tuple(
+        party for party in unused if _party_mentioned_in_text(party, child_text)
+    )
 
 
 def _party_mentioned_in_text(party: WorldParty, text: str) -> bool:
@@ -3738,6 +4129,12 @@ def _effect_counts_for_foregone_overlays(
     the same intermediate bearer (facility, resource, process) are the same
     stipulated swap even when those states are not compact welfare parties.
     """
+    # AVERTED_ALTERNATIVE_HARM is already a counterfactual projection with its
+    # own PRECLUDES edge. Feeding it back into FOREGONE compilation creates a
+    # projection of a projection (F -> AV), adding no world information and
+    # producing the reciprocal duplicates seen in simple binary choices.
+    if is_averted_alternative_harm_effect(effect):
+        return False
     if _effect_counts_for_roles(effect, party, model):
         return True
     if (
@@ -3791,20 +4188,26 @@ def _has_counterfactual_foreclosure(
     alternative_action_id: str,
     alternative_effect_ids: set[str],
 ) -> bool:
-    owned_foregone = {
+    owned_sources = {
         effect.effect_id
         for effect in model.effects
         if effect.action_id == action_id
         and effect.party_id == party_id
-        and effect.directness == "FOREGONE"
+        and (
+            effect.directness == "FOREGONE"
+            or effect.polarity == "BENEFICIAL"
+        )
     }
-    if not owned_foregone:
+    if not owned_sources:
         return False
     return any(
         link.action_id == action_id
-        and link.source_effect_id in owned_foregone
+        and link.source_effect_id in owned_sources
         and link.alternative_action_id == alternative_action_id
         and link.alternative_effect_id in alternative_effect_ids
+        and link.relation in {
+            "FOREGOES_ALTERNATIVE_EFFECT", "PRECLUDES_ALTERNATIVE_EFFECT",
+        }
         for link in model.counterfactual_links
     )
 
@@ -3841,9 +4244,10 @@ def _foreclosure_completeness_errors(model: ScenarioWorldModel) -> list[str]:
                 ):
                     errors.append(
                         f"{left_id} and {right_id} stipulate opposed welfare on "
-                        f"{party_id}, but {left_id} has no FOREGONE "
-                        f"effect with a counterfactual_link to {right_id}'s actual "
-                        "effect; do not put that comparison on causal_links"
+                        f"{party_id}, but {left_id} has no counterfactual "
+                        f"FOREGOES/PRECLUDES link to {right_id}'s actual effect; "
+                        "prefer an existing BENEFICIAL source before materializing "
+                        "a FOREGONE opportunity-loss effect"
                     )
                 if not _has_counterfactual_foreclosure(
                     model,
@@ -3854,9 +4258,10 @@ def _foreclosure_completeness_errors(model: ScenarioWorldModel) -> list[str]:
                 ):
                     errors.append(
                         f"{left_id} and {right_id} stipulate opposed welfare on "
-                        f"{party_id}, but {right_id} has no FOREGONE "
-                        f"effect with a counterfactual_link to {left_id}'s actual "
-                        "effect; do not put that comparison on causal_links"
+                        f"{party_id}, but {right_id} has no counterfactual "
+                        f"FOREGOES/PRECLUDES link to {left_id}'s actual effect; "
+                        "prefer an existing BENEFICIAL source before materializing "
+                        "a FOREGONE opportunity-loss effect"
                     )
     return errors
 
@@ -4005,8 +4410,12 @@ def _source_stipulates_background(
 ) -> bool:
     blob = _causation_source_blob(effect, action)
     effect_stems = _effect_anchor_stems(effect, party)
+    # Background attribution must compare the event with the intervention,
+    # not with every recipient label.  Otherwise a shared setting such as
+    # "hospital network" makes an independently stated malware or equipment
+    # risk look action-caused merely because the action also names the hospital.
     action_stems = (
-        _action_anchor_stems(action, party_by_id or {}) if action is not None else set()
+        _stemmed_content(action.intervention) if action is not None else set()
     )
     for sentence in _source_sentences(blob):
         if not _shares_stems(sentence, effect_stems):
@@ -4164,8 +4573,8 @@ _BENEFICIAL_IDENTITY_STEMS = frozenset({
 })
 _ADVERSE_IDENTITY_STEMS = frozenset({
     "block", "choke", "contamin", "contaminat", "destroy", "die", "fail",
-    "flood", "foul", "harm", "inund", "injur", "kill", "lose", "ruin",
-    "submerg",
+    "flood", "foul", "harm", "hit", "inund", "injur", "kill", "lose",
+    "ruin", "strik", "submerg",
 })
 _PROPOSITION_ELLIPSIS = re.compile(r"\s*(?:\.\.\.|…)\s*")
 _CHANCE_HEDGE_PREFIX = re.compile(
@@ -4173,6 +4582,14 @@ _CHANCE_HEDGE_PREFIX = re.compile(
     r"(?:%|percent)\s*chance\s+(?:that\s+)?",
     re.IGNORECASE,
 )
+_IRREGULAR_VERB_ROOTS = {
+    "sent": "send", "left": "leave", "held": "hold", "kept": "keep",
+    "lost": "lose", "made": "make", "gave": "give", "given": "give",
+    "took": "take", "taken": "take", "led": "lead",
+    # Short y/ie verbs are deliberately outside the conservative suffix
+    # stemmer's length threshold; retain their event identity explicitly.
+    "dies": "die", "died": "die", "dying": "die",
+}
 
 
 def _identity_head_text(effect: WorldEffect) -> str:
@@ -4184,6 +4601,11 @@ def _identity_head_text(effect: WorldEffect) -> str:
         relation_key in _SCHEMA_PREDICATE_TAGS
         or relation_key in EFFECT_KINDS
         or relation_key == str(effect.effect_kind or "").upper()
+        # Predicates emitted as ontology identifiers describe the typed row;
+        # they are not additional source-language lemmas.  Counting a value
+        # such as RECEIVES_MEDICINE alongside "is given the medicine" dilutes
+        # the legitimate given/give match and falsely rejects passive voice.
+        or bool(re.fullmatch(r"[A-Z][A-Z0-9_]*", relation))
     ):
         relation = ""
     if outcome.casefold() in {"", "is", "are"}:
@@ -4198,21 +4620,8 @@ def _deverbal_identity_stems(stems: set[str]) -> set[str]:
     # an atomic effect records the same event in passive voice ("sends" / "sent").
     # These lexical aliases establish event identity only; they do not license
     # a new outcome or change its modality.
-    irregular_verb_roots = {
-        "sent": "send",
-        "left": "leave",
-        "held": "hold",
-        "kept": "keep",
-        "lost": "lose",
-        "made": "make",
-        "gave": "give",
-        "given": "give",
-        "took": "take",
-        "taken": "take",
-        "led": "lead",
-    }
     for word in list(stems | expanded):
-        root = irregular_verb_roots.get(word)
+        root = _IRREGULAR_VERB_ROOTS.get(word)
         if root:
             expanded.add(root)
     # Silent-e lemmas: purged/purging → purg → purge; secured → secur → secure.
@@ -4582,21 +4991,18 @@ def compile_independent_event_gates(
 def compile_gated_link_certainty(
     model: ScenarioWorldModel,
 ) -> ScenarioWorldModel:
-    """Incoming links are CERTAIN when the target already owns the gate."""
-    effect_by_id = {effect.effect_id: effect for effect in model.effects}
-    links: list[CausalLink] = []
-    for link in model.causal_links:
-        target = effect_by_id.get(link.target_id)
-        if (
-            link.modality != "CERTAIN"
-            and not link.condition_ids
-            and target is not None
-            and target.condition_ids
-        ):
-            links.append(replace(link, modality="CERTAIN"))
-        else:
-            links.append(link)
-    return replace(model, causal_links=tuple(links))
+    """Keep incoming causal assertions synchronized with target gates.
+
+    The historical function name remains for stored-call compatibility.  A
+    gated target is not represented by a bare CERTAIN edge: its incoming edge
+    carries the same condition IDs and a conditional modality.
+    """
+    return replace(
+        model,
+        causal_links=normalize_redundant_link_gates(
+            model.causal_links, model.effects,
+        ),
+    )
 
 
 def compile_missing_parent_links(
@@ -4626,8 +5032,11 @@ def compile_missing_parent_links(
                 parent_id,
                 "CAUSES",
                 effect.effect_id,
-                "CERTAIN",
-                (),
+                (
+                    "STIPULATED_CONDITIONAL"
+                    if effect.condition_ids else "CERTAIN"
+                ),
+                effect.condition_ids,
                 effect.provenance,
                 effect.action_id,
             ))
@@ -4747,17 +5156,65 @@ def compile_source_proposition_spans(
     model: ScenarioWorldModel,
 ) -> ScenarioWorldModel:
     """Replace ellipsis paraphrases with the exact provenance span they omit."""
+    party_by_id = {party.party_id: party for party in model.parties}
     updated: list[WorldEffect] = []
     changed = False
     for effect in model.effects:
         excerpts = [ref.excerpt for ref in effect.provenance if ref.excerpt]
-        if not excerpts or _proposition_is_exact_span(effect):
+        if not excerpts:
+            updated.append(effect)
+            continue
+        if _proposition_is_exact_span(effect):
+            party = party_by_id.get(effect.party_id)
+            if _source_proposition_supports_outcome(effect, party):
+                updated.append(effect)
+                continue
+            # Resolve an exact but elliptical likelihood fragment against its
+            # containing clause: "Patient B has a 40% chance" inherits the
+            # previously stated event in "Patient A has a 90% chance of
+            # surviving ..., while Patient B has a 40% chance."  Keep the full
+            # source clause as provenance; never manufacture the omitted verb.
+            source_folded = effect.source_proposition.casefold()
+            party_stems = (
+                _condition_content_stems(party.label) if party is not None else set()
+            )
+            expanded = next((
+                excerpt for excerpt in excerpts
+                if source_folded in excerpt.casefold()
+                and bool(explicit_likelihood_spans(effect.source_proposition))
+                and bool(party_stems & _condition_content_stems(excerpt))
+                and _source_proposition_supports_outcome(
+                    replace(effect, source_proposition=excerpt), party,
+                )
+            ), "")
+            if expanded:
+                updated.append(replace(effect, source_proposition=expanded))
+                changed = True
+                continue
             updated.append(effect)
             continue
         snapped = _snap_ellipsis_span(effect.source_proposition, excerpts)
         if not snapped:
-            updated.append(effect)
-            continue
+            party = party_by_id.get(effect.party_id)
+            party_stems = (
+                _condition_content_stems(party.label) if party is not None else set()
+            )
+            qualifiers = tuple(effect.likelihood_qualifiers) or explicit_likelihood_spans(
+                effect.source_proposition,
+            )
+            expanded = next((
+                excerpt for excerpt in excerpts
+                if qualifiers
+                and all(q.casefold() in excerpt.casefold() for q in qualifiers)
+                and bool(party_stems & _condition_content_stems(excerpt))
+                and _source_proposition_supports_outcome(
+                    replace(effect, source_proposition=excerpt), party,
+                )
+            ), "")
+            if not expanded:
+                updated.append(effect)
+                continue
+            snapped = expanded
         updated.append(replace(effect, source_proposition=snapped))
         changed = True
     if not changed:
@@ -4783,6 +5240,7 @@ def _averted_alternative_inherited_quantities(
         and link.action_id == effect.action_id
     }
     inherited: list[str] = []
+    party_by_id = {party.party_id: party for party in model.parties}
     for source_id in effect.source_effect_ids:
         if source_id not in linked_alternatives:
             continue
@@ -4799,8 +5257,21 @@ def _averted_alternative_inherited_quantities(
             continue
         if str(source.modality or "").upper() != "CERTAIN":
             continue
+        source_claims = {
+            value.casefold()
+            for value in (
+                *explicit_quantity_spans(source.outcome),
+                *explicit_quantity_spans(source.source_proposition),
+            )
+        }
+        source_party = party_by_id.get(source.party_id)
         for span in source.quantities:
             text = str(span).strip()
+            if not (
+                text.casefold() in source_claims
+                or _party_licenses_quantity(source_party, text)
+            ):
+                continue
             if text and text.casefold() not in {
                 item.casefold() for item in inherited
             }:
@@ -4881,6 +5352,55 @@ def compile_counterfactual_source_bindings(
     if not changed:
         return model
     return replace(model, effects=tuple(updated))
+
+
+def compile_prune_invalid_counterfactual_links(
+    model: ScenarioWorldModel,
+) -> ScenarioWorldModel:
+    """Drop structurally impossible cross-action edges before regeneration.
+
+    Counterfactual overlays are compiler-owned projections. A model-proposed
+    edge that crosses parties, points to the wrong action, or uses an actual
+    non-beneficial source cannot be repaired by changing its label; retaining
+    it only blocks the later deterministic overlay compiler.
+    """
+    by_id = {effect.effect_id: effect for effect in model.effects}
+    kept: list[CounterfactualLink] = []
+    seen: set[tuple[str, str, str, str, str]] = set()
+    for link in model.counterfactual_links:
+        source = by_id.get(link.source_effect_id)
+        alternative = by_id.get(link.alternative_effect_id)
+        valid_source = bool(
+            source is not None
+            and (
+                source.directness == "FOREGONE"
+                or is_averted_alternative_harm_effect(source)
+                or (
+                    link.relation == "PRECLUDES_ALTERNATIVE_EFFECT"
+                    and source.polarity == "BENEFICIAL"
+                )
+            )
+        )
+        if not (
+            valid_source
+            and alternative is not None
+            and source.action_id == link.action_id
+            and alternative.action_id == link.alternative_action_id
+            and link.action_id != link.alternative_action_id
+            and source.party_id == alternative.party_id
+        ):
+            continue
+        signature = (
+            link.action_id, link.source_effect_id, link.relation,
+            link.alternative_action_id, link.alternative_effect_id,
+        )
+        if signature in seen:
+            continue
+        seen.add(signature)
+        kept.append(link)
+    if len(kept) == len(model.counterfactual_links):
+        return model
+    return replace(model, counterfactual_links=tuple(kept))
 
 
 def compile_foregone_overlays(
@@ -5013,6 +5533,7 @@ def compile_averted_alternative_harm_overlays(
     DIRECT_COPY source support.
     """
     grouped = _actual_nonrecipient_role_effects(model)
+    party_by_id = {party.party_id: party for party in model.parties}
     action_ids = [action.action_id for action in model.actions]
     effects = list(model.effects)
     links = list(model.counterfactual_links)
@@ -5039,7 +5560,19 @@ def compile_averted_alternative_harm_overlays(
                         and str(item.modality or "").upper() == "CERTAIN"
                         and item.quantities
                     ]
-                    if not beneficial or not adverse:
+                    own_adverse = [
+                        item for item in own_effects
+                        if item.polarity == "ADVERSE"
+                        and item.directness != "FOREGONE"
+                    ]
+                    if not adverse:
+                        continue
+                    # Precluding one alternative's harm is not an actual
+                    # benefit when the chosen branch itself imposes harm on
+                    # the same party. Keep such comparisons out of compact
+                    # beneficiary roles unless a distinct sourced benefit is
+                    # present.
+                    if own_adverse and not beneficial:
                         continue
                     preferred = next(
                         (
@@ -5048,6 +5581,88 @@ def compile_averted_alternative_harm_overlays(
                         ),
                         adverse[0],
                     )
+                    preferred_claims = {
+                        span.casefold()
+                        for span in (
+                            *explicit_quantity_spans(preferred.outcome),
+                            *explicit_quantity_spans(
+                                preferred.source_proposition,
+                            ),
+                        )
+                    }
+                    preferred_party = party_by_id.get(preferred.party_id)
+                    licensed_preferred_quantities = tuple(
+                        str(span).strip()
+                        for span in preferred.quantities
+                        if str(span).strip()
+                        and (
+                            str(span).strip().casefold() in preferred_claims
+                            or _party_licenses_quantity(
+                                preferred_party, str(span).strip(),
+                            )
+                        )
+                    )
+                    preferred_quantities = {
+                        span.casefold()
+                        for span in licensed_preferred_quantities
+                    }
+                    if not preferred_quantities:
+                        continue
+                    # Prefer a relation between already admitted effects over
+                    # materializing another effect.  The richer AVERTED row is
+                    # reserved for cases where its cross-alternative quantity
+                    # inheritance adds information unavailable on the actual
+                    # benefit or its affected party.
+                    benefit_source = next((
+                        item for item in beneficial
+                        if preferred_quantities <= (
+                            {
+                            str(span).strip().casefold()
+                            for span in item.quantities
+                            if str(span).strip()
+                            }
+                            | {
+                                str(span).strip().casefold()
+                                for span in (
+                                    party_by_id.get(party_id).quantities
+                                    if party_by_id.get(party_id) is not None
+                                    else ()
+                                )
+                                if str(span).strip()
+                            }
+                        )
+                    ), None)
+                    if preferred_quantities and benefit_source is not None:
+                        signature = (
+                            action_id, benefit_source.effect_id,
+                            "PRECLUDES_ALTERNATIVE_EFFECT", alternative_id,
+                            preferred.effect_id,
+                        )
+                        if not any(
+                            (
+                                link.action_id, link.source_effect_id,
+                                link.relation, link.alternative_action_id,
+                                link.alternative_effect_id,
+                            ) == signature
+                            for link in links
+                        ):
+                            links.append(CounterfactualLink(
+                                action_id,
+                                benefit_source.effect_id,
+                                "PRECLUDES_ALTERNATIVE_EFFECT",
+                                alternative_id,
+                                preferred.effect_id,
+                                "CERTAIN",
+                                (),
+                                preferred.provenance,
+                            ))
+                            added = True
+                            model = replace(
+                                model,
+                                effects=tuple(effects),
+                                counterfactual_links=tuple(links),
+                            )
+                        continue
                     if _has_averted_alternative_harm(
                         model,
                         action_id=action_id,
@@ -5062,11 +5677,7 @@ def compile_averted_alternative_harm_overlays(
                         if item.action_id == action_id and item.party_id == party_id
                     ):
                         continue
-                    qty = tuple(dict.fromkeys(
-                        str(span).strip()
-                        for span in preferred.quantities
-                        if str(span).strip()
-                    ))
+                    qty = tuple(dict.fromkeys(licensed_preferred_quantities))
                     if not qty:
                         continue
                     # RelEnt consult: unmarked quantity across ALTERNATIVE_OF is
@@ -5091,8 +5702,10 @@ def compile_averted_alternative_harm_overlays(
                     overlay_id = _allocate_prefixed_id("AV", existing_ids)
                     existing_ids.add(overlay_id)
                     outcome = (
-                        f"averts {preferred.outcome}"
-                        if preferred.outcome else "averts alternative harm"
+                        f"averts alternative harm to "
+                        f"{party_by_id.get(party_id).label}"
+                        if party_by_id.get(party_id) is not None
+                        else "averts alternative harm"
                     )
                     effects.append(WorldEffect(
                         overlay_id,
@@ -5107,6 +5720,16 @@ def compile_averted_alternative_harm_overlays(
                         if preferred.effect_kind in _ROLE_WELFARE_KINDS
                         else "HEALTH_OUTCOME",
                         quantities=qty,
+                        likelihood_qualifiers=tuple(
+                            preferred.likelihood_qualifiers
+                        ),
+                        scope_qualifiers=tuple(preferred.scope_qualifiers),
+                        temporal_qualifiers=tuple(
+                            preferred.temporal_qualifiers
+                        ),
+                        overall_likelihood_qualifiers=tuple(
+                            preferred.overall_likelihood_qualifiers
+                        ),
                         # Inherit opposed-harm provenance so the derived row is
                         # licensed evidence, not an ungrounded invention.
                         provenance=tuple(preferred.provenance),
@@ -5157,8 +5780,34 @@ _OUTCOME_DANGLING_COPULA = re.compile(
     re.IGNORECASE,
 )
 _OUTCOME_DANGLING_PREPOSITION = re.compile(
-    r".+\b(?:to|from|of|for|against|onto|into|over|under|before|after|"
+    r".+\b(?:to|from|of|for|against|onto|into|over|under|before|after|by|with|"
     r"toward|towards|through|via|across)\s*$",
+    re.IGNORECASE,
+)
+_OUTCOME_DANGLING_FUNCTION_PHRASE = re.compile(
+    r".+\b(?:to|from|of|for|against|onto|into|over|under|before|after|by|with|"
+    r"toward|towards|through|via|across)\s+(?:the|a|an|this|that|these|those|"
+    r"their|its|his|her|our|your)\s*$",
+    re.IGNORECASE,
+)
+_OUTCOME_DANGLING_DETERMINER = re.compile(
+    r".+\b(?:the|a|an|this|that|these|those|their|its|his|her|our|your)\s*$",
+    re.IGNORECASE,
+)
+_OUTCOME_BARE_DETERMINER_PHRASE = re.compile(
+    r"^(?:the|a|an)\s+(?:[A-Za-z][\w-]*\s+){0,3}"
+    r"(?:track|road|site|room|facility|hospital|school|bridge|platform|"
+    r"lane|route|area)$",
+    re.IGNORECASE,
+)
+
+_RESOURCE_TRANSFER_EVENT = re.compile(
+    r"\b(?:give|gives|gave|given|giving|receive|receives|received|receiving|"
+    r"allocate|allocates|allocated|allocating|assign|assigns|assigned|assigning|"
+    r"send|sends|sent|sending|deliver|delivers|delivered|delivering|"
+    r"transfer|transfers|transferred|transferring|administer|administers|"
+    r"administered|administering|provide|provides|provided|providing|"
+    r"supply|supplies|supplied|supplying)\b",
     re.IGNORECASE,
 )
 
@@ -5177,7 +5826,66 @@ def outcome_predicate_is_incomplete(outcome: str) -> bool:
         return True
     if _OUTCOME_DANGLING_PREPOSITION.search(text):
         return True
+    if _OUTCOME_DANGLING_FUNCTION_PHRASE.search(text):
+        return True
+    # A final capital letter may be an entity designator (``Patient A``,
+    # ``Option B``), not the indefinite article.  The case-insensitive surface
+    # pattern otherwise rejects complete transfer predicates and encourages a
+    # repair model to truncate them to the resource noun.
+    if (
+        _OUTCOME_DANGLING_DETERMINER.search(text)
+        and not re.search(r"\b[A-Z]\s*$", text)
+    ):
+        return True
+    if _OUTCOME_BARE_DETERMINER_PHRASE.fullmatch(text):
+        return True
     return False
+
+
+_OUTCOME_NEGATION = re.compile(
+    r"\bnot\b(?!\s+(?:more|less|fewer)\s+than)|"
+    r"\b(?:never|no\s+longer)\b|"
+    r"\b(?:is|are|was|were|be|been)n't\b",
+    re.IGNORECASE,
+)
+_PREVENTIVE_IDENTITY_STEMS = frozenset({
+    "avert", "avoid", "prevent", "protect", "save", "spare",
+})
+
+
+def outcome_polarity_contradiction(effect: WorldEffect) -> str:
+    """Describe a lexical contradiction between an actual outcome and polarity.
+
+    This is deliberately narrow: it only decides predicates with established
+    beneficial/adverse lexical direction. Ambiguous predicates remain for the
+    semantic repair lane rather than being guessed here.
+    """
+    polarity = str(effect.polarity or "").upper()
+    if polarity not in {"BENEFICIAL", "ADVERSE"}:
+        return ""
+    text = " ".join(str(effect.outcome or "").split())
+    stems = _deverbal_identity_stems(_condition_content_stems(text))
+    negated = bool(_OUTCOME_NEGATION.search(text))
+    # ``without`` negates its complement, not an earlier matrix predicate.
+    # "dies without medicine" asserts death; "leaves without injury" negates
+    # injury. Treat it as harm-negation only when its own complement names an
+    # adverse event/state.
+    without = re.search(r"\bwithout\b(?P<complement>.*)$", text, re.IGNORECASE)
+    if without is not None:
+        complement_stems = _deverbal_identity_stems(
+            _condition_content_stems(without.group("complement"))
+        )
+        negated = negated or bool(complement_stems & _ADVERSE_IDENTITY_STEMS)
+    adverse = bool(stems & _ADVERSE_IDENTITY_STEMS)
+    beneficial = bool(stems & _BENEFICIAL_IDENTITY_STEMS)
+    preventive = bool(stems & _PREVENTIVE_IDENTITY_STEMS)
+    if polarity == "BENEFICIAL" and adverse and not (negated or preventive):
+        return "states an adverse event without negating or preventing it"
+    if polarity == "ADVERSE" and adverse and negated:
+        return "negates an adverse event"
+    if polarity == "ADVERSE" and beneficial and not adverse and not negated:
+        return "states a beneficial event"
+    return ""
 
 
 def _source_licensed_stem_set(
@@ -5237,12 +5945,28 @@ def compile_source_licensed_outcomes(
     changed = False
     for effect in model.effects:
         if (
-            effect.derivation_operation == "STRUCTURAL_ABSTRACTION"
+            effect.derivation_operation in {
+                "STRUCTURAL_ABSTRACTION", "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+            }
             or not effect.source_proposition
         ):
             updated.append(effect)
             continue
         party = party_by_id.get(effect.party_id)
+        if (
+            outcome_predicate_is_incomplete(effect.outcome)
+            and not outcome_predicate_is_incomplete(effect.source_proposition)
+            and _proposition_is_exact_span(effect)
+        ):
+            # The literal bound proposition is safer than a truncated model
+            # rendering such as "the side track". This preserves source
+            # wording and avoids spending a semantic repair on reconstruction.
+            updated.append(replace(
+                effect,
+                outcome=effect.source_proposition,
+            ))
+            changed = True
+            continue
         if _source_proposition_supports_outcome(effect, party):
             updated.append(effect)
             continue
@@ -5266,12 +5990,294 @@ def compile_source_licensed_outcomes(
     return replace(model, effects=tuple(updated))
 
 
+def compile_exclusive_allocation_complements(
+    model: ScenarioWorldModel,
+) -> ScenarioWorldModel:
+    """Type a nonrecipient state derived from allocation plus indivisibility.
+
+    The source need not literally say "Patient B does not receive it" when it
+    says that one indivisible resource is given to Patient A.  This compiler
+    recognizes only that closed structural complement; it does not infer a
+    welfare outcome or invent what happens after nonreceipt.
+    """
+    if model.schema_version != "1.3":
+        return model
+    action_by_id = {action.action_id: action for action in model.actions}
+    effect_by_id = {effect.effect_id: effect for effect in model.effects}
+    updated: list[WorldEffect] = []
+    changed = False
+    for effect in model.effects:
+        action = action_by_id.get(effect.action_id)
+        is_nonrecipient_nonreceipt = (
+            action is not None
+            and bool(action.recipient_party_ids)
+            and effect.party_id not in action.recipient_party_ids
+            and effect.effect_kind == "RESOURCE_TRANSFER"
+            and (
+                _NONRECEIPT_STATE.search(effect.outcome)
+                or _NONRECEIPT_STATE.search(effect.source_proposition)
+                or re.search(
+                    r"\bnot[_ -]?(?:receive|receiv|assign)",
+                    effect.relation, re.IGNORECASE,
+                )
+            )
+        )
+        if is_nonrecipient_nonreceipt and effect.directness == "DOWNSTREAM":
+            effect = replace(effect, effect_kind="OTHER")
+            changed = True
+        # Some repair models express the closed complement of an exclusive
+        # allocation as a second DIRECT RESOURCE_TRANSFER with a NOT_RECEIVE
+        # predicate.  That is a category error: the selected recipient gets
+        # the direct transfer; the rival's nonreceipt is a downstream state.
+        # Recast only when the source explicitly states exclusion and the
+        # affected party is not a named recipient.
+        if (
+            action is not None
+            and bool(action.recipient_party_ids)
+            and effect.party_id not in action.recipient_party_ids
+            and effect.directness == "DIRECT"
+            and effect.effect_kind == "RESOURCE_TRANSFER"
+            and re.search(r"\bNOT[_ -]?RECEIV", effect.relation, re.IGNORECASE)
+            and _GLOBAL_CONSTRAINT_STATE.search(effect.source_proposition)
+        ):
+            party_label = (
+                party_by_id.get(effect.party_id).label
+                if party_by_id.get(effect.party_id) is not None
+                else "the nonrecipient"
+            )
+            effect = replace(
+                effect,
+                outcome=f"{party_label} does not receive the allocated resource",
+                directness="DOWNSTREAM",
+                effect_kind="OTHER",
+                derivation_operation="EXCLUSIVE_ALLOCATION_COMPLEMENT",
+            )
+            changed = True
+        inbound_parent_ids = tuple(dict.fromkeys(
+            link.source_id for link in model.causal_links
+            if link.action_id == effect.action_id
+            and link.target_id == effect.effect_id
+            and _link_parents_target(link)
+        ))
+        # The causal graph is the authoritative topology. Repair models often
+        # add the correct transfer -> nonreceipt edge while leaving the effect's
+        # derivation tag as DIRECT_COPY or AVERTED_ALTERNATIVE_HARM. Requiring
+        # source_effect_ids before recognizing that closed complement traps the
+        # repair loop in a self-reinforcing type error.
+        candidate_parent_ids = tuple(dict.fromkeys((
+            *effect.source_effect_ids, *inbound_parent_ids,
+        )))
+        parents = [
+            effect_by_id.get(source_id) for source_id in candidate_parent_ids
+        ]
+        parents = [parent for parent in parents if parent is not None]
+        allocation_parent_ids = tuple(
+            parent.effect_id for parent in parents
+            if parent.action_id == effect.action_id
+            and (
+                parent.effect_kind == "RESOURCE_TRANSFER"
+                or re.search(
+                    r"\b(?:give|given|receive|receives|allocated?|assign(?:ed)?)\b",
+                    " ".join((parent.outcome, parent.source_proposition)),
+                    re.IGNORECASE,
+                )
+            )
+        )
+        is_closed_complement = (
+            effect.derivation_operation in {
+                "DIRECT_COPY", "SOURCE_STIPULATED_CAUSAL",
+                "AVERTED_ALTERNATIVE_HARM", "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+            }
+            and action is not None
+            and bool(action.recipient_party_ids)
+            and effect.party_id not in action.recipient_party_ids
+            and effect.polarity == "ADVERSE"
+            and effect.directness == "DOWNSTREAM"
+            and bool(_NONRECEIPT_STATE.search(effect.outcome))
+            and bool(_GLOBAL_CONSTRAINT_STATE.search(effect.source_proposition))
+            and bool(allocation_parent_ids)
+            and set(allocation_parent_ids).issubset(inbound_parent_ids)
+        )
+        if not is_closed_complement:
+            updated.append(effect)
+            continue
+        updated.append(replace(
+            effect,
+            source_effect_ids=allocation_parent_ids,
+            derivation_operation="EXCLUSIVE_ALLOCATION_COMPLEMENT",
+            derivation_explanation=(
+                effect.derivation_explanation
+                or "Nonreceipt is the closed complement of assigning an "
+                "indivisible resource to a different recipient."
+            ),
+        ))
+        changed = True
+    return replace(model, effects=tuple(updated)) if changed else model
+
+
+def _unstated_negated_benefit(effect: WorldEffect) -> bool:
+    """True when a positive harm statement was inverted into an actual benefit.
+
+    A branch may imply that another branch's harm does not occur, but that is a
+    counterfactual projection, not SOURCE_STIPULATED_CAUSAL evidence. Keeping
+    the inversion as an actual row lets sibling quantities leak onto the wrong
+    population and later causes duplicate AV/FOREGONE projections.
+    """
+    if (
+        effect.polarity != "BENEFICIAL"
+        or effect.directness == "FOREGONE"
+        or effect.derivation_operation != "SOURCE_STIPULATED_CAUSAL"
+    ):
+        return False
+    outcome = str(effect.outcome or "")
+    source = str(effect.source_proposition or "")
+    if not _OUTCOME_NEGATION.search(outcome):
+        return False
+    outcome_stems = _deverbal_identity_stems(_condition_content_stems(outcome))
+    if not outcome_stems & _ADVERSE_IDENTITY_STEMS:
+        return False
+    source_stems = _deverbal_identity_stems(_condition_content_stems(source))
+    source_states_benefit = bool(
+        _OUTCOME_NEGATION.search(source)
+        or source_stems & _BENEFICIAL_IDENTITY_STEMS
+        or source_stems & _PREVENTIVE_IDENTITY_STEMS
+    )
+    return not source_states_benefit
+
+
 def compile_omit_unbound_derived_effects(
     model: ScenarioWorldModel,
 ) -> ScenarioWorldModel:
-    """Omit SOURCE_STIPULATED_CAUSAL rows the cited span does not state."""
+    """Omit unsupported rows without cascading through sourced consequences.
+
+    A bad intermediate parent does not make an independently quoted terminal
+    consequence disappear.  Binary-contrast consequences are pinned to their
+    source side; when their proposed parent is removed they are rebound to the
+    action's DIRECT intervention.  Likewise, a source-hedged infrastructure
+    event may be retained as a copied background event rather than deleted
+    merely because a model invented an unsupported parent for it.
+    """
     party_by_id = {party.party_id: party for party in model.parties}
+    action_by_id = {action.action_id: action for action in model.actions}
     independent_ids = _independent_event_ids(model)
+    stipulated_action_by_effect: dict[str, str] = {}
+    atomic_rewrites: dict[str, WorldEffect] = {}
+    stipulations = extract_binary_contrast_stipulations(
+        _collect_unique_source_texts(model)
+    )
+    independently_supported_ids = {
+        effect.effect_id for effect in model.effects
+        if effect.source_proposition
+        and _proposition_is_exact_span(effect)
+        and _source_proposition_supports_outcome(
+            effect, party_by_id.get(effect.party_id),
+        )
+    }
+    for stipulation in stipulations:
+        action = _best_action_for_stipulation_side(
+            stipulation.side_cue, model.actions,
+        )
+        if action is None:
+            continue
+        for effect in model.effects:
+            if (
+                effect.action_id == action.action_id
+                and _effect_covers_stipulated_outcome(effect, stipulation)
+            ):
+                stipulated_action_by_effect.setdefault(
+                    effect.effect_id, action.action_id,
+                )
+
+    # Narrow compound ``benefit while risk`` rows when their recorded quantity
+    # uniquely identifies one atomic source consequence.  The sibling risk is
+    # represented by its own effect instead of laundering its uncertainty onto
+    # the quantified benefit.
+    for effect in model.effects:
+        matches = [
+            item for item in stipulations
+            if stipulated_action_by_effect.get(effect.effect_id) == effect.action_id
+            and _effect_covers_stipulated_outcome(effect, item)
+            and item.consequence_span.casefold()
+            in effect.source_proposition.casefold()
+        ]
+        if len({item.polarity for item in matches}) < 2:
+            continue
+        effect_quantities = {
+            str(value).casefold() for value in effect.quantities
+        }
+        quantity_matches = [
+            item for item in matches
+            if effect_quantities
+            & {
+                str(value).casefold()
+                for value in explicit_quantity_spans(item.consequence_span)
+            }
+        ]
+        polarity_matches = [
+            item for item in matches if item.polarity == effect.polarity
+        ]
+        chosen = (
+            quantity_matches[0] if len(quantity_matches) == 1
+            else polarity_matches[0] if len(polarity_matches) == 1
+            else None
+        )
+        if chosen is None:
+            continue
+        likelihood = explicit_likelihood_spans(chosen.consequence_span)
+        atomic_rewrites[effect.effect_id] = replace(
+            effect,
+            outcome=chosen.consequence_span,
+            polarity=chosen.polarity,
+            modality="POSSIBLE" if likelihood else "CERTAIN",
+            effect_kind=(
+                "HEALTH_OUTCOME"
+                if (
+                    _LIFE_SAVE_BLOB.search(chosen.consequence_span)
+                    or _LIFE_LOSS_BLOB.search(chosen.consequence_span)
+                )
+                else effect.effect_kind
+            ),
+            likelihood_qualifiers=likelihood,
+            temporal_qualifiers=explicit_temporal_spans(
+                chosen.consequence_span
+            ),
+            scope_qualifiers=explicit_scope_spans(chosen.consequence_span),
+            source_proposition=chosen.consequence_span,
+            derivation_explanation=(
+                "Compound source contrast atomized without transferring the "
+                "sibling consequence's polarity or uncertainty."
+            ),
+        )
+    if atomic_rewrites:
+        model = replace(model, effects=tuple(
+            atomic_rewrites.get(effect.effect_id, effect)
+            for effect in model.effects
+        ))
+
+    def promotable_background(effect: WorldEffect) -> bool:
+        party = party_by_id.get(effect.party_id)
+        action = action_by_id.get(effect.action_id)
+        if (
+            party is None
+            or party.kind not in _INTERMEDIATE_BEARER_KINDS
+            or effect.effect_kind not in {"PHYSICAL_STATE", "OTHER"}
+            or (
+                effect.modality == "CERTAIN"
+                and not effect.likelihood_qualifiers
+            )
+        ):
+            return False
+        ungated = replace(
+            effect,
+            modality="POSSIBLE",
+            condition_ids=(),
+            source_effect_ids=(),
+            derivation_operation="DIRECT_COPY",
+        )
+        return _stochastic_process_role(
+            ungated, action, party, party_by_id,
+        ) == "INDEPENDENT"
+
     dropped: set[str] = set()
     changed = True
     while changed:
@@ -5279,7 +6285,29 @@ def compile_omit_unbound_derived_effects(
         for effect in model.effects:
             if effect.effect_id in dropped:
                 continue
-            if effect.directness in {"DIRECT", "FOREGONE"}:
+            if effect.directness == "DIRECT":
+                continue
+            if _unstated_negated_benefit(effect):
+                dropped.add(effect.effect_id)
+                changed = True
+                continue
+            if effect.directness == "FOREGONE":
+                if (
+                    model.schema_version == "1.3"
+                    and effect.derivation_operation == "COUNTERFACTUAL_PROJECTION"
+                    and effect.source_proposition
+                    and not (
+                        _proposition_is_exact_span(effect)
+                        and _source_proposition_supports_outcome(
+                            effect, party_by_id.get(effect.party_id),
+                        )
+                    )
+                ):
+                    # This is a derived overlay, not an independently admitted
+                    # fact. Drop the malformed rendering; the later foregone
+                    # compiler can regenerate it from preserved actual effects.
+                    dropped.add(effect.effect_id)
+                    changed = True
                 continue
             if effect.effect_id in independent_ids:
                 continue
@@ -5299,7 +6327,12 @@ def compile_omit_unbound_derived_effects(
                 effect.source_effect_ids
                 and set(effect.source_effect_ids) <= dropped
             )
-            if supports and not orphaned:
+            source_preserved = (
+                effect.effect_id in stipulated_action_by_effect
+                or effect.effect_id in independently_supported_ids
+                or promotable_background(effect)
+            )
+            if supports and (not orphaned or source_preserved):
                 continue
             dropped.add(effect.effect_id)
             changed = True
@@ -5312,13 +6345,147 @@ def compile_omit_unbound_derived_effects(
                 changed = True
     if not dropped:
         return model
-    effects = tuple(
+    kept_effects = [
         effect for effect in model.effects if effect.effect_id not in dropped
+    ]
+    remaining_ids = {effect.effect_id for effect in kept_effects}
+    conditions = tuple(
+        condition for condition in model.conditions
+        if (
+            not condition.event_effect_id
+            or condition.event_effect_id in remaining_ids
+        )
     )
-    links = tuple(
+    remaining_condition_ids = {
+        condition.condition_id for condition in conditions
+    }
+    direct_by_action = {
+        action.action_id: next((
+            effect for effect in kept_effects
+            if effect.action_id == action.action_id
+            and effect.directness == "DIRECT"
+            and effect.party_id in {
+                action.actor_party_id, *action.recipient_party_ids,
+            }
+        ), None)
+        for action in model.actions
+    }
+
+    inbound_by_target: dict[tuple[str, str], list[str]] = {}
+    for link in model.causal_links:
+        if not _link_parents_target(link):
+            continue
+        inbound_by_target.setdefault(
+            (link.action_id, link.target_id), [],
+        ).append(link.source_id)
+
+    def nearest_surviving_ancestors(effect: WorldEffect) -> tuple[str, ...]:
+        """Contract a removed causal chain without inventing a new parent."""
+        frontier = list(effect.source_effect_ids)
+        visited: set[str] = set()
+        while frontier:
+            next_frontier: list[str] = []
+            found: list[str] = []
+            for source_id in frontier:
+                if source_id in visited:
+                    continue
+                visited.add(source_id)
+                if source_id in remaining_ids:
+                    found.append(source_id)
+                    continue
+                next_frontier.extend(inbound_by_target.get(
+                    (effect.action_id, source_id), [],
+                ))
+            if found:
+                return tuple(dict.fromkeys(found))
+            frontier = next_frontier
+        return ()
+    rebound_pairs: list[tuple[WorldEffect, WorldEffect]] = []
+    effects: list[WorldEffect] = []
+    for effect in kept_effects:
+        remaining_sources = tuple(
+            source_id for source_id in effect.source_effect_ids
+            if source_id in remaining_ids
+        )
+        remaining_conditions = tuple(
+            condition_id for condition_id in effect.condition_ids
+            if condition_id in remaining_condition_ids
+        )
+        lost_parent = bool(effect.source_effect_ids) and not remaining_sources
+        if lost_parent and effect.effect_id in independently_supported_ids:
+            ancestors = nearest_surviving_ancestors(effect)
+            if len(ancestors) == 1:
+                parent = next(
+                    row for row in kept_effects
+                    if row.effect_id == ancestors[0]
+                )
+                updated = replace(
+                    effect,
+                    source_effect_ids=ancestors,
+                    condition_ids=remaining_conditions,
+                    derivation_explanation=(
+                        effect.derivation_explanation
+                        or "Source-stated consequence retained while an "
+                        "unsupported intermediate was removed."
+                    ),
+                )
+                effects.append(updated)
+                rebound_pairs.append((parent, updated))
+                continue
+        if lost_parent and effect.effect_id in stipulated_action_by_effect:
+            parent = direct_by_action.get(effect.action_id)
+            if parent is not None and parent.effect_id != effect.effect_id:
+                updated = replace(
+                    effect,
+                    source_effect_ids=(parent.effect_id,),
+                    condition_ids=remaining_conditions,
+                )
+                effects.append(updated)
+                rebound_pairs.append((parent, updated))
+                continue
+        if lost_parent and promotable_background(effect):
+            effects.append(replace(
+                effect,
+                modality=(
+                    effect.modality if remaining_conditions else "POSSIBLE"
+                ),
+                condition_ids=remaining_conditions,
+                source_effect_ids=(),
+                derivation_operation="DIRECT_COPY",
+                derivation_explanation=(
+                    "Source-stated background risk retained after removal of "
+                    "an unsupported action-caused parent."
+                ),
+            ))
+            continue
+        effects.append(replace(
+            effect,
+            source_effect_ids=remaining_sources,
+            condition_ids=remaining_conditions,
+        ))
+
+    links = [
         link for link in model.causal_links
         if link.source_id not in dropped and link.target_id not in dropped
-    )
+    ]
+    link_pairs = {
+        (link.action_id, link.source_id, link.target_id)
+        for link in links if _link_parents_target(link)
+    }
+    for parent, effect in rebound_pairs:
+        identity = (effect.action_id, parent.effect_id, effect.effect_id)
+        if identity in link_pairs:
+            continue
+        links.append(CausalLink(
+            source_id=parent.effect_id,
+            relation="CAUSES",
+            target_id=effect.effect_id,
+            modality="CERTAIN",
+            condition_ids=(),
+            provenance=effect.provenance,
+            action_id=effect.action_id,
+        ))
+        link_pairs.add(identity)
     counterfactuals = tuple(
         link for link in model.counterfactual_links
         if (
@@ -5326,38 +6493,241 @@ def compile_omit_unbound_derived_effects(
             and link.alternative_effect_id not in dropped
         )
     )
-    remaining = {effect.effect_id for effect in effects}
-    conditions = tuple(
-        condition for condition in model.conditions
-        if (
-            not condition.event_effect_id
-            or condition.event_effect_id in remaining
-        )
-    )
     return replace(
         model,
-        effects=effects,
-        causal_links=links,
+        effects=tuple(effects),
+        causal_links=tuple(links),
         counterfactual_links=counterfactuals,
         conditions=conditions,
     )
 
 
-def compile_chance_gated_world(
-    model: ScenarioWorldModel,
+def _compiler_semantic_regression_errors(
+    before: ScenarioWorldModel,
+    after: ScenarioWorldModel,
+) -> list[str]:
+    """Report source stakes present before compilation but absent afterward."""
+    errors: list[str] = []
+    source_texts = _collect_unique_source_texts(before)
+    for stipulation in extract_binary_contrast_stipulations(source_texts):
+        before_action = _best_action_for_stipulation_side(
+            stipulation.side_cue, before.actions,
+        )
+        after_action = _best_action_for_stipulation_side(
+            stipulation.side_cue, after.actions,
+        )
+        if before_action is None or after_action is None:
+            continue
+        present_before = any(
+            effect.action_id == before_action.action_id
+            and _effect_covers_stipulated_outcome(effect, stipulation)
+            for effect in before.effects
+        )
+        present_after = any(
+            effect.action_id == after_action.action_id
+            and _effect_covers_stipulated_outcome(effect, stipulation)
+            for effect in after.effects
+        )
+        if present_before and not present_after:
+            errors.append(
+                "compiler semantic regression removed source-stipulated "
+                f"outcome {stipulation.consequence_span!r} from "
+                f"{before_action.action_id}"
+            )
+    return errors
+
+
+@dataclass(frozen=True, slots=True)
+class WorldCompilationStage:
+    """One auditable boundary in deterministic world compilation."""
+
+    name: str
+    before_fingerprint: str
+    after_fingerprint: str
+    effect_count: int
+    causal_link_count: int
+    counterfactual_link_count: int
+    added_effect_ids: tuple[str, ...] = ()
+    removed_effect_ids: tuple[str, ...] = ()
+
+    @property
+    def changed(self) -> bool:
+        return self.before_fingerprint != self.after_fingerprint
+
+
+def _world_compilation_fingerprint(model: ScenarioWorldModel) -> str:
+    encoded = json.dumps(
+        model.as_dict(), ensure_ascii=False, sort_keys=True, separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _record_compilation_stage(
+    stages: list[WorldCompilationStage],
+    name: str,
+    before: ScenarioWorldModel,
+    after: ScenarioWorldModel,
 ) -> ScenarioWorldModel:
-    """Deterministic repairs that do not invent source facts."""
+    before_ids = {effect.effect_id for effect in before.effects}
+    after_ids = {effect.effect_id for effect in after.effects}
+    stages.append(WorldCompilationStage(
+        name=name,
+        before_fingerprint=_world_compilation_fingerprint(before),
+        after_fingerprint=_world_compilation_fingerprint(after),
+        effect_count=len(after.effects),
+        causal_link_count=len(after.causal_links),
+        counterfactual_link_count=len(after.counterfactual_links),
+        added_effect_ids=tuple(sorted(after_ids - before_ids)),
+        removed_effect_ids=tuple(sorted(before_ids - after_ids)),
+    ))
+    return after
+
+
+def _completion_errors_with_compiler_witnesses(
+    errors: Sequence[str],
+    *,
+    before: ScenarioWorldModel,
+    after: ScenarioWorldModel,
+    stages: Sequence[WorldCompilationStage],
+) -> list[str]:
+    """Explain when a visibly present raw node vanished before validation."""
+    after_ids = {effect.effect_id for effect in after.effects}
+    removed = {
+        effect.effect_id: effect for effect in before.effects
+        if effect.effect_id not in after_ids
+    }
+    removed_stage = {
+        effect_id: stage.name
+        for stage in stages for effect_id in stage.removed_effect_ids
+    }
+    if not removed:
+        return list(errors)
+    enriched: list[str] = []
+    for error in errors:
+        witnesses: list[WorldEffect] = []
+        action_match = re.match(r"(?P<action>A\d+) omits exclusive-allocation branch", error)
+        party_match = re.search(r"nonrecipient (?P<party>[A-Z0-9_]+)", error)
+        harm_match = re.match(r"(?P<effect>[A-Za-z0-9_]+) is harm to unselected party (?P<party>[A-Z0-9_]+)", error)
+        action_id = action_match.group("action") if action_match else ""
+        party_id = (
+            party_match.group("party") if party_match else
+            harm_match.group("party") if harm_match else ""
+        )
+        if party_id:
+            witnesses = [
+                effect for effect in removed.values()
+                if effect.party_id == party_id
+                and (not action_id or effect.action_id == action_id)
+                and _NONRECEIPT_STATE.search(
+                    " ".join((effect.outcome, effect.source_proposition))
+                )
+            ]
+        if witnesses:
+            detail = "; ".join(
+                f"{effect.effect_id} derivation contract operation mismatch: the "
+                "semantically valid nonreceipt effect existed in the raw candidate "
+                f"but was removed during {removed_stage.get(effect.effect_id, 'COMPILATION')} "
+                f"because derivation_operation={effect.derivation_operation}; preserve "
+                "the effect and its topology, set derivation_operation="
+                "EXCLUSIVE_ALLOCATION_COMPLEMENT, bind source_proposition and "
+                "clause_ids to the exact scarcity/indivisibility span, and copy "
+                "that span's resource quantity"
+                for effect in witnesses
+            )
+            enriched.append(detail)
+        else:
+            enriched.append(error)
+    return enriched
+
+
+def world_compilation_loss_telemetry(
+    before: ScenarioWorldModel,
+    after: ScenarioWorldModel,
+    stages: Sequence[WorldCompilationStage],
+) -> dict[str, Any]:
+    """Describe raw-candidate effects removed by deterministic compilation."""
+    before_by_id = {effect.effect_id: effect for effect in before.effects}
+    after_ids = {effect.effect_id for effect in after.effects}
+    stage_by_id = {
+        effect_id: stage.name
+        for stage in stages for effect_id in stage.removed_effect_ids
+    }
+    losses: list[dict[str, Any]] = []
+    reason_counts: dict[str, int] = {}
+    for effect_id in sorted(set(before_by_id) - after_ids):
+        effect = before_by_id[effect_id]
+        is_nonreceipt = bool(_NONRECEIPT_STATE.search(
+            " ".join((effect.outcome, effect.source_proposition))
+        ))
+        if (
+            is_nonreceipt
+            and effect.derivation_operation != "EXCLUSIVE_ALLOCATION_COMPLEMENT"
+        ):
+            reason = "INVALID_DERIVATION_OPERATION"
+            failure_class = "ENCODING_FAILURE"
+        else:
+            reason = f"REMOVED_DURING_{stage_by_id.get(effect_id, 'COMPILATION')}"
+            failure_class = "UNCLASSIFIED_COMPILER_LOSS"
+        reason_counts[reason] = reason_counts.get(reason, 0) + 1
+        losses.append({
+            "effect_id": effect_id,
+            "action_id": effect.action_id,
+            "party_id": effect.party_id,
+            "outcome": effect.outcome,
+            "derivation_operation": effect.derivation_operation,
+            "removed_during_stage": stage_by_id.get(effect_id, "COMPILATION"),
+            "loss_reason": reason,
+            "failure_class": failure_class,
+        })
+    return {
+        "candidate_effect_count": len(before.effects),
+        "compiled_effect_count": len(after.effects),
+        "compiler_loss_count": len(losses),
+        "loss_reason_counts": dict(sorted(reason_counts.items())),
+        "losses": losses,
+    }
+
+
+def compile_world_model_with_trace(
+    model: ScenarioWorldModel,
+) -> tuple[ScenarioWorldModel, tuple[WorldCompilationStage, ...]]:
+    """Compile through named gates while preserving the established order."""
+    stages: list[WorldCompilationStage] = []
+    before = model
     compiled = compile_independent_event_gates(model)
     compiled = compile_gated_link_certainty(compiled)
     compiled = compile_missing_parent_links(compiled)
     compiled = compile_proximal_recipient_transfer_parents(compiled)
+    compiled = _record_compilation_stage(stages, "ACTUAL_TOPOLOGY", before, compiled)
+    before = compiled
     compiled = compile_source_proposition_spans(compiled)
     compiled = compile_grounded_quantities(compiled)
+    compiled = compile_exclusive_allocation_complements(compiled)
     compiled = compile_source_licensed_outcomes(compiled)
     compiled = compile_omit_unbound_derived_effects(compiled)
+    compiled = _record_compilation_stage(stages, "SOURCE_BINDING", before, compiled)
+    before = compiled
+    # Parent pruning can reveal that a retained source-hedged process is an
+    # independent event.  Run the gate normalizer again so that event becomes
+    # a condition on an action-mediated path instead of an ordinary parent.
+    compiled = compile_independent_event_gates(compiled)
+    compiled = compile_gated_link_certainty(compiled)
+    compiled = compile_missing_parent_links(compiled)
+    compiled = _record_compilation_stage(
+        stages, "ACTUAL_TOPOLOGY_RECHECK", before, compiled,
+    )
+    before = compiled
+    compiled = compile_prune_invalid_counterfactual_links(compiled)
     compiled = compile_counterfactual_source_bindings(compiled)
-    compiled = compile_foregone_overlays(compiled)
     compiled = compile_averted_alternative_harm_overlays(compiled)
+    # Direct PRECLUDES links between admitted effects satisfy ordinary
+    # alternative closure. FOREGONE overlays are added only where no such
+    # relation (or explicit opportunity-loss object) carries the comparison.
+    compiled = compile_foregone_overlays(compiled)
+    compiled = _record_compilation_stage(
+        stages, "COUNTERFACTUAL_DERIVATION", before, compiled,
+    )
+    before = compiled
     compiled = compile_grounded_quantities(compiled)
     compiled = replace(
         compiled,
@@ -5374,13 +6744,43 @@ def compile_chance_gated_world(
             compiled.causal_links, compiled.effects,
         ),
     )
-    return _reindex_world_action_effects(compiled)
+    compiled = _reindex_world_action_effects(compiled)
+    compiled = _record_compilation_stage(
+        stages, "FINAL_NORMALIZATION", before, compiled,
+    )
+    regression_errors = _compiler_semantic_regression_errors(model, compiled)
+    if regression_errors:
+        raise WorldModelValidationError(
+            regression_errors,
+            validation_issues_from_messages(regression_errors),
+        )
+    return compiled, tuple(stages)
+
+
+def compile_chance_gated_world(
+    model: ScenarioWorldModel,
+) -> ScenarioWorldModel:
+    """Deterministic repairs that do not invent source facts."""
+    compiled, _trace = compile_world_model_with_trace(model)
+    return compiled
 
 
 _WORLD_DERIVATION_OPERATIONS = {
     "DIRECT_COPY", "SOURCE_STIPULATED_CAUSAL", "STRUCTURAL_ABSTRACTION",
-    "COUNTERFACTUAL_PROJECTION", "AVERTED_ALTERNATIVE_HARM",
+    "EXCLUSIVE_ALLOCATION_COMPLEMENT", "COUNTERFACTUAL_PROJECTION",
+    "AVERTED_ALTERNATIVE_HARM",
 }
+_GLOBAL_CONSTRAINT_STATE = re.compile(
+    r"\b(?:cannot|can't|may\s+not|must\s+not)\s+(?:be\s+)?"
+    r"(?:divid(?:e|ed)|split|shared?|duplicated?|replaced?|obtained?)\b|"
+    r"\b(?:no|not\s+enough)\s+(?:time|additional|another|replacement)\b|"
+    r"\b(?:rules?\s+out|precludes?|excludes?)\b[^.;]{0,80}\b(?:other|another)\b"
+    r"|\b(?:one|single|sole|only|last(?:\s+available)?)\s+"
+    r"(?:available\s+)?(?:dose|unit|organ|bed|ventilator|resource|antidote)\b"
+    r"|\b(?:its|the|an?)\s+only\s+"
+    r"(?:dose|unit|organ|bed|ventilator|resource|antidote|medicine)\b",
+    re.IGNORECASE,
+)
 
 
 def _normalized_proposition_text(text: str) -> str:
@@ -5391,13 +6791,25 @@ def _source_proposition_supports_outcome(
     effect: WorldEffect,
     party: WorldParty | None = None,
 ) -> bool:
-    outcome_stems = _deverbal_identity_stems(_effect_identity_stems(effect, party))
+    raw_outcome_stems = _effect_identity_stems(effect, party)
+    outcome_stems = _deverbal_identity_stems(raw_outcome_stems)
     proposition_stems = _deverbal_identity_stems(
         _condition_content_stems(effect.source_proposition)
     )
     if outcome_stems and proposition_stems:
         shared = outcome_stems & proposition_stems
-        if shared and len(shared) / len(outcome_stems) >= 0.5:
+        irregular_match = any(
+            root in proposition_stems
+            for word in raw_outcome_stems
+            for root in [_IRREGULAR_VERB_ROOTS.get(word)]
+            if root
+        )
+        # Morphological expansion deliberately adds aliases (given→give,
+        # purged→purge).  Those aliases must help establish identity without
+        # inflating the denominator and making the same match less likely.
+        if irregular_match or (
+            shared and len(shared) / len(raw_outcome_stems) >= 0.5
+        ):
             return True
     if party is None or not proposition_stems:
         return False
@@ -5444,7 +6856,9 @@ def _verb_lemma_binding_errors(model: ScenarioWorldModel) -> list[str]:
     for effect in model.effects:
         if not effect.source_proposition:
             continue
-        if effect.derivation_operation == "STRUCTURAL_ABSTRACTION":
+        if effect.derivation_operation in {
+            "STRUCTURAL_ABSTRACTION", "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+        }:
             continue
         if effect.derivation_operation == "AVERTED_ALTERNATIVE_HARM":
             continue
@@ -5474,6 +6888,30 @@ def validate_effect_source_bindings(model: ScenarioWorldModel) -> list[str]:
             _normalized_proposition_text(ref.excerpt)
             for ref in effect.provenance if ref.excerpt
         ]
+        affected_party = party_by_id.get(effect.party_id)
+        if affected_party is not None and affected_party.kind in {
+            "PERSON", "HUMAN", "PATIENT",
+        }:
+            provenance_blob = " ".join(
+                ref.excerpt for ref in effect.provenance if ref.excerpt
+            )
+            for quantity in effect.quantities:
+                magnitude = quantity_magnitude(quantity)
+                if magnitude is None or magnitude <= 1:
+                    continue
+                if re.search(
+                    rf"(?<!\w){re.escape(str(quantity))}(?!\w)\s+"
+                    r"(?:patients?|people|persons?|residents?|workers?|children|"
+                    r"adults?|families|households?)\b",
+                    provenance_blob,
+                    re.IGNORECASE,
+                ):
+                    errors.append(
+                        f"{prefix} quantity {quantity!r} is not bound to singular "
+                        f"affected party {effect.party_id}; source binds it to a "
+                        "plural population, so remove the group quantity from this "
+                        "individual effect"
+                    )
         if not proposition:
             errors.append(f"{prefix} lacks a bound source_proposition")
         elif (
@@ -5537,6 +6975,31 @@ def validate_effect_source_bindings(model: ScenarioWorldModel) -> list[str]:
                     f"{prefix} source_effect_ids are not same-action immediate parents: "
                     f"{sorted(invalid_parents)}"
                 )
+        if operation == "EXCLUSIVE_ALLOCATION_COMPLEMENT":
+            immediate_parents = {
+                link.source_id for link in model.causal_links
+                if link.action_id == effect.action_id
+                and link.target_id == effect.effect_id
+                and _link_parents_target(link)
+            }
+            action = action_by_id.get(effect.action_id)
+            invalid_parents = set(effect.source_effect_ids) - immediate_parents
+            failures = []
+            if not _NONRECEIPT_STATE.search(effect.outcome):
+                failures.append("nonreceipt outcome")
+            if not _GLOBAL_CONSTRAINT_STATE.search(effect.source_proposition):
+                failures.append("indivisibility source")
+            if action is None or not action.recipient_party_ids:
+                failures.append("allocated recipient")
+            elif effect.party_id in action.recipient_party_ids:
+                failures.append("different nonrecipient party")
+            if not effect.source_effect_ids or invalid_parents:
+                failures.append("same-action immediate allocation parent")
+            if failures:
+                errors.append(
+                    f"{prefix} is not a valid exclusive-allocation complement; "
+                    f"missing or invalid: {', '.join(failures)}"
+                )
         if operation == "STRUCTURAL_ABSTRACTION":
             proposition_stems = _condition_content_stems(
                 effect.source_proposition,
@@ -5571,6 +7034,27 @@ def validate_effect_source_bindings(model: ScenarioWorldModel) -> list[str]:
                 errors.append(
                     f"{prefix} structural source_effect_ids are not same-action "
                     f"immediate parents: {sorted(invalid_parents)}"
+                )
+            outgoing_targets = {
+                link.target_id for link in model.causal_links
+                if link.action_id == effect.action_id
+                and link.source_id == effect.effect_id
+                and _link_parents_target(link)
+            }
+            if _GLOBAL_CONSTRAINT_STATE.search(effect.source_proposition) and any(
+                target_id in effect_by_id
+                and _requires_act_ancestry(
+                    effect_by_id[target_id],
+                    party_by_id.get(effect_by_id[target_id].party_id),
+                )
+                for target_id in outgoing_targets
+            ):
+                errors.append(
+                    f"{prefix} uses global resource constraint "
+                    f"{effect.source_proposition!r} as a causal process parent; "
+                    "constraints such as indivisibility or no replacement time "
+                    "must remain global facts. Insert the action-specific receipt "
+                    "or nonreceipt state that mediates the affected party's outcome"
                 )
         if operation == "COUNTERFACTUAL_PROJECTION":
             matching = {
@@ -6095,8 +7579,8 @@ def _action_cites_direct_effect_clauses(model: ScenarioWorldModel) -> list[str]:
         if missing:
             errors.append(
                 f"{action.action_id} omits source clauses of its DIRECT effects: "
-                f"{missing}; cite every FACT clause that states an owned "
-                "assignment or transfer, including a named subgroup"
+                f"{missing}; cite every supporting FACT clause already used "
+                "by the action's own DIRECT effects"
             )
     return errors
 
@@ -6182,6 +7666,342 @@ def _transfer_resource_recipient_errors(model: ScenarioWorldModel) -> list[str]:
                 "should be the recipient, with a DIRECT RESOURCE_TRANSFER. Keep "
                 f"the resource as a party, not a recipient{named}"
             )
+    return errors
+
+
+_EXCLUSIVE_ALLOCATION_SOURCE = re.compile(
+    # Intrinsic non-shareability.
+    r"\b(?:cannot|can't|can\s+not)\s+be\s+"
+    r"(?:divided|split|shared)\b|"
+    # A cardinally unique or last available resource.
+    r"\b(?:one|single|sole|1|last(?:\s+available)?)\s+"
+    r"(?:available\s+)?(?:dose|unit|organ|bed|ventilator|resource)\b|"
+    r"\b(?:its|the|an?)\s+only\s+"
+    r"(?:dose|unit|organ|bed|ventilator|resource|antidote|medicine)\b|"
+    # Equivalent capacity statements need not name a 'single dose'.
+    r"\b(?:only|just)\s+enough\s+[^.;]{0,80}?\bfor\s+"
+    r"(?:one|a\s+single|1)\b|"
+    r"\benough\s+[^.;]{0,80}?\bto\s+(?:treat|serve|support)\s+"
+    r"(?:only|just)\s+(?:one|a\s+single|1)\b|"
+    # Recipient-capacity and explicit not-both formulations.
+    r"\b(?:only|just)\s+(?:one|a\s+single|1)\s+"
+    r"(?:of\s+[^.;]{1,80}?\s+)?"
+    r"(?:(?:patient|person|recipient|household|facility)\s+)?"
+    r"(?:can|may|will)\s+(?:receive|be\s+given|be\s+treated)\b|"
+    r"\b(?:administered|allocated|assigned|given)\s+to\s+[^.;]{1,100}?"
+    r"\bbut\s+not\s+both\b",
+    re.IGNORECASE,
+)
+_ALLOCATION_CHOICE_SOURCE = re.compile(
+    r"\b(?:must|required\s+to|has\s+to)\s+(?:choose|decide|select|allocate)\b|"
+    r"\b(?:choose|decide|select)\s+(?:between|which|who)\b|"
+    r"\b(?:either|whether)\b[^.;]{1,180}\bor\b|"
+    r"\bbetween\b[^.;]{1,120}\band\b|"
+    r"\brather\s+than\b",
+    re.IGNORECASE,
+)
+_ALLOCATION_EXCLUSION_SOURCE = re.compile(
+    r"\bbut\s+not\s+(?:for\s+)?both\b|"
+    r"\bmutually\s+exclusive\b|"
+    r"\brules?\s+out\b|"
+    r"\bthe\s+other\b[^.;]{0,80}\b(?:receives?\s+none|gets?\s+none|"
+    r"does\s+not\s+receive|goes?\s+without)\b|"
+    r"\bno\s+allocation\b[^.;]{0,100}\b(?:cover|serve|treat|reach)\w*\s+both\b|"
+    r"\ball\s+(?:of\s+)?(?:the\s+)?available\b[^.;]{0,100}\b"
+    r"(?:one|single|selected)\s+(?:patient|person|recipient)\b",
+    re.IGNORECASE,
+)
+_NONEXCLUSIVE_ALLOCATION_SOURCE = re.compile(
+    r"\benough\b[^.;]{0,100}\bfor\s+both\b|"
+    r"\bcan\s+be\s+(?:divided|split|shared)\b|"
+    r"\bboth\s+(?:patients?|people|recipients?)\b[^.;]{0,80}\b"
+    r"(?:receive|receives|received|will\s+receive|are\s+given|can\s+receive)\b|"
+    r"\beach\s+(?:patient|person|recipient)\b[^.;]{0,80}\b"
+    r"(?:receive|receives|will\s+receive|is\s+given|gets?)\b|"
+    r"\b(?:two|2|multiple|separate)\s+(?:separate\s+)?"
+    r"(?:doses|units|organs|beds|ventilators|resources)\b|"
+    r"\b(?:a\s+second|another|an\s+additional)\s+"
+    r"(?:dose|unit|organ|bed|ventilator|resource)\b[^.;]{0,60}\b"
+    r"(?:arrived|became\s+available|is\s+available|was\s+obtained)\b|"
+    r"\bone\s+(?:dose|unit|organ|bed|ventilator|resource)\s+for\s+each\b",
+    re.IGNORECASE,
+)
+_NONASSERTED_ALLOCATION_CONTEXT = re.compile(
+    r"^(?:if|unless|assuming|supposing|in\s+the\s+event\s+that)\b|"
+    r"\b(?:believes?|believed|suspects?|suspected|imagines?|imagined|"
+    r"claims?|claimed|reports?|reported|rumou?r(?:ed)?|"
+    r"considers?\s+the\s+possibility)\s+that\b|"
+    r"\b(?:it\s+is\s+not\s+true|incorrect|false)\s+that\b|"
+    r"\b(?:notice|label|sign|memo)\s+(?:says|said|claims?|claimed)\b",
+    re.IGNORECASE,
+)
+
+
+def _asserted_allocation_source(source_texts: Sequence[str]) -> tuple[str, int]:
+    """Return asserted discourse segments and the count held out by scope.
+
+    This is intentionally a conservative assertion filter, not a general
+    factivity parser. Conditional and non-factive segments may still become
+    explicit WorldConditions or hypotheses elsewhere; they simply cannot
+    activate an unconditional exclusive-allocation invariant here.
+    """
+    asserted: list[str] = []
+    scoped_out = 0
+    for source in source_texts:
+        segments = re.split(r"(?<=[.!?;])\s+", str(source or ""))
+        for segment in segments:
+            cleaned = " ".join(segment.split()).strip()
+            if not cleaned:
+                continue
+            if _NONASSERTED_ALLOCATION_CONTEXT.search(cleaned):
+                scoped_out += 1
+                continue
+            asserted.append(cleaned)
+    return " ".join(asserted), scoped_out
+_TRANSFER_IDENTITY_TOKEN = re.compile(r"[a-z][a-z0-9-]*", re.IGNORECASE)
+_TRANSFER_IDENTITY_STOP = frozenset({
+    "a", "an", "and", "assign", "assigned", "allocate", "allocated",
+    "administer", "administered", "be", "beneficial", "direct", "dose",
+    "give", "given", "giving", "has", "have", "it", "medicine", "of",
+    "patient", "person", "provide", "provided", "receive", "received",
+    "receives", "recipient", "resource", "the", "to", "transfer",
+    "transferred", "with",
+})
+
+
+@dataclass(frozen=True, slots=True)
+class ExclusiveAllocationEvidence:
+    """Independent evidence supporting an exclusive-allocation invariant."""
+
+    competing_action_ids: tuple[str, ...]
+    distinct_recipient_ids: tuple[str, ...]
+    shared_resource_tokens: tuple[str, ...]
+    explicit_constraint: bool
+    explicit_choice: bool
+    explicit_exclusion: bool = False
+    explicit_nonexclusive: bool = False
+
+    @property
+    def licensed(self) -> bool:
+        if len(self.competing_action_ids) < 2 or len(self.distinct_recipient_ids) < 2:
+            return False
+        if self.explicit_nonexclusive:
+            return False
+        # An explicit capacity constraint is sufficient once the typed graph
+        # confirms competing transfers. Otherwise require both an explicit
+        # alternative construction and evidence that the alternatives transfer
+        # the same resource. This is deliberately conjunctive to avoid treating
+        # every pair of unrelated gifts as a scarcity problem.
+        return self.explicit_constraint or self.explicit_exclusion or (
+            self.explicit_choice and bool(self.shared_resource_tokens)
+        )
+
+
+def source_allocation_constraint_signals(
+    source_texts: Sequence[str],
+) -> dict[str, bool]:
+    """Expose source-only signals without prematurely selecting a topology."""
+    source_blob, scoped_out = _asserted_allocation_source(source_texts)
+    return {
+        "explicit_capacity_or_indivisibility": bool(
+            _EXCLUSIVE_ALLOCATION_SOURCE.search(source_blob)
+        ),
+        "explicit_alternative_choice": bool(
+            _ALLOCATION_CHOICE_SOURCE.search(source_blob)
+        ),
+        "explicit_recipient_exclusion": bool(
+            _ALLOCATION_EXCLUSION_SOURCE.search(source_blob)
+        ),
+        "explicit_nonexclusive_allocation": bool(
+            _NONEXCLUSIVE_ALLOCATION_SOURCE.search(source_blob)
+        ),
+        "scoped_out_constraint_mentions": bool(scoped_out),
+    }
+
+
+def _allocation_resource_signature(
+    action: WorldAction,
+    effects: Sequence[WorldEffect],
+    party_by_id: dict[str, WorldParty],
+) -> set[str]:
+    """Return content tokens shared by alternative transfer descriptions."""
+    recipient_tokens: set[str] = set()
+    for party_id in action.recipient_party_ids:
+        recipient_tokens.add(str(party_id).casefold())
+        party = party_by_id.get(party_id)
+        if party is not None:
+            recipient_tokens.update(
+                token.casefold()
+                for token in _TRANSFER_IDENTITY_TOKEN.findall(party.label)
+            )
+    text = " ".join([
+        action.intervention,
+        *(effect.outcome for effect in effects),
+        *(effect.source_proposition for effect in effects),
+    ])
+    tokens = {
+        token.casefold().rstrip("s")
+        for token in _TRANSFER_IDENTITY_TOKEN.findall(text)
+    }
+    # Generic words do not identify the object being allocated. Keep "dose"
+    # and "medicine" only as a fallback below because many scenarios name no
+    # more specific resource.
+    signature = tokens - _TRANSFER_IDENTITY_STOP - recipient_tokens
+    if signature:
+        return signature
+    fallback = {
+        token.casefold().rstrip("s")
+        for token in _TRANSFER_IDENTITY_TOKEN.findall(text)
+        if token.casefold() in {"dose", "medicine", "resource"}
+    }
+    return fallback
+
+
+def exclusive_allocation_evidence(
+    model: ScenarioWorldModel,
+    source_texts: Sequence[str],
+) -> ExclusiveAllocationEvidence:
+    """Compose lexical source evidence with typed candidate structure.
+
+    No single phrase selects the topology. The source supplies either an
+    explicit capacity constraint or a choice construction; the candidate must
+    independently supply competing RESOURCE_TRANSFER actions to distinct
+    welfare-bearing recipients. In the choice-only path, those transfers must
+    also share a resource identity.
+    """
+    signals = source_allocation_constraint_signals(source_texts)
+    party_by_id = {party.party_id: party for party in model.parties}
+    allocation_actions: list[WorldAction] = []
+    signatures: list[set[str]] = []
+    for action in model.actions:
+        owned = [
+            effect for effect in model.effects
+            if effect.action_id == action.action_id
+        ]
+        transfers = [
+            effect for effect in owned
+            if effect.effect_kind == "RESOURCE_TRANSFER"
+            and effect.directness == "DIRECT"
+            and effect.party_id in action.recipient_party_ids
+        ]
+        if not transfers:
+            continue
+        allocation_actions.append(action)
+        signatures.append(_allocation_resource_signature(
+            action, transfers, party_by_id,
+        ))
+    shared = set.intersection(*signatures) if len(signatures) >= 2 else set()
+    recipients = {
+        party_id
+        for action in allocation_actions
+        for party_id in action.recipient_party_ids
+        if _party_bears_welfare(party_by_id.get(party_id))
+    }
+    return ExclusiveAllocationEvidence(
+        competing_action_ids=tuple(sorted(
+            action.action_id for action in allocation_actions
+        )),
+        distinct_recipient_ids=tuple(sorted(recipients)),
+        shared_resource_tokens=tuple(sorted(shared)),
+        explicit_constraint=signals["explicit_capacity_or_indivisibility"],
+        explicit_choice=signals["explicit_alternative_choice"],
+        explicit_exclusion=signals["explicit_recipient_exclusion"],
+        explicit_nonexclusive=signals["explicit_nonexclusive_allocation"],
+    )
+_NONRECEIPT_STATE = re.compile(
+    r"\b(?:does\s+not|do\s+not|did\s+not|will\s+not|is\s+not|was\s+not)\s+"
+    r"(?:receive|receives|received|given|treated)|\b(?:untreated|without\s+"
+    r"(?:the\s+)?(?:medicine|medication|dose|resource)|denied|withheld)\b",
+    re.IGNORECASE,
+)
+_DEATH_WITHOUT_ALLOCATED_RESOURCE = re.compile(
+    r"\b(?:die|dies|death|dead|will\s+die)\b[^.;]{0,80}\bwithout\b|"
+    r"\bwithout\b[^.;]{0,80}\b(?:die|dies|death|dead)\b",
+    re.IGNORECASE,
+)
+
+
+def _exclusive_allocation_nonreceipt_errors(
+    model: ScenarioWorldModel,
+    source_texts: Sequence[str],
+) -> list[str]:
+    """Require the unselected party's state, not scarcity, to mediate harm."""
+    source_blob = " ".join(source_texts)
+    party_by_id = {party.party_id: party for party in model.parties}
+    errors: list[str] = []
+    evidence = exclusive_allocation_evidence(model, source_texts)
+    if not evidence.licensed:
+        return []
+    allocation_action_ids = set(evidence.competing_action_ids)
+    allocation_actions = [
+        action for action in model.actions
+        if action.action_id in allocation_action_ids
+    ]
+    eligible_recipients = set(evidence.distinct_recipient_ids)
+    death_is_stipulated = bool(
+        _DEATH_WITHOUT_ALLOCATED_RESOURCE.search(source_blob)
+    )
+    if len(eligible_recipients) >= 2:
+        for action in allocation_actions:
+            owned = [
+                effect for effect in model.effects
+                if effect.action_id == action.action_id
+            ]
+            for nonrecipient_id in sorted(
+                eligible_recipients - set(action.recipient_party_ids)
+            ):
+                nonreceipt = [
+                    effect for effect in owned
+                    if effect.party_id == nonrecipient_id
+                    and _NONRECEIPT_STATE.search(
+                        " ".join((effect.outcome, effect.source_proposition))
+                    )
+                ]
+                adverse = [
+                    effect for effect in owned
+                    if effect.party_id == nonrecipient_id
+                    and effect.polarity in {"ADVERSE", "UNRESOLVED"}
+                    and effect.effect_kind in _ROLE_WELFARE_KINDS
+                ]
+                missing: list[str] = []
+                if not nonreceipt:
+                    missing.append("nonreceipt state")
+                if death_is_stipulated and not adverse:
+                    missing.append("source-stipulated adverse outcome")
+                if missing:
+                    errors.append(
+                        f"{action.action_id} omits exclusive-allocation branch "
+                        f"for nonrecipient {nonrecipient_id}: missing "
+                        f"{', '.join(missing)}; add the action-specific nonreceipt "
+                        "state and preserve every source-stipulated consequence"
+                    )
+    for action in model.actions:
+        owned = [effect for effect in model.effects if effect.action_id == action.action_id]
+        for harm in owned:
+            harmed_party = party_by_id.get(harm.party_id)
+            if (
+                harm.polarity != "ADVERSE"
+                or not _requires_act_ancestry(harm, harmed_party)
+                or harm.party_id in action.recipient_party_ids
+            ):
+                continue
+            parents = _downstream_health_parents(harm, model)
+            has_nonreceipt = any(
+                parent.party_id == harm.party_id
+                and _NONRECEIPT_STATE.search(
+                    " ".join((parent.outcome, parent.source_proposition))
+                )
+                for parent in parents
+            )
+            if not has_nonreceipt:
+                errors.append(
+                    f"{harm.effect_id} is harm to unselected party {harm.party_id} "
+                    "under an exclusive indivisible allocation but lacks an "
+                    "action-specific nonreceipt or untreated state as its immediate "
+                    "parent; keep scarcity/indivisibility global and insert "
+                    f"{harm.party_id} does not receive the allocated resource -> "
+                    f"{harm.effect_id}"
+                )
     return errors
 
 
@@ -6303,6 +8123,24 @@ def validate_world_completeness(
                     "as its parent"
                 )
                 continue
+            skipped_named_processes = _direct_parents_skip_named_process(
+                effect, parents, action, model, party_by_id,
+            )
+            if skipped_named_processes:
+                named = ", ".join(
+                    f"{party.party_id} ({party.kind} {party.label})"
+                    for party in skipped_named_processes
+                )
+                parent_ids = ", ".join(parent.effect_id for parent in parents)
+                errors.append(
+                    f"{effect.effect_id} is caused directly by act {parent_ids} "
+                    f"while its source names {named} as the intervening process; "
+                    "insert a PHYSICAL_STATE or OTHER effect on that named "
+                    "process as the immediate parent, replace the direct "
+                    f"{parent_ids} -> {effect.effect_id} link with "
+                    f"{parent_ids} -> process -> {effect.effect_id}, and preserve "
+                    "the child effect"
+                )
             skipped_parents = [
                 parent for parent in parents
                 if (
@@ -6370,6 +8208,12 @@ def validate_world_completeness(
         errors.extend(_human_transfer_kind_errors(model))
         errors.extend(_transfer_resource_recipient_errors(model))
         errors.extend(
+            _exclusive_allocation_nonreceipt_errors(
+                model,
+                _collect_unique_source_texts(model, extra_texts=extra_source_texts),
+            )
+        )
+        errors.extend(
             _source_stipulated_outcome_errors(
                 model, source_texts=extra_source_texts,
             )
@@ -6402,6 +8246,11 @@ _PURPOSE_CONSEQUENCE = re.compile(
     r"prevent|avert|provide)\s+(?P<cons>.+)$",
     re.IGNORECASE | re.DOTALL,
 )
+_RESULT_CONSEQUENCE = re.compile(
+    r"^(?P<side>.+?)(?:,\s*)?\b(?:where|which)\s+"
+    r"(?:it|they|the\s+[a-z][a-z -]{0,40})\s+will\s+(?P<cons>.+)$",
+    re.IGNORECASE | re.DOTALL,
+)
 _REFRAIN_FAMILY_STEMS = frozenset({
     "abstain", "decline", "forgo", "omit", "refrain", "withhold",
 })
@@ -6413,6 +8262,11 @@ _LIFE_SAVE_BLOB = re.compile(
 _LIFE_LOSS_BLOB = re.compile(
     r"\b(?:loss\s+of\s+lif\w*|deaths?|die|dies|dying|killed|kill|"
     r"perish\w*|fatal\w*|catastroph\w*\s+loss)\b",
+    re.IGNORECASE,
+)
+_PHYSICAL_HARM_BLOB = re.compile(
+    r"\b(?:harm\w*|injur\w*|hit|hits|struck|strike|strikes|"
+    r"run\s+over|runs\s+over|ran\s+over|crush\w*)\b",
     re.IGNORECASE,
 )
 
@@ -6427,6 +8281,8 @@ def _consequence_polarity(span: str) -> str | None:
     if not cleaned:
         return None
     if _LIFE_LOSS_BLOB.search(cleaned):
+        return "ADVERSE"
+    if _PHYSICAL_HARM_BLOB.search(cleaned):
         return "ADVERSE"
     if _LIFE_SAVE_BLOB.search(cleaned):
         return "BENEFICIAL"
@@ -6444,11 +8300,16 @@ def _side_cue_from_head(head: str) -> str:
     return _trim_contrast_span(purpose[0]) if purpose else cleaned
 
 
-def _parse_contrast_side(side_text: str) -> SourceStipulatedOutcome | None:
-    """Pull a welfare consequence from one side of an or-contrast."""
+def _parse_contrast_side(side_text: str) -> tuple[SourceStipulatedOutcome, ...]:
+    """Pull atomic welfare consequences from one side of an or-contrast.
+
+    ``preserve X while risking Y`` contains two differently directed stakes.
+    Treating that whole tail as one outcome lets the death token overwrite the
+    preservation claim's polarity and makes quantity ownership ambiguous.
+    """
     cleaned = _trim_contrast_span(side_text)
     if not cleaned:
-        return None
+        return ()
     nested_cost = re.search(
         r"\bat\s+the\s+cost\s+of\s+(.+)$", cleaned, flags=re.IGNORECASE,
     )
@@ -6457,28 +8318,50 @@ def _parse_contrast_side(side_text: str) -> SourceStipulatedOutcome | None:
         cost_polarity = _consequence_polarity(cost_cons)
         if cost_polarity is not None:
             head = cleaned[: nested_cost.start()]
-            return SourceStipulatedOutcome(
+            return (SourceStipulatedOutcome(
                 side_cue=_side_cue_from_head(head),
                 consequence_span=cost_cons,
                 polarity=cost_polarity,
                 clause_excerpt="",
-            )
+            ),)
     purpose = _PURPOSE_CONSEQUENCE.match(cleaned)
     if purpose is not None:
         cons = _trim_contrast_span(purpose.group("cons"))
         cons = re.split(
             r"\bat\s+the\s+cost\s+of\b", cons, maxsplit=1, flags=re.IGNORECASE,
         )[0].strip(" ,.;:")
-        polarity = _consequence_polarity(cons)
-        if polarity is None:
-            return None
-        return SourceStipulatedOutcome(
-            side_cue=_side_cue_from_head(purpose.group("side")),
-            consequence_span=cons,
-            polarity=polarity,
-            clause_excerpt="",
-        )
-    return None
+        side_cue = _side_cue_from_head(purpose.group("side"))
+        pieces = [
+            _trim_contrast_span(piece)
+            for piece in re.split(
+                r"\s+while\s+", cons, maxsplit=1, flags=re.IGNORECASE,
+            )
+            if _trim_contrast_span(piece)
+        ]
+        outcomes: list[SourceStipulatedOutcome] = []
+        for piece in pieces:
+            polarity = _consequence_polarity(piece)
+            if polarity is None:
+                continue
+            outcomes.append(SourceStipulatedOutcome(
+                side_cue=side_cue,
+                consequence_span=piece,
+                polarity=polarity,
+                clause_excerpt="",
+            ))
+        return tuple(outcomes)
+    result = _RESULT_CONSEQUENCE.match(cleaned)
+    if result is not None:
+        consequence = _trim_contrast_span(result.group("cons"))
+        polarity = _consequence_polarity(consequence)
+        if polarity is not None:
+            return (SourceStipulatedOutcome(
+                side_cue=_side_cue_from_head(result.group("side")),
+                consequence_span=consequence,
+                polarity=polarity,
+                clause_excerpt="",
+            ),)
+    return ()
 
 
 def extract_binary_contrast_stipulations(
@@ -6523,13 +8406,14 @@ def extract_binary_contrast_stipulations(
         )
         left = _parse_contrast_side(left_raw)
         right = _parse_contrast_side(parts[1])
-        if left is None or right is None:
+        if not left or not right:
             continue
         # Require an explicit contrast cue, or opposed life polarities.
-        opposed = {left.polarity, right.polarity} == {"BENEFICIAL", "ADVERSE"}
+        polarities = {item.polarity for item in (*left, *right)}
+        opposed = {"BENEFICIAL", "ADVERSE"} <= polarities
         if not (_BINARY_CONTRAST_CUE.search(text) or opposed):
             continue
-        for item in (left, right):
+        for item in (*left, *right):
             key = (
                 item.side_cue.casefold(),
                 item.consequence_span.casefold(),
@@ -6559,28 +8443,47 @@ def _side_match_stems(side_cue: str) -> set[str]:
     return _deverbal_identity_stems(_condition_content_stems(side_cue))
 
 
+_NEGATED_ACTION_CUE = re.compile(
+    r"\b(?:do|does|did|will|would|should|can|could)\s+not\s+"
+    r"(?:pull|press|activate|trigger|execute|deploy|send|give|use|act)\b|"
+    r"\b(?:not|never)\s+(?:pull|press|activate|trigger|execute|deploy|send|give|use|act)\b",
+    re.IGNORECASE,
+)
+
+
+def _is_refraining_action_text(text: str, stems: set[str] | None = None) -> bool:
+    content = stems if stems is not None else _side_match_stems(text)
+    return (
+        bool(content & _REFRAIN_FAMILY_STEMS)
+        or bool(re.search(
+            r"\b(?:refrain|withhold|omit|decline|forgo|abstain)\b",
+            text,
+            re.IGNORECASE,
+        ))
+        or bool(_NEGATED_ACTION_CUE.search(text))
+    )
+
+
 def _best_action_for_stipulation_side(
     side_cue: str,
     actions: Sequence[WorldAction],
 ) -> WorldAction | None:
     side_stems = _side_match_stems(side_cue)
-    side_refrain = bool(side_stems & _REFRAIN_FAMILY_STEMS) or bool(
-        re.search(r"\b(?:refrain|withhold|omit|decline|forgo)\b", side_cue, re.I)
-    )
+    side_refrain = _is_refraining_action_text(side_cue, side_stems)
     best: WorldAction | None = None
     best_score = 0
     for action in actions:
         action_stems = _action_match_stems(action)
         score = len(side_stems & action_stems)
-        action_refrain = bool(action_stems & _REFRAIN_FAMILY_STEMS) or bool(
-            re.search(
-                r"\b(?:refrain|withhold|omit|decline|forgo)\b",
-                action.intervention,
-                re.I,
-            )
+        action_refrain = _is_refraining_action_text(
+            action.intervention, action_stems,
         )
         if side_refrain and action_refrain:
             score += 3
+        elif side_refrain != action_refrain:
+            # Shared verb stems ("pull lever" / "does not pull lever") must
+            # not let the positive branch win a tie for a negated side.
+            score -= 2
         if score > best_score:
             best_score = score
             best = action
@@ -6778,6 +8681,14 @@ _QUANTITY_RESEARCH_WINDOW = re.compile(
     r"\b(?:research|knowledge|science|scientific|medical)\b",
     re.IGNORECASE,
 )
+_QUANTITY_WELFARE_WINDOW = re.compile(
+    r"\b(?:livelihoods?|homes?|farms?|jobs?|incomes?)\b",
+    re.IGNORECASE,
+)
+_QUANTITY_WELFARE_LOSS_CUE = re.compile(
+    r"\b(?:ruin\w*|destroy\w*|lose|loses|lost|depriv\w*)\b",
+    re.IGNORECASE,
+)
 _QUANTITY_RISK_CUE = re.compile(
     r"\b(?:risks?|threatens?|endangers?|cost|loss)\b",
     re.IGNORECASE,
@@ -6786,9 +8697,21 @@ _QUANTITY_ERASE_CUE = re.compile(
     r"\b(?:erase|erased|erasing|destroy|destroyed|destroying|wipe|wiped)\b",
     re.IGNORECASE,
 )
+_QUANTITY_BENEFIT_LOSS_CUE = re.compile(
+    r"\b(?:eliminat\w*|forego\w*|lose|loses|lost|remov\w*)\b",
+    re.IGNORECASE,
+)
 _PURGE_FAMILY_STEMS = frozenset({
     "deploy", "erase", "execut", "purge", "trigger",
 })
+_SCARCE_RESOURCE_BACKGROUND = re.compile(
+    r"\b(?:has|have|there\s+(?:is|are))\b[^.;]{0,100}\b"
+    r"(?:dose|doses|unit|units|organ|organs|ventilator|ventilators|bed|beds|"
+    r"resource|resources|medicine|medication)\b[^.;]{0,140}\b"
+    r"(?:patient|patients|people|persons?)\b[^.;]{0,100}\b"
+    r"(?:without|unless)\b",
+    re.IGNORECASE,
+)
 
 
 def _local_quantity_window(text: str, span: str) -> str:
@@ -6799,6 +8722,37 @@ def _local_quantity_window(text: str, span: str) -> str:
     start = max(0, match.start() - 48)
     end = min(len(text), match.end() + 48)
     return text[start:end]
+
+
+def _quantity_stake_context(text: str, span: str) -> tuple[str, str, str]:
+    """Return local text plus the text immediately before/after a quantity.
+
+    Direction matters here. ``risks twelve lives`` asserts a quantified stake;
+    ``twelve residents facing risk`` merely describes a population already in
+    the setting. Treating both as action consequences caused completeness to
+    demand invented effects for background facts.
+    """
+    match = re.search(re.escape(span), text, flags=re.IGNORECASE)
+    if match is None:
+        return text, text, ""
+    return (
+        _local_quantity_window(text, span),
+        text[max(0, match.start() - 72):match.start()],
+        text[match.end():min(len(text), match.end() + 72)],
+    )
+
+
+def _atomic_quantity_segment(text: str, span: str) -> str:
+    """Select the coordinated clause that owns a quantity span."""
+    for segment in re.split(
+        r"\s*(?:(?<!\d),(?!\d)|;|\bbut\b|\band\s+(?=[A-Za-z]+ing\b))\s*",
+        text,
+        flags=re.IGNORECASE,
+    ):
+        cleaned = _trim_contrast_span(segment)
+        if cleaned and re.search(re.escape(span), cleaned, flags=re.IGNORECASE):
+            return cleaned
+    return text
 
 
 def extract_quantity_bearing_consequences(
@@ -6815,28 +8769,85 @@ def extract_quantity_bearing_consequences(
         text = _trim_contrast_span(raw)
         if not text:
             continue
+        # Inventory plus an untreated-population baseline is a resource
+        # constraint, not an action-owned quantified harm. The quantities
+        # still remain available on parties/resources through ordinary source
+        # extraction; do not demand an effect saying one dose or all patients
+        # are harmed by whichever action happens to cite this shared clause.
+        if _SCARCE_RESOURCE_BACKGROUND.search(text):
+            continue
         quantities = explicit_quantity_spans(text)
         if not quantities:
             continue
+        # Prefer atomic binary-side consequences only for an explicit mixed
+        # ``... while ...`` construction.  Applying this to every binary
+        # contrast would turn descriptive quantities (for example, a dozen
+        # people located at Site B) into mandatory action consequences.
+        atomized_quantities: set[str] = set()
+        atomic_stipulations = extract_binary_contrast_stipulations([text])
+        for stipulated in atomic_stipulations:
+            stipulated_quantities = explicit_quantity_spans(
+                stipulated.consequence_span
+            )
+            if not stipulated_quantities:
+                continue
+            if not (
+                _QUANTITY_LIFE_WINDOW.search(stipulated.consequence_span)
+                or _LIFE_SAVE_BLOB.search(stipulated.consequence_span)
+                or _LIFE_LOSS_BLOB.search(stipulated.consequence_span)
+            ):
+                continue
+            for span in stipulated_quantities:
+                key = (stipulated.consequence_span.casefold(), span.casefold())
+                if key in seen:
+                    continue
+                seen.add(key)
+                atomized_quantities.add(span.casefold())
+                found.append(QuantityBearingConsequence(
+                    consequence_span=stipulated.consequence_span,
+                    quantity_spans=(span,),
+                    polarity=stipulated.polarity,
+                    side_cue=stipulated.side_cue,
+                    clause_excerpt=text,
+                ))
         for span in quantities:
-            window = _local_quantity_window(text, span)
+            if span.casefold() in atomized_quantities:
+                continue
+            consequence = _atomic_quantity_segment(text, span)
+            window, before, after = _quantity_stake_context(consequence, span)
             polarity = ""
             side_cue = ""
-            consequence = ""
-            if _QUANTITY_LIFE_WINDOW.search(window) and (
-                _QUANTITY_RISK_CUE.search(window)
-                or _LIFE_LOSS_BLOB.search(window)
+            life_quantity = bool(_QUANTITY_LIFE_WINDOW.search(
+                " ".join((span, after[:40], before[-40:])),
+            ))
+            save_assertion = bool(
+                life_quantity and _LIFE_SAVE_BLOB.search(window)
+            )
+            loss_assertion = bool(
+                life_quantity and (
+                    _LIFE_LOSS_BLOB.search(window)
+                    or _PHYSICAL_HARM_BLOB.search(window)
+                    or _QUANTITY_BENEFIT_LOSS_CUE.search(before)
+                )
+            )
+            risk_assertion = bool(
+                life_quantity and _QUANTITY_RISK_CUE.search(before)
+            )
+            if save_assertion and not loss_assertion:
+                polarity = "BENEFICIAL"
+            elif loss_assertion or risk_assertion:
+                polarity = "ADVERSE"
+            elif (
+                _QUANTITY_WELFARE_WINDOW.search(window)
+                and _QUANTITY_WELFARE_LOSS_CUE.search(before)
             ):
                 polarity = "ADVERSE"
-                side_cue = "refrain"
-                consequence = text
             elif _QUANTITY_RESEARCH_WINDOW.search(window) and (
                 _QUANTITY_ERASE_CUE.search(window)
-                or _QUANTITY_RISK_CUE.search(window)
+                or _QUANTITY_RISK_CUE.search(before)
             ):
                 polarity = "ADVERSE"
                 side_cue = ""
-                consequence = text
             else:
                 continue
             qty_key = (text.casefold(), span.casefold())
@@ -6889,10 +8900,37 @@ def _effect_covers_quantity_consequence(
     blob = " ".join(
         part for part in (effect.outcome, effect.source_proposition) if part
     )
-    if _QUANTITY_LIFE_WINDOW.search(item.consequence_span) or _LIFE_LOSS_BLOB.search(
-        item.consequence_span
+    required_quantities = {
+        str(span).casefold() for span in item.quantity_spans if str(span).strip()
+    }
+    effect_quantities = {
+        str(span).casefold()
+        for span in (
+            *effect.quantities,
+            *explicit_quantity_spans(effect.outcome),
+            *explicit_quantity_spans(effect.source_proposition),
+        )
+        if str(span).strip()
+    }
+    if (
+        required_quantities
+        and effect_quantities
+        and required_quantities.isdisjoint(effect_quantities)
     ):
-        if _LIFE_LOSS_BLOB.search(blob) or _QUANTITY_LIFE_WINDOW.search(blob):
+        return False
+    proposition = " ".join(str(effect.source_proposition or "").split())
+    if proposition and proposition.casefold() in item.consequence_span.casefold():
+        return effect.polarity in {item.polarity, "UNRESOLVED"}
+    if (
+        _QUANTITY_LIFE_WINDOW.search(item.consequence_span)
+        or _LIFE_LOSS_BLOB.search(item.consequence_span)
+        or _PHYSICAL_HARM_BLOB.search(item.consequence_span)
+    ):
+        if (
+            _LIFE_LOSS_BLOB.search(blob)
+            or _PHYSICAL_HARM_BLOB.search(blob)
+            or _QUANTITY_LIFE_WINDOW.search(blob)
+        ):
             return effect.polarity in {item.polarity, "UNRESOLVED"}
         # Family match via death/harm stems.
         stems = _deverbal_identity_stems(_condition_content_stems(blob))
@@ -6944,7 +8982,24 @@ def _quantity_bearing_consequence_errors(
     party_by_id = {party.party_id: party for party in model.parties}
     errors: list[str] = []
     for item in items:
+        globally_matched = [
+            effect for effect in model.effects
+            if _effect_covers_quantity_consequence(effect, item)
+        ]
         action = _best_action_for_quantity_consequence(item, model.actions)
+        # A consequence effect is stronger ownership evidence than incidental
+        # action provenance. Background-risk clauses are often cited only by
+        # the terminal loss row, while both alternative actions cite the
+        # choice clause. Bind the consequence to that row's action first.
+        matched_action_ids = tuple(dict.fromkeys(
+            effect.action_id for effect in globally_matched if effect.action_id
+        ))
+        if not item.side_cue and len(matched_action_ids) == 1:
+            action = next(
+                (candidate for candidate in model.actions
+                 if candidate.action_id == matched_action_ids[0]),
+                action,
+            )
         if action is None:
             errors.append(
                 f"world omits quantity-bearing consequence "
@@ -7076,18 +9131,100 @@ def quarantine_contradictions(
         conditions=model.conditions, causal_links=model.causal_links,
         counterfactual_links=model.counterfactual_links,
         admission=admission, schema_version=model.schema_version,
+        temporal_relations=model.temporal_relations,
     )
+
+
+_IMPLICIT_COMPARATIVE_OPERATOR = re.compile(
+    r"\b(?:better|worse|higher|lower|greater|lesser|more\s+likely|"
+    r"less\s+likely|more\s+probable|less\s+probable)\b",
+    re.IGNORECASE,
+)
+_EXPLICIT_COMPARATIVE_STANDARD = re.compile(
+    r"\b(?:than|compared\s+(?:with|to)|relative\s+to|versus|vs\.?|"
+    r"of\s+the\s+(?:two|three|alternatives?|candidates?|patients?))\b",
+    re.IGNORECASE,
+)
+_SOURCE_ACTION_CONDITIONING = re.compile(
+    r"\b(?:if|when|whenever|provided\s+that|on\s+condition\s+that|"
+    r"because|causes?|leads?\s+to|results?\s+in|after|upon|"
+    r"receiv(?:e|es|ed|ing)|giv(?:e|es|en|ing)|treat(?:ed|ment)|"
+    r"administer(?:ed|ing)?)\b",
+    re.IGNORECASE,
+)
+
+
+def quarantine_unsupported_comparative_causalizations(
+    model: ScenarioWorldModel,
+) -> ScenarioWorldModel:
+    """Withhold implicit comparisons that were invented as causal benefits.
+
+    A contextual comparative can be a complete discourse contribution.  This
+    gate therefore does *not* reject bare ``better``/``worse`` propositions.
+    It acts only when the graph adds an inbound causal edge but the bound source
+    states neither the comparison standard nor action conditioning.
+    """
+    inbound = {link.target_id for link in model.causal_links}
+    already_quarantined = {
+        row.effect_id for row in model.admission.quarantined_effects
+    }
+    quarantined = list(model.admission.quarantined_effects)
+    new_ids: set[str] = set()
+    for effect in model.effects:
+        source = " ".join((effect.source_proposition, *(
+            ref.excerpt for ref in effect.provenance
+        )))
+        if (
+            effect.effect_id in already_quarantined
+            or effect.effect_id not in inbound
+            or effect.polarity not in {"BENEFICIAL", "ADVERSE"}
+            or not _IMPLICIT_COMPARATIVE_OPERATOR.search(source or effect.outcome)
+            or _EXPLICIT_COMPARATIVE_STANDARD.search(source)
+            or _SOURCE_ACTION_CONDITIONING.search(source)
+        ):
+            continue
+        new_ids.add(effect.effect_id)
+        quarantined.append(QuarantinedEffect(
+            effect_id=effect.effect_id,
+            action_id=effect.action_id,
+            party_id=effect.party_id,
+            contradiction_type="IMPLICIT_COMPARATIVE_CAUSALIZATION_UNRESOLVED",
+            conflicting_effect_ids=tuple(
+                link.source_id for link in model.causal_links
+                if link.target_id == effect.effect_id
+            ),
+            source_clause_ids=tuple(ref.clause_id for ref in effect.provenance),
+        ))
+    if not new_ids:
+        return model
+    admitted_ids = tuple(
+        effect.effect_id for effect in model.effects
+        if effect.effect_id not in new_ids
+        and effect.effect_id not in already_quarantined
+    )
+    return replace(model, admission=WorldStateAdmission(
+        status="COMMITTED_WITH_QUARANTINE",
+        admitted_effect_ids=admitted_ids,
+        quarantined_effects=tuple(quarantined),
+        user_override=model.admission.user_override,
+        override_reason=(
+            "implicit comparative evidence retained but withheld from causal "
+            "and welfare reasoning pending comparison-standard resolution"
+        ),
+    ))
 
 
 def world_model_from_dict(data: Any) -> ScenarioWorldModel | None:
     """Restore a serialized, previously validated world model."""
+    if isinstance(data, ScenarioWorldModel):
+        return data
     if not isinstance(data, dict) or not data.get("parties"):
         return None
     clauses: dict[str, str] = {}
     for collection in (
         data.get("parties", []), data.get("actions", []), data.get("effects", []),
         data.get("conditions", []), data.get("causal_links", []),
-        data.get("counterfactual_links", []),
+        data.get("counterfactual_links", []), data.get("temporal_relations", []),
     ):
         for row in collection if isinstance(collection, (list, tuple)) else []:
             for ref in row.get("provenance", []) if isinstance(row, dict) else []:
@@ -7098,6 +9235,7 @@ def world_model_from_dict(data: Any) -> ScenarioWorldModel | None:
         "actions": [{**row, "clause_ids": [r.get("clause_id") for r in row.get("provenance", [])]} for row in data.get("actions", [])],
         "effects": [{**row, "clause_ids": [r.get("clause_id") for r in row.get("provenance", [])]} for row in data.get("effects", [])],
         "conditions": [{**row, "clause_ids": [r.get("clause_id") for r in row.get("provenance", [])]} for row in data.get("conditions", [])],
+        "temporal_relations": [{**row, "clause_ids": [r.get("clause_id") for r in row.get("provenance", [])]} for row in data.get("temporal_relations", [])],
         "causal_links": [{**row, "clause_ids": [r.get("clause_id") for r in row.get("provenance", [])]} for row in data.get("causal_links", [])],
         "counterfactual_links": [{**row, "clause_ids": [r.get("clause_id") for r in row.get("provenance", [])]} for row in data.get("counterfactual_links", [])],
         "schema_version": str(data.get("schema_version", "1.0")),
@@ -7134,6 +9272,7 @@ def world_model_from_dict(data: Any) -> ScenarioWorldModel | None:
         conditions=model.conditions, causal_links=model.causal_links,
         counterfactual_links=model.counterfactual_links,
         admission=admission, schema_version=str(data.get("schema_version", "1.0")),
+        temporal_relations=model.temporal_relations,
     )
 
 
@@ -7161,6 +9300,9 @@ def world_model_as_parse_payload(model: ScenarioWorldModel) -> dict[str, Any]:
         "actions": _rows_with_clause_ids(data.get("actions", [])),
         "effects": _rows_with_clause_ids(data.get("effects", [])),
         "conditions": _rows_with_clause_ids(data.get("conditions", [])),
+        "temporal_relations": _rows_with_clause_ids(
+            data.get("temporal_relations", []),
+        ),
         "causal_links": _rows_with_clause_ids(data.get("causal_links", [])),
         "counterfactual_links": _rows_with_clause_ids(
             data.get("counterfactual_links", []),
@@ -7258,8 +9400,19 @@ def compact_committed_world(model: Any) -> dict[str, Any]:
                 "description": condition.description,
                 "event_effect_id": condition.event_effect_id,
                 "value_status": condition.value_status,
+                "polarity": condition.polarity,
+                "operator": condition.operator,
             }
             for condition in typed.conditions
+        ],
+        "temporal_relations": [
+            {
+                "relation_id": relation.relation_id,
+                "source_id": relation.source_id,
+                "relation": relation.relation,
+                "target_id": relation.target_id,
+            }
+            for relation in typed.temporal_relations
         ],
         "counterfactual_links": [
             {
@@ -7279,13 +9432,6 @@ def compact_committed_world(model: Any) -> dict[str, Any]:
     }
 
 
-_EXTENSION_ID_FIELDS = {
-    "parties": "party_id",
-    "effects": "effect_id",
-    "conditions": "condition_id",
-}
-
-
 def admit_world_model_extension(
     base: ScenarioWorldModel,
     extension: dict[str, Any],
@@ -7294,47 +9440,13 @@ def admit_world_model_extension(
     action_ids: Sequence[str],
     action_texts: dict[str, str] | None = None,
 ) -> ScenarioWorldModel:
-    """Admit additional parties, effects, or links into a committed world model.
+    """Compatibility shim for :func:`world_admission.admit_world_extension`."""
+    from .world_admission import admit_world_extension
 
-    IDs are append-only. The merged model is re-validated, including completeness.
-    On failure this raises ValueError and the caller must keep ``base``.
-    """
-    if not isinstance(extension, dict):
-        raise ValueError("world-model extension must be an object")
-    payload = world_model_as_parse_payload(base)
-    for key, id_field in _EXTENSION_ID_FIELDS.items():
-        extra = extension.get(key) or []
-        if extra and not isinstance(extra, list):
-            raise ValueError(f"extension {key} must be an array")
-        existing = {
-            _clean(row.get(id_field), 80)
-            for row in payload.get(key, [])
-            if isinstance(row, dict)
-        }
-        for row in extra if isinstance(extra, list) else []:
-            if not isinstance(row, dict):
-                continue
-            row_id = _clean(row.get(id_field), 80)
-            if not row_id:
-                raise ValueError(f"extension {key} row is missing {id_field}")
-            if row_id in existing:
-                raise ValueError(
-                    f"extension reuses {id_field} {row_id}; committed "
-                    "world-model ids are append-only"
-                )
-            payload.setdefault(key, []).append(row)
-            existing.add(row_id)
-    for key in ("causal_links", "counterfactual_links"):
-        extra = extension.get(key) or []
-        if extra and not isinstance(extra, list):
-            raise ValueError(f"extension {key} must be an array")
-        payload.setdefault(key, []).extend(
-            row for row in extra if isinstance(row, dict)
-        )
-    return parse_world_model(
-        payload,
+    return admit_world_extension(
+        base,
+        extension,
         clauses=clauses,
         action_ids=action_ids,
         action_texts=action_texts,
-        require_completeness=True,
     )

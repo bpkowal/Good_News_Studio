@@ -1,0 +1,210 @@
+{
+  "schema_version": 2,
+  "run_id": "scenario_20260916_180959_149045",
+  "started_at": "2026-09-16T22:09:59.149065+00:00",
+  "elapsed_seconds": 369.244765,
+  "counts": {
+    "events": 14,
+    "by_category": {
+      "model_call": 4,
+      "provider_attempt": 4,
+      "stage": 6
+    },
+    "by_status": {
+      "ERROR": 2,
+      "NONZERO_EXIT": 1,
+      "OK": 11
+    },
+    "logical_model_calls": 4,
+    "model_call_count": 4,
+    "original_agent_model_calls": 0,
+    "compact_primary_calls": 0,
+    "compact_repair_calls": 0,
+    "repair_count": 2,
+    "timeout_count": 1,
+    "abstention_count": 0,
+    "budget_blocked_calls": 0,
+    "model_cache_hits": 0,
+    "grounded_projection_materializations": 0,
+    "grounded_projection_cache_hits": 0,
+    "provider_attempts": 4,
+    "provider_failures": 1
+  },
+  "timings_by_name_seconds": {
+    "action_planning": 3e-06,
+    "failed_grounding_cache_serialization": 0.005859,
+    "openai.chat.completions": 368.730753,
+    "pipeline_total": 369.244457,
+    "world_grounding": 339.995655,
+    "world_grounding_escalation": 57.582808,
+    "world_grounding_failure_serialization": 0.007681,
+    "world_grounding_primary": 272.518359,
+    "world_grounding_repair": 67.442862
+  },
+  "original_agents": {},
+  "compact_specialists": {},
+  "ledger_commits": {},
+  "events": [
+    {
+      "category": "stage",
+      "name": "action_planning",
+      "status": "OK",
+      "duration_seconds": 3e-06,
+      "finished_at": "2026-09-16T22:09:59.570319+00:00",
+      "metadata": {}
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "ERROR",
+      "duration_seconds": 272.515686,
+      "finished_at": "2026-09-16T22:58:28.352513+00:00",
+      "metadata": {
+        "model": "o3",
+        "exception_type": "APITimeoutError",
+        "error_category": "timeout",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_primary",
+      "status": "ERROR",
+      "duration_seconds": 272.518359,
+      "finished_at": "2026-09-16T22:58:28.352891+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 6144,
+        "structured": true,
+        "cycle": 0,
+        "attempt": 1,
+        "exception_type": "ModelCallUnavailable",
+        "error_category": "timeout",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 35.810422,
+      "finished_at": "2026-09-16T22:59:05.249091+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_repair",
+      "status": "OK",
+      "duration_seconds": 35.815292,
+      "finished_at": "2026-09-16T22:59:05.252346+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_repair",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 6144,
+        "structured": true,
+        "cycle": 0,
+        "attempt": 2,
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 31.625248,
+      "finished_at": "2026-09-16T22:59:36.890511+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_repair",
+      "status": "OK",
+      "duration_seconds": 31.62757,
+      "finished_at": "2026-09-16T22:59:36.892462+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_repair",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 6144,
+        "structured": true,
+        "cycle": 0,
+        "attempt": 3,
+        "parent_stage": "world_grounding"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "world_grounding",
+      "status": "OK",
+      "duration_seconds": 339.995655,
+      "finished_at": "2026-09-16T22:59:36.912514+00:00",
+      "metadata": {}
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 28.779397,
+      "finished_at": "2026-09-16T23:00:05.693460+00:00",
+      "metadata": {
+        "model": "gpt-5.6-sol",
+        "parent_stage": "world_grounding_escalation"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "world_grounding_escalation",
+      "status": "OK",
+      "duration_seconds": 28.781867,
+      "finished_at": "2026-09-16T23:00:05.695413+00:00",
+      "metadata": {
+        "call_kind": "world_grounding_escalation",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 6144,
+        "structured": true,
+        "cycle": 0,
+        "attempt": 1,
+        "parent_stage": "world_grounding_escalation"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "world_grounding_escalation",
+      "status": "OK",
+      "duration_seconds": 28.800941,
+      "finished_at": "2026-09-16T23:00:05.713325+00:00",
+      "metadata": {}
+    },
+    {
+      "category": "stage",
+      "name": "failed_grounding_cache_serialization",
+      "status": "OK",
+      "duration_seconds": 0.005859,
+      "finished_at": "2026-09-16T23:00:05.719465+00:00",
+      "metadata": {}
+    },
+    {
+      "category": "stage",
+      "name": "world_grounding_failure_serialization",
+      "status": "OK",
+      "duration_seconds": 0.007681,
+      "finished_at": "2026-09-16T23:00:05.729939+00:00",
+      "metadata": {}
+    },
+    {
+      "category": "stage",
+      "name": "pipeline_total",
+      "status": "NONZERO_EXIT",
+      "duration_seconds": 369.244457,
+      "finished_at": "2026-09-16T23:00:05.735692+00:00",
+      "metadata": {}
+    }
+  ],
+  "content_recording": "DISABLED"
+}

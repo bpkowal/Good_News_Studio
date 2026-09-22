@@ -1,0 +1,2234 @@
+{
+  "diagnostic_schema_version": 1,
+  "failure_stage": "WORLD_GROUNDING",
+  "saved_at": "2026-09-16T17:45:46.864065-04:00",
+  "scenario_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/eval_outputs/study1-trolley-pilot-20260916/canonical/scenario.json",
+  "ethical_problem": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person. You cannot stop it another way. Do you pull the lever?",
+  "canonical_scenario": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person. You cannot stop it another way. Do you pull the lever?",
+  "presentation_actions": [
+    "Pull the lever, redirecting the trolley toward one person",
+    "Do not pull the lever, allowing the trolley to continue toward five people"
+  ],
+  "canonical_actions": [
+    "Pull the lever, redirecting the trolley toward one person",
+    "Do not pull the lever, allowing the trolley to continue toward five people"
+  ],
+  "presentation_action_mapping": [
+    {
+      "source_label": "Presented option 1",
+      "source_position": 0,
+      "source_action": "Pull the lever, redirecting the trolley toward one person",
+      "canonical_action_id": "A0",
+      "canonical_action": "Pull the lever, redirecting the trolley toward one person",
+      "mapping_basis": "EXACT_ACTION_IDENTITY"
+    },
+    {
+      "source_label": "Presented option 2",
+      "source_position": 1,
+      "source_action": "Do not pull the lever, allowing the trolley to continue toward five people",
+      "canonical_action_id": "A1",
+      "canonical_action": "Do not pull the lever, allowing the trolley to continue toward five people",
+      "mapping_basis": "EXACT_ACTION_IDENTITY"
+    }
+  ],
+  "source_action_legend": {
+    "A0": "Pull the lever, redirecting the trolley toward one person",
+    "A1": "Do not pull the lever, allowing the trolley to continue toward five people"
+  },
+  "execution": {
+    "backend": "openai",
+    "model": "o3"
+  },
+  "summary": {
+    "status": "REJECTED",
+    "world_model_status": "REJECTED",
+    "attempt_count": 5,
+    "repair_attempts": 4,
+    "final_validation_issue_count": 1,
+    "final_validation_issues": [
+      "[WORLD_VALIDATION_ERROR effect:E4 SEMANTIC_PATCH] E4 omits quantities stated in its outcome and provenance: ['five']"
+    ],
+    "escalation": null,
+    "next_repair_scope": "LOCAL_PATCH",
+    "next_rebuild_action_ids": [],
+    "repair_inheritance": null
+  },
+  "attempt_summary": [
+    {
+      "attempt": 1,
+      "stage": "grounding",
+      "repair_scope": "FRESH_GENERATION",
+      "inherited_candidate": false,
+      "rebuild_action_ids": [],
+      "error_count": 3,
+      "validation_issue_count": 12,
+      "issue_codes": [
+        "DERIVATION_BINDING_MISMATCH",
+        "MISSING_DIRECT_INTERVENTION",
+        "QUANTITY_BEARING_CONSEQUENCE_MISSING",
+        "VERB_LEMMA_MISMATCH",
+        "WORLD_VALIDATION_ERROR"
+      ],
+      "repair_classes": [
+        "SEMANTIC_PATCH",
+        "SOURCE_PATCH"
+      ],
+      "affected_entities": [
+        "3",
+        "A0",
+        "A1",
+        "E10",
+        "E2",
+        "E3",
+        "E4",
+        "E6",
+        "E9"
+      ],
+      "repair_delta": {}
+    },
+    {
+      "attempt": 1,
+      "stage": "grounding",
+      "repair_scope": "DETERMINISTIC_LOCAL_PATCH",
+      "inherited_candidate": true,
+      "rebuild_action_ids": [],
+      "error_count": 3,
+      "validation_issue_count": 10,
+      "issue_codes": [
+        "DERIVATION_BINDING_MISMATCH",
+        "MISSING_DIRECT_INTERVENTION",
+        "VERB_LEMMA_MISMATCH",
+        "WORLD_VALIDATION_ERROR"
+      ],
+      "repair_classes": [
+        "SEMANTIC_PATCH",
+        "SOURCE_PATCH"
+      ],
+      "affected_entities": [
+        "3",
+        "A0",
+        "A1",
+        "E10",
+        "E3",
+        "E4",
+        "E6",
+        "E9"
+      ],
+      "repair_delta": {
+        "deterministic_patches": [
+          {
+            "op": "add_quantity",
+            "effect_id": "E2",
+            "field": "quantities",
+            "value": "five",
+            "code": "QUANTITY_BEARING_CONSEQUENCE_MISSING",
+            "patch_kind": "semantic_patch",
+            "deterministic": true
+          },
+          {
+            "op": "add_quantity",
+            "effect_id": "E2",
+            "field": "quantities",
+            "value": "one",
+            "code": "QUANTITY_BEARING_CONSEQUENCE_MISSING",
+            "patch_kind": "semantic_patch",
+            "deterministic": true
+          }
+        ]
+      }
+    },
+    {
+      "attempt": 2,
+      "stage": "grounding",
+      "repair_scope": "SUBGRAPH_REBUILD",
+      "inherited_candidate": true,
+      "rebuild_action_ids": [
+        "A0",
+        "A1"
+      ],
+      "error_count": 1,
+      "validation_issue_count": 2,
+      "issue_codes": [
+        "QUANTITY_BEARING_CONSEQUENCE_MISSING",
+        "VERB_LEMMA_MISMATCH"
+      ],
+      "repair_classes": [
+        "SOURCE_PATCH"
+      ],
+      "affected_entities": [
+        "E2",
+        "E4"
+      ],
+      "repair_delta": {
+        "dropped": {
+          "quantities": [
+            "effect|E2|five"
+          ],
+          "overlays": [
+            "A0|E4|A1|E7",
+            "A0|E5|A1|E8",
+            "A1|E10|A0|E3",
+            "A1|E9|A0|E2"
+          ],
+          "citations": [
+            "effect|E10|A1",
+            "effect|E10|C0",
+            "effect|E4|A0",
+            "effect|E5|A0",
+            "effect|E7|C0",
+            "effect|E8|C0",
+            "effect|E9|A1",
+            "effect|E9|C0"
+          ],
+          "effects": [
+            "E10",
+            "E7",
+            "E8",
+            "E9"
+          ],
+          "causal_links": [
+            "E1|E3|CAUSES",
+            "E6|E7|CAUSES",
+            "E6|E8|CAUSES"
+          ]
+        },
+        "added": {
+          "quantities": [
+            "effect|E3|five",
+            "effect|E5|five",
+            "effect|E6|one"
+          ],
+          "causal_links": [
+            "E1|E3|PREVENTS",
+            "E4|E5|CAUSES",
+            "E4|E6|PREVENTS"
+          ]
+        },
+        "illegal_drops": []
+      }
+    },
+    {
+      "attempt": 2,
+      "stage": "grounding",
+      "repair_scope": "DETERMINISTIC_LOCAL_PATCH",
+      "inherited_candidate": true,
+      "rebuild_action_ids": [
+        "A0",
+        "A1"
+      ],
+      "error_count": 1,
+      "validation_issue_count": 1,
+      "issue_codes": [
+        "VERB_LEMMA_MISMATCH"
+      ],
+      "repair_classes": [
+        "SOURCE_PATCH"
+      ],
+      "affected_entities": [
+        "E4"
+      ],
+      "repair_delta": {
+        "deterministic_patches": [
+          {
+            "op": "add_quantity",
+            "effect_id": "E2",
+            "field": "quantities",
+            "value": "five",
+            "code": "QUANTITY_BEARING_CONSEQUENCE_MISSING",
+            "patch_kind": "semantic_patch",
+            "deterministic": true
+          }
+        ]
+      }
+    },
+    {
+      "attempt": 3,
+      "stage": "grounding",
+      "repair_scope": "LOCAL_PATCH",
+      "inherited_candidate": true,
+      "rebuild_action_ids": [],
+      "error_count": 1,
+      "validation_issue_count": 1,
+      "issue_codes": [
+        "WORLD_VALIDATION_ERROR"
+      ],
+      "repair_classes": [
+        "SEMANTIC_PATCH"
+      ],
+      "affected_entities": [
+        "E4"
+      ],
+      "repair_delta": {
+        "dropped": {},
+        "added": {},
+        "illegal_drops": []
+      }
+    }
+  ],
+  "grounding": {
+    "status": "REJECTED",
+    "actions": {},
+    "world_model": {},
+    "world_model_status": "REJECTED",
+    "world_contradictions": [],
+    "errors": [
+      "typed world model rejected: E4 omits quantities stated in its outcome and provenance: ['five']"
+    ],
+    "validation_issues": [
+      {
+        "code": "WORLD_VALIDATION_ERROR",
+        "message": "E4 omits quantities stated in its outcome and provenance: ['five']",
+        "entity_kind": "effect",
+        "entity_id": "E4",
+        "field": "",
+        "related_ids": [],
+        "repair_class": "SEMANTIC_PATCH",
+        "permits_removal": false
+      }
+    ],
+    "clauses": [
+      {
+        "clause_id": "C0",
+        "text": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+      },
+      {
+        "clause_id": "C1",
+        "text": "You cannot stop it another way."
+      },
+      {
+        "clause_id": "C2",
+        "text": "Do you pull the lever?"
+      }
+    ],
+    "attempts": [
+      {
+        "attempt": 1,
+        "repair_scope": "FRESH_GENERATION",
+        "inherited_candidate": false,
+        "rebuild_action_ids": [],
+        "errors": [
+          "A0 has no distinguishing source clause; its grounding ['C0', 'C2'] is covered entirely by the other actions",
+          "A1 has no distinguishing source clause; its grounding ['C0', 'C2'] is covered entirely by the other actions",
+          "typed world model rejected: A0 recipient P1 lacks an atomic DIRECT INTERVENTION, RESOURCE_TRANSFER, or INSTITUTIONAL_OUTCOME effect; A1 recipient P1 lacks an atomic DIRECT INTERVENTION, RESOURCE_TRANSFER, or INSTITUTIONAL_OUTCOME effect; causal_link[3] source is a FOREGONE effect; keep opportunity-loss comparisons on counterfactual_links so the actual-world causal chain stays action-local; E6 outcome lemma does not bind to source_proposition; rewrite the outcome to a morphological variant of the source event or omit the derived world effect; E3 averted-alternative source_effect_ids do not match its counterfactual alternative_effect_id; E4 is FOREGONE so derivation_operation must be COUNTERFACTUAL_PROJECTION; E9 is FOREGONE so derivation_operation must be COUNTERFACTUAL_PROJECTION; E10 is FOREGONE so derivation_operation must be COUNTERFACTUAL_PROJECTION; E2 omits source quantity 'five' from quantity-bearing consequence 'A runaway trolley will kill five people unless you pull a lever' (licensing_clause_id=C0); copy the span onto the effect (or its population party); E2 omits source quantity 'one' from quantity-bearing consequence 'which redirects it onto a track where it will kill one person' (licensing_clause_id=C0); copy the span onto the effect (or its population party)"
+        ],
+        "validation_issues": [
+          {
+            "code": "MISSING_DIRECT_INTERVENTION",
+            "message": "A0 recipient P1 lacks an atomic DIRECT INTERVENTION, RESOURCE_TRANSFER, or INSTITUTIONAL_OUTCOME effect",
+            "entity_kind": "action",
+            "entity_id": "A0",
+            "field": "effects",
+            "related_ids": [
+              "P1"
+            ],
+            "repair_class": "SEMANTIC_PATCH",
+            "permits_removal": false
+          },
+          {
+            "code": "MISSING_DIRECT_INTERVENTION",
+            "message": "A1 recipient P1 lacks an atomic DIRECT INTERVENTION, RESOURCE_TRANSFER, or INSTITUTIONAL_OUTCOME effect",
+            "entity_kind": "action",
+            "entity_id": "A1",
+            "field": "effects",
+            "related_ids": [
+              "P1"
+            ],
+            "repair_class": "SEMANTIC_PATCH",
+            "permits_removal": false
+          },
+          {
+            "code": "WORLD_VALIDATION_ERROR",
+            "message": "causal_link[3] source is a FOREGONE effect; keep opportunity-loss comparisons on counterfactual_links so the actual-world causal chain stays action-local",
+            "entity_kind": "causal_link",
+            "entity_id": "3",
+            "field": "",
+            "related_ids": [],
+            "repair_class": "SEMANTIC_PATCH",
+            "permits_removal": false
+          },
+          {
+            "code": "VERB_LEMMA_MISMATCH",
+            "message": "E6 outcome lemma does not bind to source_proposition; rewrite the outcome to a morphological variant of the source event or omit the derived world effect",
+            "entity_kind": "effect",
+            "entity_id": "E6",
+            "field": "outcome",
+            "related_ids": [],
+            "repair_class": "SOURCE_PATCH",
+            "permits_removal": true
+          },
+          {
+            "code": "DERIVATION_BINDING_MISMATCH",
+            "message": "E3 averted-alternative source_effect_ids do not match its counterfactual alternative_effect_id",
+            "entity_kind": "effect",
+            "entity_id": "E3",
+            "field": "source_effect_ids",
+            "related_ids": [],
+            "repair_class": "SEMANTIC_PATCH",
+            "permits_removal": false
+          },
+          {
+            "code": "DERIVATION_BINDING_MISMATCH",
+            "message": "E4 is FOREGONE so derivation_operation must be COUNTERFACTUAL_PROJECTION",
+            "entity_kind": "effect",
+            "entity_id": "E4",
+            "field": "source_effect_ids",
+            "related_ids": [],
+            "repair_class": "SEMANTIC_PATCH",
+            "permits_removal": false
+          },
+          {
+            "code": "DERIVATION_BINDING_MISMATCH",
+            "message": "E9 is FOREGONE so derivation_operation must be COUNTERFACTUAL_PROJECTION",
+            "entity_kind": "effect",
+            "entity_id": "E9",
+            "field": "source_effect_ids",
+            "related_ids": [],
+            "repair_class": "SEMANTIC_PATCH",
+            "permits_removal": false
+          },
+          {
+            "code": "DERIVATION_BINDING_MISMATCH",
+            "message": "E10 is FOREGONE so derivation_operation must be COUNTERFACTUAL_PROJECTION",
+            "entity_kind": "effect",
+            "entity_id": "E10",
+            "field": "source_effect_ids",
+            "related_ids": [],
+            "repair_class": "SEMANTIC_PATCH",
+            "permits_removal": false
+          },
+          {
+            "code": "QUANTITY_BEARING_CONSEQUENCE_MISSING",
+            "message": "E2 omits source quantity 'five' from quantity-bearing consequence 'A runaway trolley will kill five people unless you pull a lever' (licensing_clause_id=C0); copy the span onto the effect (or its population party)",
+            "entity_kind": "effect",
+            "entity_id": "E2",
+            "field": "quantities",
+            "related_ids": [
+              "C0"
+            ],
+            "repair_class": "SOURCE_PATCH",
+            "permits_removal": false
+          },
+          {
+            "code": "QUANTITY_BEARING_CONSEQUENCE_MISSING",
+            "message": "E2 omits source quantity 'one' from quantity-bearing consequence 'which redirects it onto a track where it will kill one person' (licensing_clause_id=C0); copy the span onto the effect (or its population party)",
+            "entity_kind": "effect",
+            "entity_id": "E2",
+            "field": "quantities",
+            "related_ids": [
+              "C0"
+            ],
+            "repair_class": "SOURCE_PATCH",
+            "permits_removal": false
+          },
+          {
+            "code": "WORLD_VALIDATION_ERROR",
+            "message": "A0 has no distinguishing source clause; its grounding ['C0', 'C2'] is covered entirely by the other actions",
+            "entity_kind": "action",
+            "entity_id": "A0",
+            "field": "",
+            "related_ids": [],
+            "repair_class": "SEMANTIC_PATCH",
+            "permits_removal": false
+          },
+          {
+            "code": "WORLD_VALIDATION_ERROR",
+            "message": "A1 has no distinguishing source clause; its grounding ['C0', 'C2'] is covered entirely by the other actions",
+            "entity_kind": "action",
+            "entity_id": "A1",
+            "field": "",
+            "related_ids": [],
+            "repair_class": "SEMANTIC_PATCH",
+            "permits_removal": false
+          }
+        ],
+        "repair_delta": {}
+      },
+      {
+        "attempt": 1,
+        "repair_scope": "DETERMINISTIC_LOCAL_PATCH",
+        "inherited_candidate": true,
+        "rebuild_action_ids": [],
+        "errors": [
+          "A0 has no distinguishing source clause; its grounding ['C0', 'C2'] is covered entirely by the other actions",
+          "A1 has no distinguishing source clause; its grounding ['C0', 'C2'] is covered entirely by the other actions",
+          "typed world model rejected: A0 recipient P1 lacks an atomic DIRECT INTERVENTION, RESOURCE_TRANSFER, or INSTITUTIONAL_OUTCOME effect; A1 recipient P1 lacks an atomic DIRECT INTERVENTION, RESOURCE_TRANSFER, or INSTITUTIONAL_OUTCOME effect; causal_link[3] source is a FOREGONE effect; keep opportunity-loss comparisons on counterfactual_links so the actual-world causal chain stays action-local; E6 outcome lemma does not bind to source_proposition; rewrite the outcome to a morphological variant of the source event or omit the derived world effect; E3 averted-alternative source_effect_ids do not match its counterfactual alternative_effect_id; E4 is FOREGONE so derivation_operation must be COUNTERFACTUAL_PROJECTION; E9 is FOREGONE so derivation_operation must be COUNTERFACTUAL_PROJECTION; E10 is FOREGONE so derivation_operation must be COUNTERFACTUAL_PROJECTION"
+        ],
+        "validation_issues": [
+          {
+            "code": "MISSING_DIRECT_INTERVENTION",
+            "message": "A0 recipient P1 lacks an atomic DIRECT INTERVENTION, RESOURCE_TRANSFER, or INSTITUTIONAL_OUTCOME effect",
+            "entity_kind": "action",
+            "entity_id": "A0",
+            "field": "effects",
+            "related_ids": [
+              "P1"
+            ],
+            "repair_class": "SEMANTIC_PATCH",
+            "permits_removal": false
+          },
+          {
+            "code": "MISSING_DIRECT_INTERVENTION",
+            "message": "A1 recipient P1 lacks an atomic DIRECT INTERVENTION, RESOURCE_TRANSFER, or INSTITUTIONAL_OUTCOME effect",
+            "entity_kind": "action",
+            "entity_id": "A1",
+            "field": "effects",
+            "related_ids": [
+              "P1"
+            ],
+            "repair_class": "SEMANTIC_PATCH",
+            "permits_removal": false
+          },
+          {
+            "code": "WORLD_VALIDATION_ERROR",
+            "message": "causal_link[3] source is a FOREGONE effect; keep opportunity-loss comparisons on counterfactual_links so the actual-world causal chain stays action-local",
+            "entity_kind": "causal_link",
+            "entity_id": "3",
+            "field": "",
+            "related_ids": [],
+            "repair_class": "SEMANTIC_PATCH",
+            "permits_removal": false
+          },
+          {
+            "code": "VERB_LEMMA_MISMATCH",
+            "message": "E6 outcome lemma does not bind to source_proposition; rewrite the outcome to a morphological variant of the source event or omit the derived world effect",
+            "entity_kind": "effect",
+            "entity_id": "E6",
+            "field": "outcome",
+            "related_ids": [],
+            "repair_class": "SOURCE_PATCH",
+            "permits_removal": true
+          },
+          {
+            "code": "DERIVATION_BINDING_MISMATCH",
+            "message": "E3 averted-alternative source_effect_ids do not match its counterfactual alternative_effect_id",
+            "entity_kind": "effect",
+            "entity_id": "E3",
+            "field": "source_effect_ids",
+            "related_ids": [],
+            "repair_class": "SEMANTIC_PATCH",
+            "permits_removal": false
+          },
+          {
+            "code": "DERIVATION_BINDING_MISMATCH",
+            "message": "E4 is FOREGONE so derivation_operation must be COUNTERFACTUAL_PROJECTION",
+            "entity_kind": "effect",
+            "entity_id": "E4",
+            "field": "source_effect_ids",
+            "related_ids": [],
+            "repair_class": "SEMANTIC_PATCH",
+            "permits_removal": false
+          },
+          {
+            "code": "DERIVATION_BINDING_MISMATCH",
+            "message": "E9 is FOREGONE so derivation_operation must be COUNTERFACTUAL_PROJECTION",
+            "entity_kind": "effect",
+            "entity_id": "E9",
+            "field": "source_effect_ids",
+            "related_ids": [],
+            "repair_class": "SEMANTIC_PATCH",
+            "permits_removal": false
+          },
+          {
+            "code": "DERIVATION_BINDING_MISMATCH",
+            "message": "E10 is FOREGONE so derivation_operation must be COUNTERFACTUAL_PROJECTION",
+            "entity_kind": "effect",
+            "entity_id": "E10",
+            "field": "source_effect_ids",
+            "related_ids": [],
+            "repair_class": "SEMANTIC_PATCH",
+            "permits_removal": false
+          },
+          {
+            "code": "WORLD_VALIDATION_ERROR",
+            "message": "A0 has no distinguishing source clause; its grounding ['C0', 'C2'] is covered entirely by the other actions",
+            "entity_kind": "action",
+            "entity_id": "A0",
+            "field": "",
+            "related_ids": [],
+            "repair_class": "SEMANTIC_PATCH",
+            "permits_removal": false
+          },
+          {
+            "code": "WORLD_VALIDATION_ERROR",
+            "message": "A1 has no distinguishing source clause; its grounding ['C0', 'C2'] is covered entirely by the other actions",
+            "entity_kind": "action",
+            "entity_id": "A1",
+            "field": "",
+            "related_ids": [],
+            "repair_class": "SEMANTIC_PATCH",
+            "permits_removal": false
+          }
+        ],
+        "repair_delta": {
+          "deterministic_patches": [
+            {
+              "op": "add_quantity",
+              "effect_id": "E2",
+              "field": "quantities",
+              "value": "five",
+              "code": "QUANTITY_BEARING_CONSEQUENCE_MISSING",
+              "patch_kind": "semantic_patch",
+              "deterministic": true
+            },
+            {
+              "op": "add_quantity",
+              "effect_id": "E2",
+              "field": "quantities",
+              "value": "one",
+              "code": "QUANTITY_BEARING_CONSEQUENCE_MISSING",
+              "patch_kind": "semantic_patch",
+              "deterministic": true
+            }
+          ]
+        }
+      },
+      {
+        "attempt": 2,
+        "repair_scope": "SUBGRAPH_REBUILD",
+        "inherited_candidate": true,
+        "rebuild_action_ids": [
+          "A0",
+          "A1"
+        ],
+        "errors": [
+          "typed world model rejected: E4 outcome lemma does not bind to source_proposition; rewrite the outcome to a morphological variant of the source event or omit the derived world effect; E2 omits source quantity 'five' from quantity-bearing consequence 'A runaway trolley will kill five people unless you pull a lever' (licensing_clause_id=C0); copy the span onto the effect (or its population party)"
+        ],
+        "validation_issues": [
+          {
+            "code": "VERB_LEMMA_MISMATCH",
+            "message": "E4 outcome lemma does not bind to source_proposition; rewrite the outcome to a morphological variant of the source event or omit the derived world effect",
+            "entity_kind": "effect",
+            "entity_id": "E4",
+            "field": "outcome",
+            "related_ids": [],
+            "repair_class": "SOURCE_PATCH",
+            "permits_removal": true
+          },
+          {
+            "code": "QUANTITY_BEARING_CONSEQUENCE_MISSING",
+            "message": "E2 omits source quantity 'five' from quantity-bearing consequence 'A runaway trolley will kill five people unless you pull a lever' (licensing_clause_id=C0); copy the span onto the effect (or its population party)",
+            "entity_kind": "effect",
+            "entity_id": "E2",
+            "field": "quantities",
+            "related_ids": [
+              "C0"
+            ],
+            "repair_class": "SOURCE_PATCH",
+            "permits_removal": false
+          }
+        ],
+        "repair_delta": {
+          "dropped": {
+            "quantities": [
+              "effect|E2|five"
+            ],
+            "overlays": [
+              "A0|E4|A1|E7",
+              "A0|E5|A1|E8",
+              "A1|E10|A0|E3",
+              "A1|E9|A0|E2"
+            ],
+            "citations": [
+              "effect|E10|A1",
+              "effect|E10|C0",
+              "effect|E4|A0",
+              "effect|E5|A0",
+              "effect|E7|C0",
+              "effect|E8|C0",
+              "effect|E9|A1",
+              "effect|E9|C0"
+            ],
+            "effects": [
+              "E10",
+              "E7",
+              "E8",
+              "E9"
+            ],
+            "causal_links": [
+              "E1|E3|CAUSES",
+              "E6|E7|CAUSES",
+              "E6|E8|CAUSES"
+            ]
+          },
+          "added": {
+            "quantities": [
+              "effect|E3|five",
+              "effect|E5|five",
+              "effect|E6|one"
+            ],
+            "causal_links": [
+              "E1|E3|PREVENTS",
+              "E4|E5|CAUSES",
+              "E4|E6|PREVENTS"
+            ]
+          },
+          "illegal_drops": []
+        }
+      },
+      {
+        "attempt": 2,
+        "repair_scope": "DETERMINISTIC_LOCAL_PATCH",
+        "inherited_candidate": true,
+        "rebuild_action_ids": [
+          "A0",
+          "A1"
+        ],
+        "errors": [
+          "typed world model rejected: E4 outcome lemma does not bind to source_proposition; rewrite the outcome to a morphological variant of the source event or omit the derived world effect"
+        ],
+        "validation_issues": [
+          {
+            "code": "VERB_LEMMA_MISMATCH",
+            "message": "E4 outcome lemma does not bind to source_proposition; rewrite the outcome to a morphological variant of the source event or omit the derived world effect",
+            "entity_kind": "effect",
+            "entity_id": "E4",
+            "field": "outcome",
+            "related_ids": [],
+            "repair_class": "SOURCE_PATCH",
+            "permits_removal": true
+          }
+        ],
+        "repair_delta": {
+          "deterministic_patches": [
+            {
+              "op": "add_quantity",
+              "effect_id": "E2",
+              "field": "quantities",
+              "value": "five",
+              "code": "QUANTITY_BEARING_CONSEQUENCE_MISSING",
+              "patch_kind": "semantic_patch",
+              "deterministic": true
+            }
+          ]
+        }
+      },
+      {
+        "attempt": 3,
+        "repair_scope": "LOCAL_PATCH",
+        "inherited_candidate": true,
+        "rebuild_action_ids": [],
+        "errors": [
+          "typed world model rejected: E4 omits quantities stated in its outcome and provenance: ['five']"
+        ],
+        "validation_issues": [
+          {
+            "code": "WORLD_VALIDATION_ERROR",
+            "message": "E4 omits quantities stated in its outcome and provenance: ['five']",
+            "entity_kind": "effect",
+            "entity_id": "E4",
+            "field": "",
+            "related_ids": [],
+            "repair_class": "SEMANTIC_PATCH",
+            "permits_removal": false
+          }
+        ],
+        "repair_delta": {
+          "dropped": {},
+          "added": {},
+          "illegal_drops": []
+        }
+      }
+    ],
+    "repair_attempts": 4,
+    "next_repair_scope": "LOCAL_PATCH",
+    "next_rebuild_action_ids": [],
+    "rejected_candidate": {
+      "actions": {
+        "A0": {
+          "clause_ids": [
+            "C0",
+            "C1"
+          ],
+          "reason": "C0 describes what happens when the lever is pulled (trolley redirected, one killed). C1 notes no other way to stop it, contextualizing pulling the lever."
+        },
+        "A1": {
+          "clause_ids": [
+            "C0",
+            "C2"
+          ],
+          "reason": "C0 states what happens if the lever is not pulled (five killed). C2 explicitly frames the option of doing nothing."
+        }
+      },
+      "world_model": {
+        "schema_version": "1.3",
+        "parties": [
+          {
+            "party_id": "P0",
+            "label": "You",
+            "kind": "PERSON",
+            "quantities": [],
+            "clause_ids": [
+              "C0",
+              "C2"
+            ]
+          },
+          {
+            "party_id": "P1",
+            "label": "Runaway trolley",
+            "kind": "PROCESS",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P2",
+            "label": "Five people on main track",
+            "kind": "GROUP",
+            "quantities": [
+              "five"
+            ],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P3",
+            "label": "One person on side track",
+            "kind": "PERSON",
+            "quantities": [
+              "one"
+            ],
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "action_id": "A0",
+            "intervention": "pull lever",
+            "actor_party_id": "P0",
+            "recipient_party_ids": [
+              "P1"
+            ],
+            "effect_ids": [
+              "E1",
+              "E2",
+              "E3"
+            ],
+            "clause_ids": [
+              "C0",
+              "C1"
+            ]
+          },
+          {
+            "action_id": "A1",
+            "intervention": "do not pull lever",
+            "actor_party_id": "P0",
+            "recipient_party_ids": [
+              "P1"
+            ],
+            "effect_ids": [
+              "E4",
+              "E5",
+              "E6"
+            ],
+            "clause_ids": [
+              "C0",
+              "C2"
+            ]
+          }
+        ],
+        "effects": [
+          {
+            "effect_id": "E1",
+            "action_id": "A0",
+            "party_id": "P1",
+            "outcome": "is redirected onto side track",
+            "predicate": "REDIRECTED",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "INTERVENTION",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "pull a lever, which redirects it onto a track",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "effect_id": "E2",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "is killed",
+            "predicate": "DIES",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [
+              "one",
+              "five"
+            ],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "it will kill one person",
+            "source_effect_ids": [
+              "E1"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "C0 says the redirected trolley will kill the one person.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "effect_id": "E3",
+            "action_id": "A0",
+            "party_id": "P2",
+            "outcome": "survive",
+            "predicate": "SURVIVES",
+            "polarity": "BENEFICIAL",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [
+              "five"
+            ],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "A runaway trolley will kill five people unless you pull a lever",
+            "source_effect_ids": [
+              "E1"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "Pulling the lever prevents the five deaths stated in C0.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "effect_id": "E4",
+            "action_id": "A1",
+            "party_id": "P1",
+            "outcome": "will kill five people",
+            "predicate": "KILLS",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "INTERVENTION",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "A runaway trolley will kill five people unless you pull a lever",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "effect_id": "E5",
+            "action_id": "A1",
+            "party_id": "P2",
+            "outcome": "are killed",
+            "predicate": "DIES",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [
+              "five"
+            ],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "will kill five people",
+            "source_effect_ids": [
+              "E4"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "With no redirection, the trolley kills the five.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "effect_id": "E6",
+            "action_id": "A1",
+            "party_id": "P3",
+            "outcome": "survives",
+            "predicate": "SURVIVES",
+            "polarity": "BENEFICIAL",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [
+              "one"
+            ],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "unless you pull a lever, which redirects it onto a track where it will kill one person",
+            "source_effect_ids": [
+              "E4"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "Because the trolley stays on the main track, the person on the side track lives.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "conditions": [],
+        "temporal_relations": [],
+        "causal_links": [
+          {
+            "action_id": "A0",
+            "source_id": "E1",
+            "link_relation": "CAUSES",
+            "target_id": "E2",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "action_id": "A0",
+            "source_id": "E1",
+            "link_relation": "PREVENTS",
+            "target_id": "E3",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "action_id": "A1",
+            "source_id": "E4",
+            "link_relation": "CAUSES",
+            "target_id": "E5",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "action_id": "A1",
+            "source_id": "E4",
+            "link_relation": "PREVENTS",
+            "target_id": "E6",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "counterfactual_links": []
+      }
+    },
+    "rejected_candidate_history": [
+      {
+        "attempt": 1,
+        "repair_scope": "FRESH_GENERATION",
+        "inherited_candidate": false,
+        "rebuild_action_ids": [],
+        "candidate": {
+          "actions": {
+            "A0": {
+              "clause_ids": [
+                "C0",
+                "C2"
+              ],
+              "reason": "C0 states that pulling the lever redirects the trolley onto a track where it will kill one person instead of five; C2 presents the decision to pull."
+            },
+            "A1": {
+              "clause_ids": [
+                "C0",
+                "C2"
+              ],
+              "reason": "C0 describes the result of not pulling\u2014the trolley stays on course toward five people\u2014while C2 asks whether you refrain from acting."
+            }
+          },
+          "world_model": {
+            "schema_version": "1.3",
+            "parties": [
+              {
+                "party_id": "P0",
+                "label": "You",
+                "kind": "PERSON",
+                "quantities": [],
+                "clause_ids": [
+                  "C0",
+                  "C2"
+                ]
+              },
+              {
+                "party_id": "P1",
+                "label": "Runaway trolley",
+                "kind": "PROCESS",
+                "quantities": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "party_id": "P2",
+                "label": "Five people on main track",
+                "kind": "GROUP",
+                "quantities": [
+                  "five"
+                ],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "party_id": "P3",
+                "label": "One person on side track",
+                "kind": "PERSON",
+                "quantities": [
+                  "one"
+                ],
+                "clause_ids": [
+                  "C0"
+                ]
+              }
+            ],
+            "actions": [
+              {
+                "action_id": "A0",
+                "intervention": "pull lever",
+                "actor_party_id": "P0",
+                "recipient_party_ids": [
+                  "P1"
+                ],
+                "effect_ids": [
+                  "E1",
+                  "E2",
+                  "E3",
+                  "E4",
+                  "E5"
+                ],
+                "clause_ids": [
+                  "C0",
+                  "C2"
+                ]
+              },
+              {
+                "action_id": "A1",
+                "intervention": "refrain from pulling lever",
+                "actor_party_id": "P0",
+                "recipient_party_ids": [
+                  "P1"
+                ],
+                "effect_ids": [
+                  "E6",
+                  "E7",
+                  "E8",
+                  "E9",
+                  "E10"
+                ],
+                "clause_ids": [
+                  "C0",
+                  "C2"
+                ]
+              }
+            ],
+            "effects": [
+              {
+                "effect_id": "E1",
+                "action_id": "A0",
+                "party_id": "P1",
+                "outcome": "is redirected onto side track",
+                "predicate": "REDIRECTED",
+                "polarity": "NEUTRAL",
+                "directness": "DIRECT",
+                "modality": "CERTAIN",
+                "effect_kind": "PHYSICAL_STATE",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "pull a lever, which redirects it onto a track",
+                "source_effect_ids": [],
+                "derivation_operation": "DIRECT_COPY",
+                "derivation_explanation": "",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "effect_id": "E2",
+                "action_id": "A0",
+                "party_id": "P3",
+                "outcome": "is killed",
+                "predicate": "DIES",
+                "polarity": "ADVERSE",
+                "directness": "DOWNSTREAM",
+                "modality": "CERTAIN",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "it will kill one person",
+                "source_effect_ids": [
+                  "E1"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "C0 states the redirected trolley will kill one person.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "effect_id": "E3",
+                "action_id": "A0",
+                "party_id": "P2",
+                "outcome": "survive",
+                "predicate": "SURVIVES",
+                "polarity": "BENEFICIAL",
+                "directness": "DOWNSTREAM",
+                "modality": "CERTAIN",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "A runaway trolley will kill five people unless you pull a lever",
+                "source_effect_ids": [
+                  "E4"
+                ],
+                "derivation_operation": "AVERTED_ALTERNATIVE_HARM",
+                "derivation_explanation": "Pulling the lever averts the death of the five people that would otherwise occur.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "effect_id": "E4",
+                "action_id": "A0",
+                "party_id": "P2",
+                "outcome": "are killed",
+                "predicate": "DIES",
+                "polarity": "FOREGONE",
+                "directness": "FOREGONE",
+                "modality": "CERTAIN",
+                "effect_kind": "OPPORTUNITY_LOSS",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "will kill five people",
+                "source_effect_ids": [],
+                "derivation_operation": "DIRECT_COPY",
+                "derivation_explanation": "",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0",
+                  "A0"
+                ]
+              },
+              {
+                "effect_id": "E5",
+                "action_id": "A0",
+                "party_id": "P3",
+                "outcome": "survives",
+                "predicate": "SURVIVES",
+                "polarity": "FOREGONE",
+                "directness": "FOREGONE",
+                "modality": "CERTAIN",
+                "effect_kind": "OPPORTUNITY_LOSS",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "one person",
+                "source_effect_ids": [],
+                "derivation_operation": "DIRECT_COPY",
+                "derivation_explanation": "",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0",
+                  "A0"
+                ]
+              },
+              {
+                "effect_id": "E6",
+                "action_id": "A1",
+                "party_id": "P1",
+                "outcome": "continues on main track",
+                "predicate": "CONTINUES",
+                "polarity": "NEUTRAL",
+                "directness": "DIRECT",
+                "modality": "CERTAIN",
+                "effect_kind": "PHYSICAL_STATE",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "A runaway trolley will kill five people unless you pull a lever",
+                "source_effect_ids": [],
+                "derivation_operation": "DIRECT_COPY",
+                "derivation_explanation": "",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "effect_id": "E7",
+                "action_id": "A1",
+                "party_id": "P2",
+                "outcome": "are killed",
+                "predicate": "DIES",
+                "polarity": "ADVERSE",
+                "directness": "DOWNSTREAM",
+                "modality": "CERTAIN",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "will kill five people",
+                "source_effect_ids": [
+                  "E6"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "If the lever is not pulled, the trolley kills five people.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "effect_id": "E8",
+                "action_id": "A1",
+                "party_id": "P3",
+                "outcome": "survives",
+                "predicate": "SURVIVES",
+                "polarity": "BENEFICIAL",
+                "directness": "DOWNSTREAM",
+                "modality": "CERTAIN",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "unless you pull a lever, which redirects it onto a track where it will kill one person",
+                "source_effect_ids": [
+                  "E6"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "Not redirecting spares the one person on the side track.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "effect_id": "E9",
+                "action_id": "A1",
+                "party_id": "P3",
+                "outcome": "is killed",
+                "predicate": "DIES",
+                "polarity": "FOREGONE",
+                "directness": "FOREGONE",
+                "modality": "CERTAIN",
+                "effect_kind": "OPPORTUNITY_LOSS",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "it will kill one person",
+                "source_effect_ids": [],
+                "derivation_operation": "DIRECT_COPY",
+                "derivation_explanation": "",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0",
+                  "A1"
+                ]
+              },
+              {
+                "effect_id": "E10",
+                "action_id": "A1",
+                "party_id": "P2",
+                "outcome": "survive",
+                "predicate": "SURVIVES",
+                "polarity": "FOREGONE",
+                "directness": "FOREGONE",
+                "modality": "CERTAIN",
+                "effect_kind": "OPPORTUNITY_LOSS",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "kill five people unless you pull a lever",
+                "source_effect_ids": [],
+                "derivation_operation": "DIRECT_COPY",
+                "derivation_explanation": "",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0",
+                  "A1"
+                ]
+              }
+            ],
+            "conditions": [],
+            "temporal_relations": [],
+            "causal_links": [
+              {
+                "action_id": "A0",
+                "source_id": "E1",
+                "link_relation": "CAUSES",
+                "target_id": "E2",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "action_id": "A0",
+                "source_id": "E1",
+                "link_relation": "CAUSES",
+                "target_id": "E3",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "action_id": "A1",
+                "source_id": "E6",
+                "link_relation": "CAUSES",
+                "target_id": "E7",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "action_id": "A1",
+                "source_id": "E6",
+                "link_relation": "CAUSES",
+                "target_id": "E8",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              }
+            ],
+            "counterfactual_links": [
+              {
+                "action_id": "A0",
+                "source_effect_id": "E4",
+                "counterfactual_relation": "FOREGOES_ALTERNATIVE_EFFECT",
+                "alternative_action_id": "A1",
+                "alternative_effect_id": "E7",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "action_id": "A0",
+                "source_effect_id": "E5",
+                "counterfactual_relation": "FOREGOES_ALTERNATIVE_EFFECT",
+                "alternative_action_id": "A1",
+                "alternative_effect_id": "E8",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "action_id": "A1",
+                "source_effect_id": "E9",
+                "counterfactual_relation": "FOREGOES_ALTERNATIVE_EFFECT",
+                "alternative_action_id": "A0",
+                "alternative_effect_id": "E2",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "action_id": "A1",
+                "source_effect_id": "E10",
+                "counterfactual_relation": "FOREGOES_ALTERNATIVE_EFFECT",
+                "alternative_action_id": "A0",
+                "alternative_effect_id": "E3",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      {
+        "attempt": 2,
+        "repair_scope": "SUBGRAPH_REBUILD",
+        "inherited_candidate": true,
+        "rebuild_action_ids": [
+          "A0",
+          "A1"
+        ],
+        "candidate": {
+          "actions": {
+            "A0": {
+              "clause_ids": [
+                "C0",
+                "C1"
+              ],
+              "reason": "C0 describes what happens when the lever is pulled (trolley redirected, one killed).  C1 emphasises no other way to stop it, reinforcing the pull-lever option."
+            },
+            "A1": {
+              "clause_ids": [
+                "C0",
+                "C2"
+              ],
+              "reason": "C0 states the consequence of not pulling (five killed).  C2 explicitly presents the do-nothing choice."
+            }
+          },
+          "world_model": {
+            "schema_version": "1.3",
+            "parties": [
+              {
+                "party_id": "P0",
+                "label": "You",
+                "kind": "PERSON",
+                "quantities": [],
+                "clause_ids": [
+                  "C0",
+                  "C2"
+                ]
+              },
+              {
+                "party_id": "P1",
+                "label": "Runaway trolley",
+                "kind": "PROCESS",
+                "quantities": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "party_id": "P2",
+                "label": "Five people on main track",
+                "kind": "GROUP",
+                "quantities": [
+                  "five"
+                ],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "party_id": "P3",
+                "label": "One person on side track",
+                "kind": "PERSON",
+                "quantities": [
+                  "one"
+                ],
+                "clause_ids": [
+                  "C0"
+                ]
+              }
+            ],
+            "actions": [
+              {
+                "action_id": "A0",
+                "intervention": "pull lever",
+                "actor_party_id": "P0",
+                "recipient_party_ids": [
+                  "P1"
+                ],
+                "effect_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "clause_ids": [
+                  "C0",
+                  "C1"
+                ]
+              },
+              {
+                "action_id": "A1",
+                "intervention": "do not pull lever",
+                "actor_party_id": "P0",
+                "recipient_party_ids": [
+                  "P1"
+                ],
+                "effect_ids": [
+                  "E4",
+                  "E5",
+                  "E6"
+                ],
+                "clause_ids": [
+                  "C0",
+                  "C2"
+                ]
+              }
+            ],
+            "effects": [
+              {
+                "effect_id": "E1",
+                "action_id": "A0",
+                "party_id": "P1",
+                "outcome": "is redirected onto side track",
+                "predicate": "REDIRECTED",
+                "polarity": "NEUTRAL",
+                "directness": "DIRECT",
+                "modality": "CERTAIN",
+                "effect_kind": "INTERVENTION",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "pull a lever, which redirects it onto a track",
+                "source_effect_ids": [],
+                "derivation_operation": "DIRECT_COPY",
+                "derivation_explanation": "",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "effect_id": "E2",
+                "action_id": "A0",
+                "party_id": "P3",
+                "outcome": "is killed",
+                "predicate": "DIES",
+                "polarity": "ADVERSE",
+                "directness": "DOWNSTREAM",
+                "modality": "CERTAIN",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [
+                  "one"
+                ],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "it will kill one person",
+                "source_effect_ids": [
+                  "E1"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "C0 says the redirected trolley will kill the one person.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "effect_id": "E3",
+                "action_id": "A0",
+                "party_id": "P2",
+                "outcome": "survive",
+                "predicate": "SURVIVES",
+                "polarity": "BENEFICIAL",
+                "directness": "DOWNSTREAM",
+                "modality": "CERTAIN",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [
+                  "five"
+                ],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "A runaway trolley will kill five people unless you pull a lever",
+                "source_effect_ids": [
+                  "E1"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "Pulling the lever prevents the five deaths stated in C0.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "effect_id": "E4",
+                "action_id": "A1",
+                "party_id": "P1",
+                "outcome": "continues on main track",
+                "predicate": "CONTINUES",
+                "polarity": "NEUTRAL",
+                "directness": "DIRECT",
+                "modality": "CERTAIN",
+                "effect_kind": "INTERVENTION",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "A runaway trolley will kill five people unless you pull a lever",
+                "source_effect_ids": [],
+                "derivation_operation": "DIRECT_COPY",
+                "derivation_explanation": "",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "effect_id": "E5",
+                "action_id": "A1",
+                "party_id": "P2",
+                "outcome": "are killed",
+                "predicate": "DIES",
+                "polarity": "ADVERSE",
+                "directness": "DOWNSTREAM",
+                "modality": "CERTAIN",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [
+                  "five"
+                ],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "will kill five people",
+                "source_effect_ids": [
+                  "E4"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "With no redirection, the trolley kills the five.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "effect_id": "E6",
+                "action_id": "A1",
+                "party_id": "P3",
+                "outcome": "survives",
+                "predicate": "SURVIVES",
+                "polarity": "BENEFICIAL",
+                "directness": "DOWNSTREAM",
+                "modality": "CERTAIN",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [
+                  "one"
+                ],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "unless you pull a lever, which redirects it onto a track where it will kill one person",
+                "source_effect_ids": [
+                  "E4"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "Because the trolley stays on the main track, the person on the side track lives.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              }
+            ],
+            "conditions": [],
+            "temporal_relations": [],
+            "causal_links": [
+              {
+                "action_id": "A0",
+                "source_id": "E1",
+                "link_relation": "CAUSES",
+                "target_id": "E2",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "action_id": "A0",
+                "source_id": "E1",
+                "link_relation": "PREVENTS",
+                "target_id": "E3",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "action_id": "A1",
+                "source_id": "E4",
+                "link_relation": "CAUSES",
+                "target_id": "E5",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "action_id": "A1",
+                "source_id": "E4",
+                "link_relation": "PREVENTS",
+                "target_id": "E6",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              }
+            ],
+            "counterfactual_links": []
+          }
+        }
+      },
+      {
+        "attempt": 3,
+        "repair_scope": "LOCAL_PATCH",
+        "inherited_candidate": true,
+        "rebuild_action_ids": [],
+        "candidate": {
+          "actions": {
+            "A0": {
+              "clause_ids": [
+                "C0",
+                "C1"
+              ],
+              "reason": "C0 describes what happens when the lever is pulled (trolley redirected, one killed). C1 notes no other way to stop it, contextualizing pulling the lever."
+            },
+            "A1": {
+              "clause_ids": [
+                "C0",
+                "C2"
+              ],
+              "reason": "C0 states what happens if the lever is not pulled (five killed). C2 explicitly frames the option of doing nothing."
+            }
+          },
+          "world_model": {
+            "schema_version": "1.3",
+            "parties": [
+              {
+                "party_id": "P0",
+                "label": "You",
+                "kind": "PERSON",
+                "quantities": [],
+                "clause_ids": [
+                  "C0",
+                  "C2"
+                ]
+              },
+              {
+                "party_id": "P1",
+                "label": "Runaway trolley",
+                "kind": "PROCESS",
+                "quantities": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "party_id": "P2",
+                "label": "Five people on main track",
+                "kind": "GROUP",
+                "quantities": [
+                  "five"
+                ],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "party_id": "P3",
+                "label": "One person on side track",
+                "kind": "PERSON",
+                "quantities": [
+                  "one"
+                ],
+                "clause_ids": [
+                  "C0"
+                ]
+              }
+            ],
+            "actions": [
+              {
+                "action_id": "A0",
+                "intervention": "pull lever",
+                "actor_party_id": "P0",
+                "recipient_party_ids": [
+                  "P1"
+                ],
+                "effect_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "clause_ids": [
+                  "C0",
+                  "C1"
+                ]
+              },
+              {
+                "action_id": "A1",
+                "intervention": "do not pull lever",
+                "actor_party_id": "P0",
+                "recipient_party_ids": [
+                  "P1"
+                ],
+                "effect_ids": [
+                  "E4",
+                  "E5",
+                  "E6"
+                ],
+                "clause_ids": [
+                  "C0",
+                  "C2"
+                ]
+              }
+            ],
+            "effects": [
+              {
+                "effect_id": "E1",
+                "action_id": "A0",
+                "party_id": "P1",
+                "outcome": "is redirected onto side track",
+                "predicate": "REDIRECTED",
+                "polarity": "NEUTRAL",
+                "directness": "DIRECT",
+                "modality": "CERTAIN",
+                "effect_kind": "INTERVENTION",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "pull a lever, which redirects it onto a track",
+                "source_effect_ids": [],
+                "derivation_operation": "DIRECT_COPY",
+                "derivation_explanation": "",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "effect_id": "E2",
+                "action_id": "A0",
+                "party_id": "P3",
+                "outcome": "is killed",
+                "predicate": "DIES",
+                "polarity": "ADVERSE",
+                "directness": "DOWNSTREAM",
+                "modality": "CERTAIN",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [
+                  "one",
+                  "five"
+                ],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "it will kill one person",
+                "source_effect_ids": [
+                  "E1"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "C0 says the redirected trolley will kill the one person.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "effect_id": "E3",
+                "action_id": "A0",
+                "party_id": "P2",
+                "outcome": "survive",
+                "predicate": "SURVIVES",
+                "polarity": "BENEFICIAL",
+                "directness": "DOWNSTREAM",
+                "modality": "CERTAIN",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [
+                  "five"
+                ],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "A runaway trolley will kill five people unless you pull a lever",
+                "source_effect_ids": [
+                  "E1"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "Pulling the lever prevents the five deaths stated in C0.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "effect_id": "E4",
+                "action_id": "A1",
+                "party_id": "P1",
+                "outcome": "will kill five people",
+                "predicate": "KILLS",
+                "polarity": "NEUTRAL",
+                "directness": "DIRECT",
+                "modality": "CERTAIN",
+                "effect_kind": "INTERVENTION",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "A runaway trolley will kill five people unless you pull a lever",
+                "source_effect_ids": [],
+                "derivation_operation": "DIRECT_COPY",
+                "derivation_explanation": "",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "effect_id": "E5",
+                "action_id": "A1",
+                "party_id": "P2",
+                "outcome": "are killed",
+                "predicate": "DIES",
+                "polarity": "ADVERSE",
+                "directness": "DOWNSTREAM",
+                "modality": "CERTAIN",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [
+                  "five"
+                ],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "will kill five people",
+                "source_effect_ids": [
+                  "E4"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "With no redirection, the trolley kills the five.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "effect_id": "E6",
+                "action_id": "A1",
+                "party_id": "P3",
+                "outcome": "survives",
+                "predicate": "SURVIVES",
+                "polarity": "BENEFICIAL",
+                "directness": "DOWNSTREAM",
+                "modality": "CERTAIN",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [
+                  "one"
+                ],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "unless you pull a lever, which redirects it onto a track where it will kill one person",
+                "source_effect_ids": [
+                  "E4"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "Because the trolley stays on the main track, the person on the side track lives.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              }
+            ],
+            "conditions": [],
+            "temporal_relations": [],
+            "causal_links": [
+              {
+                "action_id": "A0",
+                "source_id": "E1",
+                "link_relation": "CAUSES",
+                "target_id": "E2",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "action_id": "A0",
+                "source_id": "E1",
+                "link_relation": "PREVENTS",
+                "target_id": "E3",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "action_id": "A1",
+                "source_id": "E4",
+                "link_relation": "CAUSES",
+                "target_id": "E5",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "action_id": "A1",
+                "source_id": "E4",
+                "link_relation": "PREVENTS",
+                "target_id": "E6",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              }
+            ],
+            "counterfactual_links": []
+          }
+        }
+      }
+    ]
+  }
+}

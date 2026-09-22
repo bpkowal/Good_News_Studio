@@ -1,0 +1,82 @@
+{
+  "manifest_version": "0.1",
+  "purpose": "Read-only topology-audit challenges. Gold relations describe semantic event pairs and must be aligned to Stage-1 proposition IDs after extraction; they are never supplied to the judge.",
+  "status": "SEEDED_NOT_LIVE_EVALUATED",
+  "cases": [
+    {
+      "id": "pair_reverse_causality",
+      "family": "REVERSED_CAUSALITY",
+      "scenario": "Pulling the release opens the gate, and the open gate lets the water drain. The operator must either pull the release or leave it untouched.",
+      "actions": ["Pull the release", "Leave the release untouched"],
+      "gold_pairs": [
+        {"action_id": "A0", "source_event": "pulling the release", "target_event": "opens the gate", "relation": "CAUSES"},
+        {"action_id": "A0", "source_event": "opens the gate", "target_event": "pulling the release", "relation": "NONE"}
+      ]
+    },
+    {
+      "id": "pair_missing_cross_clause_edge",
+      "family": "MISSING_CAUSAL_EDGE",
+      "scenario": "The clinic gives its only antidote to Mara. Jo consequently receives no antidote. Anyone who receives no antidote dies.",
+      "actions": ["Give the antidote to Mara", "Give the antidote to Jo"],
+      "gold_pairs": [
+        {"action_id": "A0", "source_event": "Jo receives no antidote", "target_event": "Jo dies", "relation": "CAUSES"}
+      ]
+    },
+    {
+      "id": "pair_enable_not_cause",
+      "family": "WRONG_CAUSAL_LABEL",
+      "scenario": "Issuing the access card enables Noor to enter the laboratory, but Noor may decide not to enter. The manager may issue the card or withhold it.",
+      "actions": ["Issue the access card", "Withhold the access card"],
+      "gold_pairs": [
+        {"action_id": "A0", "source_event": "issuing the access card", "target_event": "Noor enters the laboratory", "relation": "ENABLES"}
+      ]
+    },
+    {
+      "id": "pair_prevention",
+      "family": "WRONG_CAUSAL_LABEL",
+      "scenario": "Closing the valve prevents the chemical from reaching the river. The technician may close the valve or leave it open.",
+      "actions": ["Close the valve", "Leave the valve open"],
+      "gold_pairs": [
+        {"action_id": "A0", "source_event": "closing the valve", "target_event": "chemical reaches the river", "relation": "PREVENTS"}
+      ]
+    },
+    {
+      "id": "pair_negated_consequence",
+      "family": "NEGATION",
+      "scenario": "Activating the backup does not cause the main server to shut down. The administrator may activate the backup or refrain.",
+      "actions": ["Activate the backup", "Refrain from activating the backup"],
+      "gold_pairs": [
+        {"action_id": "A0", "source_event": "activating the backup", "target_event": "main server shuts down", "relation": "NONE"}
+      ]
+    },
+    {
+      "id": "pair_conditional_cause",
+      "family": "CONDITIONAL_CAUSALITY",
+      "scenario": "If the alarm is armed, opening the door causes the siren to sound. The alarm's status is unknown. The guard may open the door or keep it closed.",
+      "actions": ["Open the door", "Keep the door closed"],
+      "gold_pairs": [
+        {"action_id": "A0", "source_event": "opening the door", "target_event": "siren sounds", "relation": "AMBIGUOUS", "note": "Current ontology cannot encode the condition on CAUSES."}
+      ]
+    },
+    {
+      "id": "pair_ellipsis_same",
+      "family": "ELLIPSIS",
+      "scenario": "Sending the entire water stock to District East exhausts it. Sending it to District West would do the same. The authority must choose one district.",
+      "actions": ["Send the water stock to District East", "Send the water stock to District West"],
+      "gold_pairs": [
+        {"action_id": "A1", "source_event": "sending the stock to District West", "target_event": "stock is exhausted", "relation": "CAUSES"}
+      ]
+    },
+    {
+      "id": "pair_sibling_population_leak",
+      "family": "MULTI_EFFECT_CLAUSE",
+      "scenario": "Diverting the vehicle strikes one worker in the loading bay and prevents smoke from reaching five workers in the tunnel. The driver may divert or continue straight.",
+      "actions": ["Divert the vehicle", "Continue straight"],
+      "gold_pairs": [
+        {"action_id": "A0", "source_event": "diverting the vehicle", "target_event": "one loading-bay worker is struck", "relation": "CAUSES"},
+        {"action_id": "A0", "source_event": "diverting the vehicle", "target_event": "smoke reaches five tunnel workers", "relation": "PREVENTS"},
+        {"action_id": "A0", "source_event": "one loading-bay worker is struck", "target_event": "smoke reaches five tunnel workers", "relation": "NONE"}
+      ]
+    }
+  ]
+}

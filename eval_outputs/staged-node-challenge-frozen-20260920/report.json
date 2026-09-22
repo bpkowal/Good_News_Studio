@@ -1,0 +1,576 @@
+{
+  "aggregate": {
+    "aligned_gold_edge_count": 0,
+    "aligned_gold_node_count": 4,
+    "audit_complete_count": 3,
+    "audit_novelty_rate": null,
+    "audit_only_precision": 0.0,
+    "audit_only_relation_count": 1,
+    "case_count": 8,
+    "correct_audit_only_relation_count": 0,
+    "correct_audit_only_relations": 0,
+    "gold_edge_count": 11,
+    "gold_node_count": 17,
+    "gold_relations_absent_from_scaffold": 0,
+    "node_recall": 0.23529411764705882,
+    "pairwise_gold_accuracy_given_aligned_nodes": null,
+    "scaffold_gold_accuracy_given_aligned_nodes": null,
+    "stage_one_admitted_count": 5
+  },
+  "manifest": "evals/pairwise_relation_challenge_set.json",
+  "max_pairs": 24,
+  "model": "o3",
+  "protocol": "FROZEN_FIRST_EIGHT_CASE_CHALLENGE",
+  "report_version": "1.0",
+  "results": [
+    {
+      "alignments": [
+        {
+          "action_id": "A1",
+          "candidate_count": 6,
+          "gold_event": "pulling the release",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        },
+        {
+          "action_id": "A1",
+          "candidate_count": 6,
+          "gold_event": "opens the gate",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        }
+      ],
+      "audit_artifact": null,
+      "audit_status": "NOT_RUN",
+      "elapsed_seconds": 33.677,
+      "exit_code": 0,
+      "family": "REVERSED_CAUSALITY",
+      "id": "pair_reverse_causality",
+      "index": 0,
+      "log": "eval_outputs/staged-node-challenge-frozen-20260920/01_pair_reverse_causality.log",
+      "metrics": {
+        "aligned_gold_edge_count": 0,
+        "aligned_gold_node_count": 0,
+        "audit_novelty_rate": null,
+        "audit_only_precision": null,
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [],
+        "gold_edge_count": 2,
+        "gold_node_count": 2,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 0.0,
+        "pairwise_gold_accuracy_given_aligned_nodes": null,
+        "relation_recall_conditional_on_node_availability": null,
+        "scaffold_gold_accuracy_given_aligned_nodes": null
+      },
+      "performance": "eval_outputs/staged-node-challenge-frozen-20260920/01_pair_reverse_causality.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A1",
+        "A1": "A0"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A1",
+          "relation": "CAUSES",
+          "source_event": "pulling the release",
+          "target_event": "opens the gate"
+        },
+        {
+          "action_id": "A1",
+          "relation": "NONE",
+          "source_event": "opens the gate",
+          "target_event": "pulling the release"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_091717_444419.json",
+      "stage_one_status": "REJECTED",
+      "world_committed": true
+    },
+    {
+      "alignments": [
+        {
+          "action_id": "A0",
+          "candidate_count": 2,
+          "gold_event": "Jo receives no antidote",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 2,
+          "gold_event": "Jo dies",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        }
+      ],
+      "audit_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_relation_audit_workspace_20260920_091751_296405.json",
+      "audit_status": "COMPLETE",
+      "elapsed_seconds": 54.267,
+      "exit_code": 0,
+      "family": "MISSING_CAUSAL_EDGE",
+      "id": "pair_missing_cross_clause_edge",
+      "index": 1,
+      "log": "eval_outputs/staged-node-challenge-frozen-20260920/02_pair_missing_cross_clause_edge.log",
+      "metrics": {
+        "aligned_gold_edge_count": 0,
+        "aligned_gold_node_count": 0,
+        "audit_novelty_rate": null,
+        "audit_only_precision": 0.0,
+        "audit_only_relation_count": 1,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [],
+        "gold_edge_count": 1,
+        "gold_node_count": 2,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 0.0,
+        "pairwise_gold_accuracy_given_aligned_nodes": null,
+        "relation_recall_conditional_on_node_availability": null,
+        "scaffold_gold_accuracy_given_aligned_nodes": null
+      },
+      "performance": "eval_outputs/staged-node-challenge-frozen-20260920/02_pair_missing_cross_clause_edge.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A0",
+        "A1": "A1"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A0",
+          "relation": "CAUSES",
+          "source_event": "Jo receives no antidote",
+          "target_event": "Jo dies"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_091751_296405.json",
+      "stage_one_status": "ADMITTED",
+      "world_committed": true
+    },
+    {
+      "alignments": [
+        {
+          "action_id": "A1",
+          "candidate_count": 2,
+          "gold_event": "issuing the access card",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        },
+        {
+          "action_id": "A1",
+          "candidate_count": 2,
+          "gold_event": "Noor enters the laboratory",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        }
+      ],
+      "audit_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_relation_audit_workspace_20260920_091845_597526.json",
+      "audit_status": "COMPLETE",
+      "elapsed_seconds": 51.836,
+      "exit_code": 2,
+      "family": "WRONG_CAUSAL_LABEL",
+      "id": "pair_enable_not_cause",
+      "index": 2,
+      "log": "eval_outputs/staged-node-challenge-frozen-20260920/03_pair_enable_not_cause.log",
+      "metrics": {
+        "aligned_gold_edge_count": 0,
+        "aligned_gold_node_count": 0,
+        "audit_novelty_rate": null,
+        "audit_only_precision": null,
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [],
+        "gold_edge_count": 1,
+        "gold_node_count": 2,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 0.0,
+        "pairwise_gold_accuracy_given_aligned_nodes": null,
+        "relation_recall_conditional_on_node_availability": null,
+        "scaffold_gold_accuracy_given_aligned_nodes": null
+      },
+      "performance": "eval_outputs/staged-node-challenge-frozen-20260920/03_pair_enable_not_cause.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A1",
+        "A1": "A0"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A1",
+          "relation": "ENABLES",
+          "source_event": "issuing the access card",
+          "target_event": "Noor enters the laboratory"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_091845_597526.json",
+      "stage_one_status": "ADMITTED",
+      "world_committed": false
+    },
+    {
+      "alignments": [
+        {
+          "action_id": "A0",
+          "candidate_count": 1,
+          "gold_event": "closing the valve",
+          "matched_proposition_id": "PR_AUTO_1",
+          "method": "TOKEN_LEMMA",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 1,
+          "gold_event": "chemical reaches the river",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        }
+      ],
+      "audit_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_relation_audit_workspace_20260920_091937_327050.json",
+      "audit_status": "EMPTY_NO_PAIRS",
+      "elapsed_seconds": 30.579,
+      "exit_code": 2,
+      "family": "WRONG_CAUSAL_LABEL",
+      "id": "pair_prevention",
+      "index": 3,
+      "log": "eval_outputs/staged-node-challenge-frozen-20260920/04_pair_prevention.log",
+      "metrics": {
+        "aligned_gold_edge_count": 0,
+        "aligned_gold_node_count": 1,
+        "audit_novelty_rate": null,
+        "audit_only_precision": null,
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [],
+        "gold_edge_count": 1,
+        "gold_node_count": 2,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 0.5,
+        "pairwise_gold_accuracy_given_aligned_nodes": null,
+        "relation_recall_conditional_on_node_availability": null,
+        "scaffold_gold_accuracy_given_aligned_nodes": null
+      },
+      "performance": "eval_outputs/staged-node-challenge-frozen-20260920/04_pair_prevention.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A0",
+        "A1": "A1"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A0",
+          "relation": "PREVENTS",
+          "source_event": "closing the valve",
+          "target_event": "chemical reaches the river"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_091937_327050.json",
+      "stage_one_status": "ADMITTED",
+      "world_committed": false
+    },
+    {
+      "alignments": [
+        {
+          "action_id": "A1",
+          "candidate_count": 2,
+          "gold_event": "activating the backup",
+          "matched_proposition_id": "Prop1",
+          "method": "EXACT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A1",
+          "candidate_count": 2,
+          "gold_event": "main server shuts down",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        }
+      ],
+      "audit_artifact": null,
+      "audit_status": "NOT_RUN",
+      "elapsed_seconds": 32.581,
+      "exit_code": 2,
+      "family": "NEGATION",
+      "id": "pair_negated_consequence",
+      "index": 4,
+      "log": "eval_outputs/staged-node-challenge-frozen-20260920/05_pair_negated_consequence.log",
+      "metrics": {
+        "aligned_gold_edge_count": 0,
+        "aligned_gold_node_count": 1,
+        "audit_novelty_rate": null,
+        "audit_only_precision": null,
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [],
+        "gold_edge_count": 1,
+        "gold_node_count": 2,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 0.5,
+        "pairwise_gold_accuracy_given_aligned_nodes": null,
+        "relation_recall_conditional_on_node_availability": null,
+        "scaffold_gold_accuracy_given_aligned_nodes": null
+      },
+      "performance": "eval_outputs/staged-node-challenge-frozen-20260920/05_pair_negated_consequence.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A1",
+        "A1": "A0"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A1",
+          "relation": "NONE",
+          "source_event": "activating the backup",
+          "target_event": "main server shuts down"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_092007_831115.json",
+      "stage_one_status": "REJECTED",
+      "world_committed": false
+    },
+    {
+      "alignments": [
+        {
+          "action_id": "A1",
+          "candidate_count": 1,
+          "gold_event": "opening the door",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        },
+        {
+          "action_id": "A1",
+          "candidate_count": 1,
+          "gold_event": "siren sounds",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        }
+      ],
+      "audit_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_relation_audit_workspace_20260920_092040_448483.json",
+      "audit_status": "EMPTY_NO_PAIRS",
+      "elapsed_seconds": 36.451,
+      "exit_code": 0,
+      "family": "CONDITIONAL_CAUSALITY",
+      "id": "pair_conditional_cause",
+      "index": 5,
+      "log": "eval_outputs/staged-node-challenge-frozen-20260920/06_pair_conditional_cause.log",
+      "metrics": {
+        "aligned_gold_edge_count": 0,
+        "aligned_gold_node_count": 0,
+        "audit_novelty_rate": null,
+        "audit_only_precision": null,
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [],
+        "gold_edge_count": 1,
+        "gold_node_count": 2,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 0.0,
+        "pairwise_gold_accuracy_given_aligned_nodes": null,
+        "relation_recall_conditional_on_node_availability": null,
+        "scaffold_gold_accuracy_given_aligned_nodes": null
+      },
+      "performance": "eval_outputs/staged-node-challenge-frozen-20260920/06_pair_conditional_cause.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A1",
+        "A1": "A0"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A1",
+          "note": "Current ontology cannot encode the condition on CAUSES.",
+          "relation": "AMBIGUOUS",
+          "source_event": "opening the door",
+          "target_event": "siren sounds"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_092040_448483.json",
+      "stage_one_status": "ADMITTED",
+      "world_committed": false
+    },
+    {
+      "alignments": [
+        {
+          "action_id": "A1",
+          "candidate_count": 2,
+          "gold_event": "sending the stock to District West",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        },
+        {
+          "action_id": "A1",
+          "candidate_count": 2,
+          "gold_event": "stock is exhausted",
+          "matched_proposition_id": "Prop3",
+          "method": "EXACT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        }
+      ],
+      "audit_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_relation_audit_workspace_20260920_092116_938229.json",
+      "audit_status": "COMPLETE",
+      "elapsed_seconds": 30.207,
+      "exit_code": 0,
+      "family": "ELLIPSIS",
+      "id": "pair_ellipsis_same",
+      "index": 6,
+      "log": "eval_outputs/staged-node-challenge-frozen-20260920/07_pair_ellipsis_same.log",
+      "metrics": {
+        "aligned_gold_edge_count": 0,
+        "aligned_gold_node_count": 1,
+        "audit_novelty_rate": null,
+        "audit_only_precision": null,
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [],
+        "gold_edge_count": 1,
+        "gold_node_count": 2,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 0.5,
+        "pairwise_gold_accuracy_given_aligned_nodes": null,
+        "relation_recall_conditional_on_node_availability": null,
+        "scaffold_gold_accuracy_given_aligned_nodes": null
+      },
+      "performance": "eval_outputs/staged-node-challenge-frozen-20260920/07_pair_ellipsis_same.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A0",
+        "A1": "A1"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A1",
+          "relation": "CAUSES",
+          "source_event": "sending the stock to District West",
+          "target_event": "stock is exhausted"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_092116_938229.json",
+      "stage_one_status": "ADMITTED",
+      "world_committed": true
+    },
+    {
+      "alignments": [
+        {
+          "action_id": "A1",
+          "candidate_count": 3,
+          "gold_event": "diverting the vehicle",
+          "matched_proposition_id": "PR_AUTO_1",
+          "method": "TOKEN_LEMMA",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A1",
+          "candidate_count": 3,
+          "gold_event": "one loading-bay worker is struck",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        },
+        {
+          "action_id": "A1",
+          "candidate_count": 3,
+          "gold_event": "smoke reaches five tunnel workers",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        }
+      ],
+      "audit_artifact": null,
+      "audit_status": "NOT_RUN",
+      "elapsed_seconds": 37.922,
+      "exit_code": 0,
+      "family": "MULTI_EFFECT_CLAUSE",
+      "id": "pair_sibling_population_leak",
+      "index": 7,
+      "log": "eval_outputs/staged-node-challenge-frozen-20260920/08_pair_sibling_population_leak.log",
+      "metrics": {
+        "aligned_gold_edge_count": 0,
+        "aligned_gold_node_count": 1,
+        "audit_novelty_rate": null,
+        "audit_only_precision": null,
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [],
+        "gold_edge_count": 3,
+        "gold_node_count": 3,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 0.3333333333333333,
+        "pairwise_gold_accuracy_given_aligned_nodes": null,
+        "relation_recall_conditional_on_node_availability": null,
+        "scaffold_gold_accuracy_given_aligned_nodes": null
+      },
+      "performance": "eval_outputs/staged-node-challenge-frozen-20260920/08_pair_sibling_population_leak.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A1",
+        "A1": "A0"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A1",
+          "relation": "CAUSES",
+          "source_event": "diverting the vehicle",
+          "target_event": "one loading-bay worker is struck"
+        },
+        {
+          "action_id": "A1",
+          "relation": "PREVENTS",
+          "source_event": "diverting the vehicle",
+          "target_event": "smoke reaches five tunnel workers"
+        },
+        {
+          "action_id": "A1",
+          "relation": "NONE",
+          "source_event": "one loading-bay worker is struck",
+          "target_event": "smoke reaches five tunnel workers"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_092147_044551.json",
+      "stage_one_status": "REJECTED",
+      "world_committed": true
+    }
+  ]
+}

@@ -10,6 +10,7 @@ from relent.operators import (
     Conditional,
     Fact,
     Modal,
+    Temporal,
     consequent_licensed,
     evaluate,
     operator_from_dict,
@@ -113,8 +114,19 @@ class OperatorScopeConservationTests(unittest.TestCase):
         self.assertEqual(gates["modality"], "PROBABILISTIC")
         self.assertTrue(gates["condition_ids"])
         self.assertTrue(gates["negated_condition_ids"])
+        self.assertTrue(
+            set(gates["negated_condition_ids"]) <= set(gates["condition_ids"])
+        )
         self.assertIn("operator", gates)
         self.assertEqual(gates["operator"]["kind"], "Conditional")
+
+    def test_temporal_operator_round_trip_preserves_direction(self):
+        opening = Fact(entity="valve", predicate="state", state="open")
+        rise = Fact(entity="pressure", predicate="change", change="increase")
+        temporal = Temporal(relation="BEFORE", left=opening, right=rise)
+        restored = operator_from_dict(operator_to_dict(temporal))
+        self.assertEqual(restored, temporal)
+        self.assertEqual(operator_to_dict(restored)["relation"], "BEFORE")
 
 
 class OperatorScopeHypothesisTests(unittest.TestCase):

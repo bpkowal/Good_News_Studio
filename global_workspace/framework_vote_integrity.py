@@ -455,6 +455,24 @@ def evaluate_framework_vote(
     # attenuated ceiling. ABSTAIN remains for a ledger that skipped an action,
     # a non-ranking verdict, or a quarantined derivation.
     incomplete_comparison = not bool(getattr(candidate, "comparison_complete", True))
+    critical_ids = [
+        str(value) for value in (
+            getattr(candidate, "decision_critical_proposition_ids", []) or []
+        ) if str(value).strip()
+    ]
+    weakest_dependency = str(
+        getattr(candidate, "weakest_decision_critical_status", "ESTABLISHED")
+        or "ESTABLISHED"
+    ).upper()
+    if critical_ids and weakest_dependency == "REJECTED":
+        return _decision(
+            "ABSTAIN",
+            "a decision-critical proposition was rejected",
+            **context,
+        )
+    dependency_uncertain = bool(critical_ids) and weakest_dependency in {
+        "HYPOTHETICAL", "UNRESOLVED",
+    }
 
     derivation_errors = _derived_claim_errors(candidate, records)
     candidate.derived_claim_validation_status = (
@@ -575,6 +593,23 @@ def evaluate_framework_vote(
                 "decisive aggregation is not licensed by the committed Rawlsian ranking basis",
                 **context,
             )
+        if str(getattr(candidate, "framework_numerical_role", "")).upper() == "DECISIVE":
+            unresolved_positions = [
+                item for item in records
+                if str(item.get("effect", item.get("comparative_effect", ""))).upper()
+                in {"", "MIXED", "UNCERTAIN"}
+                or str(item.get("epistemic_status", "")).upper()
+                in {"MIXED_COMPARISON", "UNRESOLVED", "UNRESOLVED_TARGET"}
+                or str(item.get("subject_selection_status", "")).upper()
+                == "UNRESOLVED_SUBJECT_SELECTION"
+            ]
+            if unresolved_positions:
+                return _decision(
+                    "ABSTAIN",
+                    "decisive Rawlsian numerical comparison rests on mixed or "
+                    "unresolved positions",
+                    **context,
+                )
 
     elif specialist == "virtue":
         if any(
@@ -618,6 +653,12 @@ def evaluate_framework_vote(
         return _decision(
             "ATTENUATED",
             "framework compared every live action but reports residual uncertainty",
+            **context,
+        )
+    if dependency_uncertain:
+        return _decision(
+            "ATTENUATED",
+            "framework ranking retains an unresolved decision-critical dependency",
             **context,
         )
     if uncertain:

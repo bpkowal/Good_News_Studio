@@ -43,6 +43,9 @@ from global_workspace.local_specialists import (
     propose_synthesis,
     _validate_lossless_action_set,
 )
+from global_workspace.invariant_card_telemetry import (
+    build_invariant_card_telemetry,
+)
 from global_workspace.memory import EpisodicMemory, summarize_specialist_contributions
 from global_workspace.models import WorkspaceBroadcast
 from global_workspace.openai_backend import OpenAIWorkspaceLLM
@@ -77,6 +80,7 @@ from global_workspace.world_validation import (
     SUBGRAPH_REBUILD,
     classify_world_repair_scope,
 )
+from global_workspace.world_graph_tikz import write_world_graph_tikz_bundle
 from dotenv import load_dotenv
 
 
@@ -94,6 +98,20 @@ ACTION_ORIGINS = {
 }
 WORLD_ESCALATION_MODEL = "gpt-5.6-sol"
 WORLD_ESCALATION_LABEL = "GPT-5.6 Sol"
+
+
+def _git_revision() -> str:
+    """Read the current revision without invoking git or mutating the worktree."""
+    git_dir = ROOT.parent / ".git"
+    try:
+        head = (git_dir / "HEAD").read_text(encoding="utf-8").strip()
+        if head.startswith("ref: "):
+            ref = git_dir / head.removeprefix("ref: ").strip()
+            if ref.exists():
+                return ref.read_text(encoding="utf-8").strip()
+        return head
+    except OSError:
+        return "UNKNOWN"
 
 
 def _cached_action_texts_are_complete(actions: object) -> bool:
@@ -217,6 +235,21 @@ def attach_world_escalation(
         selected = escalated
         selected_stage = "escalation"
     merged = dict(selected)
+    # Stage 1 may have run only on the primary attempt.  Escalation and resume
+    # operate on a rejected Stage-2 candidate, so a NOT_RUN marker from the
+    # selected retry must not erase the source skeleton that led to it.
+    selected_stage_one = merged.get("candidate_generation_stage_one")
+    primary_stage_one = primary.get("candidate_generation_stage_one")
+    if (
+        isinstance(primary_stage_one, dict)
+        and str(primary_stage_one.get("status") or "").upper() not in {"", "NOT_RUN"}
+        and (
+            not isinstance(selected_stage_one, dict)
+            or str(selected_stage_one.get("status") or "").upper() in {"", "NOT_RUN"}
+        )
+    ):
+        merged["candidate_generation_stage_one"] = copy.deepcopy(primary_stage_one)
+        merged["candidate_generation_stage_one_origin"] = "primary"
     merged["attempts"] = [
         {**attempt, "stage": "primary"}
         for attempt in primary.get("attempts") or []
@@ -227,6 +260,27 @@ def attach_world_escalation(
         if isinstance(attempt, dict)
     ]
     merged["repair_attempts"] = max(0, len(merged["attempts"]) - 1)
+    merged["invariant_card_telemetry"] = build_invariant_card_telemetry(
+        merged["attempts"],
+        terminal_status=str(merged.get("status") or "UNKNOWN"),
+    )
+    merged_repair_events: list[dict[str, object]] = []
+    for stage, source in (("primary", primary), ("escalation", escalated)):
+        for raw_event in source.get("repair_experiment_events") or []:
+            if not isinstance(raw_event, dict):
+                continue
+            event = copy.deepcopy(raw_event)
+            original_id = str(event.get("repair_event_id") or "R000")
+            event["repair_event_id"] = f"{stage}:{original_id}"
+            event["stage"] = stage
+            for key in ("target_issues", "after_issues"):
+                for issue in event.get(key) or []:
+                    if isinstance(issue, dict) and issue.get("issue_instance_id"):
+                        issue["issue_instance_id"] = (
+                            f"{stage}:{issue['issue_instance_id']}"
+                        )
+            merged_repair_events.append(event)
+    merged["repair_experiment_events"] = merged_repair_events
     merged["escalation"] = {
         "from_model": from_model,
         "to_model": to_model,
@@ -625,6 +679,65 @@ def parse_args() -> argparse.Namespace:
         help="Halt after the admitted world is printed; do not run expert agents",
     )
     parser.add_argument(
+        "--pairwise-relation-audit",
+        action="store_true",
+        help=(
+            "Run an opt-in read-only LLM audit of Stage-1 event pairs; "
+            "judgments cannot alter or admit the world model"
+        ),
+    )
+    parser.add_argument(
+        "--staged-node-generation",
+        action="store_true",
+        help="Extract action-neutral atomic nodes before a separate ownership pass",
+    )
+    parser.add_argument(
+        "--stage-one-guidance-mode",
+        choices=("authoritative", "evidence-only", "evidence-review", "raw-text"),
+        default="authoritative",
+        help=(
+            "How Stage 1 influences final graph generation: enforce its admitted "
+            "skeleton, provide advisory evidence only, or bypass Stage 1"
+        ),
+    )
+    parser.add_argument(
+        "--deterministic-repair-guidance",
+        choices=("off", "alone", "combined"),
+        default="off",
+        help=(
+            "Add Stage-1 evidence deltas to graph-repair retries, either alone "
+            "or alongside the existing validator repair cards"
+        ),
+    )
+    parser.add_argument(
+        "--pairwise-audit-max-pairs",
+        type=int,
+        default=12,
+        help="Maximum independent pairwise shadow judgments per grounding run",
+    )
+    parser.add_argument(
+        "--pairwise-audit-evidence-augmented",
+        action="store_true",
+        help=(
+            "Rank pairwise jobs by source-local evidence and provide label-blind "
+            "syntax, modality, negation, and conditional cues to the auditor"
+        ),
+    )
+    parser.add_argument(
+        "--syntactic-resolution-obligations",
+        action="store_true",
+        help=(
+            "Use optional spaCy cues to ask Stage 1 to represent or quarantine "
+            "ambiguous grammatical structures"
+        ),
+    )
+    parser.add_argument(
+        "--targeted-semantic-resolution",
+        action="store_true",
+        help="Run additive one-question semantic resolution after neutral extraction",
+    )
+    parser.add_argument("--targeted-resolution-max-calls", type=int, default=6)
+    parser.add_argument(
         "--escalate-world-model",
         action="store_true",
         help=(
@@ -797,6 +910,9 @@ def _grounding_attempt_summary(grounding: dict[str, object]) -> list[dict[str, o
                 str(issue.get("entity_id")) for issue in issues
                 if issue.get("entity_id")
             }),
+            "compiler_loss_telemetry": raw_attempt.get(
+                "compiler_loss_telemetry"
+            ),
             "repair_delta": raw_attempt.get("repair_delta"),
         })
     return summaries
@@ -881,12 +997,41 @@ def save_world_grounding_failure(
                 grounding.get("next_rebuild_action_ids") or []
             ),
             "repair_inheritance": grounding.get("repair_inheritance"),
+            "repair_experiment_event_count": len(
+                grounding.get("repair_experiment_events") or []
+            ),
+            "invariant_card_telemetry": grounding.get(
+                "invariant_card_telemetry"
+            ),
         },
         "attempt_summary": _grounding_attempt_summary(grounding),
         # Complete raw evidence: typed issues, repair deltas, rejected candidate,
         # clauses, and escalation result.
         "grounding": grounding,
     }
+    rejected_candidate = grounding.get("rejected_candidate")
+    rejected_world = (
+        rejected_candidate.get("world_model")
+        if isinstance(rejected_candidate, dict) else None
+    )
+    if isinstance(rejected_world, dict):
+        tikz_dir = destination.parent / f"{destination.stem}_tikz"
+        try:
+            tikz_manifest = write_world_graph_tikz_bundle(
+                tikz_dir,
+                world_model=rejected_world,
+                clauses=list(grounding.get("clauses") or []),
+                representation_stage="RAW_REJECTED_CANDIDATE_PRECOMPILATION",
+            )
+            payload["tikz_diagnostics"] = {
+                "directory": str(tikz_dir),
+                **tikz_manifest,
+            }
+        except (OSError, TypeError, ValueError) as exc:
+            payload["tikz_diagnostics"] = {
+                "status": "WRITE_FAILED",
+                "error": str(exc),
+            }
     atomic_write_json(destination, payload, pretty=True)
     return destination
 
@@ -915,28 +1060,52 @@ def render_admitted_world(records: list[dict], grounding: dict[str, object]) -> 
         harmed = ", ".join(record.get("harmed") or []) or "none"
         at_risk = ", ".join(record.get("at_risk") or []) or "none"
         conditional = ", ".join(record.get("conditionally_benefited") or []) or "none"
-        lines.append(f"  benefits: {beneficiaries}")
-        lines.append(f"  harms: {harmed}")
+        lines.append(f"  certain benefits: {beneficiaries}")
+        lines.append(f"  certain harms: {harmed}")
         lines.append(f"  at risk: {at_risk}")
         lines.append(f"  conditionally benefited: {conditional}")
         mechanism = str(record.get("mechanism") or "").strip()
         if mechanism:
             lines.append(f"  mechanism: {mechanism}")
+        effect_by_id = {
+            str(effect.get("effect_id") or ""): effect
+            for effect in record.get("world_effects") or []
+            if str(effect.get("effect_id") or "")
+        }
         for link in record.get("causal_links") or []:
+            target = effect_by_id.get(str(link.get("target_id") or ""), {})
+            derivation = str(target.get("derivation_operation") or "")
+            annotation = (
+                " [EXCLUSIVE_ALLOCATION_COMPLEMENT]"
+                if derivation == "EXCLUSIVE_ALLOCATION_COMPLEMENT" else ""
+            )
             lines.append(
-                f"  {link.get('source_id')} {link.get('relation')} {link.get('target_id')}"
+                f"  {link.get('source_id')} {link.get('relation')} "
+                f"{link.get('target_id')}{annotation}"
             )
         for effect in record.get("world_effects") or []:
             quantities = ", ".join(str(item) for item in (effect.get("quantities") or []) if item)
             quantity = f" ({quantities})" if quantities else ""
+            modality_value = str(effect.get("modality") or "CERTAIN").upper()
+            modality = f"/{modality_value}" if modality_value != "CERTAIN" else ""
+            likelihoods = ", ".join(
+                str(item) for item in (effect.get("likelihood_qualifiers") or [])
+                if item
+            )
+            likelihood = f" <{likelihoods}>" if likelihoods else ""
             lines.append(
                 f"  {effect.get('effect_id')} {effect.get('directness')} "
-                f"{effect.get('polarity')} {effect.get('outcome')} "
-                f"[{effect.get('party_id')}]{quantity}"
+                f"{effect.get('polarity')}{modality} {effect.get('outcome')} "
+                f"[{effect.get('party_id')}]{quantity}{likelihood}"
             )
         for row in record.get("counterfactual_effects") or []:
+            relation = str(
+                row.get("counterfactual_relation")
+                or row.get("relation")
+                or "COUNTERFACTUAL"
+            )
             lines.append(
-                f"  FOREGONE {row.get('source_effect_id')} -> "
+                f"  {relation} {row.get('source_effect_id')} -> "
                 f"{row.get('alternative_action_id')} {row.get('alternative_effect_id')}"
             )
     return "\n".join(lines)
@@ -953,6 +1122,8 @@ def confirm_continue_after_world(
 ) -> bool:
     """Ask whether to spend the rest of the run on original and compact experts."""
     output_fn(render_admitted_world(records, grounding))
+    from global_workspace.world_graph_diagnostics import render_world_graph_figures
+    output_fn(render_world_graph_figures(grounding))
     with model_call_budget_paused():
         return _confirm_continue_after_world(
             records, grounding,
@@ -1357,6 +1528,33 @@ def run_pipeline(args: argparse.Namespace, recorder: PerformanceRecorder) -> int
                     prior_candidate=(failed_seed or {}).get("rejected_candidate"),
                     prior_source="failed_grounding_resume_cache",
                     allow_action_text_evidence=(action_origin == "USER_AUTHORED"),
+                    enable_pairwise_relation_audit=bool(
+                        getattr(args, "pairwise_relation_audit", False)
+                    ),
+                    pairwise_audit_max_pairs=max(
+                        0, int(getattr(args, "pairwise_audit_max_pairs", 12))
+                    ),
+                    pairwise_audit_evidence_augmented=bool(
+                        getattr(args, "pairwise_audit_evidence_augmented", False)
+                    ),
+                    enable_staged_node_generation=bool(
+                        getattr(args, "staged_node_generation", False)
+                    ),
+                    stage_one_guidance_mode=str(
+                        getattr(args, "stage_one_guidance_mode", "authoritative")
+                    ).replace("-", "_").upper(),
+                    deterministic_repair_guidance_mode=str(
+                        getattr(args, "deterministic_repair_guidance", "off")
+                    ).upper(),
+                    enable_syntactic_resolution_obligations=bool(
+                        getattr(args, "syntactic_resolution_obligations", False)
+                    ),
+                    enable_targeted_semantic_resolution=bool(
+                        getattr(args, "targeted_semantic_resolution", False)
+                    ),
+                    targeted_resolution_max_calls=max(
+                        0, int(getattr(args, "targeted_resolution_max_calls", 6))
+                    ),
                 ),
             )
         escalation_model = str(
@@ -1403,6 +1601,8 @@ def run_pipeline(args: argparse.Namespace, recorder: PerformanceRecorder) -> int
                         prior_source="model_escalation",
                         call_kind_primary="world_grounding_escalation",
                         allow_action_text_evidence=(action_origin == "USER_AUTHORED"),
+                        enable_pairwise_relation_audit=False,
+                        enable_staged_node_generation=False,
                     )
                 action_source_grounding = attach_world_escalation(
                     action_source_grounding,
@@ -1427,6 +1627,91 @@ def run_pipeline(args: argparse.Namespace, recorder: PerformanceRecorder) -> int
                 flush=True,
             )
     grounding_diagnostic_path: Path | None = None
+    repair_event_context = {
+        "git_commit": _git_revision(),
+        "working_tree_state": "NOT_CAPTURED",
+        "backend": str(args.backend),
+        "model": str(args.openai_model if args.backend == "openai" else args.model),
+        "scenario_id": scenario_path.stem,
+        "scenario_family": "UNCLASSIFIED",
+        "benchmark_id": "LIVE_INTERACTIVE",
+    }
+    for event in action_source_grounding.get("repair_experiment_events") or []:
+        if not isinstance(event, dict):
+            continue
+        event_context = event.setdefault("context", {})
+        if isinstance(event_context, dict):
+            event_context.update(repair_event_context)
+    invariant_telemetry = action_source_grounding.get(
+        "invariant_card_telemetry"
+    )
+    if isinstance(invariant_telemetry, dict):
+        recorder.record_duration(
+            "world_grounding_invariant_card_telemetry",
+            0.0,
+            category="semantic_telemetry",
+            status=str(action_source_grounding.get("status") or "UNKNOWN"),
+            metadata={"telemetry": invariant_telemetry},
+        )
+    repair_experiment_events = [
+        event for event in (
+            action_source_grounding.get("repair_experiment_events") or []
+        ) if isinstance(event, dict)
+    ]
+    if repair_experiment_events:
+        recorder.record_duration(
+            "world_grounding_repair_experiments",
+            0.0,
+            category="semantic_telemetry",
+            status=str(action_source_grounding.get("status") or "UNKNOWN"),
+            metadata={"repair_events": repair_experiment_events},
+        )
+    stage_one = action_source_grounding.get("candidate_generation_stage_one")
+    if (
+        bool(getattr(args, "pairwise_relation_audit", False))
+        and isinstance(stage_one, dict)
+    ):
+        stage_one_audit_path = (
+            args.output_dir / f"pairwise_stage_one_{scenario_path.stem}.json"
+        )
+        atomic_write_json(stage_one_audit_path, stage_one, pretty=True)
+        if str(stage_one.get("status") or "").upper() not in {
+            "ADMITTED", "PARTIALLY_ADMITTED",
+        }:
+            print(
+                "Pairwise relation audit unavailable: Stage 1 "
+                f"{stage_one.get('status', 'UNKNOWN')} "
+                f"({len(stage_one.get('errors') or [])} error(s)).",
+                flush=True,
+            )
+        print(f"Stage-1 audit artifact: {stage_one_audit_path}", flush=True)
+    pairwise_audit = (
+        stage_one.get("pairwise_relation_audit")
+        if isinstance(stage_one, dict) else None
+    )
+    if isinstance(pairwise_audit, dict) and str(
+        pairwise_audit.get("status") or ""
+    ).upper() not in {"", "NOT_RUN"}:
+        pairwise_audit_path = (
+            args.output_dir / f"pairwise_relation_audit_{scenario_path.stem}.json"
+        )
+        atomic_write_json(pairwise_audit_path, pairwise_audit, pretty=True)
+        agreement = pairwise_audit.get("scaffolded_pair_agreement_rate")
+        agreement_text = (
+            "n/a" if agreement is None else f"{float(agreement):.0%}"
+        )
+        print(
+            "Pairwise relation audit: "
+            f"{pairwise_audit.get('status')} "
+            f"({pairwise_audit.get('judged_count', 0)}/"
+            f"{pairwise_audit.get('pair_count', 0)} judged; "
+            f"scaffold agreement {agreement_text}; "
+            f"{pairwise_audit.get('none_count', 0)} NONE; "
+            f"{pairwise_audit.get('ambiguous_count', 0)} AMBIGUOUS; "
+            f"{pairwise_audit.get('novel_relation_count', 0)} novel).",
+            flush=True,
+        )
+        print(f"Pairwise audit artifact: {pairwise_audit_path}", flush=True)
     if frozen_replay is not None:
         frozen_world = action_source_grounding.get("world_model") or {}
         print(
@@ -1715,6 +2000,19 @@ def run_pipeline(args: argparse.Namespace, recorder: PerformanceRecorder) -> int
     write_semantic_preservation_trace(trace_path, preservation_trace)
     print(render_semantic_preservation_trace(preservation_trace), flush=True)
     print(f"Semantic preservation trace: {trace_path}", flush=True)
+    admitted_world = action_source_grounding.get("world_model")
+    if isinstance(admitted_world, dict):
+        tikz_dir = args.output_dir / "world_graph_tikz"
+        try:
+            write_world_graph_tikz_bundle(
+                tikz_dir,
+                world_model=admitted_world,
+                clauses=list(action_source_grounding.get("clauses") or []),
+                representation_stage="ADMITTED_COMPILED_WORLD",
+            )
+            print(f"World graph TikZ diagnostics: {tikz_dir}", flush=True)
+        except (OSError, TypeError, ValueError) as exc:
+            print(f"World graph TikZ diagnostics could not be written: {exc}", flush=True)
     if not confirm_continue_after_world(
         canonical_action_records,
         action_source_grounding,

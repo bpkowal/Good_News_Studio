@@ -2,9 +2,6 @@
 from __future__ import annotations
 
 import unittest
-from pathlib import Path
-
-import yaml
 
 from global_workspace.world_state import (
     validate_world_model,
@@ -14,17 +11,11 @@ from global_workspace.world_validation import (
     validation_issues_from_messages,
 )
 from invariants.catalog import invariant_by_id
-from semantic_integrity.coverage import load_map
+from relent_testkit.coverage import load_map
+from relent_testkit.repair_ledger import load_repair_ledger
 from strategies.quantifier_count import quantifier_count_cases
 from strategies.verb_lemma import verb_lemma_cases
 from hypothesis import given, settings
-
-
-_LEDGER = Path(__file__).resolve().parents[1] / "semantic_integrity" / "repair_ledger.yaml"
-
-
-def load_repair_ledger() -> dict:
-    return yaml.safe_load(_LEDGER.read_text(encoding="utf-8"))
 
 
 class RepairLedgerTests(unittest.TestCase):

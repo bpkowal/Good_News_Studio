@@ -1,0 +1,86 @@
+{
+  "experiment_id": "EXP-2026-09-21-004",
+  "date": "2026-09-21",
+  "title": "Exclusive-allocation repair persistence audit",
+  "project_state": {
+    "working_tree": "DIRTY_PREEXISTING_AND_EXPERIMENTAL",
+    "pipeline_version": "historical-mixed-through-2026-09-21",
+    "active_components": [
+      "world validator",
+      "typed repair cards",
+      "transactional repair loop",
+      "invariant/card telemetry"
+    ]
+  },
+  "question": "Is EXCLUSIVE_ALLOCATION_BRANCH_MISSING persistence primarily caused by an insufficient repair card, an overly broad error family, or another architectural effect?",
+  "hypothesis": "The family conflates absent nodes, invalid nodes, and missing links, while overlapping topology cards create competing repair instructions.",
+  "change_under_test": {
+    "component": "diagnostic analysis only",
+    "description": "Classify historical firings by raw candidate structure and correlate them with co-firing invariants and next-attempt persistence."
+  },
+  "control": {
+    "description": "Existing unsplit invariant and restore-exclusive-allocation-branch repair card.",
+    "frozen": false,
+    "artifact": "eval_outputs/exclusive-allocation-failure-audit-20260921.json"
+  },
+  "experimental": [],
+  "held_constant": [
+    "saved historical diagnostics",
+    "candidate snapshots",
+    "recorded attempt order"
+  ],
+  "intentionally_not_compared": [
+    "prospective repair success after splitting the family",
+    "validator detection precision against manually labeled gold",
+    "model-specific causal effects",
+    "ethical judgment quality"
+  ],
+  "metrics": {
+    "distinct_scenarios": 29,
+    "issue_occurrences": 194,
+    "attempts_with_issue": 102,
+    "repair_transitions": {
+      "persistent": 70,
+      "resolved": 9,
+      "terminal": 23
+    },
+    "candidate_shapes": {
+      "entire_nonrecipient_branch_missing": 39,
+      "nonreceipt_missing_but_adverse_present": 16,
+      "nonreceipt_like_material_present_but_still_flagged": 139
+    },
+    "cofiring_attempts": {
+      "MISSING_PROCESS_INTERMEDIATE": 81,
+      "WORLD_VALIDATION_ERROR": 56,
+      "STAGE_SKELETON_DRIFT": 45,
+      "VERB_LEMMA_MISMATCH": 20,
+      "MISSING_CAUSAL_PARENT": 17,
+      "OUTCOME_PREDICATE_INCOMPLETE": 17
+    }
+  },
+  "result": "PARTIALLY_SUPPORTED",
+  "interpretation": "The evidence does not support treating persistence as a single weak-card problem. The invariant combines at least absent-branch, absent-intermediate, invalid-or-unrecognized-node, and missing-link situations. It also duplicates MISSING_PROCESS_INTERMEDIATE in most affected attempts. Because completeness errors are emitted alongside prerequisite source/type errors, repair cards can target a downstream symptom before the proposed node is structurally admissible.",
+  "decision": {
+    "status": "ACTIVE",
+    "keep": [
+      "exclusive-allocation completeness invariant",
+      "source-licensed requirement for complementary nonreceipt"
+    ],
+    "do_not_prioritize": [
+      "making the existing monolithic card longer",
+      "adding more full-source context to every allocation repair"
+    ],
+    "next_test": "Split the diagnostic into allocation anchor missing, nonreceipt node absent, nonreceipt node invalid, nonreceipt link missing, and stipulated outcome missing; route only the earliest actionable prerequisite and test each card on frozen positive/negative candidates."
+  },
+  "limitations": [
+    "Historical diagnostics span multiple code versions and repeated attempts.",
+    "Raw rejected candidates are not always identical to the normalized typed model at the point of failure.",
+    "A lexical audit can identify nonreceipt-like material but cannot by itself prove that the node was admissible.",
+    "Prospective split-card performance has not yet been measured."
+  ],
+  "artifacts": [
+    "eval_outputs/exclusive-allocation-failure-audit-20260921.json",
+    "research/exclusive_allocation_failure_audit.py",
+    "eval_outputs/invariant-card-telemetry-20260921.json"
+  ]
+}

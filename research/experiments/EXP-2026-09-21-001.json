@@ -1,0 +1,127 @@
+{
+  "experiment_id": "EXP-2026-09-21-001",
+  "date": "2026-09-21",
+  "title": "Deterministic evidence deltas as world-graph repair guidance",
+  "project_state": {
+    "branch": "relent-framework",
+    "commit": "8861752",
+    "working_tree": "DIRTY_PREEXISTING_AND_EXPERIMENTAL",
+    "pipeline_version": "staged-node-evidence-repair-v1",
+    "active_components": [
+      "neutral_extraction",
+      "ownership_binding",
+      "node_admission_triage",
+      "validator_repair_cards",
+      "transactional_repair_boundaries",
+      "deterministic_evidence_provider"
+    ]
+  },
+  "question": "Does deterministic Stage-1 evidence improve graph repairs when used alone or alongside the existing validator repair cards without regressing repairs that already work?",
+  "hypothesis": "A narrowly scoped evidence delta will help restore omitted source facts while existing validator cards continue to repair typed structural faults.",
+  "change_under_test": {
+    "component": "evidence_repair_guidance",
+    "description": "Add advisory Stage-1 omission and conditionality findings to repair retries with off, alone, and combined modes."
+  },
+  "control": {
+    "description": "Existing typed validator issues, repair cards, deterministic local patches, and transactional repair boundaries.",
+    "frozen": false,
+    "artifact": "eval_outputs/repair-guidance-existing-20260921/report.json"
+  },
+  "experimental": [
+    {
+      "description": "Evidence delta without existing repair-card prompt",
+      "artifact": "eval_outputs/repair-guidance-evidence-alone-20260921/report.json"
+    },
+    {
+      "description": "Existing cards plus broad evidence delta",
+      "artifact": "eval_outputs/repair-guidance-combined-20260921/report.json"
+    },
+    {
+      "description": "Combined delta excluding shared choice directives",
+      "artifact": "eval_outputs/repair-guidance-combined-v2-20260921/report.json"
+    },
+    {
+      "description": "Combined delta omitted from the prompt when it has no actionable findings; regression subset only",
+      "artifact": "eval_outputs/repair-guidance-combined-v3-regression-20260921/report.json"
+    }
+  ],
+  "held_constant": [
+    "o3 model family",
+    "topology challenge manifest",
+    "maximum pairwise audit calls set to zero",
+    "authoritative Stage-1 guidance mode",
+    "world validator and existing repair-card implementation"
+  ],
+  "intentionally_not_compared": [
+    "framework-agent deliberation quality",
+    "final ethical judgment quality",
+    "pairwise auditor value",
+    "cost-normalized production performance",
+    "causal effect of repair guidance independent of Stage-1 and initial-draft variation"
+  ],
+  "cases": [
+    "cross_clause_antidote",
+    "shared_subject_valves",
+    "embedded_authorization",
+    "negated_subordinate_backup"
+  ],
+  "metrics": {
+    "existing_cards": {
+      "committed_worlds": "3/4",
+      "known_success_cases_preserved": "3/3",
+      "elapsed_seconds": 250.7
+    },
+    "evidence_alone": {
+      "committed_worlds": "1/4",
+      "known_success_cases_preserved": "1/3",
+      "elapsed_seconds": 327.7
+    },
+    "combined_v1": {
+      "committed_worlds": "0/4",
+      "known_success_cases_preserved": "0/3",
+      "elapsed_seconds": 282.2
+    },
+    "combined_v2": {
+      "committed_worlds": "1/4",
+      "known_success_cases_preserved": "1/3",
+      "elapsed_seconds": 223.0
+    },
+    "combined_v3_regression_subset": {
+      "committed_worlds": "2/3",
+      "known_success_cases_preserved": "2/3",
+      "antidote_case_run": false
+    }
+  },
+  "result": "REGRESSION",
+  "interpretation": "Existing typed repair cards materially outperform evidence-only guidance. Broad combined guidance regressed all known-success cases because shared decision directives were misclassified as missing world effects. Excluding shared directives removed that failure family, and suppressing empty deltas reduced prompt perturbation, but the live runs did not establish non-regression or incremental value.",
+  "decision": {
+    "status": "PAUSE",
+    "keep": [
+      "existing validator repair cards",
+      "transactional repair boundaries",
+      "evidence delta builder behind an opt-in flag",
+      "exclusion of shared obligations and choice directives",
+      "no prompt mutation when the evidence delta is empty"
+    ],
+    "do_not_prioritize": [
+      "evidence-only repair guidance",
+      "full evidence-packet dumps during repair",
+      "enabling combined evidence guidance by default"
+    ],
+    "next_test": "Replay identical frozen Stage-1 inventories and identical rejected candidates through existing-card and combined repair prompts; only include evidence deltas with actionable findings."
+  },
+  "limitations": [
+    "Stage-1 extraction and initial candidate generation were rerun rather than frozen.",
+    "The model is not guaranteed bitwise deterministic at temperature zero.",
+    "Only four cases were used, with three selected because existing repair guidance had previously succeeded.",
+    "The v3 arm used only the three regression cases and is not a complete matched arm.",
+    "Some rejected final graphs appeared semantically plausible, indicating validator/admission behavior remains a confound."
+  ],
+  "artifacts": [
+    "eval_outputs/repair-guidance-existing-20260921/report.json",
+    "eval_outputs/repair-guidance-evidence-alone-20260921/report.json",
+    "eval_outputs/repair-guidance-combined-20260921/report.json",
+    "eval_outputs/repair-guidance-combined-v2-20260921/report.json",
+    "eval_outputs/repair-guidance-combined-v3-regression-20260921/report.json"
+  ]
+}

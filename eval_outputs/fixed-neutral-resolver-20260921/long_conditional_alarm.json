@@ -1,0 +1,2235 @@
+{
+  "id": "long_conditional_alarm",
+  "source_stage_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_233158_779447.json",
+  "obligations": {
+    "version": "1.0",
+    "mode": "READ_ONLY_RESOLUTION_QUESTIONS",
+    "obligations": [
+      {
+        "obligation_id": "SRO_1",
+        "type": "CONDITIONAL_SCOPE",
+        "clause_ids": [
+          "C0"
+        ],
+        "source_span": "If the alarm remains armed overnight, a sensor in the rear corridor will stay active.",
+        "predicate_ids": [
+          "S0_T3"
+        ],
+        "predicate_lemmas": [
+          "remain"
+        ],
+        "question": "Which consequent is conditional, what is its antecedent, and must unconditional admission be withheld?",
+        "required_handling": "REPRESENT_OR_QUARANTINE",
+        "authority": "SYNTACTIC_CUE_ONLY"
+      },
+      {
+        "obligation_id": "SRO_2",
+        "type": "EMBEDDED_CLAUSE",
+        "clause_ids": [
+          "C2"
+        ],
+        "source_span": "Opening the rear door causes the siren to sound only when that sensor is active.",
+        "predicate_ids": [
+          "S0_T8"
+        ],
+        "predicate_lemmas": [
+          "sound"
+        ],
+        "question": "Is the embedded predicate asserted, merely enabled, requested, intended, or otherwise modal?",
+        "required_handling": "REPRESENT_OR_QUARANTINE",
+        "authority": "SYNTACTIC_CUE_ONLY"
+      },
+      {
+        "obligation_id": "SRO_3",
+        "type": "CONDITIONAL_SCOPE",
+        "clause_ids": [
+          "C2"
+        ],
+        "source_span": "Opening the rear door causes the siren to sound only when that sensor is active.",
+        "predicate_ids": [
+          "S0_T13"
+        ],
+        "predicate_lemmas": [
+          "be"
+        ],
+        "question": "Which consequent is conditional, what is its antecedent, and must unconditional admission be withheld?",
+        "required_handling": "REPRESENT_OR_QUARANTINE",
+        "authority": "SYNTACTIC_CUE_ONLY"
+      },
+      {
+        "obligation_id": "SRO_4",
+        "type": "SHARED_ARGUMENT_CONJUNCTION",
+        "clause_ids": [
+          "C3"
+        ],
+        "source_span": "The guard must open the rear door or keep it closed.",
+        "predicate_ids": [
+          "S0_T3",
+          "S0_T8"
+        ],
+        "predicate_lemmas": [
+          "open",
+          "keep"
+        ],
+        "question": "Which subjects or objects are inherited across conjuncts, and which atomic events remain distinct?",
+        "required_handling": "REPRESENT_OR_QUARANTINE",
+        "authority": "SYNTACTIC_CUE_ONLY"
+      },
+      {
+        "obligation_id": "SRO_5",
+        "type": "EMBEDDED_CLAUSE",
+        "clause_ids": [
+          "C3"
+        ],
+        "source_span": "The guard must open the rear door or keep it closed.",
+        "predicate_ids": [
+          "S0_T10"
+        ],
+        "predicate_lemmas": [
+          "close"
+        ],
+        "question": "Is the embedded predicate asserted, merely enabled, requested, intended, or otherwise modal?",
+        "required_handling": "REPRESENT_OR_QUARANTINE",
+        "authority": "SYNTACTIC_CUE_ONLY"
+      }
+    ],
+    "annotations": [
+      {
+        "clause_id": "C0",
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "If the alarm remains armed overnight, a sensor in the rear corridor will stay active.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "If the alarm remains armed overnight, a sensor in the rear corridor will stay active.",
+            "start_char": 0,
+            "end_char": 85,
+            "predicate_ids": [
+              "S0_T3",
+              "S0_T14"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T3",
+            "sentence_index": 0,
+            "token_index": 3,
+            "start_char": 13,
+            "end_char": 20,
+            "text": "remains",
+            "lemma": "remain",
+            "pos": "VERB",
+            "dependency": "advcl",
+            "head_token_index": 14,
+            "head_text": "stay",
+            "clause_head": true,
+            "subtree_span": "If the alarm remains armed overnight",
+            "subjects": [
+              "alarm"
+            ],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [
+              "If"
+            ],
+            "subordinate_markers": [
+              "If"
+            ],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "If",
+                "lemma": "if",
+                "dependency": "mark"
+              },
+              {
+                "text": "alarm",
+                "lemma": "alarm",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "armed",
+                "lemma": "armed",
+                "dependency": "acomp"
+              },
+              {
+                "text": "overnight",
+                "lemma": "overnight",
+                "dependency": "advmod"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T14",
+            "sentence_index": 0,
+            "token_index": 14,
+            "start_char": 73,
+            "end_char": 77,
+            "text": "stay",
+            "lemma": "stay",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 14,
+            "head_text": "stay",
+            "clause_head": true,
+            "subtree_span": "If the alarm remains armed overnight, a sensor in the rear corridor will stay active.",
+            "subjects": [
+              "sensor"
+            ],
+            "objects": [],
+            "negations": [],
+            "modals": [
+              "will"
+            ],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "remains",
+                "lemma": "remain",
+                "dependency": "advcl"
+              },
+              {
+                "text": ",",
+                "lemma": ",",
+                "dependency": "punct"
+              },
+              {
+                "text": "sensor",
+                "lemma": "sensor",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "will",
+                "lemma": "will",
+                "dependency": "aux"
+              },
+              {
+                "text": "active",
+                "lemma": "active",
+                "dependency": "acomp"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "start_char": 0,
+            "end_char": 2,
+            "text": "If",
+            "lemma": "if",
+            "pos": "SCONJ",
+            "dependency": "mark",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 1,
+            "start_char": 3,
+            "end_char": 6,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 2,
+            "start_char": 7,
+            "end_char": 12,
+            "text": "alarm",
+            "lemma": "alarm",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 3,
+            "start_char": 13,
+            "end_char": 20,
+            "text": "remains",
+            "lemma": "remain",
+            "pos": "VERB",
+            "dependency": "advcl",
+            "head_token_index": 14
+          },
+          {
+            "token_index": 4,
+            "start_char": 21,
+            "end_char": 26,
+            "text": "armed",
+            "lemma": "armed",
+            "pos": "ADJ",
+            "dependency": "acomp",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 5,
+            "start_char": 27,
+            "end_char": 36,
+            "text": "overnight",
+            "lemma": "overnight",
+            "pos": "ADV",
+            "dependency": "advmod",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 6,
+            "start_char": 36,
+            "end_char": 37,
+            "text": ",",
+            "lemma": ",",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 14
+          },
+          {
+            "token_index": 7,
+            "start_char": 38,
+            "end_char": 39,
+            "text": "a",
+            "lemma": "a",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 8
+          },
+          {
+            "token_index": 8,
+            "start_char": 40,
+            "end_char": 46,
+            "text": "sensor",
+            "lemma": "sensor",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 14
+          },
+          {
+            "token_index": 9,
+            "start_char": 47,
+            "end_char": 49,
+            "text": "in",
+            "lemma": "in",
+            "pos": "ADP",
+            "dependency": "prep",
+            "head_token_index": 8
+          },
+          {
+            "token_index": 10,
+            "start_char": 50,
+            "end_char": 53,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 12
+          },
+          {
+            "token_index": 11,
+            "start_char": 54,
+            "end_char": 58,
+            "text": "rear",
+            "lemma": "rear",
+            "pos": "ADJ",
+            "dependency": "amod",
+            "head_token_index": 12
+          },
+          {
+            "token_index": 12,
+            "start_char": 59,
+            "end_char": 67,
+            "text": "corridor",
+            "lemma": "corridor",
+            "pos": "NOUN",
+            "dependency": "pobj",
+            "head_token_index": 9
+          },
+          {
+            "token_index": 13,
+            "start_char": 68,
+            "end_char": 72,
+            "text": "will",
+            "lemma": "will",
+            "pos": "AUX",
+            "dependency": "aux",
+            "head_token_index": 14
+          },
+          {
+            "token_index": 14,
+            "start_char": 73,
+            "end_char": 77,
+            "text": "stay",
+            "lemma": "stay",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 14
+          },
+          {
+            "token_index": 15,
+            "start_char": 78,
+            "end_char": 84,
+            "text": "active",
+            "lemma": "active",
+            "pos": "ADJ",
+            "dependency": "acomp",
+            "head_token_index": 14
+          },
+          {
+            "token_index": 16,
+            "start_char": 84,
+            "end_char": 85,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 14
+          }
+        ]
+      },
+      {
+        "clause_id": "C1",
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "The guard will not know the alarm status before choosing.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "The guard will not know the alarm status before choosing.",
+            "start_char": 0,
+            "end_char": 57,
+            "predicate_ids": [
+              "S0_T4",
+              "S0_T9"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T4",
+            "sentence_index": 0,
+            "token_index": 4,
+            "start_char": 19,
+            "end_char": 23,
+            "text": "know",
+            "lemma": "know",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 4,
+            "head_text": "know",
+            "clause_head": true,
+            "subtree_span": "The guard will not know the alarm status before choosing.",
+            "subjects": [
+              "guard"
+            ],
+            "objects": [
+              "status"
+            ],
+            "negations": [
+              "not"
+            ],
+            "modals": [
+              "will"
+            ],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "guard",
+                "lemma": "guard",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "will",
+                "lemma": "will",
+                "dependency": "aux"
+              },
+              {
+                "text": "not",
+                "lemma": "not",
+                "dependency": "neg"
+              },
+              {
+                "text": "status",
+                "lemma": "status",
+                "dependency": "dobj"
+              },
+              {
+                "text": "before",
+                "lemma": "before",
+                "dependency": "prep"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T9",
+            "sentence_index": 0,
+            "token_index": 9,
+            "start_char": 48,
+            "end_char": 56,
+            "text": "choosing",
+            "lemma": "choose",
+            "pos": "VERB",
+            "dependency": "pcomp",
+            "head_token_index": 8,
+            "head_text": "before",
+            "clause_head": false,
+            "subtree_span": "choosing",
+            "subjects": [],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": []
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "start_char": 0,
+            "end_char": 3,
+            "text": "The",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 1
+          },
+          {
+            "token_index": 1,
+            "start_char": 4,
+            "end_char": 9,
+            "text": "guard",
+            "lemma": "guard",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 2,
+            "start_char": 10,
+            "end_char": 14,
+            "text": "will",
+            "lemma": "will",
+            "pos": "AUX",
+            "dependency": "aux",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 3,
+            "start_char": 15,
+            "end_char": 18,
+            "text": "not",
+            "lemma": "not",
+            "pos": "PART",
+            "dependency": "neg",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 4,
+            "start_char": 19,
+            "end_char": 23,
+            "text": "know",
+            "lemma": "know",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 5,
+            "start_char": 24,
+            "end_char": 27,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 7
+          },
+          {
+            "token_index": 6,
+            "start_char": 28,
+            "end_char": 33,
+            "text": "alarm",
+            "lemma": "alarm",
+            "pos": "NOUN",
+            "dependency": "compound",
+            "head_token_index": 7
+          },
+          {
+            "token_index": 7,
+            "start_char": 34,
+            "end_char": 40,
+            "text": "status",
+            "lemma": "status",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 8,
+            "start_char": 41,
+            "end_char": 47,
+            "text": "before",
+            "lemma": "before",
+            "pos": "ADP",
+            "dependency": "prep",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 9,
+            "start_char": 48,
+            "end_char": 56,
+            "text": "choosing",
+            "lemma": "choose",
+            "pos": "VERB",
+            "dependency": "pcomp",
+            "head_token_index": 8
+          },
+          {
+            "token_index": 10,
+            "start_char": 56,
+            "end_char": 57,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 4
+          }
+        ]
+      },
+      {
+        "clause_id": "C2",
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "Opening the rear door causes the siren to sound only when that sensor is active.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "Opening the rear door causes the siren to sound only when that sensor is active.",
+            "start_char": 0,
+            "end_char": 80,
+            "predicate_ids": [
+              "S0_T0",
+              "S0_T4",
+              "S0_T8",
+              "S0_T13"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T0",
+            "sentence_index": 0,
+            "token_index": 0,
+            "start_char": 0,
+            "end_char": 7,
+            "text": "Opening",
+            "lemma": "open",
+            "pos": "VERB",
+            "dependency": "csubj",
+            "head_token_index": 4,
+            "head_text": "causes",
+            "clause_head": false,
+            "subtree_span": "Opening the rear door",
+            "subjects": [],
+            "objects": [
+              "door"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "door",
+                "lemma": "door",
+                "dependency": "dobj"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T4",
+            "sentence_index": 0,
+            "token_index": 4,
+            "start_char": 22,
+            "end_char": 28,
+            "text": "causes",
+            "lemma": "cause",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 4,
+            "head_text": "causes",
+            "clause_head": true,
+            "subtree_span": "Opening the rear door causes the siren to sound only when that sensor is active.",
+            "subjects": [
+              "Opening"
+            ],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "Opening",
+                "lemma": "open",
+                "dependency": "csubj"
+              },
+              {
+                "text": "sound",
+                "lemma": "sound",
+                "dependency": "ccomp"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T8",
+            "sentence_index": 0,
+            "token_index": 8,
+            "start_char": 42,
+            "end_char": 47,
+            "text": "sound",
+            "lemma": "sound",
+            "pos": "VERB",
+            "dependency": "ccomp",
+            "head_token_index": 4,
+            "head_text": "causes",
+            "clause_head": true,
+            "subtree_span": "the siren to sound only when that sensor is active",
+            "subjects": [
+              "siren"
+            ],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "siren",
+                "lemma": "siren",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "to",
+                "lemma": "to",
+                "dependency": "aux"
+              },
+              {
+                "text": "is",
+                "lemma": "be",
+                "dependency": "advcl"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T13",
+            "sentence_index": 0,
+            "token_index": 13,
+            "start_char": 70,
+            "end_char": 72,
+            "text": "is",
+            "lemma": "be",
+            "pos": "AUX",
+            "dependency": "advcl",
+            "head_token_index": 8,
+            "head_text": "sound",
+            "clause_head": true,
+            "subtree_span": "only when that sensor is active",
+            "subjects": [
+              "sensor"
+            ],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [
+              "when"
+            ],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "when",
+                "lemma": "when",
+                "dependency": "advmod"
+              },
+              {
+                "text": "sensor",
+                "lemma": "sensor",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "active",
+                "lemma": "active",
+                "dependency": "acomp"
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "start_char": 0,
+            "end_char": 7,
+            "text": "Opening",
+            "lemma": "open",
+            "pos": "VERB",
+            "dependency": "csubj",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 1,
+            "start_char": 8,
+            "end_char": 11,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 2,
+            "start_char": 12,
+            "end_char": 16,
+            "text": "rear",
+            "lemma": "rear",
+            "pos": "ADJ",
+            "dependency": "amod",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 3,
+            "start_char": 17,
+            "end_char": 21,
+            "text": "door",
+            "lemma": "door",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 0
+          },
+          {
+            "token_index": 4,
+            "start_char": 22,
+            "end_char": 28,
+            "text": "causes",
+            "lemma": "cause",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 5,
+            "start_char": 29,
+            "end_char": 32,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 6
+          },
+          {
+            "token_index": 6,
+            "start_char": 33,
+            "end_char": 38,
+            "text": "siren",
+            "lemma": "siren",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 8
+          },
+          {
+            "token_index": 7,
+            "start_char": 39,
+            "end_char": 41,
+            "text": "to",
+            "lemma": "to",
+            "pos": "PART",
+            "dependency": "aux",
+            "head_token_index": 8
+          },
+          {
+            "token_index": 8,
+            "start_char": 42,
+            "end_char": 47,
+            "text": "sound",
+            "lemma": "sound",
+            "pos": "VERB",
+            "dependency": "ccomp",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 9,
+            "start_char": 48,
+            "end_char": 52,
+            "text": "only",
+            "lemma": "only",
+            "pos": "ADV",
+            "dependency": "advmod",
+            "head_token_index": 10
+          },
+          {
+            "token_index": 10,
+            "start_char": 53,
+            "end_char": 57,
+            "text": "when",
+            "lemma": "when",
+            "pos": "SCONJ",
+            "dependency": "advmod",
+            "head_token_index": 13
+          },
+          {
+            "token_index": 11,
+            "start_char": 58,
+            "end_char": 62,
+            "text": "that",
+            "lemma": "that",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 12
+          },
+          {
+            "token_index": 12,
+            "start_char": 63,
+            "end_char": 69,
+            "text": "sensor",
+            "lemma": "sensor",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 13
+          },
+          {
+            "token_index": 13,
+            "start_char": 70,
+            "end_char": 72,
+            "text": "is",
+            "lemma": "be",
+            "pos": "AUX",
+            "dependency": "advcl",
+            "head_token_index": 8
+          },
+          {
+            "token_index": 14,
+            "start_char": 73,
+            "end_char": 79,
+            "text": "active",
+            "lemma": "active",
+            "pos": "ADJ",
+            "dependency": "acomp",
+            "head_token_index": 13
+          },
+          {
+            "token_index": 15,
+            "start_char": 79,
+            "end_char": 80,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 4
+          }
+        ]
+      },
+      {
+        "clause_id": "C3",
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "The guard must open the rear door or keep it closed.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "The guard must open the rear door or keep it closed.",
+            "start_char": 0,
+            "end_char": 52,
+            "predicate_ids": [
+              "S0_T3",
+              "S0_T8",
+              "S0_T10"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T3",
+            "sentence_index": 0,
+            "token_index": 3,
+            "start_char": 15,
+            "end_char": 19,
+            "text": "open",
+            "lemma": "open",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 3,
+            "head_text": "open",
+            "clause_head": true,
+            "subtree_span": "The guard must open the rear door or keep it closed.",
+            "subjects": [
+              "guard"
+            ],
+            "objects": [
+              "door"
+            ],
+            "negations": [],
+            "modals": [
+              "must"
+            ],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [
+              "keep"
+            ],
+            "children": [
+              {
+                "text": "guard",
+                "lemma": "guard",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "must",
+                "lemma": "must",
+                "dependency": "aux"
+              },
+              {
+                "text": "door",
+                "lemma": "door",
+                "dependency": "dobj"
+              },
+              {
+                "text": "or",
+                "lemma": "or",
+                "dependency": "cc"
+              },
+              {
+                "text": "keep",
+                "lemma": "keep",
+                "dependency": "conj"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T8",
+            "sentence_index": 0,
+            "token_index": 8,
+            "start_char": 37,
+            "end_char": 41,
+            "text": "keep",
+            "lemma": "keep",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 3,
+            "head_text": "open",
+            "clause_head": true,
+            "subtree_span": "keep it closed",
+            "subjects": [],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "closed",
+                "lemma": "close",
+                "dependency": "ccomp"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T10",
+            "sentence_index": 0,
+            "token_index": 10,
+            "start_char": 45,
+            "end_char": 51,
+            "text": "closed",
+            "lemma": "close",
+            "pos": "VERB",
+            "dependency": "ccomp",
+            "head_token_index": 8,
+            "head_text": "keep",
+            "clause_head": true,
+            "subtree_span": "it closed",
+            "subjects": [
+              "it"
+            ],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "it",
+                "lemma": "it",
+                "dependency": "nsubj"
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "start_char": 0,
+            "end_char": 3,
+            "text": "The",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 1
+          },
+          {
+            "token_index": 1,
+            "start_char": 4,
+            "end_char": 9,
+            "text": "guard",
+            "lemma": "guard",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 2,
+            "start_char": 10,
+            "end_char": 14,
+            "text": "must",
+            "lemma": "must",
+            "pos": "AUX",
+            "dependency": "aux",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 3,
+            "start_char": 15,
+            "end_char": 19,
+            "text": "open",
+            "lemma": "open",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 4,
+            "start_char": 20,
+            "end_char": 23,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 6
+          },
+          {
+            "token_index": 5,
+            "start_char": 24,
+            "end_char": 28,
+            "text": "rear",
+            "lemma": "rear",
+            "pos": "ADJ",
+            "dependency": "amod",
+            "head_token_index": 6
+          },
+          {
+            "token_index": 6,
+            "start_char": 29,
+            "end_char": 33,
+            "text": "door",
+            "lemma": "door",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 7,
+            "start_char": 34,
+            "end_char": 36,
+            "text": "or",
+            "lemma": "or",
+            "pos": "CCONJ",
+            "dependency": "cc",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 8,
+            "start_char": 37,
+            "end_char": 41,
+            "text": "keep",
+            "lemma": "keep",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 9,
+            "start_char": 42,
+            "end_char": 44,
+            "text": "it",
+            "lemma": "it",
+            "pos": "PRON",
+            "dependency": "nsubj",
+            "head_token_index": 10
+          },
+          {
+            "token_index": 10,
+            "start_char": 45,
+            "end_char": 51,
+            "text": "closed",
+            "lemma": "close",
+            "pos": "VERB",
+            "dependency": "ccomp",
+            "head_token_index": 8
+          },
+          {
+            "token_index": 11,
+            "start_char": 51,
+            "end_char": 52,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 3
+          }
+        ]
+      }
+    ]
+  },
+  "coverage_before": [
+    {
+      "obligation_id": "SRO_1",
+      "type": "CONDITIONAL_SCOPE",
+      "status": "CANDIDATE_NODES_PRESENT_REVIEW_REQUIRED",
+      "matching_proposition_ids": [
+        "P1",
+        "P2"
+      ],
+      "missing_predicate_lemmas": []
+    },
+    {
+      "obligation_id": "SRO_2",
+      "type": "EMBEDDED_CLAUSE",
+      "status": "CANDIDATE_NODES_PRESENT_REVIEW_REQUIRED",
+      "matching_proposition_ids": [
+        "P4",
+        "P5",
+        "P6"
+      ],
+      "missing_predicate_lemmas": []
+    },
+    {
+      "obligation_id": "SRO_3",
+      "type": "CONDITIONAL_SCOPE",
+      "status": "CANDIDATE_NODES_PRESENT_REVIEW_REQUIRED",
+      "matching_proposition_ids": [
+        "P4",
+        "P5",
+        "P6"
+      ],
+      "missing_predicate_lemmas": []
+    },
+    {
+      "obligation_id": "SRO_4",
+      "type": "SHARED_ARGUMENT_CONJUNCTION",
+      "status": "CANDIDATE_NODES_PRESENT_REVIEW_REQUIRED",
+      "matching_proposition_ids": [
+        "P7",
+        "P8"
+      ],
+      "missing_predicate_lemmas": []
+    },
+    {
+      "obligation_id": "SRO_5",
+      "type": "EMBEDDED_CLAUSE",
+      "status": "CANDIDATE_NODES_PRESENT_REVIEW_REQUIRED",
+      "matching_proposition_ids": [
+        "P7",
+        "P8"
+      ],
+      "missing_predicate_lemmas": []
+    }
+  ],
+  "jobs": [
+    {
+      "obligation": {
+        "obligation_id": "SRO_1",
+        "type": "CONDITIONAL_SCOPE",
+        "clause_ids": [
+          "C0"
+        ],
+        "source_span": "If the alarm remains armed overnight, a sensor in the rear corridor will stay active.",
+        "predicate_ids": [
+          "S0_T3"
+        ],
+        "predicate_lemmas": [
+          "remain"
+        ],
+        "question": "Which consequent is conditional, what is its antecedent, and must unconditional admission be withheld?",
+        "required_handling": "REPRESENT_OR_QUARANTINE",
+        "authority": "SYNTACTIC_CUE_ONLY"
+      },
+      "instruction": "Determine whether existing propositions preserve antecedent/consequent scope. Add only a missing atomic proposition; use the annotation for scope.",
+      "source_context": [
+        {
+          "clause_id": "C0",
+          "text": "If the alarm remains armed overnight, a sensor in the rear corridor will stay active."
+        },
+        {
+          "clause_id": "C1",
+          "text": "The guard will not know the alarm status before choosing."
+        }
+      ],
+      "existing_propositions": [
+        {
+          "proposition_id": "P1",
+          "party_id": "ALARM",
+          "outcome": "remains armed overnight",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "POSSIBLE",
+          "effect_kind": "STATE",
+          "quantities": [],
+          "source_proposition": "If the alarm remains armed overnight",
+          "clause_ids": [
+            "C0"
+          ],
+          "generated_source_proposition": "If the alarm remains armed overnight",
+          "provenance_binding": {
+            "status": "BOUND",
+            "method": "EXACT",
+            "original_span": "If the alarm remains armed overnight",
+            "bound_span": "If the alarm remains armed overnight",
+            "bound_clause_id": "C0",
+            "score": 1.0
+          }
+        },
+        {
+          "proposition_id": "P2",
+          "party_id": "SENSOR",
+          "outcome": "will stay active",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "STIPULATED_CONDITIONAL",
+          "effect_kind": "STATE",
+          "quantities": [],
+          "source_proposition": "a sensor in the rear corridor will stay active",
+          "clause_ids": [
+            "C0"
+          ],
+          "generated_source_proposition": "a sensor in the rear corridor will stay active",
+          "provenance_binding": {
+            "status": "BOUND",
+            "method": "EXACT",
+            "original_span": "a sensor in the rear corridor will stay active",
+            "bound_span": "a sensor in the rear corridor will stay active",
+            "bound_clause_id": "C0",
+            "score": 1.0
+          }
+        }
+      ],
+      "coverage_before": {
+        "obligation_id": "SRO_1",
+        "type": "CONDITIONAL_SCOPE",
+        "status": "CANDIDATE_NODES_PRESENT_REVIEW_REQUIRED",
+        "matching_proposition_ids": [
+          "P1",
+          "P2"
+        ],
+        "missing_predicate_lemmas": []
+      }
+    },
+    {
+      "obligation": {
+        "obligation_id": "SRO_3",
+        "type": "CONDITIONAL_SCOPE",
+        "clause_ids": [
+          "C2"
+        ],
+        "source_span": "Opening the rear door causes the siren to sound only when that sensor is active.",
+        "predicate_ids": [
+          "S0_T13"
+        ],
+        "predicate_lemmas": [
+          "be"
+        ],
+        "question": "Which consequent is conditional, what is its antecedent, and must unconditional admission be withheld?",
+        "required_handling": "REPRESENT_OR_QUARANTINE",
+        "authority": "SYNTACTIC_CUE_ONLY"
+      },
+      "instruction": "Determine whether existing propositions preserve antecedent/consequent scope. Add only a missing atomic proposition; use the annotation for scope.",
+      "source_context": [
+        {
+          "clause_id": "C1",
+          "text": "The guard will not know the alarm status before choosing."
+        },
+        {
+          "clause_id": "C2",
+          "text": "Opening the rear door causes the siren to sound only when that sensor is active."
+        },
+        {
+          "clause_id": "C3",
+          "text": "The guard must open the rear door or keep it closed."
+        }
+      ],
+      "existing_propositions": [
+        {
+          "proposition_id": "P4",
+          "party_id": "REAR_DOOR",
+          "outcome": "is opened",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "POSSIBLE",
+          "effect_kind": "EVENT",
+          "quantities": [],
+          "source_proposition": "Opening the rear door",
+          "clause_ids": [
+            "C2"
+          ],
+          "generated_source_proposition": "Opening the rear door",
+          "provenance_binding": {
+            "status": "BOUND",
+            "method": "EXACT",
+            "original_span": "Opening the rear door",
+            "bound_span": "Opening the rear door",
+            "bound_clause_id": "C2",
+            "score": 1.0
+          }
+        },
+        {
+          "proposition_id": "P5",
+          "party_id": "SIREN",
+          "outcome": "sounds",
+          "polarity": "NEUTRAL",
+          "directness": "DOWNSTREAM",
+          "modality": "STIPULATED_CONDITIONAL",
+          "effect_kind": "EVENT",
+          "quantities": [],
+          "source_proposition": "the siren to sound",
+          "clause_ids": [
+            "C2"
+          ],
+          "generated_source_proposition": "the siren to sound",
+          "provenance_binding": {
+            "status": "BOUND",
+            "method": "EXACT",
+            "original_span": "the siren to sound",
+            "bound_span": "the siren to sound",
+            "bound_clause_id": "C2",
+            "score": 1.0
+          }
+        },
+        {
+          "proposition_id": "P6",
+          "party_id": "SENSOR",
+          "outcome": "is active",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "POSSIBLE",
+          "effect_kind": "STATE",
+          "quantities": [],
+          "source_proposition": "when that sensor is active",
+          "clause_ids": [
+            "C2"
+          ],
+          "generated_source_proposition": "when that sensor is active",
+          "provenance_binding": {
+            "status": "BOUND",
+            "method": "EXACT",
+            "original_span": "when that sensor is active",
+            "bound_span": "when that sensor is active",
+            "bound_clause_id": "C2",
+            "score": 1.0
+          }
+        }
+      ],
+      "coverage_before": {
+        "obligation_id": "SRO_3",
+        "type": "CONDITIONAL_SCOPE",
+        "status": "CANDIDATE_NODES_PRESENT_REVIEW_REQUIRED",
+        "matching_proposition_ids": [
+          "P4",
+          "P5",
+          "P6"
+        ],
+        "missing_predicate_lemmas": []
+      }
+    }
+  ],
+  "responses": [
+    {
+      "status": "NO_CHANGE",
+      "assertion_status": "NOT_ASSERTED",
+      "added_propositions": [],
+      "semantic_annotation": "",
+      "evidence_spans": [],
+      "unresolved_span": ""
+    },
+    {
+      "status": "NO_CHANGE",
+      "assertion_status": "ASSERTED_SOURCE_EVENT",
+      "added_propositions": [],
+      "semantic_annotation": "Existing nodes already capture the antecedent (sensor active, P6) and consequent (siren sounds, P5) under conditional modality, so scope is preserved.",
+      "evidence_spans": [],
+      "unresolved_span": ""
+    }
+  ],
+  "audit": [
+    {
+      "obligation_id": "SRO_1",
+      "type": "CONDITIONAL_SCOPE",
+      "status": "NO_CHANGE",
+      "assertion_status": "NOT_ASSERTED",
+      "accepted_proposition_ids": [],
+      "rejected_additions": [],
+      "semantic_annotation": "",
+      "evidence_spans": [],
+      "unresolved_span": ""
+    },
+    {
+      "obligation_id": "SRO_3",
+      "type": "CONDITIONAL_SCOPE",
+      "status": "NO_CHANGE",
+      "assertion_status": "ASSERTED_SOURCE_EVENT",
+      "accepted_proposition_ids": [],
+      "rejected_additions": [],
+      "semantic_annotation": "Existing nodes already capture the antecedent (sensor active, P6) and consequent (siren sounds, P5) under conditional modality, so scope is preserved.",
+      "evidence_spans": [],
+      "unresolved_span": ""
+    }
+  ],
+  "neutral_before": {
+    "parties": [
+      {
+        "party_id": "ALARM",
+        "label": "alarm",
+        "kind": "OBJECT",
+        "quantities": [],
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      {
+        "party_id": "SENSOR",
+        "label": "sensor in the rear corridor",
+        "kind": "OBJECT",
+        "quantities": [],
+        "clause_ids": [
+          "C0",
+          "C2"
+        ]
+      },
+      {
+        "party_id": "GUARD",
+        "label": "guard",
+        "kind": "AGENT",
+        "quantities": [],
+        "clause_ids": [
+          "C1",
+          "C3"
+        ]
+      },
+      {
+        "party_id": "SIREN",
+        "label": "siren",
+        "kind": "OBJECT",
+        "quantities": [],
+        "clause_ids": [
+          "C2"
+        ]
+      },
+      {
+        "party_id": "REAR_DOOR",
+        "label": "rear door",
+        "kind": "OBJECT",
+        "quantities": [],
+        "clause_ids": [
+          "C2",
+          "C3"
+        ]
+      }
+    ],
+    "propositions": [
+      {
+        "proposition_id": "P1",
+        "party_id": "ALARM",
+        "outcome": "remains armed overnight",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "POSSIBLE",
+        "effect_kind": "STATE",
+        "quantities": [],
+        "source_proposition": "If the alarm remains armed overnight",
+        "clause_ids": [
+          "C0"
+        ],
+        "generated_source_proposition": "If the alarm remains armed overnight",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "If the alarm remains armed overnight",
+          "bound_span": "If the alarm remains armed overnight",
+          "bound_clause_id": "C0",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "P2",
+        "party_id": "SENSOR",
+        "outcome": "will stay active",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "STIPULATED_CONDITIONAL",
+        "effect_kind": "STATE",
+        "quantities": [],
+        "source_proposition": "a sensor in the rear corridor will stay active",
+        "clause_ids": [
+          "C0"
+        ],
+        "generated_source_proposition": "a sensor in the rear corridor will stay active",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "a sensor in the rear corridor will stay active",
+          "bound_span": "a sensor in the rear corridor will stay active",
+          "bound_clause_id": "C0",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "P3",
+        "party_id": "GUARD",
+        "outcome": "will not know the alarm status before choosing",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "KNOWLEDGE",
+        "quantities": [],
+        "source_proposition": "The guard will not know the alarm status before choosing",
+        "clause_ids": [
+          "C1"
+        ],
+        "generated_source_proposition": "The guard will not know the alarm status before choosing",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "The guard will not know the alarm status before choosing",
+          "bound_span": "The guard will not know the alarm status before choosing",
+          "bound_clause_id": "C1",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "P4",
+        "party_id": "REAR_DOOR",
+        "outcome": "is opened",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "POSSIBLE",
+        "effect_kind": "EVENT",
+        "quantities": [],
+        "source_proposition": "Opening the rear door",
+        "clause_ids": [
+          "C2"
+        ],
+        "generated_source_proposition": "Opening the rear door",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "Opening the rear door",
+          "bound_span": "Opening the rear door",
+          "bound_clause_id": "C2",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "P5",
+        "party_id": "SIREN",
+        "outcome": "sounds",
+        "polarity": "NEUTRAL",
+        "directness": "DOWNSTREAM",
+        "modality": "STIPULATED_CONDITIONAL",
+        "effect_kind": "EVENT",
+        "quantities": [],
+        "source_proposition": "the siren to sound",
+        "clause_ids": [
+          "C2"
+        ],
+        "generated_source_proposition": "the siren to sound",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "the siren to sound",
+          "bound_span": "the siren to sound",
+          "bound_clause_id": "C2",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "P6",
+        "party_id": "SENSOR",
+        "outcome": "is active",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "POSSIBLE",
+        "effect_kind": "STATE",
+        "quantities": [],
+        "source_proposition": "when that sensor is active",
+        "clause_ids": [
+          "C2"
+        ],
+        "generated_source_proposition": "when that sensor is active",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "when that sensor is active",
+          "bound_span": "when that sensor is active",
+          "bound_clause_id": "C2",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "P7",
+        "party_id": "GUARD",
+        "outcome": "must open the rear door",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "OBLIGATION",
+        "quantities": [],
+        "source_proposition": "The guard must open the rear door",
+        "clause_ids": [
+          "C3"
+        ],
+        "generated_source_proposition": "The guard must open the rear door",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "The guard must open the rear door",
+          "bound_span": "The guard must open the rear door",
+          "bound_clause_id": "C3",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "P8",
+        "party_id": "GUARD",
+        "outcome": "must keep the rear door closed",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "OBLIGATION",
+        "quantities": [],
+        "source_proposition": "or keep it closed",
+        "clause_ids": [
+          "C3"
+        ],
+        "generated_source_proposition": "or keep it closed",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "or keep it closed",
+          "bound_span": "or keep it closed",
+          "bound_clause_id": "C3",
+          "score": 1.0
+        }
+      }
+    ],
+    "unresolved_source_spans": [],
+    "provenance_bindings": [
+      {
+        "proposition_id": "P1",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "If the alarm remains armed overnight",
+        "bound_span": "If the alarm remains armed overnight",
+        "bound_clause_id": "C0",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "P2",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "a sensor in the rear corridor will stay active",
+        "bound_span": "a sensor in the rear corridor will stay active",
+        "bound_clause_id": "C0",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "P3",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "The guard will not know the alarm status before choosing",
+        "bound_span": "The guard will not know the alarm status before choosing",
+        "bound_clause_id": "C1",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "P4",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "Opening the rear door",
+        "bound_span": "Opening the rear door",
+        "bound_clause_id": "C2",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "P5",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "the siren to sound",
+        "bound_span": "the siren to sound",
+        "bound_clause_id": "C2",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "P6",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "when that sensor is active",
+        "bound_span": "when that sensor is active",
+        "bound_clause_id": "C2",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "P7",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "The guard must open the rear door",
+        "bound_span": "The guard must open the rear door",
+        "bound_clause_id": "C3",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "P8",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "or keep it closed",
+        "bound_span": "or keep it closed",
+        "bound_clause_id": "C3",
+        "score": 1.0
+      }
+    ]
+  },
+  "neutral_after": {
+    "parties": [
+      {
+        "party_id": "ALARM",
+        "label": "alarm",
+        "kind": "OBJECT",
+        "quantities": [],
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      {
+        "party_id": "SENSOR",
+        "label": "sensor in the rear corridor",
+        "kind": "OBJECT",
+        "quantities": [],
+        "clause_ids": [
+          "C0",
+          "C2"
+        ]
+      },
+      {
+        "party_id": "GUARD",
+        "label": "guard",
+        "kind": "AGENT",
+        "quantities": [],
+        "clause_ids": [
+          "C1",
+          "C3"
+        ]
+      },
+      {
+        "party_id": "SIREN",
+        "label": "siren",
+        "kind": "OBJECT",
+        "quantities": [],
+        "clause_ids": [
+          "C2"
+        ]
+      },
+      {
+        "party_id": "REAR_DOOR",
+        "label": "rear door",
+        "kind": "OBJECT",
+        "quantities": [],
+        "clause_ids": [
+          "C2",
+          "C3"
+        ]
+      }
+    ],
+    "propositions": [
+      {
+        "proposition_id": "P1",
+        "party_id": "ALARM",
+        "outcome": "remains armed overnight",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "POSSIBLE",
+        "effect_kind": "STATE",
+        "quantities": [],
+        "source_proposition": "If the alarm remains armed overnight",
+        "clause_ids": [
+          "C0"
+        ],
+        "generated_source_proposition": "If the alarm remains armed overnight",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "If the alarm remains armed overnight",
+          "bound_span": "If the alarm remains armed overnight",
+          "bound_clause_id": "C0",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "P2",
+        "party_id": "SENSOR",
+        "outcome": "will stay active",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "STIPULATED_CONDITIONAL",
+        "effect_kind": "STATE",
+        "quantities": [],
+        "source_proposition": "a sensor in the rear corridor will stay active",
+        "clause_ids": [
+          "C0"
+        ],
+        "generated_source_proposition": "a sensor in the rear corridor will stay active",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "a sensor in the rear corridor will stay active",
+          "bound_span": "a sensor in the rear corridor will stay active",
+          "bound_clause_id": "C0",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "P3",
+        "party_id": "GUARD",
+        "outcome": "will not know the alarm status before choosing",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "KNOWLEDGE",
+        "quantities": [],
+        "source_proposition": "The guard will not know the alarm status before choosing",
+        "clause_ids": [
+          "C1"
+        ],
+        "generated_source_proposition": "The guard will not know the alarm status before choosing",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "The guard will not know the alarm status before choosing",
+          "bound_span": "The guard will not know the alarm status before choosing",
+          "bound_clause_id": "C1",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "P4",
+        "party_id": "REAR_DOOR",
+        "outcome": "is opened",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "POSSIBLE",
+        "effect_kind": "EVENT",
+        "quantities": [],
+        "source_proposition": "Opening the rear door",
+        "clause_ids": [
+          "C2"
+        ],
+        "generated_source_proposition": "Opening the rear door",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "Opening the rear door",
+          "bound_span": "Opening the rear door",
+          "bound_clause_id": "C2",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "P5",
+        "party_id": "SIREN",
+        "outcome": "sounds",
+        "polarity": "NEUTRAL",
+        "directness": "DOWNSTREAM",
+        "modality": "STIPULATED_CONDITIONAL",
+        "effect_kind": "EVENT",
+        "quantities": [],
+        "source_proposition": "the siren to sound",
+        "clause_ids": [
+          "C2"
+        ],
+        "generated_source_proposition": "the siren to sound",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "the siren to sound",
+          "bound_span": "the siren to sound",
+          "bound_clause_id": "C2",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "P6",
+        "party_id": "SENSOR",
+        "outcome": "is active",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "POSSIBLE",
+        "effect_kind": "STATE",
+        "quantities": [],
+        "source_proposition": "when that sensor is active",
+        "clause_ids": [
+          "C2"
+        ],
+        "generated_source_proposition": "when that sensor is active",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "when that sensor is active",
+          "bound_span": "when that sensor is active",
+          "bound_clause_id": "C2",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "P7",
+        "party_id": "GUARD",
+        "outcome": "must open the rear door",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "OBLIGATION",
+        "quantities": [],
+        "source_proposition": "The guard must open the rear door",
+        "clause_ids": [
+          "C3"
+        ],
+        "generated_source_proposition": "The guard must open the rear door",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "The guard must open the rear door",
+          "bound_span": "The guard must open the rear door",
+          "bound_clause_id": "C3",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "P8",
+        "party_id": "GUARD",
+        "outcome": "must keep the rear door closed",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "OBLIGATION",
+        "quantities": [],
+        "source_proposition": "or keep it closed",
+        "clause_ids": [
+          "C3"
+        ],
+        "generated_source_proposition": "or keep it closed",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "or keep it closed",
+          "bound_span": "or keep it closed",
+          "bound_clause_id": "C3",
+          "score": 1.0
+        }
+      }
+    ],
+    "unresolved_source_spans": [],
+    "provenance_bindings": [
+      {
+        "proposition_id": "P1",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "If the alarm remains armed overnight",
+        "bound_span": "If the alarm remains armed overnight",
+        "bound_clause_id": "C0",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "P2",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "a sensor in the rear corridor will stay active",
+        "bound_span": "a sensor in the rear corridor will stay active",
+        "bound_clause_id": "C0",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "P3",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "The guard will not know the alarm status before choosing",
+        "bound_span": "The guard will not know the alarm status before choosing",
+        "bound_clause_id": "C1",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "P4",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "Opening the rear door",
+        "bound_span": "Opening the rear door",
+        "bound_clause_id": "C2",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "P5",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "the siren to sound",
+        "bound_span": "the siren to sound",
+        "bound_clause_id": "C2",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "P6",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "when that sensor is active",
+        "bound_span": "when that sensor is active",
+        "bound_clause_id": "C2",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "P7",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "The guard must open the rear door",
+        "bound_span": "The guard must open the rear door",
+        "bound_clause_id": "C3",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "P8",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "or keep it closed",
+        "bound_span": "or keep it closed",
+        "bound_clause_id": "C3",
+        "score": 1.0
+      }
+    ],
+    "targeted_resolution_audit": [
+      {
+        "obligation_id": "SRO_1",
+        "type": "CONDITIONAL_SCOPE",
+        "status": "NO_CHANGE",
+        "assertion_status": "NOT_ASSERTED",
+        "accepted_proposition_ids": [],
+        "rejected_additions": [],
+        "semantic_annotation": "",
+        "evidence_spans": [],
+        "unresolved_span": ""
+      },
+      {
+        "obligation_id": "SRO_3",
+        "type": "CONDITIONAL_SCOPE",
+        "status": "NO_CHANGE",
+        "assertion_status": "ASSERTED_SOURCE_EVENT",
+        "accepted_proposition_ids": [],
+        "rejected_additions": [],
+        "semantic_annotation": "Existing nodes already capture the antecedent (sensor active, P6) and consequent (siren sounds, P5) under conditional modality, so scope is preserved.",
+        "evidence_spans": [],
+        "unresolved_span": ""
+      }
+    ]
+  },
+  "diagnostic_before": {
+    "gold_node_count": 2,
+    "present_neutral_node_count": 2,
+    "neutral_node_recall": 1.0,
+    "fused_gold_node_count": 0,
+    "alignments": [
+      {
+        "action_id": "A0",
+        "gold_event": "opening the rear door",
+        "matched_proposition_id": "P4__NEUTRAL__A0",
+        "method": "EXACT",
+        "score": 1.0,
+        "status": "MATCHED",
+        "candidate_count": 8,
+        "unresolved_reason": null
+      },
+      {
+        "action_id": "A0",
+        "gold_event": "siren sounds",
+        "matched_proposition_id": "P5__NEUTRAL__A0",
+        "method": "TOKEN_LEMMA",
+        "score": 1.0,
+        "status": "MATCHED",
+        "candidate_count": 8,
+        "unresolved_reason": null
+      }
+    ]
+  },
+  "diagnostic_after": {
+    "gold_node_count": 2,
+    "present_neutral_node_count": 2,
+    "neutral_node_recall": 1.0,
+    "fused_gold_node_count": 0,
+    "alignments": [
+      {
+        "action_id": "A0",
+        "gold_event": "opening the rear door",
+        "matched_proposition_id": "P4__NEUTRAL__A0",
+        "method": "EXACT",
+        "score": 1.0,
+        "status": "MATCHED",
+        "candidate_count": 8,
+        "unresolved_reason": null
+      },
+      {
+        "action_id": "A0",
+        "gold_event": "siren sounds",
+        "matched_proposition_id": "P5__NEUTRAL__A0",
+        "method": "TOKEN_LEMMA",
+        "score": 1.0,
+        "status": "MATCHED",
+        "candidate_count": 8,
+        "unresolved_reason": null
+      }
+    ]
+  },
+  "accepted_addition_ids": [],
+  "gold_useful_added_ids": []
+}

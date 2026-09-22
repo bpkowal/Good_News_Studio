@@ -1175,6 +1175,52 @@ def typed_reversal_proposal(source: str, target: str) -> dict:
 
 
 class WorkspaceEngineTests(unittest.TestCase):
+    def test_stable_recommendation_cannot_drop_unresolved_dependency(self):
+        from global_workspace.epistemic_ledger import PropositionRecord
+
+        actions = ["act now", "wait"]
+        proposition_id = "PROP:HYPOTHESIS:CONTINUITY"
+        ledger = {proposition_id: PropositionRecord(
+            proposition_id=proposition_id,
+            claim="waiting certainly kills the exposed patients",
+            proposition_type="HYPOTHESIS",
+            epistemic_status="HYPOTHETICAL",
+        )}
+        retained: dict[str, CandidateChunk] = {}
+        first = CandidateChunk(
+            specialist="deontological", constraint="DUTY",
+            action_scores={actions[0]: 0.8, actions[1]: 0.2},
+            surprise=0.2, friction=0.6, confidence=0.6,
+            recommended_action=actions[0], rationale="rescue is required",
+            decision_rule="perfect rescue duty governs",
+            supporting_proposition_ids=[proposition_id],
+            decision_critical_proposition_ids=[proposition_id],
+        )
+        _operative_framework_candidates(
+            [first], retained, remember=True, proposition_ledger=ledger,
+        )
+        second = CandidateChunk(
+            specialist="deontological", constraint="DUTY",
+            action_scores={actions[0]: 0.8, actions[1]: 0.2},
+            surprise=0.1, friction=0.6, confidence=0.8,
+            recommended_action=actions[0], rationale="rescue is required",
+            decision_rule="perfect rescue duty governs",
+        )
+        operative = _operative_framework_candidates(
+            [second], retained, remember=True, proposition_ledger=ledger,
+        )[0]
+
+        self.assertIn(
+            proposition_id, operative.decision_critical_proposition_ids,
+        )
+        self.assertEqual(
+            operative.weakest_decision_critical_status, "HYPOTHETICAL",
+        )
+        self.assertTrue(any(
+            "dependency continuity" in note.casefold()
+            for note in operative.epistemic_binding_notes
+        ))
+
     def test_rejected_framework_update_uses_last_valid_candidate_operatively(self):
         actions = ["preserve association", "mandate common schools"]
         accepted = CandidateChunk(
@@ -16515,6 +16561,33 @@ class WildfireGovernanceNegativeControlTests(FrameworkVoteIntegrityTests):
         decision = apply_framework_vote_integrity(candidate, self.actions)
         self.assertEqual(decision.status, "ABSTAIN")
         self.assertIn("decisive aggregation is not licensed", decision.reason)
+
+    def test_rawlsian_decisive_numbers_cannot_rest_on_mixed_positions(self):
+        records = []
+        for action_id, rival_id in (("A0", "A1"), ("A1", "A0")):
+            records.append({
+                "specialist": "rawlsian",
+                "canonical_action_id": action_id,
+                "compared_to_action_id": rival_id,
+                "ranking_basis": "MAXIMIN_PRIMARY_GOODS",
+                "dimension": "BASIC_INTEREST_SECURITY",
+                "institutional_relation": "MATERIAL_PRECONDITION",
+                "effect": "MIXED",
+                "epistemic_status": "MIXED_COMPARISON",
+                "subject_selection_status": "BOUND_TO_ACTION",
+            })
+        candidate = self._candidate(
+            "rawlsian",
+            committed_native_ledger=self._native(
+                "RAWLSIAN_POSITION_LEDGER", records,
+            ),
+            framework_numerical_role="DECISIVE",
+            framework_numerical_justification="12,000 versus 450",
+        )
+        decision = apply_framework_vote_integrity(candidate, self.actions)
+
+        self.assertEqual(decision.status, "ABSTAIN")
+        self.assertIn("mixed or unresolved positions", decision.reason)
 
     def test_deontological_priority_requires_a_classified_duty(self):
         records = [

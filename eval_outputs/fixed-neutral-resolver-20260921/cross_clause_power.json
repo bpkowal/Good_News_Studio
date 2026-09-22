@@ -1,0 +1,1373 @@
+{
+  "id": "cross_clause_power",
+  "source_stage_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_233136_252502.json",
+  "obligations": {
+    "version": "1.0",
+    "mode": "READ_ONLY_RESOLUTION_QUESTIONS",
+    "obligations": [
+      {
+        "obligation_id": "SRO_1",
+        "type": "SHARED_ARGUMENT_CONJUNCTION",
+        "clause_ids": [
+          "C3"
+        ],
+        "source_span": "The operator must disconnect the pump or keep it powered.",
+        "predicate_ids": [
+          "S0_T3",
+          "S0_T7"
+        ],
+        "predicate_lemmas": [
+          "disconnect",
+          "keep"
+        ],
+        "question": "Which subjects or objects are inherited across conjuncts, and which atomic events remain distinct?",
+        "required_handling": "REPRESENT_OR_QUARANTINE",
+        "authority": "SYNTACTIC_CUE_ONLY"
+      },
+      {
+        "obligation_id": "SRO_2",
+        "type": "EMBEDDED_CLAUSE",
+        "clause_ids": [
+          "C3"
+        ],
+        "source_span": "The operator must disconnect the pump or keep it powered.",
+        "predicate_ids": [
+          "S0_T9"
+        ],
+        "predicate_lemmas": [
+          "power"
+        ],
+        "question": "Is the embedded predicate asserted, merely enabled, requested, intended, or otherwise modal?",
+        "required_handling": "REPRESENT_OR_QUARANTINE",
+        "authority": "SYNTACTIC_CUE_ONLY"
+      }
+    ],
+    "annotations": [
+      {
+        "clause_id": "C0",
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "The operator disconnects power from the cooling pump.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "The operator disconnects power from the cooling pump.",
+            "start_char": 0,
+            "end_char": 53,
+            "predicate_ids": [
+              "S0_T2",
+              "S0_T6"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T2",
+            "sentence_index": 0,
+            "token_index": 2,
+            "start_char": 13,
+            "end_char": 24,
+            "text": "disconnects",
+            "lemma": "disconnect",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 2,
+            "head_text": "disconnects",
+            "clause_head": true,
+            "subtree_span": "The operator disconnects power from the cooling pump.",
+            "subjects": [
+              "operator"
+            ],
+            "objects": [
+              "power"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "operator",
+                "lemma": "operator",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "power",
+                "lemma": "power",
+                "dependency": "dobj"
+              },
+              {
+                "text": "from",
+                "lemma": "from",
+                "dependency": "prep"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T6",
+            "sentence_index": 0,
+            "token_index": 6,
+            "start_char": 40,
+            "end_char": 47,
+            "text": "cooling",
+            "lemma": "cool",
+            "pos": "VERB",
+            "dependency": "amod",
+            "head_token_index": 7,
+            "head_text": "pump",
+            "clause_head": false,
+            "subtree_span": "cooling",
+            "subjects": [],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": []
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "start_char": 0,
+            "end_char": 3,
+            "text": "The",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 1
+          },
+          {
+            "token_index": 1,
+            "start_char": 4,
+            "end_char": 12,
+            "text": "operator",
+            "lemma": "operator",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 2,
+            "start_char": 13,
+            "end_char": 24,
+            "text": "disconnects",
+            "lemma": "disconnect",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 3,
+            "start_char": 25,
+            "end_char": 30,
+            "text": "power",
+            "lemma": "power",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 4,
+            "start_char": 31,
+            "end_char": 35,
+            "text": "from",
+            "lemma": "from",
+            "pos": "ADP",
+            "dependency": "prep",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 5,
+            "start_char": 36,
+            "end_char": 39,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 7
+          },
+          {
+            "token_index": 6,
+            "start_char": 40,
+            "end_char": 47,
+            "text": "cooling",
+            "lemma": "cool",
+            "pos": "VERB",
+            "dependency": "amod",
+            "head_token_index": 7
+          },
+          {
+            "token_index": 7,
+            "start_char": 48,
+            "end_char": 52,
+            "text": "pump",
+            "lemma": "pump",
+            "pos": "NOUN",
+            "dependency": "pobj",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 8,
+            "start_char": 52,
+            "end_char": 53,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 2
+          }
+        ]
+      },
+      {
+        "clause_id": "C1",
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "The pump then stops circulating coolant.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "The pump then stops circulating coolant.",
+            "start_char": 0,
+            "end_char": 40,
+            "predicate_ids": [
+              "S0_T3",
+              "S0_T4"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T3",
+            "sentence_index": 0,
+            "token_index": 3,
+            "start_char": 14,
+            "end_char": 19,
+            "text": "stops",
+            "lemma": "stop",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 3,
+            "head_text": "stops",
+            "clause_head": true,
+            "subtree_span": "The pump then stops circulating coolant.",
+            "subjects": [
+              "pump"
+            ],
+            "objects": [
+              "coolant"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "pump",
+                "lemma": "pump",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "then",
+                "lemma": "then",
+                "dependency": "advmod"
+              },
+              {
+                "text": "coolant",
+                "lemma": "coolant",
+                "dependency": "dobj"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T4",
+            "sentence_index": 0,
+            "token_index": 4,
+            "start_char": 20,
+            "end_char": 31,
+            "text": "circulating",
+            "lemma": "circulate",
+            "pos": "VERB",
+            "dependency": "amod",
+            "head_token_index": 5,
+            "head_text": "coolant",
+            "clause_head": false,
+            "subtree_span": "circulating",
+            "subjects": [],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": []
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "start_char": 0,
+            "end_char": 3,
+            "text": "The",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 1
+          },
+          {
+            "token_index": 1,
+            "start_char": 4,
+            "end_char": 8,
+            "text": "pump",
+            "lemma": "pump",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 2,
+            "start_char": 9,
+            "end_char": 13,
+            "text": "then",
+            "lemma": "then",
+            "pos": "ADV",
+            "dependency": "advmod",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 3,
+            "start_char": 14,
+            "end_char": 19,
+            "text": "stops",
+            "lemma": "stop",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 4,
+            "start_char": 20,
+            "end_char": 31,
+            "text": "circulating",
+            "lemma": "circulate",
+            "pos": "VERB",
+            "dependency": "amod",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 5,
+            "start_char": 32,
+            "end_char": 39,
+            "text": "coolant",
+            "lemma": "coolant",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 6,
+            "start_char": 39,
+            "end_char": 40,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 3
+          }
+        ]
+      },
+      {
+        "clause_id": "C2",
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "Without circulating coolant, the reactor overheats.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "Without circulating coolant, the reactor overheats.",
+            "start_char": 0,
+            "end_char": 51,
+            "predicate_ids": [
+              "S0_T1"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T1",
+            "sentence_index": 0,
+            "token_index": 1,
+            "start_char": 8,
+            "end_char": 19,
+            "text": "circulating",
+            "lemma": "circulate",
+            "pos": "VERB",
+            "dependency": "amod",
+            "head_token_index": 2,
+            "head_text": "coolant",
+            "clause_head": false,
+            "subtree_span": "circulating",
+            "subjects": [],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": []
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "start_char": 0,
+            "end_char": 7,
+            "text": "Without",
+            "lemma": "without",
+            "pos": "ADP",
+            "dependency": "prep",
+            "head_token_index": 6
+          },
+          {
+            "token_index": 1,
+            "start_char": 8,
+            "end_char": 19,
+            "text": "circulating",
+            "lemma": "circulate",
+            "pos": "VERB",
+            "dependency": "amod",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 2,
+            "start_char": 20,
+            "end_char": 27,
+            "text": "coolant",
+            "lemma": "coolant",
+            "pos": "NOUN",
+            "dependency": "pobj",
+            "head_token_index": 0
+          },
+          {
+            "token_index": 3,
+            "start_char": 27,
+            "end_char": 28,
+            "text": ",",
+            "lemma": ",",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 6
+          },
+          {
+            "token_index": 4,
+            "start_char": 29,
+            "end_char": 32,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 6
+          },
+          {
+            "token_index": 5,
+            "start_char": 33,
+            "end_char": 40,
+            "text": "reactor",
+            "lemma": "reactor",
+            "pos": "NOUN",
+            "dependency": "compound",
+            "head_token_index": 6
+          },
+          {
+            "token_index": 6,
+            "start_char": 41,
+            "end_char": 50,
+            "text": "overheats",
+            "lemma": "overheat",
+            "pos": "NOUN",
+            "dependency": "ROOT",
+            "head_token_index": 6
+          },
+          {
+            "token_index": 7,
+            "start_char": 50,
+            "end_char": 51,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 6
+          }
+        ]
+      },
+      {
+        "clause_id": "C3",
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "The operator must disconnect the pump or keep it powered.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "The operator must disconnect the pump or keep it powered.",
+            "start_char": 0,
+            "end_char": 57,
+            "predicate_ids": [
+              "S0_T3",
+              "S0_T7",
+              "S0_T9"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T3",
+            "sentence_index": 0,
+            "token_index": 3,
+            "start_char": 18,
+            "end_char": 28,
+            "text": "disconnect",
+            "lemma": "disconnect",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 3,
+            "head_text": "disconnect",
+            "clause_head": true,
+            "subtree_span": "The operator must disconnect the pump or keep it powered.",
+            "subjects": [
+              "operator"
+            ],
+            "objects": [
+              "pump"
+            ],
+            "negations": [],
+            "modals": [
+              "must"
+            ],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [
+              "keep"
+            ],
+            "children": [
+              {
+                "text": "operator",
+                "lemma": "operator",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "must",
+                "lemma": "must",
+                "dependency": "aux"
+              },
+              {
+                "text": "pump",
+                "lemma": "pump",
+                "dependency": "dobj"
+              },
+              {
+                "text": "or",
+                "lemma": "or",
+                "dependency": "cc"
+              },
+              {
+                "text": "keep",
+                "lemma": "keep",
+                "dependency": "conj"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T7",
+            "sentence_index": 0,
+            "token_index": 7,
+            "start_char": 41,
+            "end_char": 45,
+            "text": "keep",
+            "lemma": "keep",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 3,
+            "head_text": "disconnect",
+            "clause_head": true,
+            "subtree_span": "keep it powered",
+            "subjects": [],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "powered",
+                "lemma": "power",
+                "dependency": "ccomp"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T9",
+            "sentence_index": 0,
+            "token_index": 9,
+            "start_char": 49,
+            "end_char": 56,
+            "text": "powered",
+            "lemma": "power",
+            "pos": "VERB",
+            "dependency": "ccomp",
+            "head_token_index": 7,
+            "head_text": "keep",
+            "clause_head": true,
+            "subtree_span": "it powered",
+            "subjects": [
+              "it"
+            ],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "it",
+                "lemma": "it",
+                "dependency": "nsubj"
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "start_char": 0,
+            "end_char": 3,
+            "text": "The",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 1
+          },
+          {
+            "token_index": 1,
+            "start_char": 4,
+            "end_char": 12,
+            "text": "operator",
+            "lemma": "operator",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 2,
+            "start_char": 13,
+            "end_char": 17,
+            "text": "must",
+            "lemma": "must",
+            "pos": "AUX",
+            "dependency": "aux",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 3,
+            "start_char": 18,
+            "end_char": 28,
+            "text": "disconnect",
+            "lemma": "disconnect",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 4,
+            "start_char": 29,
+            "end_char": 32,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 5,
+            "start_char": 33,
+            "end_char": 37,
+            "text": "pump",
+            "lemma": "pump",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 6,
+            "start_char": 38,
+            "end_char": 40,
+            "text": "or",
+            "lemma": "or",
+            "pos": "CCONJ",
+            "dependency": "cc",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 7,
+            "start_char": 41,
+            "end_char": 45,
+            "text": "keep",
+            "lemma": "keep",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 8,
+            "start_char": 46,
+            "end_char": 48,
+            "text": "it",
+            "lemma": "it",
+            "pos": "PRON",
+            "dependency": "nsubj",
+            "head_token_index": 9
+          },
+          {
+            "token_index": 9,
+            "start_char": 49,
+            "end_char": 56,
+            "text": "powered",
+            "lemma": "power",
+            "pos": "VERB",
+            "dependency": "ccomp",
+            "head_token_index": 7
+          },
+          {
+            "token_index": 10,
+            "start_char": 56,
+            "end_char": 57,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 3
+          }
+        ]
+      }
+    ]
+  },
+  "coverage_before": [
+    {
+      "obligation_id": "SRO_1",
+      "type": "SHARED_ARGUMENT_CONJUNCTION",
+      "status": "CANDIDATE_NODES_PRESENT_REVIEW_REQUIRED",
+      "matching_proposition_ids": [
+        "p5",
+        "p6"
+      ],
+      "missing_predicate_lemmas": []
+    },
+    {
+      "obligation_id": "SRO_2",
+      "type": "EMBEDDED_CLAUSE",
+      "status": "CANDIDATE_NODES_PRESENT_REVIEW_REQUIRED",
+      "matching_proposition_ids": [
+        "p5",
+        "p6"
+      ],
+      "missing_predicate_lemmas": []
+    }
+  ],
+  "jobs": [],
+  "responses": [],
+  "audit": [],
+  "neutral_before": {
+    "parties": [
+      {
+        "party_id": "O",
+        "label": "operator",
+        "kind": "HUMAN",
+        "quantities": [],
+        "clause_ids": [
+          "C0",
+          "C3"
+        ]
+      },
+      {
+        "party_id": "P",
+        "label": "cooling pump",
+        "kind": "ARTIFACT",
+        "quantities": [
+          "power",
+          "coolant flow"
+        ],
+        "clause_ids": [
+          "C0",
+          "C1",
+          "C3"
+        ]
+      },
+      {
+        "party_id": "R",
+        "label": "reactor",
+        "kind": "SYSTEM",
+        "quantities": [
+          "temperature"
+        ],
+        "clause_ids": [
+          "C2"
+        ]
+      }
+    ],
+    "propositions": [
+      {
+        "proposition_id": "p1",
+        "party_id": "O",
+        "outcome": "disconnects power from the cooling pump",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "ACTION",
+        "quantities": [
+          "power"
+        ],
+        "source_proposition": "The operator disconnects power from the cooling pump.",
+        "clause_ids": [
+          "C0"
+        ],
+        "generated_source_proposition": "The operator disconnects power from the cooling pump.",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "The operator disconnects power from the cooling pump.",
+          "bound_span": "The operator disconnects power from the cooling pump.",
+          "bound_clause_id": "C0",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "p2",
+        "party_id": "P",
+        "outcome": "stops circulating coolant",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "STATE_CHANGE",
+        "quantities": [
+          "coolant flow"
+        ],
+        "source_proposition": "The pump then stops circulating coolant.",
+        "clause_ids": [
+          "C1"
+        ],
+        "generated_source_proposition": "The pump then stops circulating coolant.",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "The pump then stops circulating coolant.",
+          "bound_span": "The pump then stops circulating coolant.",
+          "bound_clause_id": "C1",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "p3",
+        "party_id": "P",
+        "outcome": "coolant not circulating",
+        "polarity": "ADVERSE",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "STATE",
+        "quantities": [
+          "coolant flow"
+        ],
+        "source_proposition": "Without circulating coolant",
+        "clause_ids": [
+          "C2"
+        ],
+        "generated_source_proposition": "Without circulating coolant",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "Without circulating coolant",
+          "bound_span": "Without circulating coolant",
+          "bound_clause_id": "C2",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "p4",
+        "party_id": "R",
+        "outcome": "reactor overheats",
+        "polarity": "ADVERSE",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "STATE_CHANGE",
+        "quantities": [
+          "temperature"
+        ],
+        "source_proposition": "the reactor overheats",
+        "clause_ids": [
+          "C2"
+        ],
+        "generated_source_proposition": "the reactor overheats",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "the reactor overheats",
+          "bound_span": "the reactor overheats",
+          "bound_clause_id": "C2",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "p5",
+        "party_id": "O",
+        "outcome": "disconnect the pump",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "STIPULATED_CONDITIONAL",
+        "effect_kind": "ACTION_OPTION",
+        "quantities": [],
+        "source_proposition": "The operator must disconnect the pump",
+        "clause_ids": [
+          "C3"
+        ],
+        "generated_source_proposition": "The operator must disconnect the pump",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "The operator must disconnect the pump",
+          "bound_span": "The operator must disconnect the pump",
+          "bound_clause_id": "C3",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "p6",
+        "party_id": "O",
+        "outcome": "keep the pump powered",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "STIPULATED_CONDITIONAL",
+        "effect_kind": "ACTION_OPTION",
+        "quantities": [
+          "power"
+        ],
+        "source_proposition": "or keep it powered",
+        "clause_ids": [
+          "C3"
+        ],
+        "generated_source_proposition": "or keep it powered",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "or keep it powered",
+          "bound_span": "or keep it powered",
+          "bound_clause_id": "C3",
+          "score": 1.0
+        }
+      }
+    ],
+    "unresolved_source_spans": [],
+    "provenance_bindings": [
+      {
+        "proposition_id": "p1",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "The operator disconnects power from the cooling pump.",
+        "bound_span": "The operator disconnects power from the cooling pump.",
+        "bound_clause_id": "C0",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "p2",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "The pump then stops circulating coolant.",
+        "bound_span": "The pump then stops circulating coolant.",
+        "bound_clause_id": "C1",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "p3",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "Without circulating coolant",
+        "bound_span": "Without circulating coolant",
+        "bound_clause_id": "C2",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "p4",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "the reactor overheats",
+        "bound_span": "the reactor overheats",
+        "bound_clause_id": "C2",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "p5",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "The operator must disconnect the pump",
+        "bound_span": "The operator must disconnect the pump",
+        "bound_clause_id": "C3",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "p6",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "or keep it powered",
+        "bound_span": "or keep it powered",
+        "bound_clause_id": "C3",
+        "score": 1.0
+      }
+    ]
+  },
+  "neutral_after": {
+    "parties": [
+      {
+        "party_id": "O",
+        "label": "operator",
+        "kind": "HUMAN",
+        "quantities": [],
+        "clause_ids": [
+          "C0",
+          "C3"
+        ]
+      },
+      {
+        "party_id": "P",
+        "label": "cooling pump",
+        "kind": "ARTIFACT",
+        "quantities": [
+          "power",
+          "coolant flow"
+        ],
+        "clause_ids": [
+          "C0",
+          "C1",
+          "C3"
+        ]
+      },
+      {
+        "party_id": "R",
+        "label": "reactor",
+        "kind": "SYSTEM",
+        "quantities": [
+          "temperature"
+        ],
+        "clause_ids": [
+          "C2"
+        ]
+      }
+    ],
+    "propositions": [
+      {
+        "proposition_id": "p1",
+        "party_id": "O",
+        "outcome": "disconnects power from the cooling pump",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "ACTION",
+        "quantities": [
+          "power"
+        ],
+        "source_proposition": "The operator disconnects power from the cooling pump.",
+        "clause_ids": [
+          "C0"
+        ],
+        "generated_source_proposition": "The operator disconnects power from the cooling pump.",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "The operator disconnects power from the cooling pump.",
+          "bound_span": "The operator disconnects power from the cooling pump.",
+          "bound_clause_id": "C0",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "p2",
+        "party_id": "P",
+        "outcome": "stops circulating coolant",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "STATE_CHANGE",
+        "quantities": [
+          "coolant flow"
+        ],
+        "source_proposition": "The pump then stops circulating coolant.",
+        "clause_ids": [
+          "C1"
+        ],
+        "generated_source_proposition": "The pump then stops circulating coolant.",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "The pump then stops circulating coolant.",
+          "bound_span": "The pump then stops circulating coolant.",
+          "bound_clause_id": "C1",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "p3",
+        "party_id": "P",
+        "outcome": "coolant not circulating",
+        "polarity": "ADVERSE",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "STATE",
+        "quantities": [
+          "coolant flow"
+        ],
+        "source_proposition": "Without circulating coolant",
+        "clause_ids": [
+          "C2"
+        ],
+        "generated_source_proposition": "Without circulating coolant",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "Without circulating coolant",
+          "bound_span": "Without circulating coolant",
+          "bound_clause_id": "C2",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "p4",
+        "party_id": "R",
+        "outcome": "reactor overheats",
+        "polarity": "ADVERSE",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "STATE_CHANGE",
+        "quantities": [
+          "temperature"
+        ],
+        "source_proposition": "the reactor overheats",
+        "clause_ids": [
+          "C2"
+        ],
+        "generated_source_proposition": "the reactor overheats",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "the reactor overheats",
+          "bound_span": "the reactor overheats",
+          "bound_clause_id": "C2",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "p5",
+        "party_id": "O",
+        "outcome": "disconnect the pump",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "STIPULATED_CONDITIONAL",
+        "effect_kind": "ACTION_OPTION",
+        "quantities": [],
+        "source_proposition": "The operator must disconnect the pump",
+        "clause_ids": [
+          "C3"
+        ],
+        "generated_source_proposition": "The operator must disconnect the pump",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "The operator must disconnect the pump",
+          "bound_span": "The operator must disconnect the pump",
+          "bound_clause_id": "C3",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "p6",
+        "party_id": "O",
+        "outcome": "keep the pump powered",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "STIPULATED_CONDITIONAL",
+        "effect_kind": "ACTION_OPTION",
+        "quantities": [
+          "power"
+        ],
+        "source_proposition": "or keep it powered",
+        "clause_ids": [
+          "C3"
+        ],
+        "generated_source_proposition": "or keep it powered",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "or keep it powered",
+          "bound_span": "or keep it powered",
+          "bound_clause_id": "C3",
+          "score": 1.0
+        }
+      }
+    ],
+    "unresolved_source_spans": [],
+    "provenance_bindings": [
+      {
+        "proposition_id": "p1",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "The operator disconnects power from the cooling pump.",
+        "bound_span": "The operator disconnects power from the cooling pump.",
+        "bound_clause_id": "C0",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "p2",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "The pump then stops circulating coolant.",
+        "bound_span": "The pump then stops circulating coolant.",
+        "bound_clause_id": "C1",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "p3",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "Without circulating coolant",
+        "bound_span": "Without circulating coolant",
+        "bound_clause_id": "C2",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "p4",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "the reactor overheats",
+        "bound_span": "the reactor overheats",
+        "bound_clause_id": "C2",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "p5",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "The operator must disconnect the pump",
+        "bound_span": "The operator must disconnect the pump",
+        "bound_clause_id": "C3",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "p6",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "or keep it powered",
+        "bound_span": "or keep it powered",
+        "bound_clause_id": "C3",
+        "score": 1.0
+      }
+    ],
+    "targeted_resolution_audit": []
+  },
+  "diagnostic_before": {
+    "gold_node_count": 3,
+    "present_neutral_node_count": 3,
+    "neutral_node_recall": 1.0,
+    "fused_gold_node_count": 0,
+    "alignments": [
+      {
+        "action_id": "A0",
+        "gold_event": "operator disconnects power",
+        "matched_proposition_id": "p1__NEUTRAL__A0",
+        "method": "EXACT",
+        "score": 1.0,
+        "status": "MATCHED",
+        "candidate_count": 6,
+        "unresolved_reason": null
+      },
+      {
+        "action_id": "A0",
+        "gold_event": "pump stops circulating coolant",
+        "matched_proposition_id": "p2__NEUTRAL__A0",
+        "method": "TOKEN_LEMMA",
+        "score": 0.8,
+        "status": "MATCHED",
+        "candidate_count": 6,
+        "unresolved_reason": null
+      },
+      {
+        "action_id": "A0",
+        "gold_event": "reactor overheats",
+        "matched_proposition_id": "p4__NEUTRAL__A0",
+        "method": "EXACT",
+        "score": 1.0,
+        "status": "MATCHED",
+        "candidate_count": 6,
+        "unresolved_reason": null
+      }
+    ]
+  },
+  "diagnostic_after": {
+    "gold_node_count": 3,
+    "present_neutral_node_count": 3,
+    "neutral_node_recall": 1.0,
+    "fused_gold_node_count": 0,
+    "alignments": [
+      {
+        "action_id": "A0",
+        "gold_event": "operator disconnects power",
+        "matched_proposition_id": "p1__NEUTRAL__A0",
+        "method": "EXACT",
+        "score": 1.0,
+        "status": "MATCHED",
+        "candidate_count": 6,
+        "unresolved_reason": null
+      },
+      {
+        "action_id": "A0",
+        "gold_event": "pump stops circulating coolant",
+        "matched_proposition_id": "p2__NEUTRAL__A0",
+        "method": "TOKEN_LEMMA",
+        "score": 0.8,
+        "status": "MATCHED",
+        "candidate_count": 6,
+        "unresolved_reason": null
+      },
+      {
+        "action_id": "A0",
+        "gold_event": "reactor overheats",
+        "matched_proposition_id": "p4__NEUTRAL__A0",
+        "method": "EXACT",
+        "score": 1.0,
+        "status": "MATCHED",
+        "candidate_count": 6,
+        "unresolved_reason": null
+      }
+    ]
+  },
+  "accepted_addition_ids": [],
+  "gold_useful_added_ids": []
+}

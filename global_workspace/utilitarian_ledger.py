@@ -203,6 +203,17 @@ def _accounting_role(polarity: str) -> str:
     }.get(str(polarity).upper(), "UNKNOWN")
 
 
+def _accounting_polarity(direction: str) -> str:
+    """Polarity of the framework overlay, distinct from admitted world polarity."""
+    return {
+        "BENEFIT": "BENEFICIAL",
+        "HARM": "ADVERSE",
+        "OPPORTUNITY_COST": "FOREGONE",
+        "NEUTRAL": "NEUTRAL",
+        "UNKNOWN": "UNKNOWN",
+    }.get(str(direction).upper(), "UNKNOWN")
+
+
 def utilitarian_accounting(
     graph: SemanticGraph, consequence_id: str,
 ) -> tuple[str, str]:
@@ -212,11 +223,24 @@ def utilitarian_accounting(
     direction = _accounting_role(polarity)
     modality = str(evidence.attributes.get("modality", "UNKNOWN")).upper()
     probability = "CERTAIN" if modality == "CERTAIN" else "UNKNOWN"
+    # An admitted, unhedged source consequence is already the factual result
+    # whose direction the framework must value.  Do not reinterpret it as
+    # merely averting the alternative action's uncertain harm.  That would
+    # regenerate factual polarity downstream of world admission.
+    source_stipulated_settled = (
+        str(evidence.attributes.get("derivation_operation", "")).upper()
+        == "SOURCE_STIPULATED_CAUSAL"
+        and modality == "CERTAIN"
+        and not evidence.attributes.get("condition_ids", ())
+        and not evidence.attributes.get("likelihood_qualifiers", ())
+        and not evidence.attributes.get("overall_likelihood_qualifiers", ())
+    )
     if (
         direction == "BENEFIT"
         and is_averted_risk_not_obtained_benefit_consequence(graph, evidence)
         and str(evidence.attributes.get("derivation_operation", "")).upper()
         != "AVERTED_ALTERNATIVE_HARM"
+        and not source_stipulated_settled
     ):
         direction = "UNKNOWN"
     return direction, probability
@@ -409,7 +433,13 @@ def _apply_effect_valuation_transaction(
                 "world_effect_id": evidence.attributes.get("world_effect_id", ""),
                 "direction": direction,
                 "direction_source": "GROUNDED_WORLD_POLARITY",
-                "polarity": polarity,
+                # Framework accounting can quarantine an admitted benefit as
+                # UNKNOWN without mutating the world fact.  Keep the two
+                # channels explicit so the utilitarian node remains internally
+                # coherent and the admitted polarity remains auditable through
+                # both this field and SUPPORTED_BY.
+                "polarity": _accounting_polarity(direction),
+                "grounded_world_polarity": polarity,
                 "probability": probability,
                 "modality": modality,
                 "magnitude": magnitude,
@@ -441,7 +471,8 @@ def _apply_effect_valuation_transaction(
                 "scope": scope_label,
                 "direction": direction,
                 "direction_source": "GROUNDED_WORLD_POLARITY",
-                "polarity": polarity,
+                "polarity": _accounting_polarity(direction),
+                "grounded_world_polarity": polarity,
                 "probability": probability,
                 "modality": modality,
                 "magnitude": magnitude,

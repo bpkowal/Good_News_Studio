@@ -1,0 +1,140 @@
+{
+  "manifest_version": "0.1",
+  "status": "FROZEN_BEFORE_FIRST_LIVE_RUN",
+  "purpose": "Locate failures at source-to-graph preservation, topology, or graph-to-role projection. Gold is never supplied to generation.",
+  "scoring_policy": {
+    "unsupported_fact_precision": "Measured only when gold_inventory_exhaustive is true.",
+    "ambiguous_source_facts": "Must be represented or explicitly quarantined; silent disappearance is failure.",
+    "action_ids": "Manifest action order defines A0, A1."
+  },
+  "cases": [
+    {
+      "id": "medicine_maria_david", "family": "EXCLUSIVE_ALLOCATION_COMPARATIVE_CHANCE",
+      "scenario": "A doctor has one dose of medicine. Maria needs the medicine. David also needs the medicine. Maria will die without it. David will die without it. Maria has a slightly better chance of survival. The doctor must give the dose to Maria or to David.",
+      "actions": ["Give the medicine to Maria", "Give the medicine to David"],
+      "gold_inventory_exhaustive": false,
+      "gold_facts": [
+        {"fact_id":"maria_receives","action_id":"A0","event":"Maria receives medicine","party":"Maria","required_term_groups":["Maria","receive gets given medicine"],"polarity":"NEUTRAL","directness":"DIRECT"},
+        {"fact_id":"david_no_medicine","action_id":"A0","event":"David does not receive medicine","party":"David","required_term_groups":["David","not no without","receive medicine"],"polarity":"NEUTRAL"},
+        {"fact_id":"david_dies","action_id":"A0","event":"David dies","party":"David","required_term_groups":["David","die dies death"],"polarity":"ADVERSE","modality":"CERTAIN"},
+        {"fact_id":"david_receives","action_id":"A1","event":"David receives medicine","party":"David","required_term_groups":["David","receive gets given medicine"],"polarity":"NEUTRAL","directness":"DIRECT"},
+        {"fact_id":"maria_no_medicine","action_id":"A1","event":"Maria does not receive medicine","party":"Maria","required_term_groups":["Maria","not no without","receive medicine"],"polarity":"NEUTRAL"},
+        {"fact_id":"maria_dies","action_id":"A1","event":"Maria dies","party":"Maria","required_term_groups":["Maria","die dies death"],"polarity":"ADVERSE","modality":"CERTAIN"},
+        {"fact_id":"maria_better_chance","action_id":"A0","event":"Maria has a better chance of survival","party":"Maria","required_term_groups":["Maria","better higher","survive survival chance"],"polarity":"BENEFICIAL","modality":"PROBABILISTIC"}
+      ],
+      "gold_edges": [
+        {"action_id":"A0","source_fact_id":"maria_receives","target_fact_id":"david_no_medicine","relation":"CAUSES"},
+        {"action_id":"A0","source_fact_id":"david_no_medicine","target_fact_id":"david_dies","relation":"CAUSES"},
+        {"action_id":"A1","source_fact_id":"david_receives","target_fact_id":"maria_no_medicine","relation":"CAUSES"},
+        {"action_id":"A1","source_fact_id":"maria_no_medicine","target_fact_id":"maria_dies","relation":"CAUSES"}
+      ],
+      "gold_projection": [
+        {"action_id":"A0","fact_id":"david_dies","bucket":"harmed"},
+        {"action_id":"A1","fact_id":"maria_dies","bucket":"harmed"}
+      ]
+    },
+    {
+      "id":"antidote_mara_jo","family":"EXCLUSIVE_ALLOCATION_UNIVERSAL_RULE",
+      "scenario":"There is one indivisible antidote. Mara or Jo may receive it, but not both. Anyone who receives no antidote dies. The clinician must give it to Mara or give it to Jo.",
+      "actions":["Give the antidote to Mara","Give the antidote to Jo"],"gold_inventory_exhaustive":false,
+      "gold_facts":[
+        {"fact_id":"jo_no","action_id":"A0","event":"Jo receives no antidote","party":"Jo","required_term_groups":["Jo","no not without","antidote"],"polarity":"NEUTRAL"},
+        {"fact_id":"jo_dies","action_id":"A0","event":"Jo dies","party":"Jo","required_term_groups":["Jo","die dies death"],"polarity":"ADVERSE"},
+        {"fact_id":"mara_no","action_id":"A1","event":"Mara receives no antidote","party":"Mara","required_term_groups":["Mara","no not without","antidote"],"polarity":"NEUTRAL"},
+        {"fact_id":"mara_dies","action_id":"A1","event":"Mara dies","party":"Mara","required_term_groups":["Mara","die dies death"],"polarity":"ADVERSE"}
+      ],
+      "gold_edges":[{"action_id":"A0","source_fact_id":"jo_no","target_fact_id":"jo_dies","relation":"CAUSES"},{"action_id":"A1","source_fact_id":"mara_no","target_fact_id":"mara_dies","relation":"CAUSES"}],
+      "gold_projection":[{"action_id":"A0","fact_id":"jo_dies","bucket":"harmed"},{"action_id":"A1","fact_id":"mara_dies","bucket":"harmed"}]
+    },
+    {
+      "id":"ventilator_eli_noor","family":"EXCLUSIVE_ALLOCATION_NUMERIC_CHANCE",
+      "scenario":"One ventilator is available for Eli or Noor. Eli has a 70% chance of surviving if ventilated; Noor has a 35% chance. The patient who receives no ventilator will die. Choose Eli or Noor.",
+      "actions":["Give the ventilator to Eli","Give the ventilator to Noor"],"gold_inventory_exhaustive":false,
+      "gold_facts":[
+        {"fact_id":"eli_survives","action_id":"A0","event":"Eli survives with 70% chance","party":"Eli","required_term_groups":["Eli","survive survival","70"],"polarity":"BENEFICIAL","modality":"PROBABILISTIC"},
+        {"fact_id":"noor_dies","action_id":"A0","event":"Noor dies","party":"Noor","required_term_groups":["Noor","die dies death"],"polarity":"ADVERSE"},
+        {"fact_id":"noor_survives","action_id":"A1","event":"Noor survives with 35% chance","party":"Noor","required_term_groups":["Noor","survive survival","35"],"polarity":"BENEFICIAL","modality":"PROBABILISTIC"},
+        {"fact_id":"eli_dies","action_id":"A1","event":"Eli dies","party":"Eli","required_term_groups":["Eli","die dies death"],"polarity":"ADVERSE"}
+      ],"gold_edges":[],
+      "gold_projection":[{"action_id":"A0","fact_id":"eli_survives","bucket":"conditionally_benefited"},{"action_id":"A0","fact_id":"noor_dies","bucket":"harmed"},{"action_id":"A1","fact_id":"noor_survives","bucket":"conditionally_benefited"},{"action_id":"A1","fact_id":"eli_dies","bucket":"harmed"}]
+    },
+    {
+      "id":"trolley_five_one","family":"DIVERSION_QUANTITIES",
+      "scenario":"A trolley will hit five people on the main track. Pulling the lever diverts it to a side track where it hits one person. The decision-maker must pull or refrain.",
+      "actions":["Pull the lever","Refrain from pulling the lever"],"gold_inventory_exhaustive":false,
+      "gold_facts":[
+        {"fact_id":"one_hit","action_id":"A0","event":"one person is hit","party":"one person","required_term_groups":["one 1","hit struck"],"polarity":"ADVERSE"},
+        {"fact_id":"five_averted","action_id":"A0","event":"harm to five people is averted","party":"five people","required_term_groups":["five 5","avert prevent not hit"],"polarity":"BENEFICIAL"},
+        {"fact_id":"five_hit","action_id":"A1","event":"five people are hit","party":"five people","required_term_groups":["five 5","hit struck"],"polarity":"ADVERSE"}
+      ],"gold_edges":[],
+      "gold_projection":[{"action_id":"A0","fact_id":"one_hit","bucket":"harmed"},{"action_id":"A0","fact_id":"five_averted","bucket":"beneficiaries"},{"action_id":"A1","fact_id":"five_hit","bucket":"harmed"}]
+    },
+    {
+      "id":"valve_river","family":"PREVENTION",
+      "scenario":"Closing the valve stops the chemical flow and prevents contamination of the river. Leaving it open lets the chemical reach the river and harms downstream residents.",
+      "actions":["Close the valve","Leave the valve open"],"gold_inventory_exhaustive":false,
+      "gold_facts":[
+        {"fact_id":"flow_stops","action_id":"A0","event":"chemical flow stops","party":"chemical flow","required_term_groups":["chemical flow","stop stops halted"],"polarity":"NEUTRAL"},
+        {"fact_id":"river_safe","action_id":"A0","event":"river contamination is prevented","party":"river","required_term_groups":["river","prevent safe not contaminate"],"polarity":"BENEFICIAL"},
+        {"fact_id":"chemical_reaches","action_id":"A1","event":"chemical reaches river","party":"chemical","required_term_groups":["chemical","reach river"],"polarity":"NEUTRAL"},
+        {"fact_id":"residents_harmed","action_id":"A1","event":"downstream residents are harmed","party":"residents","required_term_groups":["resident people","harm injured"],"polarity":"ADVERSE"}
+      ],
+      "gold_edges":[{"action_id":"A0","source_fact_id":"flow_stops","target_fact_id":"river_safe","relation":"PREVENTS"},{"action_id":"A1","source_fact_id":"chemical_reaches","target_fact_id":"residents_harmed","relation":"CAUSES"}],
+      "gold_projection":[{"action_id":"A1","fact_id":"residents_harmed","bucket":"harmed"}]
+    },
+    {
+      "id":"access_card","family":"ENABLES_NOT_CAUSES",
+      "scenario":"Issuing the access card enables Noor to enter the laboratory, but Noor may choose not to enter. Withholding it prevents entry. The manager must issue or withhold it.",
+      "actions":["Issue the access card","Withhold the access card"],"gold_inventory_exhaustive":false,
+      "gold_facts":[
+        {"fact_id":"card_issued","action_id":"A0","event":"access card is issued","party":"access card","required_term_groups":["card","issue issued"],"polarity":"NEUTRAL"},
+        {"fact_id":"noor_enters","action_id":"A0","event":"Noor enters laboratory","party":"Noor","required_term_groups":["Noor","enter laboratory"],"modality":"POSSIBLE"},
+        {"fact_id":"entry_prevented","action_id":"A1","event":"Noor cannot enter laboratory","party":"Noor","required_term_groups":["Noor","not cannot prevent withhold","enter laboratory"],"polarity":"ADVERSE"}
+      ],"gold_edges":[{"action_id":"A0","source_fact_id":"card_issued","target_fact_id":"noor_enters","relation":"ENABLES"}],"gold_projection":[]
+    },
+    {
+      "id":"alarm_conditional","family":"CONDITIONAL_CAUSALITY",
+      "scenario":"If the alarm is armed, opening the door causes the siren to sound. The alarm status is unknown. The guard must open the door or keep it closed.",
+      "actions":["Open the door","Keep the door closed"],"gold_inventory_exhaustive":false,
+      "gold_facts":[
+        {"fact_id":"door_opens","action_id":"A0","event":"door opens","party":"door","required_term_groups":["door","open opens"],"polarity":"NEUTRAL"},
+        {"fact_id":"siren_sounds","action_id":"A0","event":"siren sounds if alarm is armed","party":"siren","required_term_groups":["siren","sound sounds"],"modality":"STIPULATED_CONDITIONAL"}
+      ],"gold_edges":[{"action_id":"A0","source_fact_id":"door_opens","target_fact_id":"siren_sounds","relation":"CAUSES"}],"gold_projection":[]
+    },
+    {
+      "id":"backup_negation","family":"NEGATED_SUBORDINATE",
+      "scenario":"Activating the backup powers the clinic and does not shut down the main server. Refraining leaves the clinic without backup power. Choose whether to activate it.",
+      "actions":["Activate the backup","Refrain from activating the backup"],"gold_inventory_exhaustive":false,
+      "gold_facts":[
+        {"fact_id":"clinic_powered","action_id":"A0","event":"clinic is powered","party":"clinic","required_term_groups":["clinic","power powered"],"polarity":"BENEFICIAL"},
+        {"fact_id":"server_not_shutdown","action_id":"A0","event":"main server does not shut down","party":"main server","required_term_groups":["server","not does","shutdown shut down"],"polarity":"NEUTRAL"},
+        {"fact_id":"clinic_no_backup","action_id":"A1","event":"clinic has no backup power","party":"clinic","required_term_groups":["clinic","no without","backup power"],"polarity":"ADVERSE"}
+      ],"gold_edges":[],"gold_projection":[]
+    },
+    {
+      "id":"evacuation_quantity","family":"SCARCE_CAPACITY_QUANTITIES",
+      "scenario":"One bus can evacuate either twenty residents from North or ten residents from South before the fire arrives. Anyone not evacuated remains at risk. Choose North or South.",
+      "actions":["Evacuate North residents","Evacuate South residents"],"gold_inventory_exhaustive":false,
+      "gold_facts":[
+        {"fact_id":"north_evac","action_id":"A0","event":"twenty North residents evacuated","party":"North residents","required_term_groups":["North","evacuate evacuated","twenty 20"],"polarity":"BENEFICIAL"},
+        {"fact_id":"south_risk","action_id":"A0","event":"ten South residents remain at risk","party":"South residents","required_term_groups":["South","risk","ten 10"],"polarity":"ADVERSE"},
+        {"fact_id":"south_evac","action_id":"A1","event":"ten South residents evacuated","party":"South residents","required_term_groups":["South","evacuate evacuated","ten 10"],"polarity":"BENEFICIAL"},
+        {"fact_id":"north_risk","action_id":"A1","event":"twenty North residents remain at risk","party":"North residents","required_term_groups":["North","risk","twenty 20"],"polarity":"ADVERSE"}
+      ],"gold_edges":[],
+      "gold_projection":[{"action_id":"A0","fact_id":"north_evac","bucket":"beneficiaries"},{"action_id":"A0","fact_id":"south_risk","bucket":"at_risk"},{"action_id":"A1","fact_id":"south_evac","bucket":"beneficiaries"},{"action_id":"A1","fact_id":"north_risk","bucket":"at_risk"}]
+    },
+    {
+      "id":"filter_long_distance","family":"LONG_DISTANCE_CONDITIONAL",
+      "scenario":"The engineer can install the filter or leave the system unchanged. The filter removes the toxin. If the toxin is removed before noon, the town's water remains safe; otherwise residents may become ill.",
+      "actions":["Install the filter","Leave the system unchanged"],"gold_inventory_exhaustive":false,
+      "gold_facts":[
+        {"fact_id":"filter_installed","action_id":"A0","event":"filter is installed","party":"filter","required_term_groups":["filter","install installed"],"polarity":"NEUTRAL"},
+        {"fact_id":"toxin_removed","action_id":"A0","event":"toxin is removed","party":"toxin","required_term_groups":["toxin","remove removed"],"polarity":"NEUTRAL"},
+        {"fact_id":"water_safe","action_id":"A0","event":"town water remains safe","party":"town water","required_term_groups":["water","safe"],"polarity":"BENEFICIAL","modality":"STIPULATED_CONDITIONAL"},
+        {"fact_id":"residents_ill","action_id":"A1","event":"residents may become ill","party":"residents","required_term_groups":["resident people","ill sick"],"polarity":"ADVERSE","modality":"POSSIBLE"}
+      ],
+      "gold_edges":[{"action_id":"A0","source_fact_id":"filter_installed","target_fact_id":"toxin_removed","relation":"CAUSES"},{"action_id":"A0","source_fact_id":"toxin_removed","target_fact_id":"water_safe","relation":"CAUSES"}],
+      "gold_projection":[{"action_id":"A0","fact_id":"water_safe","bucket":"conditionally_benefited"},{"action_id":"A1","fact_id":"residents_ill","bucket":"at_risk"}]
+    }
+  ]
+}

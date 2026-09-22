@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import unittest
 
-from semantic_integrity.coverage import load_map, load_taxonomy
-from semantic_integrity.harness import (
+from relent_testkit.coverage import load_map, load_taxonomy
+from relent_testkit.harness import (
     admit_world_from_discourse,
     load_seed,
     plural_member_distinctness_holds,

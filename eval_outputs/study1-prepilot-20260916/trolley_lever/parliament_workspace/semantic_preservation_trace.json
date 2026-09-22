@@ -1,0 +1,598 @@
+{
+  "status": "COMMITTED",
+  "world_model_status": "COMMITTED",
+  "repair_attempts": 3,
+  "repairs": [
+    {
+      "attempt": 1,
+      "repair_scope": "FRESH_GENERATION",
+      "inherited_candidate": false,
+      "rebuild_action_ids": [],
+      "errors": [
+        "A0 has no distinguishing source clause; its grounding ['C0', 'C2'] is covered entirely by the other actions",
+        "A1 has no distinguishing source clause; its grounding ['C0', 'C2'] is covered entirely by the other actions",
+        "typed world model rejected: E2 omits quantities stated in its outcome and provenance: ['one']; E11 omits quantities stated in its outcome and provenance: ['five']; causal_link[6] source is a FOREGONE effect; keep opportunity-loss comparisons on counterfactual_links so the actual-world causal chain stays action-local; causal_link[7] source is a FOREGONE effect; keep opportunity-loss comparisons on counterfactual_links so the actual-world causal chain stays action-local; E4 averted-alternative source_effect_ids do not match its counterfactual alternative_effect_id; E13 averted-alternative source_effect_ids do not match its counterfactual alternative_effect_id; E10 is DIRECT on P4, who is neither the actor nor a named recipient; non-recipient process and population states are DOWNSTREAM or FOREGONE. If this row is later conduct (assist, remain, use a road), recast it DOWNSTREAM with a non-INTERVENTION kind; do not add that party as a recipient to make the conduct DIRECT. If this row is the actor assigning or allocating that party, they may be a recipient of a separate DIRECT assignment, not of this later conduct; E12 is a downstream human outcome whose causal ancestry never reaches a DIRECT act on the actor or a named recipient; connect this action's intervention to the action-mediated process that produces the outcome. If the source does not attribute a stochastic process to the intervention, do not invent that causal link; generate the missing mediated branch; E3 omits source quantity 'five' from quantity-bearing consequence 'A runaway trolley will kill five people unless you pull a lever' (licensing_clause_id=C0); copy the span onto the effect (or its population party); E3 omits source quantity 'one' from quantity-bearing consequence 'which redirects it onto a track where it will kill one person' (licensing_clause_id=C0); copy the span onto the effect (or its population party)"
+      ],
+      "validation_issues": [
+        {
+          "code": "WORLD_VALIDATION_ERROR",
+          "message": "E2 omits quantities stated in its outcome and provenance: ['one']",
+          "entity_kind": "effect",
+          "entity_id": "E2",
+          "field": "",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "WORLD_VALIDATION_ERROR",
+          "message": "E11 omits quantities stated in its outcome and provenance: ['five']",
+          "entity_kind": "effect",
+          "entity_id": "E11",
+          "field": "",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "WORLD_VALIDATION_ERROR",
+          "message": "causal_link[6] source is a FOREGONE effect; keep opportunity-loss comparisons on counterfactual_links so the actual-world causal chain stays action-local",
+          "entity_kind": "causal_link",
+          "entity_id": "6",
+          "field": "",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "WORLD_VALIDATION_ERROR",
+          "message": "causal_link[7] source is a FOREGONE effect; keep opportunity-loss comparisons on counterfactual_links so the actual-world causal chain stays action-local",
+          "entity_kind": "causal_link",
+          "entity_id": "7",
+          "field": "",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "DERIVATION_BINDING_MISMATCH",
+          "message": "E4 averted-alternative source_effect_ids do not match its counterfactual alternative_effect_id",
+          "entity_kind": "effect",
+          "entity_id": "E4",
+          "field": "source_effect_ids",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "DERIVATION_BINDING_MISMATCH",
+          "message": "E13 averted-alternative source_effect_ids do not match its counterfactual alternative_effect_id",
+          "entity_kind": "effect",
+          "entity_id": "E13",
+          "field": "source_effect_ids",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "DIRECT_EFFECT_TARGET_MISMATCH",
+          "message": "E10 is DIRECT on P4, who is neither the actor nor a named recipient; non-recipient process and population states are DOWNSTREAM or FOREGONE. If this row is later conduct (assist, remain, use a road), recast it DOWNSTREAM with a non-INTERVENTION kind; do not add that party as a recipient to make the conduct DIRECT. If this row is the actor assigning or allocating that party, they may be a recipient of a separate DIRECT assignment, not of this later conduct",
+          "entity_kind": "effect",
+          "entity_id": "E10",
+          "field": "effects",
+          "related_ids": [
+            "P4"
+          ],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "MISSING_CAUSAL_PARENT",
+          "message": "E12 is a downstream human outcome whose causal ancestry never reaches a DIRECT act on the actor or a named recipient; connect this action's intervention to the action-mediated process that produces the outcome. If the source does not attribute a stochastic process to the intervention, do not invent that causal link; generate the missing mediated branch",
+          "entity_kind": "effect",
+          "entity_id": "E12",
+          "field": "causal_links",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "QUANTITY_BEARING_CONSEQUENCE_MISSING",
+          "message": "E3 omits source quantity 'five' from quantity-bearing consequence 'A runaway trolley will kill five people unless you pull a lever' (licensing_clause_id=C0); copy the span onto the effect (or its population party)",
+          "entity_kind": "effect",
+          "entity_id": "E3",
+          "field": "quantities",
+          "related_ids": [
+            "C0"
+          ],
+          "repair_class": "SOURCE_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "QUANTITY_BEARING_CONSEQUENCE_MISSING",
+          "message": "E3 omits source quantity 'one' from quantity-bearing consequence 'which redirects it onto a track where it will kill one person' (licensing_clause_id=C0); copy the span onto the effect (or its population party)",
+          "entity_kind": "effect",
+          "entity_id": "E3",
+          "field": "quantities",
+          "related_ids": [
+            "C0"
+          ],
+          "repair_class": "SOURCE_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "WORLD_VALIDATION_ERROR",
+          "message": "A0 has no distinguishing source clause; its grounding ['C0', 'C2'] is covered entirely by the other actions",
+          "entity_kind": "action",
+          "entity_id": "A0",
+          "field": "",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "WORLD_VALIDATION_ERROR",
+          "message": "A1 has no distinguishing source clause; its grounding ['C0', 'C2'] is covered entirely by the other actions",
+          "entity_kind": "action",
+          "entity_id": "A1",
+          "field": "",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        }
+      ],
+      "repair_delta": {}
+    },
+    {
+      "attempt": 1,
+      "repair_scope": "DETERMINISTIC_LOCAL_PATCH",
+      "inherited_candidate": true,
+      "rebuild_action_ids": [],
+      "errors": [
+        "A0 has no distinguishing source clause; its grounding ['C0', 'C2'] is covered entirely by the other actions",
+        "A1 has no distinguishing source clause; its grounding ['C0', 'C2'] is covered entirely by the other actions",
+        "typed world model rejected: E2 omits quantities stated in its outcome and provenance: ['one']; E11 omits quantities stated in its outcome and provenance: ['five']; causal_link[6] source is a FOREGONE effect; keep opportunity-loss comparisons on counterfactual_links so the actual-world causal chain stays action-local; causal_link[7] source is a FOREGONE effect; keep opportunity-loss comparisons on counterfactual_links so the actual-world causal chain stays action-local; E4 averted-alternative source_effect_ids do not match its counterfactual alternative_effect_id; E13 averted-alternative source_effect_ids do not match its counterfactual alternative_effect_id; E10 is DIRECT on P4, who is neither the actor nor a named recipient; non-recipient process and population states are DOWNSTREAM or FOREGONE. If this row is later conduct (assist, remain, use a road), recast it DOWNSTREAM with a non-INTERVENTION kind; do not add that party as a recipient to make the conduct DIRECT. If this row is the actor assigning or allocating that party, they may be a recipient of a separate DIRECT assignment, not of this later conduct; E12 is a downstream human outcome whose causal ancestry never reaches a DIRECT act on the actor or a named recipient; connect this action's intervention to the action-mediated process that produces the outcome. If the source does not attribute a stochastic process to the intervention, do not invent that causal link; generate the missing mediated branch"
+      ],
+      "validation_issues": [
+        {
+          "code": "WORLD_VALIDATION_ERROR",
+          "message": "E2 omits quantities stated in its outcome and provenance: ['one']",
+          "entity_kind": "effect",
+          "entity_id": "E2",
+          "field": "",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "WORLD_VALIDATION_ERROR",
+          "message": "E11 omits quantities stated in its outcome and provenance: ['five']",
+          "entity_kind": "effect",
+          "entity_id": "E11",
+          "field": "",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "WORLD_VALIDATION_ERROR",
+          "message": "causal_link[6] source is a FOREGONE effect; keep opportunity-loss comparisons on counterfactual_links so the actual-world causal chain stays action-local",
+          "entity_kind": "causal_link",
+          "entity_id": "6",
+          "field": "",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "WORLD_VALIDATION_ERROR",
+          "message": "causal_link[7] source is a FOREGONE effect; keep opportunity-loss comparisons on counterfactual_links so the actual-world causal chain stays action-local",
+          "entity_kind": "causal_link",
+          "entity_id": "7",
+          "field": "",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "DERIVATION_BINDING_MISMATCH",
+          "message": "E4 averted-alternative source_effect_ids do not match its counterfactual alternative_effect_id",
+          "entity_kind": "effect",
+          "entity_id": "E4",
+          "field": "source_effect_ids",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "DERIVATION_BINDING_MISMATCH",
+          "message": "E13 averted-alternative source_effect_ids do not match its counterfactual alternative_effect_id",
+          "entity_kind": "effect",
+          "entity_id": "E13",
+          "field": "source_effect_ids",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "DIRECT_EFFECT_TARGET_MISMATCH",
+          "message": "E10 is DIRECT on P4, who is neither the actor nor a named recipient; non-recipient process and population states are DOWNSTREAM or FOREGONE. If this row is later conduct (assist, remain, use a road), recast it DOWNSTREAM with a non-INTERVENTION kind; do not add that party as a recipient to make the conduct DIRECT. If this row is the actor assigning or allocating that party, they may be a recipient of a separate DIRECT assignment, not of this later conduct",
+          "entity_kind": "effect",
+          "entity_id": "E10",
+          "field": "effects",
+          "related_ids": [
+            "P4"
+          ],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "MISSING_CAUSAL_PARENT",
+          "message": "E12 is a downstream human outcome whose causal ancestry never reaches a DIRECT act on the actor or a named recipient; connect this action's intervention to the action-mediated process that produces the outcome. If the source does not attribute a stochastic process to the intervention, do not invent that causal link; generate the missing mediated branch",
+          "entity_kind": "effect",
+          "entity_id": "E12",
+          "field": "causal_links",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "WORLD_VALIDATION_ERROR",
+          "message": "A0 has no distinguishing source clause; its grounding ['C0', 'C2'] is covered entirely by the other actions",
+          "entity_kind": "action",
+          "entity_id": "A0",
+          "field": "",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "WORLD_VALIDATION_ERROR",
+          "message": "A1 has no distinguishing source clause; its grounding ['C0', 'C2'] is covered entirely by the other actions",
+          "entity_kind": "action",
+          "entity_id": "A1",
+          "field": "",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        }
+      ],
+      "repair_delta": {
+        "deterministic_patches": [
+          {
+            "op": "add_quantity",
+            "effect_id": "E3",
+            "field": "quantities",
+            "value": "five",
+            "code": "QUANTITY_BEARING_CONSEQUENCE_MISSING",
+            "patch_kind": "semantic_patch",
+            "deterministic": true
+          },
+          {
+            "op": "add_quantity",
+            "effect_id": "E3",
+            "field": "quantities",
+            "value": "one",
+            "code": "QUANTITY_BEARING_CONSEQUENCE_MISSING",
+            "patch_kind": "semantic_patch",
+            "deterministic": true
+          }
+        ]
+      }
+    },
+    {
+      "attempt": 2,
+      "repair_scope": "SUBGRAPH_REBUILD",
+      "inherited_candidate": true,
+      "rebuild_action_ids": [
+        "A0",
+        "A1"
+      ],
+      "errors": [
+        "typed world model rejected: E3 omits source quantity 'five' from quantity-bearing consequence 'A runaway trolley will kill five people unless you pull a lever' (licensing_clause_id=C0); copy the span onto the effect (or its population party)"
+      ],
+      "validation_issues": [
+        {
+          "code": "QUANTITY_BEARING_CONSEQUENCE_MISSING",
+          "message": "E3 omits source quantity 'five' from quantity-bearing consequence 'A runaway trolley will kill five people unless you pull a lever' (licensing_clause_id=C0); copy the span onto the effect (or its population party)",
+          "entity_kind": "effect",
+          "entity_id": "E3",
+          "field": "quantities",
+          "related_ids": [
+            "C0"
+          ],
+          "repair_class": "SOURCE_PATCH",
+          "permits_removal": false
+        }
+      ],
+      "repair_delta": {
+        "dropped": {
+          "quantities": [
+            "effect|E3|five"
+          ],
+          "overlays": [
+            "A0|E5|A1|E12",
+            "A0|E6|A1|E13",
+            "A1|E14|A0|E4",
+            "A1|E15|A0|E3"
+          ],
+          "citations": [
+            "effect|E14|A0",
+            "effect|E14|C0",
+            "effect|E15|A0",
+            "effect|E15|C0",
+            "effect|E5|A1",
+            "effect|E5|C0",
+            "effect|E6|A1",
+            "effect|E6|C0"
+          ],
+          "effects": [
+            "E14",
+            "E15",
+            "E5",
+            "E6"
+          ]
+        },
+        "added": {
+          "quantities": [
+            "effect|E11|five",
+            "effect|E12|five",
+            "effect|E13|one",
+            "effect|E2|one",
+            "effect|E4|five"
+          ]
+        },
+        "illegal_drops": []
+      }
+    },
+    {
+      "attempt": 2,
+      "repair_scope": "DETERMINISTIC_LOCAL_PATCH",
+      "inherited_candidate": true,
+      "rebuild_action_ids": [
+        "A0",
+        "A1"
+      ],
+      "errors": [],
+      "validation_issues": [],
+      "repair_delta": {
+        "deterministic_patches": [
+          {
+            "op": "add_quantity",
+            "effect_id": "E3",
+            "field": "quantities",
+            "value": "five",
+            "code": "QUANTITY_BEARING_CONSEQUENCE_MISSING",
+            "patch_kind": "semantic_patch",
+            "deterministic": true
+          }
+        ]
+      }
+    }
+  ],
+  "action_propositions": [
+    {
+      "action_id": "A0",
+      "text": "Pull the lever",
+      "propositions": []
+    },
+    {
+      "action_id": "A1",
+      "text": "Do not pull the lever",
+      "propositions": []
+    }
+  ],
+  "compact_role_assignments": [
+    {
+      "action_id": "A0",
+      "bucket": "harmed",
+      "label": "One person on side track",
+      "effect_id": "E3",
+      "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; affected quantity one, five; compact harmed"
+    },
+    {
+      "action_id": "A1",
+      "bucket": "harmed",
+      "label": "Five people on main track",
+      "effect_id": "E12",
+      "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; affected quantity five; compact harmed"
+    }
+  ],
+  "chains": [
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C0",
+          "text": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "Pull the lever"
+      },
+      "world": {
+        "effect_id": "E1",
+        "party_id": "P4",
+        "party_label": "Track lever",
+        "outcome": "lever is pulled",
+        "directness": "DIRECT",
+        "effect_kind": "INTERVENTION",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C0",
+          "text": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "Pull the lever"
+      },
+      "world": {
+        "effect_id": "E2",
+        "party_id": "P1",
+        "party_label": "Runaway trolley",
+        "outcome": "is redirected",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "PHYSICAL_STATE",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [
+          "one"
+        ],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C0",
+          "text": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "Pull the lever"
+      },
+      "world": {
+        "effect_id": "E3",
+        "party_id": "P3",
+        "party_label": "One person on side track",
+        "outcome": "is killed",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "HEALTH_OUTCOME",
+        "polarity": "ADVERSE",
+        "modality": "CERTAIN",
+        "quantities": [
+          "one",
+          "five"
+        ],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A0",
+        "bucket": "harmed",
+        "label": "One person on side track",
+        "effect_id": "E3",
+        "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; affected quantity one, five; compact harmed"
+      }
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C0",
+          "text": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "Do not pull the lever"
+      },
+      "world": {
+        "effect_id": "E10",
+        "party_id": "P4",
+        "party_label": "Track lever",
+        "outcome": "lever is not pulled",
+        "directness": "DIRECT",
+        "effect_kind": "INTERVENTION",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C0",
+          "text": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "Do not pull the lever"
+      },
+      "world": {
+        "effect_id": "E11",
+        "party_id": "P1",
+        "party_label": "Runaway trolley",
+        "outcome": "continues five people",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "PHYSICAL_STATE",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [
+          "five"
+        ],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C0",
+          "text": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "Do not pull the lever"
+      },
+      "world": {
+        "effect_id": "E12",
+        "party_id": "P2",
+        "party_label": "Five people on main track",
+        "outcome": "are killed",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "HEALTH_OUTCOME",
+        "polarity": "ADVERSE",
+        "modality": "CERTAIN",
+        "quantities": [
+          "five"
+        ],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A1",
+        "bucket": "harmed",
+        "label": "Five people on main track",
+        "effect_id": "E12",
+        "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; affected quantity five; compact harmed"
+      }
+    }
+  ]
+}

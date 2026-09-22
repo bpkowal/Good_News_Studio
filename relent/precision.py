@@ -12,9 +12,9 @@ from typing import Sequence
 _VAGUE_QUANTITY_COLLECTIVE = re.compile(
     r"\b(?:"
     r"dozens|"
-    r"hundreds|"
-    r"thousands|"
-    r"millions|"
+    r"hundreds|100s|"
+    r"thousands|1,?000s|"
+    r"millions|1,?000,?000s|"
     r"several\s+thousands?|"
     r"a\s+few\s+thousands?|"
     r"many\s+thousands?"
@@ -23,14 +23,14 @@ _VAGUE_QUANTITY_COLLECTIVE = re.compile(
 )
 _VAGUE_COLLECTIVE_BANDS: tuple[tuple[re.Pattern[str], float, float], ...] = (
     (re.compile(r"\bdozens\b", re.I), 10.0, 99.0),
-    (re.compile(r"\bhundreds\b", re.I), 100.0, 999.0),
-    (re.compile(r"\b(?:several|a\s+few|many)\s+thousands?\b|\bthousands\b", re.I), 1_000.0, 999_999.0),
-    (re.compile(r"\bmillions\b", re.I), 1_000_000.0, 999_999_999_999.0),
+    (re.compile(r"\b(?:hundreds|100s)\b", re.I), 100.0, 999.0),
+    (re.compile(r"\b(?:several|a\s+few|many)\s+thousands?\b|\b(?:thousands|1,?000s)\b", re.I), 1_000.0, 999_999.0),
+    (re.compile(r"\b(?:millions|1,?000,?000s)\b", re.I), 1_000_000.0, 999_999_999_999.0),
 )
 # Spaced or comma groups: 100 000, 10,000, 8 000 000.
 _CLAIM_NUMERIC_LITERAL = re.compile(
     r"(?<![A-Za-z0-9])(?P<approx>~|≈|about\s+|roughly\s+|approximately\s+|around\s+)?"
-    r"(?P<n>\d{1,3}(?:[,\s]\d{3})+|\d+)(?!\s*%)",
+    r"(?P<n>\d{1,3}(?:[,\s]\d{3})+|\d+)(?![A-Za-z]|\s*%)",
     re.IGNORECASE,
 )
 # 5-10,000 / 5–10 000 style ranges (second endpoint is the sharp magnitude).
@@ -55,6 +55,57 @@ _PRODUCT_MARK = re.compile(
     r"(?:[×*]|(?<![A-Za-z])x(?![A-Za-z])|\btimes\b)",
     re.IGNORECASE,
 )
+_COMPOSITIONAL_VAGUE_QUANTITY = re.compile(
+    r"\b(?:10s|tens)\s+of\s+(?:10s|tens)\b",
+    re.IGNORECASE,
+)
+_VAGUE_CLASS_PATTERNS: dict[str, re.Pattern[str]] = {
+    "TENS": re.compile(r"\b(?:tens|10s)\b", re.I),
+    "HUNDREDS": re.compile(r"\b(?:hundreds|100s)\b", re.I),
+    "THOUSANDS": re.compile(
+        r"\b(?:(?:several|a\s+few|many)\s+thousands?|thousands|1,?000s)\b",
+        re.I,
+    ),
+    "MILLIONS": re.compile(r"\b(?:millions|1,?000,?000s)\b", re.I),
+}
+
+
+def quantity_abstraction_errors(
+    *, source_texts: Sequence[str], claim_text: str,
+) -> list[str]:
+    """Reject changed magnitude classes and unlicensed quantity composition.
+
+    Orthographic variants such as ``1000s``/``thousands`` and
+    ``100s``/``hundreds`` share a class.  ``10s of tens`` remains a
+    compositional expression: collapsing it to ``hundreds`` would perform
+    arithmetic rather than normalize spelling.
+    """
+    source = " ".join(" ".join(str(item or "").split()) for item in source_texts)
+    claim = " ".join(str(claim_text or "").split())
+    if not source or not claim:
+        return []
+    source_compositional = bool(_COMPOSITIONAL_VAGUE_QUANTITY.search(source))
+    claim_compositional = bool(_COMPOSITIONAL_VAGUE_QUANTITY.search(claim))
+    source_classes = {
+        name for name, pattern in _VAGUE_CLASS_PATTERNS.items()
+        if pattern.search(source)
+    }
+    claim_classes = {
+        name for name, pattern in _VAGUE_CLASS_PATTERNS.items()
+        if pattern.search(claim)
+    }
+    if source_compositional and claim_classes and not claim_compositional:
+        return [
+            "quantity composition is not normalization: retain '10s of tens' "
+            "or provide a verified arithmetic derivation"
+        ]
+    unsupported = claim_classes - source_classes
+    if unsupported:
+        return [
+            "quantity magnitude class lacks source support: "
+            + ", ".join(sorted(unsupported))
+        ]
+    return []
 
 
 def _parse_claim_count_literal(raw: str) -> float | None:
@@ -140,6 +191,11 @@ def quantity_precision_escalation_errors(
     claim = " ".join(str(claim_text or "").split())
     if not source_blob or not claim:
         return []
+    abstraction_errors = quantity_abstraction_errors(
+        source_texts=source_texts, claim_text=claim,
+    )
+    if abstraction_errors:
+        return abstraction_errors
     if not _VAGUE_QUANTITY_COLLECTIVE.search(source_blob):
         return []
     licensed = _licensed_numerals(source_blob)

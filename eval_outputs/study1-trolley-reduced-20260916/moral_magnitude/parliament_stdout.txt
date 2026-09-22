@@ -1,0 +1,14 @@
+Active ethical frameworks: utilitarian, deontological, virtue, care, rawlsian
+Using OpenAI workspace model: o3
+Planning a shared action set...
+Actions: Pull the lever, redirecting the trolley toward one person, Do not pull the lever, allowing the trolley to continue toward five hundred people
+Canonical deliberation IDs: A0=Do not pull the lever, allowing the trolley to continue toward five hundred people; A1=Pull the lever, redirecting the trolley toward one person
+Primary world grounding failed (2 issue(s)):
+  [QUANTITY_BEARING_CONSEQUENCE_MISSING world_model:- SOURCE_PATCH] F3 omits source quantity 'five hundred' from quantity-bearing consequence 'A runaway trolley will kill five hundred people unless you pull a lever' (licensing_clause_id=C0); copy the span onto the effect (or its population party)
+  [WORLD_VALIDATION_ERROR action:A1 SEMANTIC_PATCH] A1 has no distinguishing source clause; its grounding ['C0', 'C2'] is covered entirely by the other actions
+A stronger-model retry is available: GPT-5.6 Sol.
+Retrying once with GPT-5.6 Sol (--escalate-world-model).
+World grounding escalation: one attempt with gpt-5.6-sol.
+Action-source grounding: COMMITTED (4 attempt(s), 0 final validation issue(s))
+Refusing to deliberate: canonical action/world correspondence was rejected. A0 proposed intervention does not correspond to its admitted world intervention
+Saved performance trace: eval_outputs/study1-trolley-reduced-20260916/moral_magnitude/parliament_workspace/performance_scenario_20260916_195707_141784.json

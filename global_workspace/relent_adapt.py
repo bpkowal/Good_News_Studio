@@ -31,6 +31,7 @@ from relent.operators import (
     Modal,
     Not,
     Operator,
+    Temporal,
     collect_facts,
     modal_strength_of,
     operator_from_dict,
@@ -76,6 +77,7 @@ __all__ = [
     "exception_scope_errors",
     "modal_scope_errors",
     "operator_scope_conservation_errors",
+    "temporal_relation_errors",
 ]
 
 
@@ -184,6 +186,10 @@ def project_operator_to_effect_gates(
         if isinstance(item, Modal):
             walk(item.body, negated=negated)
             return
+        if isinstance(item, Temporal):
+            walk(item.left, negated=negated)
+            walk(item.right, negated=negated)
+            return
         if isinstance(item, Conditional):
             walk(item.if_, negated=negated)
             return
@@ -194,7 +200,7 @@ def project_operator_to_effect_gates(
     walk(antecedent)
     strength = modal_strength_of(node) or "CERTAIN"
     return {
-        "condition_ids": list(dict.fromkeys(positive_ids)),
+        "condition_ids": list(dict.fromkeys((*positive_ids, *negated_ids))),
         "negated_condition_ids": list(dict.fromkeys(negated_ids)),
         "condition_join": _join_for(antecedent) or "AND",
         "modality": strength if strength != "PROBABLE" else "PROBABILISTIC",
@@ -202,6 +208,59 @@ def project_operator_to_effect_gates(
         "operator": operator_to_dict(node),
         "fact_keys": [fact.key() for fact in facts],
     }
+
+
+def temporal_relation_errors(relations: Sequence[Any]) -> list[str]:
+    """Reject invalid, reflexive, duplicate-opposed, and cyclic time order."""
+    normalized: list[tuple[str, str, str]] = []
+    errors: list[str] = []
+    for relation in relations:
+        relation_id = str(getattr(relation, "relation_id", "") or "")
+        source = str(getattr(relation, "source_id", "") or "")
+        target = str(getattr(relation, "target_id", "") or "")
+        kind = str(getattr(relation, "relation", "") or "").upper()
+        prefix = relation_id or "temporal relation"
+        if kind not in {"BEFORE", "AFTER"}:
+            errors.append(f"{prefix} has invalid temporal relation {kind!r}")
+            continue
+        if not source or not target:
+            errors.append(f"{prefix} requires source_id and target_id")
+            continue
+        if source == target:
+            errors.append(f"{prefix} is reflexive; an event cannot precede itself")
+            continue
+        # Canonicalize every assertion to BEFORE for cycle/opposition checks.
+        normalized.append(
+            (target, source, prefix) if kind == "AFTER" else (source, target, prefix)
+        )
+    edges = {(source, target) for source, target, _ in normalized}
+    for source, target, prefix in normalized:
+        if (target, source) in edges:
+            errors.append(
+                f"{prefix} conflicts with the opposite temporal ordering "
+                f"between {source} and {target}"
+            )
+    adjacency: dict[str, set[str]] = {}
+    for source, target in edges:
+        adjacency.setdefault(source, set()).add(target)
+
+    def reaches(start: str, goal: str) -> bool:
+        pending = list(adjacency.get(start, ()))
+        seen: set[str] = set()
+        while pending:
+            node = pending.pop()
+            if node == goal:
+                return True
+            if node in seen:
+                continue
+            seen.add(node)
+            pending.extend(adjacency.get(node, ()))
+        return False
+
+    for source, target, prefix in normalized:
+        if reaches(target, source):
+            errors.append(f"{prefix} participates in a temporal cycle")
+    return list(dict.fromkeys(errors))
 
 
 def _is_averted_row(effect: Any) -> bool:
@@ -653,9 +712,8 @@ def project_before_edges(
 ) -> tuple[RelEdge, ...]:
     """Project host-licensed temporal ``BEFORE`` edges (no discourse clock).
 
-    World models do not yet own a temporal-link table; Hypothesis / adapters
-    pass ``licensed_edges``. Duck-types an optional ``temporal_links`` iterable
-    with ``source_id`` / ``target_id`` when present.
+    World models may own ``temporal_relations``; legacy hosts can still expose
+    ``temporal_links`` or pass explicit licensed edges.
     """
     indexed: dict[tuple[str, str, str], RelEdge] = {}
 
@@ -675,7 +733,12 @@ def project_before_edges(
             continue
         indexed[(edge.source, edge.target, edge.relation)] = edge
 
-    for link in getattr(model, "temporal_links", ()) or ():
+    links = (
+        getattr(model, "temporal_relations", ())
+        or getattr(model, "temporal_links", ())
+        or ()
+    )
+    for link in links:
         src = str(
             getattr(link, "source_id", None)
             or getattr(link, "before_id", None)
@@ -686,6 +749,11 @@ def project_before_edges(
             or getattr(link, "after_id", None)
             or ""
         ).strip()
+        relation = str(getattr(link, "relation", "BEFORE") or "BEFORE").upper()
+        if relation == "AFTER":
+            src, tgt = tgt, src
+        if relation != "BEFORE" and relation != "AFTER":
+            continue
         if not src or not tgt or src == tgt:
             continue
         edge = RelEdge(source=src, target=tgt, relation="BEFORE").normalized()

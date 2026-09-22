@@ -1,0 +1,390 @@
+{
+  "ethical_problem": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person. You cannot stop it another way. Do you pull the lever?",
+  "presentation_actions": [
+    "Pull the lever, redirecting the trolley toward one person",
+    "Do not pull the lever, allowing the trolley to continue toward five people"
+  ],
+  "canonical_actions": [
+    "Pull the lever, redirecting the trolley toward one person",
+    "Do not pull the lever, allowing the trolley to continue toward five people"
+  ],
+  "canonical_scenario": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person. You cannot stop it another way. Do you pull the lever?",
+  "action_origin": "USER_AUTHORED",
+  "action_source_grounding": {
+    "status": "COMMITTED",
+    "actions": {
+      "A0": {
+        "action": "Pull the lever, redirecting the trolley toward one person",
+        "clause_ids": [
+          "C0",
+          "C1"
+        ],
+        "clauses": [
+          {
+            "clause_id": "C0",
+            "text": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+          },
+          {
+            "clause_id": "C1",
+            "text": "You cannot stop it another way."
+          }
+        ],
+        "reason": "C0 describes lever-pull redirection and that one person will be killed; C1 states no alternative stop, framing the choice."
+      },
+      "A1": {
+        "action": "Do not pull the lever, allowing the trolley to continue toward five people",
+        "clause_ids": [
+          "C0",
+          "C2"
+        ],
+        "clauses": [
+          {
+            "clause_id": "C0",
+            "text": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+          },
+          {
+            "clause_id": "C2",
+            "text": "Do you pull the lever?"
+          }
+        ],
+        "reason": "C0 states what happens if the lever is not pulled (five die); C2 explicitly presents the option of refraining."
+      }
+    },
+    "world_model": {
+      "parties": [
+        {
+          "party_id": "P0",
+          "label": "You",
+          "kind": "PERSON",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "Do you pull the lever?"
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P1",
+          "label": "Runaway trolley",
+          "kind": "PROCESS",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P2",
+          "label": "Five people on main track",
+          "kind": "GROUP",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+            }
+          ],
+          "quantities": [
+            "five"
+          ]
+        },
+        {
+          "party_id": "P3",
+          "label": "One person on side track",
+          "kind": "PERSON",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+            }
+          ],
+          "quantities": []
+        }
+      ],
+      "actions": [
+        {
+          "action_id": "A0",
+          "intervention": "pull lever",
+          "actor_party_id": "P0",
+          "recipient_party_ids": [
+            "P1"
+          ],
+          "effect_ids": [
+            "E1",
+            "E2"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "You cannot stop it another way."
+            }
+          ]
+        },
+        {
+          "action_id": "A1",
+          "intervention": "do not pull lever",
+          "actor_party_id": "P0",
+          "recipient_party_ids": [
+            "P1"
+          ],
+          "effect_ids": [
+            "E4",
+            "E5"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "Do you pull the lever?"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "effect_id": "E1",
+          "action_id": "A0",
+          "party_id": "P1",
+          "outcome": "is redirected onto side track",
+          "relation": "REDIRECTED",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "INTERVENTION",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "pull a lever, which redirects it onto a track",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "is killed",
+          "relation": "DIES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [
+            "one",
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "it will kill one person",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "C0 says the redirected trolley will kill the one person.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E4",
+          "action_id": "A1",
+          "party_id": "P1",
+          "outcome": "will kill five people",
+          "relation": "KILLS",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "INTERVENTION",
+          "condition_ids": [],
+          "quantities": [
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "A runaway trolley will kill five people unless you pull a lever",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E5",
+          "action_id": "A1",
+          "party_id": "P2",
+          "outcome": "are killed",
+          "relation": "DIES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will kill five people",
+          "source_effect_ids": [
+            "E4"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "With no redirection, the trolley kills the five.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "conditions": [],
+      "causal_links": [
+        {
+          "source_id": "E1",
+          "relation": "CAUSES",
+          "target_id": "E2",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E4",
+          "relation": "CAUSES",
+          "target_id": "E5",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+            }
+          ],
+          "action_id": "A1"
+        }
+      ],
+      "counterfactual_links": [],
+      "admission": {
+        "status": "COMMITTED",
+        "admitted_effect_ids": [
+          "E1",
+          "E2",
+          "E4",
+          "E5"
+        ],
+        "quarantined_effects": [],
+        "user_override": false,
+        "override_reason": ""
+      },
+      "schema_version": "1.3",
+      "temporal_relations": []
+    },
+    "world_model_status": "COMMITTED",
+    "world_contradictions": [],
+    "errors": [],
+    "validation_issues": [],
+    "clauses": [
+      {
+        "clause_id": "C0",
+        "text": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+      },
+      {
+        "clause_id": "C1",
+        "text": "You cannot stop it another way."
+      },
+      {
+        "clause_id": "C2",
+        "text": "Do you pull the lever?"
+      }
+    ],
+    "attempts": [
+      {
+        "attempt": 1,
+        "repair_scope": "LOCAL_PATCH",
+        "inherited_candidate": true,
+        "rebuild_action_ids": [],
+        "errors": [],
+        "validation_issues": [],
+        "repair_delta": {
+          "dropped": {},
+          "added": {
+            "quantities": [
+              "effect|E4|five"
+            ]
+          },
+          "illegal_drops": []
+        }
+      }
+    ],
+    "repair_attempts": 0,
+    "next_repair_scope": "NONE",
+    "next_rebuild_action_ids": [],
+    "repair_inheritance": {
+      "source": "failed_grounding_resume_cache",
+      "initial_scope": "LOCAL_PATCH",
+      "candidate_inherited": true,
+      "rebuild_action_ids": []
+    },
+    "action_world_correspondence": {
+      "status": "COMMITTED",
+      "action_origin": "USER_AUTHORED",
+      "errors": []
+    }
+  },
+  "cache_version": 3,
+  "action_authority_contract_version": 1
+}

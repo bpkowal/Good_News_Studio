@@ -1,0 +1,1305 @@
+{
+  "id": "shared_subject_notifications",
+  "source_stage_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_233344_019302.json",
+  "obligations": {
+    "version": "1.0",
+    "mode": "READ_ONLY_RESOLUTION_QUESTIONS",
+    "obligations": [
+      {
+        "obligation_id": "SRO_1",
+        "type": "SHARED_ARGUMENT_CONJUNCTION",
+        "clause_ids": [
+          "C0"
+        ],
+        "source_span": "The coordinator calls the fire department and warns the residents, enabling an evacuation.",
+        "predicate_ids": [
+          "S0_T2",
+          "S0_T7"
+        ],
+        "predicate_lemmas": [
+          "call",
+          "warn"
+        ],
+        "question": "Which subjects or objects are inherited across conjuncts, and which atomic events remain distinct?",
+        "required_handling": "REPRESENT_OR_QUARANTINE",
+        "authority": "SYNTACTIC_CUE_ONLY"
+      },
+      {
+        "obligation_id": "SRO_2",
+        "type": "SHARED_ARGUMENT_CONJUNCTION",
+        "clause_ids": [
+          "C2"
+        ],
+        "source_span": "The coordinator must call and warn or remain silent.",
+        "predicate_ids": [
+          "S0_T3",
+          "S0_T5",
+          "S0_T7"
+        ],
+        "predicate_lemmas": [
+          "call",
+          "warn",
+          "remain"
+        ],
+        "question": "Which subjects or objects are inherited across conjuncts, and which atomic events remain distinct?",
+        "required_handling": "REPRESENT_OR_QUARANTINE",
+        "authority": "SYNTACTIC_CUE_ONLY"
+      }
+    ],
+    "annotations": [
+      {
+        "clause_id": "C0",
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "The coordinator calls the fire department and warns the residents, enabling an evacuation.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "The coordinator calls the fire department and warns the residents, enabling an evacuation.",
+            "start_char": 0,
+            "end_char": 90,
+            "predicate_ids": [
+              "S0_T2",
+              "S0_T7",
+              "S0_T11"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T2",
+            "sentence_index": 0,
+            "token_index": 2,
+            "start_char": 16,
+            "end_char": 21,
+            "text": "calls",
+            "lemma": "call",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 2,
+            "head_text": "calls",
+            "clause_head": true,
+            "subtree_span": "The coordinator calls the fire department and warns the residents, enabling an evacuation.",
+            "subjects": [
+              "coordinator"
+            ],
+            "objects": [
+              "department"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [
+              "warns"
+            ],
+            "children": [
+              {
+                "text": "coordinator",
+                "lemma": "coordinator",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "department",
+                "lemma": "department",
+                "dependency": "dobj"
+              },
+              {
+                "text": "and",
+                "lemma": "and",
+                "dependency": "cc"
+              },
+              {
+                "text": "warns",
+                "lemma": "warn",
+                "dependency": "conj"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T7",
+            "sentence_index": 0,
+            "token_index": 7,
+            "start_char": 46,
+            "end_char": 51,
+            "text": "warns",
+            "lemma": "warn",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 2,
+            "head_text": "calls",
+            "clause_head": true,
+            "subtree_span": "warns the residents, enabling an evacuation",
+            "subjects": [],
+            "objects": [
+              "residents"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "residents",
+                "lemma": "resident",
+                "dependency": "dobj"
+              },
+              {
+                "text": ",",
+                "lemma": ",",
+                "dependency": "punct"
+              },
+              {
+                "text": "enabling",
+                "lemma": "enable",
+                "dependency": "advcl"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T11",
+            "sentence_index": 0,
+            "token_index": 11,
+            "start_char": 67,
+            "end_char": 75,
+            "text": "enabling",
+            "lemma": "enable",
+            "pos": "VERB",
+            "dependency": "advcl",
+            "head_token_index": 7,
+            "head_text": "warns",
+            "clause_head": true,
+            "subtree_span": "enabling an evacuation",
+            "subjects": [],
+            "objects": [
+              "evacuation"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "evacuation",
+                "lemma": "evacuation",
+                "dependency": "dobj"
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "start_char": 0,
+            "end_char": 3,
+            "text": "The",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 1
+          },
+          {
+            "token_index": 1,
+            "start_char": 4,
+            "end_char": 15,
+            "text": "coordinator",
+            "lemma": "coordinator",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 2,
+            "start_char": 16,
+            "end_char": 21,
+            "text": "calls",
+            "lemma": "call",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 3,
+            "start_char": 22,
+            "end_char": 25,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 4,
+            "start_char": 26,
+            "end_char": 30,
+            "text": "fire",
+            "lemma": "fire",
+            "pos": "NOUN",
+            "dependency": "compound",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 5,
+            "start_char": 31,
+            "end_char": 41,
+            "text": "department",
+            "lemma": "department",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 6,
+            "start_char": 42,
+            "end_char": 45,
+            "text": "and",
+            "lemma": "and",
+            "pos": "CCONJ",
+            "dependency": "cc",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 7,
+            "start_char": 46,
+            "end_char": 51,
+            "text": "warns",
+            "lemma": "warn",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 8,
+            "start_char": 52,
+            "end_char": 55,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 9
+          },
+          {
+            "token_index": 9,
+            "start_char": 56,
+            "end_char": 65,
+            "text": "residents",
+            "lemma": "resident",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 7
+          },
+          {
+            "token_index": 10,
+            "start_char": 65,
+            "end_char": 66,
+            "text": ",",
+            "lemma": ",",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 7
+          },
+          {
+            "token_index": 11,
+            "start_char": 67,
+            "end_char": 75,
+            "text": "enabling",
+            "lemma": "enable",
+            "pos": "VERB",
+            "dependency": "advcl",
+            "head_token_index": 7
+          },
+          {
+            "token_index": 12,
+            "start_char": 76,
+            "end_char": 78,
+            "text": "an",
+            "lemma": "an",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 13
+          },
+          {
+            "token_index": 13,
+            "start_char": 79,
+            "end_char": 89,
+            "text": "evacuation",
+            "lemma": "evacuation",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 11
+          },
+          {
+            "token_index": 14,
+            "start_char": 89,
+            "end_char": 90,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 2
+          }
+        ]
+      },
+      {
+        "clause_id": "C1",
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "Alternatively, the coordinator remains silent.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "Alternatively, the coordinator remains silent.",
+            "start_char": 0,
+            "end_char": 46,
+            "predicate_ids": [
+              "S0_T4"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T4",
+            "sentence_index": 0,
+            "token_index": 4,
+            "start_char": 31,
+            "end_char": 38,
+            "text": "remains",
+            "lemma": "remain",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 4,
+            "head_text": "remains",
+            "clause_head": true,
+            "subtree_span": "Alternatively, the coordinator remains silent.",
+            "subjects": [
+              "coordinator"
+            ],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "Alternatively",
+                "lemma": "alternatively",
+                "dependency": "advmod"
+              },
+              {
+                "text": ",",
+                "lemma": ",",
+                "dependency": "punct"
+              },
+              {
+                "text": "coordinator",
+                "lemma": "coordinator",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "silent",
+                "lemma": "silent",
+                "dependency": "acomp"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "start_char": 0,
+            "end_char": 13,
+            "text": "Alternatively",
+            "lemma": "alternatively",
+            "pos": "ADV",
+            "dependency": "advmod",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 1,
+            "start_char": 13,
+            "end_char": 14,
+            "text": ",",
+            "lemma": ",",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 2,
+            "start_char": 15,
+            "end_char": 18,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 3,
+            "start_char": 19,
+            "end_char": 30,
+            "text": "coordinator",
+            "lemma": "coordinator",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 4,
+            "start_char": 31,
+            "end_char": 38,
+            "text": "remains",
+            "lemma": "remain",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 5,
+            "start_char": 39,
+            "end_char": 45,
+            "text": "silent",
+            "lemma": "silent",
+            "pos": "ADJ",
+            "dependency": "acomp",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 6,
+            "start_char": 45,
+            "end_char": 46,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 4
+          }
+        ]
+      },
+      {
+        "clause_id": "C2",
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "The coordinator must call and warn or remain silent.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "The coordinator must call and warn or remain silent.",
+            "start_char": 0,
+            "end_char": 52,
+            "predicate_ids": [
+              "S0_T3",
+              "S0_T5",
+              "S0_T7"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T3",
+            "sentence_index": 0,
+            "token_index": 3,
+            "start_char": 21,
+            "end_char": 25,
+            "text": "call",
+            "lemma": "call",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 3,
+            "head_text": "call",
+            "clause_head": true,
+            "subtree_span": "The coordinator must call and warn or remain silent.",
+            "subjects": [
+              "coordinator"
+            ],
+            "objects": [],
+            "negations": [],
+            "modals": [
+              "must"
+            ],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [
+              "warn"
+            ],
+            "children": [
+              {
+                "text": "coordinator",
+                "lemma": "coordinator",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "must",
+                "lemma": "must",
+                "dependency": "aux"
+              },
+              {
+                "text": "and",
+                "lemma": "and",
+                "dependency": "cc"
+              },
+              {
+                "text": "warn",
+                "lemma": "warn",
+                "dependency": "conj"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T5",
+            "sentence_index": 0,
+            "token_index": 5,
+            "start_char": 30,
+            "end_char": 34,
+            "text": "warn",
+            "lemma": "warn",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 3,
+            "head_text": "call",
+            "clause_head": true,
+            "subtree_span": "warn or remain silent",
+            "subjects": [],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [
+              "remain"
+            ],
+            "children": [
+              {
+                "text": "or",
+                "lemma": "or",
+                "dependency": "cc"
+              },
+              {
+                "text": "remain",
+                "lemma": "remain",
+                "dependency": "conj"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T7",
+            "sentence_index": 0,
+            "token_index": 7,
+            "start_char": 38,
+            "end_char": 44,
+            "text": "remain",
+            "lemma": "remain",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 5,
+            "head_text": "warn",
+            "clause_head": true,
+            "subtree_span": "remain silent",
+            "subjects": [],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "silent",
+                "lemma": "silent",
+                "dependency": "acomp"
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "start_char": 0,
+            "end_char": 3,
+            "text": "The",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 1
+          },
+          {
+            "token_index": 1,
+            "start_char": 4,
+            "end_char": 15,
+            "text": "coordinator",
+            "lemma": "coordinator",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 2,
+            "start_char": 16,
+            "end_char": 20,
+            "text": "must",
+            "lemma": "must",
+            "pos": "AUX",
+            "dependency": "aux",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 3,
+            "start_char": 21,
+            "end_char": 25,
+            "text": "call",
+            "lemma": "call",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 4,
+            "start_char": 26,
+            "end_char": 29,
+            "text": "and",
+            "lemma": "and",
+            "pos": "CCONJ",
+            "dependency": "cc",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 5,
+            "start_char": 30,
+            "end_char": 34,
+            "text": "warn",
+            "lemma": "warn",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 6,
+            "start_char": 35,
+            "end_char": 37,
+            "text": "or",
+            "lemma": "or",
+            "pos": "CCONJ",
+            "dependency": "cc",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 7,
+            "start_char": 38,
+            "end_char": 44,
+            "text": "remain",
+            "lemma": "remain",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 8,
+            "start_char": 45,
+            "end_char": 51,
+            "text": "silent",
+            "lemma": "silent",
+            "pos": "ADJ",
+            "dependency": "acomp",
+            "head_token_index": 7
+          },
+          {
+            "token_index": 9,
+            "start_char": 51,
+            "end_char": 52,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 3
+          }
+        ]
+      }
+    ]
+  },
+  "coverage_before": [
+    {
+      "obligation_id": "SRO_1",
+      "type": "SHARED_ARGUMENT_CONJUNCTION",
+      "status": "CANDIDATE_NODES_PRESENT_REVIEW_REQUIRED",
+      "matching_proposition_ids": [
+        "Pr1",
+        "Pr2",
+        "Pr3"
+      ],
+      "missing_predicate_lemmas": []
+    },
+    {
+      "obligation_id": "SRO_2",
+      "type": "SHARED_ARGUMENT_CONJUNCTION",
+      "status": "CANDIDATE_NODES_PRESENT_REVIEW_REQUIRED",
+      "matching_proposition_ids": [
+        "Pr5",
+        "Pr6"
+      ],
+      "missing_predicate_lemmas": []
+    }
+  ],
+  "jobs": [],
+  "responses": [],
+  "audit": [],
+  "neutral_before": {
+    "parties": [
+      {
+        "party_id": "P1",
+        "label": "the coordinator",
+        "kind": "HUMAN",
+        "quantities": [],
+        "clause_ids": [
+          "C0",
+          "C1",
+          "C2"
+        ]
+      },
+      {
+        "party_id": "P2",
+        "label": "the fire department",
+        "kind": "ORGANIZATION",
+        "quantities": [],
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      {
+        "party_id": "P3",
+        "label": "the residents",
+        "kind": "GROUP",
+        "quantities": [],
+        "clause_ids": [
+          "C0"
+        ]
+      }
+    ],
+    "propositions": [
+      {
+        "proposition_id": "Pr1",
+        "party_id": "P1",
+        "outcome": "calls the fire department",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "STIPULATED_CONDITIONAL",
+        "effect_kind": "",
+        "quantities": [],
+        "source_proposition": "The coordinator calls the fire department",
+        "clause_ids": [
+          "C0"
+        ],
+        "generated_source_proposition": "The coordinator calls the fire department",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "The coordinator calls the fire department",
+          "bound_span": "The coordinator calls the fire department",
+          "bound_clause_id": "C0",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "Pr2",
+        "party_id": "P1",
+        "outcome": "warns the residents",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "STIPULATED_CONDITIONAL",
+        "effect_kind": "",
+        "quantities": [],
+        "source_proposition": "warns the residents",
+        "clause_ids": [
+          "C0"
+        ],
+        "generated_source_proposition": "warns the residents",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "warns the residents",
+          "bound_span": "warns the residents",
+          "bound_clause_id": "C0",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "Pr3",
+        "party_id": "P3",
+        "outcome": "an evacuation is enabled",
+        "polarity": "NEUTRAL",
+        "directness": "DOWNSTREAM",
+        "modality": "STIPULATED_CONDITIONAL",
+        "effect_kind": "",
+        "quantities": [],
+        "source_proposition": "enabling an evacuation",
+        "clause_ids": [
+          "C0"
+        ],
+        "generated_source_proposition": "enabling an evacuation",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "enabling an evacuation",
+          "bound_span": "enabling an evacuation",
+          "bound_clause_id": "C0",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "Pr4",
+        "party_id": "P1",
+        "outcome": "remains silent",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "STIPULATED_CONDITIONAL",
+        "effect_kind": "",
+        "quantities": [],
+        "source_proposition": "the coordinator remains silent",
+        "clause_ids": [
+          "C1"
+        ],
+        "generated_source_proposition": "the coordinator remains silent",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "the coordinator remains silent",
+          "bound_span": "the coordinator remains silent",
+          "bound_clause_id": "C1",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "Pr5",
+        "party_id": "P1",
+        "outcome": "must call the fire department and warn the residents",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "OBLIGATION",
+        "quantities": [],
+        "source_proposition": "The coordinator must call and warn",
+        "clause_ids": [
+          "C2"
+        ],
+        "generated_source_proposition": "The coordinator must call and warn",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "The coordinator must call and warn",
+          "bound_span": "The coordinator must call and warn",
+          "bound_clause_id": "C2",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "Pr6",
+        "party_id": "P1",
+        "outcome": "must remain silent",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "OBLIGATION",
+        "quantities": [],
+        "source_proposition": "or remain silent",
+        "clause_ids": [
+          "C2"
+        ],
+        "generated_source_proposition": "or remain silent",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "or remain silent",
+          "bound_span": "or remain silent",
+          "bound_clause_id": "C2",
+          "score": 1.0
+        }
+      }
+    ],
+    "unresolved_source_spans": [],
+    "provenance_bindings": [
+      {
+        "proposition_id": "Pr1",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "The coordinator calls the fire department",
+        "bound_span": "The coordinator calls the fire department",
+        "bound_clause_id": "C0",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "Pr2",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "warns the residents",
+        "bound_span": "warns the residents",
+        "bound_clause_id": "C0",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "Pr3",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "enabling an evacuation",
+        "bound_span": "enabling an evacuation",
+        "bound_clause_id": "C0",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "Pr4",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "the coordinator remains silent",
+        "bound_span": "the coordinator remains silent",
+        "bound_clause_id": "C1",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "Pr5",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "The coordinator must call and warn",
+        "bound_span": "The coordinator must call and warn",
+        "bound_clause_id": "C2",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "Pr6",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "or remain silent",
+        "bound_span": "or remain silent",
+        "bound_clause_id": "C2",
+        "score": 1.0
+      }
+    ]
+  },
+  "neutral_after": {
+    "parties": [
+      {
+        "party_id": "P1",
+        "label": "the coordinator",
+        "kind": "HUMAN",
+        "quantities": [],
+        "clause_ids": [
+          "C0",
+          "C1",
+          "C2"
+        ]
+      },
+      {
+        "party_id": "P2",
+        "label": "the fire department",
+        "kind": "ORGANIZATION",
+        "quantities": [],
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      {
+        "party_id": "P3",
+        "label": "the residents",
+        "kind": "GROUP",
+        "quantities": [],
+        "clause_ids": [
+          "C0"
+        ]
+      }
+    ],
+    "propositions": [
+      {
+        "proposition_id": "Pr1",
+        "party_id": "P1",
+        "outcome": "calls the fire department",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "STIPULATED_CONDITIONAL",
+        "effect_kind": "",
+        "quantities": [],
+        "source_proposition": "The coordinator calls the fire department",
+        "clause_ids": [
+          "C0"
+        ],
+        "generated_source_proposition": "The coordinator calls the fire department",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "The coordinator calls the fire department",
+          "bound_span": "The coordinator calls the fire department",
+          "bound_clause_id": "C0",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "Pr2",
+        "party_id": "P1",
+        "outcome": "warns the residents",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "STIPULATED_CONDITIONAL",
+        "effect_kind": "",
+        "quantities": [],
+        "source_proposition": "warns the residents",
+        "clause_ids": [
+          "C0"
+        ],
+        "generated_source_proposition": "warns the residents",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "warns the residents",
+          "bound_span": "warns the residents",
+          "bound_clause_id": "C0",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "Pr3",
+        "party_id": "P3",
+        "outcome": "an evacuation is enabled",
+        "polarity": "NEUTRAL",
+        "directness": "DOWNSTREAM",
+        "modality": "STIPULATED_CONDITIONAL",
+        "effect_kind": "",
+        "quantities": [],
+        "source_proposition": "enabling an evacuation",
+        "clause_ids": [
+          "C0"
+        ],
+        "generated_source_proposition": "enabling an evacuation",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "enabling an evacuation",
+          "bound_span": "enabling an evacuation",
+          "bound_clause_id": "C0",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "Pr4",
+        "party_id": "P1",
+        "outcome": "remains silent",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "STIPULATED_CONDITIONAL",
+        "effect_kind": "",
+        "quantities": [],
+        "source_proposition": "the coordinator remains silent",
+        "clause_ids": [
+          "C1"
+        ],
+        "generated_source_proposition": "the coordinator remains silent",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "the coordinator remains silent",
+          "bound_span": "the coordinator remains silent",
+          "bound_clause_id": "C1",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "Pr5",
+        "party_id": "P1",
+        "outcome": "must call the fire department and warn the residents",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "OBLIGATION",
+        "quantities": [],
+        "source_proposition": "The coordinator must call and warn",
+        "clause_ids": [
+          "C2"
+        ],
+        "generated_source_proposition": "The coordinator must call and warn",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "The coordinator must call and warn",
+          "bound_span": "The coordinator must call and warn",
+          "bound_clause_id": "C2",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "Pr6",
+        "party_id": "P1",
+        "outcome": "must remain silent",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "OBLIGATION",
+        "quantities": [],
+        "source_proposition": "or remain silent",
+        "clause_ids": [
+          "C2"
+        ],
+        "generated_source_proposition": "or remain silent",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "or remain silent",
+          "bound_span": "or remain silent",
+          "bound_clause_id": "C2",
+          "score": 1.0
+        }
+      }
+    ],
+    "unresolved_source_spans": [],
+    "provenance_bindings": [
+      {
+        "proposition_id": "Pr1",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "The coordinator calls the fire department",
+        "bound_span": "The coordinator calls the fire department",
+        "bound_clause_id": "C0",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "Pr2",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "warns the residents",
+        "bound_span": "warns the residents",
+        "bound_clause_id": "C0",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "Pr3",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "enabling an evacuation",
+        "bound_span": "enabling an evacuation",
+        "bound_clause_id": "C0",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "Pr4",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "the coordinator remains silent",
+        "bound_span": "the coordinator remains silent",
+        "bound_clause_id": "C1",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "Pr5",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "The coordinator must call and warn",
+        "bound_span": "The coordinator must call and warn",
+        "bound_clause_id": "C2",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "Pr6",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "or remain silent",
+        "bound_span": "or remain silent",
+        "bound_clause_id": "C2",
+        "score": 1.0
+      }
+    ],
+    "targeted_resolution_audit": []
+  },
+  "diagnostic_before": {
+    "gold_node_count": 3,
+    "present_neutral_node_count": 1,
+    "neutral_node_recall": 0.3333333333333333,
+    "fused_gold_node_count": 0,
+    "alignments": [
+      {
+        "action_id": "A0",
+        "gold_event": "coordinator calls the fire department",
+        "matched_proposition_id": "Pr1__NEUTRAL__A0",
+        "method": "EXACT",
+        "score": 1.0,
+        "status": "MATCHED",
+        "candidate_count": 6,
+        "unresolved_reason": null
+      },
+      {
+        "action_id": "A0",
+        "gold_event": "evacuation is possible",
+        "matched_proposition_id": null,
+        "method": null,
+        "score": null,
+        "status": "UNRESOLVED",
+        "candidate_count": 6,
+        "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+      },
+      {
+        "action_id": "A0",
+        "gold_event": "coordinator warns the residents",
+        "matched_proposition_id": null,
+        "method": null,
+        "score": null,
+        "status": "UNRESOLVED",
+        "candidate_count": 6,
+        "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+      }
+    ]
+  },
+  "diagnostic_after": {
+    "gold_node_count": 3,
+    "present_neutral_node_count": 1,
+    "neutral_node_recall": 0.3333333333333333,
+    "fused_gold_node_count": 0,
+    "alignments": [
+      {
+        "action_id": "A0",
+        "gold_event": "coordinator calls the fire department",
+        "matched_proposition_id": "Pr1__NEUTRAL__A0",
+        "method": "EXACT",
+        "score": 1.0,
+        "status": "MATCHED",
+        "candidate_count": 6,
+        "unresolved_reason": null
+      },
+      {
+        "action_id": "A0",
+        "gold_event": "evacuation is possible",
+        "matched_proposition_id": null,
+        "method": null,
+        "score": null,
+        "status": "UNRESOLVED",
+        "candidate_count": 6,
+        "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+      },
+      {
+        "action_id": "A0",
+        "gold_event": "coordinator warns the residents",
+        "matched_proposition_id": null,
+        "method": null,
+        "score": null,
+        "status": "UNRESOLVED",
+        "candidate_count": 6,
+        "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+      }
+    ]
+  },
+  "accepted_addition_ids": [],
+  "gold_useful_added_ids": []
+}

@@ -1,0 +1,122 @@
+{
+  "version": "1.0",
+  "purpose": "Frozen structural challenge for pre-LLM gold-pair retention.",
+  "cases": [
+    {
+      "id": "cross_clause_antidote",
+      "family": "CROSS_CLAUSE_CAUSALITY",
+      "scenario": "The clinic gives its only antidote to Mara. Consequently, Jo receives no antidote. Anyone who receives no antidote dies. The clinician must give the antidote either to Mara or to Jo.",
+      "actions": ["Give the antidote to Mara", "Give the antidote to Jo"],
+      "gold_pairs": [{"action_id": "A0", "source_event": "Jo receives no antidote", "target_event": "Jo dies", "relation": "CAUSES"}]
+    },
+    {
+      "id": "cross_clause_power",
+      "family": "CROSS_CLAUSE_CAUSALITY",
+      "scenario": "The operator disconnects power from the cooling pump. The pump then stops circulating coolant. Without circulating coolant, the reactor overheats. The operator must disconnect the pump or keep it powered.",
+      "actions": ["Disconnect power from the cooling pump", "Keep the cooling pump powered"],
+      "gold_pairs": [
+        {"action_id": "A0", "source_event": "operator disconnects power", "target_event": "pump stops circulating coolant", "relation": "CAUSES"},
+        {"action_id": "A0", "source_event": "pump stops circulating coolant", "target_event": "reactor overheats", "relation": "CAUSES"}
+      ]
+    },
+    {
+      "id": "long_conditional_alarm",
+      "family": "LONG_DISTANCE_CONDITIONAL",
+      "scenario": "If the alarm remains armed overnight, a sensor in the rear corridor will stay active. The guard will not know the alarm status before choosing. Opening the rear door causes the siren to sound only when that sensor is active. The guard must open the rear door or keep it closed.",
+      "actions": ["Open the rear door", "Keep the rear door closed"],
+      "gold_pairs": [{"action_id": "A0", "source_event": "opening the rear door", "target_event": "siren sounds", "relation": "AMBIGUOUS"}]
+    },
+    {
+      "id": "long_conditional_filter",
+      "family": "LONG_DISTANCE_CONDITIONAL",
+      "scenario": "Provided that the auxiliary filter has been installed, the exhaust channel can remove the toxic vapor. The supervisor cannot verify installation today. Starting the channel prevents vapor from entering the ward only if the filter is present. The supervisor must start the channel or leave it off.",
+      "actions": ["Start the exhaust channel", "Leave the exhaust channel off"],
+      "gold_pairs": [{"action_id": "A0", "source_event": "starting the exhaust channel", "target_event": "vapor enters the ward", "relation": "AMBIGUOUS"}]
+    },
+    {
+      "id": "shared_subject_valves",
+      "family": "SHARED_SUBJECT_CONJUNCTION",
+      "scenario": "The technician closes the intake valve and opens the relief valve, reducing pressure in the vessel. Alternatively, the technician leaves both valves unchanged. The technician must choose one procedure.",
+      "actions": ["Close the intake valve and open the relief valve", "Leave both valves unchanged"],
+      "gold_pairs": [
+        {"action_id": "A0", "source_event": "technician closes the intake valve", "target_event": "pressure is reduced", "relation": "CAUSES"},
+        {"action_id": "A0", "source_event": "technician opens the relief valve", "target_event": "pressure is reduced", "relation": "CAUSES"}
+      ]
+    },
+    {
+      "id": "shared_subject_notifications",
+      "family": "SHARED_SUBJECT_CONJUNCTION",
+      "scenario": "The coordinator calls the fire department and warns the residents, enabling an evacuation. Alternatively, the coordinator remains silent. The coordinator must call and warn or remain silent.",
+      "actions": ["Call the fire department and warn the residents", "Remain silent"],
+      "gold_pairs": [
+        {"action_id": "A0", "source_event": "coordinator calls the fire department", "target_event": "evacuation is possible", "relation": "ENABLES"},
+        {"action_id": "A0", "source_event": "coordinator warns the residents", "target_event": "evacuation is possible", "relation": "ENABLES"}
+      ]
+    },
+    {
+      "id": "ellipsis_generator",
+      "family": "ELLIPSIS",
+      "scenario": "Sending the fuel to the eastern generator keeps its hospital powered. Sending it to the western generator would do the same for the western hospital. The authority has fuel for only one generator and must choose east or west.",
+      "actions": ["Send the fuel to the eastern generator", "Send the fuel to the western generator"],
+      "gold_pairs": [{"action_id": "A1", "source_event": "sending fuel to the western generator", "target_event": "western hospital remains powered", "relation": "CAUSES"}]
+    },
+    {
+      "id": "ellipsis_staffing",
+      "family": "ELLIPSIS",
+      "scenario": "Assigning the only specialist to Ward A allows its surgery to proceed. Assigning her to Ward B does too. The administrator must assign the specialist to Ward A or Ward B.",
+      "actions": ["Assign the specialist to Ward A", "Assign the specialist to Ward B"],
+      "gold_pairs": [{"action_id": "A1", "source_event": "assigning the specialist to Ward B", "target_event": "Ward B surgery proceeds", "relation": "ENABLES"}]
+    },
+    {
+      "id": "embedded_authorization",
+      "family": "EMBEDDED_CLAUSE",
+      "scenario": "The director authorizes the engineer to restart the ventilation system. Restarting it clears smoke from the shelter. Alternatively, the director withholds authorization. The director must authorize the restart or withhold authorization.",
+      "actions": ["Authorize the engineer to restart ventilation", "Withhold authorization"],
+      "gold_pairs": [
+        {"action_id": "A0", "source_event": "director authorizes the engineer", "target_event": "engineer restarts ventilation", "relation": "ENABLES"},
+        {"action_id": "A0", "source_event": "engineer restarts ventilation", "target_event": "smoke clears from the shelter", "relation": "CAUSES"}
+      ]
+    },
+    {
+      "id": "embedded_request",
+      "family": "EMBEDDED_CLAUSE",
+      "scenario": "The physician asks the nurse to administer the antidote. Administering it may save the patient. Alternatively, the physician asks the nurse to wait. The physician must request administration or request delay.",
+      "actions": ["Ask the nurse to administer the antidote", "Ask the nurse to wait"],
+      "gold_pairs": [{"action_id": "A0", "source_event": "physician asks the nurse", "target_event": "nurse administers the antidote", "relation": "ENABLES"}]
+    },
+    {
+      "id": "appositive_engineer",
+      "family": "APPOSITIVE",
+      "scenario": "Mina, the only engineer certified to operate the floodgate, opens it and lowers the reservoir level. Alternatively, Mina keeps it closed. Mina must open the floodgate or keep it closed.",
+      "actions": ["Open the floodgate", "Keep the floodgate closed"],
+      "gold_pairs": [{"action_id": "A0", "source_event": "Mina opens the floodgate", "target_event": "reservoir level falls", "relation": "CAUSES"}]
+    },
+    {
+      "id": "appositive_medicine",
+      "family": "APPOSITIVE",
+      "scenario": "The physician gives the vial to Imani, the patient with the severe infection. Receiving the vial gives Imani a chance to recover. Alternatively, the physician gives it to Luca. The physician must choose Imani or Luca.",
+      "actions": ["Give the vial to Imani", "Give the vial to Luca"],
+      "gold_pairs": [{"action_id": "A0", "source_event": "Imani receives the vial", "target_event": "Imani may recover", "relation": "ENABLES"}]
+    },
+    {
+      "id": "negated_subordinate_backup",
+      "family": "NEGATED_SUBORDINATE_CLAUSE",
+      "scenario": "Activating the backup does not cause the main server to shut down, although it does start a separate cooling fan. The administrator must activate the backup or leave it inactive.",
+      "actions": ["Activate the backup", "Leave the backup inactive"],
+      "gold_pairs": [
+        {"action_id": "A0", "source_event": "activating the backup", "target_event": "main server shuts down", "relation": "NONE"},
+        {"action_id": "A0", "source_event": "activating the backup", "target_event": "cooling fan starts", "relation": "CAUSES"}
+      ]
+    },
+    {
+      "id": "negated_subordinate_valve",
+      "family": "NEGATED_SUBORDINATE_CLAUSE",
+      "scenario": "Closing the auxiliary valve does not prevent the primary pump from circulating water, even though it stops flow through the auxiliary pipe. The technician must close the auxiliary valve or leave it open.",
+      "actions": ["Close the auxiliary valve", "Leave the auxiliary valve open"],
+      "gold_pairs": [
+        {"action_id": "A0", "source_event": "closing the auxiliary valve", "target_event": "primary pump circulates water", "relation": "NONE"},
+        {"action_id": "A0", "source_event": "closing the auxiliary valve", "target_event": "flow through the auxiliary pipe stops", "relation": "CAUSES"}
+      ]
+    }
+  ]
+}

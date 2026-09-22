@@ -1,0 +1,97 @@
+{
+  "aggregate": {
+    "aligned_gold_edge_count": 0,
+    "aligned_gold_node_count": 1,
+    "audit_complete_count": 0,
+    "audit_novelty_rate": null,
+    "audit_only_precision": null,
+    "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+    "audit_only_relation_count": 0,
+    "case_count": 1,
+    "correct_audit_only_relation_count": 0,
+    "correct_audit_only_relations": 0,
+    "gold_edge_count": 1,
+    "gold_node_count": 2,
+    "gold_relations_absent_from_scaffold": 0,
+    "node_recall": 0.5,
+    "pairwise_gold_accuracy_given_aligned_nodes": null,
+    "scaffold_gold_accuracy_given_aligned_nodes": null,
+    "stage_one_admitted_count": 0
+  },
+  "evidence_augmented": true,
+  "manifest": "evals/topology_structure_expanded_challenge.json",
+  "max_pairs": 0,
+  "model": "o3",
+  "protocol": "STAGED_NODE_GENERATION_PILOT",
+  "report_version": "1.0",
+  "results": [
+    {
+      "alignments": [
+        {
+          "action_id": "A1",
+          "candidate_count": 3,
+          "gold_event": "Mina opens the floodgate",
+          "matched_proposition_id": "Pr2",
+          "method": "EXACT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A1",
+          "candidate_count": 3,
+          "gold_event": "reservoir level falls",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        }
+      ],
+      "audit_artifact": null,
+      "audit_status": "NOT_RUN",
+      "elapsed_seconds": 28.205,
+      "exit_code": 0,
+      "family": "APPOSITIVE",
+      "id": "appositive_engineer",
+      "index": 10,
+      "log": "eval_outputs/targeted-resolution-assertion-gate-smoke-20260921/11_appositive_engineer.log",
+      "metrics": {
+        "aligned_gold_edge_count": 0,
+        "aligned_gold_node_count": 1,
+        "audit_novelty_rate": null,
+        "audit_only_precision": null,
+        "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [],
+        "gold_edge_count": 1,
+        "gold_node_count": 2,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 0.5,
+        "pairwise_gold_accuracy_given_aligned_nodes": null,
+        "relation_recall_conditional_on_node_availability": null,
+        "scaffold_gold_accuracy_given_aligned_nodes": null
+      },
+      "performance": "eval_outputs/targeted-resolution-assertion-gate-smoke-20260921/11_appositive_engineer.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A1",
+        "A1": "A0"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A1",
+          "relation": "CAUSES",
+          "source_event": "Mina opens the floodgate",
+          "target_event": "reservoir level falls"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260921_001552_503593.json",
+      "stage_one_status": "REJECTED",
+      "world_committed": true
+    }
+  ],
+  "syntactic_resolution_obligations": false,
+  "targeted_semantic_resolution": true
+}

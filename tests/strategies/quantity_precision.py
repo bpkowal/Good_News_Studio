@@ -21,15 +21,6 @@ _VAGUE_SOURCES = (
     "More than 500 residents are at risk; thousands may die.",
 )
 
-_PRESERVING_CLAIMS = (
-    "thousands of lives are at stake",
-    "the admitted quantity remains thousands",
-    "hundreds of residents remain endangered",
-    "dozens of workers face the flood",
-    "millions of records would be erased",
-    "several thousand residents remain at risk",
-)
-
 _ESCALATING_CLAIMS = (
     "the purge would directly save about 10,000 people",
     "roughly 10000 deaths follow from refraining",
@@ -80,9 +71,19 @@ def quantity_precision_cases(draw) -> QuantityPrecisionCase:
         return QuantityPrecisionCase(
             source=source, claim=claim, expect_escalation=True,
         )
-    claim = draw(st.sampled_from(_PRESERVING_CLAIMS))
-    # Preserving claims that name a different collective than the source are
-    # not escalations (no digit sharpening).
+    folded = source.casefold()
+    if "thousand" in folded:
+        claim = draw(st.sampled_from((
+            "thousands of lives are at stake",
+            "the admitted quantity remains thousands",
+            "several thousand residents remain at risk",
+        )))
+    elif "hundred" in folded:
+        claim = "hundreds of residents remain endangered"
+    elif "dozen" in folded:
+        claim = "dozens of workers face the flood"
+    else:
+        claim = "millions of records would be erased"
     return QuantityPrecisionCase(
         source=source, claim=claim, expect_escalation=False,
     )

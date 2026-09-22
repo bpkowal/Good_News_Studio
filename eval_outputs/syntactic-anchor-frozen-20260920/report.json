@@ -1,0 +1,3982 @@
+{
+  "report_version": "1.0",
+  "protocol": "READ_ONLY_SPACY_GOLD_PREDICATE_ANCHOR_RECALL",
+  "manifest": "evals/pairwise_relation_challenge_set.json",
+  "model": "en_core_web_sm",
+  "aggregate": {
+    "gold_event_count": 17,
+    "matched_gold_event_count": 17,
+    "predicate_anchor_recall": 1.0,
+    "root_lemma_fallback_match_count": 1,
+    "multi_anchor_gold_event_count": 9
+  },
+  "cases": [
+    {
+      "id": "pair_reverse_causality",
+      "family": "REVERSED_CAUSALITY",
+      "gold_event_count": 2,
+      "matched_gold_event_count": 2,
+      "gold_events": [
+        {
+          "gold_event": "pulling the release",
+          "gold_predicate_lemmas": [
+            "pull"
+          ],
+          "status": "MATCHED_PREDICATE_LEMMA",
+          "predicate_anchor_ids": [
+            "S0_T0",
+            "S1_T20"
+          ]
+        },
+        {
+          "gold_event": "opens the gate",
+          "gold_predicate_lemmas": [
+            "open"
+          ],
+          "status": "MATCHED_PREDICATE_LEMMA",
+          "predicate_anchor_ids": [
+            "S0_T3"
+          ]
+        }
+      ],
+      "annotation": {
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "Pulling the release opens the gate, and the open gate lets the water drain. The operator must either pull the release or leave it untouched.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "Pulling the release opens the gate, and the open gate lets the water drain.",
+            "start_char": 0,
+            "end_char": 75,
+            "predicate_ids": [
+              "S0_T0",
+              "S0_T3",
+              "S0_T11"
+            ]
+          },
+          {
+            "sentence_index": 1,
+            "text": "The operator must either pull the release or leave it untouched.",
+            "start_char": 76,
+            "end_char": 140,
+            "predicate_ids": [
+              "S1_T20",
+              "S1_T24"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T0",
+            "sentence_index": 0,
+            "token_index": 0,
+            "text": "Pulling",
+            "lemma": "pull",
+            "pos": "VERB",
+            "dependency": "csubj",
+            "head_token_index": 3,
+            "head_text": "opens",
+            "clause_head": false,
+            "subtree_span": "Pulling the release",
+            "subjects": [],
+            "objects": [
+              "release"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "release",
+                "lemma": "release",
+                "dependency": "dobj"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T3",
+            "sentence_index": 0,
+            "token_index": 3,
+            "text": "opens",
+            "lemma": "open",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 3,
+            "head_text": "opens",
+            "clause_head": true,
+            "subtree_span": "Pulling the release opens the gate, and the open gate lets the water drain.",
+            "subjects": [
+              "Pulling"
+            ],
+            "objects": [
+              "gate"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [
+              "lets"
+            ],
+            "children": [
+              {
+                "text": "Pulling",
+                "lemma": "pull",
+                "dependency": "csubj"
+              },
+              {
+                "text": "gate",
+                "lemma": "gate",
+                "dependency": "dobj"
+              },
+              {
+                "text": ",",
+                "lemma": ",",
+                "dependency": "punct"
+              },
+              {
+                "text": "and",
+                "lemma": "and",
+                "dependency": "cc"
+              },
+              {
+                "text": "lets",
+                "lemma": "let",
+                "dependency": "conj"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T11",
+            "sentence_index": 0,
+            "token_index": 11,
+            "text": "lets",
+            "lemma": "let",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 3,
+            "head_text": "opens",
+            "clause_head": true,
+            "subtree_span": "the open gate lets the water drain.",
+            "subjects": [
+              "gate"
+            ],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "gate",
+                "lemma": "gate",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "drain",
+                "lemma": "drain",
+                "dependency": "ccomp"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S1_T20",
+            "sentence_index": 1,
+            "token_index": 20,
+            "text": "pull",
+            "lemma": "pull",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 20,
+            "head_text": "pull",
+            "clause_head": true,
+            "subtree_span": "The operator must either pull the release or leave it untouched.",
+            "subjects": [
+              "operator"
+            ],
+            "objects": [
+              "release"
+            ],
+            "negations": [],
+            "modals": [
+              "must"
+            ],
+            "conditional_markers": [],
+            "conjunctions": [
+              "leave"
+            ],
+            "children": [
+              {
+                "text": "operator",
+                "lemma": "operator",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "must",
+                "lemma": "must",
+                "dependency": "aux"
+              },
+              {
+                "text": "either",
+                "lemma": "either",
+                "dependency": "preconj"
+              },
+              {
+                "text": "release",
+                "lemma": "release",
+                "dependency": "dobj"
+              },
+              {
+                "text": "or",
+                "lemma": "or",
+                "dependency": "cc"
+              },
+              {
+                "text": "leave",
+                "lemma": "leave",
+                "dependency": "conj"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S1_T24",
+            "sentence_index": 1,
+            "token_index": 24,
+            "text": "leave",
+            "lemma": "leave",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 20,
+            "head_text": "pull",
+            "clause_head": true,
+            "subtree_span": "leave it untouched",
+            "subjects": [],
+            "objects": [
+              "it",
+              "untouched"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "it",
+                "lemma": "it",
+                "dependency": "dobj"
+              },
+              {
+                "text": "untouched",
+                "lemma": "untouched",
+                "dependency": "oprd"
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "text": "Pulling",
+            "lemma": "pull",
+            "pos": "VERB",
+            "dependency": "csubj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 1,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 2,
+            "text": "release",
+            "lemma": "release",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 0
+          },
+          {
+            "token_index": 3,
+            "text": "opens",
+            "lemma": "open",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 4,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 5,
+            "text": "gate",
+            "lemma": "gate",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 6,
+            "text": ",",
+            "lemma": ",",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 7,
+            "text": "and",
+            "lemma": "and",
+            "pos": "CCONJ",
+            "dependency": "cc",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 8,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 10
+          },
+          {
+            "token_index": 9,
+            "text": "open",
+            "lemma": "open",
+            "pos": "ADJ",
+            "dependency": "amod",
+            "head_token_index": 10
+          },
+          {
+            "token_index": 10,
+            "text": "gate",
+            "lemma": "gate",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 11
+          },
+          {
+            "token_index": 11,
+            "text": "lets",
+            "lemma": "let",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 12,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 14
+          },
+          {
+            "token_index": 13,
+            "text": "water",
+            "lemma": "water",
+            "pos": "NOUN",
+            "dependency": "compound",
+            "head_token_index": 14
+          },
+          {
+            "token_index": 14,
+            "text": "drain",
+            "lemma": "drain",
+            "pos": "NOUN",
+            "dependency": "ccomp",
+            "head_token_index": 11
+          },
+          {
+            "token_index": 15,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 11
+          },
+          {
+            "token_index": 16,
+            "text": "The",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 17
+          },
+          {
+            "token_index": 17,
+            "text": "operator",
+            "lemma": "operator",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 20
+          },
+          {
+            "token_index": 18,
+            "text": "must",
+            "lemma": "must",
+            "pos": "AUX",
+            "dependency": "aux",
+            "head_token_index": 20
+          },
+          {
+            "token_index": 19,
+            "text": "either",
+            "lemma": "either",
+            "pos": "CCONJ",
+            "dependency": "preconj",
+            "head_token_index": 20
+          },
+          {
+            "token_index": 20,
+            "text": "pull",
+            "lemma": "pull",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 20
+          },
+          {
+            "token_index": 21,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 22
+          },
+          {
+            "token_index": 22,
+            "text": "release",
+            "lemma": "release",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 20
+          },
+          {
+            "token_index": 23,
+            "text": "or",
+            "lemma": "or",
+            "pos": "CCONJ",
+            "dependency": "cc",
+            "head_token_index": 20
+          },
+          {
+            "token_index": 24,
+            "text": "leave",
+            "lemma": "leave",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 20
+          },
+          {
+            "token_index": 25,
+            "text": "it",
+            "lemma": "it",
+            "pos": "PRON",
+            "dependency": "dobj",
+            "head_token_index": 24
+          },
+          {
+            "token_index": 26,
+            "text": "untouched",
+            "lemma": "untouched",
+            "pos": "ADJ",
+            "dependency": "oprd",
+            "head_token_index": 24
+          },
+          {
+            "token_index": 27,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 20
+          }
+        ]
+      }
+    },
+    {
+      "id": "pair_missing_cross_clause_edge",
+      "family": "MISSING_CAUSAL_EDGE",
+      "gold_event_count": 2,
+      "matched_gold_event_count": 2,
+      "gold_events": [
+        {
+          "gold_event": "Jo receives no antidote",
+          "gold_predicate_lemmas": [
+            "receive"
+          ],
+          "status": "MATCHED_PREDICATE_LEMMA",
+          "predicate_anchor_ids": [
+            "S1_T11",
+            "S2_T17"
+          ]
+        },
+        {
+          "gold_event": "Jo dies",
+          "gold_predicate_lemmas": [
+            "die"
+          ],
+          "status": "MATCHED_PREDICATE_LEMMA",
+          "predicate_anchor_ids": [
+            "S2_T20"
+          ]
+        }
+      ],
+      "annotation": {
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "The clinic gives its only antidote to Mara. Jo consequently receives no antidote. Anyone who receives no antidote dies.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "The clinic gives its only antidote to Mara.",
+            "start_char": 0,
+            "end_char": 43,
+            "predicate_ids": [
+              "S0_T2"
+            ]
+          },
+          {
+            "sentence_index": 1,
+            "text": "Jo consequently receives no antidote.",
+            "start_char": 44,
+            "end_char": 81,
+            "predicate_ids": [
+              "S1_T11"
+            ]
+          },
+          {
+            "sentence_index": 2,
+            "text": "Anyone who receives no antidote dies.",
+            "start_char": 82,
+            "end_char": 119,
+            "predicate_ids": [
+              "S2_T17",
+              "S2_T20"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T2",
+            "sentence_index": 0,
+            "token_index": 2,
+            "text": "gives",
+            "lemma": "give",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 2,
+            "head_text": "gives",
+            "clause_head": true,
+            "subtree_span": "The clinic gives its only antidote to Mara.",
+            "subjects": [
+              "clinic"
+            ],
+            "objects": [
+              "antidote"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "clinic",
+                "lemma": "clinic",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "antidote",
+                "lemma": "antidote",
+                "dependency": "dobj"
+              },
+              {
+                "text": "to",
+                "lemma": "to",
+                "dependency": "dative"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S1_T11",
+            "sentence_index": 1,
+            "token_index": 11,
+            "text": "receives",
+            "lemma": "receive",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 11,
+            "head_text": "receives",
+            "clause_head": true,
+            "subtree_span": "Jo consequently receives no antidote.",
+            "subjects": [
+              "Jo"
+            ],
+            "objects": [
+              "antidote"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "Jo",
+                "lemma": "jo",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "consequently",
+                "lemma": "consequently",
+                "dependency": "advmod"
+              },
+              {
+                "text": "antidote",
+                "lemma": "antidote",
+                "dependency": "dobj"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S2_T17",
+            "sentence_index": 2,
+            "token_index": 17,
+            "text": "receives",
+            "lemma": "receive",
+            "pos": "VERB",
+            "dependency": "relcl",
+            "head_token_index": 15,
+            "head_text": "Anyone",
+            "clause_head": true,
+            "subtree_span": "who receives no antidote",
+            "subjects": [
+              "who"
+            ],
+            "objects": [
+              "antidote"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "who",
+                "lemma": "who",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "antidote",
+                "lemma": "antidote",
+                "dependency": "dobj"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S2_T20",
+            "sentence_index": 2,
+            "token_index": 20,
+            "text": "dies",
+            "lemma": "die",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 20,
+            "head_text": "dies",
+            "clause_head": true,
+            "subtree_span": "Anyone who receives no antidote dies.",
+            "subjects": [
+              "Anyone"
+            ],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "Anyone",
+                "lemma": "anyone",
+                "dependency": "nsubj"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "text": "The",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 1
+          },
+          {
+            "token_index": 1,
+            "text": "clinic",
+            "lemma": "clinic",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 2,
+            "text": "gives",
+            "lemma": "give",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 3,
+            "text": "its",
+            "lemma": "its",
+            "pos": "PRON",
+            "dependency": "poss",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 4,
+            "text": "only",
+            "lemma": "only",
+            "pos": "ADJ",
+            "dependency": "amod",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 5,
+            "text": "antidote",
+            "lemma": "antidote",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 6,
+            "text": "to",
+            "lemma": "to",
+            "pos": "ADP",
+            "dependency": "dative",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 7,
+            "text": "Mara",
+            "lemma": "mara",
+            "pos": "PROPN",
+            "dependency": "pobj",
+            "head_token_index": 6
+          },
+          {
+            "token_index": 8,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 9,
+            "text": "Jo",
+            "lemma": "jo",
+            "pos": "PROPN",
+            "dependency": "nsubj",
+            "head_token_index": 11
+          },
+          {
+            "token_index": 10,
+            "text": "consequently",
+            "lemma": "consequently",
+            "pos": "ADV",
+            "dependency": "advmod",
+            "head_token_index": 11
+          },
+          {
+            "token_index": 11,
+            "text": "receives",
+            "lemma": "receive",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 11
+          },
+          {
+            "token_index": 12,
+            "text": "no",
+            "lemma": "no",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 13
+          },
+          {
+            "token_index": 13,
+            "text": "antidote",
+            "lemma": "antidote",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 11
+          },
+          {
+            "token_index": 14,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 11
+          },
+          {
+            "token_index": 15,
+            "text": "Anyone",
+            "lemma": "anyone",
+            "pos": "PRON",
+            "dependency": "nsubj",
+            "head_token_index": 20
+          },
+          {
+            "token_index": 16,
+            "text": "who",
+            "lemma": "who",
+            "pos": "PRON",
+            "dependency": "nsubj",
+            "head_token_index": 17
+          },
+          {
+            "token_index": 17,
+            "text": "receives",
+            "lemma": "receive",
+            "pos": "VERB",
+            "dependency": "relcl",
+            "head_token_index": 15
+          },
+          {
+            "token_index": 18,
+            "text": "no",
+            "lemma": "no",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 19
+          },
+          {
+            "token_index": 19,
+            "text": "antidote",
+            "lemma": "antidote",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 17
+          },
+          {
+            "token_index": 20,
+            "text": "dies",
+            "lemma": "die",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 20
+          },
+          {
+            "token_index": 21,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 20
+          }
+        ]
+      }
+    },
+    {
+      "id": "pair_enable_not_cause",
+      "family": "WRONG_CAUSAL_LABEL",
+      "gold_event_count": 2,
+      "matched_gold_event_count": 2,
+      "gold_events": [
+        {
+          "gold_event": "issuing the access card",
+          "gold_predicate_lemmas": [
+            "issue"
+          ],
+          "status": "MATCHED_PREDICATE_LEMMA",
+          "predicate_anchor_ids": [
+            "S0_T0",
+            "S1_T22"
+          ]
+        },
+        {
+          "gold_event": "Noor enters the laboratory",
+          "gold_predicate_lemmas": [
+            "enter"
+          ],
+          "status": "MATCHED_PREDICATE_LEMMA",
+          "predicate_anchor_ids": [
+            "S0_T7",
+            "S0_T17"
+          ]
+        }
+      ],
+      "annotation": {
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "Issuing the access card enables Noor to enter the laboratory, but Noor may decide not to enter. The manager may issue the card or withhold it.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "Issuing the access card enables Noor to enter the laboratory, but Noor may decide not to enter.",
+            "start_char": 0,
+            "end_char": 95,
+            "predicate_ids": [
+              "S0_T0",
+              "S0_T4",
+              "S0_T7",
+              "S0_T14",
+              "S0_T17"
+            ]
+          },
+          {
+            "sentence_index": 1,
+            "text": "The manager may issue the card or withhold it.",
+            "start_char": 96,
+            "end_char": 142,
+            "predicate_ids": [
+              "S1_T22",
+              "S1_T26"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T0",
+            "sentence_index": 0,
+            "token_index": 0,
+            "text": "Issuing",
+            "lemma": "issue",
+            "pos": "VERB",
+            "dependency": "csubj",
+            "head_token_index": 4,
+            "head_text": "enables",
+            "clause_head": false,
+            "subtree_span": "Issuing the access card",
+            "subjects": [],
+            "objects": [
+              "card"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "card",
+                "lemma": "card",
+                "dependency": "dobj"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T4",
+            "sentence_index": 0,
+            "token_index": 4,
+            "text": "enables",
+            "lemma": "enable",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 4,
+            "head_text": "enables",
+            "clause_head": true,
+            "subtree_span": "Issuing the access card enables Noor to enter the laboratory, but Noor may decide not to enter.",
+            "subjects": [
+              "Issuing"
+            ],
+            "objects": [
+              "Noor"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [
+              "decide"
+            ],
+            "children": [
+              {
+                "text": "Issuing",
+                "lemma": "issue",
+                "dependency": "csubj"
+              },
+              {
+                "text": "Noor",
+                "lemma": "noor",
+                "dependency": "dobj"
+              },
+              {
+                "text": "enter",
+                "lemma": "enter",
+                "dependency": "xcomp"
+              },
+              {
+                "text": ",",
+                "lemma": ",",
+                "dependency": "punct"
+              },
+              {
+                "text": "but",
+                "lemma": "but",
+                "dependency": "cc"
+              },
+              {
+                "text": "decide",
+                "lemma": "decide",
+                "dependency": "conj"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T7",
+            "sentence_index": 0,
+            "token_index": 7,
+            "text": "enter",
+            "lemma": "enter",
+            "pos": "VERB",
+            "dependency": "xcomp",
+            "head_token_index": 4,
+            "head_text": "enables",
+            "clause_head": true,
+            "subtree_span": "to enter the laboratory",
+            "subjects": [],
+            "objects": [
+              "laboratory"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "to",
+                "lemma": "to",
+                "dependency": "aux"
+              },
+              {
+                "text": "laboratory",
+                "lemma": "laboratory",
+                "dependency": "dobj"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T14",
+            "sentence_index": 0,
+            "token_index": 14,
+            "text": "decide",
+            "lemma": "decide",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 4,
+            "head_text": "enables",
+            "clause_head": true,
+            "subtree_span": "Noor may decide not to enter.",
+            "subjects": [
+              "Noor"
+            ],
+            "objects": [],
+            "negations": [],
+            "modals": [
+              "may"
+            ],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "Noor",
+                "lemma": "noor",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "may",
+                "lemma": "may",
+                "dependency": "aux"
+              },
+              {
+                "text": "enter",
+                "lemma": "enter",
+                "dependency": "xcomp"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T17",
+            "sentence_index": 0,
+            "token_index": 17,
+            "text": "enter",
+            "lemma": "enter",
+            "pos": "VERB",
+            "dependency": "xcomp",
+            "head_token_index": 14,
+            "head_text": "decide",
+            "clause_head": true,
+            "subtree_span": "not to enter",
+            "subjects": [],
+            "objects": [],
+            "negations": [
+              "not"
+            ],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "not",
+                "lemma": "not",
+                "dependency": "neg"
+              },
+              {
+                "text": "to",
+                "lemma": "to",
+                "dependency": "aux"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S1_T22",
+            "sentence_index": 1,
+            "token_index": 22,
+            "text": "issue",
+            "lemma": "issue",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 22,
+            "head_text": "issue",
+            "clause_head": true,
+            "subtree_span": "The manager may issue the card or withhold it.",
+            "subjects": [
+              "manager"
+            ],
+            "objects": [
+              "card"
+            ],
+            "negations": [],
+            "modals": [
+              "may"
+            ],
+            "conditional_markers": [],
+            "conjunctions": [
+              "withhold"
+            ],
+            "children": [
+              {
+                "text": "manager",
+                "lemma": "manager",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "may",
+                "lemma": "may",
+                "dependency": "aux"
+              },
+              {
+                "text": "card",
+                "lemma": "card",
+                "dependency": "dobj"
+              },
+              {
+                "text": "or",
+                "lemma": "or",
+                "dependency": "cc"
+              },
+              {
+                "text": "withhold",
+                "lemma": "withhold",
+                "dependency": "conj"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S1_T26",
+            "sentence_index": 1,
+            "token_index": 26,
+            "text": "withhold",
+            "lemma": "withhold",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 22,
+            "head_text": "issue",
+            "clause_head": true,
+            "subtree_span": "withhold it",
+            "subjects": [],
+            "objects": [
+              "it"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "it",
+                "lemma": "it",
+                "dependency": "dobj"
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "text": "Issuing",
+            "lemma": "issue",
+            "pos": "VERB",
+            "dependency": "csubj",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 1,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 2,
+            "text": "access",
+            "lemma": "access",
+            "pos": "NOUN",
+            "dependency": "compound",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 3,
+            "text": "card",
+            "lemma": "card",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 0
+          },
+          {
+            "token_index": 4,
+            "text": "enables",
+            "lemma": "enable",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 5,
+            "text": "Noor",
+            "lemma": "noor",
+            "pos": "PROPN",
+            "dependency": "dobj",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 6,
+            "text": "to",
+            "lemma": "to",
+            "pos": "PART",
+            "dependency": "aux",
+            "head_token_index": 7
+          },
+          {
+            "token_index": 7,
+            "text": "enter",
+            "lemma": "enter",
+            "pos": "VERB",
+            "dependency": "xcomp",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 8,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 9
+          },
+          {
+            "token_index": 9,
+            "text": "laboratory",
+            "lemma": "laboratory",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 7
+          },
+          {
+            "token_index": 10,
+            "text": ",",
+            "lemma": ",",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 11,
+            "text": "but",
+            "lemma": "but",
+            "pos": "CCONJ",
+            "dependency": "cc",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 12,
+            "text": "Noor",
+            "lemma": "noor",
+            "pos": "PROPN",
+            "dependency": "nsubj",
+            "head_token_index": 14
+          },
+          {
+            "token_index": 13,
+            "text": "may",
+            "lemma": "may",
+            "pos": "AUX",
+            "dependency": "aux",
+            "head_token_index": 14
+          },
+          {
+            "token_index": 14,
+            "text": "decide",
+            "lemma": "decide",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 15,
+            "text": "not",
+            "lemma": "not",
+            "pos": "PART",
+            "dependency": "neg",
+            "head_token_index": 17
+          },
+          {
+            "token_index": 16,
+            "text": "to",
+            "lemma": "to",
+            "pos": "PART",
+            "dependency": "aux",
+            "head_token_index": 17
+          },
+          {
+            "token_index": 17,
+            "text": "enter",
+            "lemma": "enter",
+            "pos": "VERB",
+            "dependency": "xcomp",
+            "head_token_index": 14
+          },
+          {
+            "token_index": 18,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 14
+          },
+          {
+            "token_index": 19,
+            "text": "The",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 20
+          },
+          {
+            "token_index": 20,
+            "text": "manager",
+            "lemma": "manager",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 22
+          },
+          {
+            "token_index": 21,
+            "text": "may",
+            "lemma": "may",
+            "pos": "AUX",
+            "dependency": "aux",
+            "head_token_index": 22
+          },
+          {
+            "token_index": 22,
+            "text": "issue",
+            "lemma": "issue",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 22
+          },
+          {
+            "token_index": 23,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 24
+          },
+          {
+            "token_index": 24,
+            "text": "card",
+            "lemma": "card",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 22
+          },
+          {
+            "token_index": 25,
+            "text": "or",
+            "lemma": "or",
+            "pos": "CCONJ",
+            "dependency": "cc",
+            "head_token_index": 22
+          },
+          {
+            "token_index": 26,
+            "text": "withhold",
+            "lemma": "withhold",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 22
+          },
+          {
+            "token_index": 27,
+            "text": "it",
+            "lemma": "it",
+            "pos": "PRON",
+            "dependency": "dobj",
+            "head_token_index": 26
+          },
+          {
+            "token_index": 28,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 22
+          }
+        ]
+      }
+    },
+    {
+      "id": "pair_prevention",
+      "family": "WRONG_CAUSAL_LABEL",
+      "gold_event_count": 2,
+      "matched_gold_event_count": 2,
+      "gold_events": [
+        {
+          "gold_event": "closing the valve",
+          "gold_predicate_lemmas": [
+            "close"
+          ],
+          "status": "MATCHED_PREDICATE_LEMMA",
+          "predicate_anchor_ids": [
+            "S0_T0",
+            "S1_T14"
+          ]
+        },
+        {
+          "gold_event": "chemical reaches the river",
+          "gold_predicate_lemmas": [
+            "reach"
+          ],
+          "status": "MATCHED_PREDICATE_LEMMA",
+          "predicate_anchor_ids": [
+            "S0_T7"
+          ]
+        }
+      ],
+      "annotation": {
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "Closing the valve prevents the chemical from reaching the river. The technician may close the valve or leave it open.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "Closing the valve prevents the chemical from reaching the river.",
+            "start_char": 0,
+            "end_char": 64,
+            "predicate_ids": [
+              "S0_T0",
+              "S0_T3",
+              "S0_T7"
+            ]
+          },
+          {
+            "sentence_index": 1,
+            "text": "The technician may close the valve or leave it open.",
+            "start_char": 65,
+            "end_char": 117,
+            "predicate_ids": [
+              "S1_T14",
+              "S1_T18"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T0",
+            "sentence_index": 0,
+            "token_index": 0,
+            "text": "Closing",
+            "lemma": "close",
+            "pos": "VERB",
+            "dependency": "csubj",
+            "head_token_index": 3,
+            "head_text": "prevents",
+            "clause_head": false,
+            "subtree_span": "Closing the valve",
+            "subjects": [],
+            "objects": [
+              "valve"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "valve",
+                "lemma": "valve",
+                "dependency": "dobj"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T3",
+            "sentence_index": 0,
+            "token_index": 3,
+            "text": "prevents",
+            "lemma": "prevent",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 3,
+            "head_text": "prevents",
+            "clause_head": true,
+            "subtree_span": "Closing the valve prevents the chemical from reaching the river.",
+            "subjects": [
+              "Closing"
+            ],
+            "objects": [
+              "chemical"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "Closing",
+                "lemma": "close",
+                "dependency": "csubj"
+              },
+              {
+                "text": "chemical",
+                "lemma": "chemical",
+                "dependency": "dobj"
+              },
+              {
+                "text": "from",
+                "lemma": "from",
+                "dependency": "prep"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T7",
+            "sentence_index": 0,
+            "token_index": 7,
+            "text": "reaching",
+            "lemma": "reach",
+            "pos": "VERB",
+            "dependency": "pcomp",
+            "head_token_index": 6,
+            "head_text": "from",
+            "clause_head": false,
+            "subtree_span": "reaching the river",
+            "subjects": [],
+            "objects": [
+              "river"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "river",
+                "lemma": "river",
+                "dependency": "dobj"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S1_T14",
+            "sentence_index": 1,
+            "token_index": 14,
+            "text": "close",
+            "lemma": "close",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 14,
+            "head_text": "close",
+            "clause_head": true,
+            "subtree_span": "The technician may close the valve or leave it open.",
+            "subjects": [
+              "technician"
+            ],
+            "objects": [
+              "valve"
+            ],
+            "negations": [],
+            "modals": [
+              "may"
+            ],
+            "conditional_markers": [],
+            "conjunctions": [
+              "leave"
+            ],
+            "children": [
+              {
+                "text": "technician",
+                "lemma": "technician",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "may",
+                "lemma": "may",
+                "dependency": "aux"
+              },
+              {
+                "text": "valve",
+                "lemma": "valve",
+                "dependency": "dobj"
+              },
+              {
+                "text": "or",
+                "lemma": "or",
+                "dependency": "cc"
+              },
+              {
+                "text": "leave",
+                "lemma": "leave",
+                "dependency": "conj"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S1_T18",
+            "sentence_index": 1,
+            "token_index": 18,
+            "text": "leave",
+            "lemma": "leave",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 14,
+            "head_text": "close",
+            "clause_head": true,
+            "subtree_span": "leave it open",
+            "subjects": [],
+            "objects": [
+              "it",
+              "open"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "it",
+                "lemma": "it",
+                "dependency": "dobj"
+              },
+              {
+                "text": "open",
+                "lemma": "open",
+                "dependency": "oprd"
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "text": "Closing",
+            "lemma": "close",
+            "pos": "VERB",
+            "dependency": "csubj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 1,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 2,
+            "text": "valve",
+            "lemma": "valve",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 0
+          },
+          {
+            "token_index": 3,
+            "text": "prevents",
+            "lemma": "prevent",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 4,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 5,
+            "text": "chemical",
+            "lemma": "chemical",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 6,
+            "text": "from",
+            "lemma": "from",
+            "pos": "ADP",
+            "dependency": "prep",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 7,
+            "text": "reaching",
+            "lemma": "reach",
+            "pos": "VERB",
+            "dependency": "pcomp",
+            "head_token_index": 6
+          },
+          {
+            "token_index": 8,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 9
+          },
+          {
+            "token_index": 9,
+            "text": "river",
+            "lemma": "river",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 7
+          },
+          {
+            "token_index": 10,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 11,
+            "text": "The",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 12
+          },
+          {
+            "token_index": 12,
+            "text": "technician",
+            "lemma": "technician",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 14
+          },
+          {
+            "token_index": 13,
+            "text": "may",
+            "lemma": "may",
+            "pos": "AUX",
+            "dependency": "aux",
+            "head_token_index": 14
+          },
+          {
+            "token_index": 14,
+            "text": "close",
+            "lemma": "close",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 14
+          },
+          {
+            "token_index": 15,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 16
+          },
+          {
+            "token_index": 16,
+            "text": "valve",
+            "lemma": "valve",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 14
+          },
+          {
+            "token_index": 17,
+            "text": "or",
+            "lemma": "or",
+            "pos": "CCONJ",
+            "dependency": "cc",
+            "head_token_index": 14
+          },
+          {
+            "token_index": 18,
+            "text": "leave",
+            "lemma": "leave",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 14
+          },
+          {
+            "token_index": 19,
+            "text": "it",
+            "lemma": "it",
+            "pos": "PRON",
+            "dependency": "dobj",
+            "head_token_index": 18
+          },
+          {
+            "token_index": 20,
+            "text": "open",
+            "lemma": "open",
+            "pos": "ADJ",
+            "dependency": "oprd",
+            "head_token_index": 18
+          },
+          {
+            "token_index": 21,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 14
+          }
+        ]
+      }
+    },
+    {
+      "id": "pair_negated_consequence",
+      "family": "NEGATION",
+      "gold_event_count": 2,
+      "matched_gold_event_count": 2,
+      "gold_events": [
+        {
+          "gold_event": "activating the backup",
+          "gold_predicate_lemmas": [
+            "activate"
+          ],
+          "status": "MATCHED_PREDICATE_LEMMA",
+          "predicate_anchor_ids": [
+            "S0_T0",
+            "S1_T16"
+          ]
+        },
+        {
+          "gold_event": "main server shuts down",
+          "gold_predicate_lemmas": [
+            "shut"
+          ],
+          "status": "MATCHED_ROOT_LEMMA_FALLBACK",
+          "predicate_anchor_ids": [
+            "S0_T10"
+          ]
+        }
+      ],
+      "annotation": {
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "Activating the backup does not cause the main server to shut down. The administrator may activate the backup or refrain.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "Activating the backup does not cause the main server to shut down.",
+            "start_char": 0,
+            "end_char": 66,
+            "predicate_ids": [
+              "S0_T0",
+              "S0_T5",
+              "S0_T10"
+            ]
+          },
+          {
+            "sentence_index": 1,
+            "text": "The administrator may activate the backup or refrain.",
+            "start_char": 67,
+            "end_char": 120,
+            "predicate_ids": [
+              "S1_T16"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T0",
+            "sentence_index": 0,
+            "token_index": 0,
+            "text": "Activating",
+            "lemma": "activate",
+            "pos": "VERB",
+            "dependency": "csubj",
+            "head_token_index": 5,
+            "head_text": "cause",
+            "clause_head": false,
+            "subtree_span": "Activating the backup",
+            "subjects": [],
+            "objects": [
+              "backup"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "backup",
+                "lemma": "backup",
+                "dependency": "dobj"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T5",
+            "sentence_index": 0,
+            "token_index": 5,
+            "text": "cause",
+            "lemma": "cause",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 5,
+            "head_text": "cause",
+            "clause_head": true,
+            "subtree_span": "Activating the backup does not cause the main server to shut down.",
+            "subjects": [
+              "Activating"
+            ],
+            "objects": [
+              "server"
+            ],
+            "negations": [
+              "not"
+            ],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "Activating",
+                "lemma": "activate",
+                "dependency": "csubj"
+              },
+              {
+                "text": "does",
+                "lemma": "do",
+                "dependency": "aux"
+              },
+              {
+                "text": "not",
+                "lemma": "not",
+                "dependency": "neg"
+              },
+              {
+                "text": "server",
+                "lemma": "server",
+                "dependency": "dobj"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T10",
+            "sentence_index": 0,
+            "token_index": 10,
+            "text": "shut",
+            "lemma": "shut",
+            "pos": "VERB",
+            "dependency": "relcl",
+            "head_token_index": 8,
+            "head_text": "server",
+            "clause_head": true,
+            "subtree_span": "to shut down",
+            "subjects": [],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "to",
+                "lemma": "to",
+                "dependency": "aux"
+              },
+              {
+                "text": "down",
+                "lemma": "down",
+                "dependency": "prt"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S1_T16",
+            "sentence_index": 1,
+            "token_index": 16,
+            "text": "activate",
+            "lemma": "activate",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 16,
+            "head_text": "activate",
+            "clause_head": true,
+            "subtree_span": "The administrator may activate the backup or refrain.",
+            "subjects": [
+              "administrator"
+            ],
+            "objects": [
+              "backup"
+            ],
+            "negations": [],
+            "modals": [
+              "may"
+            ],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "administrator",
+                "lemma": "administrator",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "may",
+                "lemma": "may",
+                "dependency": "aux"
+              },
+              {
+                "text": "backup",
+                "lemma": "backup",
+                "dependency": "dobj"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "text": "Activating",
+            "lemma": "activate",
+            "pos": "VERB",
+            "dependency": "csubj",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 1,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 2,
+            "text": "backup",
+            "lemma": "backup",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 0
+          },
+          {
+            "token_index": 3,
+            "text": "does",
+            "lemma": "do",
+            "pos": "AUX",
+            "dependency": "aux",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 4,
+            "text": "not",
+            "lemma": "not",
+            "pos": "PART",
+            "dependency": "neg",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 5,
+            "text": "cause",
+            "lemma": "cause",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 6,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 8
+          },
+          {
+            "token_index": 7,
+            "text": "main",
+            "lemma": "main",
+            "pos": "ADJ",
+            "dependency": "amod",
+            "head_token_index": 8
+          },
+          {
+            "token_index": 8,
+            "text": "server",
+            "lemma": "server",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 9,
+            "text": "to",
+            "lemma": "to",
+            "pos": "PART",
+            "dependency": "aux",
+            "head_token_index": 10
+          },
+          {
+            "token_index": 10,
+            "text": "shut",
+            "lemma": "shut",
+            "pos": "VERB",
+            "dependency": "relcl",
+            "head_token_index": 8
+          },
+          {
+            "token_index": 11,
+            "text": "down",
+            "lemma": "down",
+            "pos": "ADP",
+            "dependency": "prt",
+            "head_token_index": 10
+          },
+          {
+            "token_index": 12,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 13,
+            "text": "The",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 14
+          },
+          {
+            "token_index": 14,
+            "text": "administrator",
+            "lemma": "administrator",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 16
+          },
+          {
+            "token_index": 15,
+            "text": "may",
+            "lemma": "may",
+            "pos": "AUX",
+            "dependency": "aux",
+            "head_token_index": 16
+          },
+          {
+            "token_index": 16,
+            "text": "activate",
+            "lemma": "activate",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 16
+          },
+          {
+            "token_index": 17,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 18
+          },
+          {
+            "token_index": 18,
+            "text": "backup",
+            "lemma": "backup",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 16
+          },
+          {
+            "token_index": 19,
+            "text": "or",
+            "lemma": "or",
+            "pos": "CCONJ",
+            "dependency": "cc",
+            "head_token_index": 18
+          },
+          {
+            "token_index": 20,
+            "text": "refrain",
+            "lemma": "refrain",
+            "pos": "NOUN",
+            "dependency": "conj",
+            "head_token_index": 18
+          },
+          {
+            "token_index": 21,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 16
+          }
+        ]
+      }
+    },
+    {
+      "id": "pair_conditional_cause",
+      "family": "CONDITIONAL_CAUSALITY",
+      "gold_event_count": 2,
+      "matched_gold_event_count": 2,
+      "gold_events": [
+        {
+          "gold_event": "opening the door",
+          "gold_predicate_lemmas": [
+            "open"
+          ],
+          "status": "MATCHED_PREDICATE_LEMMA",
+          "predicate_anchor_ids": [
+            "S0_T6",
+            "S2_T25"
+          ]
+        },
+        {
+          "gold_event": "siren sounds",
+          "gold_predicate_lemmas": [
+            "sound"
+          ],
+          "status": "MATCHED_PREDICATE_LEMMA",
+          "predicate_anchor_ids": [
+            "S0_T13"
+          ]
+        }
+      ],
+      "annotation": {
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "If the alarm is armed, opening the door causes the siren to sound. The alarm's status is unknown. The guard may open the door or keep it closed.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "If the alarm is armed, opening the door causes the siren to sound.",
+            "start_char": 0,
+            "end_char": 66,
+            "predicate_ids": [
+              "S0_T4",
+              "S0_T6",
+              "S0_T9",
+              "S0_T13"
+            ]
+          },
+          {
+            "sentence_index": 1,
+            "text": "The alarm's status is unknown.",
+            "start_char": 67,
+            "end_char": 97,
+            "predicate_ids": [
+              "S1_T19"
+            ]
+          },
+          {
+            "sentence_index": 2,
+            "text": "The guard may open the door or keep it closed.",
+            "start_char": 98,
+            "end_char": 144,
+            "predicate_ids": [
+              "S2_T25",
+              "S2_T29",
+              "S2_T31"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T4",
+            "sentence_index": 0,
+            "token_index": 4,
+            "text": "armed",
+            "lemma": "arm",
+            "pos": "VERB",
+            "dependency": "advcl",
+            "head_token_index": 9,
+            "head_text": "causes",
+            "clause_head": true,
+            "subtree_span": "If the alarm is armed,",
+            "subjects": [
+              "alarm"
+            ],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [
+              "If"
+            ],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "If",
+                "lemma": "if",
+                "dependency": "mark"
+              },
+              {
+                "text": "alarm",
+                "lemma": "alarm",
+                "dependency": "nsubjpass"
+              },
+              {
+                "text": "is",
+                "lemma": "be",
+                "dependency": "auxpass"
+              },
+              {
+                "text": ",",
+                "lemma": ",",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T6",
+            "sentence_index": 0,
+            "token_index": 6,
+            "text": "opening",
+            "lemma": "open",
+            "pos": "VERB",
+            "dependency": "csubj",
+            "head_token_index": 9,
+            "head_text": "causes",
+            "clause_head": false,
+            "subtree_span": "opening the door",
+            "subjects": [],
+            "objects": [
+              "door"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "door",
+                "lemma": "door",
+                "dependency": "dobj"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T9",
+            "sentence_index": 0,
+            "token_index": 9,
+            "text": "causes",
+            "lemma": "cause",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 9,
+            "head_text": "causes",
+            "clause_head": true,
+            "subtree_span": "If the alarm is armed, opening the door causes the siren to sound.",
+            "subjects": [
+              "opening"
+            ],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "armed",
+                "lemma": "arm",
+                "dependency": "advcl"
+              },
+              {
+                "text": "opening",
+                "lemma": "open",
+                "dependency": "csubj"
+              },
+              {
+                "text": "sound",
+                "lemma": "sound",
+                "dependency": "ccomp"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T13",
+            "sentence_index": 0,
+            "token_index": 13,
+            "text": "sound",
+            "lemma": "sound",
+            "pos": "VERB",
+            "dependency": "ccomp",
+            "head_token_index": 9,
+            "head_text": "causes",
+            "clause_head": true,
+            "subtree_span": "the siren to sound",
+            "subjects": [
+              "siren"
+            ],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "siren",
+                "lemma": "siren",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "to",
+                "lemma": "to",
+                "dependency": "aux"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S1_T19",
+            "sentence_index": 1,
+            "token_index": 19,
+            "text": "is",
+            "lemma": "be",
+            "pos": "AUX",
+            "dependency": "ROOT",
+            "head_token_index": 19,
+            "head_text": "is",
+            "clause_head": true,
+            "subtree_span": "The alarm's status is unknown.",
+            "subjects": [
+              "status"
+            ],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "status",
+                "lemma": "status",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "unknown",
+                "lemma": "unknown",
+                "dependency": "acomp"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S2_T25",
+            "sentence_index": 2,
+            "token_index": 25,
+            "text": "open",
+            "lemma": "open",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 25,
+            "head_text": "open",
+            "clause_head": true,
+            "subtree_span": "The guard may open the door or keep it closed.",
+            "subjects": [
+              "guard"
+            ],
+            "objects": [
+              "door"
+            ],
+            "negations": [],
+            "modals": [
+              "may"
+            ],
+            "conditional_markers": [],
+            "conjunctions": [
+              "keep"
+            ],
+            "children": [
+              {
+                "text": "guard",
+                "lemma": "guard",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "may",
+                "lemma": "may",
+                "dependency": "aux"
+              },
+              {
+                "text": "door",
+                "lemma": "door",
+                "dependency": "dobj"
+              },
+              {
+                "text": "or",
+                "lemma": "or",
+                "dependency": "cc"
+              },
+              {
+                "text": "keep",
+                "lemma": "keep",
+                "dependency": "conj"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S2_T29",
+            "sentence_index": 2,
+            "token_index": 29,
+            "text": "keep",
+            "lemma": "keep",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 25,
+            "head_text": "open",
+            "clause_head": true,
+            "subtree_span": "keep it closed",
+            "subjects": [],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "closed",
+                "lemma": "close",
+                "dependency": "ccomp"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S2_T31",
+            "sentence_index": 2,
+            "token_index": 31,
+            "text": "closed",
+            "lemma": "close",
+            "pos": "VERB",
+            "dependency": "ccomp",
+            "head_token_index": 29,
+            "head_text": "keep",
+            "clause_head": true,
+            "subtree_span": "it closed",
+            "subjects": [
+              "it"
+            ],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "it",
+                "lemma": "it",
+                "dependency": "nsubj"
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "text": "If",
+            "lemma": "if",
+            "pos": "SCONJ",
+            "dependency": "mark",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 1,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 2,
+            "text": "alarm",
+            "lemma": "alarm",
+            "pos": "NOUN",
+            "dependency": "nsubjpass",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 3,
+            "text": "is",
+            "lemma": "be",
+            "pos": "AUX",
+            "dependency": "auxpass",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 4,
+            "text": "armed",
+            "lemma": "arm",
+            "pos": "VERB",
+            "dependency": "advcl",
+            "head_token_index": 9
+          },
+          {
+            "token_index": 5,
+            "text": ",",
+            "lemma": ",",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 6,
+            "text": "opening",
+            "lemma": "open",
+            "pos": "VERB",
+            "dependency": "csubj",
+            "head_token_index": 9
+          },
+          {
+            "token_index": 7,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 8
+          },
+          {
+            "token_index": 8,
+            "text": "door",
+            "lemma": "door",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 6
+          },
+          {
+            "token_index": 9,
+            "text": "causes",
+            "lemma": "cause",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 9
+          },
+          {
+            "token_index": 10,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 11
+          },
+          {
+            "token_index": 11,
+            "text": "siren",
+            "lemma": "siren",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 13
+          },
+          {
+            "token_index": 12,
+            "text": "to",
+            "lemma": "to",
+            "pos": "PART",
+            "dependency": "aux",
+            "head_token_index": 13
+          },
+          {
+            "token_index": 13,
+            "text": "sound",
+            "lemma": "sound",
+            "pos": "VERB",
+            "dependency": "ccomp",
+            "head_token_index": 9
+          },
+          {
+            "token_index": 14,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 9
+          },
+          {
+            "token_index": 15,
+            "text": "The",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 16
+          },
+          {
+            "token_index": 16,
+            "text": "alarm",
+            "lemma": "alarm",
+            "pos": "NOUN",
+            "dependency": "poss",
+            "head_token_index": 18
+          },
+          {
+            "token_index": 17,
+            "text": "'s",
+            "lemma": "'s",
+            "pos": "PART",
+            "dependency": "case",
+            "head_token_index": 16
+          },
+          {
+            "token_index": 18,
+            "text": "status",
+            "lemma": "status",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 19
+          },
+          {
+            "token_index": 19,
+            "text": "is",
+            "lemma": "be",
+            "pos": "AUX",
+            "dependency": "ROOT",
+            "head_token_index": 19
+          },
+          {
+            "token_index": 20,
+            "text": "unknown",
+            "lemma": "unknown",
+            "pos": "ADJ",
+            "dependency": "acomp",
+            "head_token_index": 19
+          },
+          {
+            "token_index": 21,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 19
+          },
+          {
+            "token_index": 22,
+            "text": "The",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 23
+          },
+          {
+            "token_index": 23,
+            "text": "guard",
+            "lemma": "guard",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 25
+          },
+          {
+            "token_index": 24,
+            "text": "may",
+            "lemma": "may",
+            "pos": "AUX",
+            "dependency": "aux",
+            "head_token_index": 25
+          },
+          {
+            "token_index": 25,
+            "text": "open",
+            "lemma": "open",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 25
+          },
+          {
+            "token_index": 26,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 27
+          },
+          {
+            "token_index": 27,
+            "text": "door",
+            "lemma": "door",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 25
+          },
+          {
+            "token_index": 28,
+            "text": "or",
+            "lemma": "or",
+            "pos": "CCONJ",
+            "dependency": "cc",
+            "head_token_index": 25
+          },
+          {
+            "token_index": 29,
+            "text": "keep",
+            "lemma": "keep",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 25
+          },
+          {
+            "token_index": 30,
+            "text": "it",
+            "lemma": "it",
+            "pos": "PRON",
+            "dependency": "nsubj",
+            "head_token_index": 31
+          },
+          {
+            "token_index": 31,
+            "text": "closed",
+            "lemma": "close",
+            "pos": "VERB",
+            "dependency": "ccomp",
+            "head_token_index": 29
+          },
+          {
+            "token_index": 32,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 25
+          }
+        ]
+      }
+    },
+    {
+      "id": "pair_ellipsis_same",
+      "family": "ELLIPSIS",
+      "gold_event_count": 2,
+      "matched_gold_event_count": 2,
+      "gold_events": [
+        {
+          "gold_event": "sending the stock to District West",
+          "gold_predicate_lemmas": [
+            "send"
+          ],
+          "status": "MATCHED_PREDICATE_LEMMA",
+          "predicate_anchor_ids": [
+            "S0_T0",
+            "S1_T11"
+          ]
+        },
+        {
+          "gold_event": "stock is exhausted",
+          "gold_predicate_lemmas": [
+            "exhaust"
+          ],
+          "status": "MATCHED_PREDICATE_LEMMA",
+          "predicate_anchor_ids": [
+            "S0_T8"
+          ]
+        }
+      ],
+      "annotation": {
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "Sending the entire water stock to District East exhausts it. Sending it to District West would do the same. The authority must choose one district.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "Sending the entire water stock to District East exhausts it.",
+            "start_char": 0,
+            "end_char": 60,
+            "predicate_ids": [
+              "S0_T0",
+              "S0_T8"
+            ]
+          },
+          {
+            "sentence_index": 1,
+            "text": "Sending it to District West would do the same.",
+            "start_char": 61,
+            "end_char": 107,
+            "predicate_ids": [
+              "S1_T11",
+              "S1_T17"
+            ]
+          },
+          {
+            "sentence_index": 2,
+            "text": "The authority must choose one district.",
+            "start_char": 108,
+            "end_char": 147,
+            "predicate_ids": [
+              "S2_T24"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T0",
+            "sentence_index": 0,
+            "token_index": 0,
+            "text": "Sending",
+            "lemma": "send",
+            "pos": "VERB",
+            "dependency": "csubj",
+            "head_token_index": 8,
+            "head_text": "exhausts",
+            "clause_head": false,
+            "subtree_span": "Sending the entire water stock to District East",
+            "subjects": [],
+            "objects": [
+              "stock"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "stock",
+                "lemma": "stock",
+                "dependency": "dobj"
+              },
+              {
+                "text": "to",
+                "lemma": "to",
+                "dependency": "prep"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T8",
+            "sentence_index": 0,
+            "token_index": 8,
+            "text": "exhausts",
+            "lemma": "exhaust",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 8,
+            "head_text": "exhausts",
+            "clause_head": true,
+            "subtree_span": "Sending the entire water stock to District East exhausts it.",
+            "subjects": [
+              "Sending"
+            ],
+            "objects": [
+              "it"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "Sending",
+                "lemma": "send",
+                "dependency": "csubj"
+              },
+              {
+                "text": "it",
+                "lemma": "it",
+                "dependency": "dobj"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S1_T11",
+            "sentence_index": 1,
+            "token_index": 11,
+            "text": "Sending",
+            "lemma": "send",
+            "pos": "VERB",
+            "dependency": "csubj",
+            "head_token_index": 17,
+            "head_text": "do",
+            "clause_head": false,
+            "subtree_span": "Sending it to District West",
+            "subjects": [],
+            "objects": [
+              "it"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "it",
+                "lemma": "it",
+                "dependency": "dobj"
+              },
+              {
+                "text": "to",
+                "lemma": "to",
+                "dependency": "dative"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S1_T17",
+            "sentence_index": 1,
+            "token_index": 17,
+            "text": "do",
+            "lemma": "do",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 17,
+            "head_text": "do",
+            "clause_head": true,
+            "subtree_span": "Sending it to District West would do the same.",
+            "subjects": [
+              "Sending"
+            ],
+            "objects": [
+              "same"
+            ],
+            "negations": [],
+            "modals": [
+              "would"
+            ],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "Sending",
+                "lemma": "send",
+                "dependency": "csubj"
+              },
+              {
+                "text": "would",
+                "lemma": "would",
+                "dependency": "aux"
+              },
+              {
+                "text": "same",
+                "lemma": "same",
+                "dependency": "dobj"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S2_T24",
+            "sentence_index": 2,
+            "token_index": 24,
+            "text": "choose",
+            "lemma": "choose",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 24,
+            "head_text": "choose",
+            "clause_head": true,
+            "subtree_span": "The authority must choose one district.",
+            "subjects": [
+              "authority"
+            ],
+            "objects": [
+              "district"
+            ],
+            "negations": [],
+            "modals": [
+              "must"
+            ],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "authority",
+                "lemma": "authority",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "must",
+                "lemma": "must",
+                "dependency": "aux"
+              },
+              {
+                "text": "district",
+                "lemma": "district",
+                "dependency": "dobj"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "text": "Sending",
+            "lemma": "send",
+            "pos": "VERB",
+            "dependency": "csubj",
+            "head_token_index": 8
+          },
+          {
+            "token_index": 1,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 2,
+            "text": "entire",
+            "lemma": "entire",
+            "pos": "ADJ",
+            "dependency": "amod",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 3,
+            "text": "water",
+            "lemma": "water",
+            "pos": "NOUN",
+            "dependency": "compound",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 4,
+            "text": "stock",
+            "lemma": "stock",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 0
+          },
+          {
+            "token_index": 5,
+            "text": "to",
+            "lemma": "to",
+            "pos": "ADP",
+            "dependency": "prep",
+            "head_token_index": 0
+          },
+          {
+            "token_index": 6,
+            "text": "District",
+            "lemma": "district",
+            "pos": "PROPN",
+            "dependency": "compound",
+            "head_token_index": 7
+          },
+          {
+            "token_index": 7,
+            "text": "East",
+            "lemma": "east",
+            "pos": "PROPN",
+            "dependency": "pobj",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 8,
+            "text": "exhausts",
+            "lemma": "exhaust",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 8
+          },
+          {
+            "token_index": 9,
+            "text": "it",
+            "lemma": "it",
+            "pos": "PRON",
+            "dependency": "dobj",
+            "head_token_index": 8
+          },
+          {
+            "token_index": 10,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 8
+          },
+          {
+            "token_index": 11,
+            "text": "Sending",
+            "lemma": "send",
+            "pos": "VERB",
+            "dependency": "csubj",
+            "head_token_index": 17
+          },
+          {
+            "token_index": 12,
+            "text": "it",
+            "lemma": "it",
+            "pos": "PRON",
+            "dependency": "dobj",
+            "head_token_index": 11
+          },
+          {
+            "token_index": 13,
+            "text": "to",
+            "lemma": "to",
+            "pos": "ADP",
+            "dependency": "dative",
+            "head_token_index": 11
+          },
+          {
+            "token_index": 14,
+            "text": "District",
+            "lemma": "district",
+            "pos": "PROPN",
+            "dependency": "compound",
+            "head_token_index": 15
+          },
+          {
+            "token_index": 15,
+            "text": "West",
+            "lemma": "west",
+            "pos": "PROPN",
+            "dependency": "pobj",
+            "head_token_index": 13
+          },
+          {
+            "token_index": 16,
+            "text": "would",
+            "lemma": "would",
+            "pos": "AUX",
+            "dependency": "aux",
+            "head_token_index": 17
+          },
+          {
+            "token_index": 17,
+            "text": "do",
+            "lemma": "do",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 17
+          },
+          {
+            "token_index": 18,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 19
+          },
+          {
+            "token_index": 19,
+            "text": "same",
+            "lemma": "same",
+            "pos": "ADJ",
+            "dependency": "dobj",
+            "head_token_index": 17
+          },
+          {
+            "token_index": 20,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 17
+          },
+          {
+            "token_index": 21,
+            "text": "The",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 22
+          },
+          {
+            "token_index": 22,
+            "text": "authority",
+            "lemma": "authority",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 24
+          },
+          {
+            "token_index": 23,
+            "text": "must",
+            "lemma": "must",
+            "pos": "AUX",
+            "dependency": "aux",
+            "head_token_index": 24
+          },
+          {
+            "token_index": 24,
+            "text": "choose",
+            "lemma": "choose",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 24
+          },
+          {
+            "token_index": 25,
+            "text": "one",
+            "lemma": "one",
+            "pos": "NUM",
+            "dependency": "nummod",
+            "head_token_index": 26
+          },
+          {
+            "token_index": 26,
+            "text": "district",
+            "lemma": "district",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 24
+          },
+          {
+            "token_index": 27,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 24
+          }
+        ]
+      }
+    },
+    {
+      "id": "pair_sibling_population_leak",
+      "family": "MULTI_EFFECT_CLAUSE",
+      "gold_event_count": 3,
+      "matched_gold_event_count": 3,
+      "gold_events": [
+        {
+          "gold_event": "diverting the vehicle",
+          "gold_predicate_lemmas": [
+            "divert"
+          ],
+          "status": "MATCHED_PREDICATE_LEMMA",
+          "predicate_anchor_ids": [
+            "S0_T0",
+            "S1_T24"
+          ]
+        },
+        {
+          "gold_event": "one loading-bay worker is struck",
+          "gold_predicate_lemmas": [
+            "strike"
+          ],
+          "status": "MATCHED_PREDICATE_LEMMA",
+          "predicate_anchor_ids": [
+            "S0_T3"
+          ]
+        },
+        {
+          "gold_event": "smoke reaches five tunnel workers",
+          "gold_predicate_lemmas": [
+            "reach"
+          ],
+          "status": "MATCHED_PREDICATE_LEMMA",
+          "predicate_anchor_ids": [
+            "S0_T14"
+          ]
+        }
+      ],
+      "annotation": {
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "Diverting the vehicle strikes one worker in the loading bay and prevents smoke from reaching five workers in the tunnel. The driver may divert or continue straight.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "Diverting the vehicle strikes one worker in the loading bay and prevents smoke from reaching five workers in the tunnel.",
+            "start_char": 0,
+            "end_char": 120,
+            "predicate_ids": [
+              "S0_T0",
+              "S0_T3",
+              "S0_T11",
+              "S0_T14"
+            ]
+          },
+          {
+            "sentence_index": 1,
+            "text": "The driver may divert or continue straight.",
+            "start_char": 121,
+            "end_char": 164,
+            "predicate_ids": [
+              "S1_T24",
+              "S1_T26"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T0",
+            "sentence_index": 0,
+            "token_index": 0,
+            "text": "Diverting",
+            "lemma": "divert",
+            "pos": "VERB",
+            "dependency": "csubj",
+            "head_token_index": 3,
+            "head_text": "strikes",
+            "clause_head": false,
+            "subtree_span": "Diverting the vehicle",
+            "subjects": [],
+            "objects": [
+              "vehicle"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "vehicle",
+                "lemma": "vehicle",
+                "dependency": "dobj"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T3",
+            "sentence_index": 0,
+            "token_index": 3,
+            "text": "strikes",
+            "lemma": "strike",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 3,
+            "head_text": "strikes",
+            "clause_head": true,
+            "subtree_span": "Diverting the vehicle strikes one worker in the loading bay and prevents smoke from reaching five workers in the tunnel.",
+            "subjects": [
+              "Diverting"
+            ],
+            "objects": [
+              "worker"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [
+              "prevents"
+            ],
+            "children": [
+              {
+                "text": "Diverting",
+                "lemma": "divert",
+                "dependency": "csubj"
+              },
+              {
+                "text": "worker",
+                "lemma": "worker",
+                "dependency": "dobj"
+              },
+              {
+                "text": "and",
+                "lemma": "and",
+                "dependency": "cc"
+              },
+              {
+                "text": "prevents",
+                "lemma": "prevent",
+                "dependency": "conj"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T11",
+            "sentence_index": 0,
+            "token_index": 11,
+            "text": "prevents",
+            "lemma": "prevent",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 3,
+            "head_text": "strikes",
+            "clause_head": true,
+            "subtree_span": "prevents smoke from reaching five workers in the tunnel",
+            "subjects": [],
+            "objects": [
+              "smoke"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "smoke",
+                "lemma": "smoke",
+                "dependency": "dobj"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T14",
+            "sentence_index": 0,
+            "token_index": 14,
+            "text": "reaching",
+            "lemma": "reach",
+            "pos": "VERB",
+            "dependency": "pcomp",
+            "head_token_index": 13,
+            "head_text": "from",
+            "clause_head": false,
+            "subtree_span": "reaching five workers in the tunnel",
+            "subjects": [],
+            "objects": [
+              "workers"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "workers",
+                "lemma": "worker",
+                "dependency": "dobj"
+              },
+              {
+                "text": "in",
+                "lemma": "in",
+                "dependency": "prep"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S1_T24",
+            "sentence_index": 1,
+            "token_index": 24,
+            "text": "divert",
+            "lemma": "divert",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 24,
+            "head_text": "divert",
+            "clause_head": true,
+            "subtree_span": "The driver may divert or continue straight.",
+            "subjects": [
+              "driver"
+            ],
+            "objects": [],
+            "negations": [],
+            "modals": [
+              "may"
+            ],
+            "conditional_markers": [],
+            "conjunctions": [
+              "continue"
+            ],
+            "children": [
+              {
+                "text": "driver",
+                "lemma": "driver",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "may",
+                "lemma": "may",
+                "dependency": "aux"
+              },
+              {
+                "text": "or",
+                "lemma": "or",
+                "dependency": "cc"
+              },
+              {
+                "text": "continue",
+                "lemma": "continue",
+                "dependency": "conj"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S1_T26",
+            "sentence_index": 1,
+            "token_index": 26,
+            "text": "continue",
+            "lemma": "continue",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 24,
+            "head_text": "divert",
+            "clause_head": true,
+            "subtree_span": "continue straight",
+            "subjects": [],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "straight",
+                "lemma": "straight",
+                "dependency": "advmod"
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "text": "Diverting",
+            "lemma": "divert",
+            "pos": "VERB",
+            "dependency": "csubj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 1,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 2,
+            "text": "vehicle",
+            "lemma": "vehicle",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 0
+          },
+          {
+            "token_index": 3,
+            "text": "strikes",
+            "lemma": "strike",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 4,
+            "text": "one",
+            "lemma": "one",
+            "pos": "NUM",
+            "dependency": "nummod",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 5,
+            "text": "worker",
+            "lemma": "worker",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 6,
+            "text": "in",
+            "lemma": "in",
+            "pos": "ADP",
+            "dependency": "prep",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 7,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 9
+          },
+          {
+            "token_index": 8,
+            "text": "loading",
+            "lemma": "loading",
+            "pos": "NOUN",
+            "dependency": "compound",
+            "head_token_index": 9
+          },
+          {
+            "token_index": 9,
+            "text": "bay",
+            "lemma": "bay",
+            "pos": "NOUN",
+            "dependency": "pobj",
+            "head_token_index": 6
+          },
+          {
+            "token_index": 10,
+            "text": "and",
+            "lemma": "and",
+            "pos": "CCONJ",
+            "dependency": "cc",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 11,
+            "text": "prevents",
+            "lemma": "prevent",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 12,
+            "text": "smoke",
+            "lemma": "smoke",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 11
+          },
+          {
+            "token_index": 13,
+            "text": "from",
+            "lemma": "from",
+            "pos": "ADP",
+            "dependency": "prep",
+            "head_token_index": 12
+          },
+          {
+            "token_index": 14,
+            "text": "reaching",
+            "lemma": "reach",
+            "pos": "VERB",
+            "dependency": "pcomp",
+            "head_token_index": 13
+          },
+          {
+            "token_index": 15,
+            "text": "five",
+            "lemma": "five",
+            "pos": "NUM",
+            "dependency": "nummod",
+            "head_token_index": 16
+          },
+          {
+            "token_index": 16,
+            "text": "workers",
+            "lemma": "worker",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 14
+          },
+          {
+            "token_index": 17,
+            "text": "in",
+            "lemma": "in",
+            "pos": "ADP",
+            "dependency": "prep",
+            "head_token_index": 14
+          },
+          {
+            "token_index": 18,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 19
+          },
+          {
+            "token_index": 19,
+            "text": "tunnel",
+            "lemma": "tunnel",
+            "pos": "NOUN",
+            "dependency": "pobj",
+            "head_token_index": 17
+          },
+          {
+            "token_index": 20,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 21,
+            "text": "The",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 22
+          },
+          {
+            "token_index": 22,
+            "text": "driver",
+            "lemma": "driver",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 24
+          },
+          {
+            "token_index": 23,
+            "text": "may",
+            "lemma": "may",
+            "pos": "AUX",
+            "dependency": "aux",
+            "head_token_index": 24
+          },
+          {
+            "token_index": 24,
+            "text": "divert",
+            "lemma": "divert",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 24
+          },
+          {
+            "token_index": 25,
+            "text": "or",
+            "lemma": "or",
+            "pos": "CCONJ",
+            "dependency": "cc",
+            "head_token_index": 24
+          },
+          {
+            "token_index": 26,
+            "text": "continue",
+            "lemma": "continue",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 24
+          },
+          {
+            "token_index": 27,
+            "text": "straight",
+            "lemma": "straight",
+            "pos": "ADV",
+            "dependency": "advmod",
+            "head_token_index": 26
+          },
+          {
+            "token_index": 28,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 24
+          }
+        ]
+      }
+    }
+  ]
+}

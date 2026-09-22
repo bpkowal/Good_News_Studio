@@ -9,7 +9,7 @@ import unittest
 
 from hypothesis import given, settings
 
-from semantic_integrity.harness import (
+from relent_testkit.harness import (
     quantifier_party_count_holds,
     verb_lemma_outcome_binding_holds,
 )

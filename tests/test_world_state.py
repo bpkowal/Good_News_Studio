@@ -42,6 +42,7 @@ from global_workspace.world_state import (
     explicit_quantity_spans,
     explicit_scope_spans,
     explicit_temporal_spans,
+    is_supporting_source,
     normalize_redundant_link_gates,
     normalize_event_probability_ownership,
     assigned_party_quantities,
@@ -2134,6 +2135,16 @@ class ClauseRoleTests(unittest.TestCase):
         self.assertEqual(classify_clause_role(COMPARE_REF[0].excerpt), "COMPARISON")
         self.assertEqual(classify_clause_role(DOZEN_REF[0].excerpt), "FACT")
         self.assertEqual(classify_clause_role("Which pipeline should receive the supply?"), "INTERROGATIVE")
+
+    def test_explicit_outcomes_inside_choice_sentence_remain_factual_support(self):
+        clause = (
+            "The decision-maker must choose either to intervene, where one "
+            "person will be harmed, or refrain, where 500 people will be harmed."
+        )
+        self.assertEqual(
+            classify_clause_role(clause), "MIXED_FACT_COMPARISON",
+        )
+        self.assertTrue(is_supporting_source(SourceRef("C1", clause)))
 
 
 class WorldModelValidationTests(unittest.TestCase):

@@ -1,0 +1,356 @@
+{
+  "aggregate": {
+    "aligned_gold_edge_count": 4,
+    "aligned_gold_node_count": 7,
+    "audit_complete_count": 0,
+    "audit_novelty_rate": 0.0,
+    "audit_only_precision": null,
+    "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+    "audit_only_relation_count": 0,
+    "case_count": 4,
+    "correct_audit_only_relation_count": 0,
+    "correct_audit_only_relations": 0,
+    "gold_edge_count": 5,
+    "gold_node_count": 9,
+    "gold_relations_absent_from_scaffold": 3,
+    "node_recall": 0.7777777777777778,
+    "pairwise_gold_accuracy_given_aligned_nodes": 0.0,
+    "scaffold_gold_accuracy_given_aligned_nodes": 0.0,
+    "stage_one_admitted_count": 4,
+    "stage_one_partially_admitted_count": 1
+  },
+  "evidence_augmented": true,
+  "manifest": "evals/topology_structure_expanded_challenge.json",
+  "max_pairs": 0,
+  "model": "o3",
+  "protocol": "STAGED_NODE_GENERATION_PILOT",
+  "report_version": "1.0",
+  "results": [
+    {
+      "alignments": [
+        {
+          "action_id": "A0",
+          "candidate_count": 6,
+          "gold_event": "Jo receives no antidote",
+          "matched_proposition_id": "PR3",
+          "method": "EXACT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 6,
+          "gold_event": "Jo dies",
+          "matched_proposition_id": "UR_C2_A0_P3",
+          "method": "EXACT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        }
+      ],
+      "audit_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_relation_audit_workspace_20260921_083727_825361.json",
+      "audit_status": "EMPTY_NO_PAIRS",
+      "elapsed_seconds": 87.806,
+      "exit_code": 2,
+      "family": "CROSS_CLAUSE_CAUSALITY",
+      "id": "cross_clause_antidote",
+      "index": 0,
+      "log": "eval_outputs/authoritative-stage1-pilot-20260921/01_cross_clause_antidote.log",
+      "metrics": {
+        "aligned_gold_edge_count": 1,
+        "aligned_gold_node_count": 2,
+        "audit_novelty_rate": 0.0,
+        "audit_only_precision": null,
+        "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [
+          {
+            "action_id": "A0",
+            "audit_correct": false,
+            "audit_relation": null,
+            "gold_relation": "CAUSES",
+            "scaffold_correct": false,
+            "scaffold_relations": [],
+            "source_proposition_id": "PR3",
+            "target_proposition_id": "UR_C2_A0_P3"
+          }
+        ],
+        "gold_edge_count": 1,
+        "gold_node_count": 2,
+        "gold_relations_absent_from_scaffold": 1,
+        "node_recall": 1.0,
+        "pairwise_gold_accuracy_given_aligned_nodes": 0.0,
+        "relation_recall_conditional_on_node_availability": 0.0,
+        "scaffold_gold_accuracy_given_aligned_nodes": 0.0
+      },
+      "performance": "eval_outputs/authoritative-stage1-pilot-20260921/01_cross_clause_antidote.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A0",
+        "A1": "A1"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A0",
+          "relation": "CAUSES",
+          "source_event": "Jo receives no antidote",
+          "target_event": "Jo dies"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260921_083727_825361.json",
+      "stage_one_status": "ADMITTED",
+      "world_committed": false
+    },
+    {
+      "alignments": [
+        {
+          "action_id": "A0",
+          "candidate_count": 5,
+          "gold_event": "operator disconnects power",
+          "matched_proposition_id": "PR0",
+          "method": "EXACT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 5,
+          "gold_event": "pump stops circulating coolant",
+          "matched_proposition_id": "PR1",
+          "method": "TOKEN_LEMMA",
+          "score": 0.8,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 5,
+          "gold_event": "reactor overheats",
+          "matched_proposition_id": "PR3",
+          "method": "EXACT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        }
+      ],
+      "audit_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_relation_audit_workspace_20260921_083855_789751.json",
+      "audit_status": "EMPTY_NO_PAIRS",
+      "elapsed_seconds": 64.277,
+      "exit_code": 0,
+      "family": "CROSS_CLAUSE_CAUSALITY",
+      "id": "cross_clause_power",
+      "index": 1,
+      "log": "eval_outputs/authoritative-stage1-pilot-20260921/02_cross_clause_power.log",
+      "metrics": {
+        "aligned_gold_edge_count": 2,
+        "aligned_gold_node_count": 3,
+        "audit_novelty_rate": 0.0,
+        "audit_only_precision": null,
+        "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [
+          {
+            "action_id": "A0",
+            "audit_correct": false,
+            "audit_relation": null,
+            "gold_relation": "CAUSES",
+            "scaffold_correct": false,
+            "scaffold_relations": [],
+            "source_proposition_id": "PR0",
+            "target_proposition_id": "PR1"
+          },
+          {
+            "action_id": "A0",
+            "audit_correct": false,
+            "audit_relation": null,
+            "gold_relation": "CAUSES",
+            "scaffold_correct": false,
+            "scaffold_relations": [],
+            "source_proposition_id": "PR1",
+            "target_proposition_id": "PR3"
+          }
+        ],
+        "gold_edge_count": 2,
+        "gold_node_count": 3,
+        "gold_relations_absent_from_scaffold": 2,
+        "node_recall": 1.0,
+        "pairwise_gold_accuracy_given_aligned_nodes": 0.0,
+        "relation_recall_conditional_on_node_availability": 0.0,
+        "scaffold_gold_accuracy_given_aligned_nodes": 0.0
+      },
+      "performance": "eval_outputs/authoritative-stage1-pilot-20260921/02_cross_clause_power.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A0",
+        "A1": "A1"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A0",
+          "relation": "CAUSES",
+          "source_event": "operator disconnects power",
+          "target_event": "pump stops circulating coolant"
+        },
+        {
+          "action_id": "A0",
+          "relation": "CAUSES",
+          "source_event": "pump stops circulating coolant",
+          "target_event": "reactor overheats"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260921_083855_789751.json",
+      "stage_one_status": "ADMITTED",
+      "world_committed": true
+    },
+    {
+      "alignments": [
+        {
+          "action_id": "A0",
+          "candidate_count": 8,
+          "gold_event": "opening the rear door",
+          "matched_proposition_id": "P4",
+          "method": "EXACT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 8,
+          "gold_event": "siren sounds",
+          "matched_proposition_id": "P5",
+          "method": "TOKEN_LEMMA",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        }
+      ],
+      "audit_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_relation_audit_workspace_20260921_084000_076547.json",
+      "audit_status": "EMPTY_NO_PAIRS",
+      "elapsed_seconds": 75.179,
+      "exit_code": 0,
+      "family": "LONG_DISTANCE_CONDITIONAL",
+      "id": "long_conditional_alarm",
+      "index": 2,
+      "log": "eval_outputs/authoritative-stage1-pilot-20260921/03_long_conditional_alarm.log",
+      "metrics": {
+        "aligned_gold_edge_count": 1,
+        "aligned_gold_node_count": 2,
+        "audit_novelty_rate": null,
+        "audit_only_precision": null,
+        "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [
+          {
+            "action_id": "A0",
+            "audit_correct": false,
+            "audit_relation": null,
+            "gold_relation": "AMBIGUOUS",
+            "scaffold_correct": false,
+            "scaffold_relations": [],
+            "source_proposition_id": "P4",
+            "target_proposition_id": "P5"
+          }
+        ],
+        "gold_edge_count": 1,
+        "gold_node_count": 2,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 1.0,
+        "pairwise_gold_accuracy_given_aligned_nodes": 0.0,
+        "relation_recall_conditional_on_node_availability": 0.0,
+        "scaffold_gold_accuracy_given_aligned_nodes": 0.0
+      },
+      "performance": "eval_outputs/authoritative-stage1-pilot-20260921/03_long_conditional_alarm.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A0",
+        "A1": "A1"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A0",
+          "relation": "AMBIGUOUS",
+          "source_event": "opening the rear door",
+          "target_event": "siren sounds"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260921_084000_076547.json",
+      "stage_one_status": "ADMITTED",
+      "world_committed": false
+    },
+    {
+      "alignments": [
+        {
+          "action_id": "A0",
+          "candidate_count": 4,
+          "gold_event": "starting the exhaust channel",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 4,
+          "gold_event": "vapor enters the ward",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        }
+      ],
+      "audit_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_relation_audit_workspace_20260921_084115_172891.json",
+      "audit_status": "EMPTY_NO_PAIRS",
+      "elapsed_seconds": 60.473,
+      "exit_code": 0,
+      "family": "LONG_DISTANCE_CONDITIONAL",
+      "id": "long_conditional_filter",
+      "index": 3,
+      "log": "eval_outputs/authoritative-stage1-pilot-20260921/04_long_conditional_filter.log",
+      "metrics": {
+        "aligned_gold_edge_count": 0,
+        "aligned_gold_node_count": 0,
+        "audit_novelty_rate": null,
+        "audit_only_precision": null,
+        "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [],
+        "gold_edge_count": 1,
+        "gold_node_count": 2,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 0.0,
+        "pairwise_gold_accuracy_given_aligned_nodes": null,
+        "relation_recall_conditional_on_node_availability": null,
+        "scaffold_gold_accuracy_given_aligned_nodes": null
+      },
+      "performance": "eval_outputs/authoritative-stage1-pilot-20260921/04_long_conditional_filter.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A0",
+        "A1": "A1"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A0",
+          "relation": "AMBIGUOUS",
+          "source_event": "starting the exhaust channel",
+          "target_event": "vapor enters the ward"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260921_084115_172891.json",
+      "stage_one_status": "PARTIALLY_ADMITTED",
+      "world_committed": true
+    }
+  ],
+  "stage_one_guidance_mode": "authoritative",
+  "syntactic_resolution_obligations": false,
+  "targeted_semantic_resolution": false
+}

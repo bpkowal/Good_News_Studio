@@ -1,0 +1,135 @@
+{
+  "aggregate": {
+    "aligned_gold_edge_count": 2,
+    "aligned_gold_node_count": 3,
+    "audit_complete_count": 0,
+    "audit_novelty_rate": 0.0,
+    "audit_only_precision": null,
+    "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+    "audit_only_relation_count": 0,
+    "case_count": 1,
+    "correct_audit_only_relation_count": 0,
+    "correct_audit_only_relations": 0,
+    "gold_edge_count": 2,
+    "gold_node_count": 3,
+    "gold_relations_absent_from_scaffold": 2,
+    "node_recall": 1.0,
+    "pairwise_gold_accuracy_given_aligned_nodes": 0.0,
+    "scaffold_gold_accuracy_given_aligned_nodes": 0.0,
+    "stage_one_admitted_count": 1,
+    "stage_one_partially_admitted_count": 1
+  },
+  "evidence_augmented": true,
+  "manifest": "evals/topology_structure_expanded_challenge.json",
+  "max_pairs": 0,
+  "model": "o3",
+  "protocol": "STAGED_NODE_GENERATION_PILOT",
+  "report_version": "1.0",
+  "results": [
+    {
+      "alignments": [
+        {
+          "action_id": "A0",
+          "candidate_count": 5,
+          "gold_event": "operator disconnects power",
+          "matched_proposition_id": "Pr1",
+          "method": "EXACT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 5,
+          "gold_event": "pump stops circulating coolant",
+          "matched_proposition_id": "Pr2",
+          "method": "TOKEN_LEMMA",
+          "score": 0.8,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 5,
+          "gold_event": "reactor overheats",
+          "matched_proposition_id": "Pr4",
+          "method": "EXACT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        }
+      ],
+      "audit_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_relation_audit_workspace_20260921_070520_503336.json",
+      "audit_status": "EMPTY_NO_PAIRS",
+      "elapsed_seconds": 45.178,
+      "exit_code": 0,
+      "family": "CROSS_CLAUSE_CAUSALITY",
+      "id": "cross_clause_power",
+      "index": 1,
+      "log": "eval_outputs/admission-triage-live2-20260921/02_cross_clause_power.log",
+      "metrics": {
+        "aligned_gold_edge_count": 2,
+        "aligned_gold_node_count": 3,
+        "audit_novelty_rate": 0.0,
+        "audit_only_precision": null,
+        "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [
+          {
+            "action_id": "A0",
+            "audit_correct": false,
+            "audit_relation": null,
+            "gold_relation": "CAUSES",
+            "scaffold_correct": false,
+            "scaffold_relations": [],
+            "source_proposition_id": "Pr1",
+            "target_proposition_id": "Pr2"
+          },
+          {
+            "action_id": "A0",
+            "audit_correct": false,
+            "audit_relation": null,
+            "gold_relation": "CAUSES",
+            "scaffold_correct": false,
+            "scaffold_relations": [],
+            "source_proposition_id": "Pr2",
+            "target_proposition_id": "Pr4"
+          }
+        ],
+        "gold_edge_count": 2,
+        "gold_node_count": 3,
+        "gold_relations_absent_from_scaffold": 2,
+        "node_recall": 1.0,
+        "pairwise_gold_accuracy_given_aligned_nodes": 0.0,
+        "relation_recall_conditional_on_node_availability": 0.0,
+        "scaffold_gold_accuracy_given_aligned_nodes": 0.0
+      },
+      "performance": "eval_outputs/admission-triage-live2-20260921/02_cross_clause_power.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A0",
+        "A1": "A1"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A0",
+          "relation": "CAUSES",
+          "source_event": "operator disconnects power",
+          "target_event": "pump stops circulating coolant"
+        },
+        {
+          "action_id": "A0",
+          "relation": "CAUSES",
+          "source_event": "pump stops circulating coolant",
+          "target_event": "reactor overheats"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260921_070520_503336.json",
+      "stage_one_status": "PARTIALLY_ADMITTED",
+      "world_committed": false
+    }
+  ],
+  "syntactic_resolution_obligations": false,
+  "targeted_semantic_resolution": false
+}

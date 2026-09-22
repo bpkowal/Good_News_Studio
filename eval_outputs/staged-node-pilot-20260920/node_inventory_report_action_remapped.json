@@ -1,0 +1,69 @@
+{
+  "aggregate": {
+    "absent_or_unaligned_count": 0,
+    "complete_action_branch_count": 1,
+    "fused_gold_node_count": 0,
+    "gold_node_count": 2,
+    "node_presence_recall_any_owner": 1.0,
+    "node_recall_correct_owner": 1.0,
+    "present_correct_owner_count": 2,
+    "present_wrong_owner_count": 0,
+    "required_action_branch_count": 1
+  },
+  "analysis_version": "1.0",
+  "results": [
+    {
+      "diagnostic": {
+        "absent_or_unaligned_count": 0,
+        "action_branches": [
+          {
+            "action_id": "A1",
+            "correctly_owned_node_count": 2,
+            "required_node_count": 2,
+            "status": "REPRESENTED"
+          }
+        ],
+        "atomic_present_gold_node_count": 2,
+        "fused_gold_node_count": 0,
+        "gold_node_count": 2,
+        "node_presence_recall_any_owner": 1.0,
+        "node_recall_correct_owner": 1.0,
+        "nodes": [
+          {
+            "actual_action_id": "A1",
+            "atomicity": "ATOMIC",
+            "expected_action_id": "A1",
+            "gold_event": "opens the gate",
+            "matched_proposition_id": "P1",
+            "method": "EXACT",
+            "score": 1.0,
+            "status": "PRESENT_CORRECT_OWNER"
+          },
+          {
+            "actual_action_id": "A1",
+            "atomicity": "ATOMIC",
+            "expected_action_id": "A1",
+            "gold_event": "pulling the release",
+            "matched_proposition_id": "PR_AUTO_2",
+            "method": "TOKEN_LEMMA",
+            "score": 1.0,
+            "status": "PRESENT_CORRECT_OWNER"
+          }
+        ],
+        "present_correct_owner_count": 2,
+        "present_wrong_owner_count": 0,
+        "unresolved_ellipsis_count": 0,
+        "unresolved_source_span_count": 0
+      },
+      "family": "REVERSED_CAUSALITY",
+      "id": "pair_reverse_causality",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A1",
+        "A1": "A0"
+      },
+      "stage_one_status": "ADMITTED"
+    }
+  ],
+  "source_protocol": "STAGED_NODE_GENERATION_PILOT",
+  "source_report": "eval_outputs/staged-node-pilot-20260920/report.json"
+}

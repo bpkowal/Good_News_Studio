@@ -1,0 +1,103 @@
+{
+  "experiment_id": "EXP-2026-09-21-002",
+  "date": "2026-09-21",
+  "title": "Authoritative versus advisory deterministic evidence for graph generation",
+  "project_state": {
+    "branch": "relent-framework",
+    "commit": "8861752",
+    "working_tree": "DIRTY_PREEXISTING_AND_EXPERIMENTAL",
+    "pipeline_version": "stage-one-evidence-provider-v1",
+    "active_components": [
+      "staged_node_generation",
+      "semantic_evidence_packet",
+      "final_world_validator"
+    ]
+  },
+  "question": "Does deterministic evidence improve final graph construction when it is advisory rather than authoritative?",
+  "hypothesis": "Raw text plus a non-authoritative evidence packet will produce more complete valid graphs than raw text or an enforced Stage-1 skeleton.",
+  "change_under_test": {
+    "component": "stage_one_guidance_mode",
+    "description": "Compare raw text, evidence-before-generation, authoritative skeleton, and raw-draft-then-evidence-review."
+  },
+  "control": {
+    "description": "Raw-text graph generation on four cross-clause and conditional cases.",
+    "frozen": false,
+    "artifact": "eval_outputs/raw-text-pilot-20260921/report.json"
+  },
+  "experimental": [
+    {
+      "description": "Evidence packet before graph generation",
+      "artifact": "eval_outputs/evidence-provider-pilot-20260921/report.json"
+    },
+    {
+      "description": "Authoritative Stage-1 skeleton",
+      "artifact": "eval_outputs/authoritative-stage1-pilot-20260921/report.json"
+    },
+    {
+      "description": "Raw draft followed by evidence review",
+      "artifact": "eval_outputs/evidence-review-pilot-20260921/report.json"
+    }
+  ],
+  "held_constant": [
+    "o3 model family",
+    "four selected benchmark cases",
+    "pairwise audit disabled",
+    "world validator"
+  ],
+  "intentionally_not_compared": [
+    "expert-agent deliberation",
+    "ethical judgment quality",
+    "full fourteen-case generalization",
+    "causal effect independent of stochastic Stage-1 variation"
+  ],
+  "metrics": {
+    "raw_text": {
+      "committed_worlds": "3/4",
+      "final_gold_nodes": "6/9",
+      "correct_relations_given_aligned_nodes": "1/3"
+    },
+    "evidence_before_generation": {
+      "committed_worlds": "3/4",
+      "final_gold_nodes": "4/9",
+      "correct_relations_given_aligned_nodes": "1/2"
+    },
+    "authoritative_stage_one": {
+      "committed_worlds": "2/4",
+      "final_gold_nodes": "4/9",
+      "correct_relations_given_aligned_nodes": "0/2"
+    },
+    "post_draft_evidence_review": {
+      "committed_worlds": "3/4",
+      "final_gold_nodes": "4/9",
+      "correct_relations_given_aligned_nodes": "1/2"
+    }
+  },
+  "result": "NOT_SUPPORTED",
+  "interpretation": "Advisory evidence did not outperform raw text. Authoritative Stage 1 performed worst. Evidence modes exposed substantial loss between high Stage-1 node recall and final graph materialization.",
+  "decision": {
+    "status": "PAUSE",
+    "keep": [
+      "non-authoritative evidence packet format",
+      "raw-text and evidence-review experimental modes",
+      "final graph scoring"
+    ],
+    "do_not_prioritize": [
+      "authoritative Stage-1 correspondence enforcement",
+      "full evidence-packet dumps as the default graph-generation prompt"
+    ],
+    "next_test": "Use a narrowly targeted evidence delta on a frozen raw draft."
+  },
+  "limitations": [
+    "Only four cases were run.",
+    "Stage-1 extraction and graph drafts were not frozen across arms.",
+    "Final graph metrics for early arms were rescored from printed admitted graphs after the runs.",
+    "Temperature zero does not guarantee bitwise-identical OpenAI outputs."
+  ],
+  "artifacts": [
+    "eval_outputs/raw-text-pilot-20260921/report.json",
+    "eval_outputs/evidence-provider-pilot-20260921/report.json",
+    "eval_outputs/authoritative-stage1-pilot-20260921/report.json",
+    "eval_outputs/evidence-review-pilot-20260921/report.json"
+  ]
+}
+

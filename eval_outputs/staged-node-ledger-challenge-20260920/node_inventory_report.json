@@ -1,0 +1,767 @@
+{
+  "aggregate": {
+    "absent_or_unaligned_count": 14,
+    "complete_action_branch_count": 0,
+    "fused_gold_node_count": 0,
+    "gold_node_count": 17,
+    "neutral_node_recall": 0.5882352941176471,
+    "neutral_present_node_count": 10,
+    "node_presence_recall_any_owner": 0.17647058823529413,
+    "node_recall_correct_owner": 0.17647058823529413,
+    "present_correct_owner_count": 3,
+    "present_wrong_owner_count": 0,
+    "required_action_branch_count": 8,
+    "transformation_waterfall": {
+      "neutral_nodes_extracted": 37,
+      "nodes_admitted_to_graph": 4,
+      "nodes_materialized_after_ownership": 33,
+      "nodes_surviving_normalization": 11,
+      "nodes_with_valid_provenance": 5
+    }
+  },
+  "analysis_version": "1.0",
+  "results": [
+    {
+      "diagnostic": {
+        "absent_or_unaligned_count": 2,
+        "action_branches": [
+          {
+            "action_id": "A1",
+            "correctly_owned_node_count": 0,
+            "required_node_count": 2,
+            "status": "OMITTED_OR_INCOMPLETE"
+          }
+        ],
+        "atomic_present_gold_node_count": 0,
+        "fused_gold_node_count": 0,
+        "gold_node_count": 2,
+        "node_presence_recall_any_owner": 0.0,
+        "node_recall_correct_owner": 0.0,
+        "nodes": [
+          {
+            "actual_action_id": null,
+            "atomicity": "UNAVAILABLE",
+            "expected_action_id": "A1",
+            "gold_event": "opens the gate",
+            "matched_proposition_id": null,
+            "method": null,
+            "score": null,
+            "status": "ABSENT_OR_UNALIGNED"
+          },
+          {
+            "actual_action_id": null,
+            "atomicity": "UNAVAILABLE",
+            "expected_action_id": "A1",
+            "gold_event": "pulling the release",
+            "matched_proposition_id": null,
+            "method": null,
+            "score": null,
+            "status": "ABSENT_OR_UNALIGNED"
+          }
+        ],
+        "present_correct_owner_count": 0,
+        "present_wrong_owner_count": 0,
+        "unresolved_ellipsis_count": 0,
+        "unresolved_source_span_count": 0
+      },
+      "family": "REVERSED_CAUSALITY",
+      "id": "pair_reverse_causality",
+      "neutral_diagnostic": {
+        "alignments": [
+          {
+            "action_id": "A1",
+            "candidate_count": 5,
+            "gold_event": "pulling the release",
+            "matched_proposition_id": "PR1__NEUTRAL__A1",
+            "method": "EXACT",
+            "score": 1.0,
+            "status": "MATCHED",
+            "unresolved_reason": null
+          },
+          {
+            "action_id": "A1",
+            "candidate_count": 5,
+            "gold_event": "opens the gate",
+            "matched_proposition_id": null,
+            "method": null,
+            "score": null,
+            "status": "UNRESOLVED",
+            "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+          }
+        ],
+        "fused_gold_node_count": 0,
+        "gold_node_count": 2,
+        "neutral_node_recall": 0.5,
+        "present_neutral_node_count": 1
+      },
+      "node_preservation_waterfall": {
+        "graph_admission_rate": 0.0,
+        "neutral_nodes_extracted": 5,
+        "nodes_admitted_to_graph": 0,
+        "nodes_materialized_after_ownership": 3,
+        "nodes_surviving_normalization": 2,
+        "nodes_with_valid_provenance": 0,
+        "normalization_retention_rate": 0.6666666666666666,
+        "ownership_retention_rate": 0.6,
+        "provenance_retention_rate": 0.0
+      },
+      "presentation_to_canonical_action_ids": {
+        "A0": "A1",
+        "A1": "A0"
+      },
+      "stage_one_status": "REJECTED"
+    },
+    {
+      "diagnostic": {
+        "absent_or_unaligned_count": 2,
+        "action_branches": [
+          {
+            "action_id": "A0",
+            "correctly_owned_node_count": 0,
+            "required_node_count": 2,
+            "status": "OMITTED_OR_INCOMPLETE"
+          }
+        ],
+        "atomic_present_gold_node_count": 0,
+        "fused_gold_node_count": 0,
+        "gold_node_count": 2,
+        "node_presence_recall_any_owner": 0.0,
+        "node_recall_correct_owner": 0.0,
+        "nodes": [
+          {
+            "actual_action_id": null,
+            "atomicity": "UNAVAILABLE",
+            "expected_action_id": "A0",
+            "gold_event": "Jo dies",
+            "matched_proposition_id": null,
+            "method": null,
+            "score": null,
+            "status": "ABSENT_OR_UNALIGNED"
+          },
+          {
+            "actual_action_id": null,
+            "atomicity": "UNAVAILABLE",
+            "expected_action_id": "A0",
+            "gold_event": "Jo receives no antidote",
+            "matched_proposition_id": null,
+            "method": null,
+            "score": null,
+            "status": "ABSENT_OR_UNALIGNED"
+          }
+        ],
+        "present_correct_owner_count": 0,
+        "present_wrong_owner_count": 0,
+        "unresolved_ellipsis_count": 0,
+        "unresolved_source_span_count": 0
+      },
+      "family": "MISSING_CAUSAL_EDGE",
+      "id": "pair_missing_cross_clause_edge",
+      "neutral_diagnostic": {
+        "alignments": [
+          {
+            "action_id": "A0",
+            "candidate_count": 4,
+            "gold_event": "Jo receives no antidote",
+            "matched_proposition_id": "P2__NEUTRAL__A0",
+            "method": "TOKEN_LEMMA",
+            "score": 0.75,
+            "status": "MATCHED",
+            "unresolved_reason": null
+          },
+          {
+            "action_id": "A0",
+            "candidate_count": 4,
+            "gold_event": "Jo dies",
+            "matched_proposition_id": null,
+            "method": null,
+            "score": null,
+            "status": "UNRESOLVED",
+            "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+          }
+        ],
+        "fused_gold_node_count": 0,
+        "gold_node_count": 2,
+        "neutral_node_recall": 0.5,
+        "present_neutral_node_count": 1
+      },
+      "node_preservation_waterfall": {
+        "graph_admission_rate": 0.0,
+        "neutral_nodes_extracted": 4,
+        "nodes_admitted_to_graph": 0,
+        "nodes_materialized_after_ownership": 4,
+        "nodes_surviving_normalization": 2,
+        "nodes_with_valid_provenance": 0,
+        "normalization_retention_rate": 0.5,
+        "ownership_retention_rate": 1.0,
+        "provenance_retention_rate": 0.0
+      },
+      "presentation_to_canonical_action_ids": {
+        "A0": "A0",
+        "A1": "A1"
+      },
+      "stage_one_status": "REJECTED"
+    },
+    {
+      "diagnostic": {
+        "absent_or_unaligned_count": 2,
+        "action_branches": [
+          {
+            "action_id": "A1",
+            "correctly_owned_node_count": 0,
+            "required_node_count": 2,
+            "status": "OMITTED_OR_INCOMPLETE"
+          }
+        ],
+        "atomic_present_gold_node_count": 0,
+        "fused_gold_node_count": 0,
+        "gold_node_count": 2,
+        "node_presence_recall_any_owner": 0.0,
+        "node_recall_correct_owner": 0.0,
+        "nodes": [
+          {
+            "actual_action_id": null,
+            "atomicity": "UNAVAILABLE",
+            "expected_action_id": "A1",
+            "gold_event": "Noor enters the laboratory",
+            "matched_proposition_id": null,
+            "method": null,
+            "score": null,
+            "status": "ABSENT_OR_UNALIGNED"
+          },
+          {
+            "actual_action_id": null,
+            "atomicity": "UNAVAILABLE",
+            "expected_action_id": "A1",
+            "gold_event": "issuing the access card",
+            "matched_proposition_id": null,
+            "method": null,
+            "score": null,
+            "status": "ABSENT_OR_UNALIGNED"
+          }
+        ],
+        "present_correct_owner_count": 0,
+        "present_wrong_owner_count": 0,
+        "unresolved_ellipsis_count": 0,
+        "unresolved_source_span_count": 0
+      },
+      "family": "WRONG_CAUSAL_LABEL",
+      "id": "pair_enable_not_cause",
+      "neutral_diagnostic": {
+        "alignments": [
+          {
+            "action_id": "A1",
+            "candidate_count": 4,
+            "gold_event": "issuing the access card",
+            "matched_proposition_id": "PR1__NEUTRAL__A1",
+            "method": "EXACT",
+            "score": 1.0,
+            "status": "MATCHED",
+            "unresolved_reason": null
+          },
+          {
+            "action_id": "A1",
+            "candidate_count": 4,
+            "gold_event": "Noor enters the laboratory",
+            "matched_proposition_id": "PR2__NEUTRAL__A1",
+            "method": "EXACT",
+            "score": 1.0,
+            "status": "MATCHED",
+            "unresolved_reason": null
+          }
+        ],
+        "fused_gold_node_count": 0,
+        "gold_node_count": 2,
+        "neutral_node_recall": 1.0,
+        "present_neutral_node_count": 2
+      },
+      "node_preservation_waterfall": {
+        "graph_admission_rate": 0.0,
+        "neutral_nodes_extracted": 4,
+        "nodes_admitted_to_graph": 0,
+        "nodes_materialized_after_ownership": 3,
+        "nodes_surviving_normalization": 0,
+        "nodes_with_valid_provenance": 0,
+        "normalization_retention_rate": 0.0,
+        "ownership_retention_rate": 0.75,
+        "provenance_retention_rate": null
+      },
+      "presentation_to_canonical_action_ids": {
+        "A0": "A1",
+        "A1": "A0"
+      },
+      "stage_one_status": "REJECTED"
+    },
+    {
+      "diagnostic": {
+        "absent_or_unaligned_count": 2,
+        "action_branches": [
+          {
+            "action_id": "A0",
+            "correctly_owned_node_count": 0,
+            "required_node_count": 2,
+            "status": "OMITTED_OR_INCOMPLETE"
+          }
+        ],
+        "atomic_present_gold_node_count": 0,
+        "fused_gold_node_count": 0,
+        "gold_node_count": 2,
+        "node_presence_recall_any_owner": 0.0,
+        "node_recall_correct_owner": 0.0,
+        "nodes": [
+          {
+            "actual_action_id": null,
+            "atomicity": "UNAVAILABLE",
+            "expected_action_id": "A0",
+            "gold_event": "chemical reaches the river",
+            "matched_proposition_id": null,
+            "method": null,
+            "score": null,
+            "status": "ABSENT_OR_UNALIGNED"
+          },
+          {
+            "actual_action_id": null,
+            "atomicity": "UNAVAILABLE",
+            "expected_action_id": "A0",
+            "gold_event": "closing the valve",
+            "matched_proposition_id": null,
+            "method": null,
+            "score": null,
+            "status": "ABSENT_OR_UNALIGNED"
+          }
+        ],
+        "present_correct_owner_count": 0,
+        "present_wrong_owner_count": 0,
+        "unresolved_ellipsis_count": 0,
+        "unresolved_source_span_count": 0
+      },
+      "family": "WRONG_CAUSAL_LABEL",
+      "id": "pair_prevention",
+      "neutral_diagnostic": {
+        "alignments": [
+          {
+            "action_id": "A0",
+            "candidate_count": 4,
+            "gold_event": "closing the valve",
+            "matched_proposition_id": "PR1__NEUTRAL__A0",
+            "method": "EXACT",
+            "score": 1.0,
+            "status": "MATCHED",
+            "unresolved_reason": null
+          },
+          {
+            "action_id": "A0",
+            "candidate_count": 4,
+            "gold_event": "chemical reaches the river",
+            "matched_proposition_id": "PR2__NEUTRAL__A0",
+            "method": "EXACT",
+            "score": 1.0,
+            "status": "MATCHED",
+            "unresolved_reason": null
+          }
+        ],
+        "fused_gold_node_count": 0,
+        "gold_node_count": 2,
+        "neutral_node_recall": 1.0,
+        "present_neutral_node_count": 2
+      },
+      "node_preservation_waterfall": {
+        "graph_admission_rate": 0.0,
+        "neutral_nodes_extracted": 4,
+        "nodes_admitted_to_graph": 0,
+        "nodes_materialized_after_ownership": 4,
+        "nodes_surviving_normalization": 0,
+        "nodes_with_valid_provenance": 0,
+        "normalization_retention_rate": 0.0,
+        "ownership_retention_rate": 1.0,
+        "provenance_retention_rate": null
+      },
+      "presentation_to_canonical_action_ids": {
+        "A0": "A0",
+        "A1": "A1"
+      },
+      "stage_one_status": "REJECTED"
+    },
+    {
+      "diagnostic": {
+        "absent_or_unaligned_count": 1,
+        "action_branches": [
+          {
+            "action_id": "A1",
+            "correctly_owned_node_count": 1,
+            "required_node_count": 2,
+            "status": "OMITTED_OR_INCOMPLETE"
+          }
+        ],
+        "atomic_present_gold_node_count": 1,
+        "fused_gold_node_count": 0,
+        "gold_node_count": 2,
+        "node_presence_recall_any_owner": 0.5,
+        "node_recall_correct_owner": 0.5,
+        "nodes": [
+          {
+            "actual_action_id": "A1",
+            "atomicity": "ATOMIC",
+            "expected_action_id": "A1",
+            "gold_event": "activating the backup",
+            "matched_proposition_id": "T1",
+            "method": "EXACT",
+            "score": 1.0,
+            "status": "PRESENT_CORRECT_OWNER"
+          },
+          {
+            "actual_action_id": null,
+            "atomicity": "UNAVAILABLE",
+            "expected_action_id": "A1",
+            "gold_event": "main server shuts down",
+            "matched_proposition_id": null,
+            "method": null,
+            "score": null,
+            "status": "ABSENT_OR_UNALIGNED"
+          }
+        ],
+        "present_correct_owner_count": 1,
+        "present_wrong_owner_count": 0,
+        "unresolved_ellipsis_count": 0,
+        "unresolved_source_span_count": 0
+      },
+      "family": "NEGATION",
+      "id": "pair_negated_consequence",
+      "neutral_diagnostic": {
+        "alignments": [
+          {
+            "action_id": "A1",
+            "candidate_count": 5,
+            "gold_event": "activating the backup",
+            "matched_proposition_id": "T1__NEUTRAL__A1",
+            "method": "TOKEN_LEMMA",
+            "score": 1.0,
+            "status": "MATCHED",
+            "unresolved_reason": null
+          },
+          {
+            "action_id": "A1",
+            "candidate_count": 5,
+            "gold_event": "main server shuts down",
+            "matched_proposition_id": "T2__NEUTRAL__A1",
+            "method": "TOKEN_LEMMA",
+            "score": 1.0,
+            "status": "MATCHED",
+            "unresolved_reason": null
+          }
+        ],
+        "fused_gold_node_count": 0,
+        "gold_node_count": 2,
+        "neutral_node_recall": 1.0,
+        "present_neutral_node_count": 2
+      },
+      "node_preservation_waterfall": {
+        "graph_admission_rate": 0.0,
+        "neutral_nodes_extracted": 5,
+        "nodes_admitted_to_graph": 0,
+        "nodes_materialized_after_ownership": 4,
+        "nodes_surviving_normalization": 1,
+        "nodes_with_valid_provenance": 1,
+        "normalization_retention_rate": 0.25,
+        "ownership_retention_rate": 0.8,
+        "provenance_retention_rate": 1.0
+      },
+      "presentation_to_canonical_action_ids": {
+        "A0": "A1",
+        "A1": "A0"
+      },
+      "stage_one_status": "REJECTED"
+    },
+    {
+      "diagnostic": {
+        "absent_or_unaligned_count": 2,
+        "action_branches": [
+          {
+            "action_id": "A1",
+            "correctly_owned_node_count": 0,
+            "required_node_count": 2,
+            "status": "OMITTED_OR_INCOMPLETE"
+          }
+        ],
+        "atomic_present_gold_node_count": 0,
+        "fused_gold_node_count": 0,
+        "gold_node_count": 2,
+        "node_presence_recall_any_owner": 0.0,
+        "node_recall_correct_owner": 0.0,
+        "nodes": [
+          {
+            "actual_action_id": null,
+            "atomicity": "UNAVAILABLE",
+            "expected_action_id": "A1",
+            "gold_event": "opening the door",
+            "matched_proposition_id": null,
+            "method": null,
+            "score": null,
+            "status": "ABSENT_OR_UNALIGNED"
+          },
+          {
+            "actual_action_id": null,
+            "atomicity": "UNAVAILABLE",
+            "expected_action_id": "A1",
+            "gold_event": "siren sounds",
+            "matched_proposition_id": null,
+            "method": null,
+            "score": null,
+            "status": "ABSENT_OR_UNALIGNED"
+          }
+        ],
+        "present_correct_owner_count": 0,
+        "present_wrong_owner_count": 0,
+        "unresolved_ellipsis_count": 0,
+        "unresolved_source_span_count": 0
+      },
+      "family": "CONDITIONAL_CAUSALITY",
+      "id": "pair_conditional_cause",
+      "neutral_diagnostic": {
+        "alignments": [
+          {
+            "action_id": "A1",
+            "candidate_count": 6,
+            "gold_event": "opening the door",
+            "matched_proposition_id": "T2__NEUTRAL__A1",
+            "method": "EXACT",
+            "score": 1.0,
+            "status": "MATCHED",
+            "unresolved_reason": null
+          },
+          {
+            "action_id": "A1",
+            "candidate_count": 6,
+            "gold_event": "siren sounds",
+            "matched_proposition_id": "T3__NEUTRAL__A1",
+            "method": "EXACT",
+            "score": 1.0,
+            "status": "MATCHED",
+            "unresolved_reason": null
+          }
+        ],
+        "fused_gold_node_count": 0,
+        "gold_node_count": 2,
+        "neutral_node_recall": 1.0,
+        "present_neutral_node_count": 2
+      },
+      "node_preservation_waterfall": {
+        "graph_admission_rate": 0.0,
+        "neutral_nodes_extracted": 6,
+        "nodes_admitted_to_graph": 0,
+        "nodes_materialized_after_ownership": 6,
+        "nodes_surviving_normalization": 0,
+        "nodes_with_valid_provenance": 0,
+        "normalization_retention_rate": 0.0,
+        "ownership_retention_rate": 1.0,
+        "provenance_retention_rate": null
+      },
+      "presentation_to_canonical_action_ids": {
+        "A0": "A1",
+        "A1": "A0"
+      },
+      "stage_one_status": "REJECTED"
+    },
+    {
+      "diagnostic": {
+        "absent_or_unaligned_count": 1,
+        "action_branches": [
+          {
+            "action_id": "A1",
+            "correctly_owned_node_count": 1,
+            "required_node_count": 2,
+            "status": "OMITTED_OR_INCOMPLETE"
+          }
+        ],
+        "atomic_present_gold_node_count": 1,
+        "fused_gold_node_count": 0,
+        "gold_node_count": 2,
+        "node_presence_recall_any_owner": 0.5,
+        "node_recall_correct_owner": 0.5,
+        "nodes": [
+          {
+            "actual_action_id": "A1",
+            "atomicity": "ATOMIC",
+            "expected_action_id": "A1",
+            "gold_event": "sending the stock to District West",
+            "matched_proposition_id": "PR_AUTO_2",
+            "method": "TOKEN_LEMMA",
+            "score": 0.8,
+            "status": "PRESENT_CORRECT_OWNER"
+          },
+          {
+            "actual_action_id": null,
+            "atomicity": "UNAVAILABLE",
+            "expected_action_id": "A1",
+            "gold_event": "stock is exhausted",
+            "matched_proposition_id": null,
+            "method": null,
+            "score": null,
+            "status": "ABSENT_OR_UNALIGNED"
+          }
+        ],
+        "present_correct_owner_count": 1,
+        "present_wrong_owner_count": 0,
+        "unresolved_ellipsis_count": 0,
+        "unresolved_source_span_count": 0
+      },
+      "family": "ELLIPSIS",
+      "id": "pair_ellipsis_same",
+      "neutral_diagnostic": {
+        "alignments": [
+          {
+            "action_id": "A1",
+            "candidate_count": 5,
+            "gold_event": "sending the stock to District West",
+            "matched_proposition_id": null,
+            "method": null,
+            "score": null,
+            "status": "UNRESOLVED",
+            "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+          },
+          {
+            "action_id": "A1",
+            "candidate_count": 5,
+            "gold_event": "stock is exhausted",
+            "matched_proposition_id": null,
+            "method": null,
+            "score": null,
+            "status": "UNRESOLVED",
+            "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+          }
+        ],
+        "fused_gold_node_count": 0,
+        "gold_node_count": 2,
+        "neutral_node_recall": 0.0,
+        "present_neutral_node_count": 0
+      },
+      "node_preservation_waterfall": {
+        "graph_admission_rate": 0.8,
+        "neutral_nodes_extracted": 5,
+        "nodes_admitted_to_graph": 4,
+        "nodes_materialized_after_ownership": 5,
+        "nodes_surviving_normalization": 4,
+        "nodes_with_valid_provenance": 4,
+        "normalization_retention_rate": 0.8,
+        "ownership_retention_rate": 1.0,
+        "provenance_retention_rate": 1.0
+      },
+      "presentation_to_canonical_action_ids": {
+        "A0": "A0",
+        "A1": "A1"
+      },
+      "stage_one_status": "ADMITTED"
+    },
+    {
+      "diagnostic": {
+        "absent_or_unaligned_count": 2,
+        "action_branches": [
+          {
+            "action_id": "A1",
+            "correctly_owned_node_count": 1,
+            "required_node_count": 3,
+            "status": "OMITTED_OR_INCOMPLETE"
+          }
+        ],
+        "atomic_present_gold_node_count": 1,
+        "fused_gold_node_count": 0,
+        "gold_node_count": 3,
+        "node_presence_recall_any_owner": 0.3333333333333333,
+        "node_recall_correct_owner": 0.3333333333333333,
+        "nodes": [
+          {
+            "actual_action_id": "A1",
+            "atomicity": "ATOMIC",
+            "expected_action_id": "A1",
+            "gold_event": "diverting the vehicle",
+            "matched_proposition_id": "PR_AUTO_1",
+            "method": "TOKEN_LEMMA",
+            "score": 1.0,
+            "status": "PRESENT_CORRECT_OWNER"
+          },
+          {
+            "actual_action_id": null,
+            "atomicity": "UNAVAILABLE",
+            "expected_action_id": "A1",
+            "gold_event": "one loading-bay worker is struck",
+            "matched_proposition_id": null,
+            "method": null,
+            "score": null,
+            "status": "ABSENT_OR_UNALIGNED"
+          },
+          {
+            "actual_action_id": null,
+            "atomicity": "UNAVAILABLE",
+            "expected_action_id": "A1",
+            "gold_event": "smoke reaches five tunnel workers",
+            "matched_proposition_id": null,
+            "method": null,
+            "score": null,
+            "status": "ABSENT_OR_UNALIGNED"
+          }
+        ],
+        "present_correct_owner_count": 1,
+        "present_wrong_owner_count": 0,
+        "unresolved_ellipsis_count": 0,
+        "unresolved_source_span_count": 0
+      },
+      "family": "MULTI_EFFECT_CLAUSE",
+      "id": "pair_sibling_population_leak",
+      "neutral_diagnostic": {
+        "alignments": [
+          {
+            "action_id": "A1",
+            "candidate_count": 4,
+            "gold_event": "diverting the vehicle",
+            "matched_proposition_id": null,
+            "method": null,
+            "score": null,
+            "status": "UNRESOLVED",
+            "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+          },
+          {
+            "action_id": "A1",
+            "candidate_count": 4,
+            "gold_event": "one loading-bay worker is struck",
+            "matched_proposition_id": null,
+            "method": null,
+            "score": null,
+            "status": "UNRESOLVED",
+            "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+          },
+          {
+            "action_id": "A1",
+            "candidate_count": 4,
+            "gold_event": "smoke reaches five tunnel workers",
+            "matched_proposition_id": null,
+            "method": null,
+            "score": null,
+            "status": "UNRESOLVED",
+            "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+          }
+        ],
+        "fused_gold_node_count": 0,
+        "gold_node_count": 3,
+        "neutral_node_recall": 0.0,
+        "present_neutral_node_count": 0
+      },
+      "node_preservation_waterfall": {
+        "graph_admission_rate": 0.0,
+        "neutral_nodes_extracted": 4,
+        "nodes_admitted_to_graph": 0,
+        "nodes_materialized_after_ownership": 4,
+        "nodes_surviving_normalization": 2,
+        "nodes_with_valid_provenance": 0,
+        "normalization_retention_rate": 0.5,
+        "ownership_retention_rate": 1.0,
+        "provenance_retention_rate": 0.0
+      },
+      "presentation_to_canonical_action_ids": {
+        "A0": "A1",
+        "A1": "A0"
+      },
+      "stage_one_status": "REJECTED"
+    }
+  ],
+  "source_protocol": "FROZEN_FIRST_EIGHT_CASE_CHALLENGE",
+  "source_report": "eval_outputs/staged-node-ledger-challenge-20260920/report.json"
+}

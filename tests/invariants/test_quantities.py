@@ -29,6 +29,7 @@ from global_workspace.world_state import (
     _quantity_core,
     assigned_party_quantities,
     canonical_quantity_span,
+    _quantities_equivalent,
     closed_class_party_quantities,
     explicit_quantity_spans,
     parse_world_model,
@@ -211,6 +212,12 @@ class BoundQuantityNormalizationTests(unittest.TestCase):
 
 
 class OrdinaryQuantitySpanTests(unittest.TestCase):
+    def test_population_noun_does_not_change_quantity_identity(self):
+        self.assertTrue(_quantities_equivalent("1", "1 person"))
+        self.assertTrue(_quantities_equivalent("5", "5 people"))
+        self.assertTrue(_quantities_equivalent("500", "500 residents"))
+        self.assertFalse(_quantities_equivalent("1 person", "5 people"))
+
     @given(plain_quantity_cases())
     @settings(max_examples=40, deadline=None)
     def test_plain_quantity_is_one_canonical_span(self, case: PlainQuantityCase):
@@ -301,4 +308,3 @@ class QuantityPartyUniquenessTests(unittest.TestCase):
             tuple(graph.nodes[f"PARTY:{case.right_id}"].attributes.get("quantities", ())),
             (case.right_span,),
         )
-

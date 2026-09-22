@@ -1,0 +1,36 @@
+{
+  "schema_id": "INVARIANT_CARD_TRIALS_V1",
+  "description": "Input contract for research.invariant_card_evaluation.",
+  "required_trial_fields": [
+    "case_id",
+    "family",
+    "expected_violation",
+    "detected",
+    "repair_attempted",
+    "repair_committed",
+    "before_issue_codes",
+    "after_issue_codes",
+    "target_issue_codes",
+    "previous_success",
+    "previous_success_preserved"
+  ],
+  "field_meanings": {
+    "expected_violation": "Independent gold label; never copied from the production detector.",
+    "detected": "Whether the invariant under evaluation fired.",
+    "repair_committed": "Whether the repaired candidate passed the complete validator.",
+    "before_issue_codes": "All validator issue codes before repair.",
+    "after_issue_codes": "All validator issue codes after repair.",
+    "target_issue_codes": "Issue codes the selected card was authorized to change.",
+    "previous_success": "The control configuration previously committed this case.",
+    "previous_success_preserved": "The experimental configuration retained that success."
+  },
+  "frozen_trial_requirements": [
+    "source scenario",
+    "canonical actions",
+    "initial candidate",
+    "gold violation label",
+    "validator version or commit",
+    "model and prompt version for LLM repairs"
+  ]
+}
+

@@ -1,0 +1,24 @@
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{xcolor}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds}
+\begin{document}
+% A1 actual-world graph
+\begin{tikzpicture}[>=Latex,
+ event/.style={draw,rounded corners,align=center,text width=3.8cm,minimum height=1.4cm,font=\small},
+ beneficial/.style={event,fill=green!12,draw=green!50!black},
+ adverse/.style={event,fill=red!10,draw=red!55!black},
+ neutral/.style={event,fill=gray!10,draw=gray!65},
+ foregone/.style={event,fill=blue!7,draw=blue!45,densely dotted},
+ causal/.style={->,thick}, conditional/.style={->,thick,dashed}]
+\node[font=\bfseries,anchor=west] at (0,1.3) {A1: give the medicine to Maria};
+\node[neutral] (eE3) at (0.0,0.0) {\textbf{E3}\\Maria receives the medicine\\\scriptsize Maria · NEUTRAL · CERTAIN\\\scriptsize source: A1, C6, C0};
+\node[neutral] (eE3B) at (5.2,0.0) {\textbf{E3B}\\the medicine is not given to David\\\scriptsize dose of medicine · NEUTRAL · CERTAIN\\\scriptsize source: C6, C0};
+\node[neutral] (eE3C) at (10.4,0.0) {\textbf{E3C}\\David does not receive the medicine\\\scriptsize David · NEUTRAL · CERTAIN\\\scriptsize source: C0};
+\node[adverse] (eE4) at (15.600000000000001,0.0) {\textbf{E4}\\David dies\\\scriptsize David · ADVERSE · CERTAIN\\\scriptsize source: C4};
+\node[beneficial] (eE5) at (5.2,-2.3) {\textbf{E5}\\Maria has a slightly better chance of survival\\\scriptsize Maria · BENEFICIAL · PROBABILISTIC\\\scriptsize source: C5};
+\draw[causal] (eE3) -- node[above,font=\scriptsize] {CAUSES} (eE3B);
+\draw[causal] (eE3B) -- node[above,font=\scriptsize] {CAUSES} (eE3C);
+\draw[causal] (eE3C) -- node[above,font=\scriptsize] {CAUSES} (eE4);
+\draw[causal] (eE3) -- node[above,font=\scriptsize] {CAUSES} (eE5);
+\end{tikzpicture}
+\end{document}

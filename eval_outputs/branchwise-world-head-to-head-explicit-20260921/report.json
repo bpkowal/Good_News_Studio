@@ -1,0 +1,114 @@
+{
+  "actions": [
+    "Give the oxygen unit to Eli",
+    "Give the oxygen unit to Noor"
+  ],
+  "branchwise": {
+    "branch_elapsed_seconds": [
+      50.605,
+      49.71
+    ],
+    "branch_errors": [
+      [
+        "typed world model rejected: E2 is an immediate RESOURCE_TRANSFER effect so its directness must be DIRECT. If this row is later conduct (assist, remain, use a road) rather than the actor's act on a recipient, change effect_kind and keep DOWNSTREAM; do not add a later crowd as a recipient to make it DIRECT. If this is the actor assigning or allocating that party, mark DIRECT and name them as recipient of the assignment, distinct from later assist or exposure"
+      ],
+      []
+    ],
+    "branch_repair_attempts": [
+      2,
+      2
+    ],
+    "branch_statuses": [
+      "REJECTED",
+      "COMMITTED"
+    ],
+    "merge_conflicts": [],
+    "merged_errors": [
+      "one or more branches did not commit"
+    ],
+    "merged_status": "NOT_RUN",
+    "merged_validation_issues": [],
+    "merged_world_model": {}
+  },
+  "experiment_version": "1.0",
+  "intentionally_not_compared": [
+    "ethical framework deliberation",
+    "final ethical recommendation",
+    "counterfactual overlay quality",
+    "cost-normalized performance beyond this single scenario"
+  ],
+  "model": "o3",
+  "scenario": "A rural clinic has one portable oxygen unit and two patients, Eli and Noor. The unit cannot be divided, and no replacement can arrive in time. Under the first available action, the clinician gives the oxygen unit to Eli; Eli receives oxygen and avoids respiratory injury, while Noor receives no oxygen and suffers respiratory injury. Under the second available action, the clinician gives the oxygen unit to Noor; Noor receives oxygen and avoids respiratory injury, while Eli receives no oxygen and suffers respiratory injury. The clinician must select one of these two actions.",
+  "whole_world": {
+    "elapsed_seconds": 83.962,
+    "errors": [
+      "typed world model rejected: E_A0_EliO2 is an immediate RESOURCE_TRANSFER effect so its directness must be DIRECT. If this row is later conduct (assist, remain, use a road) rather than the actor's act on a recipient, change effect_kind and keep DOWNSTREAM; do not add a later crowd as a recipient to make it DIRECT. If this is the actor assigning or allocating that party, mark DIRECT and name them as recipient of the assignment, distinct from later assist or exposure; E_A1_NoorO2 is an immediate RESOURCE_TRANSFER effect so its directness must be DIRECT. If this row is later conduct (assist, remain, use a road) rather than the actor's act on a recipient, change effect_kind and keep DOWNSTREAM; do not add a later crowd as a recipient to make it DIRECT. If this is the actor assigning or allocating that party, mark DIRECT and name them as recipient of the assignment, distinct from later assist or exposure; A0 omits exclusive-allocation branch for nonrecipient PNOOR: missing nonreceipt state; add the action-specific nonreceipt state and preserve every source-stipulated consequence; A1 omits exclusive-allocation branch for nonrecipient PELI: missing nonreceipt state; add the action-specific nonreceipt state and preserve every source-stipulated consequence; E_A0_NoorInjury is harm to unselected party PNOOR under an exclusive indivisible allocation but lacks an action-specific nonreceipt or untreated state as its immediate parent; keep scarcity/indivisibility global and insert PNOOR does not receive the allocated resource -> E_A0_NoorInjury; E_A1_EliInjury is harm to unselected party PELI under an exclusive indivisible allocation but lacks an action-specific nonreceipt or untreated state as its immediate parent; keep scarcity/indivisibility global and insert PELI does not receive the allocated resource -> E_A1_EliInjury",
+      "repair dropped previously valid parties POxy that the listed errors did not name"
+    ],
+    "repair_attempts": 2,
+    "status": "REJECTED",
+    "validation_issues": [
+      {
+        "code": "WORLD_VALIDATION_ERROR",
+        "entity_id": "E_A0_EliO2",
+        "entity_kind": "effect",
+        "field": "",
+        "message": "E_A0_EliO2 is an immediate RESOURCE_TRANSFER effect so its directness must be DIRECT. If this row is later conduct (assist, remain, use a road) rather than the actor's act on a recipient, change effect_kind and keep DOWNSTREAM; do not add a later crowd as a recipient to make it DIRECT. If this is the actor assigning or allocating that party, mark DIRECT and name them as recipient of the assignment, distinct from later assist or exposure",
+        "permits_removal": false,
+        "related_ids": [],
+        "repair_class": "SEMANTIC_PATCH"
+      },
+      {
+        "code": "WORLD_VALIDATION_ERROR",
+        "entity_id": "E_A1_NoorO2",
+        "entity_kind": "effect",
+        "field": "",
+        "message": "E_A1_NoorO2 is an immediate RESOURCE_TRANSFER effect so its directness must be DIRECT. If this row is later conduct (assist, remain, use a road) rather than the actor's act on a recipient, change effect_kind and keep DOWNSTREAM; do not add a later crowd as a recipient to make it DIRECT. If this is the actor assigning or allocating that party, mark DIRECT and name them as recipient of the assignment, distinct from later assist or exposure",
+        "permits_removal": false,
+        "related_ids": [],
+        "repair_class": "SEMANTIC_PATCH"
+      },
+      {
+        "code": "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+        "entity_id": "A0",
+        "entity_kind": "action",
+        "field": "effects",
+        "message": "A0 omits exclusive-allocation branch for nonrecipient PNOOR: missing nonreceipt state; add the action-specific nonreceipt state and preserve every source-stipulated consequence",
+        "permits_removal": false,
+        "related_ids": [],
+        "repair_class": "SEMANTIC_PATCH"
+      },
+      {
+        "code": "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
+        "entity_id": "A1",
+        "entity_kind": "action",
+        "field": "effects",
+        "message": "A1 omits exclusive-allocation branch for nonrecipient PELI: missing nonreceipt state; add the action-specific nonreceipt state and preserve every source-stipulated consequence",
+        "permits_removal": false,
+        "related_ids": [],
+        "repair_class": "SEMANTIC_PATCH"
+      },
+      {
+        "code": "MISSING_PROCESS_INTERMEDIATE",
+        "entity_id": "E_A0_NoorInjury",
+        "entity_kind": "effect",
+        "field": "causal_links",
+        "message": "E_A0_NoorInjury is harm to unselected party PNOOR under an exclusive indivisible allocation but lacks an action-specific nonreceipt or untreated state as its immediate parent; keep scarcity/indivisibility global and insert PNOOR does not receive the allocated resource -> E_A0_NoorInjury",
+        "permits_removal": false,
+        "related_ids": [],
+        "repair_class": "SEMANTIC_PATCH"
+      },
+      {
+        "code": "MISSING_PROCESS_INTERMEDIATE",
+        "entity_id": "E_A1_EliInjury",
+        "entity_kind": "effect",
+        "field": "causal_links",
+        "message": "E_A1_EliInjury is harm to unselected party PELI under an exclusive indivisible allocation but lacks an action-specific nonreceipt or untreated state as its immediate parent; keep scarcity/indivisibility global and insert PELI does not receive the allocated resource -> E_A1_EliInjury",
+        "permits_removal": false,
+        "related_ids": [],
+        "repair_class": "SEMANTIC_PATCH"
+      }
+    ],
+    "world_model": {}
+  }
+}

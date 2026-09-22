@@ -12,6 +12,32 @@ from .action_identity import (
     compile_action_identity,
     intervention_only_action_text,
 )
+from .candidate_obligations import build_candidate_generation_contract
+from .allocation_completion import complete_exclusive_allocations
+from .conditional_rule_instantiation import instantiate_conditional_rules
+from .ellipsis_integrity import validate_ellipsis_resolution_records
+from .evidence_repair_guidance import build_evidence_repair_delta
+from .invariant_card_telemetry import build_invariant_card_telemetry
+from .repair_experiment import build_repair_event
+from .pairwise_relation_audit import (
+    build_pairwise_jobs,
+    prompt_for_job as pairwise_relation_prompt,
+    response_schema as pairwise_relation_response_schema,
+    run_pairwise_audit,
+)
+from .provenance_binding import bind_exact_provenance_spans
+from .semantic_resolution_obligations import (
+    assess_obligation_coverage,
+    build_resolution_obligations,
+)
+from .syntactic_annotation import load_english_parser
+from .targeted_semantic_resolution import (
+    apply_resolution_results,
+    build_resolution_jobs,
+    prompt_for_resolution_job,
+    resolver_schema,
+)
+from .topology_scaffold import build_topology_scaffold
 from .core_quote_pack import format_core_dialect_contract
 from .evidence_calibration import EvidenceCalibration
 from .expected_value import (
@@ -23,6 +49,10 @@ from .contingency_graph import compile_contingency_graph
 from .middleware.claim_damping import (
     SPECULATIVE_EPISTEMIC_CAP,
     apply_symmetric_claim_damping,
+)
+from .output_claim_integrity import (
+    numeric_claim_integrity_errors,
+    semantic_transformation_errors,
 )
 from .models import CalibrationOutcome, CandidateChunk, CategoricalAxis, FailureCondition, NumericComparison, PlanningAssessment, ProblemReformulation, ProposalFrameworkReview, SynthesisProposal, TestimonyBaseline, WorkspaceBroadcast
 from .structured_io import (
@@ -40,13 +70,24 @@ from .scenario_semantics import (
     project_grounded_action_effects,
     segment_scenario_clauses,
 )
+from .staged_node_generation import (
+    finalize_node_evidence_ledger,
+    materialize_owned_skeleton,
+    neutral_skeleton_schema,
+    ownership_schema,
+    triage_node_admission,
+)
+from .stage_one_evidence import build_stage_one_evidence_packet
 from .sympy_arith import verify_net_from_terms
 from .sympy_certificates import (
     build_ranking_certificate,
     certificate_challenger,
 )
 from .utilitarian_ledger import utilitarian_scored_grounded_effects
-from .world_state import quantity_magnitude
+from .world_state import (
+    quantity_magnitude,
+    quarantine_unsupported_comparative_causalizations,
+)
 from .world_validation import (
     DETERMINISTIC_LOCAL_PATCH,
     FULL_REBUILD,
@@ -7501,6 +7542,1052 @@ Do not truncate mid-clause. Do not end an action on a bare adjective or determin
             ) from repair_error
 
 
+def _deterministic_trolley_diversion_candidate(
+    scenario: str,
+    actions: Sequence[str],
+    action_ids: Sequence[str],
+    clauses: Sequence[dict[str, str]],
+) -> dict[str, Any] | None:
+    """Build only the closed, certain two-track lever-diversion world.
+
+    This is intentionally a narrow experiment route, not a general trolley
+    heuristic. Any uncertainty, extra intervention, missing explicit quantity,
+    non-lever action, or non-binary action set falls back to model grounding.
+    """
+    if len(actions) != 2 or list(action_ids) != ["A0", "A1"]:
+        return None
+    folded = " ".join(str(scenario or "").casefold().split())
+    required = (
+        "runaway trolley", "main track", "side track", "pull the lever",
+        "no other intervention is available", "choose either",
+    )
+    if not all(token in folded for token in required):
+        return None
+    if re.search(r"\b(?:might|may|could|chance|probab|risk of|unless the)\b", folded):
+        return None
+    side_match = re.search(
+        r"moving the trolley onto a side track where it will hit exactly "
+        r"([^,.;?]+?)\s+person\b",
+        scenario,
+        re.IGNORECASE,
+    )
+    main_match = re.search(
+        r"leaving the trolley on the main track where it will hit exactly "
+        r"([^,.;?]+?)\s+people\b",
+        scenario,
+        re.IGNORECASE,
+    )
+    if side_match is None or main_match is None:
+        return None
+    side_quantity = " ".join(side_match.group(1).split())
+    main_quantity = " ".join(main_match.group(1).split())
+    if quantity_magnitude(side_quantity) is None or quantity_magnitude(main_quantity) is None:
+        return None
+
+    pull_index = next((
+        index for index, action in enumerate(actions)
+        if re.search(r"\bpull(?:s|ing)?\s+the\s+lever\b", action, re.I)
+        and not re.search(r"\b(?:not|refrain|decline|without)\b", action, re.I)
+    ), None)
+    refrain_index = next((
+        index for index, action in enumerate(actions)
+        if re.search(r"\b(?:refrain|do\s+not|does\s+not|not\s+pull)", action, re.I)
+    ), None)
+    if pull_index is None or refrain_index is None or pull_index == refrain_index:
+        return None
+    pull_id = action_ids[pull_index]
+    refrain_id = action_ids[refrain_index]
+    choice_clause = next((
+        clause for clause in clauses
+        if "choose either" in str(clause.get("text") or "").casefold()
+        and "side track" in str(clause.get("text") or "").casefold()
+        and "main track" in str(clause.get("text") or "").casefold()
+    ), None)
+    if choice_clause is None:
+        return None
+    choice_id = str(choice_clause["clause_id"])
+
+    def effect(
+        effect_id: str, action_id: str, party_id: str, outcome: str,
+        predicate: str, polarity: str, directness: str, effect_kind: str,
+        source_proposition: str, source_effect_ids: Sequence[str] = (),
+        quantities: Sequence[str] = (),
+    ) -> dict[str, Any]:
+        causal = bool(source_effect_ids)
+        return {
+            "effect_id": effect_id, "action_id": action_id,
+            "party_id": party_id, "outcome": outcome,
+            "predicate": predicate, "polarity": polarity,
+            "directness": directness, "modality": "CERTAIN",
+            "effect_kind": effect_kind, "condition_ids": [],
+            "quantities": list(quantities), "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [], "scope_qualifiers": [],
+            "temporal_qualifiers": [], "condition_join": "AND",
+            "source_proposition": source_proposition,
+            "source_effect_ids": list(source_effect_ids),
+            "derivation_operation": (
+                "SOURCE_STIPULATED_CAUSAL" if causal else "DIRECT_COPY"
+            ),
+            "derivation_explanation": (
+                "Explicit causal sequence in the closed trolley-diversion clause."
+                if causal else ""
+            ),
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [choice_id],
+        }
+
+    effects = [
+        effect(
+            "DET_PULL", pull_id, "P_SWITCH", "lever is pulled", "PULLED",
+            "NEUTRAL", "DIRECT", "INTERVENTION", "pull the lever",
+        ),
+        effect(
+            "DET_SIDE", pull_id, "P_TROLLEY",
+            "moving the trolley onto a side track", "MOVES", "NEUTRAL",
+            "DOWNSTREAM", "PHYSICAL_STATE",
+            "moving the trolley onto a side track", ("DET_PULL",),
+        ),
+        effect(
+            "DET_SIDE_HIT", pull_id, "P_SIDE",
+            "side-track person is hit by the trolley", "HIT", "ADVERSE",
+            "DOWNSTREAM", "HEALTH_OUTCOME",
+            f"hit exactly {side_quantity} person", ("DET_SIDE",),
+            (side_quantity,),
+        ),
+        effect(
+            "DET_REFRAIN", refrain_id, "P_SWITCH", "lever is not pulled",
+            "NOT_PULLED", "NEUTRAL", "DIRECT", "INTERVENTION",
+            "refrain from pulling the lever",
+        ),
+        effect(
+            "DET_MAIN", refrain_id, "P_TROLLEY",
+            "trolley remains on the main track", "REMAINS", "NEUTRAL",
+            "DOWNSTREAM", "PHYSICAL_STATE",
+            "leaving the trolley on the main track", ("DET_REFRAIN",),
+        ),
+        effect(
+            "DET_MAIN_HIT", refrain_id, "P_MAIN",
+            "main-track people are hit by the trolley", "HIT", "ADVERSE",
+            "DOWNSTREAM", "HEALTH_OUTCOME",
+            f"hit exactly {main_quantity} people", ("DET_MAIN",),
+            (main_quantity,),
+        ),
+    ]
+    effect_ids = {
+        pull_id: ["DET_PULL", "DET_SIDE", "DET_SIDE_HIT"],
+        refrain_id: ["DET_REFRAIN", "DET_MAIN", "DET_MAIN_HIT"],
+    }
+    action_rows = []
+    for action_id in action_ids:
+        is_pull = action_id == pull_id
+        action_rows.append({
+            "action_id": action_id,
+            "intervention": "pull the lever" if is_pull else "refrain from pulling the lever",
+            "actor_party_id": "P_ACTOR",
+            "recipient_party_ids": ["P_SWITCH"],
+            "effect_ids": effect_ids[action_id],
+            "clause_ids": [choice_id],
+        })
+    links = [
+        (pull_id, "DET_PULL", "CAUSES", "DET_SIDE"),
+        (pull_id, "DET_SIDE", "CAUSES", "DET_SIDE_HIT"),
+        (refrain_id, "DET_REFRAIN", "CAUSES", "DET_MAIN"),
+        (refrain_id, "DET_MAIN", "CAUSES", "DET_MAIN_HIT"),
+    ]
+    world_model = {
+        "schema_version": "1.3",
+        "parties": [
+            {"party_id": "P_ACTOR", "label": "decision-maker", "kind": "HUMAN", "quantities": [], "clause_ids": [choice_id]},
+            {"party_id": "P_SWITCH", "label": "track switch", "kind": "INFRASTRUCTURE", "quantities": [], "clause_ids": [choice_id]},
+            {"party_id": "P_TROLLEY", "label": "runaway trolley", "kind": "VEHICLE", "quantities": [], "clause_ids": [choice_id]},
+            {"party_id": "P_SIDE", "label": "person on the side track", "kind": "PERSON", "quantities": [side_quantity], "clause_ids": [choice_id]},
+            {"party_id": "P_MAIN", "label": "people on the main track", "kind": "POPULATION", "quantities": [main_quantity], "clause_ids": [choice_id]},
+        ],
+        "actions": action_rows,
+        "effects": effects,
+        "conditions": [], "temporal_relations": [],
+        "causal_links": [{
+            "action_id": action_id, "source_id": source_id,
+            "link_relation": relation, "target_id": target_id,
+            "modality": "CERTAIN", "condition_ids": [],
+            "clause_ids": [choice_id],
+        } for action_id, source_id, relation, target_id in links],
+        "counterfactual_links": [],
+    }
+    return {
+        "actions": {
+            action_id: {
+                "clause_ids": [choice_id],
+                "reason": "Explicit branch of the closed either/or trolley clause.",
+            }
+            for action_id in action_ids
+        },
+        "ellipsis_resolutions": [],
+        "world_model": world_model,
+    }
+
+
+def _validate_world_skeleton(
+    skeleton: Any,
+    *,
+    action_ids: Sequence[str],
+    clauses: Sequence[dict[str, str]],
+    generation_contract: dict[str, Any],
+    action_texts: dict[str, str] | None = None,
+) -> list[str]:
+    """Validate the source-bound factual core before topology generation."""
+    if not isinstance(skeleton, dict):
+        return ["stage-one skeleton must be an object"]
+    parties = skeleton.get("parties")
+    propositions = skeleton.get("propositions")
+    if not isinstance(parties, list) or not parties:
+        return ["stage-one skeleton requires non-empty parties"]
+    if not isinstance(propositions, list) or not propositions:
+        return ["stage-one skeleton requires non-empty propositions"]
+    clause_by_id = {
+        str(row.get("clause_id") or ""): str(row.get("text") or "")
+        for row in clauses
+    }
+    scenario_clause_ids = set(clause_by_id)
+    clause_by_id.update({
+        str(action_id): str(text)
+        for action_id, text in (action_texts or {}).items()
+    })
+    party_ids = [
+        str(row.get("party_id") or "") for row in parties if isinstance(row, dict)
+    ]
+    errors: list[str] = []
+    if any(not party_id for party_id in party_ids) or len(party_ids) != len(set(party_ids)):
+        errors.append("stage-one parties require unique non-empty party_id values")
+    recorded_quantities: set[str] = set()
+    for party in parties:
+        if not isinstance(party, dict):
+            errors.append("stage-one party rows must be objects")
+            continue
+        recorded_quantities.update(
+            str(value).casefold() for value in party.get("quantities") or []
+        )
+        cited = [str(value) for value in party.get("clause_ids") or []]
+        if not cited or any(value not in scenario_clause_ids for value in cited):
+            errors.append(f"stage-one party {party.get('party_id')} cites unknown clauses")
+    proposition_ids: set[str] = set()
+    for proposition in propositions:
+        if not isinstance(proposition, dict):
+            errors.append("stage-one proposition rows must be objects")
+            continue
+        proposition_id = str(proposition.get("proposition_id") or "")
+        if not proposition_id or proposition_id in proposition_ids:
+            errors.append("stage-one propositions require unique non-empty proposition_id values")
+        proposition_ids.add(proposition_id)
+        action_id = str(proposition.get("action_id") or "")
+        if action_id not in action_ids:
+            errors.append(f"stage-one proposition {proposition_id} has unknown action_id")
+        if str(proposition.get("party_id") or "") not in party_ids:
+            errors.append(f"stage-one proposition {proposition_id} has unknown party_id")
+        cited = [str(value) for value in proposition.get("clause_ids") or []]
+        source = " ".join(str(proposition.get("source_proposition") or "").split())
+        if not cited or any(value not in clause_by_id for value in cited):
+            errors.append(f"stage-one proposition {proposition_id} cites unknown clauses")
+        elif not source or not any(
+            source.casefold() in clause_by_id[value].casefold() for value in cited
+        ):
+            errors.append(
+                f"stage-one proposition {proposition_id} source_proposition is not "
+                "an exact contiguous span of a cited clause"
+            )
+        recorded_quantities.update(
+            str(value).casefold() for value in proposition.get("quantities") or []
+        )
+    required_quantities: list[tuple[str, str, str]] = []
+    for clause in generation_contract.get("clauses") or []:
+        required_quantities.extend(
+            (str(quantity), str(clause.get("clause_id") or ""), "CLAUSE")
+            for quantity in clause.get("quantities") or []
+        )
+    for obligation in generation_contract.get("quantity_consequence_obligations") or []:
+        required_quantities.extend(
+            (str(quantity), str(obligation.get("clause_id") or ""), "CONSEQUENCE")
+            for quantity in obligation.get("quantity_spans") or []
+        )
+    for quantity, clause_id, obligation_kind in dict.fromkeys(required_quantities):
+        quantity_recorded = quantity.casefold() in recorded_quantities
+        # A clause-level cardinal such as "two patients, Imani and Luca" is
+        # represented losslessly by the two named parties themselves. Requiring
+        # a duplicate event quantity creates a false Stage-1 rejection. This
+        # exemption is deliberately unavailable to consequence quantities.
+        named_set_recorded = False
+        magnitude = quantity_magnitude(quantity)
+        clause_text = clause_by_id.get(clause_id, "")
+        quantity_position = clause_text.casefold().find(quantity.casefold())
+        if (
+            obligation_kind == "CLAUSE"
+            and magnitude is not None
+            and magnitude >= 2
+            and quantity_position >= 0
+        ):
+            named_after_quantity = {
+                str(party.get("party_id") or "")
+                for party in parties
+                if isinstance(party, dict)
+                and clause_id in {
+                    str(value) for value in party.get("clause_ids") or []
+                }
+                and len(str(party.get("label") or "").strip()) >= 2
+                and clause_text.casefold().find(
+                    str(party.get("label") or "").casefold(),
+                    quantity_position + len(quantity),
+                ) >= 0
+            }
+            named_set_recorded = len(named_after_quantity) == magnitude
+        if not quantity_recorded and not named_set_recorded:
+            errors.append(
+                f"stage-one skeleton omits required source quantity {quantity!r} "
+                f"from {clause_id}"
+            )
+    errors.extend(validate_ellipsis_resolution_records(
+        skeleton,
+        generation_contract.get("ellipsis_obligations") or [],
+        clauses,
+    ))
+    return list(dict.fromkeys(errors))
+
+
+_SKELETON_DECISION_DIRECTIVE = re.compile(
+    r"\b(?:must|should|required\s+to)\s+(?:choose|select|decide)\b",
+    re.IGNORECASE,
+)
+_SKELETON_CHOICE_CLAUSE = re.compile(
+    r"\b(?:must|required\s+to|has\s+to)\b[^.;]{0,220}\b(?:or|either)\b",
+    re.IGNORECASE,
+)
+_SKELETON_DOWNSTREAM_CUE = re.compile(
+    r"\b(?:consequently|therefore|thus|then|without)\b|"
+    r"\b(?:causes?|results?\s+in|leads?\s+to|because\s+of|as\s+a\s+result)\b",
+    re.IGNORECASE,
+)
+_SKELETON_GENERIC_ALTERNATIVE = re.compile(
+    r"\b(?:unselected|unassigned|unchosen|nonrecipient|other)\b|"
+    r"\b(?:whoever|patient|person|recipient)\s+(?:is\s+)?not\s+assigned\b|"
+    r"\b(?:district|patient|person|group|recipient)\s+(?:left|remaining|kept)\s+without\b",
+    re.IGNORECASE,
+)
+_SKELETON_SAME_EVENT_ELLIPSIS = re.compile(
+    r"\b(?:do|does|did|doing|would\s+do|will\s+do)\s+(?:the\s+)?same\b|"
+    r"\b(?:likewise|similarly)\b",
+    re.IGNORECASE,
+)
+_SKELETON_RESOURCE_STATE = re.compile(
+    r"\b(?:exhaust(?:ed|s|ing)?|deplet(?:ed|es|ing)?|consum(?:ed|es|ing)?|"
+    r"used\s+up|unavailable)\b",
+    re.IGNORECASE,
+)
+_SKELETON_EXHAUSTED_RESOURCE = re.compile(
+    r"\b(?:exhaust|exhausted|exhausts|deplete|depleted|depletes|consume|"
+    r"consumed|consumes|use\s+up|uses\s+up)\s+"
+    r"(?P<resource>(?:the\s+)?[^.;]{2,100})",
+    re.IGNORECASE,
+)
+_SKELETON_ACTION_PREFIX = re.compile(
+    r"^\s*(?P<act>[^.;]{2,140}?)(?=\s+would\b|\s+will\b|[,;:]|$)",
+    re.IGNORECASE,
+)
+_SKELETON_DEPRIVATION_CAUSE = re.compile(
+    r"(?P<state>(?:the\s+)?[^.;]{1,100}?\s+(?:left|remaining|kept)\s+"
+    r"without\s+[^.;]{1,80}?)(?=\s+(?:will|would|may|might|could)\s+)",
+    re.IGNORECASE,
+)
+
+
+def _normalize_world_skeleton(
+    skeleton: Any,
+    *,
+    action_ids: Sequence[str],
+    actions: Sequence[str],
+    clauses: Sequence[dict[str, str]],
+    generation_contract: dict[str, Any],
+    allow_action_text_evidence: bool = False,
+) -> Any:
+    """Repair source-preserving Stage-1 category errors before freezing them.
+
+    The model still extracts the factual atoms. This boundary only performs
+    transformations whose answer is already fixed by the canonical action map
+    and source syntax: decision directives are not effects, action-conditioned
+    ``would`` consequences are not epistemically uncertain, resource depletion
+    is a downstream neutral state, and generic other/unselected parties resolve
+    to the action's competing named recipient.
+    """
+    if not isinstance(skeleton, dict):
+        return skeleton
+    normalized = copy.deepcopy(skeleton)
+    parties = [
+        row for row in normalized.get("parties") or [] if isinstance(row, dict)
+    ]
+    propositions = [
+        row for row in normalized.get("propositions") or [] if isinstance(row, dict)
+    ]
+    ledger_backed = bool(normalized.get("node_evidence_ledger"))
+    ledger_by_neutral_id = {
+        str(row.get("neutral_proposition_id") or ""): row
+        for row in normalized.get("node_evidence_ledger") or []
+        if isinstance(row, dict)
+    }
+
+    def annotate_exclusion(proposition: dict[str, Any], reason: str, detail: str) -> None:
+        neutral_id = str(proposition.get("neutral_proposition_id") or "")
+        ledger_row = ledger_by_neutral_id.get(neutral_id)
+        if ledger_row is not None:
+            ledger_row.setdefault("normalization_annotations", []).append({
+                "reason": reason, "detail": detail,
+                "proposition_id": str(proposition.get("proposition_id") or ""),
+            })
+    party_by_id = {
+        str(row.get("party_id") or ""): row for row in parties
+    }
+    clause_by_id = {
+        str(row.get("clause_id") or ""): str(row.get("text") or "")
+        for row in clauses
+    }
+    contract_clause = {
+        str(row.get("clause_id") or ""): row
+        for row in generation_contract.get("clauses") or []
+        if isinstance(row, dict)
+    }
+
+    def words(value: Any) -> set[str]:
+        return {
+            token for token in re.findall(r"[a-z0-9]+", str(value or "").casefold())
+            if len(token) > 2
+        }
+
+    action_text = dict(zip(action_ids, actions))
+    shared_action_words = set.intersection(*(
+        words(text) for text in actions
+    )) if actions else set()
+    named_party_for_action: dict[str, str] = {}
+    named_parties_for_action: dict[str, list[str]] = {}
+    for action_id, text in action_text.items():
+        candidates = []
+        action_words = words(text)
+        for party in parties:
+            label = str(party.get("label") or "")
+            if _SKELETON_GENERIC_ALTERNATIVE.search(label):
+                continue
+            if str(party.get("kind") or "").upper() in {
+                "RESOURCE", "DECISION_MAKER", "INSTITUTION", "PROCESS",
+                "FACILITY", "INFRASTRUCTURE",
+            }:
+                continue
+            label_words = words(label)
+            distinctive_overlap = len(label_words & (action_words - shared_action_words))
+            overlap = len(label_words & action_words)
+            if overlap:
+                candidates.append((
+                    distinctive_overlap, overlap, -len(label_words),
+                    str(party.get("party_id") or ""),
+                ))
+        if candidates:
+            distinctive = [row for row in candidates if row[0] > 0]
+            pool = distinctive or candidates
+            shortest = max(row[2] for row in pool)
+            atomic = sorted({row[3] for row in pool if row[2] == shortest})
+            named_parties_for_action[action_id] = atomic
+            named_party_for_action[action_id] = atomic[0]
+
+    all_actions = set(action_ids)
+    kept: list[dict[str, Any]] = []
+    for proposition in propositions:
+        cited = [str(value) for value in proposition.get("clause_ids") or []]
+        source = str(proposition.get("source_proposition") or "")
+        routed = {
+            str(action_id)
+            for clause_id in cited
+            for action_id in contract_clause.get(clause_id, {}).get("action_candidates") or []
+        }
+        cited_text = " ".join(clause_by_id.get(value, "") for value in cited)
+        # "The authority must select one district" defines the decision set;
+        # duplicating it as an effect of each selectable action creates a false
+        # causal parent and an impossible Stage-2 preservation obligation.
+        if (
+            _SKELETON_DECISION_DIRECTIVE.search(source) and routed == all_actions
+        ) or (
+            _SKELETON_CHOICE_CLAUSE.search(cited_text)
+            and (
+                str(proposition.get("effect_kind") or "").upper() == "OBLIGATION"
+                or re.search(
+                    r"\b(?:must|required\s+to|has\s+to)\b",
+                    " ".join((source, str(proposition.get("outcome") or ""))),
+                    re.IGNORECASE,
+                )
+            )
+        ):
+            annotate_exclusion(
+                proposition, "DECISION_DIRECTIVE",
+                "Decision-set framing is not an action-world effect.",
+            )
+            continue
+        action_id = str(proposition.get("action_id") or "")
+        party = party_by_id.get(str(proposition.get("party_id") or ""), {})
+        label = str(party.get("label") or "")
+        if _SKELETON_GENERIC_ALTERNATIVE.search(label):
+            rivals = [
+                party_id for rival_id, party_id in named_party_for_action.items()
+                if rival_id != action_id
+            ]
+            if len(set(rivals)) == 1:
+                proposition["party_id"] = rivals[0]
+        if re.search(
+            r"\b(?:not\s+assigned|remain(?:s|ed)?\s+untreated)\b",
+            " ".join((source, str(proposition.get("outcome") or ""))),
+            re.IGNORECASE,
+        ):
+            proposition["directness"] = "DOWNSTREAM"
+        if (
+            str(proposition.get("effect_kind") or "").upper()
+            not in {"ACTION", "INTERVENTION", "RESOURCE_TRANSFER"}
+            and _SKELETON_DOWNSTREAM_CUE.search(cited_text)
+        ):
+            proposition["directness"] = "DOWNSTREAM"
+        # In an action-owned possible world, "treating X would exhaust Y"
+        # stipulates Y's consequence of that action. It is not a free-standing
+        # uncertain event and needs no condition record.
+        if (
+            str(proposition.get("modality") or "") == "STIPULATED_CONDITIONAL"
+            and len(routed) == 1
+            and action_id in routed
+            and not any(
+                contract_clause.get(clause_id, {}).get("condition_cues")
+                for clause_id in cited
+            )
+        ):
+            proposition["modality"] = "CERTAIN"
+        resource_state_text = " ".join((
+            str(proposition.get("outcome") or ""), source,
+        ))
+        if _SKELETON_RESOURCE_STATE.search(resource_state_text):
+            resource_match = (
+                _SKELETON_EXHAUSTED_RESOURCE.search(source)
+                or _SKELETON_EXHAUSTED_RESOURCE.search(
+                    str(proposition.get("outcome") or "")
+                )
+            )
+            if resource_match is not None:
+                resource_label = " ".join(
+                    resource_match.group("resource").split()
+                ).strip(" ,;:.")
+                resource_label = re.sub(
+                    r"^the\s+", "", resource_label, flags=re.IGNORECASE,
+                )
+                matching_resource = next((
+                    str(row.get("party_id") or "") for row in parties
+                    if str(row.get("kind") or "").upper() == "RESOURCE"
+                    and words(resource_label) <= words(row.get("label"))
+                ), "")
+                if not matching_resource and resource_label:
+                    suffix = 1
+                    matching_resource = f"P_AUTO_RESOURCE_{suffix}"
+                    while matching_resource in party_by_id:
+                        suffix += 1
+                        matching_resource = f"P_AUTO_RESOURCE_{suffix}"
+                    resource_party = {
+                        "party_id": matching_resource,
+                        "label": resource_label,
+                        "kind": "RESOURCE",
+                        "quantities": [],
+                        "clause_ids": cited,
+                    }
+                    parties.append(resource_party)
+                    party_by_id[matching_resource] = resource_party
+                if matching_resource:
+                    proposition["party_id"] = matching_resource
+            proposition["directness"] = "DOWNSTREAM"
+            proposition["polarity"] = "NEUTRAL"
+            proposition["effect_kind"] = "PHYSICAL_STATE"
+        kept.append(proposition)
+
+    # Stage 1 propositions are action-owned events, not a place to duplicate
+    # global scenario state. If the model emits the exact same DIRECT,
+    # non-intervention row for every action, retain its party/source facts but
+    # do not freeze one false action effect per branch. Shared downstream
+    # consequences and actual interventions remain untouched.
+    background_groups: dict[tuple[str, str, str], list[dict[str, Any]]] = {}
+    for proposition in kept:
+        if (
+            str(proposition.get("directness") or "") == "DIRECT"
+            and str(proposition.get("effect_kind") or "").upper() not in {
+                "INTERVENTION", "RESOURCE_TRANSFER", "INSTITUTIONAL_OUTCOME",
+            }
+        ):
+            key = (
+                str(proposition.get("party_id") or ""),
+                " ".join(str(proposition.get("source_proposition") or "").casefold().split()),
+                " ".join(str(proposition.get("outcome") or "").casefold().split()),
+            )
+            background_groups.setdefault(key, []).append(proposition)
+    duplicated_background_ids = {
+        id(row)
+        for rows in background_groups.values()
+        if {str(row.get("action_id") or "") for row in rows} == all_actions
+        for row in rows
+    }
+    if duplicated_background_ids and not ledger_backed:
+        for row in kept:
+            if id(row) in duplicated_background_ids:
+                annotate_exclusion(
+                    row, "GLOBAL_BACKGROUND",
+                    "Legacy duplicate global-state projection removed from action effects.",
+                )
+        kept = [row for row in kept if id(row) not in duplicated_background_ids]
+    if not ledger_backed:
+        filtered: list[dict[str, Any]] = []
+        for row in kept:
+            routed_actions = {
+                str(action_id)
+                for clause_id in row.get("clause_ids") or []
+                for action_id in contract_clause.get(str(clause_id), {}).get(
+                    "action_candidates", []
+                )
+            }
+            excluded = (
+            str(row.get("directness") or "") == "DIRECT"
+            and str(row.get("effect_kind") or "").upper() not in {
+                "INTERVENTION", "RESOURCE_TRANSFER", "INSTITUTIONAL_OUTCOME",
+            }
+            and not routed_actions
+            or (
+                str(row.get("directness") or "") == "DIRECT"
+                and str(row.get("effect_kind") or "").upper() not in {
+                    "INTERVENTION", "RESOURCE_TRANSFER", "INSTITUTIONAL_OUTCOME",
+                }
+                and routed_actions == all_actions
+            )
+            )
+            if excluded:
+                annotate_exclusion(
+                    row,
+                    "GLOBAL_BACKGROUND" if routed_actions == all_actions else "NON_EFFECT_CONTEXT",
+                    "Legacy clause-routing heuristic excluded a DIRECT non-intervention row.",
+                )
+            else:
+                filtered.append(row)
+        kept = filtered
+
+    # A source such as "Treating West would do the same" names its action but
+    # elides the predicate.  Stage 1 has already proposed an outcome.  When
+    # that outcome has exactly one non-elliptical structural counterpart in a
+    # rival action, inherit only the counterpart's semantic subject and type;
+    # retain the elliptical clause itself as provenance.  Multiple matches are
+    # deliberately left untouched for the ambiguity machinery to reject.
+    for proposition in kept:
+        source = str(proposition.get("source_proposition") or "")
+        if not _SKELETON_SAME_EVENT_ELLIPSIS.search(source):
+            continue
+        outcome_words = words(proposition.get("outcome"))
+        matches = [
+            row for row in kept
+            if row is not proposition
+            and str(row.get("action_id") or "") != str(proposition.get("action_id") or "")
+            and not _SKELETON_SAME_EVENT_ELLIPSIS.search(
+                str(row.get("source_proposition") or "")
+            )
+            and outcome_words
+            and outcome_words == words(row.get("outcome"))
+        ]
+        if len(matches) != 1:
+            continue
+        antecedent = matches[0]
+        proposition["party_id"] = str(antecedent.get("party_id") or "")
+        for field in ("polarity", "directness", "modality", "effect_kind"):
+            proposition[field] = antecedent.get(field)
+        if not proposition.get("quantities") and antecedent.get("quantities"):
+            proposition["quantities"] = list(antecedent.get("quantities") or [])
+
+    # Recover an explicit action atom from a source causative when Stage 1 kept
+    # only its consequence. This uses an exact prefix span from the same clause
+    # and never imports model-authored action prose as provenance.
+    next_index = 1
+    existing_ids = {str(row.get("proposition_id") or "") for row in kept}
+    for action_id in action_ids:
+        own_party_ids = named_parties_for_action.get(action_id, [])
+        for own_party_id in own_party_ids:
+            if any(
+                str(row.get("action_id") or "") == action_id
+                and str(row.get("party_id") or "") == own_party_id
+                and str(row.get("directness") or "") == "DIRECT"
+                and str(row.get("modality") or "") == "CERTAIN"
+                and str(row.get("effect_kind") or "").upper() in {
+                    "INTERVENTION", "RESOURCE_TRANSFER", "INSTITUTIONAL_OUTCOME",
+                }
+                for row in kept
+            ):
+                continue
+            own_label = str(party_by_id.get(own_party_id, {}).get("label") or "")
+            span = " ".join(action_text.get(action_id, "").split()).strip(" ,;:")
+            if allow_action_text_evidence and span and (words(span) & words(own_label)):
+                while f"PR_AUTO_{next_index}" in existing_ids:
+                    next_index += 1
+                proposition_id = f"PR_AUTO_{next_index}"
+                existing_ids.add(proposition_id)
+                kept.append({
+                    "proposition_id": proposition_id,
+                    "action_id": action_id,
+                    "party_id": own_party_id,
+                    "outcome": span,
+                    "polarity": "NEUTRAL",
+                    "directness": "DIRECT",
+                    "modality": "CERTAIN",
+                    "effect_kind": "INTERVENTION",
+                    "quantities": [],
+                    "source_proposition": span,
+                    "clause_ids": [action_id],
+                })
+                continue
+            for clause_id, row in contract_clause.items():
+                if list(row.get("action_candidates") or []) != [action_id]:
+                    continue
+                clause_text = clause_by_id.get(clause_id, "")
+                match = _SKELETON_ACTION_PREFIX.search(clause_text)
+                if match is None:
+                    continue
+                span = " ".join(match.group("act").split()).strip(" ,;:")
+                if not span or not (words(span) & words(own_label)):
+                    continue
+                while f"PR_AUTO_{next_index}" in existing_ids:
+                    next_index += 1
+                proposition_id = f"PR_AUTO_{next_index}"
+                existing_ids.add(proposition_id)
+                kept.append({
+                    "proposition_id": proposition_id,
+                    "action_id": action_id,
+                    "party_id": own_party_id,
+                    "outcome": span,
+                    "polarity": "NEUTRAL",
+                    "directness": "DIRECT",
+                    "modality": "CERTAIN",
+                    "effect_kind": "INTERVENTION",
+                    "quantities": [],
+                    "source_proposition": span,
+                    "clause_ids": [clause_id],
+                })
+                break
+    normalized["propositions"] = kept
+    # Preserve an explicitly named deprivation state as its own causal stage.
+    # "the district left without water will face illness" contains both the
+    # action-mediated state and its consequence; skipping the former forces the
+    # health row to attach directly to another party's intervention.
+    additions: list[dict[str, Any]] = []
+    for proposition in kept:
+        if str(proposition.get("directness") or "") != "DOWNSTREAM":
+            continue
+        source = str(proposition.get("source_proposition") or "")
+        match = _SKELETON_DEPRIVATION_CAUSE.search(source)
+        if match is None:
+            continue
+        state = " ".join(match.group("state").split()).strip(" ,;:.")
+        if any(
+            str(row.get("action_id") or "") == str(proposition.get("action_id") or "")
+            and str(row.get("party_id") or "") == str(proposition.get("party_id") or "")
+            and state.casefold() in str(row.get("source_proposition") or "").casefold()
+            and str(row.get("effect_kind") or "") == "PHYSICAL_STATE"
+            for row in kept
+        ):
+            continue
+        while f"PR_AUTO_{next_index}" in existing_ids:
+            next_index += 1
+        proposition_id = f"PR_AUTO_{next_index}"
+        existing_ids.add(proposition_id)
+        additions.append({
+            "proposition_id": proposition_id,
+            "action_id": str(proposition.get("action_id") or ""),
+            "party_id": str(proposition.get("party_id") or ""),
+            "outcome": state,
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "PHYSICAL_STATE",
+            "quantities": [],
+            "source_proposition": state,
+            "clause_ids": list(proposition.get("clause_ids") or []),
+        })
+    normalized["propositions"] = [*kept, *additions]
+    normalized["parties"] = parties
+    return normalized
+
+
+def _world_skeleton_schema(
+    action_ids: Sequence[str], clause_ids: Sequence[str],
+    *, allow_action_text_evidence: bool = False,
+) -> dict[str, Any]:
+    strings = {"type": "array", "items": {"type": "string"}}
+    sources = {
+        "type": "array", "minItems": 1,
+        "items": {"type": "string", "enum": list(clause_ids)},
+    }
+    proposition_source_ids = [*clause_ids, *action_ids] if allow_action_text_evidence else list(clause_ids)
+    proposition_sources = {
+        "type": "array", "minItems": 1,
+        "items": {"type": "string", "enum": proposition_source_ids},
+    }
+    return {
+        "type": "object",
+        "properties": {
+            "parties": {"type": "array", "minItems": 1, "items": {
+                "type": "object", "properties": {
+                    "party_id": {"type": "string"}, "label": {"type": "string"},
+                    "kind": {"type": "string"}, "quantities": strings,
+                    "clause_ids": sources,
+                },
+                "required": ["party_id", "label", "kind", "quantities", "clause_ids"],
+                "additionalProperties": False,
+            }},
+            "propositions": {"type": "array", "minItems": 1, "items": {
+                "type": "object", "properties": {
+                    "proposition_id": {"type": "string"},
+                    "action_id": {"type": "string", "enum": list(action_ids)},
+                    "party_id": {"type": "string"},
+                    "outcome": {"type": "string"},
+                    "polarity": {"type": "string", "enum": [
+                        "BENEFICIAL", "ADVERSE", "NEUTRAL", "UNRESOLVED",
+                    ]},
+                    "directness": {"type": "string", "enum": ["DIRECT", "DOWNSTREAM"]},
+                    "modality": {"type": "string", "enum": [
+                        "CERTAIN", "STIPULATED_CONDITIONAL", "PROBABILISTIC",
+                        "POSSIBLE", "UNKNOWN",
+                    ]},
+                    "effect_kind": {"type": "string"},
+                    "quantities": strings,
+                    "source_proposition": {"type": "string"},
+                    "clause_ids": proposition_sources,
+                },
+                "required": [
+                    "proposition_id", "action_id", "party_id", "outcome",
+                    "polarity", "directness", "modality", "effect_kind",
+                    "quantities", "source_proposition", "clause_ids",
+                ],
+                "additionalProperties": False,
+            }},
+            "unresolved_source_spans": strings,
+            "ellipsis_resolutions": {"type": "array", "items": {
+                "type": "object", "properties": {
+                    "obligation_id": {"type": "string"},
+                    "status": {"type": "string", "enum": ["RESOLVED", "UNRESOLVED"]},
+                    "missing_constituent_type": {"type": "string"},
+                    "antecedent_span": {"type": "string"},
+                    "reconstructed_span": {"type": "string"},
+                    "candidate_antecedent_spans": strings,
+                    "ethical_context_roles": strings,
+                    "context_evidence": strings,
+                    "confidence": {"type": "string", "enum": ["HIGH", "MEDIUM", "LOW"]},
+                    "admission_basis": {"type": "string", "enum": [
+                        "SOURCE_ONLY", "SOURCE_AND_CONTEXT",
+                        "UNRESOLVED_OPEN_QUESTION",
+                    ]},
+                    "clause_ids": sources,
+                },
+                "required": [
+                    "obligation_id", "status", "missing_constituent_type",
+                    "antecedent_span", "reconstructed_span",
+                    "candidate_antecedent_spans", "ethical_context_roles",
+                    "context_evidence", "confidence", "admission_basis",
+                    "clause_ids",
+                ],
+                "additionalProperties": False,
+            }},
+        },
+        "required": [
+            "parties", "propositions", "unresolved_source_spans",
+            "ellipsis_resolutions",
+        ],
+        "additionalProperties": False,
+    }
+
+
+def _stage_skeleton_correspondence_errors(
+    skeleton: Any,
+    candidate: Any,
+) -> list[str]:
+    """Reject Stage 2 when it changes an admitted Stage 1 factual claim."""
+    if not isinstance(skeleton, dict) or not isinstance(candidate, dict):
+        return ["stage skeleton correspondence requires two objects"]
+    world = candidate.get("world_model")
+    if not isinstance(world, dict):
+        return ["stage skeleton correspondence cannot find Stage 2 world_model"]
+    stage_parties = {
+        str(row.get("party_id") or ""): row
+        for row in skeleton.get("parties") or [] if isinstance(row, dict)
+    }
+    final_parties = {
+        str(row.get("party_id") or ""): row
+        for row in world.get("parties") or [] if isinstance(row, dict)
+    }
+    final_effects = [
+        row for row in world.get("effects") or [] if isinstance(row, dict)
+    ]
+
+    def folded(value: Any) -> str:
+        return " ".join(str(value or "").casefold().split())
+
+    def label_matches(left: str, right: str) -> bool:
+        if folded(left) == folded(right):
+            return True
+        left_tokens = {
+            token for token in re.findall(r"[a-z0-9]+", folded(left))
+            if len(token) > 2
+        }
+        right_tokens = {
+            token for token in re.findall(r"[a-z0-9]+", folded(right))
+            if len(token) > 2
+        }
+        return bool(left_tokens and right_tokens and (
+            left_tokens <= right_tokens or right_tokens <= left_tokens
+        ))
+
+    def quantities_cover(expected: Sequence[Any], actual: Sequence[Any]) -> bool:
+        actual_values = [str(value) for value in actual]
+        for value in expected:
+            wanted = str(value)
+            magnitude = quantity_magnitude(wanted)
+            if not any(
+                folded(wanted) == folded(candidate_value)
+                or (
+                    magnitude is not None
+                    and quantity_magnitude(candidate_value) == magnitude
+                )
+                for candidate_value in actual_values
+            ):
+                return False
+        return True
+
+    errors: list[str] = []
+    for proposition in skeleton.get("propositions") or []:
+        if not isinstance(proposition, dict):
+            continue
+        proposition_id = str(proposition.get("proposition_id") or "S?")
+        stage_party = stage_parties.get(str(proposition.get("party_id") or ""), {})
+        stage_label = str(stage_party.get("label") or "")
+        expected_source = folded(proposition.get("source_proposition"))
+        stage_action_sources = {
+            str(value).upper()
+            for value in proposition.get("clause_ids") or []
+            if re.fullmatch(r"A\d+", str(value).upper())
+        }
+        expected_quantities = list(proposition.get("quantities") or [])
+        matched = False
+        for effect in final_effects:
+            if str(effect.get("action_id") or "") != str(proposition.get("action_id") or ""):
+                continue
+            final_party = final_parties.get(str(effect.get("party_id") or ""), {})
+            final_source = folded(effect.get("source_proposition"))
+            final_action_sources = {
+                str(value).upper() for value in effect.get("clause_ids") or []
+                if re.fullmatch(r"A\d+", str(value).upper())
+            }
+            action_role_normalization = (
+                str(proposition.get("directness") or "") == "DIRECT"
+                and str(proposition.get("effect_kind") or "").upper()
+                in {"ACTION", "INTERVENTION"}
+                and str(effect.get("effect_kind") or "").upper() == "INTERVENTION"
+            )
+            expected_concepts = set(_concepts(expected_source))
+            final_concepts = set(_concepts(final_source))
+            source_matches = bool(
+                expected_source and final_source and (
+                    expected_source in final_source or final_source in expected_source
+                )
+            ) or bool(stage_action_sources & final_action_sources) or bool(
+                action_role_normalization
+                and expected_concepts
+                and final_concepts
+                and (
+                    expected_concepts <= final_concepts
+                    or final_concepts <= expected_concepts
+                )
+            )
+            if not source_matches:
+                continue
+            if (
+                not action_role_normalization
+                and not label_matches(stage_label, str(final_party.get("label") or ""))
+            ):
+                continue
+            if str(effect.get("polarity") or "") != str(proposition.get("polarity") or ""):
+                continue
+            if str(effect.get("modality") or "") != str(proposition.get("modality") or ""):
+                continue
+            if str(effect.get("directness") or "") != str(proposition.get("directness") or ""):
+                continue
+            combined_quantities = [
+                *(effect.get("quantities") or []),
+                *(final_party.get("quantities") or []),
+            ]
+            if not quantities_cover(expected_quantities, combined_quantities):
+                continue
+            matched = True
+            break
+        if not matched:
+            errors.append(
+                f"{proposition_id} stage-one proposition drift for "
+                f"{proposition.get('action_id')}: Stage 2 must restore party "
+                f"{stage_label!r}, source_proposition "
+                f"{proposition.get('source_proposition')!r}, polarity "
+                f"{proposition.get('polarity')}, modality "
+                f"{proposition.get('modality')}, directness "
+                f"{proposition.get('directness')}, and quantities "
+                f"{expected_quantities}; add or correct the matching actual effect "
+                "without changing the admitted Stage 1 factual claim"
+            )
+    return errors
+
+
+def _candidate_likelihood_binding_errors(
+    candidate: Any,
+    generation_contract: dict[str, Any],
+) -> list[str]:
+    """Require every explicitly paired subject/likelihood to survive Stage 2."""
+    world = candidate.get("world_model") if isinstance(candidate, dict) else None
+    if not isinstance(world, dict):
+        return []
+    parties = {
+        str(row.get("party_id") or ""): row
+        for row in world.get("parties") or [] if isinstance(row, dict)
+    }
+    effects = [row for row in world.get("effects") or [] if isinstance(row, dict)]
+    errors: list[str] = []
+    for obligation in generation_contract.get("likelihood_binding_obligations") or []:
+        subject = " ".join(str(obligation.get("subject_span") or "").casefold().split())
+        qualifier = " ".join(str(obligation.get("qualifier_span") or "").casefold().split())
+        wanted_actions = {
+            str(value) for value in obligation.get("action_candidates") or []
+        }
+        matched = False
+        for effect in effects:
+            if wanted_actions and str(effect.get("action_id") or "") not in wanted_actions:
+                continue
+            party = parties.get(str(effect.get("party_id") or ""), {})
+            label = " ".join(str(party.get("label") or "").casefold().split())
+            if not label or not (subject in label or label in subject):
+                continue
+            qualifiers = {
+                " ".join(str(value).casefold().split())
+                for value in effect.get("likelihood_qualifiers") or []
+            }
+            if qualifier not in qualifiers:
+                continue
+            source = " ".join(str(effect.get("source_proposition") or "").casefold().split())
+            if subject not in source or qualifier not in source:
+                continue
+            matched = True
+            break
+        if not matched:
+            action_label = ",".join(sorted(wanted_actions)) or "matching action"
+            errors.append(
+                f"{action_label} omits source-bound likelihood {qualifier!r} for "
+                f"{subject!r} from {obligation.get('clause_id')}; add or repair the "
+                "matching party effect without moving the likelihood to a sibling"
+            )
+    return errors
+
+
 def ground_actions_in_scenario(
     llm: Any,
     scenario: str,
@@ -7513,6 +8600,15 @@ def ground_actions_in_scenario(
     prior_source: str = "previous_grounding_attempt",
     call_kind_primary: str = "world_grounding_primary",
     allow_action_text_evidence: bool = False,
+    enable_pairwise_relation_audit: bool = False,
+    pairwise_audit_max_pairs: int = 12,
+    pairwise_audit_evidence_augmented: bool = False,
+    enable_staged_node_generation: bool = False,
+    stage_one_guidance_mode: str = "AUTHORITATIVE",
+    deterministic_repair_guidance_mode: str = "OFF",
+    enable_syntactic_resolution_obligations: bool = False,
+    enable_targeted_semantic_resolution: bool = False,
+    targeted_resolution_max_calls: int = 6,
 ) -> dict[str, Any]:
     """Map every canonical action to explicit scenario clauses for graph provenance.
 
@@ -7524,11 +8620,61 @@ def ground_actions_in_scenario(
     mistake rather than an unanswerable scenario. Attempts are recorded so a
     run that eventually commits still shows what had to be repaired.
     """
+    guidance_mode = str(stage_one_guidance_mode or "AUTHORITATIVE").upper()
+    if guidance_mode not in {
+        "AUTHORITATIVE", "EVIDENCE_ONLY", "EVIDENCE_REVIEW", "RAW_TEXT",
+    }:
+        raise ValueError(f"unsupported Stage-1 guidance mode: {stage_one_guidance_mode}")
+    repair_guidance_mode = str(
+        deterministic_repair_guidance_mode or "OFF"
+    ).upper()
+    if repair_guidance_mode not in {"OFF", "ALONE", "COMBINED"}:
+        raise ValueError(
+            "unsupported deterministic repair guidance mode: "
+            f"{deterministic_repair_guidance_mode}"
+        )
     clauses = segment_scenario_clauses(scenario)
     action_ids = [f"A{index}" for index in range(len(actions))]
     clause_ids = [clause["clause_id"] for clause in clauses]
     if not clauses:
         return {"status": "UNAVAILABLE", "actions": {}, "errors": ["scenario has no source clauses"]}
+    generation_contract = build_candidate_generation_contract(
+        clauses, dict(zip(action_ids, actions)),
+    )
+    deterministic = _deterministic_trolley_diversion_candidate(
+        scenario, actions, action_ids, clauses,
+    )
+    if deterministic is not None:
+        admitted = _admit_action_source_rows(
+            deterministic, actions, action_ids, clauses,
+            allow_action_text_evidence=allow_action_text_evidence,
+        )
+        if admitted.get("status") == "COMMITTED":
+            admitted["candidate_generation_contract"] = copy.deepcopy(
+                generation_contract,
+            )
+            admitted["candidate_generation_stage_one"] = {
+                "status": "BYPASSED_DETERMINISTIC_ROUTE",
+            }
+            admitted["attempts"] = [{
+                "attempt": 0,
+                "repair_scope": "GATED_DETERMINISTIC_TROLLEY_DIVERSION",
+                "inherited_candidate": False,
+                "rebuild_action_ids": [],
+                "errors": [],
+                "validation_issues": [],
+                "repair_delta": {},
+            }]
+            admitted["repair_attempts"] = 0
+            admitted["invariant_card_telemetry"] = build_invariant_card_telemetry(
+                admitted["attempts"], terminal_status="COMMITTED",
+            )
+            admitted["next_repair_scope"] = "NONE"
+            admitted["next_rebuild_action_ids"] = []
+            admitted["deterministic_route"] = (
+                "BINARY_CERTAIN_TROLLEY_LEVER_DIVERSION_V1"
+            )
+            return admitted
     row_schema = {
         "type": "object",
         "properties": {
@@ -7613,9 +8759,18 @@ def ground_actions_in_scenario(
             "conditions": {"type": "array", "items": {"type": "object", "properties": {
                 "condition_id": {"type": "string"}, "description": {"type": "string"},
                 "event_effect_id": {"type": "string"},
+                "polarity": {"type": "string", "enum": ["POSITIVE", "NEGATED"]},
+                "operator": {"type": "string", "enum": ["IF", "UNLESS"]},
                 "value_status": {"type": "string"}, "decision_relevance": {"type": "string"},
                 "clause_ids": source_ids_schema,
-            }, "required": ["condition_id", "description", "event_effect_id", "value_status", "decision_relevance", "clause_ids"], "additionalProperties": False}},
+            }, "required": ["condition_id", "description", "event_effect_id", "polarity", "operator", "value_status", "decision_relevance", "clause_ids"], "additionalProperties": False}},
+            "temporal_relations": {"type": "array", "items": {"type": "object", "properties": {
+                "relation_id": {"type": "string"},
+                "source_id": {"type": "string"},
+                "relation": {"type": "string", "enum": ["BEFORE", "AFTER"]},
+                "target_id": {"type": "string"},
+                "clause_ids": source_ids_schema,
+            }, "required": ["relation_id", "source_id", "relation", "target_id", "clause_ids"], "additionalProperties": False}},
             "causal_links": {"type": "array", "items": {"type": "object", "properties": {
                 "action_id": {"type": "string", "enum": action_ids},
                 "source_id": {"type": "string"},
@@ -7634,7 +8789,7 @@ def ground_actions_in_scenario(
                 "condition_ids": string_list, "clause_ids": effect_source_ids_schema,
             }, "required": ["action_id", "source_effect_id", "counterfactual_relation", "alternative_action_id", "alternative_effect_id", "modality", "condition_ids", "clause_ids"], "additionalProperties": False}},
         },
-        "required": ["schema_version", "parties", "actions", "effects", "conditions", "causal_links", "counterfactual_links"],
+        "required": ["schema_version", "parties", "actions", "effects", "conditions", "temporal_relations", "causal_links", "counterfactual_links"],
         "additionalProperties": False,
     }
     schema = {
@@ -7647,8 +8802,34 @@ def ground_actions_in_scenario(
                 "additionalProperties": False,
             },
             "world_model": world_model_schema,
+            "ellipsis_resolutions": {"type": "array", "items": {
+                "type": "object", "properties": {
+                    "obligation_id": {"type": "string"},
+                    "status": {"type": "string", "enum": ["RESOLVED", "UNRESOLVED"]},
+                    "missing_constituent_type": {"type": "string"},
+                    "antecedent_span": {"type": "string"},
+                    "reconstructed_span": {"type": "string"},
+                    "candidate_antecedent_spans": string_list,
+                    "ethical_context_roles": string_list,
+                    "context_evidence": string_list,
+                    "confidence": {"type": "string", "enum": ["HIGH", "MEDIUM", "LOW"]},
+                    "admission_basis": {"type": "string", "enum": [
+                        "SOURCE_ONLY", "SOURCE_AND_CONTEXT",
+                        "UNRESOLVED_OPEN_QUESTION",
+                    ]},
+                    "clause_ids": source_ids_schema,
+                },
+                "required": [
+                    "obligation_id", "status", "missing_constituent_type",
+                    "antecedent_span", "reconstructed_span",
+                    "candidate_antecedent_spans", "ethical_context_roles",
+                    "context_evidence", "confidence", "admission_basis",
+                    "clause_ids",
+                ],
+                "additionalProperties": False,
+            }},
         },
-        "required": ["actions", "world_model"],
+        "required": ["actions", "world_model", "ellipsis_resolutions"],
         "additionalProperties": False,
     }
     action_evidence_instruction = (
@@ -7667,7 +8848,21 @@ does not attach every consequence in that clause to every action that cites it.
 
 Also return world_model: a framework-neutral factual model. Identify every explicit
 actor, including automated systems and institutions. Use neutral interventions, not
-ethical conclusions. DIRECT INTERVENTION on a FACILITY, PROCESS, RESOURCE,
+ethical conclusions.
+Before constructing effects, complete ellipsis_resolutions for every obligation in
+the source-derived contract. RESOLVED records must quote an exact antecedent_span
+and state the reconstructed proposition explicitly. Copy missing_constituent_type,
+candidate antecedents, and ethical roles from the contract. Set admission_basis to
+SOURCE_ONLY or SOURCE_AND_CONTEXT: ethical context may rank source-licensed choices
+but never supplies factual provenance. LOW-confidence or non-unique resolutions
+must remain quarantined rather than becoming effects. Sluicing and other open wh-
+questions stay UNRESOLVED with an empty reconstructed_span; never invent their
+answer as a fact, and use UNRESOLVED_OPEN_QUESTION. Gapping, stripping,
+pseudogapping, answer ellipsis, nominal ellipsis, comparative deletion, null
+complement anaphora, and shared-argument conjunctions may be
+resolved only by copying the missing predicate or argument from their source
+conjunct. These records are an enhanced semantic layer, not new provenance.
+DIRECT INTERVENTION on a FACILITY, PROCESS, RESOURCE,
 INSTITUTION, INFRASTRUCTURE, or other non-welfare-bearing party must have polarity
 NEUTRAL; put BENEFICIAL or ADVERSE on the later health, welfare, or liberty effect.
 A DIRECT INTERVENTION or INSTITUTIONAL_OUTCOME on a human recipient may be
@@ -7761,7 +8956,18 @@ or killing, the person or crowd reached or assigned, the group that receives a
 transferred resource, or the immediate object of demolition, repair, diversion,
 or shutdown (a FACILITY, INFRASTRUCTURE, PROCESS, or RESOURCE). A transferred
 RESOURCE is a party, not a recipient; the receiving person or crowd is the
-recipient and gets the DIRECT RESOURCE_TRANSFER. Later harmed or beneficiary
+recipient and gets the DIRECT RESOURCE_TRANSFER. A RESOURCE_TRANSFER outcome must
+state the complete transfer event (for example, "give the dose to Patient A" or
+"Patient A receives the dose"), never only the resource noun ("the medicine").
+When one indivisible resource is allocated to one recipient, represent the other
+party's nonreceipt as the typed exclusive-allocation complement of that complete
+transfer; do not use the global scarcity or indivisibility fact as a causal event.
+For every allocation action, enumerate every eligible recipient selected by a
+competing action. Each unselected recipient needs an action-specific nonreceipt
+state, followed by every consequence the source stipulates for going without the
+resource. Do not omit the entire adverse branch merely because no adverse effect
+was present in the draft candidate.
+Later harmed or beneficiary
 crowds — and a later party's own assist, remaining, or road use — must not be
 made recipients to force those rows DIRECT. The actor assigning or allocating a
 party may name them as recipient of that assignment (DIRECT INTERVENTION); their
@@ -7809,7 +9015,14 @@ conditions gate one outcome, set condition_join to AND or OR. event_effect_id
 must name an existing probabilistic process/facility event, not a human welfare
 row and not a FOREGONE overlay. Do not restate that event as disconnected
 free-text. event_effect_id is empty when
-the condition is not an existing event. A source 'does not increase' a
+the condition is not an existing event. Every condition has polarity POSITIVE
+or NEGATED and operator IF or UNLESS. Compile "if A and not B" as two
+conditions joined by AND: A is POSITIVE/IF and B is NEGATED/IF. Compile
+"A unless B" with B as NEGATED/UNLESS; never flatten it into a positive B gate.
+Use temporal_relations only for explicit event ordering stated by the source.
+source_id and target_id must name effects or conditions. Preserve the asserted
+BEFORE or AFTER direction; do not infer causal direction merely from time order.
+A source 'does not increase' a
 background risk is link_relation DOES_NOT_INCREASE from this action's DIRECT
 act to that risk event; keep the event's baseline chance. It does not mean the
 risk cannot occur.
@@ -7855,19 +9068,31 @@ name action_id, and both endpoints must belong to that same action. Never point
 a causal link at another action's effect. Represent cross-action foreclosure only
 in counterfactual_links with counterfactual_relation FOREGOES_ALTERNATIVE_EFFECT,
 PRECLUDES_ALTERNATIVE_EFFECT, or REPLACES_ALTERNATIVE_EFFECT: source_effect_id
-must be a FOREGONE effect owned by action_id and alternative_effect_id must be
-the matching effect owned by alternative_action_id. When two actions stipulate
-opposed health or welfare for the same party (one lives, the other
-dies), including a crowd that is a recipient of a transfer but whose
-downstream trapping, escape, or death is opposed, each action must also record that alternative as a FOREGONE
-OPPORTUNITY_LOSS and a counterfactual_link to the other action's actual effect
-on that party. Do not attach FOREGONE effects to causal_links; keep causal_links
-as the within-action actual chain. Clause IDs are provenance
+must belong to action_id and alternative_effect_id must be the matching effect
+owned by alternative_action_id. Prefer PRECLUDES_ALTERNATIVE_EFFECT from an
+already admitted BENEFICIAL effect to the alternative ADVERSE effect. Do not
+also mint an AVERTED_ALTERNATIVE_HARM or FOREGONE duplicate when that relation
+already preserves the comparison. Materialize a FOREGONE OPPORTUNITY_LOSS only
+when the source makes the lost opportunity independently relevant or no actual
+effect can serve as the relation source. AVERTED_ALTERNATIVE_HARM is reserved
+for a derived quantity unavailable on the actual benefit or its party. Do not
+attach FOREGONE effects to causal_links; keep causal_links as the within-action
+actual chain. Clause IDs are provenance
 only; effects must explicitly name their action_id and must not be copied
 wholesale from a clause describing both choices.
 
 Canonical actions: {json.dumps(dict(zip(action_ids, actions)), sort_keys=True)}
 Scenario clauses: {json.dumps(clauses, ensure_ascii=False)}
+Source-derived candidate-generation contract:
+{json.dumps(generation_contract, ensure_ascii=False, sort_keys=True)}
+
+Treat this contract as a coverage checklist before returning JSON. Every recorded
+quantity, qualifier, negation, condition, ellipsis cue, and quantity-bearing
+consequence must either be represented on the correctly bound party/effect or be
+left explicitly unresolved. `action_candidates` are lexical routing hints, not
+permission to attach a shared clause's every consequence to each listed action.
+Use `atomic_source_spans` to construct atomic propositions and intermediate process
+states; never concatenate separate spans into a new source proposition.
 
 Return JSON only. For each action give clause_ids and a short mapping reason.
 [/INST]"""
@@ -7880,8 +9105,57 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
     best_rejected_result: dict[str, Any] | None = None
     best_rejected_candidate: Any = None
     best_rejected_cost: tuple[int, int, int] | None = None
+    stage_one_result: dict[str, Any] = {"status": "NOT_RUN"}
+
+    def attach_stage_one_topology(stage: dict[str, Any]) -> None:
+        skeleton_value = stage.get("admitted_skeleton") or stage.get("skeleton") or {}
+        stage["topology_scaffold"] = build_topology_scaffold(
+            skeleton_value, clauses,
+        )
+        if not enable_pairwise_relation_audit:
+            stage["pairwise_relation_audit"] = {
+                "audit_version": "1.0", "mode": "READ_ONLY_SHADOW",
+                "status": "NOT_RUN",
+            }
+            return
+        all_jobs = build_pairwise_jobs(
+            skeleton_value, clauses, stage["topology_scaffold"],
+            evidence_augmented=pairwise_audit_evidence_augmented,
+        )
+        pair_limit = max(0, int(pairwise_audit_max_pairs))
+        selected_jobs = all_jobs[:pair_limit]
+
+        def judge(job: dict[str, Any]) -> dict[str, Any]:
+            output = _call_json_llm(
+                llm, pairwise_relation_prompt(job),
+                max_tokens=max(384, max_tokens), temperature=0.0,
+                schema=pairwise_relation_response_schema(),
+                call_kind="world_grounding_pairwise_relation_audit",
+                call_metadata={"stage": 1, "audit_id": job.get("audit_id")},
+            )
+            raw = (
+                output["choices"][0]["text"]
+                if isinstance(output, dict) else str(output)
+            )
+            return _extract_json(raw)
+
+        audit = run_pairwise_audit(selected_jobs, judge)
+        audit["candidate_pair_count"] = len(all_jobs)
+        audit["max_pairs"] = pair_limit
+        audit["evidence_augmented"] = bool(pairwise_audit_evidence_augmented)
+        audit["truncated_count"] = max(0, len(all_jobs) - len(selected_jobs))
+        stage["pairwise_relation_audit"] = audit
     active_repair_scope = "FRESH_GENERATION"
     active_rebuild_action_ids: tuple[str, ...] = ()
+    active_repair_contract: dict[str, Any] = {}
+    repair_events: list[dict[str, Any]] = []
+    repair_context = {
+        "model": str(getattr(llm, "model", "") or type(llm).__name__),
+        "temperature": 0.0,
+        "max_attempts": int(max_attempts),
+        "stage_one_guidance_mode": guidance_mode,
+        "deterministic_repair_guidance_mode": repair_guidance_mode,
+    }
     seeded_errors = [str(item) for item in (prior_errors or []) if str(item).strip()]
     seeded_issues = [dict(item) for item in (prior_issues or []) if isinstance(item, dict)]
 
@@ -7936,6 +9210,9 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                 "repair_delta": {},
             }]
             refreshed["repair_attempts"] = 0
+            refreshed["invariant_card_telemetry"] = build_invariant_card_telemetry(
+                refreshed["attempts"], terminal_status="COMMITTED",
+            )
             refreshed["next_repair_scope"] = "NONE"
             refreshed["next_rebuild_action_ids"] = []
             refreshed["repair_inheritance"] = {
@@ -7943,6 +9220,12 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                 "initial_scope": "DETERMINISTIC_REVALIDATION",
                 "candidate_inherited": True,
                 "rebuild_action_ids": [],
+            }
+            refreshed["candidate_generation_contract"] = copy.deepcopy(
+                generation_contract,
+            )
+            refreshed["candidate_generation_stage_one"] = {
+                "status": "BYPASSED_CACHE_REVALIDATION",
             }
             return refreshed
         seeded_errors = list(refreshed.get("errors") or seeded_errors)
@@ -7981,6 +9264,34 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                         },
                     }]
                     patched_admit["repair_attempts"] = 0
+                    cache_contract = repair_patch_contract(
+                        before_cache_issues,
+                        errors=list(refreshed.get("errors") or []),
+                        candidate=prior_candidate,
+                        clauses=list(clauses),
+                    )
+                    patched_admit["repair_experiment_events"] = [
+                        build_repair_event(
+                            event_index=1,
+                            execution_mode="DETERMINISTIC_PATCH",
+                            repair_scope=DETERMINISTIC_LOCAL_PATCH,
+                            before_issues=before_cache_issues,
+                            after_issues=[],
+                            before_candidate=prior_candidate,
+                            after_candidate=patched_cache,
+                            repair_contract=cache_contract,
+                            terminal_status="COMMITTED",
+                            deterministic_patches=applied_cache,
+                            context=repair_context,
+                            cards_presented=False,
+                        )
+                    ]
+                    patched_admit["invariant_card_telemetry"] = (
+                        build_invariant_card_telemetry(
+                            patched_admit["attempts"],
+                            terminal_status="COMMITTED",
+                        )
+                    )
                     patched_admit["next_repair_scope"] = "NONE"
                     patched_admit["next_rebuild_action_ids"] = []
                     patched_admit["repair_inheritance"] = {
@@ -7988,6 +9299,12 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                         "initial_scope": DETERMINISTIC_LOCAL_PATCH,
                         "candidate_inherited": True,
                         "rebuild_action_ids": [],
+                    }
+                    patched_admit["candidate_generation_contract"] = copy.deepcopy(
+                        generation_contract,
+                    )
+                    patched_admit["candidate_generation_stage_one"] = {
+                        "status": "BYPASSED_CACHE_REVALIDATION",
                     }
                     return patched_admit
                 seeded_errors = list(patched_admit.get("errors") or seeded_errors)
@@ -8017,6 +9334,7 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
             candidate=prior_candidate,
             clauses=list(clauses),
         )
+        active_repair_contract = copy.deepcopy(seeded_contract)
         guidance_prompt = str(seeded_contract.get("guidance_prompt") or "").strip()
         repair_note = (
             "\n\nA previous generator was rejected by deterministic validation for: "
@@ -8110,6 +9428,20 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                         } if seed_admit.get("repair_no_effect") else {}),
                     },
                 })
+                repair_events.append(build_repair_event(
+                    event_index=len(repair_events) + 1,
+                    execution_mode="DETERMINISTIC_PATCH",
+                    repair_scope=DETERMINISTIC_LOCAL_PATCH,
+                    before_issues=before_seed_issues,
+                    after_issues=list(seed_admit.get("validation_issues") or []),
+                    before_candidate=repair_base_candidate,
+                    after_candidate=patched_seed,
+                    repair_contract=seeded_contract,
+                    terminal_status=str(seed_admit.get("status") or "REJECTED"),
+                    deterministic_patches=applied_seed,
+                    context=repair_context,
+                    cards_presented=False,
+                ))
                 rejected_candidate = patched_seed
                 repair_base_candidate = patched_seed
                 if seed_admit.get("status") == "COMMITTED":
@@ -8133,6 +9465,7 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                         candidate=patched_seed,
                         clauses=list(clauses),
                     )
+                    active_repair_contract = copy.deepcopy(seeded_contract)
                     active_repair_scope = classify_world_repair_scope(
                         seeded_issues,
                         errors=seeded_errors,
@@ -8190,11 +9523,317 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                             patched_seed, ensure_ascii=False, sort_keys=True,
                         )
                     )
+    if (
+        enable_staged_node_generation
+        and guidance_mode != "RAW_TEXT"
+        and result.get("status") != "COMMITTED"
+        and llm is not None
+        and prior_candidate is None
+        and not seeded_errors
+        and not seeded_issues
+    ):
+        syntactic_nlp = (
+            load_english_parser()
+            if enable_syntactic_resolution_obligations or enable_targeted_semantic_resolution
+            else None
+        )
+        syntactic_obligations = (
+            build_resolution_obligations(clauses, nlp=syntactic_nlp)
+            if enable_syntactic_resolution_obligations or enable_targeted_semantic_resolution else
+            {"version": "1.0", "mode": "NOT_RUN", "obligations": [], "annotations": []}
+        )
+        bulk_obligation_instruction = (
+            """The syntactic resolution obligations below are read-only questions, not semantic
+answers and not permission to invent nodes. For every obligation, represent all
+source-licensed atomic propositions needed to answer it or copy its source span
+to unresolved_source_spans. In particular, do not flatten conditional or negation
+scope, silently inherit a conjunct argument, resolve ellipsis non-uniquely, or
+turn an appositive into a second entity. A syntactic cue may be wrong; semantic
+source evidence controls the answer.
+
+Syntactic resolution obligations:
+""" + json.dumps(
+                syntactic_obligations.get("obligations") or [],
+                ensure_ascii=False, sort_keys=True,
+            )
+            if enable_syntactic_resolution_obligations else
+            "Syntactic resolution obligations are handled after ordinary extraction."
+        )
+        neutral_prompt = f"""[INST]
+Stage 1A: extract a complete action-neutral inventory of atomic propositions.
+Do not assign propositions to actions and do not create edges. Split conjunctions
+and causal sentences into separate event/state propositions. Include interventions,
+intermediate states, stipulated outcomes, negated outcomes, and every alternative
+branch mentioned by the source. Preserve exact source spans, quantities, modality,
+negation, and affected-party identity. Put unsafe or unresolved spans in
+unresolved_source_spans rather than dropping them.
+{bulk_obligation_instruction}
+
+Canonical actions are context for recognizing branches, not output labels:
+{json.dumps(dict(zip(action_ids, actions)), ensure_ascii=False, sort_keys=True)}
+Scenario clauses:
+{json.dumps(clauses, ensure_ascii=False, sort_keys=True)}
+Return JSON only.
+[/INST]"""
+        try:
+            neutral_output = _call_json_llm(
+                llm, neutral_prompt, max_tokens=max(3072, max_tokens),
+                temperature=0.0, schema=neutral_skeleton_schema(clause_ids),
+                call_kind="world_grounding_neutral_nodes",
+                call_metadata={"stage": "1A"},
+            )
+            neutral_raw = (
+                neutral_output["choices"][0]["text"]
+                if isinstance(neutral_output, dict) else str(neutral_output)
+            )
+            neutral = _extract_json(neutral_raw)
+            obligation_coverage = assess_obligation_coverage(
+                syntactic_obligations, neutral, nlp=syntactic_nlp,
+            ) if syntactic_nlp is not None else []
+            resolution_jobs = (
+                build_resolution_jobs(
+                    syntactic_obligations, neutral, clauses, obligation_coverage,
+                )[:max(0, int(targeted_resolution_max_calls))]
+                if enable_targeted_semantic_resolution else []
+            )
+            resolution_results: list[dict[str, Any]] = []
+            if resolution_jobs:
+                party_ids = [
+                    str(row.get("party_id") or "")
+                    for row in neutral.get("parties") or []
+                    if isinstance(row, dict) and row.get("party_id")
+                ]
+                for resolution_job in resolution_jobs:
+                    resolution_output = _call_json_llm(
+                        llm, prompt_for_resolution_job(resolution_job),
+                        max_tokens=max(1024, max_tokens), temperature=0.0,
+                        schema=resolver_schema(party_ids, clause_ids),
+                        call_kind="world_grounding_targeted_semantic_resolution",
+                        call_metadata={
+                            "stage": "1A_RESOLUTION",
+                            "obligation_id": (
+                                resolution_job.get("obligation") or {}
+                            ).get("obligation_id"),
+                            "route": (
+                                resolution_job.get("obligation") or {}
+                            ).get("type"),
+                        },
+                    )
+                    resolution_raw = (
+                        resolution_output["choices"][0]["text"]
+                        if isinstance(resolution_output, dict) else str(resolution_output)
+                    )
+                    resolution_results.append(_extract_json(resolution_raw))
+                neutral, targeted_resolution_audit = apply_resolution_results(
+                    neutral, resolution_jobs, resolution_results,
+                )
+            else:
+                targeted_resolution_audit = []
+            neutral, provenance_bindings = bind_exact_provenance_spans(
+                neutral, clauses, generation_contract,
+            )
+            neutral_ids = [
+                str(row.get("proposition_id") or "")
+                for row in neutral.get("propositions") or []
+                if isinstance(row, dict) and row.get("proposition_id")
+            ]
+            ownership_prompt = f"""[INST]
+Stage 1B: bind each already-extracted proposition to canonical action branches.
+Do not add, delete, fuse, rewrite, or split propositions. For every proposition,
+return exactly one binding. Use OWNED with one action when it occurs only in that
+possible world, SHARED with every applicable action when it holds in multiple
+branches, and UNRESOLVED with no action when source evidence cannot decide.
+Consequences of selecting one recipient belong to that selected action even when
+the affected party is the nonrecipient. Preserve uncertainty instead of guessing.
+
+Canonical actions:
+{json.dumps(dict(zip(action_ids, actions)), ensure_ascii=False, sort_keys=True)}
+Scenario clauses:
+{json.dumps(clauses, ensure_ascii=False, sort_keys=True)}
+Neutral propositions:
+{json.dumps(neutral.get('propositions') or [], ensure_ascii=False, sort_keys=True)}
+Return JSON only.
+[/INST]"""
+            ownership_output = _call_json_llm(
+                llm, ownership_prompt, max_tokens=max(1536, max_tokens),
+                temperature=0.0,
+                schema=ownership_schema(neutral_ids, action_ids),
+                call_kind="world_grounding_node_ownership",
+                call_metadata={"stage": "1B"},
+            )
+            ownership_raw = (
+                ownership_output["choices"][0]["text"]
+                if isinstance(ownership_output, dict) else str(ownership_output)
+            )
+            ownership = _extract_json(ownership_raw)
+            skeleton, ownership_errors = materialize_owned_skeleton(
+                neutral, ownership, action_ids,
+            )
+            skeleton = _normalize_world_skeleton(
+                skeleton, action_ids=action_ids, actions=actions,
+                clauses=clauses, generation_contract=generation_contract,
+                allow_action_text_evidence=allow_action_text_evidence,
+            )
+            skeleton, allocation_completions = complete_exclusive_allocations(
+                skeleton, actions=dict(zip(action_ids, actions)), clauses=clauses,
+                generation_contract=generation_contract,
+            )
+            skeleton, conditional_rule_instantiations = instantiate_conditional_rules(
+                skeleton, clauses,
+            )
+            skeleton_errors = [*ownership_errors, *_validate_world_skeleton(
+                skeleton, action_ids=action_ids, clauses=clauses,
+                generation_contract=generation_contract,
+                action_texts=(
+                    dict(zip(action_ids, actions))
+                    if allow_action_text_evidence else None
+                ),
+            )]
+            admission = triage_node_admission(skeleton, skeleton_errors)
+            node_preservation_waterfall = finalize_node_evidence_ledger(
+                skeleton, skeleton_errors,
+                node_decisions=admission["node_decisions"],
+            )
+            stage_one_result = {
+                "status": admission["stage_status"],
+                "generation_mode": "ACTION_NEUTRAL_THEN_OWNERSHIP",
+                "neutral_skeleton": neutral,
+                "provenance_bindings": provenance_bindings,
+                "ownership": ownership,
+                "skeleton": skeleton,
+                "admitted_skeleton": admission["admitted_skeleton"],
+                "node_admission_decisions": admission["node_decisions"],
+                "admission_counts": admission["counts"],
+                "global_validation_errors": admission["global_errors"],
+                "errors": list(dict.fromkeys(skeleton_errors)),
+                "node_evidence_ledger": copy.deepcopy(
+                    skeleton.get("node_evidence_ledger") or []
+                ),
+                "node_preservation_waterfall": node_preservation_waterfall,
+                "syntactic_resolution_obligations": syntactic_obligations,
+                "syntactic_resolution_coverage": obligation_coverage,
+                "targeted_resolution_jobs": resolution_jobs,
+                "targeted_resolution_audit": targeted_resolution_audit,
+                "conditional_rule_instantiations": conditional_rule_instantiations,
+                "allocation_completions": allocation_completions,
+            }
+            if admission["counts"]["admitted"]:
+                attach_stage_one_topology(stage_one_result)
+                stage_one_result["evidence_packet"] = build_stage_one_evidence_packet(
+                    stage_one_result
+                )
+        except Exception as exc:
+            stage_one_result = {
+                "status": "REJECTED",
+                "generation_mode": "ACTION_NEUTRAL_THEN_OWNERSHIP",
+                "errors": [
+                    f"staged node generation failed: {type(exc).__name__}: {exc}"
+                ],
+            }
+    if (
+        result.get("status") != "COMMITTED"
+        and llm is not None
+        and prior_candidate is None
+        and not seeded_errors
+        and not seeded_issues
+        and stage_one_result.get("status") == "NOT_RUN"
+    ):
+        skeleton_prompt = f"""[INST]
+Stage 1 of world grounding: extract only the source-bound factual skeleton.
+Do not create causal_links, counterfactual_links, conditions, ethical judgments,
+or derived averted benefits. List parties and atomic action-owned propositions.
+Every source_proposition must be one exact contiguous span of a cited clause.
+Preserve explicit quantities, negation, modality, and affected-party identity.
+When an elliptical expression omits a predicate, resolve its outcome from the
+nearest compatible antecedent but cite the clause containing the ellipsis.
+Put any source span that cannot yet be safely bound in unresolved_source_spans.
+For every ellipsis_obligation, add one ellipsis_resolutions record. Quote the
+antecedent exactly and copy its missing_constituent_type and ethical_context_roles.
+List considered source candidates and the context evidence used only to rank them.
+Resolve an obligation only when the omitted material has one compatible source
+antecedent, with HIGH or MEDIUM confidence and SOURCE_ONLY or SOURCE_AND_CONTEXT
+as admission_basis. Context cannot serve as provenance. Preserve sluicing as
+UNRESOLVED with an empty reconstructed_span and UNRESOLVED_OPEN_QUESTION. Preserve
+ambiguous null complements as UNRESOLVED so validation can quarantine them.
+
+Canonical actions: {json.dumps(dict(zip(action_ids, actions)), sort_keys=True)}
+Scenario clauses: {json.dumps(clauses, ensure_ascii=False)}
+Source-derived obligations:
+{json.dumps(generation_contract, ensure_ascii=False, sort_keys=True)}
+Return JSON only.
+[/INST]"""
+        try:
+            skeleton_output = _call_json_llm(
+                llm, skeleton_prompt, max_tokens=max(3072, max_tokens),
+                temperature=0.0,
+                schema=_world_skeleton_schema(
+                    action_ids, clause_ids,
+                    allow_action_text_evidence=allow_action_text_evidence,
+                ),
+                call_kind="world_grounding_skeleton",
+                call_metadata={"stage": 1},
+            )
+            skeleton_raw = (
+                skeleton_output["choices"][0]["text"]
+                if isinstance(skeleton_output, dict) else str(skeleton_output)
+            )
+            skeleton = _extract_json(skeleton_raw)
+            skeleton = _normalize_world_skeleton(
+                skeleton,
+                action_ids=action_ids,
+                actions=actions,
+                clauses=clauses,
+                generation_contract=generation_contract,
+                allow_action_text_evidence=allow_action_text_evidence,
+            )
+            skeleton, allocation_completions = complete_exclusive_allocations(
+                skeleton, actions=dict(zip(action_ids, actions)), clauses=clauses,
+                generation_contract=generation_contract,
+            )
+            skeleton, conditional_rule_instantiations = instantiate_conditional_rules(
+                skeleton, clauses,
+            )
+            skeleton_errors = _validate_world_skeleton(
+                skeleton,
+                action_ids=action_ids,
+                clauses=clauses,
+                generation_contract=generation_contract,
+                action_texts=(
+                    dict(zip(action_ids, actions))
+                    if allow_action_text_evidence else None
+                ),
+            )
+            admission = triage_node_admission(skeleton, skeleton_errors)
+            stage_one_result = {
+                "status": admission["stage_status"],
+                "skeleton": skeleton,
+                "admitted_skeleton": admission["admitted_skeleton"],
+                "node_admission_decisions": admission["node_decisions"],
+                "admission_counts": admission["counts"],
+                "global_validation_errors": admission["global_errors"],
+                "errors": skeleton_errors,
+                "conditional_rule_instantiations": conditional_rule_instantiations,
+                "allocation_completions": allocation_completions,
+            }
+            if admission["counts"]["admitted"]:
+                attach_stage_one_topology(stage_one_result)
+                stage_one_result["evidence_packet"] = build_stage_one_evidence_packet(
+                    stage_one_result
+                )
+        except Exception as exc:
+            stage_one_result = {
+                "status": "REJECTED",
+                "errors": [
+                    f"stage-one skeleton generation failed: {type(exc).__name__}: {exc}"
+                ],
+            }
     if result.get("status") != "COMMITTED":
         for attempt in range(1, max(1, max_attempts) + 1):
             repair_delta: dict[str, Any] = {}
             generated_candidate = False
             inherited_candidate = repair_base_candidate is not None
+            repair_contract_used = copy.deepcopy(active_repair_contract)
+            repair_before_candidate = copy.deepcopy(repair_base_candidate)
             previous_errors = (
                 list(attempts[-1]["errors"]) if attempts else list(seeded_errors)
             )
@@ -8207,6 +9846,90 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                     prompt if not repair_note
                     else prompt.replace("\n[/INST]", repair_note + "\n[/INST]", 1)
                 )
+                if stage_one_result.get("status") != "NOT_RUN":
+                    if guidance_mode == "EVIDENCE_REVIEW":
+                        # The first draft must remain a raw-source baseline.  The
+                        # packet is introduced only in the explicit review call.
+                        stage_instruction = ""
+                    elif (
+                        guidance_mode == "EVIDENCE_ONLY"
+                        and stage_one_result.get("status") in {
+                            "ADMITTED", "PARTIALLY_ADMITTED", "QUARANTINED", "REJECTED",
+                        }
+                    ):
+                        evidence_packet = (
+                            stage_one_result.get("evidence_packet")
+                            or build_stage_one_evidence_packet(stage_one_result)
+                        )
+                        stage_instruction = (
+                            "\n\nNON-AUTHORITATIVE SEMANTIC EVIDENCE PACKET:\n"
+                            + json.dumps(
+                                evidence_packet, ensure_ascii=False, sort_keys=True,
+                            )
+                            + "\nThis packet is advisory. Build the complete world "
+                            "graph from the original scenario. Do not copy a node "
+                            "or edge merely because it appears here, and do not "
+                            "omit source-supported structure merely because the "
+                            "packet missed it. Resolve conflicts in favor of the "
+                            "source; preserve uncertainty when resolution is not "
+                            "licensed. The ordinary final-world validators still "
+                            "apply."
+                        )
+                    elif stage_one_result.get("status") in {"ADMITTED", "PARTIALLY_ADMITTED"}:
+                        stage_instruction = (
+                            "\n\nSTAGE 1 ADMITTED FACTUAL SKELETON:\n"
+                            + json.dumps(
+                                stage_one_result.get("admitted_skeleton")
+                                or stage_one_result.get("skeleton"),
+                                ensure_ascii=False, sort_keys=True,
+                            )
+                            + "\nSTAGE 2: preserve every party and proposition's "
+                            "factual content, action ownership, quantity, modality, "
+                            "and provenance. You may assign final IDs and add only "
+                            "source-licensed conditions, causal topology, and "
+                            "counterfactual derivations.\nTOPOLOGY SCAFFOLD:\n"
+                            + json.dumps(
+                                stage_one_result.get("topology_scaffold") or {},
+                                ensure_ascii=False, sort_keys=True,
+                            )
+                            + "\nEdge candidates are not mandatory. Commit a "
+                            "SOURCE_LICENSED edge when its exact support applies. "
+                            "For REQUIRES_STAGE2_JUSTIFICATION, cite an exact source "
+                            "span that licenses direction and relation; otherwise "
+                            "leave the topology unresolved. Do not force every world "
+                            "into action→process→outcome."
+                        )
+                        if stage_one_result.get("status") == "PARTIALLY_ADMITTED":
+                            stage_instruction += (
+                                "\nQUARANTINED OR REJECTED STAGE-1 EVIDENCE WAS "
+                                "EXCLUDED FROM THIS SKELETON. Reconsider it only "
+                                "from the original source and resolve these defects; "
+                                "do not copy it as an admitted fact:\n- "
+                                + "\n- ".join(
+                                    str(error)
+                                    for error in stage_one_result.get("errors") or []
+                                )
+                            )
+                    else:
+                        stage_state = str(stage_one_result.get("status") or "REJECTED")
+                        disposition = (
+                            "STAGE 1 WAS QUARANTINED. Its claims remain evidence "
+                            "but are not admitted facts. Build the full candidate "
+                            "while resolving these trust defects:\n- "
+                            if stage_state == "QUARANTINED" else
+                            "STAGE 1 WAS REJECTED. Build the full candidate while "
+                            "correcting these extraction failures:\n- "
+                        )
+                        stage_instruction = (
+                            "\n\n" + disposition
+                            + "\n- ".join(
+                                str(error) for error in stage_one_result.get("errors") or []
+                            )
+                            + "\nDo not inherit unadmitted skeleton claims as facts."
+                        )
+                    call_prompt = call_prompt.replace(
+                        "\n[/INST]", stage_instruction + "\n[/INST]", 1,
+                    )
                 output = _call_json_llm(
                     llm, call_prompt, max_tokens=max(6144, max_tokens),
                     temperature=0.0, schema=schema,
@@ -8222,6 +9945,42 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                 )
                 candidate = _extract_json(raw)
                 generated_candidate = True
+                if (
+                    guidance_mode == "EVIDENCE_REVIEW"
+                    and attempt == 1
+                    and stage_one_result.get("status") != "NOT_RUN"
+                ):
+                    evidence_packet = (
+                        stage_one_result.get("evidence_packet")
+                        or build_stage_one_evidence_packet(stage_one_result)
+                    )
+                    review_instruction = (
+                        "\n\nEVIDENCE-BASED REVIEW (SECOND PASS):\n"
+                        "The JSON below is your raw-source draft. Preserve every "
+                        "correct field. Revise only source-supported omissions, "
+                        "ownership errors, modality errors, or topology conflicts "
+                        "revealed by the advisory packet. Packet nodes and edges "
+                        "are hypotheses, not commands. The original source wins "
+                        "every conflict. Return the complete reviewed JSON.\n"
+                        "RAW DRAFT:\n"
+                        + json.dumps(candidate, ensure_ascii=False, sort_keys=True)
+                        + "\nADVISORY EVIDENCE PACKET:\n"
+                        + json.dumps(evidence_packet, ensure_ascii=False, sort_keys=True)
+                    )
+                    review_prompt = prompt.replace(
+                        "\n[/INST]", review_instruction + "\n[/INST]", 1,
+                    )
+                    review_output = _call_json_llm(
+                        llm, review_prompt, max_tokens=max(6144, max_tokens),
+                        temperature=0.0, schema=schema,
+                        call_kind="world_grounding_evidence_review",
+                        call_metadata={"attempt": attempt, "review": "POST_DRAFT"},
+                    )
+                    review_raw = (
+                        review_output["choices"][0]["text"]
+                        if isinstance(review_output, dict) else str(review_output)
+                    )
+                    candidate = _extract_json(review_raw)
                 repair_delta = {}
                 if repair_base_candidate is not None:
                     candidate = _preserve_stable_world_bookkeeping(
@@ -8241,6 +10000,69 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                     candidate, actions, action_ids, clauses,
                     allow_action_text_evidence=allow_action_text_evidence,
                 )
+                likelihood_errors = _candidate_likelihood_binding_errors(
+                    candidate, generation_contract,
+                )
+                if likelihood_errors:
+                    likelihood_issues = validation_issues_from_messages(
+                        likelihood_errors,
+                    )
+                    result = {
+                        **result,
+                        "status": "REJECTED",
+                        "errors": list(dict.fromkeys([
+                            *list(result.get("errors") or []), *likelihood_errors,
+                        ])),
+                        "validation_issues": [
+                            *list(result.get("validation_issues") or []),
+                            *[issue.as_dict() for issue in likelihood_issues],
+                        ],
+                    }
+                ellipsis_errors = validate_ellipsis_resolution_records(
+                    candidate,
+                    generation_contract.get("ellipsis_obligations") or [],
+                    clauses,
+                )
+                if ellipsis_errors:
+                    ellipsis_issues = validation_issues_from_messages(
+                        ellipsis_errors,
+                    )
+                    result = {
+                        **result,
+                        "status": "REJECTED",
+                        "errors": list(dict.fromkeys([
+                            *list(result.get("errors") or []), *ellipsis_errors,
+                        ])),
+                        "validation_issues": [
+                            *list(result.get("validation_issues") or []),
+                            *[issue.as_dict() for issue in ellipsis_issues],
+                        ],
+                    }
+                if (
+                    guidance_mode == "AUTHORITATIVE"
+                    and stage_one_result.get("status") in {"ADMITTED", "PARTIALLY_ADMITTED"}
+                ):
+                    correspondence_errors = _stage_skeleton_correspondence_errors(
+                        stage_one_result.get("admitted_skeleton")
+                        or stage_one_result.get("skeleton"), candidate,
+                    )
+                    if correspondence_errors:
+                        correspondence_issues = validation_issues_from_messages(
+                            correspondence_errors,
+                        )
+                        result = {
+                            **result,
+                            "status": "REJECTED",
+                            "errors": list(dict.fromkeys([
+                                *list(result.get("errors") or []),
+                                *correspondence_errors,
+                            ])),
+                            "validation_issues": [
+                                *list(result.get("validation_issues") or []),
+                                *[issue.as_dict() for issue in correspondence_issues],
+                            ],
+                            "stage_correspondence_errors": correspondence_errors,
+                        }
                 illegal = list(repair_delta.get("illegal_drops") or [])
                 if illegal:
                     result = {
@@ -8271,8 +10093,29 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                 "rebuild_action_ids": list(active_rebuild_action_ids),
                 "errors": attempt_errors,
                 "validation_issues": list(result.get("validation_issues") or []),
+                "compiler_loss_telemetry": dict(
+                    result.get("compiler_loss_telemetry") or {}
+                ),
                 "repair_delta": repair_delta,
             })
+            if previous_issues:
+                repair_events.append(build_repair_event(
+                    event_index=len(repair_events) + 1,
+                    execution_mode="LLM_REPAIR",
+                    repair_scope=active_repair_scope,
+                    before_issues=previous_issues,
+                    after_issues=list(result.get("validation_issues") or []),
+                    before_candidate=repair_before_candidate,
+                    after_candidate=rejected_candidate,
+                    repair_contract=repair_contract_used,
+                    terminal_status=str(result.get("status") or "REJECTED"),
+                    context=repair_context,
+                    cards_presented=(
+                        repair_guidance_mode != "ALONE"
+                        and active_repair_scope != FULL_REBUILD
+                        and bool(repair_contract_used.get("guidance_prompt"))
+                    ),
+                ))
             if (
                 result.get("status") != "COMMITTED"
                 and isinstance(rejected_candidate, dict)
@@ -8332,6 +10175,9 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                         "validation_issues": list(
                             mid_admit.get("validation_issues") or []
                         ),
+                        "compiler_loss_telemetry": dict(
+                            mid_admit.get("compiler_loss_telemetry") or {}
+                        ),
                         "repair_delta": {
                             "deterministic_patches": applied_mid,
                             **({
@@ -8341,6 +10187,30 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                             } if mid_admit.get("repair_no_effect") else {}),
                         },
                     })
+                    deterministic_contract = repair_patch_contract(
+                        before_mid_issues,
+                        errors=list(result.get("errors") or []),
+                        candidate=rejected_candidate,
+                        clauses=list(clauses),
+                    )
+                    repair_events.append(build_repair_event(
+                        event_index=len(repair_events) + 1,
+                        execution_mode="DETERMINISTIC_PATCH",
+                        repair_scope=DETERMINISTIC_LOCAL_PATCH,
+                        before_issues=before_mid_issues,
+                        after_issues=list(
+                            mid_admit.get("validation_issues") or []
+                        ),
+                        before_candidate=rejected_candidate,
+                        after_candidate=patched_mid,
+                        repair_contract=deterministic_contract,
+                        terminal_status=str(
+                            mid_admit.get("status") or "REJECTED"
+                        ),
+                        deterministic_patches=applied_mid,
+                        context=repair_context,
+                        cards_presented=False,
+                    ))
                     rejected_candidate = patched_mid
                     if mid_admit.get("status") == "COMMITTED":
                         result = mid_admit
@@ -8377,6 +10247,7 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                     for row in attempts
                 ],
             )
+            active_repair_contract = copy.deepcopy(next_repair_contract)
             active_repair_scope = str(
                 next_repair_contract.get("repair_scope") or LOCAL_PATCH
             )
@@ -8411,6 +10282,24 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
             guidance_prompt = str(
                 next_repair_contract.get("guidance_prompt") or ""
             ).strip()
+            evidence_repair_delta = (
+                build_evidence_repair_delta(
+                    rejected_candidate,
+                    stage_one_result.get("evidence_packet") or {},
+                    result.get("validation_issues") or [],
+                )
+                if repair_guidance_mode != "OFF" else {}
+            )
+            evidence_delta_is_actionable = bool(
+                evidence_repair_delta.get("has_findings")
+            )
+            if repair_guidance_mode != "OFF" and evidence_delta_is_actionable:
+                next_repair_contract["evidence_repair_delta"] = copy.deepcopy(
+                    evidence_repair_delta
+                )
+            effective_guidance_prompt = (
+                "" if repair_guidance_mode == "ALONE" else guidance_prompt
+            )
             repair_note = (
                 "\n\nA previous attempt was rejected by deterministic validation for: "
                 + "; ".join(attempt_errors)
@@ -8431,8 +10320,22 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                 )
                 + (
                     "\nRepair guidance cards (apply exactly one patch per issue):\n"
-                    + guidance_prompt
-                    if guidance_prompt else ""
+                    + effective_guidance_prompt
+                    if effective_guidance_prompt else ""
+                )
+                + (
+                    "\nDeterministic evidence repair delta "
+                    "(advisory; preserve the validator's transactional boundary):\n"
+                    + json.dumps(
+                        evidence_repair_delta, ensure_ascii=False, sort_keys=True,
+                    )
+                    if (
+                        evidence_repair_delta
+                        and (
+                            evidence_delta_is_actionable
+                            or repair_guidance_mode == "ALONE"
+                        )
+                    ) else ""
                 )
                 + "\nRepair inheritance scope:\n"
                 + scope_instruction
@@ -8447,8 +10350,10 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                 "Keep human "
                 "recipients of a transfer or assignment; do not replace them with the "
                 "transferred RESOURCE to satisfy the atomic DIRECT rule."
-                + "\nEach action must cite at least one clause that no other action "
-                "cites. Shared background clauses are still permitted alongside it. "
+                + "\nEach action needs distinguishing source support. A single shared "
+                "either/or clause may support all branches when it explicitly states "
+                "each alternative; otherwise cite at least one clause unique to the "
+                "action. Shared background clauses remain permitted. "
                 "For contradictory direct effects, re-read the cited clauses and remove "
                 "the incorrectly assigned effect rather than weakening its modality. "
                 "If a downstream health or welfare outcome is caused directly by another "
@@ -8520,11 +10425,12 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
                 "CERTAIN situation qualifier; it is a likelihood hedge only when it "
                 "modifies a distinct harm ('at high risk of dying'). "
                 "FOREGONE rows use effect_kind "
-                "OPPORTUNITY_LOSS. If opposed stipulated welfare on a non-recipient "
-                "party has no FOREGONE overlay, add only those FOREGONE rows and "
-                "counterfactual_links; do not retarget causal_links or use FOREGONE "
-                "effects as causal endpoints. If the overlays are already present and "
-                "valid, keep them. If a causal_link uses PREVENTS between "
+                "OPPORTUNITY_LOSS. For opposed stipulated welfare, first connect an "
+                "existing actual BENEFICIAL effect to the alternative ADVERSE effect "
+                "with PRECLUDES_ALTERNATIVE_EFFECT. Add a FOREGONE row only when the "
+                "lost opportunity is independently source-relevant or there is no "
+                "actual effect that can source the comparison; never use FOREGONE "
+                "effects as causal endpoints. If a causal_link uses PREVENTS between "
                 "two actual effects whose polarities are both BENEFICIAL or both "
                 "ADVERSE, change only link_relation to CAUSES; do not retarget "
                 "endpoints, add or remove effects, or move the edge onto "
@@ -8582,6 +10488,11 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
         )
     result["attempts"] = attempts
     result["repair_attempts"] = len(attempts) - 1
+    result["repair_experiment_events"] = repair_events
+    result["invariant_card_telemetry"] = build_invariant_card_telemetry(
+        attempts,
+        terminal_status=str(result.get("status") or "UNKNOWN"),
+    )
     result["next_repair_scope"] = (
         active_repair_scope
         if result.get("status") != "COMMITTED" else "NONE"
@@ -8590,6 +10501,10 @@ Return JSON only. For each action give clause_ids and a short mapping reason.
         list(active_rebuild_action_ids)
         if result.get("status") != "COMMITTED" else []
     )
+    result["candidate_generation_contract"] = copy.deepcopy(generation_contract)
+    result["candidate_generation_stage_one"] = copy.deepcopy(stage_one_result)
+    result["stage_one_guidance_mode"] = guidance_mode
+    result["deterministic_repair_guidance_mode"] = repair_guidance_mode
     if result.get("status") != "COMMITTED" and rejected_candidate is not None:
         result["rejected_candidate"] = rejected_candidate
         result["rejected_candidate_history"] = rejected_candidate_history
@@ -9125,10 +11040,15 @@ def _admit_action_source_rows(
                 "clauses": [clause_lookup[value] for value in unique_ids],
                 "reason": " ".join(str(row.get("reason", "")).split()),
             }
-    errors.extend(_distinguishing_support_errors(admitted))
+    # Explicitly user-authored A0/A1 texts are themselves distinct,
+    # authoritative branch evidence. Their shared background clauses need not
+    # contain a second lexical distinction merely to repeat that evidence.
+    if not allow_action_text_evidence:
+        errors.extend(_distinguishing_support_errors(admitted))
     world_model: dict[str, Any] = {}
     world_contradictions: list[list[str]] = []
     world_model_status = "UNAVAILABLE"
+    compiler_loss_telemetry: dict[str, Any] = {}
     if isinstance(data, dict) and "world_model" in data:
         raw_world = data.get("world_model")
         action_id_set = {str(value).upper() for value in action_ids}
@@ -9166,19 +11086,67 @@ def _admit_action_source_rows(
                 sanitized_sections[section] = cleaned_rows
             raw_world = {**raw_world, **sanitized_sections}
         try:
-            from .world_state import parse_world_model, validate_world_model
-            parsed_world = parse_world_model(
+            from .world_admission import (
+                admit_world_payload,
+                admitted_world_contradictions,
+            )
+            parsed_world = admit_world_payload(
                 raw_world if isinstance(raw_world, dict) else data.get("world_model"),
                 clauses=clauses, action_ids=action_ids,
                 action_texts=dict(zip(action_ids, actions)),
             )
+            parsed_world = quarantine_unsupported_comparative_causalizations(
+                parsed_world,
+            )
             world_model = parsed_world.as_dict()
-            _, contradictions = validate_world_model(parsed_world, action_ids=action_ids)
+            if allow_action_text_evidence:
+                parsed_action_by_id = {
+                    row.action_id: row for row in parsed_world.actions
+                }
+                for action_id, action_text_value in zip(action_ids, actions):
+                    condition_match = re.search(
+                        r"\b(?:if|unless)\b\s+(.+)$",
+                        str(action_text_value), re.IGNORECASE,
+                    )
+                    if condition_match is None:
+                        continue
+                    parsed_action = parsed_action_by_id.get(str(action_id))
+                    branch_effects = [
+                        effect for effect in parsed_world.effects
+                        if effect.action_id == str(action_id)
+                    ]
+                    condition_preserved = bool(
+                        parsed_action is not None
+                        and re.search(
+                            r"\b(?:if|unless)\b",
+                            parsed_action.intervention, re.IGNORECASE,
+                        )
+                    ) or any(effect.condition_ids for effect in branch_effects)
+                    if not condition_preserved:
+                        condition_text = condition_match.group(0).strip(" .")
+                        message = (
+                            f"{action_id} omits user-authored action condition "
+                            f"{condition_text!r}; preserve it on the admitted "
+                            "intervention or attach a source-grounded condition_id "
+                            "to every effect that occurs only under that condition"
+                        )
+                        errors.append(message)
+                        validation_issues.extend(
+                            issue.as_dict()
+                            for issue in validation_issues_from_messages((message,))
+                        )
+            contradictions = admitted_world_contradictions(
+                parsed_world, action_ids=action_ids,
+            )
             world_contradictions = [list(group) for group in contradictions]
-            world_model_status = "CONTRADICTORY" if contradictions else "COMMITTED"
+            world_model_status = (
+                "CONTRADICTORY" if contradictions
+                else parsed_world.admission.status
+            )
         except WorldModelValidationError as exc:
             errors.append(f"typed world model rejected: {exc}")
             validation_issues.extend(issue.as_dict() for issue in exc.issues)
+            compiler_loss_telemetry = dict(exc.compiler_loss_telemetry)
             world_model_status = "REJECTED"
         except ValueError as exc:
             errors.append(f"typed world model rejected: {exc}")
@@ -9204,6 +11172,20 @@ def _admit_action_source_rows(
             issue.as_dict()
             for issue in validation_issues_from_messages(untyped_errors)
         )
+    deduplicated_issues: list[dict[str, Any]] = []
+    seen_issue_signatures: set[tuple[str, str, str, str]] = set()
+    for issue in validation_issues:
+        signature = (
+            str(issue.get("code") or ""),
+            str(issue.get("entity_kind") or ""),
+            str(issue.get("entity_id") or ""),
+            str(issue.get("message") or ""),
+        )
+        if signature in seen_issue_signatures:
+            continue
+        seen_issue_signatures.add(signature)
+        deduplicated_issues.append(issue)
+    validation_issues = deduplicated_issues
     return {
         "status": status,
         "actions": admitted if not errors else {},
@@ -9212,6 +11194,7 @@ def _admit_action_source_rows(
         "world_contradictions": world_contradictions,
         "errors": errors,
         "validation_issues": validation_issues,
+        "compiler_loss_telemetry": compiler_loss_telemetry,
         "clauses": list(clauses),
     }
 
@@ -9221,11 +11204,10 @@ def _distinguishing_support_errors(
 ) -> list[str]:
     """Require each action to have grounding that tells it apart from the others.
 
-    Distinct alternatives legitimately share background facts: a one-trip budget
-    or a common deadline constrains every option, and a fused comparison clause
-    may describe them all. Demanding disjoint sources would reject those honest
-    mappings. What must hold instead is that each action cites at least one
-    clause no rival cites, so the grounding can still distinguish the choices.
+    Distinct alternatives legitimately share background facts. A fused binary
+    clause can also be the authoritative source for every branch; in that case
+    effect/action ownership, not a fabricated extra clause id, distinguishes
+    the alternatives.
     """
     if len(admitted) < 2:
         return []
@@ -9233,6 +11215,26 @@ def _distinguishing_support_errors(
         action_id: set(row.get("clause_ids", []))
         for action_id, row in admitted.items()
     }
+    shared_by_all = set.intersection(*cited.values()) if cited else set()
+    clause_by_id = {
+        str(clause.get("clause_id") or ""): str(clause.get("text") or "")
+        for row in admitted.values()
+        for clause in (row.get("clauses") or [])
+        if isinstance(clause, dict)
+    }
+    # A single source clause can legitimately distinguish every branch.  This
+    # is common both in "either X or Y" prompts and in natural choice clauses
+    # such as "the doctor must choose: give A ... or give B ...".  Requiring a
+    # fabricated clause per action loses provenance rather than improving it.
+    if any(
+        re.search(
+            r"(?:\beither\b|\b(?:must\s+)?choose\b|\bchoice\s*:).+\bor\b",
+            clause_by_id.get(clause_id, ""),
+            re.I | re.S,
+        )
+        for clause_id in shared_by_all
+    ):
+        return []
     errors: list[str] = []
     for action_id, own in cited.items():
         shared = set().union(
@@ -9393,6 +11395,26 @@ x means executable; n means non-evasive.
     )
     if admission_annotations:
         reasons.extend(admission_annotations)
+    downstream_numeric_errors = numeric_claim_integrity_errors(
+        " ".join((
+            proposal.action,
+            proposal.rationale,
+            *proposal.introduced_requirements,
+        )),
+        source_texts=(scenario, *actions),
+        # Synthesis is not licensed to perform a new EV calculation.  Its
+        # sources are attributed arguments, not factual authority.
+        allow_derived_ratio=False,
+    )
+    reasons.extend(downstream_numeric_errors)
+    reasons.extend(semantic_transformation_errors(
+        " ".join((
+            proposal.action,
+            proposal.rationale,
+            *proposal.introduced_requirements,
+        )),
+        source_texts=(scenario, *actions),
+    ))
     action_word_count = len(re.findall(r"\b[\w'-]+\b", proposal.action))
     procedural_terms = re.findall(
         r"\b(?:benchmark(?:s)?|survey(?:s)?|referendum|enforcement|monitor(?:ing)?|"

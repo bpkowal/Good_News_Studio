@@ -662,6 +662,8 @@ class ParliamentLauncherTests(unittest.TestCase):
         self.assertIn("E0_2 CAUSES E0_3", text)
         self.assertIn("over five hundred", text)
         self.assertIn("FOREGONE E0_4 -> A1 E1_3", text)
+        self.assertIn("certain benefits: innocent citizen", text)
+        self.assertIn("certain harms: city residents", text)
         self.assertIn("at risk:", text)
         self.assertIn("conditionally benefited:", text)
 
@@ -785,6 +787,27 @@ class ParliamentLauncherTests(unittest.TestCase):
         self.assertEqual(merged["escalation"]["from_model"], "o3")
         self.assertEqual(merged["escalation"]["to_model"], "gpt-5.6-sol")
         self.assertEqual(merged["escalation"]["attempts"], 1)
+
+    def test_world_escalation_preserves_primary_stage_one_skeleton(self):
+        stage_one = {
+            "status": "COMMITTED",
+            "skeleton": {"propositions": [{"proposition_id": "S0"}]},
+        }
+        merged = global_workspace_pipeline.attach_world_escalation(
+            {
+                "status": "REJECTED", "attempts": [],
+                "candidate_generation_stage_one": stage_one,
+            },
+            {
+                "status": "COMMITTED", "attempts": [],
+                "candidate_generation_stage_one": {"status": "NOT_RUN"},
+                "world_model": {"schema_version": "1.3"},
+            },
+            from_model="o3",
+            to_model="gpt-5.6-sol",
+        )
+        self.assertEqual(stage_one, merged["candidate_generation_stage_one"])
+        self.assertEqual("primary", merged["candidate_generation_stage_one_origin"])
 
     def test_rejected_world_escalation_keeps_candidate_history_by_stage(self):
         merged = global_workspace_pipeline.attach_world_escalation(
@@ -945,6 +968,12 @@ class ParliamentLauncherTests(unittest.TestCase):
                 model="o3",
             )
             saved = json.loads(path.read_text(encoding="utf-8"))
+            tikz_directory = Path(saved["tikz_diagnostics"]["directory"])
+            self.assertEqual(
+                saved["tikz_diagnostics"]["representation_stage"],
+                "RAW_REJECTED_CANDIDATE_PRECOMPILATION",
+            )
+            self.assertTrue((tikz_directory / "source_bindings.tex").is_file())
 
         self.assertEqual(saved["failure_stage"], "WORLD_GROUNDING")
         self.assertEqual(saved["summary"]["final_validation_issue_count"], 1)

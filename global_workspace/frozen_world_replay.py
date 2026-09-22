@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .world_state import world_model_from_dict
+from .world_admission import restore_admitted_world
 
 
 class FrozenWorldReplayError(ValueError):
@@ -106,8 +106,23 @@ def load_frozen_world_trace(
     world_payload = grounding.get("world_model")
     if not isinstance(world_payload, dict):
         raise FrozenWorldReplayError("frozen trace has no typed world model")
+    raw_effect_ids = {
+        str(row.get("effect_id") or "")
+        for row in world_payload.get("effects", [])
+        if isinstance(row, dict) and row.get("effect_id")
+    }
+    raw_admission = world_payload.get("admission") or {}
+    raw_admitted_ids = {
+        str(value)
+        for value in raw_admission.get("admitted_effect_ids", [])
+        if str(value)
+    }
+    if raw_admitted_ids != raw_effect_ids:
+        raise FrozenWorldReplayError(
+            "frozen admission does not admit exactly the serialized typed-world effects"
+        )
     try:
-        world = world_model_from_dict(world_payload)
+        world = restore_admitted_world(world_payload)
     except (KeyError, TypeError, ValueError) as exc:
         raise FrozenWorldReplayError(
             f"frozen typed world could not be restored: {type(exc).__name__}: {exc}"

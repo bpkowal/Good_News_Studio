@@ -1,0 +1,193 @@
+{
+  "source_report": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/eval_outputs/pairwise-evidence-augmented-frozen-20260920/report.json",
+  "policy": {
+    "no_new_model_calls": true,
+    "missing_audit_record_is_not_none": true,
+    "scaffold_gold_included_is_not_unique_correctness": true
+  },
+  "summary": {
+    "evaluable_gold_edges": 4,
+    "audit_judgments_available": 4,
+    "audit_coverage": 1.0,
+    "audit_correct_given_judged": 3,
+    "audit_accuracy_given_judged": 0.75,
+    "audit_end_to_end_correct": 3,
+    "audit_end_to_end_accuracy": 0.75,
+    "scaffold_unique_correct": 2,
+    "scaffold_gold_included_nonunique": 0,
+    "scaffold_unique_accuracy": 0.5,
+    "audit_failure_modes": {
+      "CONDITIONAL_SCOPE_COLLAPSE": 1,
+      "CORRECT": 3
+    },
+    "audit_unavailability_reasons": {},
+    "scaffold_failure_modes": {
+      "CORRECT": 1,
+      "CORRECT_ABSENCE": 1,
+      "MISSING_EDGE": 2
+    }
+  },
+  "edges": [
+    {
+      "case_id": "pair_reverse_causality",
+      "family": "REVERSED_CAUSALITY",
+      "action_id": "A1",
+      "source": {
+        "proposition_id": "PR1",
+        "outcome": "the release is pulled",
+        "source_proposition": "Pulling the release",
+        "modality": "CERTAIN",
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      "target": {
+        "proposition_id": "PR2",
+        "outcome": "the gate opens",
+        "source_proposition": "opens the gate",
+        "modality": "CERTAIN",
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      "gold_relation": "CAUSES",
+      "scaffold_relations": [],
+      "scaffold_class": "MISSING_EDGE",
+      "scaffold_evidence": [],
+      "audit_relation": "CAUSES",
+      "audit_class": "CORRECT",
+      "audit_unavailability_reason": null,
+      "audit_judgment": {
+        "confidence": "HIGH",
+        "support_type": "EXPLICIT_SOURCE",
+        "support_span": "Pulling the release opens the gate",
+        "reason": "The sentence explicitly states that the action of pulling the release results in the gate opening."
+      },
+      "stage_one_status": "ADMITTED",
+      "audit_status": "COMPLETE"
+    },
+    {
+      "case_id": "pair_reverse_causality",
+      "family": "REVERSED_CAUSALITY",
+      "action_id": "A1",
+      "source": {
+        "proposition_id": "PR2",
+        "outcome": "the gate opens",
+        "source_proposition": "opens the gate",
+        "modality": "CERTAIN",
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      "target": {
+        "proposition_id": "PR1",
+        "outcome": "the release is pulled",
+        "source_proposition": "Pulling the release",
+        "modality": "CERTAIN",
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      "gold_relation": "NONE",
+      "scaffold_relations": [],
+      "scaffold_class": "CORRECT_ABSENCE",
+      "scaffold_evidence": [],
+      "audit_relation": "NONE",
+      "audit_class": "CORRECT",
+      "audit_unavailability_reason": null,
+      "audit_judgment": {
+        "confidence": "HIGH",
+        "support_type": "INSUFFICIENT",
+        "support_span": "",
+        "reason": "Text states the opposite causal direction: pulling the release causes the gate to open, not vice versa. No directed relation from gate opening to pulling is supported."
+      },
+      "stage_one_status": "ADMITTED",
+      "audit_status": "COMPLETE"
+    },
+    {
+      "case_id": "pair_conditional_cause",
+      "family": "CONDITIONAL_CAUSALITY",
+      "action_id": "A1",
+      "source": {
+        "proposition_id": "P1",
+        "outcome": "opening the door",
+        "source_proposition": "opening the door",
+        "modality": "STIPULATED_CONDITIONAL",
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      "target": {
+        "proposition_id": "P2",
+        "outcome": "siren sounds",
+        "source_proposition": "causes the siren to sound",
+        "modality": "STIPULATED_CONDITIONAL",
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      "gold_relation": "AMBIGUOUS",
+      "scaffold_relations": [],
+      "scaffold_class": "MISSING_EDGE",
+      "scaffold_evidence": [],
+      "audit_relation": "CAUSES",
+      "audit_class": "CONDITIONAL_SCOPE_COLLAPSE",
+      "audit_unavailability_reason": null,
+      "audit_judgment": {
+        "confidence": "HIGH",
+        "support_type": "EXPLICIT_SOURCE",
+        "support_span": "opening the door causes the siren to sound",
+        "reason": "The clause explicitly states that opening the door produces the siren sounding (under the condition the alarm is armed), establishing a direct causal relation from source to target."
+      },
+      "stage_one_status": "ADMITTED",
+      "audit_status": "COMPLETE"
+    },
+    {
+      "case_id": "pair_ellipsis_same",
+      "family": "ELLIPSIS",
+      "action_id": "A1",
+      "source": {
+        "proposition_id": "PR_AUTO_2",
+        "outcome": "Send the water stock to District West",
+        "source_proposition": "Send the water stock to District West",
+        "modality": "CERTAIN",
+        "clause_ids": [
+          "A1"
+        ]
+      },
+      "target": {
+        "proposition_id": "P4",
+        "outcome": "the water stock is exhausted",
+        "source_proposition": "would do the same",
+        "modality": "CERTAIN",
+        "clause_ids": [
+          "C1"
+        ]
+      },
+      "gold_relation": "CAUSES",
+      "scaffold_relations": [
+        "CAUSES"
+      ],
+      "scaffold_class": "CORRECT",
+      "scaffold_evidence": [
+        {
+          "support_type": "SHARED_ACTION_CONSEQUENCE",
+          "support_span": "",
+          "clause_id": "",
+          "commitment": "REQUIRES_STAGE2_JUSTIFICATION"
+        }
+      ],
+      "audit_relation": "CAUSES",
+      "audit_class": "CORRECT",
+      "audit_unavailability_reason": null,
+      "audit_judgment": {
+        "confidence": "HIGH",
+        "support_type": "EXPLICIT_SOURCE",
+        "support_span": "Sending it to District West would do the same.",
+        "reason": "The sentence states that sending the water to District West would have the same effect as sending it to District East (which \"exhausts it\"), thus directly indicating that the action of sending CAUSES the exhaustion of the water stock."
+      },
+      "stage_one_status": "ADMITTED",
+      "audit_status": "COMPLETE"
+    }
+  ]
+}

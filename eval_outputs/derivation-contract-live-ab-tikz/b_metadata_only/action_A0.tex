@@ -1,0 +1,22 @@
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{xcolor}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds}
+\begin{document}
+% A0 actual-world graph
+\begin{tikzpicture}[>=Latex,
+ event/.style={draw,rounded corners,align=center,text width=3.8cm,minimum height=1.4cm,font=\small},
+ beneficial/.style={event,fill=green!12,draw=green!50!black},
+ adverse/.style={event,fill=red!10,draw=red!55!black},
+ neutral/.style={event,fill=gray!10,draw=gray!65},
+ foregone/.style={event,fill=blue!7,draw=blue!45,densely dotted},
+ causal/.style={->,thick}, conditional/.style={->,thick,dashed}]
+\node[font=\bfseries,anchor=west] at (0,1.3) {A0: give the medicine to David};
+\node[neutral] (eE1) at (0.0,0.0) {\textbf{E1}\\David receives the medicine\\\scriptsize David · NEUTRAL · CERTAIN\\\scriptsize source: A0, C6, C0};
+\node[neutral] (eE1B) at (5.2,0.0) {\textbf{E1B}\\the medicine is not given to Maria\\\scriptsize dose of medicine · NEUTRAL · CERTAIN\\\scriptsize source: C6, C0};
+\node[neutral] (eE1C) at (10.4,0.0) {\textbf{E1C}\\Maria does not receive the medicine\\\scriptsize Maria · NEUTRAL · CERTAIN\\\scriptsize source: C0};
+\node[adverse] (eE2) at (15.600000000000001,0.0) {\textbf{E2}\\Maria dies\\\scriptsize Maria · ADVERSE · CERTAIN\\\scriptsize source: C3};
+\draw[causal] (eE1) -- node[above,font=\scriptsize] {CAUSES} (eE1B);
+\draw[causal] (eE1B) -- node[above,font=\scriptsize] {CAUSES} (eE1C);
+\draw[causal] (eE1C) -- node[above,font=\scriptsize] {CAUSES} (eE2);
+\end{tikzpicture}
+\end{document}

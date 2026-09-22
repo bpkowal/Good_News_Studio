@@ -1,0 +1,91 @@
+{
+  "actions": [
+    "Pull the lever, redirecting the trolley toward one person",
+    "Do not pull the lever, allowing the trolley to continue toward five people"
+  ],
+  "parliament": {
+    "choice": "pull lever",
+    "confidence": 0.0,
+    "constraints": [
+      "CARE",
+      "CHARACTER",
+      "DUTY",
+      "IMMINENT_HARM",
+      "RIGHTS"
+    ],
+    "framework_state": [
+      [
+        "care",
+        "UNRESOLVED",
+        "ABSTAIN"
+      ],
+      [
+        "deontological",
+        "do not pull lever",
+        "ABSTAIN"
+      ],
+      [
+        "rawlsian",
+        "do not pull lever",
+        "ABSTAIN"
+      ],
+      [
+        "utilitarian",
+        "UNRESOLVED",
+        "ABSTAIN"
+      ],
+      [
+        "virtue",
+        "UNRESOLVED",
+        "ABSTAIN"
+      ]
+    ],
+    "judgment_status": "UNRESOLVED",
+    "propositions": [
+      "E2",
+      "E4",
+      "E5",
+      "PROP:FRAMEWORK:0c0125aa54cc45e0",
+      "PROP:HYPOTHESIS:0c0125aa54cc45e0",
+      "PROP:HYPOTHESIS:5bee4ca22f3342dc",
+      "PROP:HYPOTHESIS:b2ebde7b28132891",
+      "PROP:WORLD:E1",
+      "PROP:WORLD:E2",
+      "PROP:WORLD:E4",
+      "PROP:WORLD:E5"
+    ]
+  },
+  "parliament_usage": {
+    "api_calls": 35,
+    "cached_prompt_tokens": 154752,
+    "completion_tokens": 39863,
+    "prompt_tokens": 409716,
+    "reasoning_tokens": 25920,
+    "total_tokens": 449579
+  },
+  "solo": {
+    "choice": "A0",
+    "confidence": 0.8,
+    "constraints": [
+      "DIRECT CAUSAL RESPONSIBILITY IS ACCEPTABLE WHEN OUTCOME REDUCES OVERALL HARM",
+      "SAVING THE GREATER NUMBER OF LIVES HAS MORAL PRIORITY"
+    ],
+    "framework_state": [],
+    "judgment_status": "RESOLVED",
+    "propositions": [
+      "No alternative actions can stop the trolley",
+      "Pulling the lever results in one death instead of five"
+    ]
+  },
+  "solo_budget": 39863,
+  "solo_usage": {
+    "api_calls": 1,
+    "cached_prompt_tokens": 0,
+    "completion_tokens": 155,
+    "prompt_tokens": 361,
+    "reasoning_tokens": 64,
+    "total_tokens": 516
+  },
+  "target": "",
+  "type": "CANONICAL"
+}

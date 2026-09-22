@@ -1,0 +1,23 @@
+{
+  "decision_id": "DEC-0001",
+  "date": "2026-09-21",
+  "topic": "Deterministic evidence as graph-repair guidance",
+  "status": "REJECTED_FOR_NOW",
+  "evidence": [
+    "EXP-2026-09-21-001"
+  ],
+  "decision": "Keep existing validator repair cards as the default and keep deterministic evidence repair guidance disabled by default.",
+  "reason": "Evidence-only and broad combined guidance regressed known successful repairs. Narrow combined guidance has not yet demonstrated incremental value under a frozen comparison.",
+  "retained_components": [
+    "evidence_repair_guidance module",
+    "off/alone/combined experimental switches",
+    "unique-owned-fact gate",
+    "shared-choice and obligation exclusion",
+    "empty-delta prompt suppression"
+  ],
+  "reconsider_if": [
+    "a frozen rejected-candidate replay shows higher repair convergence without lowering existing-card success",
+    "an actionable evidence delta recovers a validator-missed source omission on held-out cases",
+    "repair guidance can be evaluated with Stage-1 inventory and initial draft held identical"
+  ]
+}

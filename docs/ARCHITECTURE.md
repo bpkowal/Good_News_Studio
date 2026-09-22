@@ -55,6 +55,26 @@ responsibilities and invariants, not a complete algorithm specification.
 `global_workspace_pipeline.py` is the composition root: it may wire these pieces
 together, but new ethical logic should normally live in the relevant module above.
 
+## World compilation contract
+
+World grounding is compiled through five named, auditable stages in a fixed order:
+`ACTUAL_TOPOLOGY`, `SOURCE_BINDING`, `ACTUAL_TOPOLOGY_RECHECK`,
+`COUNTERFACTUAL_DERIVATION`, and `FINAL_NORMALIZATION`. The compiler exposes a
+fingerprinted trace for replay tests; compiling an admitted world again must be
+idempotent.
+
+Effects belong to exactly one semantic layer: `ACTUAL`,
+`DERIVED_COUNTERFACTUAL`, or `FOREGONE`. Presentation-only summaries are not
+effects and cannot enter the admitted causal graph. Counterfactual derivation runs
+only after the actual-world topology and source bindings have stabilized.
+
+Quantity comparison uses one canonical `QuantityIdentity` while retaining the
+literal source span for provenance. Repair diagnostics likewise assign every
+typed failure to one owner (source semantics, quantity normalization, actual
+topology, counterfactual derivation, or a system invariant) and report failures
+in validation-gate order. A repair counts as progress only when it removes a prior
+typed issue signature.
+
 ## Behavioral invariants
 
 - Original testimony is a frozen baseline; recurrence may reconsider it but may not
@@ -127,13 +147,20 @@ together, but new ethical logic should normally live in the relevant module abov
 ## Extension guidance
 
 - Add normative frameworks as delegates with the same candidate contract.
+- Keep `relent/` host-neutral and reusable: it must never import
+  `global_workspace`. Parliament-specific normalization, completeness policy,
+  repair, and admission orchestration enter through
+  `global_workspace/world_admission.py`, with record projection isolated in
+  `global_workspace/relent_adapt.py`.
 - Add non-voting audits beside `visibility.py`; expose explicit adjustments and
   evidence rather than hiding policy preferences in them.
 - Add cross-cutting guardrails in `middleware/` when they are independently testable
   transformations over domain records.
 - Keep backend-specific behavior behind a small adapter and reuse `structured_io.py`.
-- Semantic-integrity / FraCaS work lives under `tests/semantic_integrity/` as a
-  diagnostic taxonomy and two-lane coverage scaffold (structured vs grounding).
+- Semantic-integrity / FraCaS work lives under `tests/relent_testkit/` as a
+  RelEnt-backed, code-defined two-lane scaffold (structured vs grounding).
+  Coverage metadata is derived from `tests/invariants/catalog.py`; test
+  discovery no longer depends on a second YAML taxonomy or untracked seeds.
   Cataloged phenomena now include §1–5, §7–9, plus parliament_extension
   negation and the status-conservation family under umbrella
   `SEMANTIC_STATUS_CONSERVATION` (outcome-predicate completeness,

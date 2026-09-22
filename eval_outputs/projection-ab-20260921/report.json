@@ -1,0 +1,1031 @@
+{
+  "experiment_version": "projection-ab-v1",
+  "design": "paired read-only A/B on identical admitted graphs",
+  "production_path_changed": false,
+  "case_count": 5,
+  "cases": [
+    {
+      "case_id": "workspace_outputs/semantic_preservation_trace.json",
+      "status": "COMMITTED",
+      "graph_effect_count": 6,
+      "arm_a": {
+        "description": "World-state attributes",
+        "role_assignments": [
+          {
+            "action_id": "A0",
+            "bucket": "harmed",
+            "label": "David",
+            "effect_id": "E3",
+            "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; compact harmed"
+          },
+          {
+            "action_id": "A1",
+            "bucket": "harmed",
+            "label": "Maria",
+            "effect_id": "E6",
+            "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; compact harmed"
+          }
+        ],
+        "effects_without_projection_explanation": 4
+      },
+      "arm_b": {
+        "description": "Compact welfare projection derived from the admitted graph; causal, resource-transfer, and intermediate facts remain authoritative in the graph.",
+        "role_assignments": [
+          {
+            "action_id": "A0",
+            "bucket": "harmed",
+            "label": "David",
+            "effect_id": "E3",
+            "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; compact harmed"
+          },
+          {
+            "action_id": "A1",
+            "bucket": "harmed",
+            "label": "Maria",
+            "effect_id": "E6",
+            "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; compact harmed"
+          }
+        ],
+        "projection_dispositions": [
+          {
+            "action_id": "A0",
+            "effect_id": "E1",
+            "party": "Maria",
+            "outcome": "receives the medicine",
+            "polarity": "BENEFICIAL",
+            "effect_kind": "RESOURCE_TRANSFER",
+            "party_kind": "",
+            "disposition": "EXCLUDED_RESOURCE_TRANSFER",
+            "reason": "receipt is retained as a graph fact"
+          },
+          {
+            "action_id": "A0",
+            "effect_id": "E2",
+            "party": "David",
+            "outcome": "does not receive the medicine",
+            "polarity": "ADVERSE",
+            "effect_kind": "OTHER",
+            "party_kind": "",
+            "disposition": "EXCLUDED_ALLOCATION_STATE",
+            "reason": "nonreceipt is retained as a causal state"
+          },
+          {
+            "action_id": "A0",
+            "effect_id": "E3",
+            "party": "David",
+            "outcome": "dies",
+            "polarity": "ADVERSE",
+            "effect_kind": "HEALTH_OUTCOME",
+            "party_kind": "",
+            "disposition": "INCLUDED_HARMED",
+            "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; compact harmed"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "E4",
+            "party": "David",
+            "outcome": "receives the medicine",
+            "polarity": "BENEFICIAL",
+            "effect_kind": "RESOURCE_TRANSFER",
+            "party_kind": "",
+            "disposition": "EXCLUDED_RESOURCE_TRANSFER",
+            "reason": "receipt is retained as a graph fact"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "E5",
+            "party": "Maria",
+            "outcome": "does not receive the medicine",
+            "polarity": "ADVERSE",
+            "effect_kind": "OTHER",
+            "party_kind": "",
+            "disposition": "EXCLUDED_ALLOCATION_STATE",
+            "reason": "nonreceipt is retained as a causal state"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "E6",
+            "party": "Maria",
+            "outcome": "dies",
+            "polarity": "ADVERSE",
+            "effect_kind": "HEALTH_OUTCOME",
+            "party_kind": "",
+            "disposition": "INCLUDED_HARMED",
+            "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; compact harmed"
+          }
+        ],
+        "audit": {
+          "status": "COMPLETE",
+          "disposition_coverage": 1.0,
+          "unresolved_effect_ids": []
+        }
+      },
+      "comparison": {
+        "graph_hash_arm_a": "f83a40a68e6ad8761620196ef1e3b04e13fb170785527d31b39e8e48800d38c6",
+        "graph_hash_arm_b": "f83a40a68e6ad8761620196ef1e3b04e13fb170785527d31b39e8e48800d38c6",
+        "graph_unchanged": true,
+        "role_assignments_unchanged": true,
+        "polarity_bearing_unprojected_count": 4,
+        "unresolved_welfare_count": 0
+      }
+    },
+    {
+      "case_id": "eval_outputs/branchwise-world-head-to-head-explicit-20260921-valid/report.json",
+      "status": "COMMITTED",
+      "graph_effect_count": 8,
+      "arm_a": {
+        "description": "World-state attributes",
+        "role_assignments": [
+          {
+            "action_id": "A0",
+            "bucket": "beneficiaries",
+            "label": "Eli",
+            "effect_id": "E3_A0",
+            "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; compact beneficiaries"
+          },
+          {
+            "action_id": "A0",
+            "bucket": "harmed",
+            "label": "Noor",
+            "effect_id": "E4_A0",
+            "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; compact harmed"
+          },
+          {
+            "action_id": "A1",
+            "bucket": "beneficiaries",
+            "label": "Noor",
+            "effect_id": "E3_A1",
+            "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; compact beneficiaries"
+          },
+          {
+            "action_id": "A1",
+            "bucket": "harmed",
+            "label": "Eli",
+            "effect_id": "E4_A1",
+            "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; compact harmed"
+          }
+        ],
+        "effects_without_projection_explanation": 4
+      },
+      "arm_b": {
+        "description": "Compact welfare projection derived from the admitted graph; causal, resource-transfer, and intermediate facts remain authoritative in the graph.",
+        "role_assignments": [
+          {
+            "action_id": "A0",
+            "bucket": "beneficiaries",
+            "label": "Eli",
+            "effect_id": "E3_A0",
+            "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; compact beneficiaries"
+          },
+          {
+            "action_id": "A0",
+            "bucket": "harmed",
+            "label": "Noor",
+            "effect_id": "E4_A0",
+            "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; compact harmed"
+          },
+          {
+            "action_id": "A1",
+            "bucket": "beneficiaries",
+            "label": "Noor",
+            "effect_id": "E3_A1",
+            "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; compact beneficiaries"
+          },
+          {
+            "action_id": "A1",
+            "bucket": "harmed",
+            "label": "Eli",
+            "effect_id": "E4_A1",
+            "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; compact harmed"
+          }
+        ],
+        "projection_dispositions": [
+          {
+            "action_id": "A0",
+            "effect_id": "E1_A0",
+            "party": "Eli",
+            "outcome": "receives oxygen",
+            "polarity": "BENEFICIAL",
+            "effect_kind": "RESOURCE_TRANSFER",
+            "party_kind": "HUMAN",
+            "disposition": "EXCLUDED_RESOURCE_TRANSFER",
+            "reason": "receipt is retained as a graph fact"
+          },
+          {
+            "action_id": "A0",
+            "effect_id": "E2_A0",
+            "party": "Noor",
+            "outcome": "does not receive oxygen",
+            "polarity": "ADVERSE",
+            "effect_kind": "OTHER",
+            "party_kind": "HUMAN",
+            "disposition": "EXCLUDED_ALLOCATION_STATE",
+            "reason": "nonreceipt is retained as a causal state"
+          },
+          {
+            "action_id": "A0",
+            "effect_id": "E3_A0",
+            "party": "Eli",
+            "outcome": "avoids respiratory injury",
+            "polarity": "BENEFICIAL",
+            "effect_kind": "HEALTH_OUTCOME",
+            "party_kind": "HUMAN",
+            "disposition": "INCLUDED_BENEFICIARIES",
+            "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; compact beneficiaries"
+          },
+          {
+            "action_id": "A0",
+            "effect_id": "E4_A0",
+            "party": "Noor",
+            "outcome": "suffers respiratory injury",
+            "polarity": "ADVERSE",
+            "effect_kind": "HEALTH_OUTCOME",
+            "party_kind": "HUMAN",
+            "disposition": "INCLUDED_HARMED",
+            "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; compact harmed"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "E1_A1",
+            "party": "Noor",
+            "outcome": "receives oxygen",
+            "polarity": "BENEFICIAL",
+            "effect_kind": "RESOURCE_TRANSFER",
+            "party_kind": "HUMAN",
+            "disposition": "EXCLUDED_RESOURCE_TRANSFER",
+            "reason": "receipt is retained as a graph fact"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "E2_A1",
+            "party": "Eli",
+            "outcome": "does not receive oxygen",
+            "polarity": "ADVERSE",
+            "effect_kind": "OTHER",
+            "party_kind": "HUMAN",
+            "disposition": "EXCLUDED_ALLOCATION_STATE",
+            "reason": "nonreceipt is retained as a causal state"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "E3_A1",
+            "party": "Noor",
+            "outcome": "avoids respiratory injury",
+            "polarity": "BENEFICIAL",
+            "effect_kind": "HEALTH_OUTCOME",
+            "party_kind": "HUMAN",
+            "disposition": "INCLUDED_BENEFICIARIES",
+            "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; compact beneficiaries"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "E4_A1",
+            "party": "Eli",
+            "outcome": "suffers respiratory injury",
+            "polarity": "ADVERSE",
+            "effect_kind": "HEALTH_OUTCOME",
+            "party_kind": "HUMAN",
+            "disposition": "INCLUDED_HARMED",
+            "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; compact harmed"
+          }
+        ],
+        "audit": {
+          "status": "COMPLETE",
+          "disposition_coverage": 1.0,
+          "unresolved_effect_ids": []
+        }
+      },
+      "comparison": {
+        "graph_hash_arm_a": "6605c395a26b30b441d5331089f7440f42a9d6c6d2e4bc5ff8c709b8540f4f0c",
+        "graph_hash_arm_b": "6605c395a26b30b441d5331089f7440f42a9d6c6d2e4bc5ff8c709b8540f4f0c",
+        "graph_unchanged": true,
+        "role_assignments_unchanged": true,
+        "polarity_bearing_unprojected_count": 4,
+        "unresolved_welfare_count": 0
+      }
+    },
+    {
+      "case_id": "eval_outputs/rag-ablation-20260904_133613/reservoir/last_problem_framing.json",
+      "status": "COMMITTED",
+      "graph_effect_count": 10,
+      "arm_a": {
+        "description": "World-state attributes",
+        "role_assignments": [
+          {
+            "action_id": "A0",
+            "bucket": "beneficiaries",
+            "label": "dozen residents",
+            "effect_id": "E1",
+            "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; affected quantity dozen; compact beneficiaries"
+          },
+          {
+            "action_id": "A0",
+            "bucket": "beneficiaries",
+            "label": "dozen residents",
+            "effect_id": "E2",
+            "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; affected quantity dozen; compact beneficiaries"
+          },
+          {
+            "action_id": "A1",
+            "bucket": "beneficiaries",
+            "label": "hundreds of residents",
+            "effect_id": "E6",
+            "reason": "CERTAIN WELFARE_OUTCOME BENEFICIAL; affected quantity hundreds; compact beneficiaries"
+          }
+        ],
+        "effects_without_projection_explanation": 7
+      },
+      "arm_b": {
+        "description": "Compact welfare projection derived from the admitted graph; causal, resource-transfer, and intermediate facts remain authoritative in the graph.",
+        "role_assignments": [
+          {
+            "action_id": "A0",
+            "bucket": "beneficiaries",
+            "label": "dozen residents",
+            "effect_id": "E1",
+            "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; affected quantity dozen; compact beneficiaries"
+          },
+          {
+            "action_id": "A0",
+            "bucket": "beneficiaries",
+            "label": "dozen residents",
+            "effect_id": "E2",
+            "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; affected quantity dozen; compact beneficiaries"
+          },
+          {
+            "action_id": "A1",
+            "bucket": "beneficiaries",
+            "label": "hundreds of residents",
+            "effect_id": "E6",
+            "reason": "CERTAIN WELFARE_OUTCOME BENEFICIAL; affected quantity hundreds; compact beneficiaries"
+          }
+        ],
+        "projection_dispositions": [
+          {
+            "action_id": "A0",
+            "effect_id": "E0",
+            "party": "dehydrated neighborhood",
+            "outcome": "receives water",
+            "polarity": "BENEFICIAL",
+            "effect_kind": "RESOURCE_TRANSFER",
+            "party_kind": "GROUP",
+            "disposition": "EXCLUDED_RESOURCE_TRANSFER",
+            "reason": "receipt is retained as a graph fact"
+          },
+          {
+            "action_id": "A0",
+            "effect_id": "E8",
+            "party": "neighborhood water availability",
+            "outcome": "water available",
+            "polarity": "BENEFICIAL",
+            "effect_kind": "PHYSICAL_STATE",
+            "party_kind": "PROCESS",
+            "disposition": "EXCLUDED_NON_WELFARE_BEARER",
+            "reason": "PROCESS party is retained as causal topology, not a welfare role"
+          },
+          {
+            "action_id": "A0",
+            "effect_id": "E1",
+            "party": "dozen residents",
+            "outcome": "severe thirst quenched",
+            "polarity": "BENEFICIAL",
+            "effect_kind": "HEALTH_OUTCOME",
+            "party_kind": "POPULATION",
+            "disposition": "INCLUDED_BENEFICIARIES",
+            "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; affected quantity dozen; compact beneficiaries"
+          },
+          {
+            "action_id": "A0",
+            "effect_id": "E2",
+            "party": "dozen residents",
+            "outcome": "medical emergencies prevented",
+            "polarity": "BENEFICIAL",
+            "effect_kind": "HEALTH_OUTCOME",
+            "party_kind": "POPULATION",
+            "disposition": "INCLUDED_BENEFICIARIES",
+            "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; affected quantity dozen; compact beneficiaries"
+          },
+          {
+            "action_id": "A0",
+            "effect_id": "E3",
+            "party": "hundreds of residents",
+            "outcome": "future food harvest foregone",
+            "polarity": "FOREGONE",
+            "effect_kind": "OPPORTUNITY_LOSS",
+            "party_kind": "POPULATION",
+            "disposition": "EXCLUDED_COUNTERFACTUAL_LAYER",
+            "reason": "not an obtaining actual-world role"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "E4",
+            "party": "community garden",
+            "outcome": "receives water",
+            "polarity": "BENEFICIAL",
+            "effect_kind": "RESOURCE_TRANSFER",
+            "party_kind": "FACILITY",
+            "disposition": "EXCLUDED_RESOURCE_TRANSFER",
+            "reason": "receipt is retained as a graph fact"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "E5",
+            "party": "livestock farm",
+            "outcome": "receives water",
+            "polarity": "BENEFICIAL",
+            "effect_kind": "RESOURCE_TRANSFER",
+            "party_kind": "FACILITY",
+            "disposition": "EXCLUDED_RESOURCE_TRANSFER",
+            "reason": "receipt is retained as a graph fact"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "E9",
+            "party": "food harvest",
+            "outcome": "food harvest produced",
+            "polarity": "BENEFICIAL",
+            "effect_kind": "PHYSICAL_STATE",
+            "party_kind": "PROCESS",
+            "disposition": "EXCLUDED_NON_WELFARE_BEARER",
+            "reason": "PROCESS party is retained as causal topology, not a welfare role"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "E6",
+            "party": "hundreds of residents",
+            "outcome": "sustained with food and resources",
+            "polarity": "BENEFICIAL",
+            "effect_kind": "WELFARE_OUTCOME",
+            "party_kind": "POPULATION",
+            "disposition": "INCLUDED_BENEFICIARIES",
+            "reason": "CERTAIN WELFARE_OUTCOME BENEFICIAL; affected quantity hundreds; compact beneficiaries"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "E7",
+            "party": "dozen residents",
+            "outcome": "immediate relief foregone",
+            "polarity": "FOREGONE",
+            "effect_kind": "OPPORTUNITY_LOSS",
+            "party_kind": "POPULATION",
+            "disposition": "EXCLUDED_COUNTERFACTUAL_LAYER",
+            "reason": "not an obtaining actual-world role"
+          }
+        ],
+        "audit": {
+          "status": "COMPLETE",
+          "disposition_coverage": 1.0,
+          "unresolved_effect_ids": []
+        }
+      },
+      "comparison": {
+        "graph_hash_arm_a": "018895b36e938f81d4396b3fbbd194808e6976f1ca561af8e45b0cbcaa15cfa6",
+        "graph_hash_arm_b": "018895b36e938f81d4396b3fbbd194808e6976f1ca561af8e45b0cbcaa15cfa6",
+        "graph_unchanged": true,
+        "role_assignments_unchanged": true,
+        "polarity_bearing_unprojected_count": 5,
+        "unresolved_welfare_count": 0
+      }
+    },
+    {
+      "case_id": "eval_outputs/rag-ablation-20260904_133613/generator/no_rag/last_problem_framing.json",
+      "status": "COMMITTED",
+      "graph_effect_count": 18,
+      "arm_a": {
+        "description": "World-state attributes",
+        "role_assignments": [
+          {
+            "action_id": "A0",
+            "bucket": "conditionally_benefited",
+            "label": "tens of thousands of residents",
+            "effect_id": "E0_residents_safe_water",
+            "reason": "CERTAIN WELFARE_OUTCOME BENEFICIAL; compact conditionally_benefited because the outcome is not obtained"
+          },
+          {
+            "action_id": "A0",
+            "bucket": "at_risk",
+            "label": "eight premature infants",
+            "effect_id": "E0_infants_die",
+            "reason": "PROBABILISTIC HEALTH_OUTCOME ADVERSE; compact at_risk because the outcome is not obtained"
+          },
+          {
+            "action_id": "A1",
+            "bucket": "conditionally_benefited",
+            "label": "eight premature infants",
+            "effect_id": "E1_infants_survive",
+            "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; compact conditionally_benefited because the outcome is not obtained"
+          },
+          {
+            "action_id": "A1",
+            "bucket": "at_risk",
+            "label": "tens of thousands of residents",
+            "effect_id": "E1_residents_sanitation_failure",
+            "reason": "PROBABILISTIC WELFARE_OUTCOME ADVERSE; compact at_risk because the outcome is not obtained"
+          }
+        ],
+        "effects_without_projection_explanation": 14
+      },
+      "arm_b": {
+        "description": "Compact welfare projection derived from the admitted graph; causal, resource-transfer, and intermediate facts remain authoritative in the graph.",
+        "role_assignments": [
+          {
+            "action_id": "A0",
+            "bucket": "conditionally_benefited",
+            "label": "tens of thousands of residents",
+            "effect_id": "E0_residents_safe_water",
+            "reason": "CERTAIN WELFARE_OUTCOME BENEFICIAL; compact conditionally_benefited because the outcome is not obtained"
+          },
+          {
+            "action_id": "A0",
+            "bucket": "at_risk",
+            "label": "eight premature infants",
+            "effect_id": "E0_infants_die",
+            "reason": "PROBABILISTIC HEALTH_OUTCOME ADVERSE; compact at_risk because the outcome is not obtained"
+          },
+          {
+            "action_id": "A1",
+            "bucket": "conditionally_benefited",
+            "label": "eight premature infants",
+            "effect_id": "E1_infants_survive",
+            "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; compact conditionally_benefited because the outcome is not obtained"
+          },
+          {
+            "action_id": "A1",
+            "bucket": "at_risk",
+            "label": "tens of thousands of residents",
+            "effect_id": "E1_residents_sanitation_failure",
+            "reason": "PROBABILISTIC WELFARE_OUTCOME ADVERSE; compact at_risk because the outcome is not obtained"
+          }
+        ],
+        "projection_dispositions": [
+          {
+            "action_id": "A0",
+            "effect_id": "E0_direct_transfer",
+            "party": "municipal water-treatment plant",
+            "outcome": "MOBILE_GENERATOR",
+            "polarity": "NEUTRAL",
+            "effect_kind": "INTERVENTION",
+            "party_kind": "FACILITY",
+            "disposition": "EXCLUDED_NEUTRAL",
+            "reason": "neutral effects are topology, not welfare roles"
+          },
+          {
+            "action_id": "A0",
+            "effect_id": "E0_plant_powered",
+            "party": "municipal water-treatment plant",
+            "outcome": "POWER_SUPPLIED",
+            "polarity": "BENEFICIAL",
+            "effect_kind": "PHYSICAL_STATE",
+            "party_kind": "FACILITY",
+            "disposition": "EXCLUDED_NON_WELFARE_BEARER",
+            "reason": "FACILITY party is retained as causal topology, not a welfare role"
+          },
+          {
+            "action_id": "A0",
+            "effect_id": "E0_residents_safe_water",
+            "party": "tens of thousands of residents",
+            "outcome": "SAFE_WATER",
+            "polarity": "BENEFICIAL",
+            "effect_kind": "WELFARE_OUTCOME",
+            "party_kind": "POPULATION",
+            "disposition": "INCLUDED_CONDITIONALLY_BENEFITED",
+            "reason": "CERTAIN WELFARE_OUTCOME BENEFICIAL; compact conditionally_benefited because the outcome is not obtained"
+          },
+          {
+            "action_id": "A0",
+            "effect_id": "E0_nicu_no_power",
+            "party": "neonatal intensive-care unit",
+            "outcome": "POWER_LOSS",
+            "polarity": "ADVERSE",
+            "effect_kind": "PHYSICAL_STATE",
+            "party_kind": "FACILITY",
+            "disposition": "EXCLUDED_NON_WELFARE_BEARER",
+            "reason": "FACILITY party is retained as causal topology, not a welfare role"
+          },
+          {
+            "action_id": "A0",
+            "effect_id": "E0_infants_die",
+            "party": "eight premature infants",
+            "outcome": "DEATH",
+            "polarity": "ADVERSE",
+            "effect_kind": "HEALTH_OUTCOME",
+            "party_kind": "POPULATION",
+            "disposition": "INCLUDED_AT_RISK",
+            "reason": "PROBABILISTIC HEALTH_OUTCOME ADVERSE; compact at_risk because the outcome is not obtained"
+          },
+          {
+            "action_id": "A0",
+            "effect_id": "E0_infants_survive_fg",
+            "party": "eight premature infants",
+            "outcome": "SURVIVAL",
+            "polarity": "FOREGONE",
+            "effect_kind": "OPPORTUNITY_LOSS",
+            "party_kind": "POPULATION",
+            "disposition": "EXCLUDED_COUNTERFACTUAL_LAYER",
+            "reason": "not an obtaining actual-world role"
+          },
+          {
+            "action_id": "A0",
+            "effect_id": "E0_residents_sanitation_failure_fg",
+            "party": "tens of thousands of residents",
+            "outcome": "SANITATION_FAILURE",
+            "polarity": "FOREGONE",
+            "effect_kind": "OPPORTUNITY_LOSS",
+            "party_kind": "POPULATION",
+            "disposition": "EXCLUDED_COUNTERFACTUAL_LAYER",
+            "reason": "not an obtaining actual-world role"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "E1_direct_transfer",
+            "party": "neonatal intensive-care unit",
+            "outcome": "MOBILE_GENERATOR",
+            "polarity": "NEUTRAL",
+            "effect_kind": "INTERVENTION",
+            "party_kind": "FACILITY",
+            "disposition": "EXCLUDED_NEUTRAL",
+            "reason": "neutral effects are topology, not welfare roles"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "E1_nicu_powered",
+            "party": "neonatal intensive-care unit",
+            "outcome": "POWER_SUPPLIED",
+            "polarity": "BENEFICIAL",
+            "effect_kind": "PHYSICAL_STATE",
+            "party_kind": "FACILITY",
+            "disposition": "EXCLUDED_NON_WELFARE_BEARER",
+            "reason": "FACILITY party is retained as causal topology, not a welfare role"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "E1_infants_survive",
+            "party": "eight premature infants",
+            "outcome": "SURVIVAL",
+            "polarity": "BENEFICIAL",
+            "effect_kind": "HEALTH_OUTCOME",
+            "party_kind": "POPULATION",
+            "disposition": "INCLUDED_CONDITIONALLY_BENEFITED",
+            "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; compact conditionally_benefited because the outcome is not obtained"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "E1_water_plant_no_power",
+            "party": "municipal water-treatment plant",
+            "outcome": "POWER_LOSS",
+            "polarity": "ADVERSE",
+            "effect_kind": "PHYSICAL_STATE",
+            "party_kind": "FACILITY",
+            "disposition": "EXCLUDED_NON_WELFARE_BEARER",
+            "reason": "FACILITY party is retained as causal topology, not a welfare role"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "E1_residents_sanitation_failure",
+            "party": "tens of thousands of residents",
+            "outcome": "SANITATION_FAILURE",
+            "polarity": "ADVERSE",
+            "effect_kind": "WELFARE_OUTCOME",
+            "party_kind": "POPULATION",
+            "disposition": "INCLUDED_AT_RISK",
+            "reason": "PROBABILISTIC WELFARE_OUTCOME ADVERSE; compact at_risk because the outcome is not obtained"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "E1_residents_safe_water_fg",
+            "party": "tens of thousands of residents",
+            "outcome": "SAFE_WATER",
+            "polarity": "FOREGONE",
+            "effect_kind": "OPPORTUNITY_LOSS",
+            "party_kind": "POPULATION",
+            "disposition": "EXCLUDED_COUNTERFACTUAL_LAYER",
+            "reason": "not an obtaining actual-world role"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "E1_infants_die_fg",
+            "party": "eight premature infants",
+            "outcome": "DEATH",
+            "polarity": "FOREGONE",
+            "effect_kind": "OPPORTUNITY_LOSS",
+            "party_kind": "POPULATION",
+            "disposition": "EXCLUDED_COUNTERFACTUAL_LAYER",
+            "reason": "not an obtaining actual-world role"
+          },
+          {
+            "action_id": "A0",
+            "effect_id": "F0",
+            "party": "neonatal intensive-care unit",
+            "outcome": "POWER_SUPPLIED",
+            "polarity": "FOREGONE",
+            "effect_kind": "OPPORTUNITY_LOSS",
+            "party_kind": "FACILITY",
+            "disposition": "EXCLUDED_COUNTERFACTUAL_LAYER",
+            "reason": "not an obtaining actual-world role"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "F1",
+            "party": "neonatal intensive-care unit",
+            "outcome": "POWER_LOSS",
+            "polarity": "FOREGONE",
+            "effect_kind": "OPPORTUNITY_LOSS",
+            "party_kind": "FACILITY",
+            "disposition": "EXCLUDED_COUNTERFACTUAL_LAYER",
+            "reason": "not an obtaining actual-world role"
+          },
+          {
+            "action_id": "A0",
+            "effect_id": "F2",
+            "party": "municipal water-treatment plant",
+            "outcome": "POWER_LOSS",
+            "polarity": "FOREGONE",
+            "effect_kind": "OPPORTUNITY_LOSS",
+            "party_kind": "FACILITY",
+            "disposition": "EXCLUDED_COUNTERFACTUAL_LAYER",
+            "reason": "not an obtaining actual-world role"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "F3",
+            "party": "municipal water-treatment plant",
+            "outcome": "POWER_SUPPLIED",
+            "polarity": "FOREGONE",
+            "effect_kind": "OPPORTUNITY_LOSS",
+            "party_kind": "FACILITY",
+            "disposition": "EXCLUDED_COUNTERFACTUAL_LAYER",
+            "reason": "not an obtaining actual-world role"
+          }
+        ],
+        "audit": {
+          "status": "COMPLETE",
+          "disposition_coverage": 1.0,
+          "unresolved_effect_ids": []
+        }
+      },
+      "comparison": {
+        "graph_hash_arm_a": "683f0cf4c29609d4bd227d909bfef61614a73270128f8517c3f76e3d01b00c9b",
+        "graph_hash_arm_b": "683f0cf4c29609d4bd227d909bfef61614a73270128f8517c3f76e3d01b00c9b",
+        "graph_unchanged": true,
+        "role_assignments_unchanged": true,
+        "polarity_bearing_unprojected_count": 4,
+        "unresolved_welfare_count": 0
+      }
+    },
+    {
+      "case_id": "eval_outputs/rag-ablation-20260904_133613/magistrate/last_problem_framing.json",
+      "status": "COMMITTED",
+      "graph_effect_count": 12,
+      "arm_a": {
+        "description": "World-state attributes",
+        "role_assignments": [
+          {
+            "action_id": "A0",
+            "bucket": "harmed",
+            "label": "innocent individual",
+            "effect_id": "E0_A0_FRAME",
+            "reason": "CERTAIN INSTITUTIONAL_OUTCOME ADVERSE; compact harmed"
+          },
+          {
+            "action_id": "A0",
+            "bucket": "harmed",
+            "label": "innocent individual",
+            "effect_id": "E1_A0_EXECUTE",
+            "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; compact harmed"
+          },
+          {
+            "action_id": "A0",
+            "bucket": "conditionally_benefited",
+            "label": "over five hundred residents",
+            "effect_id": "E3_A0_RES_SURVIVE",
+            "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; affected quantity over five hundred; compact conditionally_benefited because the outcome is not obtained"
+          },
+          {
+            "action_id": "A1",
+            "bucket": "beneficiaries",
+            "label": "innocent individual",
+            "effect_id": "E0_A1_NOT_FRAME",
+            "reason": "CERTAIN INSTITUTIONAL_OUTCOME BENEFICIAL; compact beneficiaries"
+          },
+          {
+            "action_id": "A1",
+            "bucket": "beneficiaries",
+            "label": "innocent individual",
+            "effect_id": "E1_A1_SURVIVE",
+            "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; compact beneficiaries"
+          },
+          {
+            "action_id": "A1",
+            "bucket": "at_risk",
+            "label": "over five hundred residents",
+            "effect_id": "E3_A1_RES_DIE",
+            "reason": "STIPULATED_CONDITIONAL HEALTH_OUTCOME ADVERSE; affected quantity over five hundred; STIPULATED_CONDITIONAL never settles; compact at_risk because the outcome is not obtained"
+          }
+        ],
+        "effects_without_projection_explanation": 6
+      },
+      "arm_b": {
+        "description": "Compact welfare projection derived from the admitted graph; causal, resource-transfer, and intermediate facts remain authoritative in the graph.",
+        "role_assignments": [
+          {
+            "action_id": "A0",
+            "bucket": "harmed",
+            "label": "innocent individual",
+            "effect_id": "E0_A0_FRAME",
+            "reason": "CERTAIN INSTITUTIONAL_OUTCOME ADVERSE; compact harmed"
+          },
+          {
+            "action_id": "A0",
+            "bucket": "harmed",
+            "label": "innocent individual",
+            "effect_id": "E1_A0_EXECUTE",
+            "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; compact harmed"
+          },
+          {
+            "action_id": "A0",
+            "bucket": "conditionally_benefited",
+            "label": "over five hundred residents",
+            "effect_id": "E3_A0_RES_SURVIVE",
+            "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; affected quantity over five hundred; compact conditionally_benefited because the outcome is not obtained"
+          },
+          {
+            "action_id": "A1",
+            "bucket": "beneficiaries",
+            "label": "innocent individual",
+            "effect_id": "E0_A1_NOT_FRAME",
+            "reason": "CERTAIN INSTITUTIONAL_OUTCOME BENEFICIAL; compact beneficiaries"
+          },
+          {
+            "action_id": "A1",
+            "bucket": "beneficiaries",
+            "label": "innocent individual",
+            "effect_id": "E1_A1_SURVIVE",
+            "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; compact beneficiaries"
+          },
+          {
+            "action_id": "A1",
+            "bucket": "at_risk",
+            "label": "over five hundred residents",
+            "effect_id": "E3_A1_RES_DIE",
+            "reason": "STIPULATED_CONDITIONAL HEALTH_OUTCOME ADVERSE; affected quantity over five hundred; STIPULATED_CONDITIONAL never settles; compact at_risk because the outcome is not obtained"
+          }
+        ],
+        "projection_dispositions": [
+          {
+            "action_id": "A0",
+            "effect_id": "E0_A0_FRAME",
+            "party": "innocent individual",
+            "outcome": "FRAMED",
+            "polarity": "ADVERSE",
+            "effect_kind": "INSTITUTIONAL_OUTCOME",
+            "party_kind": "PERSON",
+            "disposition": "INCLUDED_HARMED",
+            "reason": "CERTAIN INSTITUTIONAL_OUTCOME ADVERSE; compact harmed"
+          },
+          {
+            "action_id": "A0",
+            "effect_id": "E1_A0_EXECUTE",
+            "party": "innocent individual",
+            "outcome": "DEAD",
+            "polarity": "ADVERSE",
+            "effect_kind": "HEALTH_OUTCOME",
+            "party_kind": "PERSON",
+            "disposition": "INCLUDED_HARMED",
+            "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; compact harmed"
+          },
+          {
+            "action_id": "A0",
+            "effect_id": "E2_A0_RIOT_HALTED",
+            "party": "riot violence",
+            "outcome": "HALTED",
+            "polarity": "BENEFICIAL",
+            "effect_kind": "OTHER",
+            "party_kind": "PROCESS",
+            "disposition": "EXCLUDED_NON_WELFARE_BEARER",
+            "reason": "PROCESS party is retained as causal topology, not a welfare role"
+          },
+          {
+            "action_id": "A0",
+            "effect_id": "E3_A0_RES_SURVIVE",
+            "party": "over five hundred residents",
+            "outcome": "SURVIVE",
+            "polarity": "BENEFICIAL",
+            "effect_kind": "HEALTH_OUTCOME",
+            "party_kind": "POPULATION",
+            "disposition": "INCLUDED_CONDITIONALLY_BENEFITED",
+            "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; affected quantity over five hundred; compact conditionally_benefited because the outcome is not obtained"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "E0_A1_NOT_FRAME",
+            "party": "innocent individual",
+            "outcome": "NOT_FRAMED",
+            "polarity": "BENEFICIAL",
+            "effect_kind": "INSTITUTIONAL_OUTCOME",
+            "party_kind": "PERSON",
+            "disposition": "INCLUDED_BENEFICIARIES",
+            "reason": "CERTAIN INSTITUTIONAL_OUTCOME BENEFICIAL; compact beneficiaries"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "E1_A1_SURVIVE",
+            "party": "innocent individual",
+            "outcome": "SURVIVES",
+            "polarity": "BENEFICIAL",
+            "effect_kind": "HEALTH_OUTCOME",
+            "party_kind": "PERSON",
+            "disposition": "INCLUDED_BENEFICIARIES",
+            "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; compact beneficiaries"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "E2_A1_RIOT_CONT",
+            "party": "riot violence",
+            "outcome": "CONTINUES",
+            "polarity": "ADVERSE",
+            "effect_kind": "OTHER",
+            "party_kind": "PROCESS",
+            "disposition": "EXCLUDED_NON_WELFARE_BEARER",
+            "reason": "PROCESS party is retained as causal topology, not a welfare role"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "E3_A1_RES_DIE",
+            "party": "over five hundred residents",
+            "outcome": "DIE",
+            "polarity": "ADVERSE",
+            "effect_kind": "HEALTH_OUTCOME",
+            "party_kind": "POPULATION",
+            "disposition": "INCLUDED_AT_RISK",
+            "reason": "STIPULATED_CONDITIONAL HEALTH_OUTCOME ADVERSE; affected quantity over five hundred; STIPULATED_CONDITIONAL never settles; compact at_risk because the outcome is not obtained"
+          },
+          {
+            "action_id": "A0",
+            "effect_id": "F0",
+            "party": "over five hundred residents",
+            "outcome": "DIE",
+            "polarity": "FOREGONE",
+            "effect_kind": "OPPORTUNITY_LOSS",
+            "party_kind": "POPULATION",
+            "disposition": "EXCLUDED_COUNTERFACTUAL_LAYER",
+            "reason": "not an obtaining actual-world role"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "F1",
+            "party": "over five hundred residents",
+            "outcome": "SURVIVE",
+            "polarity": "FOREGONE",
+            "effect_kind": "OPPORTUNITY_LOSS",
+            "party_kind": "POPULATION",
+            "disposition": "EXCLUDED_COUNTERFACTUAL_LAYER",
+            "reason": "not an obtaining actual-world role"
+          },
+          {
+            "action_id": "A0",
+            "effect_id": "F2",
+            "party": "riot violence",
+            "outcome": "CONTINUES",
+            "polarity": "FOREGONE",
+            "effect_kind": "OPPORTUNITY_LOSS",
+            "party_kind": "PROCESS",
+            "disposition": "EXCLUDED_COUNTERFACTUAL_LAYER",
+            "reason": "not an obtaining actual-world role"
+          },
+          {
+            "action_id": "A1",
+            "effect_id": "F3",
+            "party": "riot violence",
+            "outcome": "HALTED",
+            "polarity": "FOREGONE",
+            "effect_kind": "OPPORTUNITY_LOSS",
+            "party_kind": "PROCESS",
+            "disposition": "EXCLUDED_COUNTERFACTUAL_LAYER",
+            "reason": "not an obtaining actual-world role"
+          }
+        ],
+        "audit": {
+          "status": "COMPLETE",
+          "disposition_coverage": 1.0,
+          "unresolved_effect_ids": []
+        }
+      },
+      "comparison": {
+        "graph_hash_arm_a": "8238c13c4adce8fbd41c16507cb2e8523f21e98fa9f2e0b169431c592690ed1f",
+        "graph_hash_arm_b": "8238c13c4adce8fbd41c16507cb2e8523f21e98fa9f2e0b169431c592690ed1f",
+        "graph_unchanged": true,
+        "role_assignments_unchanged": true,
+        "polarity_bearing_unprojected_count": 2,
+        "unresolved_welfare_count": 0
+      }
+    }
+  ],
+  "aggregate": {
+    "graph_unchanged_cases": 5,
+    "roles_unchanged_cases": 5,
+    "cases_with_unprojected_polarity_effects": 5,
+    "cases_requiring_projection_review": 0,
+    "arm_a_unexplained_effects": 35,
+    "arm_b_unexplained_effects": 0
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "experiment_id": "EXP-2026-09-21-003",
+  "date": "2026-09-21",
+  "title": "Whole-world versus isolated-branch generation and merge",
+  "project_state": {
+    "working_tree": "DIRTY_PREEXISTING_AND_EXPERIMENTAL",
+    "pipeline_version": "branchwise-world-generation-v1",
+    "active_components": [
+      "raw_text_world_generation",
+      "existing_repair_card_loop",
+      "final_world_validator",
+      "binary_branch_merger"
+    ]
+  },
+  "question": "For a binary ethical choice, does generating each action graph independently and then merging outperform generation of the complete comparative world?",
+  "hypothesis": "Branch isolation will reduce graph-construction complexity and repair burden while preserving enough source context for a valid deterministic merge.",
+  "change_under_test": {
+    "component": "world_generation_scope",
+    "description": "Compare one two-action graph-generation route with two independent one-action routes followed by deterministic merge."
+  },
+  "control": {
+    "description": "Generate both oxygen-allocation action branches in one world model.",
+    "frozen": false,
+    "artifact": "eval_outputs/branchwise-world-head-to-head-explicit-20260921-valid/report.json"
+  },
+  "experimental": [
+    {
+      "description": "Generate the Eli and Noor action graphs independently, then merge only if both commit.",
+      "artifact": "eval_outputs/branchwise-world-head-to-head-explicit-20260921-valid/report.json"
+    }
+  ],
+  "held_constant": [
+    "o3 model family",
+    "explicit oxygen-allocation scenario",
+    "canonical action text",
+    "raw-text guidance mode",
+    "existing repair-card loop",
+    "final validator"
+  ],
+  "intentionally_not_compared": [
+    "ethical judgment quality",
+    "expert-agent deliberation",
+    "cross-action counterfactual completion after a successful merge",
+    "generalization beyond one scenario",
+    "token cost"
+  ],
+  "metrics": {
+    "whole_world": {
+      "status": "COMMITTED",
+      "repair_attempts": 2,
+      "elapsed_seconds": 65.946,
+      "admitted_actions": 2,
+      "admitted_effects": 8
+    },
+    "isolated_branches": {
+      "statuses": [
+        "REJECTED",
+        "REJECTED"
+      ],
+      "repair_attempts": [
+        3,
+        3
+      ],
+      "elapsed_seconds": [
+        61.651,
+        44.799
+      ],
+      "merge_status": "NOT_RUN"
+    }
+  },
+  "result": "NOT_SUPPORTED",
+  "interpretation": "On this case, the complete-world route correctly represented both allocation branches. Isolated generation repeatedly made the nonrecipient state DIRECT and lost valid action-mediated ancestry. The comparative world supplied useful exclusivity and ownership context rather than merely adding complexity.",
+  "decision": {
+    "status": "PAUSE",
+    "keep": [
+      "binary branch merger as an experimental utility",
+      "branchwise runner for additional controlled comparisons"
+    ],
+    "do_not_prioritize": [
+      "replacing whole-world generation with isolated one-action generation",
+      "putting branchwise generation on the default execution path"
+    ],
+    "next_test": "If revisited, supply each isolated branch with an explicit branch contract containing actor, recipient, nonrecipient, exclusivity, and source-clause ownership, then test on a frozen multi-case set."
+  },
+  "limitations": [
+    "This is one stochastic live scenario and does not establish general superiority.",
+    "The branches saw the full source scenario but only one canonical action, which changes action-coverage expectations as well as generation scope.",
+    "The merge could not be evaluated because neither isolated branch committed.",
+    "An earlier attempted run was invalid because all model calls failed at the network boundary and is excluded from the comparison.",
+    "Wall-clock time includes variable remote-model latency."
+  ],
+  "artifacts": [
+    "eval_outputs/branchwise-world-head-to-head-explicit-20260921-valid/report.json",
+    "eval_outputs/branchwise-world-head-to-head-explicit-20260921/report.json"
+  ]
+}

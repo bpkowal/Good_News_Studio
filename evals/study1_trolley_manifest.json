@@ -1,0 +1,57 @@
+{
+  "study": "study1_discriminative_sensitivity",
+  "family_id": "trolley_lever",
+  "canonical": {
+    "question": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person. You cannot stop it another way. Do you pull the lever?",
+    "actions": [
+      "Pull the lever, redirecting the trolley toward one person",
+      "Do not pull the lever, allowing the trolley to continue toward five people"
+    ]
+  },
+  "variants": [
+    {
+      "id": "nuisance_action_order",
+      "type": "NUISANCE",
+      "target": "action_order",
+      "question": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person. You cannot stop it another way. Do you pull the lever?",
+      "actions": [
+        "Do not pull the lever, allowing the trolley to continue toward five people",
+        "Pull the lever, redirecting the trolley toward one person"
+      ],
+      "expected_invariant": ["action_identity", "outcome_structure"]
+    },
+    {
+      "id": "nuisance_passive_paraphrase",
+      "type": "NUISANCE",
+      "target": "voice_and_paraphrase",
+      "question": "Five people will be killed by the runaway trolley unless the lever is pulled. Pulling it redirects the trolley, and one person on the other track will then be killed. No other intervention can stop it. Do you pull the lever?",
+      "actions": [
+        "Pull the lever, redirecting the trolley toward one person",
+        "Do not pull the lever, allowing the trolley to continue toward five people"
+      ],
+      "expected_invariant": ["action_identity", "outcome_structure", "modality"]
+    },
+    {
+      "id": "moral_magnitude",
+      "type": "MORAL",
+      "target": "consequence_magnitude",
+      "question": "A runaway trolley will kill five hundred people unless you pull a lever, which redirects it onto a track where it will kill one person. You cannot stop it another way. Do you pull the lever?",
+      "actions": [
+        "Pull the lever, redirecting the trolley toward one person",
+        "Do not pull the lever, allowing the trolley to continue toward five hundred people"
+      ],
+      "expected_change": ["consequence_assessment", "utilitarian_state"]
+    },
+    {
+      "id": "moral_consent",
+      "type": "MORAL",
+      "target": "consent",
+      "question": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person. The one person has explicitly consented to being redirected; the five have not. You cannot stop it another way. Do you pull the lever?",
+      "actions": [
+        "Pull the lever, redirecting the trolley toward one consenting person",
+        "Do not pull the lever, allowing the trolley to continue toward five people"
+      ],
+      "expected_change": ["consent_assessment", "deontological_state", "care_state"]
+    }
+  ]
+}

@@ -8,6 +8,7 @@ without changing validation semantics again.
 """
 from __future__ import annotations
 
+import ast
 import copy
 import re
 from dataclasses import asdict, dataclass
@@ -18,6 +19,8 @@ _ENTITY_ID = re.compile(
     r"(?<![A-Za-z0-9_])(?:"
     r"A\d+_e\d+"
     r"|E[A-Za-z0-9_]*"
+    r"|(?:AV|F)[A-Za-z0-9_]*"
+    r"|S[A-Za-z0-9_]*"
     r"|A\d+(?:_[A-Za-z0-9_]+)?"
     r"|P\d+(?:_[A-Za-z0-9_]+)?"
     r"|CT[A-Za-z0-9_]*"
@@ -42,6 +45,9 @@ _SUBGRAPH_ISSUE_CODES = frozenset({
     "INDEPENDENT_EVENT_AS_CAUSAL_PARENT",
     "MISSING_PROCESS_INTERMEDIATE",
     "RESOURCE_TRANSFER_TARGET_MISMATCH",
+    "STAGE_SKELETON_DRIFT",
+    "GLOBAL_CONSTRAINT_AS_PROCESS",
+    "EXCLUSIVE_ALLOCATION_BRANCH_MISSING",
 })
 _GLOBAL_FAILURE_PATTERNS = (
     "action-source mapping must cover every canonical action",
@@ -60,6 +66,88 @@ _SUBGRAPH_FAILURE_PATTERNS = (
     "insert a process, facility, institution, infrastructure, or resource state",
     "names transferred resource",
 )
+
+SOURCE_REPAIR_OWNER = "SOURCE_SEMANTIC_REPAIR"
+QUANTITY_REPAIR_OWNER = "QUANTITY_NORMALIZER"
+TOPOLOGY_REPAIR_OWNER = "TOPOLOGY_COMPILER"
+COUNTERFACTUAL_REPAIR_OWNER = "COUNTERFACTUAL_COMPILER"
+SYSTEM_REPAIR_OWNER = "SYSTEM_INVARIANT"
+
+VALIDATION_GATE_ORDER = (
+    "SOURCE_BINDING",
+    "ACTUAL_TOPOLOGY",
+    "COUNTERFACTUAL_DERIVATION",
+    "GLOBAL_INVARIANTS",
+)
+
+
+def repair_owner_for_code(code: str) -> str:
+    """Assign one subsystem responsibility for a validation failure."""
+    normalized = str(code or "").upper()
+    if normalized == "DERIVATION_CONTRACT_OPERATION_MISMATCH":
+        return SOURCE_REPAIR_OWNER
+    if "QUANTITY" in normalized or normalized in {
+        "LIKELIHOOD_QUALIFIER_MISSING", "SCOPE_QUALIFIER_MISSING",
+        "TEMPORAL_QUALIFIER_MISSING",
+    }:
+        return QUANTITY_REPAIR_OWNER
+    if any(token in normalized for token in (
+        "COUNTERFACTUAL", "ALTERNATIVE", "FOREGONE", "AVERTED", "DERIVATION",
+    )):
+        return COUNTERFACTUAL_REPAIR_OWNER
+    if normalized in _SUBGRAPH_ISSUE_CODES or any(
+        token in normalized for token in ("CAUSAL", "PROCESS", "PARENT", "ANCESTRY")
+    ):
+        return TOPOLOGY_REPAIR_OWNER
+    if normalized in {"COMPILER_SEMANTIC_REGRESSION", "REPAIR_NO_EFFECT"}:
+        return SYSTEM_REPAIR_OWNER
+    return SOURCE_REPAIR_OWNER
+
+
+def validation_gate_for_code(code: str) -> str:
+    """Locate a typed failure in the ordered admission pipeline."""
+    owner = repair_owner_for_code(code)
+    if owner in {SOURCE_REPAIR_OWNER, QUANTITY_REPAIR_OWNER}:
+        return "SOURCE_BINDING"
+    if owner == TOPOLOGY_REPAIR_OWNER:
+        return "ACTUAL_TOPOLOGY"
+    if owner == COUNTERFACTUAL_REPAIR_OWNER:
+        return "COUNTERFACTUAL_DERIVATION"
+    return "GLOBAL_INVARIANTS"
+
+
+def validation_issues_by_gate(
+    issues: Sequence[ValidationIssue | dict[str, object]],
+) -> dict[str, list[dict[str, object]]]:
+    """Group issues in deterministic gate order for diagnostics and repair."""
+    grouped = {gate: [] for gate in VALIDATION_GATE_ORDER}
+    for row in _issue_rows(issues):
+        grouped[validation_gate_for_code(str(row.get("code") or ""))].append(row)
+    return grouped
+
+
+def repair_issue_signature(
+    issues: Sequence[ValidationIssue | dict[str, object]],
+) -> tuple[tuple[str, str, str], ...]:
+    """Stable signature used to detect non-converging repair attempts."""
+    return tuple(sorted({
+        (
+            str(row.get("code") or ""),
+            str(row.get("entity_id") or ""),
+            str(row.get("field") or ""),
+        )
+        for row in _issue_rows(issues)
+    }))
+
+
+def repair_made_progress(
+    before: Sequence[ValidationIssue | dict[str, object]],
+    after: Sequence[ValidationIssue | dict[str, object]],
+) -> bool:
+    """True only if a repair removes at least one prior typed violation."""
+    before_signature = set(repair_issue_signature(before))
+    after_signature = set(repair_issue_signature(after))
+    return bool(before_signature - after_signature)
 
 
 @dataclass(frozen=True, slots=True)
@@ -80,19 +168,63 @@ class ValidationIssue:
 class WorldModelValidationError(ValueError):
     """A backwards-compatible ValueError that retains typed issue metadata."""
 
-    def __init__(self, messages: Sequence[str], issues: Sequence[ValidationIssue]):
+    def __init__(
+        self,
+        messages: Sequence[str],
+        issues: Sequence[ValidationIssue],
+        *,
+        compiler_loss_telemetry: dict[str, object] | None = None,
+    ):
         self.messages = tuple(str(message) for message in messages)
         self.issues = tuple(issues)
+        self.compiler_loss_telemetry = dict(compiler_loss_telemetry or {})
         super().__init__("; ".join(self.messages))
 
 
 def _issue_code(message: str) -> tuple[str, str, str, bool]:
     lowered = message.casefold()
+    if "derivation contract operation mismatch" in lowered:
+        return (
+            "DERIVATION_CONTRACT_OPERATION_MISMATCH",
+            "derivation_operation,source_proposition,clause_ids,quantities",
+            "SOURCE_PATCH",
+            False,
+        )
+    if "stage-one proposition drift" in lowered:
+        return "STAGE_SKELETON_DRIFT", "effects", "SEMANTIC_PATCH", False
+    if "omits exclusive-allocation branch" in lowered:
+        return (
+            "EXCLUSIVE_ALLOCATION_BRANCH_MISSING", "effects",
+            "SEMANTIC_PATCH", False,
+        )
+    if "uses global resource constraint" in lowered and "causal process parent" in lowered:
+        return "GLOBAL_CONSTRAINT_AS_PROCESS", "causal_links", "SEMANTIC_PATCH", False
+    if "condition polarity" in lowered or "uses unless but is not negated" in lowered:
+        return "NEGATION_GATE_SCOPE", "conditions", "SEMANTIC_PATCH", False
+    if "condition operator" in lowered:
+        return "EXCEPTION_GATE_SCOPE", "conditions", "SEMANTIC_PATCH", False
+    if "temporal" in lowered and any(
+        token in lowered for token in (
+            "cycle", "ordering", "reflexive", "endpoints", "relation",
+        )
+    ):
+        return "TEMPORAL_RELATION_SCOPE", "temporal_relations", "SEMANTIC_PATCH", False
+    if (
+        "omits target effect conditions" in lowered
+        or "unconditional but target effect" in lowered
+    ):
+        return "CONDITIONAL_LINK_MISMATCH", "causal_links", "SYSTEM_REPAIR", False
+    if "compiler semantic regression" in lowered:
+        return "COMPILER_SEMANTIC_REGRESSION", "effects", "SYSTEM_REPAIR", False
     if "recipient" in lowered and "lacks an atomic direct intervention" in lowered:
         return "MISSING_DIRECT_INTERVENTION", "effects", "SEMANTIC_PATCH", False
     if "names transferred resource" in lowered and "as a recipient" in lowered:
         return "RESOURCE_TRANSFER_TARGET_MISMATCH", "effects", "SEMANTIC_PATCH", False
-    if "caused directly by another party's act" in lowered:
+    if (
+        "caused directly by another party's act" in lowered
+        or "caused directly by act" in lowered
+        or "lacks an action-specific nonreceipt or untreated state" in lowered
+    ):
         return "MISSING_PROCESS_INTERMEDIATE", "causal_links", "SEMANTIC_PATCH", False
     if (
         "is direct on" in lowered
@@ -118,21 +250,54 @@ def _issue_code(message: str) -> tuple[str, str, str, bool]:
         return "INVALID_CAUSAL_ANCESTRY", "causal_links", "SEMANTIC_PATCH", False
     if "independent background event" in lowered or "independent stochastic event" in lowered:
         return "INDEPENDENT_EVENT_AS_CAUSAL_PARENT", "causal_links", "SEMANTIC_PATCH", False
-    if "no foregone effect" in lowered:
+    if "no foregone effect" in lowered or "no counterfactual foregoes/precludes link" in lowered:
         return "MISSING_COUNTERFACTUAL_PROJECTION", "counterfactual_links", "COMPILER_PATCH", False
+    if "duplicates an existing counterfactual link" in lowered:
+        return "DUPLICATE_COUNTERFACTUAL_LINK", "counterfactual_links", "DETERMINISTIC", False
+    if "duplicates an averted-alternative benefit" in lowered:
+        return "DUPLICATE_AVERTED_BENEFIT", "counterfactual_links", "DETERMINISTIC", False
     if "effect_ids do not exactly match" in lowered:
         return "STALE_EFFECT_INDEX", "effect_ids", "DETERMINISTIC", False
+    if "omits source clauses of its direct effects" in lowered:
+        return "ACTION_DIRECT_PROVENANCE_MISSING", "clause_ids", "SOURCE_PATCH", False
     if "foregone so its effect_kind" in lowered:
         return "FOREGONE_KIND_MISMATCH", "effect_kind", "DETERMINISTIC", False
     if "omits source-grounded likelihood qualifiers" in lowered:
         return "LIKELIHOOD_QUALIFIER_MISSING", "likelihood_qualifiers", "SOURCE_PATCH", False
+    if "omits source-bound likelihood" in lowered:
+        return "LIKELIHOOD_BINDING_MISSING", "likelihood_qualifiers", "SOURCE_PATCH", False
+    if "has no unique source-licensed antecedent" in lowered or (
+        "resolution confidence" in lowered and "quarantined" in lowered
+    ):
+        return "ELLIPSIS_ANTECEDENT_AMBIGUOUS", "ellipsis_resolutions", "QUARANTINE", False
+    if "uses ethical context as provenance" in lowered:
+        return "ELLIPSIS_CONTEXT_OVERREACH", "ellipsis_resolutions", "SOURCE_PATCH", False
+    if (
+        "missing_constituent_type must be" in lowered
+        or "ethical_context_roles do not match" in lowered
+    ):
+        return "ELLIPSIS_TEMPLATE_MISMATCH", "ellipsis_resolutions", "DETERMINISTIC", False
+    if "ellipsis resolution record" in lowered or (
+        "predicate ellipsis" in lowered and "must be resolved" in lowered
+    ) or "antecedent_span is not an exact span" in lowered or (
+        "selected antecedent_span was not retained" in lowered
+    ) or "empty reconstructed_span" in lowered:
+        return "ELLIPSIS_RESOLUTION_REQUIRED", "ellipsis_resolutions", "SOURCE_PATCH", False
+    if "must remain unresolved" in lowered and "reconstructed_span" in lowered:
+        return "SLUICING_MUST_REMAIN_UNRESOLVED", "ellipsis_resolutions", "DETERMINISTIC", False
     if "omits source-grounded temporal qualifiers" in lowered:
         return "TEMPORAL_QUALIFIER_MISSING", "temporal_qualifiers", "SOURCE_PATCH", False
     if "omits source-grounded scope qualifiers" in lowered:
         return "SCOPE_QUALIFIER_MISSING", "scope_qualifiers", "SOURCE_PATCH", False
     if "qualifier" in lowered and ("provenance" in lowered or "source-grounded" in lowered):
         return "SOURCE_QUALIFIER_MISMATCH", "provenance", "SOURCE_PATCH", False
-    if "quantity" in lowered and "provenance" in lowered:
+    if "omits quantities stated in its outcome and provenance" in lowered:
+        return "EFFECT_QUANTITY_MISSING", "quantities", "SOURCE_PATCH", False
+    if "not bound to singular affected party" in lowered:
+        return "EFFECT_QUANTITY_LEAK", "quantities", "DETERMINISTIC", False
+    if "cross-effect quantity leak" in lowered:
+        return "EFFECT_QUANTITY_LEAK", "quantities", "DETERMINISTIC", False
+    if ("quantity" in lowered or "quantities" in lowered) and "provenance" in lowered:
         return "SOURCE_QUANTITY_MISMATCH", "provenance", "SOURCE_PATCH", False
     if "outcome lemma does not bind" in lowered:
         return "VERB_LEMMA_MISMATCH", "outcome", "SOURCE_PATCH", True
@@ -141,6 +306,8 @@ def _issue_code(message: str) -> tuple[str, str, str, bool]:
         return "SOURCE_PROPOSITION_BINDING", "source_proposition", "SOURCE_PATCH", True
     if "incomplete predicate" in lowered:
         return "OUTCOME_PREDICATE_INCOMPLETE", "outcome", "SEMANTIC_PATCH", True
+    if "contradicts polarity" in lowered:
+        return "OUTCOME_POLARITY_CONTRADICTION", "polarity", "SEMANTIC_PATCH", True
     if "source-stipulated outcome" in lowered:
         return "SOURCE_STIPULATED_OUTCOME_MISSING", "effects", "SEMANTIC_PATCH", False
     if "source quantity" in lowered and "quantity-bearing consequence" in lowered:
@@ -298,7 +465,9 @@ def validation_issues_from_messages(
             entity_id = identifiers[0]
             if entity_id.startswith(("CT", "COND")):
                 entity_kind = "condition"
-            elif entity_id.startswith("E") or re.fullmatch(r"A\d+_e\d+", entity_id):
+            elif entity_id.startswith(("E", "S")) or re.fullmatch(
+                r"A\d+_[A-Za-z0-9_]+", entity_id,
+            ):
                 entity_kind = "effect"
             elif entity_id.startswith("A"):
                 entity_kind = "action"
@@ -600,10 +769,23 @@ def repair_guidance_cards(
         if isinstance(candidate, dict) else None
     )
     effects_by_id: dict[str, dict[str, object]] = {}
+    actions_by_id: dict[str, dict[str, object]] = {}
+    parties_by_id: dict[str, dict[str, object]] = {}
+    causal_links: list[dict[str, object]] = []
     if isinstance(world, dict):
+        for party in world.get("parties") or []:
+            if isinstance(party, dict) and party.get("party_id"):
+                parties_by_id[str(party["party_id"])] = party
+        for action in world.get("actions") or []:
+            if isinstance(action, dict) and action.get("action_id"):
+                actions_by_id[str(action["action_id"])] = action
         for effect in world.get("effects") or []:
             if isinstance(effect, dict) and effect.get("effect_id"):
                 effects_by_id[str(effect["effect_id"])] = effect
+        causal_links = [
+            link for link in (world.get("causal_links") or [])
+            if isinstance(link, dict)
+        ]
     clause_by_id = _clause_text_by_id(clauses)
     cards: list[dict[str, object]] = []
     for row in _issue_rows(issues):
@@ -611,14 +793,410 @@ def repair_guidance_cards(
         entity_id = str(row.get("entity_id") or "")
         card: dict[str, object] = {
             "code": code,
+            "card_id": f"{code or 'WORLD_VALIDATION_ERROR'}_V1",
+            "card_version": 1,
             "entity_id": entity_id,
             "entity_kind": str(row.get("entity_kind") or ""),
             "field": str(row.get("field") or ""),
             "repair_class": str(row.get("repair_class") or ""),
             "permits_removal": bool(row.get("permits_removal")),
             "message": str(row.get("message") or ""),
+            "repair_owner": repair_owner_for_code(code),
         }
-        if code == "SOURCE_PROPOSITION_BINDING" and entity_id in effects_by_id:
+        if code == "GLOBAL_CONSTRAINT_AS_PROCESS":
+            patch = {
+                "op": "replace_constraint_process_with_allocation_state",
+                "effect_id": entity_id,
+                "field": "causal_links",
+                "why": (
+                    "Keep the indivisibility/scarcity statement as a global fact; "
+                    "replace it in the action chain with a source-licensed receipt, "
+                    "nonreceipt, allocation, or deprivation state on the affected branch."
+                ),
+            }
+            card.update({
+                "allowed_operations": [
+                    "replace_constraint_process_with_allocation_state",
+                    "add_effect", "replace_effect", "replace_causal_link",
+                ],
+                "concrete_patches": [patch],
+                "fix_examples": [patch["why"]],
+            })
+        elif code == "DERIVATION_CONTRACT_OPERATION_MISMATCH":
+            effect = effects_by_id.get(entity_id, {})
+            scarcity_candidates: list[tuple[int, str, str]] = []
+            for clause_id, span in clause_by_id.items():
+                folded = span.casefold()
+                if re.search(
+                    r"\b(?:can be divided|divisible|several|multiple|two|three|"
+                    r"additional|another (?:dose|seat|organ|tank|scholarship|"
+                    r"source)|more than one|not exhaustive)\b",
+                    folded,
+                ):
+                    continue
+                score = sum(
+                    weight for pattern, weight in (
+                        (r"\b(?:one|single|sole|only one|exactly one)\b", 4),
+                        (r"\b(?:cannot|can't|can not)\s+be\s+divid", 4),
+                        (r"\b(?:either|or|but not both|one recipient)\b", 2),
+                        (r"\b(?:dose|seat|organ|tank|scholarship|resource|unit)\b", 1),
+                    )
+                    if re.search(pattern, folded)
+                )
+                if score:
+                    scarcity_candidates.append((score, clause_id, span))
+            scarcity_candidates.sort(key=lambda row: (-row[0], len(row[2]), row[1]))
+            scarcity_clause_id = scarcity_candidates[0][1] if scarcity_candidates else ""
+            scarcity_span = scarcity_candidates[0][2] if scarcity_candidates else ""
+            quantities: list[str] = []
+            if scarcity_span:
+                from .world_state import explicit_quantity_spans
+                quantities = list(explicit_quantity_spans(scarcity_span))
+                if not quantities:
+                    lexical_quantity = re.search(
+                        r"\b(exactly\s+one|only\s+one|one|single|sole)\b",
+                        scarcity_span,
+                        re.IGNORECASE,
+                    )
+                    if lexical_quantity:
+                        quantities = [
+                            "one" if "one" in lexical_quantity.group(1).casefold()
+                            else lexical_quantity.group(1).casefold()
+                        ]
+            patch = {
+                "op": (
+                    "repair_derivation_contract_metadata" if scarcity_span
+                    else "quarantine_unlicensed_allocation_complement"
+                ),
+                "effect_id": entity_id,
+                "preserve": [
+                    "effect_id", "action_id", "party_id", "outcome",
+                    "directness", "polarity", "modality", "effect_kind",
+                    "source_effect_ids", "causal_links",
+                ],
+                "set": ({
+                    "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+                    "source_proposition": scarcity_span,
+                    "clause_ids": [scarcity_clause_id],
+                    "quantities": quantities,
+                } if scarcity_span else {}),
+                "why": ((
+                    "The nonreceipt proposition and its topology already exist. "
+                    "Repair only the fields that justify the derived node; do not "
+                    "delete, recreate, rename, or reconnect any effect."
+                ) if scarcity_span else (
+                    "No exact source span licenses an exclusive complement. Do not "
+                    "relabel or reconstruct the graph; quarantine this derived node "
+                    "pending source clarification."
+                )),
+            }
+            card.update({
+                "current_derivation_operation": str(
+                    effect.get("derivation_operation") or ""
+                ),
+                "allowed_operations": [patch["op"]],
+                "concrete_patches": [patch],
+                "fix_examples": [patch["why"]],
+                "permits_removal": False,
+            })
+        elif code == "EXCLUSIVE_ALLOCATION_BRANCH_MISSING":
+            message = str(row.get("message") or "")
+            match = re.search(
+                r"\b(A\d+)\b.*?nonrecipient\s+([A-Za-z0-9_]+)",
+                message,
+                re.IGNORECASE,
+            )
+            action_id = match.group(1) if match else entity_id
+            party_id = match.group(2) if match else ""
+            action = actions_by_id.get(action_id, {})
+            direct_transfer_ids = [
+                effect_id for effect_id, effect in effects_by_id.items()
+                if str(effect.get("action_id") or "") == action_id
+                and str(effect.get("effect_kind") or "").upper()
+                == "RESOURCE_TRANSFER"
+                and str(effect.get("directness") or "").upper() == "DIRECT"
+            ]
+            patch = {
+                "op": "restore_exclusive_allocation_branch",
+                "action_id": action_id,
+                "nonrecipient_party_id": party_id,
+                "nonrecipient_label": str(
+                    parties_by_id.get(party_id, {}).get("label") or ""
+                ),
+                "allocation_parent_effect_ids": direct_transfer_ids,
+                "required_effect_sequence": [
+                    {
+                        "outcome": (
+                            f"{str(parties_by_id.get(party_id, {}).get('label') or party_id)} "
+                            "does not receive the allocated resource"
+                            if party_id else
+                            "the nonrecipient does not receive the allocated resource"
+                        ),
+                        "directness": "DOWNSTREAM",
+                        "polarity": "ADVERSE",
+                        "effect_kind": "OTHER",
+                        "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+                        "source_effect_ids": direct_transfer_ids,
+                        "source_proposition": (
+                            "<copy the source span establishing exclusivity, "
+                            "indivisibility, or one-recipient capacity>"
+                        ),
+                    },
+                    {
+                        "outcome": "<copy the source-stipulated consequence>",
+                        "directness": "DOWNSTREAM",
+                        "polarity": "ADVERSE",
+                        "effect_kind": "HEALTH_OUTCOME",
+                        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                        "source_effect_ids": ["<new nonreceipt effect id>"],
+                        "source_proposition": (
+                            "<copy the source span stating the consequence of "
+                            "nonreceipt>"
+                        ),
+                    },
+                ],
+                "required_links": [
+                    {
+                        "source_id": direct_transfer_ids[0]
+                        if direct_transfer_ids else "<direct transfer effect id>",
+                        "relation": "CAUSES",
+                        "target_id": "<new nonreceipt effect id>",
+                        "derivation_operation": (
+                            "EXCLUSIVE_ALLOCATION_COMPLEMENT"
+                        ),
+                    },
+                    {
+                        "source_id": "<new nonreceipt effect id>",
+                        "relation": "CAUSES",
+                        "target_id": "<source-stipulated consequence effect id>",
+                    },
+                ],
+                "source_spans": list(clause_by_id.values()),
+                "why": (
+                    "A complete exclusive allocation must include the unselected "
+                    "eligible recipient's nonreceipt branch and every consequence "
+                    "the source stipulates for going without the resource. Link "
+                    "transfer -> nonreceipt -> consequence; do not use the global "
+                    "scarcity statement as the causal parent."
+                ),
+            }
+            card.update({
+                "action_id": action_id,
+                "nonrecipient_party_id": party_id,
+                "allowed_operations": [
+                    "restore_exclusive_allocation_branch", "add_effect",
+                    "add_causal_link",
+                ],
+                "concrete_patches": [patch],
+                "fix_examples": [patch["why"]],
+            })
+        elif code in {
+            "ELLIPSIS_RESOLUTION_REQUIRED", "SLUICING_MUST_REMAIN_UNRESOLVED",
+            "ELLIPSIS_ANTECEDENT_AMBIGUOUS", "ELLIPSIS_CONTEXT_OVERREACH",
+            "ELLIPSIS_TEMPLATE_MISMATCH",
+        }:
+            message = str(row.get("message") or "")
+            match = re.search(r"\b(EL\d+)\s+([A-Z_]+)", message)
+            obligation_id = match.group(1) if match else entity_id
+            ellipsis_kind = match.group(2) if match else "ELLIPSIS"
+            unresolved = code in {
+                "SLUICING_MUST_REMAIN_UNRESOLVED",
+                "ELLIPSIS_ANTECEDENT_AMBIGUOUS",
+            }
+            operation = {
+                "SLUICING_MUST_REMAIN_UNRESOLVED": "preserve_ellipsis_unresolved",
+                "ELLIPSIS_ANTECEDENT_AMBIGUOUS": "quarantine_ambiguous_ellipsis",
+                "ELLIPSIS_CONTEXT_OVERREACH": "restore_source_licensed_antecedent",
+                "ELLIPSIS_TEMPLATE_MISMATCH": "copy_ellipsis_template_fields",
+            }.get(code, "add_ellipsis_resolution")
+            patch = {
+                "op": operation,
+                "obligation_id": obligation_id,
+                "ellipsis_kind": ellipsis_kind,
+                "field": "ellipsis_resolutions",
+                "status": "UNRESOLVED" if unresolved else "RESOLVED",
+                "requirements": (
+                    "Set reconstructed_span empty, retain the unresolved source "
+                    "span, and do not admit effects that depend on guessing it."
+                    if unresolved else
+                    "Quote an exact antecedent_span, reconstruct only material "
+                    "copied from compatible source clauses, copy the obligation's "
+                    "template fields, and use ethical context only to rank candidates."
+                ),
+                "why": message,
+            }
+            card.update({
+                "obligation_id": obligation_id,
+                "ellipsis_kind": ellipsis_kind,
+                "allowed_operations": [patch["op"]],
+                "concrete_patches": [patch],
+                "fix_examples": [patch["requirements"]],
+            })
+        elif code == "LIKELIHOOD_BINDING_MISSING":
+            message = str(row.get("message") or "")
+            match = re.search(
+                r"(?P<actions>A\d+(?:,A\d+)*) omits source-bound likelihood "
+                r"'(?P<qualifier>[^']+)' for '(?P<subject>[^']+)' from "
+                r"(?P<clause>[A-Za-z0-9_]+)",
+                message,
+                re.IGNORECASE,
+            )
+            action_ids = match.group("actions").split(",") if match else []
+            qualifier = match.group("qualifier") if match else ""
+            subject = match.group("subject") if match else ""
+            clause_id = match.group("clause") if match else ""
+            patch = {
+                "op": "restore_likelihood_binding",
+                "action_ids": action_ids,
+                "subject": subject,
+                "qualifier": qualifier,
+                "clause_id": clause_id,
+                "source_text": clause_by_id.get(clause_id, ""),
+                "field": "effects",
+                "why": (
+                    "Add or repair the effect for the named subject on its owning "
+                    "action, preserving the exact source likelihood and proposition."
+                ),
+            }
+            card.update({
+                "action_ids": action_ids,
+                "allowed_operations": [
+                    "restore_likelihood_binding", "add_effect", "replace_effect",
+                ],
+                "concrete_patches": [patch],
+                "fix_examples": [patch["why"]],
+            })
+        elif code == "STAGE_SKELETON_DRIFT":
+            message = str(row.get("message") or "")
+            action_match = re.search(r"\b(A\d+)\b", message)
+            action_id = action_match.group(1) if action_match else ""
+            patch = {
+                "op": "restore_stage_skeleton_proposition",
+                "action_id": action_id,
+                "skeleton_proposition_id": entity_id,
+                "field": "effects",
+                "requirements": message,
+                "why": (
+                    "Restore the admitted Stage 1 factual proposition in Stage 2 "
+                    "before changing or adding causal and counterfactual topology."
+                ),
+            }
+            card.update({
+                "action_id": action_id,
+                "allowed_operations": [
+                    "restore_stage_skeleton_proposition", "add_effect", "replace_effect",
+                ],
+                "concrete_patches": [patch],
+                "fix_examples": [patch["why"]],
+            })
+        elif code == "ACTION_DIRECT_PROVENANCE_MISSING" and entity_id in actions_by_id:
+            message = str(row.get("message") or "")
+            list_match = re.search(
+                r"omits source clauses of its DIRECT effects:\s*\[([^]]*)\]",
+                message,
+                re.IGNORECASE,
+            )
+            clause_ids: list[str] = []
+            if list_match:
+                try:
+                    parsed = ast.literal_eval(f"[{list_match.group(1)}]")
+                except (SyntaxError, ValueError):
+                    parsed = []
+                if isinstance(parsed, (list, tuple)):
+                    clause_ids = [
+                        str(item).strip() for item in parsed if str(item).strip()
+                    ]
+            concrete_patches = [{
+                "op": "add_action_provenance",
+                "action_id": entity_id,
+                "field": "clause_ids",
+                "value": clause_id,
+                "patch_kind": "licensing_patch",
+                "why": (
+                    "Synchronize action provenance with a supporting source "
+                    "clause already cited by its own DIRECT effect."
+                ),
+            } for clause_id in clause_ids]
+            card.update({
+                "action_id": entity_id,
+                "missing_clause_ids": clause_ids,
+                "allowed_operations": ["add_action_provenance"],
+                "concrete_patches": concrete_patches,
+                "fix_examples": [patch["why"] for patch in concrete_patches],
+            })
+        elif code == "MISSING_PROCESS_INTERMEDIATE" and entity_id in effects_by_id:
+            child = effects_by_id[entity_id]
+            action_id = str(child.get("action_id") or "")
+            incoming = [
+                link for link in causal_links
+                if str(link.get("target_id") or "") == entity_id
+                and str(link.get("action_id") or action_id) == action_id
+            ]
+            parent_ids = list(dict.fromkeys(
+                str(link.get("source_id") or "") for link in incoming
+                if str(link.get("source_id") or "")
+            ))
+            message = str(row.get("message") or "")
+            named_party_ids = [
+                party_id for party_id in re.findall(
+                    r"\b(P[A-Za-z0-9_]+)\s*\(", message,
+                )
+                if party_id in parties_by_id
+                and party_id != str(child.get("party_id") or "")
+            ]
+            cited = [
+                str(item) for item in (child.get("clause_ids") or [])
+                if str(item).strip()
+            ]
+            available_spans = [
+                clause_by_id[cid] for cid in cited if cid in clause_by_id
+            ]
+            candidates = named_party_ids or [""]
+            concrete_patches = []
+            for party_id in candidates:
+                party = parties_by_id.get(party_id, {})
+                process_id = f"{action_id}_PROCESS_FOR_{entity_id}"
+                concrete_patches.append({
+                    "op": "insert_process_intermediate",
+                    "action_id": action_id,
+                    "child_effect_id": entity_id,
+                    "replace_parent_effect_ids": parent_ids,
+                    "new_effect_id": process_id,
+                    "value": {
+                        "party_id": party_id or "<source-named process party>",
+                        "party_label": str(party.get("label") or ""),
+                        "outcome": "<copy the source-stated process event>",
+                        "polarity": "NEUTRAL",
+                        "directness": "DOWNSTREAM",
+                        "effect_kind": "PHYSICAL_STATE",
+                        "modality": str(child.get("modality") or "CERTAIN"),
+                        "source_proposition": "<copy the licensing source span>",
+                        "clause_ids": cited,
+                    },
+                    "remove_links": [
+                        {"source_id": parent_id, "target_id": entity_id}
+                        for parent_id in parent_ids
+                    ],
+                    "add_links": [
+                        {"source_id": parent_id, "target_id": process_id}
+                        for parent_id in parent_ids
+                    ] + [{"source_id": process_id, "target_id": entity_id}],
+                    "why": (
+                        "Insert the source-named physical process between the "
+                        "direct intervention and the preserved bodily outcome."
+                    ),
+                })
+            card.update({
+                "action_id": action_id,
+                "child_effect_id": entity_id,
+                "current_parent_effect_ids": parent_ids,
+                "candidate_process_party_ids": named_party_ids,
+                "available_clause_spans": available_spans,
+                "allowed_operations": ["insert_process_intermediate"],
+                "concrete_patches": concrete_patches,
+                "fix_examples": [patch["why"] for patch in concrete_patches],
+            })
+        elif code == "SOURCE_PROPOSITION_BINDING" and entity_id in effects_by_id:
             effect = effects_by_id[entity_id]
             outcome = str(effect.get("outcome") or "")
             proposition = str(effect.get("source_proposition") or "")
@@ -705,6 +1283,36 @@ def repair_guidance_cards(
                     clause_spans=available_spans,
                 )
             )
+            if str(effect.get("effect_kind") or "").upper() == "RESOURCE_TRANSFER":
+                transfer_candidates: list[str] = []
+                for span in [proposition, *available_spans]:
+                    for match in re.finditer(
+                        r"\b(?:give|gives|gave|given|giving|receive|receives|"
+                        r"received|receiving|allocate|allocates|allocated|"
+                        r"assign|assigned|send|sent|deliver|delivered|transfer|"
+                        r"transferred|administer|administered|provide|provided)\b"
+                        r"[^,;.?]{0,120}",
+                        str(span or ""),
+                        re.IGNORECASE,
+                    ):
+                        candidate = " ".join(match.group(0).split()).strip(" ,.;:")
+                        if candidate:
+                            transfer_candidates.append(candidate)
+                existing_values = {
+                    str(patch.get("value") or "").casefold()
+                    for patch in concrete_patches
+                }
+                transfer_patches = [{
+                    "op": "replace_outcome",
+                    "field": "outcome",
+                    "value": candidate,
+                    "why": (
+                        "RESOURCE_TRANSFER must state the source-licensed transfer "
+                        "event, not merely name the transferred object."
+                    ),
+                } for candidate in dict.fromkeys(transfer_candidates)
+                  if candidate.casefold() not in existing_values]
+                concrete_patches = [*transfer_patches[:3], *concrete_patches]
             if row.get("permits_removal"):
                 concrete_patches.append({
                     "op": "remove_effect",
@@ -736,6 +1344,22 @@ def repair_guidance_cards(
                     for patch in concrete_patches
                 ],
             })
+        elif code == "OUTCOME_POLARITY_CONTRADICTION" and entity_id in effects_by_id:
+            effect = effects_by_id[entity_id]
+            outcome = str(effect.get("outcome") or "")
+            proposition = str(effect.get("source_proposition") or "")
+            card.update({
+                "action_id": str(effect.get("action_id") or ""),
+                "current_outcome": outcome,
+                "current_polarity": str(effect.get("polarity") or ""),
+                "current_source_proposition": proposition,
+                "allowed_operations": ["replace_outcome", "replace_polarity", "remove_effect"],
+                "concrete_patches": [],
+                "fix_examples": [
+                    "Preserve the source event's explicit negation and assign the matching polarity.",
+                    "If the source states the opposite branch's event, remove this effect instead of relabeling it.",
+                ],
+            })
         elif code == "SOURCE_STIPULATED_OUTCOME_MISSING":
             message = str(row.get("message") or "")
             match = re.search(
@@ -761,14 +1385,15 @@ def repair_guidance_cards(
                         "outcome": consequence,
                         "polarity": polarity,
                         "effect_kind": "HEALTH_OUTCOME",
-                        "directness": "DIRECT",
+                        "directness": "DOWNSTREAM",
                         "modality": "CERTAIN",
                         "source_proposition": consequence,
                     },
                     "why": (
-                        "Admit the binary-contrast consequence as an effect "
-                        "on this action, or mark polarity UNRESOLVED to "
-                        "quarantine it explicitly."
+                        "Admit the binary-contrast consequence as a downstream "
+                        "effect on this action and bind it to a source-licensed "
+                        "parent, or mark polarity UNRESOLVED to quarantine it "
+                        "explicitly."
                     ),
                 })
                 concrete_patches.append({
@@ -779,7 +1404,7 @@ def repair_guidance_cards(
                         "outcome": consequence,
                         "polarity": "UNRESOLVED",
                         "effect_kind": "HEALTH_OUTCOME",
-                        "directness": "DIRECT",
+                        "directness": "DOWNSTREAM",
                         "modality": "CERTAIN",
                         "source_proposition": consequence,
                     },
@@ -793,6 +1418,80 @@ def repair_guidance_cards(
                 "stipulated_outcome": consequence,
                 "available_clause_spans": available_spans[:4],
                 "allowed_operations": ["add_effect"],
+                "concrete_patches": concrete_patches,
+                "fix_examples": [
+                    patch.get("why") or patch.get("op")
+                    for patch in concrete_patches
+                ],
+            })
+        elif code == "EFFECT_QUANTITY_LEAK":
+            message = str(row.get("message") or "")
+            quantity_match = re.search(
+                r"quantity\s+(['\"])(.*?)\1\s+is not bound",
+                message,
+                re.IGNORECASE,
+            )
+            quantity = quantity_match.group(2).strip() if quantity_match else ""
+            concrete_patches = []
+            if entity_id in effects_by_id and quantity:
+                concrete_patches.append({
+                    "op": "remove_quantity",
+                    "effect_id": entity_id,
+                    "field": "quantities",
+                    "value": quantity,
+                    "patch_kind": "semantic_patch",
+                    "why": (
+                        "Remove the quantity that belongs only to another "
+                        "effect or population in shared provenance."
+                    ),
+                })
+            card.update({
+                "entity_id": entity_id,
+                "leaked_quantity": quantity,
+                "allowed_operations": ["remove_quantity"],
+                "concrete_patches": concrete_patches,
+                "fix_examples": [
+                    patch.get("why") or patch.get("op")
+                    for patch in concrete_patches
+                ],
+            })
+        elif code == "EFFECT_QUANTITY_MISSING":
+            message = str(row.get("message") or "")
+            list_match = re.search(
+                r"omits quantities stated in its outcome and provenance:\s*\[([^]]*)\]",
+                message,
+                re.IGNORECASE,
+            )
+            quantities = []
+            if list_match:
+                payload = f"[{list_match.group(1)}]"
+                try:
+                    parsed = ast.literal_eval(payload)
+                except (SyntaxError, ValueError):
+                    parsed = []
+                if isinstance(parsed, (list, tuple)):
+                    quantities = [
+                        str(item).strip() for item in parsed if str(item).strip()
+                    ]
+            concrete_patches = [
+                {
+                    "op": "add_quantity",
+                    "effect_id": entity_id,
+                    "field": "quantities",
+                    "value": quantity,
+                    "patch_kind": "semantic_patch",
+                    "why": (
+                        "Synchronize the typed quantity field with the quantity "
+                        "already stated by this effect and its provenance."
+                    ),
+                }
+                for quantity in quantities
+                if entity_id in effects_by_id
+            ]
+            card.update({
+                "entity_id": entity_id,
+                "missing_quantities": quantities,
+                "allowed_operations": ["add_quantity"],
                 "concrete_patches": concrete_patches,
                 "fix_examples": [
                     patch.get("why") or patch.get("op")
@@ -981,6 +1680,7 @@ def repair_guidance_cards(
             if proposition and outcome:
                 concrete_patches.insert(0, {
                     "op": "replace_outcome",
+                    "effect_id": entity_id,
                     "field": "outcome",
                     "value": proposition,
                     "why": (
@@ -1116,12 +1816,32 @@ def repair_no_effect_issues(
         for row in applied
     }
     targeted_entities.discard("")
+    patch_targets = {
+        (
+            str(row.get("code") or "").strip(),
+            str(row.get("effect_id") or row.get("entity_id") or "").strip(),
+            str(row.get("field") or "").strip(),
+        )
+        for row in applied
+    }
     unstable: list[ValidationIssue] = []
     for code, entity_id, field in sorted(lingering):
         if entity_id:
             # Blame only patches that named this entity. Same issue codes on
             # siblings are a different failure, not this repair's no-effect.
             if entity_id not in targeted_entities:
+                continue
+            # A quantity patch on E6 did not attempt to repair E6's source
+            # proposition. No-effect attribution must follow the patch's
+            # intended issue/field, not merely its entity ID.
+            if not any(
+                patch_entity == entity_id
+                and (
+                    patch_code == code
+                    or (patch_field and patch_field == field)
+                )
+                for patch_code, patch_entity, patch_field in patch_targets
+            ):
                 continue
         elif targeted_entities:
             # World-level residual while patches named concrete entities:
@@ -1226,6 +1946,11 @@ def apply_deterministic_local_patches(
         for effect in effects
         if isinstance(effect, dict) and effect.get("effect_id")
     }
+    actions_by_id: dict[str, dict[str, object]] = {
+        str(action["action_id"]): action
+        for action in (world.get("actions") or [])
+        if isinstance(action, dict) and action.get("action_id")
+    }
     applied: list[dict[str, object]] = []
     qualifier_ops = {
         "add_likelihood_qualifier": "likelihood_qualifiers",
@@ -1234,7 +1959,11 @@ def apply_deterministic_local_patches(
     }
     for card in cards:
         code = str(card.get("code") or "")
-        if code == "QUANTITY_BEARING_CONSEQUENCE_MISSING":
+        if code in {
+            "QUANTITY_BEARING_CONSEQUENCE_MISSING",
+            "EFFECT_QUANTITY_MISSING",
+            "EFFECT_QUANTITY_LEAK",
+        }:
             for patch in card.get("concrete_patches") or []:
                 if not isinstance(patch, dict):
                     continue
@@ -1278,6 +2007,28 @@ def apply_deterministic_local_patches(
                         "patch_kind": "semantic_patch",
                         "deterministic": True,
                     })
+                elif op == "remove_quantity":
+                    existing = [
+                        str(item).strip()
+                        for item in (effect.get("quantities") or [])
+                        if str(item).strip()
+                    ]
+                    kept = [
+                        item for item in existing
+                        if item.casefold() != value.casefold()
+                    ]
+                    if kept == existing:
+                        continue
+                    effect["quantities"] = kept
+                    applied.append({
+                        "op": op,
+                        "effect_id": effect_id,
+                        "field": "quantities",
+                        "value": value,
+                        "code": code,
+                        "patch_kind": "semantic_patch",
+                        "deterministic": True,
+                    })
                 elif op in {"add_provenance", "add_clause_id"}:
                     existing_ids = [
                         str(item).strip()
@@ -1301,6 +2052,30 @@ def apply_deterministic_local_patches(
             if not isinstance(patch, dict):
                 continue
             op = str(patch.get("op") or "")
+            if op == "add_action_provenance" and code == "ACTION_DIRECT_PROVENANCE_MISSING":
+                action_id = str(patch.get("action_id") or "").strip()
+                value = str(patch.get("value") or "").strip()
+                action = actions_by_id.get(action_id)
+                if action is None or not value:
+                    continue
+                existing = [
+                    str(item).strip()
+                    for item in (action.get("clause_ids") or [])
+                    if str(item).strip()
+                ]
+                if value in existing:
+                    continue
+                action["clause_ids"] = [*existing, value]
+                applied.append({
+                    "op": op,
+                    "action_id": action_id,
+                    "field": "clause_ids",
+                    "value": value,
+                    "code": code,
+                    "patch_kind": "licensing_patch",
+                    "deterministic": True,
+                })
+                continue
             effect_id = str(patch.get("effect_id") or "").strip()
             value = str(patch.get("value") or "").strip()
             effect = effects_by_id.get(effect_id)
@@ -1312,6 +2087,29 @@ def apply_deterministic_local_patches(
                 "SCOPE_QUALIFIER_MISSING",
             }:
                 field = qualifier_ops[op]
+            elif op == "replace_outcome" and code == "VERB_LEMMA_MISMATCH":
+                current = " ".join(str(effect.get("outcome") or "").split())
+                replacement = " ".join(value.split())
+                bound_source = " ".join(
+                    str(effect.get("source_proposition") or "").split()
+                )
+                if (
+                    not replacement
+                    or replacement != bound_source
+                    or current == replacement
+                ):
+                    continue
+                effect["outcome"] = replacement
+                applied.append({
+                    "op": op,
+                    "effect_id": effect_id,
+                    "field": "outcome",
+                    "value": replacement,
+                    "code": code,
+                    "patch_kind": "source_patch",
+                    "deterministic": True,
+                })
+                continue
             else:
                 continue
             existing = [
@@ -1399,6 +2197,60 @@ def format_repair_guidance_for_prompt(
                         f"     • add effect on {patch.get('action_id') or entity}: "
                         f"outcome={value.get('outcome')!r}, "
                         f"polarity={value.get('polarity')!r}"
+                    )
+                elif op == "insert_process_intermediate":
+                    value = patch.get("value") or {}
+                    lines.append(
+                        f"     • insert {patch.get('new_effect_id')} on "
+                        f"{value.get('party_id')} between "
+                        f"{patch.get('replace_parent_effect_ids')} and "
+                        f"{patch.get('child_effect_id')}; copy the process "
+                        "outcome/source_proposition from the cited source span "
+                        "and replace the direct parent→child edge"
+                    )
+                elif op == "restore_exclusive_allocation_branch":
+                    sequence = list(patch.get("required_effect_sequence") or [])
+                    links = list(patch.get("required_links") or [])
+                    lines.append(
+                        f"     • on {patch.get('action_id')}, restore the branch "
+                        f"for {patch.get('nonrecipient_label') or patch.get('nonrecipient_party_id')}:"
+                    )
+                    for step in sequence:
+                        lines.append(
+                            "       - add "
+                            f"{step.get('derivation_operation')} effect "
+                            f"outcome={step.get('outcome')!r}, "
+                            f"source_effect_ids={step.get('source_effect_ids')}; "
+                            f"source_proposition={step.get('source_proposition')!r}"
+                        )
+                    for link in links:
+                        lines.append(
+                            "       - link "
+                            f"{link.get('source_id')} --{link.get('relation')}--> "
+                            f"{link.get('target_id')}"
+                        )
+                elif op == "repair_derivation_contract_metadata":
+                    values = patch.get("set") or {}
+                    lines.append(
+                        f"     • preserve node {patch.get('effect_id')} and every "
+                        "causal link; change metadata only: "
+                        f"derivation_operation={values.get('derivation_operation')!r}, "
+                        f"source_proposition={values.get('source_proposition')!r}, "
+                        f"clause_ids={values.get('clause_ids')!r}, "
+                        f"quantities={values.get('quantities')!r}"
+                    )
+                elif op == "quarantine_unlicensed_allocation_complement":
+                    lines.append(
+                        f"     • quarantine node {patch.get('effect_id')}; no exact "
+                        "source span licenses an exclusive-allocation complement, "
+                        "so do not relabel it or reconstruct surrounding topology"
+                    )
+                elif op == "restore_stage_skeleton_proposition":
+                    lines.append(
+                        f"     • restore Stage 1 proposition "
+                        f"{patch.get('skeleton_proposition_id')} on "
+                        f"{patch.get('action_id')}; preserve its party, source "
+                        "span, polarity, modality, directness, and quantities"
                     )
                 elif op == "add_quantity":
                     lines.append(

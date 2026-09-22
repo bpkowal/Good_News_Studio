@@ -10,10 +10,8 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from .action_identity import decompose_action_propositions
-from .world_state import (
-    explain_compact_role_assignments,
-    world_model_from_dict,
-)
+from .world_admission import restore_admitted_world
+from .world_state import explain_compact_role_assignments
 
 
 def build_semantic_preservation_trace(
@@ -34,7 +32,7 @@ def build_semantic_preservation_trace(
         if row.get("clause_id")
     }
     world_raw = grounding.get("world_model") or {}
-    typed = world_model_from_dict(world_raw) if world_raw else None
+    typed = restore_admitted_world(world_raw) if world_raw else None
     action_by_id = {
         str(record.get("action_id") or ""): record for record in records
     }
@@ -100,6 +98,8 @@ def build_semantic_preservation_trace(
                         {
                             "condition_id": condition.condition_id,
                             "event_effect_id": condition.event_effect_id,
+                            "polarity": condition.polarity,
+                            "operator": condition.operator,
                         }
                         for condition in typed.conditions
                         if condition.condition_id in effect.condition_ids
@@ -129,6 +129,27 @@ def build_semantic_preservation_trace(
                 )
             ],
         })
+    topology_edges: list[dict[str, Any]] = []
+    if typed is not None:
+        topology_edges.extend({
+            "layer": "ACTUAL",
+            "action_id": link.action_id,
+            "source_id": link.source_id,
+            "target_id": link.target_id,
+            "relation": link.relation,
+            "modality": link.modality,
+            "condition_ids": list(link.condition_ids),
+        } for link in typed.causal_links)
+        topology_edges.extend({
+            "layer": "COUNTERFACTUAL",
+            "action_id": link.action_id,
+            "source_id": link.source_effect_id,
+            "target_id": link.alternative_effect_id,
+            "alternative_action_id": link.alternative_action_id,
+            "relation": link.relation,
+            "modality": link.modality,
+            "condition_ids": list(link.condition_ids),
+        } for link in typed.counterfactual_links)
     return {
         "status": str(grounding.get("status") or "UNKNOWN").upper(),
         "world_model_status": str(grounding.get("world_model_status") or ""),
@@ -137,6 +158,7 @@ def build_semantic_preservation_trace(
         "action_propositions": action_propositions,
         "compact_role_assignments": role_rows,
         "chains": chains,
+        "topology_edges": topology_edges,
     }
 
 

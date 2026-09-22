@@ -158,6 +158,24 @@ def _world_with_patched_effects(
 
 
 class RepairNoEffectGuardTests(unittest.TestCase):
+    def test_action_provenance_is_synchronized_from_direct_effect_issue(self):
+        candidate = {"world_model": {
+            "actions": [{"action_id": "A0", "clause_ids": ["C1"]}],
+            "effects": [{
+                "effect_id": "E0", "action_id": "A0",
+                "directness": "DIRECT", "clause_ids": ["C0"],
+            }],
+        }}
+        issues = validation_issues_from_messages([
+            "A0 omits source clauses of its DIRECT effects: ['C0']; cite every FACT clause that states an owned assignment or transfer, including a named subgroup",
+        ])
+        self.assertEqual(issues[0].code, "ACTION_DIRECT_PROVENANCE_MISSING")
+        patched, applied = apply_deterministic_local_patches(candidate, issues)
+        self.assertEqual(
+            patched["world_model"]["actions"][0]["clause_ids"], ["C1", "C0"],
+        )
+        self.assertEqual(applied[0]["op"], "add_action_provenance")
+
     def test_same_target_after_applied_patch_is_unstable(self):
         before = [_qty_issue("E7")]
         after = [_qty_issue("E7")]
@@ -184,6 +202,22 @@ class RepairNoEffectGuardTests(unittest.TestCase):
         before = [_qty_issue("E7"), _qty_issue("E1")]
         after = [_qty_issue("E1")]
         unstable = repair_no_effect_issues(before, after, _applied("E7"))
+        self.assertEqual(unstable, ())
+
+    def test_different_field_on_same_entity_is_not_blamed(self):
+        source_issue = ValidationIssue(
+            code="SOURCE_PROPOSITION_BINDING",
+            message="E7 source_proposition is not an exact span",
+            entity_kind="effect",
+            entity_id="E7",
+            field="source_proposition",
+            repair_class="SOURCE_PATCH",
+        )
+        unstable = repair_no_effect_issues(
+            [source_issue, _qty_issue("E7")],
+            [source_issue],
+            _applied("E7"),
+        )
         self.assertEqual(unstable, ())
 
     def test_annotate_admit_merges_and_escalates_scope(self):

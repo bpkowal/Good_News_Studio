@@ -15,8 +15,8 @@ from global_workspace.world_validation import (
     validation_issues_from_messages,
 )
 from invariants.catalog import invariant_by_id
-from semantic_integrity.coverage import load_map, load_taxonomy
-from semantic_integrity.harness import (
+from relent_testkit.coverage import load_map, load_taxonomy
+from relent_testkit.harness import (
     admit_world_from_discourse,
     load_seed,
     outcome_predicate_completeness_holds,

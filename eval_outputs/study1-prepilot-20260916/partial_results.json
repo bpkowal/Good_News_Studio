@@ -1,0 +1,93 @@
+[
+  {
+    "assessments": {
+      "parliament": {
+        "failure_codes": [
+          "MALFORMED_OR_INCOMPLETE"
+        ],
+        "failure_evidence": [
+          "States: \"No governing recommendation is safe to present,\" so the answer does not supply a usable judgment as required."
+        ],
+        "scores": {
+          "action_consequence_mapping": 2,
+          "decision_coherence": 1,
+          "deliberation_synthesis": 1,
+          "dissent_and_objections": 2,
+          "ethical_landscape_coverage": 2,
+          "recommendation_clarity": 0,
+          "reversal_conditions": 2,
+          "scenario_fidelity": 2,
+          "uncertainty_calibration": 3
+        },
+        "summary": "Accurately restates many facts but presents an internal deliberation trace rather than a user-ready answer. Offers no final recommendation, so clarity and coherence are absent. Ethical views are named yet not synthesized into a position. Reversal conditions listed, and epistemic uncertainty expressed, but overall the response is incomplete for the end user."
+      },
+      "solo": {
+        "failure_codes": [],
+        "failure_evidence": [],
+        "scores": {
+          "action_consequence_mapping": 4,
+          "decision_coherence": 4,
+          "deliberation_synthesis": 3,
+          "dissent_and_objections": 3,
+          "ethical_landscape_coverage": 3,
+          "recommendation_clarity": 4,
+          "reversal_conditions": 1,
+          "scenario_fidelity": 4,
+          "uncertainty_calibration": 3
+        },
+        "summary": "Gives a clear, coherent recommendation to pull the lever, accurately mapping outcomes. Surveys multiple moral theories, preserves the strongest deontological objection, and explains the balance of reasons. Expresses moderate humility about disagreement. Reversal conditions are thin, reducing that score, but overall reasoning is solid and usable."
+      }
+    },
+    "comparison_rationale": "Response B delivers a clear, well-reasoned judgment with accurate consequence mapping and acknowledgement of objections, whereas Response A fails to issue any recommendation and thus cannot satisfy core rubric criteria. Therefore B is decisively better.",
+    "id": "trolley_lever",
+    "judge_cost_usd": 0.01182,
+    "judge_usage": {
+      "api_calls": 1,
+      "cached_prompt_tokens": 0,
+      "completion_tokens": 730,
+      "prompt_tokens": 2990,
+      "reasoning_tokens": 320,
+      "total_tokens": 3720
+    },
+    "parliament_cost_usd": 1.035192,
+    "parliament_process_audit": {
+      "accepted_syntheses": [],
+      "cycles": 3,
+      "delegate_responses": 15,
+      "dissent_preserved": true,
+      "flags": [
+        "STABLE_PLURALITY_NOT_EXPRESSED_AS_JUDGMENT"
+      ],
+      "judgment_status": "UNRESOLVED",
+      "landscape_semantic_valid_rate": 0.667,
+      "plurality_stable_at_end": true,
+      "plurality_trajectory": [
+        "Do not pull the lever",
+        "Pull the lever",
+        "Pull the lever"
+      ],
+      "valid_delegate_rate": 1.0
+    },
+    "parliament_usage": {
+      "api_calls": 38,
+      "cached_prompt_tokens": 90880,
+      "completion_tokens": 48946,
+      "prompt_tokens": 389972,
+      "reasoning_tokens": 27328,
+      "total_tokens": 438918
+    },
+    "preference_confidence": 0.9,
+    "preferred_system": "solo",
+    "solo_budget": 48946,
+    "solo_budget_capped": false,
+    "solo_cost_usd": 0.008994,
+    "solo_usage": {
+      "api_calls": 1,
+      "cached_prompt_tokens": 0,
+      "completion_tokens": 1109,
+      "prompt_tokens": 61,
+      "reasoning_tokens": 256,
+      "total_tokens": 1170
+    }
+  }
+]

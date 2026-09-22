@@ -1,0 +1,364 @@
+Active ethical frameworks: utilitarian, deontological, virtue, care, rawlsian
+Using OpenAI workspace model: o3
+Planning a shared action set...
+Actions: Pull the lever, redirecting the trolley toward one person, Do not pull the lever, allowing the trolley to continue toward five people
+Canonical deliberation IDs: A0=Pull the lever, redirecting the trolley toward one person; A1=Do not pull the lever, allowing the trolley to continue toward five people
+Action-source grounding: COMMITTED (5 attempt(s), 0 final validation issue(s))
+Action-source grounding required 4 repair attempt(s).
+Updated framing cache: eval_outputs/study1-trolley-reduced-20260916/nuisance_passive_paraphrase/parliament_workspace/last_problem_framing.json
+Canonical action records: [{"action_id": "A0", "action_origin": "USER_AUTHORED", "actor": "Bystander", "at_risk": [], "beneficiaries": [], "canonical_semantic_action": "Pull the lever, redirecting the trolley toward one person", "causal_links": [{"action_id": "A0", "modality": "CERTAIN", "relation": "CAUSES", "source_id": "E0_1", "target_id": "E0_2"}, {"action_id": "A0", "modality": "CERTAIN", "relation": "CAUSES", "source_id": "E0_2", "target_id": "E0_3"}], "commitment_reasons": [], "commitment_status": "COMMITTED", "completeness_status": "COMPLETE", "conditionally_benefited": [], "counterfactual_effects": [], "grounded_effects": [{"action_id": "A0", "condition_ids": [], "condition_join": "AND", "derivation_assumptions": [], "derivation_explanation": "C1 states redirection follows the lever pull.", "derivation_operation": "SOURCE_STIPULATED_CAUSAL", "directness": "DOWNSTREAM", "effect_id": "E0_2", "effect_kind": "PHYSICAL_STATE", "likelihood_qualifiers": [], "modality": "CERTAIN", "outcome": "trolley is redirected", "outcome_type_transformation": "PRESERVED", "overall_likelihood_qualifiers": [], "party_id": "P_TROLLEY", "polarity": "NEUTRAL", "provenance": [{"clause_id": "C1", "excerpt": "Pulling it redirects the trolley, and one person on the other track will then be killed."}, {"clause_id": "A0", "excerpt": "Pull the lever, redirecting the trolley toward one person"}], "quantities": [], "relation": "EXPERIENCES", "scope_qualifiers": [], "source_effect_ids": ["E0_1"], "source_proposition": "Pulling it redirects the trolley", "temporal_qualifiers": []}, {"action_id": "A0", "condition_ids": [], "condition_join": "AND", "derivation_assumptions": [], "derivation_explanation": "C1 says the redirected trolley kills the single person.", "derivation_operation": "SOURCE_STIPULATED_CAUSAL", "directness": "DOWNSTREAM", "effect_id": "E0_3", "effect_kind": "HEALTH_OUTCOME", "likelihood_qualifiers": [], "modality": "CERTAIN", "outcome": "one person is killed", "outcome_type_transformation": "PRESERVED", "overall_likelihood_qualifiers": [], "party_id": "P_ONE", "polarity": "ADVERSE", "provenance": [{"clause_id": "C1", "excerpt": "Pulling it redirects the trolley, and one person on the other track will then be killed."}, {"clause_id": "A0", "excerpt": "Pull the lever, redirecting the trolley toward one person"}, {"clause_id": "C0", "excerpt": "Five people will be killed by the runaway trolley unless the lever is pulled."}], "quantities": ["one", "Five"], "relation": "DIES", "scope_qualifiers": [], "source_effect_ids": ["E0_2"], "source_proposition": "one person on the other track will then be killed", "temporal_qualifiers": []}], "harmed": ["One person"], "institutional_effect": "", "intervention": "Pull the lever, redirecting the trolley toward one person", "mechanism": "lever is pulled causes trolley is redirected; trolley is redirected causes one person is killed", "missing_critical": [], "presentation_action": "Pull the lever, redirecting the trolley toward one person", "short_label": "Pull the lever", "source_clauses": ["Pulling it redirects the trolley, and one person on the other track will then be killed."], "source_label": "", "structure_issues": [], "unresolved": [], "unresolved_outcomes": [], "world_effects": [{"action_id": "A0", "condition_ids": [], "condition_join": "AND", "derivation_assumptions": [], "derivation_explanation": "", "derivation_operation": "DIRECT_COPY", "directness": "DIRECT", "effect_id": "E0_1", "effect_kind": "INTERVENTION", "likelihood_qualifiers": [], "modality": "CERTAIN", "outcome": "lever is pulled", "outcome_type_transformation": "PRESERVED", "overall_likelihood_qualifiers": [], "party_id": "P_SWITCH", "polarity": "NEUTRAL", "provenance": [{"clause_id": "C1", "excerpt": "Pulling it redirects the trolley, and one person on the other track will then be killed."}, {"clause_id": "A0", "excerpt": "Pull the lever, redirecting the trolley toward one person"}], "quantities": [], "relation": "EXPERIENCES", "scope_qualifiers": [], "source_effect_ids": [], "source_proposition": "Pulling it redirects the trolley", "temporal_qualifiers": []}, {"action_id": "A0", "condition_ids": [], "condition_join": "AND", "derivation_assumptions": [], "derivation_explanation": "C1 states redirection follows the lever pull.", "derivation_operation": "SOURCE_STIPULATED_CAUSAL", "directness": "DOWNSTREAM", "effect_id": "E0_2", "effect_kind": "PHYSICAL_STATE", "likelihood_qualifiers": [], "modality": "CERTAIN", "outcome": "trolley is redirected", "outcome_type_transformation": "PRESERVED", "overall_likelihood_qualifiers": [], "party_id": "P_TROLLEY", "polarity": "NEUTRAL", "provenance": [{"clause_id": "C1", "excerpt": "Pulling it redirects the trolley, and one person on the other track will then be killed."}, {"clause_id": "A0", "excerpt": "Pull the lever, redirecting the trolley toward one person"}], "quantities": [], "relation": "EXPERIENCES", "scope_qualifiers": [], "source_effect_ids": ["E0_1"], "source_proposition": "Pulling it redirects the trolley", "temporal_qualifiers": []}, {"action_id": "A0", "condition_ids": [], "condition_join": "AND", "derivation_assumptions": [], "derivation_explanation": "C1 says the redirected trolley kills the single person.", "derivation_operation": "SOURCE_STIPULATED_CAUSAL", "directness": "DOWNSTREAM", "effect_id": "E0_3", "effect_kind": "HEALTH_OUTCOME", "likelihood_qualifiers": [], "modality": "CERTAIN", "outcome": "one person is killed", "outcome_type_transformation": "PRESERVED", "overall_likelihood_qualifiers": [], "party_id": "P_ONE", "polarity": "ADVERSE", "provenance": [{"clause_id": "C1", "excerpt": "Pulling it redirects the trolley, and one person on the other track will then be killed."}, {"clause_id": "A0", "excerpt": "Pull the lever, redirecting the trolley toward one person"}, {"clause_id": "C0", "excerpt": "Five people will be killed by the runaway trolley unless the lever is pulled."}], "quantities": ["one", "Five"], "relation": "DIES", "scope_qualifiers": [], "source_effect_ids": ["E0_2"], "source_proposition": "one person on the other track will then be killed", "temporal_qualifiers": []}]}, {"action_id": "A1", "action_origin": "USER_AUTHORED", "actor": "Bystander", "at_risk": [], "beneficiaries": [], "canonical_semantic_action": "Do not pull the lever, allowing the trolley to continue toward five people", "causal_links": [], "commitment_reasons": [], "commitment_status": "COMMITTED", "completeness_status": "COMPLETE", "conditionally_benefited": [], "counterfactual_effects": [{"action_id": "A1", "alternative_action_id": "A0", "alternative_effect_id": "E0_3", "condition_ids": [], "modality": "CERTAIN", "provenance": [{"clause_id": "C1", "excerpt": "Pulling it redirects the trolley, and one person on the other track will then be killed."}], "relation": "FOREGOES_ALTERNATIVE_EFFECT", "source_effect_id": "E1_FG2"}], "grounded_effects": [{"action_id": "A1", "condition_ids": [], "condition_join": "AND", "derivation_assumptions": [], "derivation_explanation": "If the lever were pulled, the single person would be killed.", "derivation_operation": "COUNTERFACTUAL_PROJECTION", "directness": "FOREGONE", "effect_id": "E1_FG2", "effect_kind": "OPPORTUNITY_LOSS", "likelihood_qualifiers": [], "modality": "CERTAIN", "outcome": "one person is killed", "outcome_type_transformation": "PRESERVED", "overall_likelihood_qualifiers": [], "party_id": "P_ONE", "polarity": "FOREGONE", "provenance": [{"clause_id": "C1", "excerpt": "Pulling it redirects the trolley, and one person on the other track will then be killed."}, {"clause_id": "A1", "excerpt": "Do not pull the lever, allowing the trolley to continue toward five people"}], "quantities": ["one"], "relation": "DIES", "scope_qualifiers": [], "source_effect_ids": ["E0_3"], "source_proposition": "one person on the other track will then be killed", "temporal_qualifiers": []}], "harmed": [], "institutional_effect": "", "intervention": "Do not pull the lever, allowing the trolley to continue toward five people", "mechanism": "", "missing_critical": [], "presentation_action": "Do not pull the lever, allowing the trolley to continue toward five people", "short_label": "Do not pull the lever", "source_clauses": ["Five people will be killed by the runaway trolley unless the lever is pulled."], "source_label": "", "structure_issues": [], "unresolved": [], "unresolved_outcomes": [], "world_effects": [{"action_id": "A1", "condition_ids": [], "condition_join": "AND", "derivation_assumptions": [], "derivation_explanation": "", "derivation_operation": "DIRECT_COPY", "directness": "DIRECT", "effect_id": "E1_1", "effect_kind": "INTERVENTION", "likelihood_qualifiers": [], "modality": "CERTAIN", "outcome": "lever is not pulled", "outcome_type_transformation": "PRESERVED", "overall_likelihood_qualifiers": [], "party_id": "P_SWITCH", "polarity": "NEUTRAL", "provenance": [{"clause_id": "C0", "excerpt": "Five people will be killed by the runaway trolley unless the lever is pulled."}, {"clause_id": "A1", "excerpt": "Do not pull the lever, allowing the trolley to continue toward five people"}], "quantities": [], "relation": "EXPERIENCES", "scope_qualifiers": [], "source_effect_ids": [], "source_proposition": "Five people will be killed by the runaway trolley unless the lever is pulled", "temporal_qualifiers": []}, {"action_id": "A1", "condition_ids": [], "condition_join": "AND", "derivation_assumptions": [], "derivation_explanation": "If the lever were pulled, the single person would be killed.", "derivation_operation": "COUNTERFACTUAL_PROJECTION", "directness": "FOREGONE", "effect_id": "E1_FG2", "effect_kind": "OPPORTUNITY_LOSS", "likelihood_qualifiers": [], "modality": "CERTAIN", "outcome": "one person is killed", "outcome_type_transformation": "PRESERVED", "overall_likelihood_qualifiers": [], "party_id": "P_ONE", "polarity": "FOREGONE", "provenance": [{"clause_id": "C1", "excerpt": "Pulling it redirects the trolley, and one person on the other track will then be killed."}, {"clause_id": "A1", "excerpt": "Do not pull the lever, allowing the trolley to continue toward five people"}], "quantities": ["one"], "relation": "DIES", "scope_qualifiers": [], "source_effect_ids": ["E0_3"], "source_proposition": "one person on the other track will then be killed", "temporal_qualifiers": []}]}]
+
+--- Semantic preservation trace ---
+status: COMMITTED
+repairs: 4
+C1: Pulling it redirects the trolley, and one person on the other track will then be killed.; A0: Pull the lever, redirecting the trolley toward one person → A0 Pull the lever, redirecting the trolley toward one person → E0_1 lever is pulled [Track switch] → ADMITTED → none
+C1: Pulling it redirects the trolley, and one person on the other track will then be killed.; A0: Pull the lever, redirecting the trolley toward one person → A0 Pull the lever, redirecting the trolley toward one person → E0_2 trolley is redirected [Runaway trolley] → ADMITTED → none
+C1: Pulling it redirects the trolley, and one person on the other track will then be killed.; A0: Pull the lever, redirecting the trolley toward one person; C0: Five people will be killed by the runaway trolley unless the lever is pulled. → A0 Pull the lever, redirecting the trolley toward one person → E0_3 one person is killed [One person] → ADMITTED → harmed=One person
+    role reason: CERTAIN HEALTH_OUTCOME ADVERSE; affected quantity one, Five; compact harmed
+C0: Five people will be killed by the runaway trolley unless the lever is pulled.; A1: Do not pull the lever, allowing the trolley to continue toward five people → A1 Do not pull the lever, allowing the trolley to continue toward five people → E1_1 lever is not pulled [Track switch] → ADMITTED → none
+C1: Pulling it redirects the trolley, and one person on the other track will then be killed.; A1: Do not pull the lever, allowing the trolley to continue toward five people → A1 Do not pull the lever, allowing the trolley to continue toward five people → E1_FG2 one person is killed [One person] → ADMITTED → none
+repair 4 delta: {"added": {"causal_links": ["E0_2|E0_4|CAUSES", "E1_2|E1_4|CAUSES"]}, "dropped": {"causal_links": ["E0_1|E0_FG1|PREVENTS", "E1_1|E1_FG2|PREVENTS"], "quantities": ["effect|E0_3|five"]}, "illegal_drops": ["repair dropped previously valid quantities effect|E0_3|five that the listed errors did not name", "repair dropped previously valid causal links E0_1|E0_FG1|PREVENTS that the listed errors did not name", "repair dropped previously valid causal links E1_1|E1_FG2|PREVENTS that the listed errors did not name"]}
+role A0 harmed: One person (E0_3) because CERTAIN HEALTH_OUTCOME ADVERSE; affected quantity one, Five; compact harmed
+Semantic preservation trace: eval_outputs/study1-trolley-reduced-20260916/nuisance_passive_paraphrase/parliament_workspace/semantic_preservation_trace.json
+
+--- Admitted world ---
+status: COMMITTED
+repairs: 4
+
+A0: Pull the lever
+  benefits: none
+  harms: One person
+  at risk: none
+  conditionally benefited: none
+  mechanism: lever is pulled causes trolley is redirected; trolley is redirected causes one person is killed
+  E0_1 CAUSES E0_2
+  E0_2 CAUSES E0_3
+  E0_1 DIRECT NEUTRAL lever is pulled [P_SWITCH]
+  E0_2 DOWNSTREAM NEUTRAL trolley is redirected [P_TROLLEY]
+  E0_3 DOWNSTREAM ADVERSE one person is killed [P_ONE] (one, Five)
+
+A1: Do not pull the lever
+  benefits: none
+  harms: none
+  at risk: none
+  conditionally benefited: none
+  E1_1 DIRECT NEUTRAL lever is not pulled [P_SWITCH]
+  E1_FG2 FOREGONE FOREGONE one person is killed [P_ONE] (one)
+  FOREGONE E1_FG2 -> A0 E0_3
+Non-interactive input: continuing to expert agents.
+Consulting original utilitarian agent...
+Consulting original deontological agent...
+Consulting original virtue agent...
+Consulting original care agent...
+Consulting original rawlsian agent...
+Freezing utilitarian testimony baseline...
+  utilitarian baseline: CONDITIONAL A0 (Recommends pulling the lever but makes it contingent on absence of information that the lone person’s survival yields much greater utility.)
+Freezing deontological testimony baseline...
+  deontological baseline: DIRECT A1 (The testimony concludes: “Deontological Status: Pull-lever is prohibited; refraining is required,” directly endorsing A1 and condemning A0.)
+Freezing virtue testimony baseline...
+  virtue baseline: NORMATIVELY_CONTESTED A0 (Text calls it “Provisional judgment: many exemplars ... would PULL_THE_LEVER, yet others of equal integrity would REFRAIN; conscientious self-scrutiny … decisive,” signalling contested virtue with a leaning toward A0.)
+Freezing care testimony baseline...
+  care baseline: DIRECT A0 (States a "Provisional recommendation Pull the lever" and argues it is the preferred action despite reservations.)
+Freezing rawlsian testimony baseline...
+  rawlsian baseline: DIRECT A1 (States: "Preferred action: 'Do nothing.'", matching canonical A1; also criticizes pulling the lever.)
+Auditing whether unequal observability creates epistemic exclusion...
+Visibility audit recorded as hypothetical; no confidence penalty applied
+Auditing candidate actions for coercion and competent refusal...
+Autonomy audit activated: Pull the lever, redirecting the trolley toward one person=COERCIVE
+Cycle 1/3 — broadcast OPEN_DELIBERATION | salient=NONE:NONE | claim=NONE | authority=NONE | unresolved=ASSESS_FACTS | procedure=BASE_DELIBERATION | tasks=NONE | focus_propositions=NONE | frame=OPENING_PROBLEM_FRAME(clauses=4,identities=23)
+  [1/5] utilitarian delegate thinking...
+  [2/5] deontological delegate thinking...
+  [3/5] virtue delegate thinking...
+  [4/5] care delegate thinking...
+  [5/5] rawlsian delegate thinking...
+  evaluation barrier complete; committing in configured order
+  [1/5] utilitarian committed; position=?; constraint=IMMINENT_HARM; preference=0.00; epistemic=0.55; status=CONTESTED_NO_LEANING; evaluation=12.9s; commit=0.003s
+    Deontological duty ledger committed_with_uncertainty: A0 ADJUDICATION_CALIBRATION: intended-as-means classification lacks an in-action causal path | A0 ADJUDICATION_CALIBRATION: coercion claim lacks actor-to-mechanism-to-restriction-to-party grounding
+  [2/5] deontological committed; position=A1; constraint=DUTY; preference=0.52; epistemic=0.55; status=PROVISIONAL_LEANING; evaluation=26.2s; commit=0.004s
+  [3/5] virtue committed; position=A0; constraint=CHARACTER; preference=0.04; epistemic=0.55; status=SUPPORTS; evaluation=9.1s; commit=0.000s
+    Care relationship ledger committed_with_uncertainty: A0 competing Care claim remains contested | A1 competing Care claim remains contested
+  [4/5] care committed; position=A0; constraint=CARE; preference=0.46; epistemic=0.55; status=SUPPORTS; evaluation=8.8s; commit=0.002s
+  [5/5] rawlsian committed; position=A1; constraint=RIGHTS; preference=0.39; epistemic=0.55; status=SUPPORTS; evaluation=12.4s; commit=0.000s
+  side-premise audit=FINDINGS; findings=5
+  Deliberation updates — cycle 1
+    utilitarian: ? [CONTESTED_NO_LEANING; vote=ABSTAIN (framework did not select a live action)] — Unresolved contestation: prefer action that yields more survivors Unresolved contestation: saves net four lives
+      Framework analysis: A0: one person is killed [HARM, CERTAIN] — one death – major welfare loss
+    deontological: A1 [PROVISIONAL_LEANING; vote=ATTENUATED (framework ranking retains an unresolved decision-critical dependency)] — Provisionally: Treat the duty priority as unestablished until whether the asserted coercive relationship is grounded; and whether an in-action causal path makes the burden instrumental to the chosen end Deontology ranks one person's do not intentionally kill innocents above five people's Imperfect duty of rescue through respect persons, but that priority holds only if A0 is genuinely provisionally favored under incomplete adjudication, and
+      Framework analysis: A0: CONFLICTED — do not intentionally kill innocents; duty=PERFECT_NEGATIVE; relation=VIOLATES; Kills one as means violates respect for persons
+      Framework analysis: A1: REQUIRED — do not intentionally kill innocents; duty=PERFECT_NEGATIVE; relation=SATISFIES; Respects persons by not killing
+    virtue: A0 [PROVISIONAL_LEANING; vote=ABSTAIN (expected VIRTUE_CHARACTER_LEDGER, but no matching committed ledger is operative)] — Provisionally: prefer A0 when saving five with proportionate resolve outweighs direct harm to one Provisionally: courage saves more lives
+    care: A0 [SUPPORTS; vote=ABSTAIN (derived claim validation failed: derived claim 1 cites effects outside its committed framework ledger; derived claim 1 comparison does not expose effects from both actions)] — prefer A0 when it directly preserves more acutely dependent lives than it sacrifices answers most urgent dependency
+      Framework analysis: A0: RESPONSIVE — five people on main track; relation=DEPENDENCY; dependency=they are immobile before an oncoming trolley; Acting rescues greater acute dependency
+      Framework analysis: A1: NEGLECTFUL — five people on main track; relation=DEPENDENCY; dependency=same; Non-intervention abandons acute dependents
+    rawlsian: A1 [SUPPORTS; vote=ABSTAIN (expected RAWLSIAN_POSITION_LEDGER, but no matching committed ledger is operative; blocked by: decisive numbers are not tied to the affected subject or Rawlsian position)] — Prefer A1 when A0 violates a basic liberty. avoid deliberate killing
+  Next-cycle agenda
+    utilitarian: Which grounded comparison would resolve the utilitarian ranking: NONE?
+    deontological: Is the burden under A0 causally used to produce the chosen end, or is it a foreseen or counterfactual side effect?
+    care: Does the Care comparison remain complete after representing the dependency claim of One person, Runaway trolley?
+    rawlsian: Does the Rawlsian comparison remain complete after representing the materially affected position of Runaway trolley, Track switch over the same relevant horizon?
+    virtue: Would this stated defeat condition weaken or reverse the current argument: If victims equal, prefer refrain?
+  cycle policy_leader=Do not pull the lever, allowing the trolley to continue toward five people (0.89); entropy=0.50; governing_claim=NONE | broadcast_focus=deontological:DUTY | authority=INVESTIGATIVE | claim=UNRESOLVED DUTY CONFLICT: one person: do not intentionally kill innocents ↔ five people: Imperfect duty of rescue. Curre
+Cycle 2/3 — broadcast DUTY | salient=deontological:Do not pull the lever, allowing the trolley to continue toward five people | claim=UNRESOLVED DUTY CONFLICT: one person: do not intentionally kill innocents ↔ five people: Imperfect duty of rescue. Cu... | authority=INVESTIGATIVE | unresolved=DECISION_BOUNDARY | procedure=ANSWER_ARGUMENT_CHALLENGE | tasks=['CHALLENGE:514f949808adcac2', 'CHALLENGE:067dc2a407e02ac6', 'CHALLENGE:0d73e68ddcb09eb1', 'CHALLENGE:5889e97c59bc58e4', 'CHALLENGE:492c6b0e162980b6'] | focus_propositions=['PROP:HYPOTHESIS:c9014ea2be437db4', 'PROP:HYPOTHESIS:6b87475a13e1fc32', 'PROP:HYPOTHESIS:1b8459c3aa9b3e5d', 'PROP:HYPOTHESIS:0c3df15eccfbf8f3']
+  [1/5] utilitarian delegate thinking...
+  [2/5] deontological delegate thinking...
+  [3/5] virtue delegate thinking...
+  [4/5] care delegate thinking...
+  [5/5] rawlsian delegate thinking...
+  evaluation barrier complete; committing in configured order
+  [1/5] utilitarian committed; position=?; constraint=IMMINENT_HARM; preference=0.00; epistemic=0.35; status=CONTESTED_NO_LEANING; evaluation=30.1s; commit=0.005s
+    Deontological duty ledger committed_with_uncertainty: A0 ADJUDICATION_CALIBRATION: coercion claim lacks actor-to-mechanism-to-restriction-to-party grounding | A0 ADJUDICATION_CALIBRATION: resolved adjudication rests on unsupported decisive premises
+  [2/5] deontological committed; position=A1; constraint=DUTY; preference=0.26; epistemic=0.55; status=PROVISIONAL_LEANING; evaluation=34.7s; commit=0.004s
+  [3/5] virtue committed; position=A0; constraint=CHARACTER; preference=0.20; epistemic=0.55; status=SUPPORTS; evaluation=12.0s; commit=0.002s
+    Care relationship ledger committed_with_uncertainty: A0 competing Care claim remains contested | A1 competing Care claim remains contested
+  [4/5] care committed; position=A0; constraint=CARE; preference=0.26; epistemic=0.55; status=SUPPORTS; evaluation=12.5s; commit=0.002s
+  [5/5] rawlsian committed; position=A1; constraint=RIGHTS; preference=0.46; epistemic=0.55; status=SUPPORTS; evaluation=27.5s; commit=0.001s
+  side-premise audit=PASSED; findings=0
+  Deliberation updates — cycle 2
+    utilitarian: ? [CONTESTED_NO_LEANING; vote=ABSTAIN (framework did not select a live action)]
+      Question: Which grounded comparison would resolve the utilitarian ranking: NONE?
+      Answer: Utilitarian ranking hinges on comparing certain death of one under A0 with certain death of five
+              under A1; admitting the latter comparison resolves the ranking in favour of A0.
+      Outcome: REFINED; current=NO_CHANGE; boundary=MAY_SWITCH; verification=RESOLUTION_REJECTED
+      Ledger: the operative utilitarian comparison remains underdetermined
+      Position rationale: Unresolved contestation: prefer action that minimises expected deaths Unresolved contestation: likely saves four lives
+      Framework analysis: A0: one person is killed [HARM, CERTAIN] — certain loss of one life
+    deontological: A1 [PROVISIONAL_LEANING; vote=ATTENUATED (framework ranking retains an unresolved decision-critical dependency)]
+      Question: Is the burden under A0 causally used to produce the chosen end, or is it a foreseen or counterfactual side effect?
+      Answer: The single person’s death is a foreseen side-effect of diverting the trolley; her body is not
+              causally used to save the five.
+      Outcome: REFINED; current=NO_CHANGE; boundary=NO_SWITCH; verification=RESOLUTION_REJECTED
+      Ledger: answer converts an admitted non-mortality outcome into deaths for Runaway trolley
+      Position rationale: Provisionally: Treat the duty priority as unestablished until whether the asserted coercive relationship is grounded Deontology ranks one person's do not wrongfully kill innocents above five people's Imperfect duty of rescue through respect persons, but that priority holds only if A0 is genuinely provisionally favored under incomplete adjudication, and th
+      Framework analysis: A0: CONFLICTED — do not wrongfully kill innocents; duty=PERFECT_NEGATIVE; relation=VIOLATES; Causes innocent death
+      Framework analysis: A1: REQUIRED — do not wrongfully kill innocents; duty=PERFECT_NEGATIVE; relation=SATISFIES; Respects innocent life
+    virtue: A0 [PROVISIONAL_LEANING; vote=ATTENUATED (framework ranking retains an unresolved decision-critical dependency)]
+      Question: Would this stated defeat condition weaken or reverse the current argument: If victims equal, prefer refrain?
+      Answer: Yes. If victims were equal in number, the virtue-ethics reason to act from rescue-courage would no
+              longer outweigh the integrity reason to refrain, so the ranking would reverse.
+      Outcome: RESOLVED; current=NO_CHANGE; boundary=SWITCHES; verification=VERIFIED_RESOLVED
+      Ledger: counterfactual boundary was explicitly classified
+      Position rationale: Provisionally: prefer A0 when it preserves more lives without clear vicious motive Provisionally: Equal numbers would flip
+      Framework analysis: A0: EXEMPLIFIES — virtues=courage, compassion, responsibility; vice risk=possible hubris; judgment=meets role with proportionate rescue
+      Framework analysis: A1: MIXED — virtues=integrity, respect for life; vice risk=omissive indifference; judgment=respects inviolability but neglects rescue
+    care: A0 [SUPPORTS; vote=ABSTAIN (derived claim validation failed: derived claim 1 cites effects outside its committed framework ledger; derived claim 1 comparison does not expose effects from both actions)]
+      Question: Does the Care comparison remain complete after representing the dependency claim of One person, Runaway trolley?
+      Answer: Yes. We now explicitly record the single person’s equal, immediate survival dependency. Action A0 is
+              MIXED—responsive to five, betraying one—while A1 is the mirror image. Given symmetric dependency but
+              a 5-to-1 difference in recipients, A0 remains the more responsive overall, though it leaves a moral
+              residue of harm that calls for later reparative care.
+      Outcome: RESOLVED; current=NO_CHANGE; boundary=NO_SWITCH; verification=VERIFIED_RESOLVED
+      Ledger: both actions retain parties, dependencies, and competing Care claims
+      Operative framework state: unchanged from previous cycle
+    rawlsian: A1 [SUPPORTS; vote=ABSTAIN (expected RAWLSIAN_POSITION_LEDGER, but no matching committed ledger is operative; blocked by: decisive numbers are not tied to the affected subject or Rawlsian position)]
+      Question: Does the Rawlsian comparison remain complete after representing the materially affected position of Runaway trolley, Track switch over the same relevant horizon?
+      Answer: Both tracks’ materially affected parties are already represented: the single redirected victim (A0)
+              and the same individual whose liberty remains un-coerced under A1. No additional constituency bears
+              a different basic-liberty relation across actions, so the Rawlsian comparison is complete.
+      Outcome: REFINED; current=NO_CHANGE; boundary=NOT_APPLICABLE; verification=RESOLUTION_REJECTED
+      Ledger: no operative graph-committed framework ledger is available
+      Operative framework state: unchanged from previous cycle
+  Next-cycle agenda
+    deontological: Do the established effects justify the stronger death or survival premise used to classify do not wrongfully kill innocents, or is that premise unestablished?
+    utilitarian: Which grounded comparison would resolve the utilitarian ranking: Missing admitted effect: certain death of five under A1?
+    rawlsian: What additional framework-specific ground would resolve this validation result: decisive numbers are not tied to the affected subject or Rawlsian position
+    care: Would this stated defeat condition weaken or reverse the current argument: duty to avoid doing harm outweighs duty to aid?
+    virtue: Would this stated defeat condition weaken or reverse the current argument: If absolute ban on intentional killing is primary, prefer refrain?
+  cycle policy_leader=Do not pull the lever, allowing the trolley to continue toward five people (0.53); entropy=1.00; governing_claim=NONE | broadcast_focus=care:CARE | authority=NONE | claim=prefer A0 when it directly preserves more acutely dependent lives than it sacrifices
+  unresolved competition detected; attempting grounded synthesis...
+  synthesis rejected: introduces unsupported concrete requirements: Lone person clearly signals consent
+Cycle 3/3 — broadcast CARE | salient=care:Do not pull the lever, allowing the trolley to continue toward five people | claim=prefer A0 when it directly preserves more acutely dependent lives than it sacrifices answers most urgent dependency | authority=NONE | unresolved=DECISION_BOUNDARY | procedure=ANSWER_ARGUMENT_CHALLENGE | tasks=['CHALLENGE:0abb4717e7782db9', 'CHALLENGE:13cd5689cad89a75', 'CHALLENGE:df7b986f6ad204ef', 'CHALLENGE:98307ecb163c41a0', 'CHALLENGE:cb312d090bc50f36'] | focus_propositions=['PROP:HYPOTHESIS:c9014ea2be437db4', 'PROP:HYPOTHESIS:6b87475a13e1fc32', 'PROP:HYPOTHESIS:1b8459c3aa9b3e5d', 'PROP:HYPOTHESIS:0c3df15eccfbf8f3']
+  [1/5] utilitarian delegate thinking...
+  [2/5] deontological delegate thinking...
+  [3/5] virtue delegate thinking...
+  [4/5] care delegate thinking...
+  [5/5] rawlsian delegate thinking...
+  evaluation barrier complete; committing in configured order
+  [1/5] utilitarian committed; position=?; constraint=UNCERTAINTY; preference=0.00; epistemic=0.35; status=CONTESTED_NO_LEANING; evaluation=36.8s; commit=0.008s
+    Deontological duty ledger committed_with_uncertainty: A0 ADJUDICATION_CALIBRATION: coercion claim lacks actor-to-mechanism-to-restriction-to-party grounding | A0 ADJUDICATION_CALIBRATION: resolved adjudication rests on unsupported decisive premises
+  [2/5] deontological committed; position=A1; constraint=DUTY; preference=0.46; epistemic=0.55; status=PROVISIONAL_LEANING; evaluation=25.1s; commit=0.005s
+  [3/5] virtue committed; position=A0; constraint=CHARACTER; preference=0.20; epistemic=0.55; status=SUPPORTS; evaluation=10.8s; commit=0.002s
+    Care relationship ledger committed_with_uncertainty: A0 competing Care claim remains contested | A1 Care relation claims scenario grounding without a matching action effect
+  [4/5] care committed; position=A0; constraint=CARE; preference=0.39; epistemic=0.55; status=SUPPORTS; evaluation=25.9s; commit=0.002s
+  [5/5] rawlsian committed; position=A1; constraint=RIGHTS; preference=0.39; epistemic=0.55; status=SUPPORTS; evaluation=25.6s; commit=0.001s
+  side-premise audit=FINDINGS; findings=4
+  Deliberation updates — cycle 3
+    utilitarian: ? [CONTESTED_NO_LEANING; vote=ABSTAIN (framework did not select a live action)]
+      Question: Which grounded comparison would resolve the utilitarian ranking: Missing admitted effect: certain death of five under A1?
+      Answer: Utilitarian comparison needs the admitted consequence that inaction (A1) leads to the certain death
+              of five people. Once that world effect is formally recorded, utility clearly favours pulling the
+              lever because 5 foreseeable deaths (A1) outweigh 1 caused death (A0).
+      Outcome: REFINED; current=NO_CHANGE; boundary=MAY_SWITCH; verification=VERIFIED_REFINED
+      Ledger: answer converts an admitted non-mortality outcome into deaths for five people
+      Position rationale: Unresolved contestation: prefer A0 when it yields fewer deaths than A1 Unresolved contestation: need confirmed five deaths
+      Framework analysis: A0: one person is killed [HARM, CERTAIN] — certain loss of one life
+    deontological: A1 [PROVISIONAL_LEANING; vote=ATTENUATED (framework ranking retains an unresolved decision-critical dependency)]
+      Question: Do the established effects justify the stronger death or survival premise used to classify do not wrongfully kill innocents, or is that premise unestablished?
+      Answer: Yes. The admitted world effects establish with certainty that pulling the lever (A0) causes the
+              death of one identifiable innocent person, while refraining (A1) causes no direct killing. That fact
+              is sufficient to trigger the perfect negative duty not to wrongfully kill innocents. Therefore the
+              stronger premise classifying A0 as a violation and A1 as satisfying the duty is grounded, not
+              unestablished.
+      Outcome: RESOLVED; current=NO_CHANGE; boundary=NO_SWITCH; verification=VERIFIED_RESOLVED
+      Ledger: answer is backed by an operative graph-committed ledger
+      Position rationale: Provisionally: Treat the duty priority as unestablished until whether the asserted coercive relationship is grounded Deontology ranks one person's do not wrongfully kill innocents above five people's Imperfect duty of rescue through respect persons, but that priority holds only if A0 is genuinely provisionally favored under incomplete adjudication, and th
+      Framework analysis: A0: CONFLICTED — do not wrongfully kill innocents; duty=PERFECT_NEGATIVE; relation=VIOLATES; Direct causal killing of innocent
+      Framework analysis: A1: REQUIRED — do not wrongfully kill innocents; duty=PERFECT_NEGATIVE; relation=SATISFIES; No direct killing committed
+    virtue: A0 [PROVISIONAL_LEANING; vote=ATTENUATED (framework ranking retains an unresolved decision-critical dependency)]
+      Question: Would this stated defeat condition weaken or reverse the current argument: If absolute ban on intentional killing is primary, prefer refrain?
+      Answer: Yes. If the virtue of justice is treated as lexically prior so that any intentional killing is
+              categorically vicious, then practical wisdom would require refraining (A1), reversing my current
+              ranking.
+      Outcome: RESOLVED; current=NO_CHANGE; boundary=SWITCHES; verification=VERIFIED_RESOLVED
+      Ledger: counterfactual boundary was explicitly classified
+      Position rationale: Provisionally: prefer A0 when saving markedly more lives without vicious motive Provisionally: Courageous rescue of five
+      Framework analysis: A0: EXEMPLIFIES — virtues=courage, compassion, responsibility; vice risk=hubris risk; judgment=saves five with prudent resolve
+      Framework analysis: A1: MIXED — virtues=integrity, respect for life; vice risk=omissive callousness; judgment=avoids direct killing but leaves five to die
+    care: A0 [SUPPORTS; vote=ABSTAIN (derived claim validation failed: derived claim 1 cites effects outside its committed framework ledger; derived claim 1 comparison does not expose effects from both actions)]
+      Question: Would this stated defeat condition weaken or reverse the current argument: duty to avoid doing harm outweighs duty to aid?
+      Answer: Care ethics treats doing versus allowing harm as secondary to meeting urgent dependency. Responding
+              to five threatened lives remains the more caring act, so the proposed defeater does not overturn the
+              ranking.
+      Outcome: RESOLVED; current=NO_CHANGE; boundary=NO_SWITCH; verification=VERIFIED_RESOLVED
+      Ledger: counterfactual boundary was explicitly classified
+      Operative framework state: unchanged from previous cycle
+    rawlsian: A1 [SUPPORTS; vote=ABSTAIN (expected RAWLSIAN_POSITION_LEDGER, but no matching committed ledger is operative; blocked by: decisive numbers are not tied to the affected subject or Rawlsian position)]
+      Question: What additional framework-specific ground would resolve this validation result: decisive numbers are not tied to the affected subject or Rawlsian position
+      Answer: Rawlsian evaluation turns on whether an action coercively infringes an equal basic liberty. Pulling
+              the lever (A0) newly and intentionally deprives one person of the fundamental liberty of bodily
+              integrity; doing nothing (A1) does not impose any new coercive restriction but allows a harm arising
+              from a natural contingency. Since basic liberties have lexical priority, any fresh intentional
+              infringement is rejected, no matter how many other lives might be saved. Therefore numbers are
+              rightly treated as secondary and need not be tied to the Rawlsian position once the liberty status
+              is fixed.
+      Outcome: REFINED; current=NO_CHANGE; boundary=NOT_APPLICABLE; verification=RESOLUTION_REJECTED
+      Ledger: no operative graph-committed framework ledger is available
+      Operative framework state: unchanged from previous cycle
+  Next-cycle agenda
+    virtue: Does grounded evidence establish the stronger death or survival premise used in the character judgment, or should the virtue assessment remain conditional?
+    utilitarian: Which grounded comparison would resolve the utilitarian ranking: NONE?
+    deontological: Is the burden under A0 causally used to produce the chosen end, or is it a foreseen or counterfactual side effect?
+    rawlsian: Does the Rawlsian comparison remain complete after representing the materially affected position of Runaway trolley, Track switch over the same relevant horizon?
+    care: Would this stated defeat condition weaken or reverse the current argument: single-track victim count ≥5?
+  cycle policy_leader=Do not pull the lever, allowing the trolley to continue toward five people (0.63); entropy=0.95; governing_claim=NONE | broadcast_focus=deontological:DUTY | authority=INVESTIGATIVE | claim=UNRESOLVED DUTY CONFLICT: one person: do not wrongfully kill innocents ↔ five people: Imperfect duty of rescue. Current 
+
+# Ethical Parliament Judgment
+
+## Recommendation
+
+**No conclusive recommendation yet.** Current plurality: Do not pull the lever.
+
+No stable governing recommendation is available yet. The values below describe the current plurality, not a final settled judgment.
+
+**Policy support:** 0.63
+**Epistemic confidence:** 0.35
+**Judgment status:** UNRESOLVED
+**Convergence:** Incomplete (cycle budget reached)
+
+The cycle budget was reached before deliberation naturally converged.
+
+## Factual Status
+
+**Established or derived from the admitted world model:**
+
+- One person is killed; affected subject: One person. (established)
+- Lever is pulled; affected subject: Track switch. (established)
+- Trolley is redirected; affected subject: Runaway trolley. (established)
+- Lever is not pulled; affected subject: Track switch. (established)
+
+**Unestablished premises used in the deliberation:**
+
+- If the lever is not pulled, five people will be killed by the runaway trolley. **Status: hypothetical.** Used by Care, Deontological, Utilitarian.
+- Certain death of the five people if lever not pulled is not yet an admitted world effect. **Status: hypothetical.** Used by Utilitarian.
+- If the lever is not pulled, the five deaths are merely likely rather than certain. **Status: hypothetical.** Used by Utilitarian.
+- Pulling the lever would rescue five people who would otherwise die. **Status: hypothetical.** Used by Deontological.
+- Acting (pulling the lever) saves five people at the cost of one. **Status: hypothetical.** Used by Virtue.
+- Five people on the main track face immediate lethal danger that can be removed by pulling the lever. **Status: hypothetical.** Used by Care.
+
+Repeated use can increase a premise's salience, but does not make it established. Hypothetical is reserved for agent-introduced propositions absent from the admitted world.
+
+
+## Why the Parliament currently favors this action
+
+Deontological conditionally supports this action: the testimony concludes: “Deontological Status: Pull-lever is prohibited; refraining is required,” directly endorsing A1 and condemning A0. Deontology ranks one person's do not wrongfully kill innocents above five people's Imperfect duty of rescue through respect persons, but that priority holds only if A0 is genuinely provisionally favored under incomplete adjudication, and th. best case: keeps hands clean of killing, respects perfect duty.
+Admitted ranking stands. Reversal boundary if the unestablished proposition hypothetical: Pulling the lever would rescue five people who would otherwise die exceeds the admitted welfare margin.
+
+### Directional leans without admitted vote
+
+These frameworks lean toward the plurality on scores or recommended_action, but their **admitted vote is ABSTAIN** — not support.
+
+Rawlsian leans toward Do not pull the lever but abstains: expected RAWLSIAN_POSITION_LEDGER, but no matching committed ledger is operative; blocked by: decisive numbers are not tied to the affected subject or Rawlsian position.
+
+## Most important unresolved issue
+
+**Open question requiring further review (Deontological).**
+
+UNRESOLVED DUTY CONFLICT: one person: do not wrongfully kill innocents ↔ five people: Imperfect duty of rescue. Current reasoning leans Do not pull the lever, but the competing strict claim has not been vindicated or defeated.
+
+The unresolved conflict is:
+
+**one person: do not wrongfully kill innocents ↔ five people: Imperfect duty of rescue**
+versus
+**A0 prohibited by do not wrongfully kill innocents ↔ whether the asserted coercive relationship is grounded**
+
+An investigative claim may be the most salient issue in the workspace without becoming the governing justification for the recommendation.
+
+## Shared epistemic dependencies
+
+- **If the lever is not pulled, five people will be killed by the runaway trolley.** Status: hypothetical. Utilitarian's position depends materially on it.
+- **Acting (pulling the lever) saves five people at the cost of one.** Status: hypothetical. Virtue's position depends materially on it.
+- **Pulling the lever would rescue five people who would otherwise die.** Status: hypothetical. Deontological's position depends materially on it.
+
+## What could change the judgment
+
+The recommendation should be reconsidered if:
+
+- the recommendation changes if single person’s continued life produces ≥5 equivalent lives of welfare;
+- the recommendation changes if reverse the admitted ranking if this unestablished consequence is verified and exceeds the admitted welfare margin: Pulling the lever would rescue five people who would otherwise d;
+- the recommendation changes if victims equal, prefer refrain;
+- the recommendation changes if single-track victim count ≥5;
+- or recommendation flips if the single person’s continued life would produce ≥4× the total well-being of the five (or comparable massive social benefit).
+
+Where a condition is a hypothetical threshold rather than an unknown fact, it is a **decision boundary**, not factual uncertainty.
+
+## Alternative action discovered
+
+The Parliament identified a possible alternative:
+
+**Seek the lone person’s explicit consent before diverting the trolley.**
+
+Addresses CARE duty to rescue five while respecting the DEONTOLOGICAL perfect duty not to kill without autonomy; consent removes coercion, letting the lever be pulled only if the potential victim freely accepts the risk, thus reconciling co.
+
+**Status:** Candidate only — no completed substantive specialist review during this run.
+
+Do not replace the stipulated recommendation with this action unless proposal review is successfully completed.
+
+## Deliberation Map
+
+| Framework | Directional position | Admitted vote | Epistemic status | Main contribution |
+|---|---|---|---|---|
+| Utilitarian | Pull the lever | ABSTAIN: Framework did not select a live action. | ABSTAINS | Conditional on [hypothetical: If the lever is not pulled, five people will be killed by the runaway trolley; hypothetical: Certain death... |
+| Deontological | Do not pull the lever | ATTENUATED: Framework ranking retains an unresolved decision-critical dependency. | CONDITIONAL_SUPPORTS | Reversal boundary [hypothetical: Pulling the lever would rescue five people who would otherwise die]: The testimony concludes: “Deontolog... |
+| Virtue | Pull the lever | ATTENUATED: Framework ranking retains an unresolved decision-critical dependency. | CONDITIONAL_SUPPORTS | Reversal boundary [hypothetical: Acting (pulling the lever) saves five people at the cost of one]: No compact contribution recorded |
+| Care | Pull the lever | ABSTAIN: Derived claim validation failed: derived claim 1 cites effects outside its committed framework led... | ABSTAINS | Reversal boundary [hypothetical: Five people on the main track face immediate lethal danger that can be removed by pulling the lever]: No... |
+| Rawlsian | Do not pull the lever | ABSTAIN: Expected RAWLSIAN_POSITION_LEDGER, but no matching committed ledger is operative; blocked by: deci... | ABSTAINS | No compact contribution recorded |
+
+## Governing and Investigative State
+
+**Policy leader:** Do not pull the lever
+
+**Governing claim:** NONE
+
+**Primary investigative focus:** UNRESOLVED DUTY CONFLICT: one person: do not wrongfully kill innocents ↔ five people: Imperfect duty of rescue. Current reasoning leans Do not pull the lever, but the competing strict claim has not been vindicated or defeated.
+
+An investigative claim may be the most salient issue in the workspace without becoming the governing justification for the recommendation.
+
+## Bottom Line
+
+**No governing recommendation is safe to present from this run.**
+
+The detailed trace explains how the Parliament reached this unresolved state.
+
+Saved trace: eval_outputs/study1-trolley-reduced-20260916/nuisance_passive_paraphrase/parliament_workspace/workspace_scenario_20260916_195255.json
+Saved summary: eval_outputs/study1-trolley-reduced-20260916/nuisance_passive_paraphrase/parliament_workspace/workspace_scenario_20260916_195255.txt
+Saved final answer: eval_outputs/study1-trolley-reduced-20260916/nuisance_passive_paraphrase/parliament_workspace/workspace_scenario_20260916_195255_answer.txt
+Saved performance trace: eval_outputs/study1-trolley-reduced-20260916/nuisance_passive_paraphrase/parliament_workspace/performance_scenario_20260916_195030_050767.json

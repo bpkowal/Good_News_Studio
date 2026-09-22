@@ -11,11 +11,13 @@ from typing import Any, Literal, Mapping, Sequence, Union
 
 ModalStrength = Literal["CERTAIN", "PROBABLE", "POSSIBLE", "UNKNOWN"]
 OperatorKind = Literal[
-    "Fact", "Not", "AllOf", "AnyOf", "Modal", "Conditional", "ExceptionRule",
+    "Fact", "Not", "AllOf", "AnyOf", "Modal", "Temporal", "Conditional",
+    "ExceptionRule",
 ]
 
 _OPERATOR_KINDS = frozenset({
-    "Fact", "Not", "AllOf", "AnyOf", "Modal", "Conditional", "ExceptionRule",
+    "Fact", "Not", "AllOf", "AnyOf", "Modal", "Temporal", "Conditional",
+    "ExceptionRule",
 })
 
 
@@ -69,6 +71,16 @@ class Modal:
 
 
 @dataclass(frozen=True, slots=True)
+class Temporal:
+    """An ordered relation between two propositions or events."""
+
+    relation: Literal["BEFORE", "AFTER"]
+    left: "Operator"
+    right: "Operator"
+    kind: OperatorKind = field(default="Temporal", init=False)
+
+
+@dataclass(frozen=True, slots=True)
 class Conditional:
     """If antecedent then consequent, optionally with a modal on the consequent."""
 
@@ -87,14 +99,18 @@ class ExceptionRule:
     kind: OperatorKind = field(default="ExceptionRule", init=False)
 
 
-Operator = Union[Fact, Not, AllOf, AnyOf, Modal, Conditional, ExceptionRule]
+Operator = Union[
+    Fact, Not, AllOf, AnyOf, Modal, Temporal, Conditional, ExceptionRule,
+]
 
 # Assignment: fact key → truth. Missing keys are False.
 Assignment = Mapping[str, bool]
 
 
 def _as_operator(value: Any) -> Operator:
-    if isinstance(value, (Fact, Not, AllOf, AnyOf, Modal, Conditional, ExceptionRule)):
+    if isinstance(value, (
+        Fact, Not, AllOf, AnyOf, Modal, Temporal, Conditional, ExceptionRule,
+    )):
         return value
     if not isinstance(value, dict):
         raise TypeError(f"operator payload must be a mapping, got {type(value)!r}")
@@ -120,6 +136,15 @@ def _as_operator(value: Any) -> Operator:
         if strength not in {"CERTAIN", "PROBABLE", "POSSIBLE", "UNKNOWN"}:
             raise ValueError(f"unknown modal strength: {strength!r}")
         return Modal(strength=strength, body=_as_operator(value["body"]))  # type: ignore[arg-type]
+    if kind == "Temporal":
+        relation = str(value.get("relation") or "").upper()
+        if relation not in {"BEFORE", "AFTER"}:
+            raise ValueError(f"unknown temporal relation: {relation!r}")
+        return Temporal(
+            relation=relation,  # type: ignore[arg-type]
+            left=_as_operator(value["left"]),
+            right=_as_operator(value["right"]),
+        )
     if kind == "Conditional":
         modality = value.get("modality")
         return Conditional(
@@ -162,6 +187,13 @@ def operator_to_dict(node: Operator) -> dict[str, Any]:
             "strength": node.strength,
             "body": operator_to_dict(node.body),
         }
+    if isinstance(node, Temporal):
+        return {
+            "kind": "Temporal",
+            "relation": node.relation,
+            "left": operator_to_dict(node.left),
+            "right": operator_to_dict(node.right),
+        }
     if isinstance(node, Conditional):
         payload: dict[str, Any] = {
             "kind": "Conditional",
@@ -201,6 +233,10 @@ def evaluate(node: Operator, assignment: Assignment) -> bool:
         # Modal does not change truth of the body for antecedent evaluation;
         # hosts treat strength as a separate channel.
         return evaluate(node.body, assignment)
+    if isinstance(node, Temporal):
+        # Boolean assignments establish occurrence, not ordering. Temporal
+        # ordering is checked by the dedicated relation validator.
+        return evaluate(node.left, assignment) and evaluate(node.right, assignment)
     if isinstance(node, Conditional):
         if not evaluate(node.if_, assignment):
             return True  # material implication: false antecedent ⇒ true
@@ -240,6 +276,10 @@ def collect_facts(node: Operator) -> tuple[Fact, ...]:
         return tuple(found)
     if isinstance(node, Modal):
         return collect_facts(node.body)
+    if isinstance(node, Temporal):
+        return tuple(dict.fromkeys((
+            *collect_facts(node.left), *collect_facts(node.right),
+        )))
     if isinstance(node, Conditional):
         ordered = (
             *collect_facts(node.if_),

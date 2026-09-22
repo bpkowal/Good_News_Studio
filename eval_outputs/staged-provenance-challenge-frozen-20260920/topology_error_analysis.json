@@ -1,0 +1,286 @@
+{
+  "source_report": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/eval_outputs/staged-provenance-challenge-frozen-20260920/report.json",
+  "policy": {
+    "no_new_model_calls": true,
+    "missing_audit_record_is_not_none": true,
+    "scaffold_gold_included_is_not_unique_correctness": true
+  },
+  "summary": {
+    "evaluable_gold_edges": 6,
+    "audit_judgments_available": 3,
+    "audit_coverage": 0.5,
+    "audit_correct_given_judged": 2,
+    "audit_accuracy_given_judged": 0.6666666666666666,
+    "audit_end_to_end_correct": 2,
+    "audit_end_to_end_accuracy": 0.3333333333333333,
+    "scaffold_unique_correct": 2,
+    "scaffold_gold_included_nonunique": 1,
+    "scaffold_unique_accuracy": 0.3333333333333333,
+    "audit_failure_modes": {
+      "AUDIT_NOT_EVALUATED": 3,
+      "CONDITIONAL_SCOPE_COLLAPSE": 1,
+      "CORRECT": 2
+    },
+    "audit_unavailability_reasons": {
+      "PAIR_BUDGET_TRUNCATION_OR_RANKING": 2,
+      "UPSTREAM_STAGE_REJECTED": 1
+    },
+    "scaffold_failure_modes": {
+      "CONDITIONAL_SCOPE_COLLAPSE": 1,
+      "CORRECT": 1,
+      "CORRECT_ABSENCE": 1,
+      "GOLD_INCLUDED_NONUNIQUE": 1,
+      "MISSING_EDGE": 2
+    }
+  },
+  "edges": [
+    {
+      "case_id": "pair_reverse_causality",
+      "family": "REVERSED_CAUSALITY",
+      "action_id": "A1",
+      "source": {
+        "proposition_id": "T1",
+        "outcome": "the release is pulled",
+        "source_proposition": "Pulling the release",
+        "modality": "CERTAIN",
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      "target": {
+        "proposition_id": "T2",
+        "outcome": "the gate is open",
+        "source_proposition": "opens the gate",
+        "modality": "CERTAIN",
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      "gold_relation": "CAUSES",
+      "scaffold_relations": [],
+      "scaffold_class": "MISSING_EDGE",
+      "scaffold_evidence": [],
+      "audit_relation": null,
+      "audit_class": "AUDIT_NOT_EVALUATED",
+      "audit_unavailability_reason": "PAIR_BUDGET_TRUNCATION_OR_RANKING",
+      "audit_judgment": null,
+      "stage_one_status": "ADMITTED",
+      "audit_status": "COMPLETE"
+    },
+    {
+      "case_id": "pair_reverse_causality",
+      "family": "REVERSED_CAUSALITY",
+      "action_id": "A1",
+      "source": {
+        "proposition_id": "T2",
+        "outcome": "the gate is open",
+        "source_proposition": "opens the gate",
+        "modality": "CERTAIN",
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      "target": {
+        "proposition_id": "T1",
+        "outcome": "the release is pulled",
+        "source_proposition": "Pulling the release",
+        "modality": "CERTAIN",
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      "gold_relation": "NONE",
+      "scaffold_relations": [],
+      "scaffold_class": "CORRECT_ABSENCE",
+      "scaffold_evidence": [],
+      "audit_relation": null,
+      "audit_class": "AUDIT_NOT_EVALUATED",
+      "audit_unavailability_reason": "PAIR_BUDGET_TRUNCATION_OR_RANKING",
+      "audit_judgment": null,
+      "stage_one_status": "ADMITTED",
+      "audit_status": "COMPLETE"
+    },
+    {
+      "case_id": "pair_enable_not_cause",
+      "family": "WRONG_CAUSAL_LABEL",
+      "action_id": "A1",
+      "source": {
+        "proposition_id": "Pr1",
+        "outcome": "the access card is issued",
+        "source_proposition": "Issuing the access card",
+        "modality": "STIPULATED_CONDITIONAL",
+        "clause_ids": [
+          "C0",
+          "C1"
+        ]
+      },
+      "target": {
+        "proposition_id": "Pr4",
+        "outcome": "Noor enters the laboratory",
+        "source_proposition": "enter the laboratory",
+        "modality": "POSSIBLE",
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      "gold_relation": "ENABLES",
+      "scaffold_relations": [
+        "CAUSES",
+        "ENABLES"
+      ],
+      "scaffold_class": "GOLD_INCLUDED_NONUNIQUE",
+      "scaffold_evidence": [
+        {
+          "support_type": "EXPLICIT_CAUSAL",
+          "support_span": "Issuing the access card enables Noor to enter the laboratory, but Noor may decide not to enter.",
+          "clause_id": "C0",
+          "commitment": "SOURCE_LICENSED"
+        },
+        {
+          "support_type": "SHARED_ACTION_CONSEQUENCE",
+          "support_span": "",
+          "clause_id": "",
+          "commitment": "REQUIRES_STAGE2_JUSTIFICATION"
+        }
+      ],
+      "audit_relation": "ENABLES",
+      "audit_class": "CORRECT",
+      "audit_unavailability_reason": null,
+      "audit_judgment": {
+        "confidence": "HIGH",
+        "support_type": "EXPLICIT_SOURCE",
+        "support_span": "Issuing the access card enables Noor to enter the laboratory",
+        "reason": "The sentence directly states that the act of issuing the access card \"enables\" Noor's ability to enter the laboratory, matching the ENABLES relation."
+      },
+      "stage_one_status": "ADMITTED",
+      "audit_status": "COMPLETE"
+    },
+    {
+      "case_id": "pair_conditional_cause",
+      "family": "CONDITIONAL_CAUSALITY",
+      "action_id": "A1",
+      "source": {
+        "proposition_id": "T2",
+        "outcome": "opening the door",
+        "source_proposition": "opening the door",
+        "modality": "STIPULATED_CONDITIONAL",
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      "target": {
+        "proposition_id": "T3",
+        "outcome": "the siren sounds",
+        "source_proposition": "causes the siren to sound",
+        "modality": "STIPULATED_CONDITIONAL",
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      "gold_relation": "AMBIGUOUS",
+      "scaffold_relations": [
+        "CAUSES"
+      ],
+      "scaffold_class": "CONDITIONAL_SCOPE_COLLAPSE",
+      "scaffold_evidence": [
+        {
+          "support_type": "SHARED_ACTION_CONSEQUENCE",
+          "support_span": "",
+          "clause_id": "",
+          "commitment": "REQUIRES_STAGE2_JUSTIFICATION"
+        }
+      ],
+      "audit_relation": "CAUSES",
+      "audit_class": "CONDITIONAL_SCOPE_COLLAPSE",
+      "audit_unavailability_reason": null,
+      "audit_judgment": {
+        "confidence": "HIGH",
+        "support_type": "EXPLICIT_SOURCE",
+        "support_span": "opening the door causes the siren to sound.",
+        "reason": "The clause explicitly states that opening the door produces the siren sounding, establishing a direct causal relation."
+      },
+      "stage_one_status": "ADMITTED",
+      "audit_status": "COMPLETE"
+    },
+    {
+      "case_id": "pair_ellipsis_same",
+      "family": "ELLIPSIS",
+      "action_id": "A1",
+      "source": {
+        "proposition_id": "PR_AUTO_2",
+        "outcome": "Send the water stock to District West",
+        "source_proposition": "Send the water stock to District West",
+        "modality": "CERTAIN",
+        "clause_ids": [
+          "A1"
+        ]
+      },
+      "target": {
+        "proposition_id": "P4",
+        "outcome": "the entire water stock is exhausted",
+        "source_proposition": "would do the same",
+        "modality": "CERTAIN",
+        "clause_ids": [
+          "C1"
+        ]
+      },
+      "gold_relation": "CAUSES",
+      "scaffold_relations": [
+        "CAUSES"
+      ],
+      "scaffold_class": "CORRECT",
+      "scaffold_evidence": [
+        {
+          "support_type": "SHARED_ACTION_CONSEQUENCE",
+          "support_span": "",
+          "clause_id": "",
+          "commitment": "REQUIRES_STAGE2_JUSTIFICATION"
+        }
+      ],
+      "audit_relation": "CAUSES",
+      "audit_class": "CORRECT",
+      "audit_unavailability_reason": null,
+      "audit_judgment": {
+        "confidence": "HIGH",
+        "support_type": "EXPLICIT_SOURCE",
+        "support_span": "Sending it to District West would do the same.",
+        "reason": "The sentence explicitly says that the act of sending the water to District West would have the same effect (exhausting the stock), establishing a direct cause-effect relation."
+      },
+      "stage_one_status": "ADMITTED",
+      "audit_status": "COMPLETE"
+    },
+    {
+      "case_id": "pair_sibling_population_leak",
+      "family": "MULTI_EFFECT_CLAUSE",
+      "action_id": "A1",
+      "source": {
+        "proposition_id": "PR_AUTO_1",
+        "outcome": "Divert the vehicle",
+        "source_proposition": "Divert the vehicle",
+        "modality": "CERTAIN",
+        "clause_ids": [
+          "A1"
+        ]
+      },
+      "target": {
+        "proposition_id": "P1",
+        "outcome": "The vehicle strikes one worker in the loading bay",
+        "source_proposition": ".",
+        "modality": "CERTAIN",
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      "gold_relation": "CAUSES",
+      "scaffold_relations": [],
+      "scaffold_class": "MISSING_EDGE",
+      "scaffold_evidence": [],
+      "audit_relation": null,
+      "audit_class": "AUDIT_NOT_EVALUATED",
+      "audit_unavailability_reason": "UPSTREAM_STAGE_REJECTED",
+      "audit_judgment": null,
+      "stage_one_status": "REJECTED",
+      "audit_status": "NOT_RUN"
+    }
+  ]
+}

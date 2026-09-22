@@ -1,0 +1,97 @@
+{
+  "report_sha256": "5a3702401a31d010a30bf1bd05a82bd91750692d813e70e3545a21db7725d33a",
+  "arms": [
+    {
+      "arm": "A_LEGACY_BRANCH_RECONSTRUCTION",
+      "persisted_status": "REJECTED",
+      "independent_status": "REJECTED",
+      "independent_world_model_status": "REJECTED",
+      "independent_issue_codes": [
+        "MISSING_PROCESS_INTERMEDIATE",
+        "MISSING_PROCESS_INTERMEDIATE",
+        "DERIVATION_CONTRACT_OPERATION_MISMATCH",
+        "DERIVATION_CONTRACT_OPERATION_MISMATCH"
+      ],
+      "independent_compiler_loss_telemetry": {
+        "candidate_effect_count": 7,
+        "compiled_effect_count": 5,
+        "compiler_loss_count": 2,
+        "loss_reason_counts": {
+          "INVALID_DERIVATION_OPERATION": 2
+        },
+        "losses": [
+          {
+            "effect_id": "E1D",
+            "action_id": "A0",
+            "party_id": "P2",
+            "outcome": "Maria does not receive the allocated resource",
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "removed_during_stage": "SOURCE_BINDING",
+            "loss_reason": "INVALID_DERIVATION_OPERATION",
+            "failure_class": "ENCODING_FAILURE"
+          },
+          {
+            "effect_id": "E3D",
+            "action_id": "A1",
+            "party_id": "P3",
+            "outcome": "David does not receive the allocated resource",
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "removed_during_stage": "SOURCE_BINDING",
+            "loss_reason": "INVALID_DERIVATION_OPERATION",
+            "failure_class": "ENCODING_FAILURE"
+          }
+        ]
+      },
+      "candidate_sha256": "db5d53118a109ae52f34bdf777fb867fefc42fc0f9c0dc58b4908e575d634791",
+      "nodes_removed": [
+        "effects:E1B",
+        "effects:E1C",
+        "effects:E3B",
+        "effects:E3C"
+      ],
+      "edges_removed": [
+        "causal_links:A0|E1B|CAUSES|E1C",
+        "causal_links:A0|E1C|CAUSES|E2",
+        "causal_links:A0|E1|CAUSES|E1B",
+        "causal_links:A1|E3B|CAUSES|E3C",
+        "causal_links:A1|E3C|CAUSES|E4",
+        "causal_links:A1|E3|CAUSES|E3B"
+      ],
+      "tikz_directory": "eval_outputs/derivation-contract-live-ab-tikz/a_legacy_branch_reconstruction",
+      "tikz_manifest": {
+        "diagnostic_format": "TIKZ_SOURCE_V1",
+        "canonical_representation": "JSON_WORLD_MODEL",
+        "representation_stage": "LIVE_AB_A_LEGACY_BRANCH_RECONSTRUCTION_RAW_RETURNED_CANDIDATE",
+        "latex_compiled": false,
+        "files": [
+          "action_A0.tex",
+          "action_A1.tex",
+          "source_bindings.tex"
+        ]
+      }
+    },
+    {
+      "arm": "B_METADATA_ONLY",
+      "persisted_status": "COMMITTED",
+      "independent_status": "COMMITTED",
+      "independent_world_model_status": "COMMITTED",
+      "independent_issue_codes": [],
+      "independent_compiler_loss_telemetry": {},
+      "candidate_sha256": "b50151bbcb52904fe171a5bb31b7f4a4594fa85d8d616f6988b8730cb5c3d493",
+      "nodes_removed": [],
+      "edges_removed": [],
+      "tikz_directory": "eval_outputs/derivation-contract-live-ab-tikz/b_metadata_only",
+      "tikz_manifest": {
+        "diagnostic_format": "TIKZ_SOURCE_V1",
+        "canonical_representation": "JSON_WORLD_MODEL",
+        "representation_stage": "LIVE_AB_B_METADATA_ONLY_RAW_RETURNED_CANDIDATE",
+        "latex_compiled": false,
+        "files": [
+          "action_A0.tex",
+          "action_A1.tex",
+          "source_bindings.tex"
+        ]
+      }
+    }
+  ]
+}

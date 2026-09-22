@@ -1,0 +1,25 @@
+{
+  "actions": [
+    "Pull the lever, redirecting the trolley toward one person",
+    "Do not pull the lever, allowing the trolley to continue toward five people"
+  ],
+  "ethical_question": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person. You cannot stop it another way. Do you pull the lever?",
+  "max_completion_tokens": 50000,
+  "model": "o3",
+  "reasoning_effort": "high",
+  "response_protocol": "structured_state_single_call_v1",
+  "state": {
+    "choice": 0,
+    "confidence": 0.75,
+    "constraints": [
+      "Minimize total loss of life"
+    ],
+    "framework_state": [],
+    "propositions": [
+      "Five people die if no action is taken",
+      "One person dies if the lever is pulled",
+      "No alternative means exists to halt the trolley"
+    ],
+    "status": "RESOLVED"
+  }
+}

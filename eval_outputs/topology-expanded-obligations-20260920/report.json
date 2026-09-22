@@ -1,0 +1,1079 @@
+{
+  "aggregate": {
+    "aligned_gold_edge_count": 3,
+    "aligned_gold_node_count": 14,
+    "audit_complete_count": 0,
+    "audit_novelty_rate": 0.0,
+    "audit_only_precision": null,
+    "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+    "audit_only_relation_count": 0,
+    "case_count": 14,
+    "correct_audit_only_relation_count": 0,
+    "correct_audit_only_relations": 0,
+    "gold_edge_count": 20,
+    "gold_node_count": 34,
+    "gold_relations_absent_from_scaffold": 2,
+    "node_recall": 0.4117647058823529,
+    "pairwise_gold_accuracy_given_aligned_nodes": 0.0,
+    "scaffold_gold_accuracy_given_aligned_nodes": 0.0,
+    "stage_one_admitted_count": 5
+  },
+  "evidence_augmented": true,
+  "manifest": "evals/topology_structure_expanded_challenge.json",
+  "max_pairs": 0,
+  "model": "o3",
+  "protocol": "FROZEN_FIRST_EIGHT_CASE_CHALLENGE",
+  "report_version": "1.0",
+  "results": [
+    {
+      "alignments": [
+        {
+          "action_id": "A0",
+          "candidate_count": 5,
+          "gold_event": "Jo receives no antidote",
+          "matched_proposition_id": "PR2",
+          "method": "EXACT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 5,
+          "gold_event": "Jo dies",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        }
+      ],
+      "audit_artifact": null,
+      "audit_status": "NOT_RUN",
+      "elapsed_seconds": 62.648,
+      "exit_code": 2,
+      "family": "CROSS_CLAUSE_CAUSALITY",
+      "id": "cross_clause_antidote",
+      "index": 0,
+      "log": "eval_outputs/topology-expanded-obligations-20260920/01_cross_clause_antidote.log",
+      "metrics": {
+        "aligned_gold_edge_count": 0,
+        "aligned_gold_node_count": 1,
+        "audit_novelty_rate": null,
+        "audit_only_precision": null,
+        "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [],
+        "gold_edge_count": 1,
+        "gold_node_count": 2,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 0.5,
+        "pairwise_gold_accuracy_given_aligned_nodes": null,
+        "relation_recall_conditional_on_node_availability": null,
+        "scaffold_gold_accuracy_given_aligned_nodes": null
+      },
+      "performance": "eval_outputs/topology-expanded-obligations-20260920/01_cross_clause_antidote.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A0",
+        "A1": "A1"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A0",
+          "relation": "CAUSES",
+          "source_event": "Jo receives no antidote",
+          "target_event": "Jo dies"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_234747_882032.json",
+      "stage_one_status": "REJECTED",
+      "world_committed": false
+    },
+    {
+      "alignments": [
+        {
+          "action_id": "A0",
+          "candidate_count": 7,
+          "gold_event": "operator disconnects power",
+          "matched_proposition_id": "PR1",
+          "method": "EXACT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 7,
+          "gold_event": "pump stops circulating coolant",
+          "matched_proposition_id": "PR2",
+          "method": "TOKEN_LEMMA",
+          "score": 0.8,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 7,
+          "gold_event": "reactor overheats",
+          "matched_proposition_id": "PR4",
+          "method": "EXACT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        }
+      ],
+      "audit_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_relation_audit_workspace_20260920_234850_804539.json",
+      "audit_status": "EMPTY_NO_PAIRS",
+      "elapsed_seconds": 53.096,
+      "exit_code": 2,
+      "family": "CROSS_CLAUSE_CAUSALITY",
+      "id": "cross_clause_power",
+      "index": 1,
+      "log": "eval_outputs/topology-expanded-obligations-20260920/02_cross_clause_power.log",
+      "metrics": {
+        "aligned_gold_edge_count": 2,
+        "aligned_gold_node_count": 3,
+        "audit_novelty_rate": 0.0,
+        "audit_only_precision": null,
+        "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [
+          {
+            "action_id": "A0",
+            "audit_correct": false,
+            "audit_relation": null,
+            "gold_relation": "CAUSES",
+            "scaffold_correct": false,
+            "scaffold_relations": [],
+            "source_proposition_id": "PR1",
+            "target_proposition_id": "PR2"
+          },
+          {
+            "action_id": "A0",
+            "audit_correct": false,
+            "audit_relation": null,
+            "gold_relation": "CAUSES",
+            "scaffold_correct": false,
+            "scaffold_relations": [],
+            "source_proposition_id": "PR2",
+            "target_proposition_id": "PR4"
+          }
+        ],
+        "gold_edge_count": 2,
+        "gold_node_count": 3,
+        "gold_relations_absent_from_scaffold": 2,
+        "node_recall": 1.0,
+        "pairwise_gold_accuracy_given_aligned_nodes": 0.0,
+        "relation_recall_conditional_on_node_availability": 0.0,
+        "scaffold_gold_accuracy_given_aligned_nodes": 0.0
+      },
+      "performance": "eval_outputs/topology-expanded-obligations-20260920/02_cross_clause_power.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A0",
+        "A1": "A1"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A0",
+          "relation": "CAUSES",
+          "source_event": "operator disconnects power",
+          "target_event": "pump stops circulating coolant"
+        },
+        {
+          "action_id": "A0",
+          "relation": "CAUSES",
+          "source_event": "pump stops circulating coolant",
+          "target_event": "reactor overheats"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_234850_804539.json",
+      "stage_one_status": "ADMITTED",
+      "world_committed": false
+    },
+    {
+      "alignments": [
+        {
+          "action_id": "A0",
+          "candidate_count": 8,
+          "gold_event": "opening the rear door",
+          "matched_proposition_id": "PR4",
+          "method": "EXACT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 8,
+          "gold_event": "siren sounds",
+          "matched_proposition_id": "PR6",
+          "method": "TOKEN_LEMMA",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        }
+      ],
+      "audit_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_relation_audit_workspace_20260920_234943_871663.json",
+      "audit_status": "EMPTY_NO_PAIRS",
+      "elapsed_seconds": 69.698,
+      "exit_code": 2,
+      "family": "LONG_DISTANCE_CONDITIONAL",
+      "id": "long_conditional_alarm",
+      "index": 2,
+      "log": "eval_outputs/topology-expanded-obligations-20260920/03_long_conditional_alarm.log",
+      "metrics": {
+        "aligned_gold_edge_count": 1,
+        "aligned_gold_node_count": 2,
+        "audit_novelty_rate": null,
+        "audit_only_precision": null,
+        "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [
+          {
+            "action_id": "A0",
+            "audit_correct": false,
+            "audit_relation": null,
+            "gold_relation": "AMBIGUOUS",
+            "scaffold_correct": false,
+            "scaffold_relations": [],
+            "source_proposition_id": "PR4",
+            "target_proposition_id": "PR6"
+          }
+        ],
+        "gold_edge_count": 1,
+        "gold_node_count": 2,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 1.0,
+        "pairwise_gold_accuracy_given_aligned_nodes": 0.0,
+        "relation_recall_conditional_on_node_availability": 0.0,
+        "scaffold_gold_accuracy_given_aligned_nodes": 0.0
+      },
+      "performance": "eval_outputs/topology-expanded-obligations-20260920/03_long_conditional_alarm.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A0",
+        "A1": "A1"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A0",
+          "relation": "AMBIGUOUS",
+          "source_event": "opening the rear door",
+          "target_event": "siren sounds"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_234943_871663.json",
+      "stage_one_status": "ADMITTED",
+      "world_committed": false
+    },
+    {
+      "alignments": [
+        {
+          "action_id": "A0",
+          "candidate_count": 4,
+          "gold_event": "starting the exhaust channel",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 4,
+          "gold_event": "vapor enters the ward",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        }
+      ],
+      "audit_artifact": null,
+      "audit_status": "NOT_RUN",
+      "elapsed_seconds": 43.35,
+      "exit_code": 0,
+      "family": "LONG_DISTANCE_CONDITIONAL",
+      "id": "long_conditional_filter",
+      "index": 3,
+      "log": "eval_outputs/topology-expanded-obligations-20260920/04_long_conditional_filter.log",
+      "metrics": {
+        "aligned_gold_edge_count": 0,
+        "aligned_gold_node_count": 0,
+        "audit_novelty_rate": null,
+        "audit_only_precision": null,
+        "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [],
+        "gold_edge_count": 1,
+        "gold_node_count": 2,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 0.0,
+        "pairwise_gold_accuracy_given_aligned_nodes": null,
+        "relation_recall_conditional_on_node_availability": null,
+        "scaffold_gold_accuracy_given_aligned_nodes": null
+      },
+      "performance": "eval_outputs/topology-expanded-obligations-20260920/04_long_conditional_filter.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A0",
+        "A1": "A1"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A0",
+          "relation": "AMBIGUOUS",
+          "source_event": "starting the exhaust channel",
+          "target_event": "vapor enters the ward"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_235053_479373.json",
+      "stage_one_status": "REJECTED",
+      "world_committed": true
+    },
+    {
+      "alignments": [
+        {
+          "action_id": "A0",
+          "candidate_count": 6,
+          "gold_event": "technician closes the intake valve",
+          "matched_proposition_id": "PR1",
+          "method": "TOKEN_LEMMA",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 6,
+          "gold_event": "pressure is reduced",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 6,
+          "gold_event": "technician opens the relief valve",
+          "matched_proposition_id": "PR2",
+          "method": "EXACT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        }
+      ],
+      "audit_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_relation_audit_workspace_20260920_235136_927407.json",
+      "audit_status": "EMPTY_NO_PAIRS",
+      "elapsed_seconds": 51.017,
+      "exit_code": 2,
+      "family": "SHARED_SUBJECT_CONJUNCTION",
+      "id": "shared_subject_valves",
+      "index": 4,
+      "log": "eval_outputs/topology-expanded-obligations-20260920/05_shared_subject_valves.log",
+      "metrics": {
+        "aligned_gold_edge_count": 0,
+        "aligned_gold_node_count": 2,
+        "audit_novelty_rate": null,
+        "audit_only_precision": null,
+        "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [],
+        "gold_edge_count": 2,
+        "gold_node_count": 3,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 0.6666666666666666,
+        "pairwise_gold_accuracy_given_aligned_nodes": null,
+        "relation_recall_conditional_on_node_availability": null,
+        "scaffold_gold_accuracy_given_aligned_nodes": null
+      },
+      "performance": "eval_outputs/topology-expanded-obligations-20260920/05_shared_subject_valves.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A0",
+        "A1": "A1"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A0",
+          "relation": "CAUSES",
+          "source_event": "technician closes the intake valve",
+          "target_event": "pressure is reduced"
+        },
+        {
+          "action_id": "A0",
+          "relation": "CAUSES",
+          "source_event": "technician opens the relief valve",
+          "target_event": "pressure is reduced"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_235136_927407.json",
+      "stage_one_status": "ADMITTED",
+      "world_committed": false
+    },
+    {
+      "alignments": [
+        {
+          "action_id": "A0",
+          "candidate_count": 5,
+          "gold_event": "coordinator calls the fire department",
+          "matched_proposition_id": "PR1",
+          "method": "EXACT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 5,
+          "gold_event": "evacuation is possible",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 5,
+          "gold_event": "coordinator warns the residents",
+          "matched_proposition_id": "PR2",
+          "method": "EXACT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        }
+      ],
+      "audit_artifact": null,
+      "audit_status": "NOT_RUN",
+      "elapsed_seconds": 29.633,
+      "exit_code": 0,
+      "family": "SHARED_SUBJECT_CONJUNCTION",
+      "id": "shared_subject_notifications",
+      "index": 5,
+      "log": "eval_outputs/topology-expanded-obligations-20260920/06_shared_subject_notifications.log",
+      "metrics": {
+        "aligned_gold_edge_count": 0,
+        "aligned_gold_node_count": 2,
+        "audit_novelty_rate": null,
+        "audit_only_precision": null,
+        "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [],
+        "gold_edge_count": 2,
+        "gold_node_count": 3,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 0.6666666666666666,
+        "pairwise_gold_accuracy_given_aligned_nodes": null,
+        "relation_recall_conditional_on_node_availability": null,
+        "scaffold_gold_accuracy_given_aligned_nodes": null
+      },
+      "performance": "eval_outputs/topology-expanded-obligations-20260920/06_shared_subject_notifications.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A0",
+        "A1": "A1"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A0",
+          "relation": "ENABLES",
+          "source_event": "coordinator calls the fire department",
+          "target_event": "evacuation is possible"
+        },
+        {
+          "action_id": "A0",
+          "relation": "ENABLES",
+          "source_event": "coordinator warns the residents",
+          "target_event": "evacuation is possible"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_235227_945116.json",
+      "stage_one_status": "REJECTED",
+      "world_committed": true
+    },
+    {
+      "alignments": [
+        {
+          "action_id": "A1",
+          "candidate_count": 5,
+          "gold_event": "sending fuel to the western generator",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        },
+        {
+          "action_id": "A1",
+          "candidate_count": 5,
+          "gold_event": "western hospital remains powered",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        }
+      ],
+      "audit_artifact": null,
+      "audit_status": "NOT_RUN",
+      "elapsed_seconds": 29.78,
+      "exit_code": 0,
+      "family": "ELLIPSIS",
+      "id": "ellipsis_generator",
+      "index": 6,
+      "log": "eval_outputs/topology-expanded-obligations-20260920/07_ellipsis_generator.log",
+      "metrics": {
+        "aligned_gold_edge_count": 0,
+        "aligned_gold_node_count": 0,
+        "audit_novelty_rate": null,
+        "audit_only_precision": null,
+        "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [],
+        "gold_edge_count": 1,
+        "gold_node_count": 2,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 0.0,
+        "pairwise_gold_accuracy_given_aligned_nodes": null,
+        "relation_recall_conditional_on_node_availability": null,
+        "scaffold_gold_accuracy_given_aligned_nodes": null
+      },
+      "performance": "eval_outputs/topology-expanded-obligations-20260920/07_ellipsis_generator.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A0",
+        "A1": "A1"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A1",
+          "relation": "CAUSES",
+          "source_event": "sending fuel to the western generator",
+          "target_event": "western hospital remains powered"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_235257_505705.json",
+      "stage_one_status": "REJECTED",
+      "world_committed": true
+    },
+    {
+      "alignments": [
+        {
+          "action_id": "A1",
+          "candidate_count": 0,
+          "gold_event": "assigning the specialist to Ward B",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NO_ACTION_NODES"
+        },
+        {
+          "action_id": "A1",
+          "candidate_count": 0,
+          "gold_event": "Ward B surgery proceeds",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NO_ACTION_NODES"
+        }
+      ],
+      "audit_artifact": null,
+      "audit_status": "NOT_RUN",
+      "elapsed_seconds": 1.65,
+      "exit_code": 1,
+      "family": "ELLIPSIS",
+      "id": "ellipsis_staffing",
+      "index": 7,
+      "log": "eval_outputs/topology-expanded-obligations-20260920/08_ellipsis_staffing.log",
+      "metrics": {
+        "aligned_gold_edge_count": 0,
+        "aligned_gold_node_count": 0,
+        "audit_novelty_rate": null,
+        "audit_only_precision": null,
+        "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [],
+        "gold_edge_count": 1,
+        "gold_node_count": 2,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 0.0,
+        "pairwise_gold_accuracy_given_aligned_nodes": null,
+        "relation_recall_conditional_on_node_availability": null,
+        "scaffold_gold_accuracy_given_aligned_nodes": null
+      },
+      "performance": "eval_outputs/topology-expanded-obligations-20260920/08_ellipsis_staffing.performance.json",
+      "presentation_to_canonical_action_ids": {},
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A1",
+          "relation": "ENABLES",
+          "source_event": "assigning the specialist to Ward B",
+          "target_event": "Ward B surgery proceeds"
+        }
+      ],
+      "stage_one_artifact": null,
+      "stage_one_status": "MISSING",
+      "world_committed": false
+    },
+    {
+      "alignments": [
+        {
+          "action_id": "A0",
+          "candidate_count": 8,
+          "gold_event": "director authorizes the engineer",
+          "matched_proposition_id": "PR1",
+          "method": "EXACT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 8,
+          "gold_event": "engineer restarts ventilation",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 8,
+          "gold_event": "smoke clears from the shelter",
+          "matched_proposition_id": "PR4",
+          "method": "TOKEN_LEMMA",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        }
+      ],
+      "audit_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_relation_audit_workspace_20260920_235328_712752.json",
+      "audit_status": "EMPTY_NO_PAIRS",
+      "elapsed_seconds": 24.715,
+      "exit_code": 0,
+      "family": "EMBEDDED_CLAUSE",
+      "id": "embedded_authorization",
+      "index": 8,
+      "log": "eval_outputs/topology-expanded-obligations-20260920/09_embedded_authorization.log",
+      "metrics": {
+        "aligned_gold_edge_count": 0,
+        "aligned_gold_node_count": 2,
+        "audit_novelty_rate": null,
+        "audit_only_precision": null,
+        "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [],
+        "gold_edge_count": 2,
+        "gold_node_count": 3,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 0.6666666666666666,
+        "pairwise_gold_accuracy_given_aligned_nodes": null,
+        "relation_recall_conditional_on_node_availability": null,
+        "scaffold_gold_accuracy_given_aligned_nodes": null
+      },
+      "performance": "eval_outputs/topology-expanded-obligations-20260920/09_embedded_authorization.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A0",
+        "A1": "A1"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A0",
+          "relation": "ENABLES",
+          "source_event": "director authorizes the engineer",
+          "target_event": "engineer restarts ventilation"
+        },
+        {
+          "action_id": "A0",
+          "relation": "CAUSES",
+          "source_event": "engineer restarts ventilation",
+          "target_event": "smoke clears from the shelter"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_235328_712752.json",
+      "stage_one_status": "ADMITTED",
+      "world_committed": true
+    },
+    {
+      "alignments": [
+        {
+          "action_id": "A1",
+          "candidate_count": 4,
+          "gold_event": "physician asks the nurse",
+          "matched_proposition_id": "PR1",
+          "method": "EXACT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A1",
+          "candidate_count": 4,
+          "gold_event": "nurse administers the antidote",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        }
+      ],
+      "audit_artifact": null,
+      "audit_status": "NOT_RUN",
+      "elapsed_seconds": 49.029,
+      "exit_code": 0,
+      "family": "EMBEDDED_CLAUSE",
+      "id": "embedded_request",
+      "index": 9,
+      "log": "eval_outputs/topology-expanded-obligations-20260920/10_embedded_request.log",
+      "metrics": {
+        "aligned_gold_edge_count": 0,
+        "aligned_gold_node_count": 1,
+        "audit_novelty_rate": null,
+        "audit_only_precision": null,
+        "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [],
+        "gold_edge_count": 1,
+        "gold_node_count": 2,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 0.5,
+        "pairwise_gold_accuracy_given_aligned_nodes": null,
+        "relation_recall_conditional_on_node_availability": null,
+        "scaffold_gold_accuracy_given_aligned_nodes": null
+      },
+      "performance": "eval_outputs/topology-expanded-obligations-20260920/10_embedded_request.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A1",
+        "A1": "A0"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A1",
+          "relation": "ENABLES",
+          "source_event": "physician asks the nurse",
+          "target_event": "nurse administers the antidote"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_235353_560957.json",
+      "stage_one_status": "REJECTED",
+      "world_committed": true
+    },
+    {
+      "alignments": [
+        {
+          "action_id": "A1",
+          "candidate_count": 7,
+          "gold_event": "Mina opens the floodgate",
+          "matched_proposition_id": "PR3",
+          "method": "EXACT",
+          "score": 1.0,
+          "status": "MATCHED",
+          "unresolved_reason": null
+        },
+        {
+          "action_id": "A1",
+          "candidate_count": 7,
+          "gold_event": "reservoir level falls",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        }
+      ],
+      "audit_artifact": null,
+      "audit_status": "NOT_RUN",
+      "elapsed_seconds": 24.769,
+      "exit_code": 0,
+      "family": "APPOSITIVE",
+      "id": "appositive_engineer",
+      "index": 10,
+      "log": "eval_outputs/topology-expanded-obligations-20260920/11_appositive_engineer.log",
+      "metrics": {
+        "aligned_gold_edge_count": 0,
+        "aligned_gold_node_count": 1,
+        "audit_novelty_rate": null,
+        "audit_only_precision": null,
+        "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [],
+        "gold_edge_count": 1,
+        "gold_node_count": 2,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 0.5,
+        "pairwise_gold_accuracy_given_aligned_nodes": null,
+        "relation_recall_conditional_on_node_availability": null,
+        "scaffold_gold_accuracy_given_aligned_nodes": null
+      },
+      "performance": "eval_outputs/topology-expanded-obligations-20260920/11_appositive_engineer.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A1",
+        "A1": "A0"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A1",
+          "relation": "CAUSES",
+          "source_event": "Mina opens the floodgate",
+          "target_event": "reservoir level falls"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_235442_719626.json",
+      "stage_one_status": "REJECTED",
+      "world_committed": true
+    },
+    {
+      "alignments": [
+        {
+          "action_id": "A0",
+          "candidate_count": 5,
+          "gold_event": "Imani receives the vial",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        },
+        {
+          "action_id": "A0",
+          "candidate_count": 5,
+          "gold_event": "Imani may recover",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        }
+      ],
+      "audit_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_relation_audit_workspace_20260920_235507_387407.json",
+      "audit_status": "EMPTY_NO_PAIRS",
+      "elapsed_seconds": 44.773,
+      "exit_code": 2,
+      "family": "APPOSITIVE",
+      "id": "appositive_medicine",
+      "index": 11,
+      "log": "eval_outputs/topology-expanded-obligations-20260920/12_appositive_medicine.log",
+      "metrics": {
+        "aligned_gold_edge_count": 0,
+        "aligned_gold_node_count": 0,
+        "audit_novelty_rate": null,
+        "audit_only_precision": null,
+        "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [],
+        "gold_edge_count": 1,
+        "gold_node_count": 2,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 0.0,
+        "pairwise_gold_accuracy_given_aligned_nodes": null,
+        "relation_recall_conditional_on_node_availability": null,
+        "scaffold_gold_accuracy_given_aligned_nodes": null
+      },
+      "performance": "eval_outputs/topology-expanded-obligations-20260920/12_appositive_medicine.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A0",
+        "A1": "A1"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A0",
+          "relation": "ENABLES",
+          "source_event": "Imani receives the vial",
+          "target_event": "Imani may recover"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_235507_387407.json",
+      "stage_one_status": "ADMITTED",
+      "world_committed": false
+    },
+    {
+      "alignments": [
+        {
+          "action_id": "A1",
+          "candidate_count": 5,
+          "gold_event": "activating the backup",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        },
+        {
+          "action_id": "A1",
+          "candidate_count": 5,
+          "gold_event": "main server shuts down",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        },
+        {
+          "action_id": "A1",
+          "candidate_count": 5,
+          "gold_event": "cooling fan starts",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        }
+      ],
+      "audit_artifact": null,
+      "audit_status": "NOT_RUN",
+      "elapsed_seconds": 45.505,
+      "exit_code": 0,
+      "family": "NEGATED_SUBORDINATE_CLAUSE",
+      "id": "negated_subordinate_backup",
+      "index": 12,
+      "log": "eval_outputs/topology-expanded-obligations-20260920/13_negated_subordinate_backup.log",
+      "metrics": {
+        "aligned_gold_edge_count": 0,
+        "aligned_gold_node_count": 0,
+        "audit_novelty_rate": null,
+        "audit_only_precision": null,
+        "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [],
+        "gold_edge_count": 2,
+        "gold_node_count": 3,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 0.0,
+        "pairwise_gold_accuracy_given_aligned_nodes": null,
+        "relation_recall_conditional_on_node_availability": null,
+        "scaffold_gold_accuracy_given_aligned_nodes": null
+      },
+      "performance": "eval_outputs/topology-expanded-obligations-20260920/13_negated_subordinate_backup.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A1",
+        "A1": "A0"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A1",
+          "relation": "NONE",
+          "source_event": "activating the backup",
+          "target_event": "main server shuts down"
+        },
+        {
+          "action_id": "A1",
+          "relation": "CAUSES",
+          "source_event": "activating the backup",
+          "target_event": "cooling fan starts"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_235552_182999.json",
+      "stage_one_status": "REJECTED",
+      "world_committed": true
+    },
+    {
+      "alignments": [
+        {
+          "action_id": "A1",
+          "candidate_count": 4,
+          "gold_event": "closing the auxiliary valve",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        },
+        {
+          "action_id": "A1",
+          "candidate_count": 4,
+          "gold_event": "primary pump circulates water",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        },
+        {
+          "action_id": "A1",
+          "candidate_count": 4,
+          "gold_event": "flow through the auxiliary pipe stops",
+          "matched_proposition_id": null,
+          "method": null,
+          "score": null,
+          "status": "UNRESOLVED",
+          "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+        }
+      ],
+      "audit_artifact": null,
+      "audit_status": "NOT_RUN",
+      "elapsed_seconds": 28.746,
+      "exit_code": 0,
+      "family": "NEGATED_SUBORDINATE_CLAUSE",
+      "id": "negated_subordinate_valve",
+      "index": 13,
+      "log": "eval_outputs/topology-expanded-obligations-20260920/14_negated_subordinate_valve.log",
+      "metrics": {
+        "aligned_gold_edge_count": 0,
+        "aligned_gold_node_count": 0,
+        "audit_novelty_rate": null,
+        "audit_only_precision": null,
+        "audit_only_precision_status": "NOT_IDENTIFIED_SPARSE_GOLD",
+        "audit_only_relation_count": 0,
+        "correct_audit_only_relation_count": 0,
+        "correct_audit_only_relations": 0,
+        "details": [],
+        "gold_edge_count": 2,
+        "gold_node_count": 3,
+        "gold_relations_absent_from_scaffold": 0,
+        "node_recall": 0.0,
+        "pairwise_gold_accuracy_given_aligned_nodes": null,
+        "relation_recall_conditional_on_node_availability": null,
+        "scaffold_gold_accuracy_given_aligned_nodes": null
+      },
+      "performance": "eval_outputs/topology-expanded-obligations-20260920/14_negated_subordinate_valve.performance.json",
+      "presentation_to_canonical_action_ids": {
+        "A0": "A1",
+        "A1": "A0"
+      },
+      "remapped_gold_pairs": [
+        {
+          "action_id": "A1",
+          "relation": "NONE",
+          "source_event": "closing the auxiliary valve",
+          "target_event": "primary pump circulates water"
+        },
+        {
+          "action_id": "A1",
+          "relation": "CAUSES",
+          "source_event": "closing the auxiliary valve",
+          "target_event": "flow through the auxiliary pipe stops"
+        }
+      ],
+      "stage_one_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_235637_706091.json",
+      "stage_one_status": "REJECTED",
+      "world_committed": true
+    }
+  ],
+  "syntactic_resolution_obligations": true
+}

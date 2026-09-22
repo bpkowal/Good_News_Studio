@@ -1046,9 +1046,7 @@ def _semantic_match(
         return None
     outcome = record.outcome or record.claim.split(";")[0]
     glosses = _action_glosses_for_record(record)
-    if action_branch_conflicts(claim, action_glosses=glosses):
-        return None
-    if (
+    action_paraphrase_match = (
         _is_world_established(record)
         and outcome
         and action_paraphrase_binds(
@@ -1058,13 +1056,25 @@ def _semantic_match(
             action_id=record.action_id,
             action_glosses=glosses,
         )
+    )
+    if (
+        not action_paraphrase_match
+        and action_branch_conflicts(claim, action_glosses=glosses)
     ):
-        # Licensed PARAPHRASE_OF / EQUIVALENT_TO edge — not free similarity.
-        return 85
+        return None
+    # A licensed action paraphrase is supporting evidence, not a substitute
+    # for matching the asserted outcome. Otherwise a claim such as
+    # "execution halts the riot" binds to the execution intervention merely
+    # because its action gloss also contains the downstream riot outcome.
     claim_families = _outcome_families(claim)
     record_families = _outcome_families(" ".join((outcome, record.claim)))
     families = claim_families & record_families
-    if claim_families and not families:
+    outcome_overlap = bool(_stems(claim) & _stems(outcome))
+    if (
+        claim_families
+        and not families
+        and not (action_paraphrase_match and outcome_overlap)
+    ):
         return None
     implied = _implied_polarity(claim, families)
     if (
@@ -1092,7 +1102,6 @@ def _semantic_match(
             )
         ):
             return None
-    outcome_overlap = bool(_stems(claim) & _stems(outcome))
     if not families and not (claim_quantities and record_quantities) and not outcome_overlap:
         return None
     context_words = _content_words(" ".join((
@@ -1119,11 +1128,17 @@ def _semantic_match(
     extra_families = _outcome_families(" ".join(extra)) - _outcome_families(
         " ".join((outcome, record.claim, " ".join(record.context_terms)))
     )
-    if extra_families:
+    if extra_families and not action_paraphrase_match:
         return None
     leftover = extra - _STRENGTHENING_WORDS
     leftover -= _tokens_compatible(leftover, admitted)
     if leftover:
+        if action_paraphrase_match and (families or outcome_overlap):
+            # Licensed conditional paraphrases such as "loss occurs if no
+            # purge" may retain harmless connective wording. Keep this below
+            # a predicate-specific terminal match so action context cannot
+            # steal a richer downstream claim.
+            return 45
         return None
     score = 10 * len(families) + 5 * int(bool(claim_quantities & record_quantities))
     score += 15 * len(_stems(claim) & _stems(outcome))
@@ -1137,6 +1152,8 @@ def _semantic_match(
         score += 8
     if record.action_id and record.action_id.casefold() in claim.casefold():
         score += 4
+    if action_paraphrase_match:
+        score += 10
     return score if score > 0 else None
 
 
@@ -2033,7 +2050,11 @@ def attach_candidate_dependencies(
         if not isinstance(premise, dict):
             continue
         claim = " ".join(str(premise.get("claim", "")).split())[:240]
-        basis = str(premise.get("proposition_id", "HYPOTHESIS")).strip()
+        basis = str(
+            premise.get("declared_basis")
+            or premise.get("proposition_id")
+            or "HYPOTHESIS"
+        ).strip()
         decision_critical = premise.get("decision_critical") is True
         premise_key = (_normalized_claim(claim), basis, decision_critical)
         if premise_key in processed_premises:

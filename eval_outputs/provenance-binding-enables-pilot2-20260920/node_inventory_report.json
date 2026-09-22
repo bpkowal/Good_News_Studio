@@ -1,0 +1,117 @@
+{
+  "aggregate": {
+    "absent_or_unaligned_count": 1,
+    "complete_action_branch_count": 0,
+    "fused_gold_node_count": 0,
+    "gold_node_count": 2,
+    "neutral_node_recall": 0.5,
+    "neutral_present_node_count": 1,
+    "node_presence_recall_any_owner": 0.5,
+    "node_recall_correct_owner": 0.5,
+    "present_correct_owner_count": 1,
+    "present_wrong_owner_count": 0,
+    "required_action_branch_count": 1,
+    "transformation_waterfall": {
+      "neutral_nodes_extracted": 5,
+      "nodes_admitted_to_graph": 5,
+      "nodes_materialized_after_ownership": 5,
+      "nodes_surviving_normalization": 5,
+      "nodes_with_valid_provenance": 5
+    }
+  },
+  "analysis_version": "1.0",
+  "results": [
+    {
+      "diagnostic": {
+        "absent_or_unaligned_count": 1,
+        "action_branches": [
+          {
+            "action_id": "A1",
+            "correctly_owned_node_count": 1,
+            "required_node_count": 2,
+            "status": "OMITTED_OR_INCOMPLETE"
+          }
+        ],
+        "atomic_present_gold_node_count": 1,
+        "fused_gold_node_count": 0,
+        "gold_node_count": 2,
+        "node_presence_recall_any_owner": 0.5,
+        "node_recall_correct_owner": 0.5,
+        "nodes": [
+          {
+            "actual_action_id": null,
+            "atomicity": "UNAVAILABLE",
+            "expected_action_id": "A1",
+            "gold_event": "Noor enters the laboratory",
+            "matched_proposition_id": null,
+            "method": null,
+            "score": null,
+            "status": "ABSENT_OR_UNALIGNED"
+          },
+          {
+            "actual_action_id": "A1",
+            "atomicity": "ATOMIC",
+            "expected_action_id": "A1",
+            "gold_event": "issuing the access card",
+            "matched_proposition_id": "Pr1",
+            "method": "EXACT",
+            "score": 1.0,
+            "status": "PRESENT_CORRECT_OWNER"
+          }
+        ],
+        "present_correct_owner_count": 1,
+        "present_wrong_owner_count": 0,
+        "unresolved_ellipsis_count": 0,
+        "unresolved_source_span_count": 0
+      },
+      "family": "WRONG_CAUSAL_LABEL",
+      "id": "pair_enable_not_cause",
+      "neutral_diagnostic": {
+        "alignments": [
+          {
+            "action_id": "A1",
+            "candidate_count": 5,
+            "gold_event": "issuing the access card",
+            "matched_proposition_id": "Pr1__NEUTRAL__A1",
+            "method": "EXACT",
+            "score": 1.0,
+            "status": "MATCHED",
+            "unresolved_reason": null
+          },
+          {
+            "action_id": "A1",
+            "candidate_count": 5,
+            "gold_event": "Noor enters the laboratory",
+            "matched_proposition_id": null,
+            "method": null,
+            "score": null,
+            "status": "UNRESOLVED",
+            "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+          }
+        ],
+        "fused_gold_node_count": 0,
+        "gold_node_count": 2,
+        "neutral_node_recall": 0.5,
+        "present_neutral_node_count": 1
+      },
+      "node_preservation_waterfall": {
+        "graph_admission_rate": 1.0,
+        "neutral_nodes_extracted": 5,
+        "nodes_admitted_to_graph": 5,
+        "nodes_materialized_after_ownership": 5,
+        "nodes_surviving_normalization": 5,
+        "nodes_with_valid_provenance": 5,
+        "normalization_retention_rate": 1.0,
+        "ownership_retention_rate": 1.0,
+        "provenance_retention_rate": 1.0
+      },
+      "presentation_to_canonical_action_ids": {
+        "A0": "A1",
+        "A1": "A0"
+      },
+      "stage_one_status": "ADMITTED"
+    }
+  ],
+  "source_protocol": "STAGED_NODE_GENERATION_PILOT",
+  "source_report": "eval_outputs/provenance-binding-enables-pilot2-20260920/report.json"
+}

@@ -3,6 +3,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from .output_claim_integrity import candidate_public_claim_is_admissible
+
 
 def _data(result: Any) -> dict[str, Any]:
     if isinstance(result, dict):
@@ -17,6 +19,16 @@ def _public_claim(text: str) -> str:
     cleaned = re.sub(r"\bAudit QUESTION:[0-9a-f]+:\s*", "", str(text or ""))
     cleaned = re.sub(r"\bQUESTION:[0-9a-f]+\b", "the live unresolved issue", cleaned)
     return " ".join(cleaned.split()).strip()
+
+
+def _candidate_public_claim(
+    data: dict[str, Any], candidate: dict[str, Any], text: str,
+) -> str:
+    """Expose candidate prose only when its numeric claims remain admitted."""
+    cleaned = _public_claim(text)
+    if not candidate_public_claim_is_admissible(data, candidate, cleaned):
+        return ""
+    return cleaned
 
 
 def _judgment_cycle(cycles: list[dict[str, Any]]) -> dict[str, Any]:
@@ -430,7 +442,9 @@ def _support_reason(
             baseline = ""
     if len(baseline) >= 170 or _looks_truncated(baseline):
         baseline = ""
-    rationale = _sentence(candidate.get("rationale", ""))
+    rationale = _sentence(_candidate_public_claim(
+        data, candidate, str(candidate.get("rationale", "")),
+    ))
     axis = _sentence(candidate.get("landscape_decisive_axis", "").replace("_", " "))
     details = [_sentence(baseline), rationale, axis]
     unique: list[str] = []
@@ -1186,7 +1200,11 @@ def _main_contribution(
         claim = " ".join(part for part in (claim, landscape) if part)
     if not claim:
         claim = str(candidate.get("rationale") or candidate.get("decision_rule") or "").strip()
-    claim = _public_claim(_clean_fragment(_shorten_actions_in_text(claim, records)))
+    claim = _candidate_public_claim(
+        data,
+        candidate,
+        _clean_fragment(_shorten_actions_in_text(claim, records)),
+    )
     # Authority invariant: never upgrade provisional language into categorical
     # "REQUIRED" / "perfect duties require" slogans in the public map.
     if status in {"PROVISIONAL_LEANING", "CONTESTED_NO_LEANING"}:
@@ -1417,7 +1435,9 @@ def _governing_claim_text(
         status = _epistemic_status(governing)
         if status in {"PROVISIONAL_LEANING", "CONTESTED_NO_LEANING"}:
             return "NONE"
-        rule = _sentence(_public_claim(str(governing.get("decision_rule") or "")))
+        rule = _sentence(_candidate_public_claim(
+            data, governing, str(governing.get("decision_rule") or ""),
+        ))
         qualification = _candidate_epistemic_qualification(
             data, governing, compact=True,
         )
@@ -1433,7 +1453,9 @@ def _governing_claim_text(
             continue
         if _candidate_recommendation(supporter) != recommendation:
             continue
-        rule = _sentence(_public_claim(str(supporter.get("decision_rule") or "")))
+        rule = _sentence(_candidate_public_claim(
+            data, supporter, str(supporter.get("decision_rule") or ""),
+        ))
         if rule:
             qualification = _candidate_epistemic_qualification(
                 data, supporter, compact=True,
@@ -1936,7 +1958,13 @@ def render_decision_brief(result: Any) -> str:
     if status == CONTESTED_RECOMMENDATION and not supporting:
         governing_text = "NONE"
     if status == CONTESTED_RECOMMENDATION and governing_text == "NONE":
-        pass  # expected
+        # A contested plurality may still have a semantically validated
+        # compressed governing rule even when no single candidate survives as
+        # the cycle's governing_claim object. Preserve that rule and its
+        # dissent instead of presenting the governing state as empty.
+        compressed = _sentence(_public_claim(str(data.get("compressed_rule") or "")))
+        if compressed and "no framework has yet supplied" not in compressed.casefold():
+            governing_text = compressed
     elif status == GOVERNED_RECOMMENDATION and governing_text == "NONE":
         # Prefer compressed_rule only when it does not invent categorical force.
         compressed = _sentence(_public_claim(str(data.get("compressed_rule") or "")))

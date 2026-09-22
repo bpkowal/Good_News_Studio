@@ -1,0 +1,91 @@
+{
+  "actions": [
+    "Pull the lever, redirecting the trolley toward one person",
+    "Do not pull the lever, allowing the trolley to continue toward five people"
+  ],
+  "parliament": {
+    "choice": "A1",
+    "confidence": 0.35,
+    "constraints": [
+      "CARE",
+      "CHARACTER",
+      "DUTY",
+      "RIGHTS",
+      "UNCERTAINTY"
+    ],
+    "framework_state": [
+      [
+        "care",
+        "A0",
+        "ABSTAIN"
+      ],
+      [
+        "deontological",
+        "A1",
+        "ATTENUATED"
+      ],
+      [
+        "rawlsian",
+        "A1",
+        "ABSTAIN"
+      ],
+      [
+        "utilitarian",
+        "UNRESOLVED",
+        "ABSTAIN"
+      ],
+      [
+        "virtue",
+        "A0",
+        "ATTENUATED"
+      ]
+    ],
+    "judgment_status": "UNRESOLVED",
+    "propositions": [
+      "E0_3",
+      "E1_FG2",
+      "PROP:FRAMEWORK:3f034fb013020670",
+      "PROP:HYPOTHESIS:0c3df15eccfbf8f3",
+      "PROP:HYPOTHESIS:0e99d1d6bbd7ebbc",
+      "PROP:HYPOTHESIS:1b8459c3aa9b3e5d",
+      "PROP:HYPOTHESIS:6a07b06cfb6cfb87",
+      "PROP:HYPOTHESIS:6b87475a13e1fc32",
+      "PROP:HYPOTHESIS:c9014ea2be437db4",
+      "PROP:WORLD:E0_3"
+    ]
+  },
+  "parliament_usage": {
+    "api_calls": 46,
+    "cached_prompt_tokens": 161280,
+    "completion_tokens": 61751,
+    "prompt_tokens": 503239,
+    "reasoning_tokens": 38976,
+    "total_tokens": 564990
+  },
+  "solo": {
+    "choice": "A0",
+    "confidence": 0.33,
+    "constraints": [
+      "AIM TO MINIMIZE LOSS OF LIFE",
+      "LEVERAGE PRINCIPLE OF UTILITY OVER OMISSION BIAS"
+    ],
+    "framework_state": [],
+    "judgment_status": "RESOLVED",
+    "propositions": [
+      "Five people will die if no action is taken",
+      "No alternative means exist to stop the trolley",
+      "Pulling the lever will kill one person instead of five"
+    ]
+  },
+  "solo_budget": 50000,
+  "solo_usage": {
+    "api_calls": 1,
+    "cached_prompt_tokens": 0,
+    "completion_tokens": 225,
+    "prompt_tokens": 369,
+    "reasoning_tokens": 128,
+    "total_tokens": 594
+  },
+  "target": "voice_and_paraphrase",
+  "type": "NUISANCE"
+}

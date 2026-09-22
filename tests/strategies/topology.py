@@ -23,6 +23,7 @@ from global_workspace.world_state import (
     WorldCondition,
     WorldEffect,
     WorldParty,
+    normalize_redundant_link_gates,
 )
 from strategies.worlds import unique_tokens
 
@@ -123,21 +124,7 @@ def _independent_world(
         )
         if gated else ()
     )
-    return ScenarioWorldModel(
-        schema_version="1.2",
-        parties=(
-            WorldParty("P0", actor, "HUMAN", ref),
-            WorldParty("P1", facility, "FACILITY", ref),
-            WorldParty("P2", label, "POPULATION", ref),
-            WorldParty("P3", process, "PROCESS", ref),
-        ),
-        actions=(
-            WorldAction(
-                "A0", f"perform {verb} on the {facility}",
-                "P0", ("P1",), ("E0", "E1", "E2", "E3"), ref,
-            ),
-        ),
-        effects=(
+    effects = (
             WorldEffect(
                 "E0", "A0", "P1", f"{verb} on the {facility}", "PERFORMS",
                 "NEUTRAL", "DIRECT", "CERTAIN", "INTERVENTION",
@@ -161,9 +148,26 @@ def _independent_world(
                 likelihood_qualifiers=("near-certain",),
                 provenance=ref,
             ),
+        )
+    return ScenarioWorldModel(
+        schema_version="1.2",
+        parties=(
+            WorldParty("P0", actor, "HUMAN", ref),
+            WorldParty("P1", facility, "FACILITY", ref),
+            WorldParty("P2", label, "POPULATION", ref),
+            WorldParty("P3", process, "PROCESS", ref),
         ),
+        actions=(
+            WorldAction(
+                "A0", f"perform {verb} on the {facility}",
+                "P0", ("P1",), ("E0", "E1", "E2", "E3"), ref,
+            ),
+        ),
+        effects=effects,
         conditions=conditions,
-        causal_links=_independent_links(kind, ref),
+        causal_links=normalize_redundant_link_gates(
+            _independent_links(kind, ref), effects,
+        ),
     )
 
 

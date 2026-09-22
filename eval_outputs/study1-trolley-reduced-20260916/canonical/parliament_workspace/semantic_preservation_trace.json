@@ -1,0 +1,534 @@
+{
+  "status": "COMMITTED",
+  "world_model_status": "COMMITTED",
+  "repair_attempts": 3,
+  "repairs": [
+    {
+      "attempt": 1,
+      "repair_scope": "FRESH_GENERATION",
+      "inherited_candidate": false,
+      "rebuild_action_ids": [],
+      "errors": [
+        "A0 has no distinguishing source clause; its grounding ['C0', 'C2'] is covered entirely by the other actions",
+        "A1 has no distinguishing source clause; its grounding ['C0', 'C2'] is covered entirely by the other actions",
+        "typed world model rejected: E3 omits quantities stated in its outcome and provenance: ['one']; E5 omits quantities stated in its outcome and provenance: ['five']; E7 omits quantities stated in its outcome and provenance: ['five']; E9 omits quantities stated in its outcome and provenance: ['one']; E7 is caused directly by another party's act or bodily outcome (E6); insert a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as the immediate parent. A person's framing, execution, or death is not that intermediate. Do not delete E7 or drop its causal_link without a replacement parent; the source also names P2 (PROCESS runaway trolley), a plausible missing process-state parent for E7 — confirm that reading from the source; an unused facility or resource is not automatically the correct intermediary; E3 omits source quantity 'five' from quantity-bearing consequence 'A runaway trolley will kill five people unless you pull a lever' (licensing_clause_id=C0); copy the span onto the effect (or its population party)"
+      ],
+      "validation_issues": [
+        {
+          "code": "WORLD_VALIDATION_ERROR",
+          "message": "E3 omits quantities stated in its outcome and provenance: ['one']",
+          "entity_kind": "effect",
+          "entity_id": "E3",
+          "field": "",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "WORLD_VALIDATION_ERROR",
+          "message": "E5 omits quantities stated in its outcome and provenance: ['five']",
+          "entity_kind": "effect",
+          "entity_id": "E5",
+          "field": "",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "WORLD_VALIDATION_ERROR",
+          "message": "E7 omits quantities stated in its outcome and provenance: ['five']",
+          "entity_kind": "effect",
+          "entity_id": "E7",
+          "field": "",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "WORLD_VALIDATION_ERROR",
+          "message": "E9 omits quantities stated in its outcome and provenance: ['one']",
+          "entity_kind": "effect",
+          "entity_id": "E9",
+          "field": "",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "MISSING_PROCESS_INTERMEDIATE",
+          "message": "E7 is caused directly by another party's act or bodily outcome (E6); insert a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as the immediate parent. A person's framing, execution, or death is not that intermediate. Do not delete E7 or drop its causal_link without a replacement parent; the source also names P2 (PROCESS runaway trolley), a plausible missing process-state parent for E7 — confirm that reading from the source; an unused facility or resource is not automatically the correct intermediary",
+          "entity_kind": "effect",
+          "entity_id": "E7",
+          "field": "causal_links",
+          "related_ids": [
+            "E6",
+            "P2"
+          ],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "QUANTITY_BEARING_CONSEQUENCE_MISSING",
+          "message": "E3 omits source quantity 'five' from quantity-bearing consequence 'A runaway trolley will kill five people unless you pull a lever' (licensing_clause_id=C0); copy the span onto the effect (or its population party)",
+          "entity_kind": "effect",
+          "entity_id": "E3",
+          "field": "quantities",
+          "related_ids": [
+            "C0"
+          ],
+          "repair_class": "SOURCE_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "WORLD_VALIDATION_ERROR",
+          "message": "A0 has no distinguishing source clause; its grounding ['C0', 'C2'] is covered entirely by the other actions",
+          "entity_kind": "action",
+          "entity_id": "A0",
+          "field": "",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "WORLD_VALIDATION_ERROR",
+          "message": "A1 has no distinguishing source clause; its grounding ['C0', 'C2'] is covered entirely by the other actions",
+          "entity_kind": "action",
+          "entity_id": "A1",
+          "field": "",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        }
+      ],
+      "repair_delta": {}
+    },
+    {
+      "attempt": 1,
+      "repair_scope": "DETERMINISTIC_LOCAL_PATCH",
+      "inherited_candidate": true,
+      "rebuild_action_ids": [],
+      "errors": [
+        "A0 has no distinguishing source clause; its grounding ['C0', 'C2'] is covered entirely by the other actions",
+        "A1 has no distinguishing source clause; its grounding ['C0', 'C2'] is covered entirely by the other actions",
+        "typed world model rejected: E3 omits quantities stated in its outcome and provenance: ['one']; E5 omits quantities stated in its outcome and provenance: ['five']; E7 omits quantities stated in its outcome and provenance: ['five']; E9 omits quantities stated in its outcome and provenance: ['one']; E7 is caused directly by another party's act or bodily outcome (E6); insert a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as the immediate parent. A person's framing, execution, or death is not that intermediate. Do not delete E7 or drop its causal_link without a replacement parent; the source also names P2 (PROCESS runaway trolley), a plausible missing process-state parent for E7 — confirm that reading from the source; an unused facility or resource is not automatically the correct intermediary",
+        "repair had no effect on WORLD_VALIDATION_ERROR for E3; same violation remains after deterministic patch (unstable repair)"
+      ],
+      "validation_issues": [
+        {
+          "code": "WORLD_VALIDATION_ERROR",
+          "message": "E3 omits quantities stated in its outcome and provenance: ['one']",
+          "entity_kind": "effect",
+          "entity_id": "E3",
+          "field": "",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "WORLD_VALIDATION_ERROR",
+          "message": "E5 omits quantities stated in its outcome and provenance: ['five']",
+          "entity_kind": "effect",
+          "entity_id": "E5",
+          "field": "",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "WORLD_VALIDATION_ERROR",
+          "message": "E7 omits quantities stated in its outcome and provenance: ['five']",
+          "entity_kind": "effect",
+          "entity_id": "E7",
+          "field": "",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "WORLD_VALIDATION_ERROR",
+          "message": "E9 omits quantities stated in its outcome and provenance: ['one']",
+          "entity_kind": "effect",
+          "entity_id": "E9",
+          "field": "",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "MISSING_PROCESS_INTERMEDIATE",
+          "message": "E7 is caused directly by another party's act or bodily outcome (E6); insert a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as the immediate parent. A person's framing, execution, or death is not that intermediate. Do not delete E7 or drop its causal_link without a replacement parent; the source also names P2 (PROCESS runaway trolley), a plausible missing process-state parent for E7 — confirm that reading from the source; an unused facility or resource is not automatically the correct intermediary",
+          "entity_kind": "effect",
+          "entity_id": "E7",
+          "field": "causal_links",
+          "related_ids": [
+            "E6",
+            "P2"
+          ],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "WORLD_VALIDATION_ERROR",
+          "message": "A0 has no distinguishing source clause; its grounding ['C0', 'C2'] is covered entirely by the other actions",
+          "entity_kind": "action",
+          "entity_id": "A0",
+          "field": "",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "WORLD_VALIDATION_ERROR",
+          "message": "A1 has no distinguishing source clause; its grounding ['C0', 'C2'] is covered entirely by the other actions",
+          "entity_kind": "action",
+          "entity_id": "A1",
+          "field": "",
+          "related_ids": [],
+          "repair_class": "SEMANTIC_PATCH",
+          "permits_removal": false
+        },
+        {
+          "code": "REPAIR_NO_EFFECT",
+          "message": "repair had no effect on WORLD_VALIDATION_ERROR for E3; same violation remains after deterministic patch (unstable repair)",
+          "entity_kind": "effect",
+          "entity_id": "E3",
+          "field": "repair",
+          "related_ids": [
+            "WORLD_VALIDATION_ERROR"
+          ],
+          "repair_class": "QUARANTINE",
+          "permits_removal": false
+        }
+      ],
+      "repair_delta": {
+        "deterministic_patches": [
+          {
+            "op": "add_quantity",
+            "effect_id": "E3",
+            "field": "quantities",
+            "value": "five",
+            "code": "QUANTITY_BEARING_CONSEQUENCE_MISSING",
+            "patch_kind": "semantic_patch",
+            "deterministic": true
+          }
+        ],
+        "repair_no_effect": [
+          {
+            "code": "REPAIR_NO_EFFECT",
+            "message": "repair had no effect on WORLD_VALIDATION_ERROR for E3; same violation remains after deterministic patch (unstable repair)",
+            "entity_kind": "effect",
+            "entity_id": "E3",
+            "field": "repair",
+            "related_ids": [
+              "WORLD_VALIDATION_ERROR"
+            ],
+            "repair_class": "QUARANTINE",
+            "permits_removal": false
+          }
+        ]
+      }
+    },
+    {
+      "attempt": 2,
+      "repair_scope": "SUBGRAPH_REBUILD",
+      "inherited_candidate": true,
+      "rebuild_action_ids": [
+        "A0",
+        "A1"
+      ],
+      "errors": [
+        "typed world model rejected: E3 omits source quantity 'five' from quantity-bearing consequence 'A runaway trolley will kill five people unless you pull a lever' (licensing_clause_id=C0); copy the span onto the effect (or its population party)"
+      ],
+      "validation_issues": [
+        {
+          "code": "QUANTITY_BEARING_CONSEQUENCE_MISSING",
+          "message": "E3 omits source quantity 'five' from quantity-bearing consequence 'A runaway trolley will kill five people unless you pull a lever' (licensing_clause_id=C0); copy the span onto the effect (or its population party)",
+          "entity_kind": "effect",
+          "entity_id": "E3",
+          "field": "quantities",
+          "related_ids": [
+            "C0"
+          ],
+          "repair_class": "SOURCE_PATCH",
+          "permits_removal": false
+        }
+      ],
+      "repair_delta": {
+        "dropped": {
+          "quantities": [
+            "effect|E10|five people",
+            "effect|E3|five",
+            "effect|E3|one person",
+            "effect|E4|five people",
+            "effect|E5|five people",
+            "effect|E7|five people",
+            "effect|E8|one person",
+            "effect|E9|one person",
+            "party|P3|five people",
+            "party|P4|one person"
+          ],
+          "causal_links": [
+            "E6|E7|CAUSES",
+            "E6|E8|ENABLES"
+          ]
+        },
+        "added": {
+          "quantities": [
+            "effect|E10|five",
+            "effect|E3|one",
+            "effect|E4|five",
+            "effect|E5|five",
+            "effect|E7|five",
+            "effect|E8|one",
+            "effect|E9|one",
+            "party|P3|five",
+            "party|P4|one"
+          ],
+          "citations": [
+            "effect|E11|C0"
+          ],
+          "effects": [
+            "E11"
+          ],
+          "causal_links": [
+            "E11|E7|CAUSES",
+            "E11|E8|ENABLES",
+            "E6|E11|CAUSES"
+          ]
+        },
+        "illegal_drops": []
+      }
+    },
+    {
+      "attempt": 2,
+      "repair_scope": "DETERMINISTIC_LOCAL_PATCH",
+      "inherited_candidate": true,
+      "rebuild_action_ids": [
+        "A0",
+        "A1"
+      ],
+      "errors": [],
+      "validation_issues": [],
+      "repair_delta": {
+        "deterministic_patches": [
+          {
+            "op": "add_quantity",
+            "effect_id": "E3",
+            "field": "quantities",
+            "value": "five",
+            "code": "QUANTITY_BEARING_CONSEQUENCE_MISSING",
+            "patch_kind": "semantic_patch",
+            "deterministic": true
+          }
+        ]
+      }
+    }
+  ],
+  "action_propositions": [
+    {
+      "action_id": "A0",
+      "text": "Pull the lever, redirecting the trolley toward one person",
+      "propositions": []
+    },
+    {
+      "action_id": "A1",
+      "text": "Do not pull the lever, allowing the trolley to continue toward five people",
+      "propositions": [
+        {
+          "kind": "quantity",
+          "text": "five",
+          "supported": true
+        },
+        {
+          "kind": "participant",
+          "text": "five people",
+          "supported": true
+        },
+        {
+          "kind": "quantity",
+          "text": "five people",
+          "supported": true
+        }
+      ]
+    }
+  ],
+  "compact_role_assignments": [
+    {
+      "action_id": "A0",
+      "bucket": "harmed",
+      "label": "one person",
+      "effect_id": "E3",
+      "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; affected quantity one, five; compact harmed"
+    }
+  ],
+  "chains": [
+    {
+      "source_proposition": [
+        {
+          "clause_id": "A0",
+          "text": "Pull the lever, redirecting the trolley toward one person"
+        },
+        {
+          "clause_id": "C0",
+          "text": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "Pull the lever, redirecting the trolley toward one person"
+      },
+      "world": {
+        "effect_id": "E1",
+        "party_id": "P1",
+        "party_label": "lever",
+        "outcome": "lever is pulled",
+        "directness": "DIRECT",
+        "effect_kind": "INTERVENTION",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C0",
+          "text": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "Pull the lever, redirecting the trolley toward one person"
+      },
+      "world": {
+        "effect_id": "E2",
+        "party_id": "P2",
+        "party_label": "runaway trolley",
+        "outcome": "trolley is redirected onto side track",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "PHYSICAL_STATE",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C0",
+          "text": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "Pull the lever, redirecting the trolley toward one person"
+      },
+      "world": {
+        "effect_id": "E3",
+        "party_id": "P4",
+        "party_label": "one person",
+        "outcome": "one person is killed",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "HEALTH_OUTCOME",
+        "polarity": "ADVERSE",
+        "modality": "CERTAIN",
+        "quantities": [
+          "one",
+          "five"
+        ],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A0",
+        "bucket": "harmed",
+        "label": "one person",
+        "effect_id": "E3",
+        "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; affected quantity one, five; compact harmed"
+      }
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "A1",
+          "text": "Do not pull the lever, allowing the trolley to continue toward five people"
+        },
+        {
+          "clause_id": "C0",
+          "text": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "Do not pull the lever, allowing the trolley to continue toward five people"
+      },
+      "world": {
+        "effect_id": "E6",
+        "party_id": "P1",
+        "party_label": "lever",
+        "outcome": "lever is not pulled",
+        "directness": "DIRECT",
+        "effect_kind": "INTERVENTION",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C0",
+          "text": "A runaway trolley will kill five people unless you pull a lever, which redirects it onto a track where it will kill one person."
+        },
+        {
+          "clause_id": "A0",
+          "text": "Pull the lever, redirecting the trolley toward one person"
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "Do not pull the lever, allowing the trolley to continue toward five people"
+      },
+      "world": {
+        "effect_id": "E9",
+        "party_id": "P4",
+        "party_label": "one person",
+        "outcome": "one person is killed",
+        "directness": "FOREGONE",
+        "effect_kind": "OPPORTUNITY_LOSS",
+        "polarity": "FOREGONE",
+        "modality": "CERTAIN",
+        "quantities": [
+          "one"
+        ],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    }
+  ]
+}

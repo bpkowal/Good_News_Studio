@@ -59,6 +59,29 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         help="Halt after the admitted world is printed; do not run expert agents",
     )
     parser.add_argument(
+        "--pairwise-relation-audit",
+        action="store_true",
+        help="Run the read-only Stage-1 pairwise relation audit",
+    )
+    parser.add_argument("--staged-node-generation", action="store_true")
+    parser.add_argument(
+        "--stage-one-guidance-mode",
+        choices=("authoritative", "evidence-only", "evidence-review", "raw-text"),
+        default="authoritative",
+    )
+    parser.add_argument(
+        "--deterministic-repair-guidance",
+        choices=("off", "alone", "combined"),
+        default="off",
+    )
+    parser.add_argument("--pairwise-audit-max-pairs", type=int, default=12)
+    parser.add_argument(
+        "--pairwise-audit-evidence-augmented", action="store_true",
+    )
+    parser.add_argument("--syntactic-resolution-obligations", action="store_true")
+    parser.add_argument("--targeted-semantic-resolution", action="store_true")
+    parser.add_argument("--targeted-resolution-max-calls", type=int, default=6)
+    parser.add_argument(
         "--escalate-world-model",
         action="store_true",
         help=(
@@ -303,6 +326,30 @@ def workspace_command(args: argparse.Namespace, scenario_path: Path) -> list[str
         command.append("--accept-world")
     if args.stop_after_world:
         command.append("--stop-after-world")
+    if args.pairwise_relation_audit:
+        command.append("--pairwise-relation-audit")
+    if args.staged_node_generation:
+        command.append("--staged-node-generation")
+    command.extend([
+        "--stage-one-guidance-mode", args.stage_one_guidance_mode,
+    ])
+    command.extend([
+        "--deterministic-repair-guidance", args.deterministic_repair_guidance,
+    ])
+    command.extend([
+        "--pairwise-audit-max-pairs",
+        str(max(0, args.pairwise_audit_max_pairs)),
+    ])
+    if args.pairwise_audit_evidence_augmented:
+        command.append("--pairwise-audit-evidence-augmented")
+    if args.syntactic_resolution_obligations:
+        command.append("--syntactic-resolution-obligations")
+    if args.targeted_semantic_resolution:
+        command.append("--targeted-semantic-resolution")
+    command.extend([
+        "--targeted-resolution-max-calls",
+        str(max(0, args.targeted_resolution_max_calls)),
+    ])
     if getattr(args, "escalate_world_model", False):
         command.append("--escalate-world-model")
     if getattr(args, "no_world_escalation", False):

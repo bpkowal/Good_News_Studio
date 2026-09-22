@@ -1,0 +1,1320 @@
+{
+  "id": "embedded_authorization",
+  "source_stage_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_233514_175209.json",
+  "obligations": {
+    "version": "1.0",
+    "mode": "READ_ONLY_RESOLUTION_QUESTIONS",
+    "obligations": [
+      {
+        "obligation_id": "SRO_1",
+        "type": "EMBEDDED_CLAUSE",
+        "clause_ids": [
+          "C0"
+        ],
+        "source_span": "The director authorizes the engineer to restart the ventilation system.",
+        "predicate_ids": [
+          "S0_T6"
+        ],
+        "predicate_lemmas": [
+          "restart"
+        ],
+        "question": "Is the embedded predicate asserted, merely enabled, requested, intended, or otherwise modal?",
+        "required_handling": "REPRESENT_OR_QUARANTINE",
+        "authority": "SYNTACTIC_CUE_ONLY"
+      },
+      {
+        "obligation_id": "SRO_2",
+        "type": "SHARED_ARGUMENT_CONJUNCTION",
+        "clause_ids": [
+          "C3"
+        ],
+        "source_span": "The director must authorize the restart or withhold authorization.",
+        "predicate_ids": [
+          "S0_T3",
+          "S0_T7"
+        ],
+        "predicate_lemmas": [
+          "authorize",
+          "withhold"
+        ],
+        "question": "Which subjects or objects are inherited across conjuncts, and which atomic events remain distinct?",
+        "required_handling": "REPRESENT_OR_QUARANTINE",
+        "authority": "SYNTACTIC_CUE_ONLY"
+      }
+    ],
+    "annotations": [
+      {
+        "clause_id": "C0",
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "The director authorizes the engineer to restart the ventilation system.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "The director authorizes the engineer to restart the ventilation system.",
+            "start_char": 0,
+            "end_char": 71,
+            "predicate_ids": [
+              "S0_T2",
+              "S0_T6"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T2",
+            "sentence_index": 0,
+            "token_index": 2,
+            "start_char": 13,
+            "end_char": 23,
+            "text": "authorizes",
+            "lemma": "authorize",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 2,
+            "head_text": "authorizes",
+            "clause_head": true,
+            "subtree_span": "The director authorizes the engineer to restart the ventilation system.",
+            "subjects": [
+              "director"
+            ],
+            "objects": [
+              "engineer"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "director",
+                "lemma": "director",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "engineer",
+                "lemma": "engineer",
+                "dependency": "dobj"
+              },
+              {
+                "text": "restart",
+                "lemma": "restart",
+                "dependency": "xcomp"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T6",
+            "sentence_index": 0,
+            "token_index": 6,
+            "start_char": 40,
+            "end_char": 47,
+            "text": "restart",
+            "lemma": "restart",
+            "pos": "VERB",
+            "dependency": "xcomp",
+            "head_token_index": 2,
+            "head_text": "authorizes",
+            "clause_head": true,
+            "subtree_span": "to restart the ventilation system",
+            "subjects": [],
+            "objects": [
+              "system"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "to",
+                "lemma": "to",
+                "dependency": "aux"
+              },
+              {
+                "text": "system",
+                "lemma": "system",
+                "dependency": "dobj"
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "start_char": 0,
+            "end_char": 3,
+            "text": "The",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 1
+          },
+          {
+            "token_index": 1,
+            "start_char": 4,
+            "end_char": 12,
+            "text": "director",
+            "lemma": "director",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 2,
+            "start_char": 13,
+            "end_char": 23,
+            "text": "authorizes",
+            "lemma": "authorize",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 3,
+            "start_char": 24,
+            "end_char": 27,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 4,
+            "start_char": 28,
+            "end_char": 36,
+            "text": "engineer",
+            "lemma": "engineer",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 5,
+            "start_char": 37,
+            "end_char": 39,
+            "text": "to",
+            "lemma": "to",
+            "pos": "PART",
+            "dependency": "aux",
+            "head_token_index": 6
+          },
+          {
+            "token_index": 6,
+            "start_char": 40,
+            "end_char": 47,
+            "text": "restart",
+            "lemma": "restart",
+            "pos": "VERB",
+            "dependency": "xcomp",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 7,
+            "start_char": 48,
+            "end_char": 51,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 9
+          },
+          {
+            "token_index": 8,
+            "start_char": 52,
+            "end_char": 63,
+            "text": "ventilation",
+            "lemma": "ventilation",
+            "pos": "NOUN",
+            "dependency": "compound",
+            "head_token_index": 9
+          },
+          {
+            "token_index": 9,
+            "start_char": 64,
+            "end_char": 70,
+            "text": "system",
+            "lemma": "system",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 6
+          },
+          {
+            "token_index": 10,
+            "start_char": 70,
+            "end_char": 71,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 2
+          }
+        ]
+      },
+      {
+        "clause_id": "C1",
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "Restarting it clears smoke from the shelter.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "Restarting it clears smoke from the shelter.",
+            "start_char": 0,
+            "end_char": 44,
+            "predicate_ids": [
+              "S0_T0",
+              "S0_T2"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T0",
+            "sentence_index": 0,
+            "token_index": 0,
+            "start_char": 0,
+            "end_char": 10,
+            "text": "Restarting",
+            "lemma": "restart",
+            "pos": "VERB",
+            "dependency": "csubj",
+            "head_token_index": 2,
+            "head_text": "clears",
+            "clause_head": false,
+            "subtree_span": "Restarting",
+            "subjects": [],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": []
+          },
+          {
+            "predicate_id": "S0_T2",
+            "sentence_index": 0,
+            "token_index": 2,
+            "start_char": 14,
+            "end_char": 20,
+            "text": "clears",
+            "lemma": "clear",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 2,
+            "head_text": "clears",
+            "clause_head": true,
+            "subtree_span": "Restarting it clears smoke from the shelter.",
+            "subjects": [
+              "Restarting",
+              "it"
+            ],
+            "objects": [
+              "smoke"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "Restarting",
+                "lemma": "restart",
+                "dependency": "csubj"
+              },
+              {
+                "text": "it",
+                "lemma": "it",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "smoke",
+                "lemma": "smoke",
+                "dependency": "dobj"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "start_char": 0,
+            "end_char": 10,
+            "text": "Restarting",
+            "lemma": "restart",
+            "pos": "VERB",
+            "dependency": "csubj",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 1,
+            "start_char": 11,
+            "end_char": 13,
+            "text": "it",
+            "lemma": "it",
+            "pos": "PRON",
+            "dependency": "nsubj",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 2,
+            "start_char": 14,
+            "end_char": 20,
+            "text": "clears",
+            "lemma": "clear",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 3,
+            "start_char": 21,
+            "end_char": 26,
+            "text": "smoke",
+            "lemma": "smoke",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 4,
+            "start_char": 27,
+            "end_char": 31,
+            "text": "from",
+            "lemma": "from",
+            "pos": "ADP",
+            "dependency": "prep",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 5,
+            "start_char": 32,
+            "end_char": 35,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 6
+          },
+          {
+            "token_index": 6,
+            "start_char": 36,
+            "end_char": 43,
+            "text": "shelter",
+            "lemma": "shelter",
+            "pos": "NOUN",
+            "dependency": "pobj",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 7,
+            "start_char": 43,
+            "end_char": 44,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 2
+          }
+        ]
+      },
+      {
+        "clause_id": "C2",
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "Alternatively, the director withholds authorization.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "Alternatively, the director withholds authorization.",
+            "start_char": 0,
+            "end_char": 52,
+            "predicate_ids": [
+              "S0_T4"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T4",
+            "sentence_index": 0,
+            "token_index": 4,
+            "start_char": 28,
+            "end_char": 37,
+            "text": "withholds",
+            "lemma": "withhold",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 4,
+            "head_text": "withholds",
+            "clause_head": true,
+            "subtree_span": "Alternatively, the director withholds authorization.",
+            "subjects": [
+              "director"
+            ],
+            "objects": [
+              "authorization"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "Alternatively",
+                "lemma": "alternatively",
+                "dependency": "advmod"
+              },
+              {
+                "text": ",",
+                "lemma": ",",
+                "dependency": "punct"
+              },
+              {
+                "text": "director",
+                "lemma": "director",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "authorization",
+                "lemma": "authorization",
+                "dependency": "dobj"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "start_char": 0,
+            "end_char": 13,
+            "text": "Alternatively",
+            "lemma": "alternatively",
+            "pos": "ADV",
+            "dependency": "advmod",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 1,
+            "start_char": 13,
+            "end_char": 14,
+            "text": ",",
+            "lemma": ",",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 2,
+            "start_char": 15,
+            "end_char": 18,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 3,
+            "start_char": 19,
+            "end_char": 27,
+            "text": "director",
+            "lemma": "director",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 4,
+            "start_char": 28,
+            "end_char": 37,
+            "text": "withholds",
+            "lemma": "withhold",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 5,
+            "start_char": 38,
+            "end_char": 51,
+            "text": "authorization",
+            "lemma": "authorization",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 4
+          },
+          {
+            "token_index": 6,
+            "start_char": 51,
+            "end_char": 52,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 4
+          }
+        ]
+      },
+      {
+        "clause_id": "C3",
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "The director must authorize the restart or withhold authorization.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "The director must authorize the restart or withhold authorization.",
+            "start_char": 0,
+            "end_char": 66,
+            "predicate_ids": [
+              "S0_T3",
+              "S0_T7"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T3",
+            "sentence_index": 0,
+            "token_index": 3,
+            "start_char": 18,
+            "end_char": 27,
+            "text": "authorize",
+            "lemma": "authorize",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 3,
+            "head_text": "authorize",
+            "clause_head": true,
+            "subtree_span": "The director must authorize the restart or withhold authorization.",
+            "subjects": [
+              "director"
+            ],
+            "objects": [
+              "restart"
+            ],
+            "negations": [],
+            "modals": [
+              "must"
+            ],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [
+              "withhold"
+            ],
+            "children": [
+              {
+                "text": "director",
+                "lemma": "director",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "must",
+                "lemma": "must",
+                "dependency": "aux"
+              },
+              {
+                "text": "restart",
+                "lemma": "restart",
+                "dependency": "dobj"
+              },
+              {
+                "text": "or",
+                "lemma": "or",
+                "dependency": "cc"
+              },
+              {
+                "text": "withhold",
+                "lemma": "withhold",
+                "dependency": "conj"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T7",
+            "sentence_index": 0,
+            "token_index": 7,
+            "start_char": 43,
+            "end_char": 51,
+            "text": "withhold",
+            "lemma": "withhold",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 3,
+            "head_text": "authorize",
+            "clause_head": true,
+            "subtree_span": "withhold authorization",
+            "subjects": [],
+            "objects": [
+              "authorization"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "authorization",
+                "lemma": "authorization",
+                "dependency": "dobj"
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "start_char": 0,
+            "end_char": 3,
+            "text": "The",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 1
+          },
+          {
+            "token_index": 1,
+            "start_char": 4,
+            "end_char": 12,
+            "text": "director",
+            "lemma": "director",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 2,
+            "start_char": 13,
+            "end_char": 17,
+            "text": "must",
+            "lemma": "must",
+            "pos": "AUX",
+            "dependency": "aux",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 3,
+            "start_char": 18,
+            "end_char": 27,
+            "text": "authorize",
+            "lemma": "authorize",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 4,
+            "start_char": 28,
+            "end_char": 31,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 5,
+            "start_char": 32,
+            "end_char": 39,
+            "text": "restart",
+            "lemma": "restart",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 6,
+            "start_char": 40,
+            "end_char": 42,
+            "text": "or",
+            "lemma": "or",
+            "pos": "CCONJ",
+            "dependency": "cc",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 7,
+            "start_char": 43,
+            "end_char": 51,
+            "text": "withhold",
+            "lemma": "withhold",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 8,
+            "start_char": 52,
+            "end_char": 65,
+            "text": "authorization",
+            "lemma": "authorization",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 7
+          },
+          {
+            "token_index": 9,
+            "start_char": 65,
+            "end_char": 66,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 3
+          }
+        ]
+      }
+    ]
+  },
+  "coverage_before": [
+    {
+      "obligation_id": "SRO_1",
+      "type": "EMBEDDED_CLAUSE",
+      "status": "CANDIDATE_NODES_PRESENT_REVIEW_REQUIRED",
+      "matching_proposition_ids": [
+        "T1",
+        "T2"
+      ],
+      "missing_predicate_lemmas": []
+    },
+    {
+      "obligation_id": "SRO_2",
+      "type": "SHARED_ARGUMENT_CONJUNCTION",
+      "status": "CANDIDATE_NODES_PRESENT_REVIEW_REQUIRED",
+      "matching_proposition_ids": [
+        "T5"
+      ],
+      "missing_predicate_lemmas": []
+    }
+  ],
+  "jobs": [],
+  "responses": [],
+  "audit": [],
+  "neutral_before": {
+    "parties": [
+      {
+        "party_id": "P1",
+        "label": "director",
+        "kind": "PERSON",
+        "quantities": [],
+        "clause_ids": [
+          "C0",
+          "C2",
+          "C3"
+        ]
+      },
+      {
+        "party_id": "P2",
+        "label": "engineer",
+        "kind": "PERSON",
+        "quantities": [],
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      {
+        "party_id": "P3",
+        "label": "ventilation system",
+        "kind": "OBJECT",
+        "quantities": [],
+        "clause_ids": [
+          "C0",
+          "C1"
+        ]
+      },
+      {
+        "party_id": "P4",
+        "label": "shelter",
+        "kind": "LOCATION",
+        "quantities": [],
+        "clause_ids": [
+          "C1"
+        ]
+      }
+    ],
+    "propositions": [
+      {
+        "proposition_id": "T1",
+        "party_id": "P1",
+        "outcome": "director authorizes the engineer to restart the ventilation system",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "ACTION",
+        "quantities": [],
+        "source_proposition": "The director authorizes the engineer to restart the ventilation system.",
+        "clause_ids": [
+          "C0"
+        ],
+        "generated_source_proposition": "The director authorizes the engineer to restart the ventilation system.",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "The director authorizes the engineer to restart the ventilation system.",
+          "bound_span": "The director authorizes the engineer to restart the ventilation system.",
+          "bound_clause_id": "C0",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "T2",
+        "party_id": "P3",
+        "outcome": "ventilation system is restarted",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "STATE",
+        "quantities": [],
+        "source_proposition": "restart the ventilation system",
+        "clause_ids": [
+          "C0"
+        ],
+        "generated_source_proposition": "restart the ventilation system",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "restart the ventilation system",
+          "bound_span": "restart the ventilation system",
+          "bound_clause_id": "C0",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "T3",
+        "party_id": "P4",
+        "outcome": "smoke is cleared from the shelter",
+        "polarity": "BENEFICIAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "STATE",
+        "quantities": [],
+        "source_proposition": "clears smoke from the shelter",
+        "clause_ids": [
+          "C1"
+        ],
+        "generated_source_proposition": "clears smoke from the shelter",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "clears smoke from the shelter",
+          "bound_span": "clears smoke from the shelter",
+          "bound_clause_id": "C1",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "T4",
+        "party_id": "P1",
+        "outcome": "director withholds authorization",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "ACTION",
+        "quantities": [],
+        "source_proposition": "the director withholds authorization",
+        "clause_ids": [
+          "C2"
+        ],
+        "generated_source_proposition": "the director withholds authorization",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "the director withholds authorization",
+          "bound_span": "the director withholds authorization",
+          "bound_clause_id": "C2",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "T5",
+        "party_id": "P1",
+        "outcome": "director must authorize the restart or withhold authorization",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "OBLIGATION",
+        "quantities": [],
+        "source_proposition": "The director must authorize the restart or withhold authorization",
+        "clause_ids": [
+          "C3"
+        ],
+        "generated_source_proposition": "The director must authorize the restart or withhold authorization",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "The director must authorize the restart or withhold authorization",
+          "bound_span": "The director must authorize the restart or withhold authorization",
+          "bound_clause_id": "C3",
+          "score": 1.0
+        }
+      }
+    ],
+    "unresolved_source_spans": [],
+    "provenance_bindings": [
+      {
+        "proposition_id": "T1",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "The director authorizes the engineer to restart the ventilation system.",
+        "bound_span": "The director authorizes the engineer to restart the ventilation system.",
+        "bound_clause_id": "C0",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "T2",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "restart the ventilation system",
+        "bound_span": "restart the ventilation system",
+        "bound_clause_id": "C0",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "T3",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "clears smoke from the shelter",
+        "bound_span": "clears smoke from the shelter",
+        "bound_clause_id": "C1",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "T4",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "the director withholds authorization",
+        "bound_span": "the director withholds authorization",
+        "bound_clause_id": "C2",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "T5",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "The director must authorize the restart or withhold authorization",
+        "bound_span": "The director must authorize the restart or withhold authorization",
+        "bound_clause_id": "C3",
+        "score": 1.0
+      }
+    ]
+  },
+  "neutral_after": {
+    "parties": [
+      {
+        "party_id": "P1",
+        "label": "director",
+        "kind": "PERSON",
+        "quantities": [],
+        "clause_ids": [
+          "C0",
+          "C2",
+          "C3"
+        ]
+      },
+      {
+        "party_id": "P2",
+        "label": "engineer",
+        "kind": "PERSON",
+        "quantities": [],
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      {
+        "party_id": "P3",
+        "label": "ventilation system",
+        "kind": "OBJECT",
+        "quantities": [],
+        "clause_ids": [
+          "C0",
+          "C1"
+        ]
+      },
+      {
+        "party_id": "P4",
+        "label": "shelter",
+        "kind": "LOCATION",
+        "quantities": [],
+        "clause_ids": [
+          "C1"
+        ]
+      }
+    ],
+    "propositions": [
+      {
+        "proposition_id": "T1",
+        "party_id": "P1",
+        "outcome": "director authorizes the engineer to restart the ventilation system",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "ACTION",
+        "quantities": [],
+        "source_proposition": "The director authorizes the engineer to restart the ventilation system.",
+        "clause_ids": [
+          "C0"
+        ],
+        "generated_source_proposition": "The director authorizes the engineer to restart the ventilation system.",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "The director authorizes the engineer to restart the ventilation system.",
+          "bound_span": "The director authorizes the engineer to restart the ventilation system.",
+          "bound_clause_id": "C0",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "T2",
+        "party_id": "P3",
+        "outcome": "ventilation system is restarted",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "STATE",
+        "quantities": [],
+        "source_proposition": "restart the ventilation system",
+        "clause_ids": [
+          "C0"
+        ],
+        "generated_source_proposition": "restart the ventilation system",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "restart the ventilation system",
+          "bound_span": "restart the ventilation system",
+          "bound_clause_id": "C0",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "T3",
+        "party_id": "P4",
+        "outcome": "smoke is cleared from the shelter",
+        "polarity": "BENEFICIAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "STATE",
+        "quantities": [],
+        "source_proposition": "clears smoke from the shelter",
+        "clause_ids": [
+          "C1"
+        ],
+        "generated_source_proposition": "clears smoke from the shelter",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "clears smoke from the shelter",
+          "bound_span": "clears smoke from the shelter",
+          "bound_clause_id": "C1",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "T4",
+        "party_id": "P1",
+        "outcome": "director withholds authorization",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "ACTION",
+        "quantities": [],
+        "source_proposition": "the director withholds authorization",
+        "clause_ids": [
+          "C2"
+        ],
+        "generated_source_proposition": "the director withholds authorization",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "the director withholds authorization",
+          "bound_span": "the director withholds authorization",
+          "bound_clause_id": "C2",
+          "score": 1.0
+        }
+      },
+      {
+        "proposition_id": "T5",
+        "party_id": "P1",
+        "outcome": "director must authorize the restart or withhold authorization",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "OBLIGATION",
+        "quantities": [],
+        "source_proposition": "The director must authorize the restart or withhold authorization",
+        "clause_ids": [
+          "C3"
+        ],
+        "generated_source_proposition": "The director must authorize the restart or withhold authorization",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "EXACT",
+          "original_span": "The director must authorize the restart or withhold authorization",
+          "bound_span": "The director must authorize the restart or withhold authorization",
+          "bound_clause_id": "C3",
+          "score": 1.0
+        }
+      }
+    ],
+    "unresolved_source_spans": [],
+    "provenance_bindings": [
+      {
+        "proposition_id": "T1",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "The director authorizes the engineer to restart the ventilation system.",
+        "bound_span": "The director authorizes the engineer to restart the ventilation system.",
+        "bound_clause_id": "C0",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "T2",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "restart the ventilation system",
+        "bound_span": "restart the ventilation system",
+        "bound_clause_id": "C0",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "T3",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "clears smoke from the shelter",
+        "bound_span": "clears smoke from the shelter",
+        "bound_clause_id": "C1",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "T4",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "the director withholds authorization",
+        "bound_span": "the director withholds authorization",
+        "bound_clause_id": "C2",
+        "score": 1.0
+      },
+      {
+        "proposition_id": "T5",
+        "status": "BOUND",
+        "method": "EXACT",
+        "original_span": "The director must authorize the restart or withhold authorization",
+        "bound_span": "The director must authorize the restart or withhold authorization",
+        "bound_clause_id": "C3",
+        "score": 1.0
+      }
+    ],
+    "targeted_resolution_audit": []
+  },
+  "diagnostic_before": {
+    "gold_node_count": 3,
+    "present_neutral_node_count": 2,
+    "neutral_node_recall": 0.6666666666666666,
+    "fused_gold_node_count": 0,
+    "alignments": [
+      {
+        "action_id": "A0",
+        "gold_event": "director authorizes the engineer",
+        "matched_proposition_id": "T1__NEUTRAL__A0",
+        "method": "EXACT",
+        "score": 1.0,
+        "status": "MATCHED",
+        "candidate_count": 5,
+        "unresolved_reason": null
+      },
+      {
+        "action_id": "A0",
+        "gold_event": "engineer restarts ventilation",
+        "matched_proposition_id": null,
+        "method": null,
+        "score": null,
+        "status": "UNRESOLVED",
+        "candidate_count": 5,
+        "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+      },
+      {
+        "action_id": "A0",
+        "gold_event": "smoke clears from the shelter",
+        "matched_proposition_id": "T3__NEUTRAL__A0",
+        "method": "TOKEN_LEMMA",
+        "score": 1.0,
+        "status": "MATCHED",
+        "candidate_count": 5,
+        "unresolved_reason": null
+      }
+    ]
+  },
+  "diagnostic_after": {
+    "gold_node_count": 3,
+    "present_neutral_node_count": 2,
+    "neutral_node_recall": 0.6666666666666666,
+    "fused_gold_node_count": 0,
+    "alignments": [
+      {
+        "action_id": "A0",
+        "gold_event": "director authorizes the engineer",
+        "matched_proposition_id": "T1__NEUTRAL__A0",
+        "method": "EXACT",
+        "score": 1.0,
+        "status": "MATCHED",
+        "candidate_count": 5,
+        "unresolved_reason": null
+      },
+      {
+        "action_id": "A0",
+        "gold_event": "engineer restarts ventilation",
+        "matched_proposition_id": null,
+        "method": null,
+        "score": null,
+        "status": "UNRESOLVED",
+        "candidate_count": 5,
+        "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+      },
+      {
+        "action_id": "A0",
+        "gold_event": "smoke clears from the shelter",
+        "matched_proposition_id": "T3__NEUTRAL__A0",
+        "method": "TOKEN_LEMMA",
+        "score": 1.0,
+        "status": "MATCHED",
+        "candidate_count": 5,
+        "unresolved_reason": null
+      }
+    ]
+  },
+  "accepted_addition_ids": [],
+  "gold_useful_added_ids": []
+}

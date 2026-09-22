@@ -1546,6 +1546,8 @@ def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
                 "value_status": condition.value_status,
                 "decision_relevance": condition.decision_relevance,
                 "event_effect_id": condition.event_effect_id,
+                "polarity": condition.polarity,
+                "operator": condition.operator,
                 "source_clause_ids": [ref.clause_id for ref in condition.provenance],
                 "world_state_typed": True,
             },
@@ -1562,22 +1564,43 @@ def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
         ))
         if not existing:
             return ""
-        if len(existing) == 1:
-            return existing[0]
+        operands: list[str] = []
+        for condition_id in existing:
+            condition_node = graph.nodes[condition_id]
+            if condition_node.attributes.get("polarity") != "NEGATED":
+                operands.append(condition_id)
+                continue
+            negation_id = f"WORLD_NOT:{owner_id}:{condition_id}"
+            graph.add_node(SemanticNode(
+                negation_id, "LOGICAL", f"NOT {condition_id}", provenance,
+                {
+                    "operator": "NOT",
+                    "condition_ids": [condition_id],
+                    "condition_operator": condition_node.attributes.get("operator"),
+                    "world_state_typed": True,
+                },
+            ))
+            _add_unique_edge(graph, SemanticEdge(
+                negation_id, "HAS_OPERAND", condition_id, provenance=provenance,
+            ))
+            operands.append(negation_id)
+        if len(operands) == 1:
+            return operands[0]
         operator = condition_join if condition_join in {"AND", "OR"} else "AND"
         gate_id = f"WORLD_GATE:{owner_id}"
         graph.add_node(SemanticNode(
             gate_id,
             "LOGICAL",
-            f" {operator} ".join(existing),
+            f" {operator} ".join(operands),
             provenance,
             {
                 "operator": operator,
                 "condition_ids": list(existing),
+                "operand_ids": list(operands),
                 "world_state_typed": True,
             },
         ))
-        for condition_id in existing:
+        for condition_id in operands:
             _add_unique_edge(graph, SemanticEdge(
                 gate_id, "HAS_OPERAND", condition_id, provenance=provenance,
             ))
@@ -1755,6 +1778,21 @@ def attach_typed_world_model(graph: SemanticGraph, model: Any) -> None:
             source, relation, alternative,
             justification=f"modality={link.modality}", provenance=provenance,
         ))
+    for relation in model.temporal_relations:
+        source = effect_node_ids.get(relation.source_id, relation.source_id)
+        target = effect_node_ids.get(relation.target_id, relation.target_id)
+        if relation.relation == "AFTER":
+            source, target = target, source
+        if source not in graph.nodes or target not in graph.nodes:
+            continue
+        provenance = tuple(
+            f"scenario_clause:{ref.clause_id}" for ref in relation.provenance
+        ) or ("typed_world_model",)
+        _add_unique_edge(graph, SemanticEdge(
+            source, "BEFORE", target,
+            justification=f"temporal_relation={relation.relation_id}",
+            provenance=provenance,
+        ))
 
 
 def conditional_gate_projection_errors(
@@ -1855,8 +1893,8 @@ def compile_scenario_graph(
         attach_consequences=not bool(world_model),
     )
     if world_model:
-        from .world_state import world_model_from_dict
-        typed = world_model_from_dict(world_model)
+        from .world_admission import restore_admitted_world
+        typed = restore_admitted_world(world_model)
         if typed is not None:
             attach_typed_world_model(graph, typed)
             gate_errors = conditional_gate_projection_errors(graph, typed)

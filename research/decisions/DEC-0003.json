@@ -1,0 +1,22 @@
+{
+  "decision_id": "DEC-0003",
+  "date": "2026-09-21",
+  "topic": "Repair attempts as explicit experimental events",
+  "status": "ACTIVE",
+  "evidence": [
+    "EXP-2026-09-21-004"
+  ],
+  "decision": "Record every deterministic or LLM world-graph repair as a versioned experimental event with issue instances, selected and suppressed card identities, graph diff, repair outcome, and execution context.",
+  "reason": "Attempt adjacency was sufficient to discover persistent error families but could not distinguish card opportunity from actual selection, target repair from clean repair, or local correction from graph-wide collateral change.",
+  "retained_components": [
+    "attempt ledger",
+    "invariant/card telemetry",
+    "transactional repair scopes",
+    "research experiment and decision ledger"
+  ],
+  "reconsider_if": [
+    "event recording materially affects graph-generation prompts or runtime behavior",
+    "stored graph diffs create unacceptable trace size",
+    "a simpler event schema preserves the same card-level experimental conclusions"
+  ]
+}

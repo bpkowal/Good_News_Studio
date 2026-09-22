@@ -1,0 +1,432 @@
+{
+  "actions": [
+    "Give the oxygen unit to Eli",
+    "Give the oxygen unit to Noor"
+  ],
+  "branchwise": {
+    "branch_elapsed_seconds": [
+      63.762,
+      42.95
+    ],
+    "branch_errors": [
+      [
+        "EL0 PSEUDOGAPPING selected antecedent_span was not retained in its audited candidate_antecedent_spans"
+      ],
+      []
+    ],
+    "branch_repair_attempts": [
+      3,
+      2
+    ],
+    "branch_statuses": [
+      "REJECTED",
+      "COMMITTED"
+    ],
+    "merge_conflicts": [],
+    "merged_errors": [
+      "one or more branches did not commit"
+    ],
+    "merged_status": "NOT_RUN",
+    "merged_validation_issues": [],
+    "merged_world_model": {}
+  },
+  "experiment_version": "1.0",
+  "intentionally_not_compared": [
+    "ethical framework deliberation",
+    "final ethical recommendation",
+    "counterfactual overlay quality",
+    "cost-normalized performance beyond this single scenario"
+  ],
+  "model": "o3",
+  "scenario": "A rural clinic has one portable oxygen unit and two patients, Eli and Noor. Each patient will suffer respiratory injury during the next hour without the unit. The unit cannot be divided, and no replacement can arrive in time. The clinician must give the oxygen unit either to Eli or to Noor.",
+  "whole_world": {
+    "elapsed_seconds": 74.657,
+    "errors": [
+      "EL0 PSEUDOGAPPING is decision-relevant predicate ellipsis and must be RESOLVED before world admission"
+    ],
+    "repair_attempts": 3,
+    "status": "REJECTED",
+    "validation_issues": [
+      {
+        "code": "ELLIPSIS_RESOLUTION_REQUIRED",
+        "entity_id": "EL0",
+        "entity_kind": "effect",
+        "field": "ellipsis_resolutions",
+        "message": "EL0 PSEUDOGAPPING is decision-relevant predicate ellipsis and must be RESOLVED before world admission",
+        "permits_removal": false,
+        "related_ids": [],
+        "repair_class": "SOURCE_PATCH"
+      }
+    ],
+    "world_model": {
+      "actions": [
+        {
+          "action_id": "A0",
+          "actor_party_id": "P0",
+          "effect_ids": [
+            "E0",
+            "E1",
+            "E2"
+          ],
+          "intervention": "give the portable oxygen unit to Eli",
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "The clinician must give the oxygen unit either to Eli or to Noor."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "The unit cannot be divided, and no replacement can arrive in time."
+            }
+          ],
+          "recipient_party_ids": [
+            "P2"
+          ]
+        },
+        {
+          "action_id": "A1",
+          "actor_party_id": "P0",
+          "effect_ids": [
+            "E3",
+            "E4",
+            "E5"
+          ],
+          "intervention": "give the portable oxygen unit to Noor",
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "The clinician must give the oxygen unit either to Eli or to Noor."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "The unit cannot be divided, and no replacement can arrive in time."
+            }
+          ],
+          "recipient_party_ids": [
+            "P3"
+          ]
+        }
+      ],
+      "admission": {
+        "admitted_effect_ids": [
+          "E0",
+          "E1",
+          "E2",
+          "E3",
+          "E4",
+          "E5"
+        ],
+        "override_reason": "",
+        "quarantined_effects": [],
+        "status": "COMMITTED",
+        "user_override": false
+      },
+      "causal_links": [
+        {
+          "action_id": "A0",
+          "condition_ids": [],
+          "modality": "CERTAIN",
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "The unit cannot be divided, and no replacement can arrive in time."
+            }
+          ],
+          "relation": "CAUSES",
+          "source_id": "E0",
+          "target_id": "E1"
+        },
+        {
+          "action_id": "A0",
+          "condition_ids": [],
+          "modality": "CERTAIN",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Each patient will suffer respiratory injury during the next hour without the unit."
+            }
+          ],
+          "relation": "CAUSES",
+          "source_id": "E1",
+          "target_id": "E2"
+        },
+        {
+          "action_id": "A1",
+          "condition_ids": [],
+          "modality": "CERTAIN",
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "The unit cannot be divided, and no replacement can arrive in time."
+            }
+          ],
+          "relation": "CAUSES",
+          "source_id": "E3",
+          "target_id": "E4"
+        },
+        {
+          "action_id": "A1",
+          "condition_ids": [],
+          "modality": "CERTAIN",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Each patient will suffer respiratory injury during the next hour without the unit."
+            }
+          ],
+          "relation": "CAUSES",
+          "source_id": "E4",
+          "target_id": "E5"
+        }
+      ],
+      "conditions": [],
+      "counterfactual_links": [],
+      "effects": [
+        {
+          "action_id": "A0",
+          "condition_ids": [],
+          "condition_join": "AND",
+          "derivation_assumptions": [],
+          "derivation_explanation": "",
+          "derivation_operation": "DIRECT_COPY",
+          "directness": "DIRECT",
+          "effect_id": "E0",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "likelihood_qualifiers": [],
+          "modality": "CERTAIN",
+          "outcome": "give the oxygen unit to Eli",
+          "outcome_type_transformation": "PRESERVED",
+          "overall_likelihood_qualifiers": [],
+          "party_id": "P2",
+          "polarity": "BENEFICIAL",
+          "provenance": [
+            {
+              "clause_id": "A0",
+              "excerpt": "Give the oxygen unit to Eli"
+            }
+          ],
+          "quantities": [],
+          "relation": "RECEIVES",
+          "scope_qualifiers": [],
+          "source_effect_ids": [],
+          "source_proposition": "Give the oxygen unit to Eli",
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A0",
+          "condition_ids": [],
+          "condition_join": "AND",
+          "derivation_assumptions": [],
+          "derivation_explanation": "Because the unit is indivisible and was given to Eli (E0), Noor consequently lacks it.",
+          "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+          "directness": "DOWNSTREAM",
+          "effect_id": "E1",
+          "effect_kind": "OTHER",
+          "likelihood_qualifiers": [],
+          "modality": "CERTAIN",
+          "outcome": "does not receive the oxygen unit",
+          "outcome_type_transformation": "PRESERVED",
+          "overall_likelihood_qualifiers": [],
+          "party_id": "P3",
+          "polarity": "ADVERSE",
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "The unit cannot be divided, and no replacement can arrive in time."
+            }
+          ],
+          "quantities": [],
+          "relation": "NOT_RECEIVE",
+          "scope_qualifiers": [],
+          "source_effect_ids": [
+            "E0"
+          ],
+          "source_proposition": "The unit cannot be divided",
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A0",
+          "condition_ids": [],
+          "condition_join": "AND",
+          "derivation_assumptions": [],
+          "derivation_explanation": "C1 states injury without the unit; Noor's non-receipt (E1) meets that condition.",
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "directness": "DOWNSTREAM",
+          "effect_id": "E2",
+          "effect_kind": "HEALTH_OUTCOME",
+          "likelihood_qualifiers": [],
+          "modality": "CERTAIN",
+          "outcome": "suffers respiratory injury during the next hour",
+          "outcome_type_transformation": "PRESERVED",
+          "overall_likelihood_qualifiers": [],
+          "party_id": "P3",
+          "polarity": "ADVERSE",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Each patient will suffer respiratory injury during the next hour without the unit."
+            }
+          ],
+          "quantities": [],
+          "relation": "SUFFERS",
+          "scope_qualifiers": [],
+          "source_effect_ids": [
+            "E1"
+          ],
+          "source_proposition": "Each patient will suffer respiratory injury during the next hour without the unit.",
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A1",
+          "condition_ids": [],
+          "condition_join": "AND",
+          "derivation_assumptions": [],
+          "derivation_explanation": "",
+          "derivation_operation": "DIRECT_COPY",
+          "directness": "DIRECT",
+          "effect_id": "E3",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "likelihood_qualifiers": [],
+          "modality": "CERTAIN",
+          "outcome": "give the oxygen unit to Noor",
+          "outcome_type_transformation": "PRESERVED",
+          "overall_likelihood_qualifiers": [],
+          "party_id": "P3",
+          "polarity": "BENEFICIAL",
+          "provenance": [
+            {
+              "clause_id": "A1",
+              "excerpt": "Give the oxygen unit to Noor"
+            }
+          ],
+          "quantities": [],
+          "relation": "RECEIVES",
+          "scope_qualifiers": [],
+          "source_effect_ids": [],
+          "source_proposition": "Give the oxygen unit to Noor",
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A1",
+          "condition_ids": [],
+          "condition_join": "AND",
+          "derivation_assumptions": [],
+          "derivation_explanation": "Because the unit is indivisible and was given to Noor (E3), Eli consequently lacks it.",
+          "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+          "directness": "DOWNSTREAM",
+          "effect_id": "E4",
+          "effect_kind": "OTHER",
+          "likelihood_qualifiers": [],
+          "modality": "CERTAIN",
+          "outcome": "does not receive the oxygen unit",
+          "outcome_type_transformation": "PRESERVED",
+          "overall_likelihood_qualifiers": [],
+          "party_id": "P2",
+          "polarity": "ADVERSE",
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "The unit cannot be divided, and no replacement can arrive in time."
+            }
+          ],
+          "quantities": [],
+          "relation": "NOT_RECEIVE",
+          "scope_qualifiers": [],
+          "source_effect_ids": [
+            "E3"
+          ],
+          "source_proposition": "The unit cannot be divided",
+          "temporal_qualifiers": []
+        },
+        {
+          "action_id": "A1",
+          "condition_ids": [],
+          "condition_join": "AND",
+          "derivation_assumptions": [],
+          "derivation_explanation": "C1 states injury without the unit; Eli's non-receipt (E4) meets that condition.",
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "directness": "DOWNSTREAM",
+          "effect_id": "E5",
+          "effect_kind": "HEALTH_OUTCOME",
+          "likelihood_qualifiers": [],
+          "modality": "CERTAIN",
+          "outcome": "suffers respiratory injury during the next hour",
+          "outcome_type_transformation": "PRESERVED",
+          "overall_likelihood_qualifiers": [],
+          "party_id": "P2",
+          "polarity": "ADVERSE",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Each patient will suffer respiratory injury during the next hour without the unit."
+            }
+          ],
+          "quantities": [],
+          "relation": "SUFFERS",
+          "scope_qualifiers": [],
+          "source_effect_ids": [
+            "E4"
+          ],
+          "source_proposition": "Each patient will suffer respiratory injury during the next hour without the unit.",
+          "temporal_qualifiers": []
+        }
+      ],
+      "parties": [
+        {
+          "kind": "PERSON",
+          "label": "clinician",
+          "party_id": "P0",
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "The clinician must give the oxygen unit either to Eli or to Noor."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "kind": "RESOURCE",
+          "label": "portable oxygen unit",
+          "party_id": "P1",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A rural clinic has one portable oxygen unit and two patients, Eli and Noor."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "The unit cannot be divided, and no replacement can arrive in time."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "kind": "PERSON",
+          "label": "Eli",
+          "party_id": "P2",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A rural clinic has one portable oxygen unit and two patients, Eli and Noor."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "kind": "PERSON",
+          "label": "Noor",
+          "party_id": "P3",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A rural clinic has one portable oxygen unit and two patients, Eli and Noor."
+            }
+          ],
+          "quantities": []
+        }
+      ],
+      "schema_version": "1.3",
+      "temporal_relations": []
+    }
+  }
+}

@@ -343,6 +343,73 @@ def _merge_unique(values: Sequence[object], additions: Sequence[object], limit: 
     return merged
 
 
+DEPENDENCY_CONTINUITY_NOTE = (
+    "Dependency continuity preserved unresolved decision-critical premises "
+    "from the prior operative framework state because the recommendation did "
+    "not change."
+)
+
+
+def _enforce_dependency_continuity(
+    candidate: CandidateChunk,
+    previous: CandidateChunk | None,
+    proposition_ledger: dict[str, object] | None,
+) -> None:
+    """Prevent a stable recommendation from silently dropping open premises.
+
+    A changed recommendation may legitimately withdraw the prior argument.  If
+    the recommendation is unchanged, however, a prior HYPOTHETICAL,
+    UNRESOLVED, or REJECTED dependency remains decision-critical until the
+    proposition ledger records a resolution.  This is framework-neutral: it
+    conserves proposition identity without dictating any framework's native
+    reasoning fields.
+    """
+    if previous is None or proposition_ledger is None:
+        return
+    if not candidate.schema_valid or not previous.schema_valid:
+        return
+    if not candidate.recommended_action or (
+        candidate.recommended_action != previous.recommended_action
+    ):
+        return
+    prior_ids = list(dict.fromkeys(
+        str(value) for value in previous.decision_critical_proposition_ids
+        if str(value)
+    ))
+    current_ids = set(candidate.decision_critical_proposition_ids)
+    unresolved: list[str] = []
+    for proposition_id in prior_ids:
+        if proposition_id in current_ids:
+            continue
+        record = proposition_ledger.get(proposition_id)
+        status = str(
+            getattr(record, "epistemic_status", "UNRESOLVED")
+            if record is not None else "UNRESOLVED"
+        ).upper()
+        if status in {"HYPOTHETICAL", "UNRESOLVED", "REJECTED"}:
+            unresolved.append(proposition_id)
+    if not unresolved:
+        return
+    candidate.decision_critical_proposition_ids = _merge_unique(
+        candidate.decision_critical_proposition_ids, unresolved, 12,
+    )
+    candidate.supporting_proposition_ids = _merge_unique(
+        candidate.supporting_proposition_ids, unresolved, 24,
+    )
+    candidate.epistemic_binding_notes = _merge_unique(
+        candidate.epistemic_binding_notes, [DEPENDENCY_CONTINUITY_NOTE], 12,
+    )
+    candidate.framework_validation_errors = _merge_unique(
+        candidate.framework_validation_errors,
+        [
+            "dependency continuity preserved unresolved proposition IDs: "
+            + ", ".join(unresolved)
+        ],
+        16,
+    )
+    attach_candidate_dependencies(proposition_ledger, candidate)
+
+
 def _preserve_current_cycle_components(
     restored: CandidateChunk, candidate: CandidateChunk,
 ) -> list[str]:
@@ -489,6 +556,7 @@ def _operative_framework_candidates(
     last_valid: dict[str, CandidateChunk],
     *,
     remember: bool,
+    proposition_ledger: dict[str, object] | None = None,
 ) -> list[CandidateChunk]:
     """Use accepted framework state, never a rejected mutation, deliberatively.
 
@@ -560,6 +628,9 @@ def _operative_framework_candidates(
                 last_valid[restored.specialist] = copy.deepcopy(restored)
             continue
         previous = last_valid.get(candidate.specialist)
+        _enforce_dependency_continuity(
+            candidate, previous, proposition_ledger,
+        )
         if not candidate.committed_native_ledger and previous is not None:
             candidate.committed_native_ledger = copy.deepcopy(
                 previous.committed_native_ledger
@@ -4618,6 +4689,7 @@ class WorkspaceEngine:
                 candidates,
                 last_valid_framework_candidates,
                 remember=not is_counterfactual,
+                proposition_ledger=working_proposition_ledger,
             )
             # Framework-general authority typing: policy weight, investigative
             # attention, and governing eligibility are independent dimensions.

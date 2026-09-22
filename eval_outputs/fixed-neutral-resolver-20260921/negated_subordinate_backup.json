@@ -1,0 +1,1624 @@
+{
+  "id": "negated_subordinate_backup",
+  "source_stage_artifact": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/pairwise_stage_one_workspace_20260920_233759_754033.json",
+  "obligations": {
+    "version": "1.0",
+    "mode": "READ_ONLY_RESOLUTION_QUESTIONS",
+    "obligations": [
+      {
+        "obligation_id": "SRO_1",
+        "type": "EMBEDDED_CLAUSE",
+        "clause_ids": [
+          "C0"
+        ],
+        "source_span": "Activating the backup does not cause the main server to shut down, although it does start a separate cooling fan.",
+        "predicate_ids": [
+          "S0_T10"
+        ],
+        "predicate_lemmas": [
+          "shut"
+        ],
+        "question": "Is the embedded predicate asserted, merely enabled, requested, intended, or otherwise modal?",
+        "required_handling": "REPRESENT_OR_QUARANTINE",
+        "authority": "SYNTACTIC_CUE_ONLY"
+      },
+      {
+        "obligation_id": "SRO_2",
+        "type": "NEGATED_SUBORDINATE_SCOPE",
+        "clause_ids": [
+          "C0"
+        ],
+        "source_span": "Activating the backup does not cause the main server to shut down, although it does start a separate cooling fan.",
+        "predicate_ids": [
+          "S0_T5",
+          "S0_T10"
+        ],
+        "predicate_lemmas": [
+          "cause",
+          "shut"
+        ],
+        "question": "Which relation or proposition is inside the negation scope, and which subordinate events remain asserted?",
+        "required_handling": "REPRESENT_OR_QUARANTINE",
+        "authority": "SYNTACTIC_CUE_ONLY"
+      },
+      {
+        "obligation_id": "SRO_3",
+        "type": "SHARED_ARGUMENT_CONJUNCTION",
+        "clause_ids": [
+          "C1"
+        ],
+        "source_span": "The administrator must activate the backup or leave it inactive.",
+        "predicate_ids": [
+          "S0_T3",
+          "S0_T7"
+        ],
+        "predicate_lemmas": [
+          "activate",
+          "leave"
+        ],
+        "question": "Which subjects or objects are inherited across conjuncts, and which atomic events remain distinct?",
+        "required_handling": "REPRESENT_OR_QUARANTINE",
+        "authority": "SYNTACTIC_CUE_ONLY"
+      }
+    ],
+    "annotations": [
+      {
+        "clause_id": "C0",
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "Activating the backup does not cause the main server to shut down, although it does start a separate cooling fan.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "Activating the backup does not cause the main server to shut down, although it does start a separate cooling fan.",
+            "start_char": 0,
+            "end_char": 113,
+            "predicate_ids": [
+              "S0_T0",
+              "S0_T5",
+              "S0_T10",
+              "S0_T16",
+              "S0_T19"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T0",
+            "sentence_index": 0,
+            "token_index": 0,
+            "start_char": 0,
+            "end_char": 10,
+            "text": "Activating",
+            "lemma": "activate",
+            "pos": "VERB",
+            "dependency": "csubj",
+            "head_token_index": 5,
+            "head_text": "cause",
+            "clause_head": false,
+            "subtree_span": "Activating the backup",
+            "subjects": [],
+            "objects": [
+              "backup"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "backup",
+                "lemma": "backup",
+                "dependency": "dobj"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T5",
+            "sentence_index": 0,
+            "token_index": 5,
+            "start_char": 31,
+            "end_char": 36,
+            "text": "cause",
+            "lemma": "cause",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 5,
+            "head_text": "cause",
+            "clause_head": true,
+            "subtree_span": "Activating the backup does not cause the main server to shut down, although it does start a separate cooling fan.",
+            "subjects": [
+              "Activating"
+            ],
+            "objects": [],
+            "negations": [
+              "not"
+            ],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "Activating",
+                "lemma": "activate",
+                "dependency": "csubj"
+              },
+              {
+                "text": "does",
+                "lemma": "do",
+                "dependency": "aux"
+              },
+              {
+                "text": "not",
+                "lemma": "not",
+                "dependency": "neg"
+              },
+              {
+                "text": "shut",
+                "lemma": "shut",
+                "dependency": "ccomp"
+              },
+              {
+                "text": ",",
+                "lemma": ",",
+                "dependency": "punct"
+              },
+              {
+                "text": "start",
+                "lemma": "start",
+                "dependency": "advcl"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T10",
+            "sentence_index": 0,
+            "token_index": 10,
+            "start_char": 56,
+            "end_char": 60,
+            "text": "shut",
+            "lemma": "shut",
+            "pos": "VERB",
+            "dependency": "ccomp",
+            "head_token_index": 5,
+            "head_text": "cause",
+            "clause_head": true,
+            "subtree_span": "the main server to shut down",
+            "subjects": [
+              "server"
+            ],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "server",
+                "lemma": "server",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "to",
+                "lemma": "to",
+                "dependency": "aux"
+              },
+              {
+                "text": "down",
+                "lemma": "down",
+                "dependency": "prt"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T16",
+            "sentence_index": 0,
+            "token_index": 16,
+            "start_char": 84,
+            "end_char": 89,
+            "text": "start",
+            "lemma": "start",
+            "pos": "VERB",
+            "dependency": "advcl",
+            "head_token_index": 5,
+            "head_text": "cause",
+            "clause_head": true,
+            "subtree_span": "although it does start a separate cooling fan",
+            "subjects": [
+              "it"
+            ],
+            "objects": [
+              "fan"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [
+              "although"
+            ],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "although",
+                "lemma": "although",
+                "dependency": "mark"
+              },
+              {
+                "text": "it",
+                "lemma": "it",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "does",
+                "lemma": "do",
+                "dependency": "aux"
+              },
+              {
+                "text": "fan",
+                "lemma": "fan",
+                "dependency": "dobj"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T19",
+            "sentence_index": 0,
+            "token_index": 19,
+            "start_char": 101,
+            "end_char": 108,
+            "text": "cooling",
+            "lemma": "cool",
+            "pos": "VERB",
+            "dependency": "amod",
+            "head_token_index": 20,
+            "head_text": "fan",
+            "clause_head": false,
+            "subtree_span": "cooling",
+            "subjects": [],
+            "objects": [],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": []
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "start_char": 0,
+            "end_char": 10,
+            "text": "Activating",
+            "lemma": "activate",
+            "pos": "VERB",
+            "dependency": "csubj",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 1,
+            "start_char": 11,
+            "end_char": 14,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 2
+          },
+          {
+            "token_index": 2,
+            "start_char": 15,
+            "end_char": 21,
+            "text": "backup",
+            "lemma": "backup",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 0
+          },
+          {
+            "token_index": 3,
+            "start_char": 22,
+            "end_char": 26,
+            "text": "does",
+            "lemma": "do",
+            "pos": "AUX",
+            "dependency": "aux",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 4,
+            "start_char": 27,
+            "end_char": 30,
+            "text": "not",
+            "lemma": "not",
+            "pos": "PART",
+            "dependency": "neg",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 5,
+            "start_char": 31,
+            "end_char": 36,
+            "text": "cause",
+            "lemma": "cause",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 6,
+            "start_char": 37,
+            "end_char": 40,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 8
+          },
+          {
+            "token_index": 7,
+            "start_char": 41,
+            "end_char": 45,
+            "text": "main",
+            "lemma": "main",
+            "pos": "ADJ",
+            "dependency": "amod",
+            "head_token_index": 8
+          },
+          {
+            "token_index": 8,
+            "start_char": 46,
+            "end_char": 52,
+            "text": "server",
+            "lemma": "server",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 10
+          },
+          {
+            "token_index": 9,
+            "start_char": 53,
+            "end_char": 55,
+            "text": "to",
+            "lemma": "to",
+            "pos": "PART",
+            "dependency": "aux",
+            "head_token_index": 10
+          },
+          {
+            "token_index": 10,
+            "start_char": 56,
+            "end_char": 60,
+            "text": "shut",
+            "lemma": "shut",
+            "pos": "VERB",
+            "dependency": "ccomp",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 11,
+            "start_char": 61,
+            "end_char": 65,
+            "text": "down",
+            "lemma": "down",
+            "pos": "ADP",
+            "dependency": "prt",
+            "head_token_index": 10
+          },
+          {
+            "token_index": 12,
+            "start_char": 65,
+            "end_char": 66,
+            "text": ",",
+            "lemma": ",",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 13,
+            "start_char": 67,
+            "end_char": 75,
+            "text": "although",
+            "lemma": "although",
+            "pos": "SCONJ",
+            "dependency": "mark",
+            "head_token_index": 16
+          },
+          {
+            "token_index": 14,
+            "start_char": 76,
+            "end_char": 78,
+            "text": "it",
+            "lemma": "it",
+            "pos": "PRON",
+            "dependency": "nsubj",
+            "head_token_index": 16
+          },
+          {
+            "token_index": 15,
+            "start_char": 79,
+            "end_char": 83,
+            "text": "does",
+            "lemma": "do",
+            "pos": "AUX",
+            "dependency": "aux",
+            "head_token_index": 16
+          },
+          {
+            "token_index": 16,
+            "start_char": 84,
+            "end_char": 89,
+            "text": "start",
+            "lemma": "start",
+            "pos": "VERB",
+            "dependency": "advcl",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 17,
+            "start_char": 90,
+            "end_char": 91,
+            "text": "a",
+            "lemma": "a",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 20
+          },
+          {
+            "token_index": 18,
+            "start_char": 92,
+            "end_char": 100,
+            "text": "separate",
+            "lemma": "separate",
+            "pos": "ADJ",
+            "dependency": "amod",
+            "head_token_index": 20
+          },
+          {
+            "token_index": 19,
+            "start_char": 101,
+            "end_char": 108,
+            "text": "cooling",
+            "lemma": "cool",
+            "pos": "VERB",
+            "dependency": "amod",
+            "head_token_index": 20
+          },
+          {
+            "token_index": 20,
+            "start_char": 109,
+            "end_char": 112,
+            "text": "fan",
+            "lemma": "fan",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 16
+          },
+          {
+            "token_index": 21,
+            "start_char": 112,
+            "end_char": 113,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 5
+          }
+        ]
+      },
+      {
+        "clause_id": "C1",
+        "annotation_version": "1.0",
+        "mode": "READ_ONLY_STRUCTURAL",
+        "model": "core_web_sm",
+        "text": "The administrator must activate the backup or leave it inactive.",
+        "sentences": [
+          {
+            "sentence_index": 0,
+            "text": "The administrator must activate the backup or leave it inactive.",
+            "start_char": 0,
+            "end_char": 64,
+            "predicate_ids": [
+              "S0_T3",
+              "S0_T7"
+            ]
+          }
+        ],
+        "predicates": [
+          {
+            "predicate_id": "S0_T3",
+            "sentence_index": 0,
+            "token_index": 3,
+            "start_char": 23,
+            "end_char": 31,
+            "text": "activate",
+            "lemma": "activate",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 3,
+            "head_text": "activate",
+            "clause_head": true,
+            "subtree_span": "The administrator must activate the backup or leave it inactive.",
+            "subjects": [
+              "administrator"
+            ],
+            "objects": [
+              "backup"
+            ],
+            "negations": [],
+            "modals": [
+              "must"
+            ],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [
+              "leave"
+            ],
+            "children": [
+              {
+                "text": "administrator",
+                "lemma": "administrator",
+                "dependency": "nsubj"
+              },
+              {
+                "text": "must",
+                "lemma": "must",
+                "dependency": "aux"
+              },
+              {
+                "text": "backup",
+                "lemma": "backup",
+                "dependency": "dobj"
+              },
+              {
+                "text": "or",
+                "lemma": "or",
+                "dependency": "cc"
+              },
+              {
+                "text": "leave",
+                "lemma": "leave",
+                "dependency": "conj"
+              },
+              {
+                "text": ".",
+                "lemma": ".",
+                "dependency": "punct"
+              }
+            ]
+          },
+          {
+            "predicate_id": "S0_T7",
+            "sentence_index": 0,
+            "token_index": 7,
+            "start_char": 46,
+            "end_char": 51,
+            "text": "leave",
+            "lemma": "leave",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 3,
+            "head_text": "activate",
+            "clause_head": true,
+            "subtree_span": "leave it inactive",
+            "subjects": [],
+            "objects": [
+              "it",
+              "inactive"
+            ],
+            "negations": [],
+            "modals": [],
+            "conditional_markers": [],
+            "subordinate_markers": [],
+            "conjunctions": [],
+            "children": [
+              {
+                "text": "it",
+                "lemma": "it",
+                "dependency": "dobj"
+              },
+              {
+                "text": "inactive",
+                "lemma": "inactive",
+                "dependency": "oprd"
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "token_index": 0,
+            "start_char": 0,
+            "end_char": 3,
+            "text": "The",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 1
+          },
+          {
+            "token_index": 1,
+            "start_char": 4,
+            "end_char": 17,
+            "text": "administrator",
+            "lemma": "administrator",
+            "pos": "NOUN",
+            "dependency": "nsubj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 2,
+            "start_char": 18,
+            "end_char": 22,
+            "text": "must",
+            "lemma": "must",
+            "pos": "AUX",
+            "dependency": "aux",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 3,
+            "start_char": 23,
+            "end_char": 31,
+            "text": "activate",
+            "lemma": "activate",
+            "pos": "VERB",
+            "dependency": "ROOT",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 4,
+            "start_char": 32,
+            "end_char": 35,
+            "text": "the",
+            "lemma": "the",
+            "pos": "DET",
+            "dependency": "det",
+            "head_token_index": 5
+          },
+          {
+            "token_index": 5,
+            "start_char": 36,
+            "end_char": 42,
+            "text": "backup",
+            "lemma": "backup",
+            "pos": "NOUN",
+            "dependency": "dobj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 6,
+            "start_char": 43,
+            "end_char": 45,
+            "text": "or",
+            "lemma": "or",
+            "pos": "CCONJ",
+            "dependency": "cc",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 7,
+            "start_char": 46,
+            "end_char": 51,
+            "text": "leave",
+            "lemma": "leave",
+            "pos": "VERB",
+            "dependency": "conj",
+            "head_token_index": 3
+          },
+          {
+            "token_index": 8,
+            "start_char": 52,
+            "end_char": 54,
+            "text": "it",
+            "lemma": "it",
+            "pos": "PRON",
+            "dependency": "dobj",
+            "head_token_index": 7
+          },
+          {
+            "token_index": 9,
+            "start_char": 55,
+            "end_char": 63,
+            "text": "inactive",
+            "lemma": "inactive",
+            "pos": "ADJ",
+            "dependency": "oprd",
+            "head_token_index": 7
+          },
+          {
+            "token_index": 10,
+            "start_char": 63,
+            "end_char": 64,
+            "text": ".",
+            "lemma": ".",
+            "pos": "PUNCT",
+            "dependency": "punct",
+            "head_token_index": 3
+          }
+        ]
+      }
+    ]
+  },
+  "coverage_before": [
+    {
+      "obligation_id": "SRO_1",
+      "type": "EMBEDDED_CLAUSE",
+      "status": "UNADDRESSED",
+      "matching_proposition_ids": [
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "missing_predicate_lemmas": [
+        "shut"
+      ]
+    },
+    {
+      "obligation_id": "SRO_2",
+      "type": "NEGATED_SUBORDINATE_SCOPE",
+      "status": "UNADDRESSED",
+      "matching_proposition_ids": [
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "missing_predicate_lemmas": [
+        "cause",
+        "shut"
+      ]
+    },
+    {
+      "obligation_id": "SRO_3",
+      "type": "SHARED_ARGUMENT_CONJUNCTION",
+      "status": "CANDIDATE_NODES_PRESENT_REVIEW_REQUIRED",
+      "matching_proposition_ids": [
+        "P4",
+        "P5"
+      ],
+      "missing_predicate_lemmas": []
+    }
+  ],
+  "jobs": [
+    {
+      "obligation": {
+        "obligation_id": "SRO_1",
+        "type": "EMBEDDED_CLAUSE",
+        "clause_ids": [
+          "C0"
+        ],
+        "source_span": "Activating the backup does not cause the main server to shut down, although it does start a separate cooling fan.",
+        "predicate_ids": [
+          "S0_T10"
+        ],
+        "predicate_lemmas": [
+          "shut"
+        ],
+        "question": "Is the embedded predicate asserted, merely enabled, requested, intended, or otherwise modal?",
+        "required_handling": "REPRESENT_OR_QUARANTINE",
+        "authority": "SYNTACTIC_CUE_ONLY"
+      },
+      "instruction": "Determine whether the embedded event is asserted, requested, enabled, intended, or merely possible, and add it only if missing.",
+      "source_context": [
+        {
+          "clause_id": "C0",
+          "text": "Activating the backup does not cause the main server to shut down, although it does start a separate cooling fan."
+        },
+        {
+          "clause_id": "C1",
+          "text": "The administrator must activate the backup or leave it inactive."
+        }
+      ],
+      "existing_propositions": [
+        {
+          "proposition_id": "P1",
+          "party_id": "BACKUP",
+          "outcome": "backup is activated",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "STATE_CHANGE",
+          "quantities": [],
+          "source_proposition": "/",
+          "clause_ids": [
+            "C0"
+          ],
+          "provenance_binding": {
+            "status": "UNRESOLVED",
+            "method": null,
+            "original_span": "/",
+            "bound_span": null,
+            "bound_clause_id": null,
+            "score": null
+          }
+        },
+        {
+          "proposition_id": "P2",
+          "party_id": "SERVER",
+          "outcome": "main server shuts down",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "STATE_CHANGE",
+          "quantities": [],
+          "source_proposition": "P1",
+          "clause_ids": [
+            "C0"
+          ],
+          "provenance_binding": {
+            "status": "UNRESOLVED",
+            "method": null,
+            "original_span": "P1",
+            "bound_span": null,
+            "bound_clause_id": null,
+            "score": null
+          }
+        },
+        {
+          "proposition_id": "P3",
+          "party_id": "FAN",
+          "outcome": "separate cooling fan starts",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "STATE_CHANGE",
+          "quantities": [],
+          "source_proposition": "P1",
+          "clause_ids": [
+            "C0"
+          ],
+          "provenance_binding": {
+            "status": "UNRESOLVED",
+            "method": null,
+            "original_span": "P1",
+            "bound_span": null,
+            "bound_clause_id": null,
+            "score": null
+          }
+        }
+      ],
+      "coverage_before": {
+        "obligation_id": "SRO_1",
+        "type": "EMBEDDED_CLAUSE",
+        "status": "UNADDRESSED",
+        "matching_proposition_ids": [
+          "P1",
+          "P2",
+          "P3"
+        ],
+        "missing_predicate_lemmas": [
+          "shut"
+        ]
+      }
+    },
+    {
+      "obligation": {
+        "obligation_id": "SRO_2",
+        "type": "NEGATED_SUBORDINATE_SCOPE",
+        "clause_ids": [
+          "C0"
+        ],
+        "source_span": "Activating the backup does not cause the main server to shut down, although it does start a separate cooling fan.",
+        "predicate_ids": [
+          "S0_T5",
+          "S0_T10"
+        ],
+        "predicate_lemmas": [
+          "cause",
+          "shut"
+        ],
+        "question": "Which relation or proposition is inside the negation scope, and which subordinate events remain asserted?",
+        "required_handling": "REPRESENT_OR_QUARANTINE",
+        "authority": "SYNTACTIC_CUE_ONLY"
+      },
+      "instruction": "Determine exactly what negation scopes over and whether a subordinate event is asserted, denied, or merely mentioned.",
+      "source_context": [
+        {
+          "clause_id": "C0",
+          "text": "Activating the backup does not cause the main server to shut down, although it does start a separate cooling fan."
+        },
+        {
+          "clause_id": "C1",
+          "text": "The administrator must activate the backup or leave it inactive."
+        }
+      ],
+      "existing_propositions": [
+        {
+          "proposition_id": "P1",
+          "party_id": "BACKUP",
+          "outcome": "backup is activated",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "STATE_CHANGE",
+          "quantities": [],
+          "source_proposition": "/",
+          "clause_ids": [
+            "C0"
+          ],
+          "provenance_binding": {
+            "status": "UNRESOLVED",
+            "method": null,
+            "original_span": "/",
+            "bound_span": null,
+            "bound_clause_id": null,
+            "score": null
+          }
+        },
+        {
+          "proposition_id": "P2",
+          "party_id": "SERVER",
+          "outcome": "main server shuts down",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "STATE_CHANGE",
+          "quantities": [],
+          "source_proposition": "P1",
+          "clause_ids": [
+            "C0"
+          ],
+          "provenance_binding": {
+            "status": "UNRESOLVED",
+            "method": null,
+            "original_span": "P1",
+            "bound_span": null,
+            "bound_clause_id": null,
+            "score": null
+          }
+        },
+        {
+          "proposition_id": "P3",
+          "party_id": "FAN",
+          "outcome": "separate cooling fan starts",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "STATE_CHANGE",
+          "quantities": [],
+          "source_proposition": "P1",
+          "clause_ids": [
+            "C0"
+          ],
+          "provenance_binding": {
+            "status": "UNRESOLVED",
+            "method": null,
+            "original_span": "P1",
+            "bound_span": null,
+            "bound_clause_id": null,
+            "score": null
+          }
+        }
+      ],
+      "coverage_before": {
+        "obligation_id": "SRO_2",
+        "type": "NEGATED_SUBORDINATE_SCOPE",
+        "status": "UNADDRESSED",
+        "matching_proposition_ids": [
+          "P1",
+          "P2",
+          "P3"
+        ],
+        "missing_predicate_lemmas": [
+          "cause",
+          "shut"
+        ]
+      }
+    }
+  ],
+  "responses": [
+    {
+      "status": "NO_CHANGE",
+      "assertion_status": "NOT_ASSERTED",
+      "added_propositions": [],
+      "semantic_annotation": "",
+      "evidence_spans": [],
+      "unresolved_span": ""
+    },
+    {
+      "status": "ADD_NODES",
+      "assertion_status": "ASSERTED_SOURCE_EVENT",
+      "added_propositions": [
+        {
+          "proposition_id": "P4",
+          "party_id": "BACKUP",
+          "outcome": "does not cause the main server to shut down",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "CAUSE_RELATION",
+          "quantities": [],
+          "source_proposition": "does not cause the main server to shut down",
+          "clause_ids": [
+            "C0"
+          ]
+        }
+      ],
+      "semantic_annotation": "The negation \"not\" scopes over the causal relation (\"cause\"), denying that activating the backup results in the server shutting down. The shutdown event is thus merely mentioned, not asserted.",
+      "evidence_spans": [
+        "does not cause the main server to shut down"
+      ],
+      "unresolved_span": ""
+    }
+  ],
+  "audit": [
+    {
+      "obligation_id": "SRO_1",
+      "type": "EMBEDDED_CLAUSE",
+      "status": "NO_CHANGE",
+      "assertion_status": "NOT_ASSERTED",
+      "accepted_proposition_ids": [],
+      "rejected_additions": [],
+      "semantic_annotation": "",
+      "evidence_spans": [],
+      "unresolved_span": ""
+    },
+    {
+      "obligation_id": "SRO_2",
+      "type": "NEGATED_SUBORDINATE_SCOPE",
+      "status": "ADD_NODES",
+      "assertion_status": "ASSERTED_SOURCE_EVENT",
+      "accepted_proposition_ids": [],
+      "rejected_additions": [
+        {
+          "candidate": {
+            "proposition_id": "P4",
+            "party_id": "BACKUP",
+            "outcome": "does not cause the main server to shut down",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "CAUSE_RELATION",
+            "quantities": [],
+            "source_proposition": "does not cause the main server to shut down",
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          "reason": "DUPLICATE_OR_EMPTY_ID"
+        }
+      ],
+      "semantic_annotation": "The negation \"not\" scopes over the causal relation (\"cause\"), denying that activating the backup results in the server shutting down. The shutdown event is thus merely mentioned, not asserted.",
+      "evidence_spans": [
+        "does not cause the main server to shut down"
+      ],
+      "unresolved_span": ""
+    }
+  ],
+  "neutral_before": {
+    "parties": [
+      {
+        "party_id": "ADMIN",
+        "label": "administrator",
+        "kind": "ACTOR",
+        "quantities": [],
+        "clause_ids": [
+          "C1"
+        ]
+      },
+      {
+        "party_id": "BACKUP",
+        "label": "backup system",
+        "kind": "DEVICE",
+        "quantities": [],
+        "clause_ids": [
+          "C0",
+          "C1"
+        ]
+      },
+      {
+        "party_id": "SERVER",
+        "label": "main server",
+        "kind": "DEVICE",
+        "quantities": [],
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      {
+        "party_id": "FAN",
+        "label": "separate cooling fan",
+        "kind": "DEVICE",
+        "quantities": [],
+        "clause_ids": [
+          "C0"
+        ]
+      }
+    ],
+    "propositions": [
+      {
+        "proposition_id": "P1",
+        "party_id": "BACKUP",
+        "outcome": "backup is activated",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "STATE_CHANGE",
+        "quantities": [],
+        "source_proposition": "/",
+        "clause_ids": [
+          "C0"
+        ],
+        "provenance_binding": {
+          "status": "UNRESOLVED",
+          "method": null,
+          "original_span": "/",
+          "bound_span": null,
+          "bound_clause_id": null,
+          "score": null
+        }
+      },
+      {
+        "proposition_id": "P2",
+        "party_id": "SERVER",
+        "outcome": "main server shuts down",
+        "polarity": "ADVERSE",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "STATE_CHANGE",
+        "quantities": [],
+        "source_proposition": "P1",
+        "clause_ids": [
+          "C0"
+        ],
+        "provenance_binding": {
+          "status": "UNRESOLVED",
+          "method": null,
+          "original_span": "P1",
+          "bound_span": null,
+          "bound_clause_id": null,
+          "score": null
+        }
+      },
+      {
+        "proposition_id": "P3",
+        "party_id": "FAN",
+        "outcome": "separate cooling fan starts",
+        "polarity": "BENEFICIAL",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "STATE_CHANGE",
+        "quantities": [],
+        "source_proposition": "P1",
+        "clause_ids": [
+          "C0"
+        ],
+        "provenance_binding": {
+          "status": "UNRESOLVED",
+          "method": null,
+          "original_span": "P1",
+          "bound_span": null,
+          "bound_clause_id": null,
+          "score": null
+        }
+      },
+      {
+        "proposition_id": "P4",
+        "party_id": "ADMIN",
+        "outcome": "administrator must activate the backup",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "STIPULATED_CONDITIONAL",
+        "effect_kind": "OBLIGATION",
+        "quantities": [],
+        "source_proposition": "/",
+        "clause_ids": [
+          "C1"
+        ],
+        "provenance_binding": {
+          "status": "UNRESOLVED",
+          "method": null,
+          "original_span": "/",
+          "bound_span": null,
+          "bound_clause_id": null,
+          "score": null
+        }
+      },
+      {
+        "proposition_id": "P5",
+        "party_id": "ADMIN",
+        "outcome": "administrator must leave the backup inactive",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "STIPULATED_CONDITIONAL",
+        "effect_kind": "OBLIGATION",
+        "quantities": [],
+        "source_proposition": "The administrator must activate the backup or leave it inactive.",
+        "clause_ids": [
+          "C1"
+        ],
+        "generated_source_proposition": "/",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "UNIQUE_ATOMIC_SPAN_OVERLAP",
+          "original_span": "/",
+          "bound_span": "The administrator must activate the backup or leave it inactive.",
+          "bound_clause_id": "C1",
+          "score": 0.7142857142857143
+        }
+      }
+    ],
+    "unresolved_source_spans": [],
+    "provenance_bindings": [
+      {
+        "proposition_id": "P1",
+        "status": "UNRESOLVED",
+        "method": null,
+        "original_span": "/",
+        "bound_span": null,
+        "bound_clause_id": null,
+        "score": null
+      },
+      {
+        "proposition_id": "P2",
+        "status": "UNRESOLVED",
+        "method": null,
+        "original_span": "P1",
+        "bound_span": null,
+        "bound_clause_id": null,
+        "score": null
+      },
+      {
+        "proposition_id": "P3",
+        "status": "UNRESOLVED",
+        "method": null,
+        "original_span": "P1",
+        "bound_span": null,
+        "bound_clause_id": null,
+        "score": null
+      },
+      {
+        "proposition_id": "P4",
+        "status": "UNRESOLVED",
+        "method": null,
+        "original_span": "/",
+        "bound_span": null,
+        "bound_clause_id": null,
+        "score": null
+      },
+      {
+        "proposition_id": "P5",
+        "status": "BOUND",
+        "method": "UNIQUE_ATOMIC_SPAN_OVERLAP",
+        "original_span": "/",
+        "bound_span": "The administrator must activate the backup or leave it inactive.",
+        "bound_clause_id": "C1",
+        "score": 0.7142857142857143
+      }
+    ]
+  },
+  "neutral_after": {
+    "parties": [
+      {
+        "party_id": "ADMIN",
+        "label": "administrator",
+        "kind": "ACTOR",
+        "quantities": [],
+        "clause_ids": [
+          "C1"
+        ]
+      },
+      {
+        "party_id": "BACKUP",
+        "label": "backup system",
+        "kind": "DEVICE",
+        "quantities": [],
+        "clause_ids": [
+          "C0",
+          "C1"
+        ]
+      },
+      {
+        "party_id": "SERVER",
+        "label": "main server",
+        "kind": "DEVICE",
+        "quantities": [],
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      {
+        "party_id": "FAN",
+        "label": "separate cooling fan",
+        "kind": "DEVICE",
+        "quantities": [],
+        "clause_ids": [
+          "C0"
+        ]
+      }
+    ],
+    "propositions": [
+      {
+        "proposition_id": "P1",
+        "party_id": "BACKUP",
+        "outcome": "backup is activated",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "STATE_CHANGE",
+        "quantities": [],
+        "source_proposition": "/",
+        "clause_ids": [
+          "C0"
+        ],
+        "provenance_binding": {
+          "status": "UNRESOLVED",
+          "method": null,
+          "original_span": "/",
+          "bound_span": null,
+          "bound_clause_id": null,
+          "score": null
+        }
+      },
+      {
+        "proposition_id": "P2",
+        "party_id": "SERVER",
+        "outcome": "main server shuts down",
+        "polarity": "ADVERSE",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "STATE_CHANGE",
+        "quantities": [],
+        "source_proposition": "P1",
+        "clause_ids": [
+          "C0"
+        ],
+        "provenance_binding": {
+          "status": "UNRESOLVED",
+          "method": null,
+          "original_span": "P1",
+          "bound_span": null,
+          "bound_clause_id": null,
+          "score": null
+        }
+      },
+      {
+        "proposition_id": "P3",
+        "party_id": "FAN",
+        "outcome": "separate cooling fan starts",
+        "polarity": "BENEFICIAL",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "STATE_CHANGE",
+        "quantities": [],
+        "source_proposition": "P1",
+        "clause_ids": [
+          "C0"
+        ],
+        "provenance_binding": {
+          "status": "UNRESOLVED",
+          "method": null,
+          "original_span": "P1",
+          "bound_span": null,
+          "bound_clause_id": null,
+          "score": null
+        }
+      },
+      {
+        "proposition_id": "P4",
+        "party_id": "ADMIN",
+        "outcome": "administrator must activate the backup",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "STIPULATED_CONDITIONAL",
+        "effect_kind": "OBLIGATION",
+        "quantities": [],
+        "source_proposition": "/",
+        "clause_ids": [
+          "C1"
+        ],
+        "provenance_binding": {
+          "status": "UNRESOLVED",
+          "method": null,
+          "original_span": "/",
+          "bound_span": null,
+          "bound_clause_id": null,
+          "score": null
+        }
+      },
+      {
+        "proposition_id": "P5",
+        "party_id": "ADMIN",
+        "outcome": "administrator must leave the backup inactive",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "STIPULATED_CONDITIONAL",
+        "effect_kind": "OBLIGATION",
+        "quantities": [],
+        "source_proposition": "The administrator must activate the backup or leave it inactive.",
+        "clause_ids": [
+          "C1"
+        ],
+        "generated_source_proposition": "/",
+        "provenance_binding": {
+          "status": "BOUND",
+          "method": "UNIQUE_ATOMIC_SPAN_OVERLAP",
+          "original_span": "/",
+          "bound_span": "The administrator must activate the backup or leave it inactive.",
+          "bound_clause_id": "C1",
+          "score": 0.7142857142857143
+        }
+      }
+    ],
+    "unresolved_source_spans": [],
+    "provenance_bindings": [
+      {
+        "proposition_id": "P1",
+        "status": "UNRESOLVED",
+        "method": null,
+        "original_span": "/",
+        "bound_span": null,
+        "bound_clause_id": null,
+        "score": null
+      },
+      {
+        "proposition_id": "P2",
+        "status": "UNRESOLVED",
+        "method": null,
+        "original_span": "P1",
+        "bound_span": null,
+        "bound_clause_id": null,
+        "score": null
+      },
+      {
+        "proposition_id": "P3",
+        "status": "UNRESOLVED",
+        "method": null,
+        "original_span": "P1",
+        "bound_span": null,
+        "bound_clause_id": null,
+        "score": null
+      },
+      {
+        "proposition_id": "P4",
+        "status": "UNRESOLVED",
+        "method": null,
+        "original_span": "/",
+        "bound_span": null,
+        "bound_clause_id": null,
+        "score": null
+      },
+      {
+        "proposition_id": "P5",
+        "status": "BOUND",
+        "method": "UNIQUE_ATOMIC_SPAN_OVERLAP",
+        "original_span": "/",
+        "bound_span": "The administrator must activate the backup or leave it inactive.",
+        "bound_clause_id": "C1",
+        "score": 0.7142857142857143
+      }
+    ],
+    "targeted_resolution_audit": [
+      {
+        "obligation_id": "SRO_1",
+        "type": "EMBEDDED_CLAUSE",
+        "status": "NO_CHANGE",
+        "assertion_status": "NOT_ASSERTED",
+        "accepted_proposition_ids": [],
+        "rejected_additions": [],
+        "semantic_annotation": "",
+        "evidence_spans": [],
+        "unresolved_span": ""
+      },
+      {
+        "obligation_id": "SRO_2",
+        "type": "NEGATED_SUBORDINATE_SCOPE",
+        "status": "ADD_NODES",
+        "assertion_status": "ASSERTED_SOURCE_EVENT",
+        "accepted_proposition_ids": [],
+        "rejected_additions": [
+          {
+            "candidate": {
+              "proposition_id": "P4",
+              "party_id": "BACKUP",
+              "outcome": "does not cause the main server to shut down",
+              "polarity": "NEUTRAL",
+              "directness": "DIRECT",
+              "modality": "CERTAIN",
+              "effect_kind": "CAUSE_RELATION",
+              "quantities": [],
+              "source_proposition": "does not cause the main server to shut down",
+              "clause_ids": [
+                "C0"
+              ]
+            },
+            "reason": "DUPLICATE_OR_EMPTY_ID"
+          }
+        ],
+        "semantic_annotation": "The negation \"not\" scopes over the causal relation (\"cause\"), denying that activating the backup results in the server shutting down. The shutdown event is thus merely mentioned, not asserted.",
+        "evidence_spans": [
+          "does not cause the main server to shut down"
+        ],
+        "unresolved_span": ""
+      }
+    ]
+  },
+  "diagnostic_before": {
+    "gold_node_count": 3,
+    "present_neutral_node_count": 2,
+    "neutral_node_recall": 0.6666666666666666,
+    "fused_gold_node_count": 0,
+    "alignments": [
+      {
+        "action_id": "A0",
+        "gold_event": "activating the backup",
+        "matched_proposition_id": null,
+        "method": null,
+        "score": null,
+        "status": "UNRESOLVED",
+        "candidate_count": 5,
+        "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+      },
+      {
+        "action_id": "A0",
+        "gold_event": "main server shuts down",
+        "matched_proposition_id": "P2__NEUTRAL__A0",
+        "method": "EXACT",
+        "score": 1.0,
+        "status": "MATCHED",
+        "candidate_count": 5,
+        "unresolved_reason": null
+      },
+      {
+        "action_id": "A0",
+        "gold_event": "cooling fan starts",
+        "matched_proposition_id": "P3__NEUTRAL__A0",
+        "method": "EXACT",
+        "score": 1.0,
+        "status": "MATCHED",
+        "candidate_count": 5,
+        "unresolved_reason": null
+      }
+    ]
+  },
+  "diagnostic_after": {
+    "gold_node_count": 3,
+    "present_neutral_node_count": 2,
+    "neutral_node_recall": 0.6666666666666666,
+    "fused_gold_node_count": 0,
+    "alignments": [
+      {
+        "action_id": "A0",
+        "gold_event": "activating the backup",
+        "matched_proposition_id": null,
+        "method": null,
+        "score": null,
+        "status": "UNRESOLVED",
+        "candidate_count": 5,
+        "unresolved_reason": "NODE_ABSENT_OR_ALIGNMENT_UNCERTAIN"
+      },
+      {
+        "action_id": "A0",
+        "gold_event": "main server shuts down",
+        "matched_proposition_id": "P2__NEUTRAL__A0",
+        "method": "EXACT",
+        "score": 1.0,
+        "status": "MATCHED",
+        "candidate_count": 5,
+        "unresolved_reason": null
+      },
+      {
+        "action_id": "A0",
+        "gold_event": "cooling fan starts",
+        "matched_proposition_id": "P3__NEUTRAL__A0",
+        "method": "EXACT",
+        "score": 1.0,
+        "status": "MATCHED",
+        "candidate_count": 5,
+        "unresolved_reason": null
+      }
+    ]
+  },
+  "accepted_addition_ids": [],
+  "gold_useful_added_ids": []
+}

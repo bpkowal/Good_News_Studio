@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "World grounding repair experiment event v1",
+  "type": "object",
+  "required": [
+    "repair_event_schema_version",
+    "repair_event_id",
+    "execution_mode",
+    "repair_scope",
+    "context",
+    "target_issues",
+    "after_issues",
+    "selected_cards",
+    "suppressed_cards",
+    "graph_diff",
+    "outcome"
+  ],
+  "properties": {
+    "repair_event_schema_version": {"const": 1},
+    "repair_event_id": {"type": "string", "minLength": 1},
+    "execution_mode": {
+      "enum": ["LLM_REPAIR", "DETERMINISTIC_PATCH", "CACHE_REVALIDATION"]
+    },
+    "repair_scope": {"type": "string", "minLength": 1},
+    "context": {
+      "type": "object",
+      "required": ["validator_version", "repair_prompt_version"],
+      "additionalProperties": true
+    },
+    "target_issues": {"type": "array", "items": {"$ref": "#/$defs/issue"}},
+    "after_issues": {"type": "array", "items": {"$ref": "#/$defs/issue"}},
+    "selected_cards": {"type": "array", "items": {"$ref": "#/$defs/card"}},
+    "suppressed_cards": {"type": "array", "items": {"$ref": "#/$defs/card"}},
+    "deterministic_patches": {"type": "array"},
+    "graph_diff": {"type": "object"},
+    "outside_target_entity_changes": {
+      "type": "array", "items": {"type": "string"}
+    },
+    "outcome": {
+      "type": "object",
+      "required": [
+        "target_fixed", "clean_repair", "final_world_committed",
+        "repair_yield", "introduced_issue_codes"
+      ]
+    }
+  },
+  "$defs": {
+    "issue": {
+      "type": "object",
+      "required": ["issue_instance_id", "code", "entity_kind", "entity_id"]
+    },
+    "card": {
+      "type": "object",
+      "required": ["card_id", "card_version", "issue_code", "selected"]
+    }
+  }
+}

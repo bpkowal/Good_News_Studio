@@ -1,0 +1,96 @@
+{
+  "actions": [
+    "Pull the lever, redirecting the trolley toward one person",
+    "Do not pull the lever, allowing the trolley to continue toward five people"
+  ],
+  "parliament": {
+    "choice": "A0",
+    "confidence": 0.35,
+    "constraints": [
+      "CARE",
+      "CHARACTER",
+      "DUTY",
+      "FAIRNESS",
+      "UNCERTAINTY"
+    ],
+    "framework_state": [
+      [
+        "care",
+        "A0",
+        "ABSTAIN"
+      ],
+      [
+        "deontological",
+        "A1",
+        "ATTENUATED"
+      ],
+      [
+        "rawlsian",
+        "A1",
+        "ABSTAIN"
+      ],
+      [
+        "utilitarian",
+        "UNRESOLVED",
+        "ABSTAIN"
+      ],
+      [
+        "virtue",
+        "A0",
+        "ATTENUATED"
+      ]
+    ],
+    "judgment_status": "UNRESOLVED",
+    "propositions": [
+      "E1",
+      "E2",
+      "E3",
+      "E6",
+      "PROP:FRAMEWORK:5690a36daf58b3f2",
+      "PROP:HYPOTHESIS:270c1092f28a310c",
+      "PROP:HYPOTHESIS:2da66b2f9486f3d8",
+      "PROP:HYPOTHESIS:6abf1af0531ab82c",
+      "PROP:HYPOTHESIS:82cb7da6183abd89",
+      "PROP:HYPOTHESIS:8c215fbcae8b60ec",
+      "PROP:HYPOTHESIS:a0b76fa1fadff1e3",
+      "PROP:HYPOTHESIS:ec31d66210ccc00d",
+      "PROP:HYPOTHESIS:ef4a564efda686f9",
+      "PROP:WORLD:E1",
+      "PROP:WORLD:E3",
+      "PROP:WORLD:E6"
+    ]
+  },
+  "parliament_usage": {
+    "api_calls": 41,
+    "cached_prompt_tokens": 117120,
+    "completion_tokens": 51919,
+    "prompt_tokens": 431120,
+    "reasoning_tokens": 29568,
+    "total_tokens": 483039
+  },
+  "solo": {
+    "choice": "A0",
+    "confidence": 0.75,
+    "constraints": [
+      "MINIMIZE TOTAL LOSS OF LIFE"
+    ],
+    "framework_state": [],
+    "judgment_status": "RESOLVED",
+    "propositions": [
+      "Five people die if no action is taken",
+      "No alternative means exists to halt the trolley",
+      "One person dies if the lever is pulled"
+    ]
+  },
+  "solo_budget": 50000,
+  "solo_usage": {
+    "api_calls": 1,
+    "cached_prompt_tokens": 0,
+    "completion_tokens": 212,
+    "prompt_tokens": 361,
+    "reasoning_tokens": 128,
+    "total_tokens": 573
+  },
+  "target": "",
+  "type": "CANONICAL"
+}

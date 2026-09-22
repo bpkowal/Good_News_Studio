@@ -1,0 +1,209 @@
+{
+  "report_version": "1.0",
+  "protocol": "FROZEN_WORLD_GRAPH_PRESERVATION_V01",
+  "manifest": "evals/world_graph_preservation_benchmark.json",
+  "model": "o3",
+  "world_escalation": true,
+  "aggregate": {
+    "case_count": 1,
+    "committed_count": 0,
+    "scored_count": 0,
+    "gold_fact_count": 0,
+    "source_to_graph_recall": null,
+    "aligned_gold_edge_count": 0,
+    "topology_accuracy_given_aligned_endpoints": null,
+    "gold_role_count": 0,
+    "projection_accuracy_given_aligned_graph": null,
+    "rejected_candidate_scored_count": 1,
+    "rejected_candidate_source_to_graph_recall": 1.0
+  },
+  "results": [
+    {
+      "id": "medicine_maria_david",
+      "family": "EXCLUSIVE_ALLOCATION_COMPARATIVE_CHANCE",
+      "elapsed_seconds": 86.722,
+      "exit_code": 2,
+      "world_committed": false,
+      "presentation_to_canonical_action_ids": {
+        "A0": "A1",
+        "A1": "A0"
+      },
+      "scores": null,
+      "rejected_candidate_scores": {
+        "case_id": "medicine_maria_david",
+        "source_to_graph": {
+          "gold_fact_count": 7,
+          "present_count": 7,
+          "recall": 1.0,
+          "attribute_accuracy_given_present": 0.42857142857142855,
+          "unsupported_effect_ids": [],
+          "unsupported_precision_status": "NOT_MEASURED_SPARSE_GOLD",
+          "alignments": [
+            {
+              "fact_id": "maria_receives",
+              "event": "Maria receives medicine",
+              "expected_action_id": "A1",
+              "matched_effect_id": "E3",
+              "actual_action_id": "A1",
+              "status": "PRESENT",
+              "alignment_score": 1.0,
+              "attribute_checks": {
+                "polarity": false,
+                "directness": true
+              },
+              "attributes_correct": false
+            },
+            {
+              "fact_id": "david_no_medicine",
+              "event": "David does not receive medicine",
+              "expected_action_id": "A1",
+              "matched_effect_id": "E3C",
+              "actual_action_id": "A1",
+              "status": "PRESENT",
+              "alignment_score": 1.0,
+              "attribute_checks": {
+                "polarity": false
+              },
+              "attributes_correct": false
+            },
+            {
+              "fact_id": "david_dies",
+              "event": "David dies",
+              "expected_action_id": "A1",
+              "matched_effect_id": "E4",
+              "actual_action_id": "A1",
+              "status": "PRESENT",
+              "alignment_score": 1.0,
+              "attribute_checks": {
+                "polarity": true,
+                "modality": true
+              },
+              "attributes_correct": true
+            },
+            {
+              "fact_id": "david_receives",
+              "event": "David receives medicine",
+              "expected_action_id": "A0",
+              "matched_effect_id": "E1",
+              "actual_action_id": "A0",
+              "status": "PRESENT",
+              "alignment_score": 1.0,
+              "attribute_checks": {
+                "polarity": false,
+                "directness": true
+              },
+              "attributes_correct": false
+            },
+            {
+              "fact_id": "maria_no_medicine",
+              "event": "Maria does not receive medicine",
+              "expected_action_id": "A0",
+              "matched_effect_id": "E1C",
+              "actual_action_id": "A0",
+              "status": "PRESENT",
+              "alignment_score": 1.0,
+              "attribute_checks": {
+                "polarity": false
+              },
+              "attributes_correct": false
+            },
+            {
+              "fact_id": "maria_dies",
+              "event": "Maria dies",
+              "expected_action_id": "A0",
+              "matched_effect_id": "E2",
+              "actual_action_id": "A0",
+              "status": "PRESENT",
+              "alignment_score": 1.0,
+              "attribute_checks": {
+                "polarity": true,
+                "modality": true
+              },
+              "attributes_correct": true
+            },
+            {
+              "fact_id": "maria_better_chance",
+              "event": "Maria has a better chance of survival",
+              "expected_action_id": "A1",
+              "matched_effect_id": "E5",
+              "actual_action_id": "A1",
+              "status": "PRESENT",
+              "alignment_score": 1.0,
+              "attribute_checks": {
+                "polarity": true,
+                "modality": true
+              },
+              "attributes_correct": true
+            }
+          ]
+        },
+        "topology": {
+          "measurement_status": "MEASURED",
+          "gold_edge_count": 4,
+          "aligned_edge_count": 4,
+          "accuracy_given_aligned_endpoints": 0.5,
+          "edges": [
+            {
+              "action_id": "A1",
+              "source_fact_id": "maria_receives",
+              "target_fact_id": "david_no_medicine",
+              "relation": "CAUSES",
+              "endpoints_available": true,
+              "correct": false
+            },
+            {
+              "action_id": "A1",
+              "source_fact_id": "david_no_medicine",
+              "target_fact_id": "david_dies",
+              "relation": "CAUSES",
+              "endpoints_available": true,
+              "correct": true
+            },
+            {
+              "action_id": "A0",
+              "source_fact_id": "david_receives",
+              "target_fact_id": "maria_no_medicine",
+              "relation": "CAUSES",
+              "endpoints_available": true,
+              "correct": false
+            },
+            {
+              "action_id": "A0",
+              "source_fact_id": "maria_no_medicine",
+              "target_fact_id": "maria_dies",
+              "relation": "CAUSES",
+              "endpoints_available": true,
+              "correct": true
+            }
+          ]
+        },
+        "projection": {
+          "measurement_status": "NOT_MEASURED_UNADMITTED_CANDIDATE",
+          "gold_role_count": 2,
+          "accuracy_given_gold_graph": null,
+          "roles": [
+            {
+              "action_id": "A1",
+              "fact_id": "david_dies",
+              "bucket": "harmed",
+              "effect_id": "E4",
+              "actual_bucket": null,
+              "correct": false
+            },
+            {
+              "action_id": "A0",
+              "fact_id": "maria_dies",
+              "bucket": "harmed",
+              "effect_id": "E2",
+              "actual_bucket": null,
+              "correct": false
+            }
+          ]
+        }
+      },
+      "grounding_diagnostic": "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/workspace_outputs/world_grounding_failure_workspace_20260921_234707_077701_20260921_234832_986393.json",
+      "log": "eval_outputs/world-graph-preservation-live-escalated-after-without-fix-20260921/01_medicine_maria_david.log",
+      "semantic_trace": null
+    }
+  ]
+}
