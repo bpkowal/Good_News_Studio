@@ -25,6 +25,20 @@ MEDICINE = (
     "The patient who does not get the medicine will die."
 )
 MEDICINE_ACTIONS = ["give the medicine to Ben", "give the medicine to Cara"]
+GROUPED_MEDICINE = (
+    "A clinic has one dose of antiviral. "
+    "Dr. Rivera must give the antiviral to either one child or three adult patients, "
+    "but not both. "
+    "If Dr. Rivera gives the antiviral to the child, the child has an 80% chance "
+    "of survival. "
+    "If Dr. Rivera gives the antiviral to the three adult patients, each of the "
+    "three adult patients has a 60% chance of survival. "
+    "The patients who do not receive the antiviral will die."
+)
+GROUPED_ACTIONS = [
+    "give the antiviral to the child",
+    "give the antiviral to the three adult patients",
+]
 
 
 class ExclusiveAllocationBlueprintTests(unittest.TestCase):
@@ -107,7 +121,7 @@ class ChanceAndDeathAllocationTests(unittest.TestCase):
     def test_chance_and_death_fill_schema_1_3(self):
         result = instantiate_exclusive_allocation(self.package, MEDICINE_ACTIONS)
         self.assertEqual(result["status"], "FILLED")
-        self.assertEqual(result["blueprint_version"], "candidate-graph-blueprints/0.2")
+        self.assertEqual(result["blueprint_version"], "candidate-graph-blueprints/0.4")
         proposal = result["proposals"][0]
         self.assertTrue(proposal["selection_validation"]["contract_valid"])
         world = proposal["candidate"]["world_model"]
@@ -165,6 +179,76 @@ print("COMMITTED")
                 text=True, capture_output=True, timeout=60)
         self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
         self.assertEqual(completed.stdout.strip(), "COMMITTED")
+
+
+class GroupedAllocationGeneralizationTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.package = z10.export_candidate_graph(
+            GROUPED_MEDICINE, package_id="grouped_chance_death")
+
+    def test_group_headcount_stays_on_its_branch(self):
+        result = instantiate_exclusive_allocation(
+            self.package, GROUPED_ACTIONS)
+        self.assertEqual(result["status"], "FILLED", result)
+        world = result["proposals"][0]["candidate"]["world_model"]
+        adult = next(
+            row for row in world["parties"]
+            if "adult patients" in row["label"])
+        child = next(row for row in world["parties"] if "child" in row["label"])
+        self.assertEqual(adult["kind"], "HUMAN_GROUP")
+        self.assertEqual(adult["quantities"], ["three"])
+        self.assertEqual(child["kind"], "PERSON")
+        adult_effects = [
+            row for row in world["effects"] if row["party_id"] == adult["party_id"]
+        ]
+        self.assertTrue(any(row["quantities"] == ["three"] for row in adult_effects))
+        child_complement = next(
+            row for row in world["effects"]
+            if row["party_id"] == child["party_id"]
+            and row["derivation_operation"] == "EXCLUSIVE_ALLOCATION_COMPLEMENT"
+        )
+        self.assertEqual(child_complement["quantities"], ["1 dose"])
+        self.assertNotIn("three", child_complement["quantities"])
+        self.assertEqual(
+            child_complement["clause_ids"],
+            result["proposals"][0]["slot_bindings"]["resource"][
+                "quantity_clause_ids"],
+        )
+
+    @unittest.skipUnless(os.environ.get("PARLIAMENT_SMOKE_ROOT") and
+                         os.environ.get("PARLIAMENT_SMOKE_PYTHON"),
+                         "requires the isolated patched Parliament checkout")
+    def test_grouped_candidate_admits_and_replays_idempotently(self):
+        proposal = instantiate_exclusive_allocation(
+            self.package, GROUPED_ACTIONS)["proposals"][0]
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "proposal.json"
+            path.write_text(json.dumps(proposal), encoding="utf-8")
+            script = r'''
+import json, sys
+sys.path.insert(0, sys.argv[1])
+from global_workspace.local_specialists import _admit_action_source_rows
+from global_workspace.world_admission import restore_admitted_world
+from global_workspace.world_state import parse_world_model
+p = json.load(open(sys.argv[2]))
+w = p["candidate"]["world_model"]
+ids = [a["action_id"] for a in w["actions"]]
+actions = [a["intervention"] for a in w["actions"]]
+compiled = parse_world_model(
+    w, clauses=p["clauses"], action_ids=ids,
+    action_texts=dict(zip(ids, actions)), require_completeness=True)
+restore_admitted_world(compiled.as_dict())
+r = _admit_action_source_rows(p["candidate"], actions, ids, p["clauses"])
+assert r["status"] == "COMMITTED", r.get("errors")
+restore_admitted_world(r["world_model"])
+'''
+            completed = subprocess.run(
+                [os.environ["PARLIAMENT_SMOKE_PYTHON"], "-c", script,
+                 os.environ["PARLIAMENT_SMOKE_ROOT"], str(path)],
+                text=True, capture_output=True, timeout=60)
+        self.assertEqual(
+            completed.returncode, 0, completed.stdout + completed.stderr)
 
 
 if __name__ == "__main__":

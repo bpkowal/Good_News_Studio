@@ -19,6 +19,7 @@ import tempfile
 import parsing_game_Z10 as z10
 
 from candidate_graph_blueprints import instantiate_exclusive_allocation
+from blueprint_proposal_contract import validate_proposal
 
 
 DEFAULT_SCENARIO = (
@@ -29,12 +30,27 @@ DEFAULT_SCENARIO = (
     "The patient who does not get the medicine will die."
 )
 DEFAULT_ACTIONS = ["give the medicine to Ben", "give the medicine to Cara"]
+ADMITTED_WORLD_STATUSES = {"COMMITTED", "COMMITTED_WITH_UNCERTAINTY"}
 PROJECT_ROOT = Path(__file__).resolve().parent
 DEFAULT_PARLIAMENT_ROOT = Path("/tmp/parliament-smoke-614af0c")
 DEFAULT_PARLIAMENT_PYTHON = Path("/tmp/parliament-smoke-env/bin/python")
 DEFAULT_OPENAI_ENV = Path(
     "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/.env"
 )
+
+
+def _authorized_proposal(blueprint_result: dict) -> dict:
+    proposals = blueprint_result.get("proposals") or []
+    if not proposals:
+        raise ValueError("Blueprint did not produce a proposal envelope")
+    proposal = proposals[0]
+    errors = validate_proposal(proposal)
+    if errors:
+        raise ValueError("Blueprint proposal contract failed: " + "; ".join(errors))
+    if not proposal.get("admission_authorized") or proposal.get("candidate") is None:
+        reasons = proposal.get("world_withheld") or proposal.get("construction_problems")
+        raise ValueError("Blueprint proposal is withheld: " + json.dumps(reasons))
+    return proposal
 
 
 def _label(value: object) -> str:
@@ -166,6 +182,8 @@ source_path = Path(sys.argv[2])
 target_path = Path(sys.argv[3])
 payload = json.loads(source_path.read_text(encoding="utf-8"))
 proposal = payload["blueprint_result"]["proposals"][0]
+if not proposal.get("admission_authorized") or proposal.get("candidate") is None:
+    raise SystemExit("Blueprint proposal is withheld before Parliament admission")
 actions = payload["actions"]
 scenario = payload["scenario"]
 action_ids = [f"A{index}" for index in range(len(actions))]
@@ -182,7 +200,8 @@ parse_world_model(
 grounding = _admit_action_source_rows(
     proposal["candidate"], actions, action_ids, proposal["clauses"]
 )
-if grounding.get("status") != "COMMITTED" or grounding.get("world_model_status") != "COMMITTED":
+admitted = {"COMMITTED", "COMMITTED_WITH_UNCERTAINTY"}
+if grounding.get("status") not in admitted or grounding.get("world_model_status") not in admitted:
     raise SystemExit("Parliament rejected the blueprint candidate: " + json.dumps(grounding))
 
 grounded_texts = {}
@@ -274,6 +293,7 @@ def main() -> int:
     blueprint = instantiate_exclusive_allocation(package, actions)
     if blueprint.get("status") != "FILLED" or not blueprint.get("proposals"):
         raise SystemExit("Blueprint did not produce a filled proposal")
+    _authorized_proposal(blueprint)
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     candidate_path = args.output_dir / "blueprint_candidate.json"

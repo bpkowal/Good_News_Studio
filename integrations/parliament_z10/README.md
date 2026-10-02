@@ -31,6 +31,9 @@ gapping, and sluicing reconstructions remain missing-content questions.
   type. Ambiguous transfer parents remain untouched. A transfer to the affected
   person may directly parent a stipulated welfare outcome; mentioning the
   transferred resource alone no longer licenses an invented process-state node.
+  Complement recompilation reads magnitude from the indivisible-resource
+  proposition, preventing a rival recipient headcount in retained constraint
+  provenance from leaking into the nonrecipient effect during frozen replay.
 - `run_parliament_z10.py` runs that grounding API using either a response fixture
   or an explicitly requested live OpenAI backend. This first integration stops at
   world grounding: it does not wire the interactive launcher, its framing cache,

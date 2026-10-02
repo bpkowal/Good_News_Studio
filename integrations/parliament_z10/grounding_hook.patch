@@ -314,7 +314,7 @@ index 365eda2..aeeb2d0 100644
      ]
      clauses: list[str] = []
 diff --git a/global_workspace/world_state.py b/global_workspace/world_state.py
-index d2c7d84..66e76d1 100644
+index d2c7d84..278952f 100644
 --- a/global_workspace/world_state.py
 +++ b/global_workspace/world_state.py
 @@ -12,7 +12,7 @@ import hashlib
@@ -454,7 +454,7 @@ index d2c7d84..66e76d1 100644
  })
  _ADVERSE_IDENTITY_STEMS = frozenset({
      "block", "choke", "contamin", "contaminat", "destroy", "die", "fail",
-@@ -5990,6 +6063,109 @@ def compile_source_licensed_outcomes(
+@@ -5990,6 +6063,110 @@ def compile_source_licensed_outcomes(
      return replace(model, effects=tuple(updated))
  
  
@@ -525,10 +525,11 @@ index d2c7d84..66e76d1 100644
 +            model, action, allocation_evidence,
 +        )
 +        quantities = list(effect.quantities)
-+        quantity_source = " ".join((
-+            effect.source_proposition,
-+            *(ref.excerpt for ref in effect.provenance if ref.excerpt),
-+        ))
++        # Complement quantity belongs to the indivisible resource proposition.
++        # Compiled provenance also contains the exclusivity constraint and the
++        # parent transfer; harvesting numerals from those rows on replay leaks
++        # the rival recipient's population into this nonrecipient effect.
++        quantity_source = effect.source_proposition
 +        for quantity in explicit_quantity_spans(quantity_source):
 +            if quantity.casefold() not in {
 +                value.casefold() for value in quantities
@@ -564,7 +565,7 @@ index d2c7d84..66e76d1 100644
  def compile_exclusive_allocation_complements(
      model: ScenarioWorldModel,
  ) -> ScenarioWorldModel:
-@@ -6004,6 +6180,7 @@ def compile_exclusive_allocation_complements(
+@@ -6004,6 +6181,7 @@ def compile_exclusive_allocation_complements(
          return model
      action_by_id = {action.action_id: action for action in model.actions}
      effect_by_id = {effect.effect_id: effect for effect in model.effects}
@@ -572,7 +573,7 @@ index d2c7d84..66e76d1 100644
      updated: list[WorldEffect] = []
      changed = False
      for effect in model.effects:
-@@ -6555,6 +6732,167 @@ class WorldCompilationStage:
+@@ -6555,6 +6733,167 @@ class WorldCompilationStage:
          return self.before_fingerprint != self.after_fingerprint
  
  
@@ -740,7 +741,7 @@ index d2c7d84..66e76d1 100644
  def _world_compilation_fingerprint(model: ScenarioWorldModel) -> str:
      encoded = json.dumps(
          model.as_dict(), ensure_ascii=False, sort_keys=True, separators=(",", ":"),
-@@ -6691,60 +7029,29 @@ def world_compilation_loss_telemetry(
+@@ -6691,60 +7030,29 @@ def world_compilation_loss_telemetry(
  def compile_world_model_with_trace(
      model: ScenarioWorldModel,
  ) -> tuple[ScenarioWorldModel, tuple[WorldCompilationStage, ...]]:
@@ -807,7 +808,7 @@ index d2c7d84..66e76d1 100644
      compiled = _record_compilation_stage(
          stages, "FINAL_NORMALIZATION", before, compiled,
      )
-@@ -6879,6 +7186,16 @@ def validate_effect_source_bindings(model: ScenarioWorldModel) -> list[str]:
+@@ -6879,6 +7187,16 @@ def validate_effect_source_bindings(model: ScenarioWorldModel) -> list[str]:
      effect_by_id = {effect.effect_id: effect for effect in model.effects}
      party_by_id = {party.party_id: party for party in model.parties}
      action_by_id = {action.action_id: action for action in model.actions}
@@ -824,7 +825,7 @@ index d2c7d84..66e76d1 100644
      errors: list[str] = []
      for effect in model.effects:
          prefix = effect.effect_id
-@@ -6987,7 +7304,14 @@ def validate_effect_source_bindings(model: ScenarioWorldModel) -> list[str]:
+@@ -6987,7 +7305,14 @@ def validate_effect_source_bindings(model: ScenarioWorldModel) -> list[str]:
              failures = []
              if not _NONRECEIPT_STATE.search(effect.outcome):
                  failures.append("nonreceipt outcome")
@@ -840,7 +841,7 @@ index d2c7d84..66e76d1 100644
                  failures.append("indivisibility source")
              if action is None or not action.recipient_party_ids:
                  failures.append("allocated recipient")
-@@ -7908,6 +8232,122 @@ def exclusive_allocation_evidence(
+@@ -7908,6 +8233,122 @@ def exclusive_allocation_evidence(
          explicit_exclusion=signals["explicit_recipient_exclusion"],
          explicit_nonexclusive=signals["explicit_nonexclusive_allocation"],
      )

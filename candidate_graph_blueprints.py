@@ -13,6 +13,15 @@ from __future__ import annotations
 import re
 from typing import Any, Sequence
 
+from blueprint_allocation_invariants import (
+    complement_clause_ids,
+    group_quantity,
+    party_kind,
+)
+from blueprint_proposal_contract import (
+    candidate as proposal_candidate,
+    proposal as normalized_proposal,
+)
 from z10_world_model_adapter import (
     _enumerate_assignments,
     _participants_by_proposition,
@@ -23,7 +32,7 @@ from z10_world_model_adapter import (
 )
 
 
-BLUEPRINT_VERSION = "candidate-graph-blueprints/0.2"
+BLUEPRINT_VERSION = "candidate-graph-blueprints/0.4"
 # A survival chance is copied as written ("95% chance"). Parliament already
 # types that hedge as PROBABILISTIC on schema 1.3; it is not a new world schema
 # and it is not stored as a party quantity.
@@ -82,6 +91,20 @@ def _candidate_id_rows(package: dict) -> dict[str, dict]:
     return {row["id"]: row for row in package["candidates"]}
 
 
+def _outcome_bearer_matches_recipient(text: str, bearer: dict,
+                                      recipient: dict) -> bool:
+    """Accept exact identity or the source-explicit ``each of GROUP`` form."""
+    if bearer["label"].casefold() == recipient["label"].casefold():
+        return True
+    if bearer["label"].casefold() != "each":
+        return False
+    return bool(re.search(
+        r"\beach\s+of\s+" + re.escape(recipient["label"]) + r"\b",
+        text,
+        flags=re.IGNORECASE,
+    ))
+
+
 def match_exclusive_allocation(package: dict, actions: Sequence[str]) -> dict:
     """Match structural signals and return explicit filled/unfilled slots."""
     assignments = _enumerate_assignments(package, actions, 8)
@@ -93,7 +116,7 @@ def match_exclusive_allocation(package: dict, actions: Sequence[str]) -> dict:
     conditional = {row["arguments"]["condition"]: row for row in candidates
                    if row["type"] == "CONDITIONAL_ON"}
     exclusive_evidence = _clause_ids_for_text(
-        package, r"\b(?:but\s+)?not\s+both\b|\beither\b[\s\S]*\bor\b")
+        package, r"\b(?:but\s+)?not\s+both\b")
     valid_assignments = [values for values in assignments
                          if all(prop in option_props and prop in conditional for prop in values)]
     required = {
@@ -159,9 +182,11 @@ def instantiate_exclusive_allocation(package: dict, actions: Sequence[str]) -> d
         raise ValueError("Exact quantity is not textually attached to the allocated resource")
 
     actor_label = actors[0]["label"]
-    party_specs = [(actor_label, "PERSON", []),
-                   (recipients[0]["label"], "PERSON", []),
-                   (recipients[1]["label"], "PERSON", []),
+    party_specs = [(actor_label, party_kind(actor_label), []),
+                   (recipients[0]["label"], party_kind(recipients[0]["label"]),
+                    group_quantity(recipients[0]["label"])),
+                   (recipients[1]["label"], party_kind(recipients[1]["label"]),
+                    group_quantity(recipients[1]["label"])),
                    (resource_label, "RESOURCE", [_quantity_text(quantity_row["value"])])]
     parties = []
     party_id: dict[str, str] = {}
@@ -198,7 +223,8 @@ def instantiate_exclusive_allocation(package: dict, actions: Sequence[str]) -> d
             raise ValueError("Conditional outcome lacks a bearer")
         bearer = _mention_node(package, bearer_role)
         recipient = recipients[index]
-        if bearer["label"].casefold() != recipient["label"].casefold():
+        if not _outcome_bearer_matches_recipient(
+                package["document"]["text"], bearer, recipient):
             raise ValueError("Outcome bearer does not match allocation recipient")
 
         role_rows = [row for values in roles.values() for row in values]
@@ -217,6 +243,7 @@ def instantiate_exclusive_allocation(package: dict, actions: Sequence[str]) -> d
         action_clause_ids = list(dict.fromkeys(
             [*match["exclusivity_clause_ids"], *action_clause_ids, *outcome_clause_ids]))
         recipient_id = party_id[recipient["label"].casefold()]
+        recipient_quantities = group_quantity(recipient["label"])
         other_recipient = recipients[1 - index]
         other_recipient_id = party_id[other_recipient["label"].casefold()]
         resource_phrase = _clean_label(resource_label)
@@ -265,7 +292,8 @@ def instantiate_exclusive_allocation(package: dict, actions: Sequence[str]) -> d
             {"effect_id": direct_id, "action_id": action_id, "party_id": recipient_id,
              "outcome": f"receives {resource_phrase}", "predicate": "RECEIVES",
              "polarity": "BENEFICIAL", "directness": "DIRECT", "modality": "CERTAIN",
-             "effect_kind": "RESOURCE_TRANSFER", "condition_ids": [], "quantities": [],
+             "effect_kind": "RESOURCE_TRANSFER", "condition_ids": [],
+             "quantities": recipient_quantities,
              "likelihood_qualifiers": [], "overall_likelihood_qualifiers": [],
              "scope_qualifiers": [], "temporal_qualifiers": [], "condition_join": "AND",
              "source_proposition": action_source, "source_effect_ids": [],
@@ -288,12 +316,12 @@ def instantiate_exclusive_allocation(package: dict, actions: Sequence[str]) -> d
                  f"Only {_quantity_text(quantity_row['value'])} exists; allocating it to "
                  f"{recipient['label']} precludes simultaneous allocation to {other_recipient['label']}."),
              "derivation_assumptions": [], "outcome_type_transformation": "PRESERVED",
-             "clause_ids": list(dict.fromkeys(
-                 [*quantity_support, *match["exclusivity_clause_ids"], *outcome_clause_ids]))},
+             "clause_ids": complement_clause_ids(quantity_support)},
             {"effect_id": outcome_id, "action_id": action_id, "party_id": recipient_id,
              "outcome": survival_outcome, "predicate": survival_predicate,
              "polarity": "BENEFICIAL", "directness": "DOWNSTREAM", "modality": survival_modality,
-             "effect_kind": "HEALTH_OUTCOME", "condition_ids": [], "quantities": [],
+             "effect_kind": "HEALTH_OUTCOME", "condition_ids": [],
+             "quantities": recipient_quantities,
              "likelihood_qualifiers": survival_likelihood, "overall_likelihood_qualifiers": [],
              "scope_qualifiers": [], "temporal_qualifiers": [], "condition_join": "AND",
              "source_proposition": survival_source, "source_effect_ids": [direct_id],
@@ -360,16 +388,37 @@ def instantiate_exclusive_allocation(package: dict, actions: Sequence[str]) -> d
     world = {"schema_version": "1.3", "parties": parties, "actions": world_actions,
              "effects": effects, "conditions": [], "temporal_relations": [],
              "causal_links": causal_links, "counterfactual_links": []}
-    proposal = {
-        "proposal_id": "exclusive_allocation_0", "status": "FILLED",
-        "assignment": list(assignment), "slot_bindings": slot_bindings,
-        "selection": selection, "selection_validation": selection_validation,
-        "candidate": {"actions": action_sources, "world_model": world,
-                      "ellipsis_resolutions": []},
-        "clauses": [{"clause_id": row["clause_id"], "text": row["text"]}
-                    for row in clauses],
-        "unfilled_required_slots": [],
-    }
+    proposal = normalized_proposal(
+        proposal_id="exclusive_allocation_0",
+        blueprint_id="exclusive_allocation",
+        status="FILLED",
+        assignment_kind="z10_proposition_ids",
+        assignment=list(assignment),
+        slot_bindings=slot_bindings,
+        selection=selection,
+        selection_validation=selection_validation,
+        candidate_value=proposal_candidate(action_sources, world),
+        clauses=[{"clause_id": row["clause_id"], "text": row["text"]}
+                 for row in clauses],
+        unresolved_readings=[
+            {"kind": "z10_question", "question_id": question_id}
+            for question_id in selection_validation.get("unresolved_question_ids", [])
+        ],
+        admission_authorized=True,
+        pre_world_assessment={
+            "status": "ASSESSED",
+            "eligible_for_world_state": True,
+            "ethical_question": "which recipient receives the bounded resource",
+            "scenario_options": list(assignment),
+            "exclusivity": "evidenced",
+            "participants": {
+                "actor": actor_label,
+                "resource": resource_label,
+                "recipients": [row["label"] for row in recipients],
+            },
+        },
+        accepted_evidence=slot_bindings,
+    )
     return {"blueprint_version": BLUEPRINT_VERSION,
             "blueprint_id": "exclusive_allocation", "status": "FILLED",
             "match": match, "proposals": [proposal]}

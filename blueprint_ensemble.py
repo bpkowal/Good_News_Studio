@@ -10,6 +10,13 @@ from __future__ import annotations
 import re
 from typing import Any, Sequence
 
+from blueprint_allocation_invariants import party_kind
+from blueprint_proposal_contract import (
+    candidate as proposal_candidate,
+    coverage_metrics,
+    proposal as normalized_proposal,
+    withheld_proposal,
+)
 from candidate_graph_blueprints import (
     _clause_holding,
     _mention_node,
@@ -25,13 +32,14 @@ from z10_world_model_adapter import (
 )
 
 
-ENSEMBLE_VERSION = "blueprint-ensemble/0.1"
+ENSEMBLE_VERSION = "blueprint-ensemble/0.4"
 
 # Empty plans. Values stay None until a scenario fills them.
 BLANK_BLUEPRINTS: tuple[dict[str, Any], ...] = (
     {
         "blueprint_id": "exclusive_allocation",
         "summary": "One scarce resource, two recipients, and only one can receive it.",
+        "graph_builder": "implemented",
         "required_slots": (
             "two_action_options", "exact_quantity",
             "explicit_exclusivity", "conditional_outcomes",
@@ -41,23 +49,74 @@ BLANK_BLUEPRINTS: tuple[dict[str, Any], ...] = (
     {
         "blueprint_id": "conditional_outcome",
         "summary": "An action is stated, and a bearer outcome is explicitly conditional on it.",
+        "graph_builder": "implemented",
         "required_slots": ("action_condition", "outcome_bearer"),
         "optional_slots": ("second_conditional", "survival_chance"),
     },
     {
         "blueprint_id": "rescue_contrast",
-        "summary": "Someone can rescue one party but not another, and survival is conditional on the rescue.",
-        "required_slots": ("rescue_action", "contrasting_remnant", "conditional_survival"),
-        "optional_slots": ("scene_parties", "foregone_harm"),
+        "summary": "Someone can rescue either of two parties, but not both.",
+        "graph_builder": "implemented",
+        "required_slots": (
+            "two_rescue_actions", "distinct_rescue_targets",
+            "explicit_exclusivity", "branch_outcomes",
+        ),
+        "optional_slots": ("scene_parties", "foregone_harms"),
     },
     {
         "blueprint_id": "omission_harm",
         "summary": "Doing an action and not doing it are both stated, and each branch states who is harmed.",
+        "graph_builder": "implemented",
         "required_slots": (
             "positive_action", "negated_action",
             "harm_if_done", "harm_if_omitted",
         ),
         "optional_slots": ("group_counts", "instrument_contrast"),
+    },
+    {
+        "blueprint_id": "ability_permission",
+        "summary": "A modal states what an actor is able or permitted to do.",
+        "graph_builder": "plan_only",
+        "required_slots": ("modal_action", "actor", "target"),
+        "optional_slots": ("modal_reading", "option_membership", "outcome", "duty_or_prohibition"),
+    },
+    {
+        "blueprint_id": "diversion_redirection",
+        "summary": "An intervention redirects a process toward different affected parties.",
+        "graph_builder": "implemented",
+        "required_slots": ("actor", "controllable_process", "intervention", "affected_party", "outcome"),
+        "optional_slots": ("alternative_route", "omission_branch", "uncertainty", "secondary_effect"),
+    },
+    {
+        "blueprint_id": "deontic_rule",
+        "summary": "A rule states an obligation, permission, or prohibition over an action.",
+        "graph_builder": "plan_only",
+        "required_slots": ("deontic_words", "governed_action", "bearer"),
+        "optional_slots": ("authority", "exception", "conflicting_rule", "sanction"),
+    },
+    {
+        "blueprint_id": "promise_reliance",
+        "summary": "A promisor commits to future conduct that another party may rely on.",
+        "graph_builder": "plan_only",
+        "required_slots": ("commitment_event", "promisor", "commitment_content", "promisee"),
+        "optional_slots": ("reliance", "breach", "changed_condition", "competing_commitment"),
+    },
+    {
+        "blueprint_id": "uncertain_risk",
+        "summary": "Alternative actions expose parties to explicitly uncertain outcomes.",
+        "graph_builder": "implemented",
+        "required_slots": ("actor", "action", "possible_outcome", "affected_party", "likelihood"),
+        "optional_slots": (
+            "second_action", "second_affected_party", "second_outcome",
+            "second_likelihood", "expected_quantity", "confidence_source",
+        ),
+    },
+    {
+        "blueprint_id": "disputed_report",
+        "summary": "A speaker attributes a proposition or conflicts with another report.",
+        "graph_builder": "plan_only",
+        "required_slots": ("source", "reported_content", "report_words"),
+        "optional_slots": ("competing_report", "reliability", "downstream_decision", "confirmation"),
     },
 )
 
@@ -71,6 +130,7 @@ def blank_blueprints() -> list[dict[str, Any]]:
     return [{
         "blueprint_id": row["blueprint_id"],
         "summary": row["summary"],
+        "graph_builder": row["graph_builder"],
         "required_slots": {name: None for name in row["required_slots"]},
         "optional_slots": {name: None for name in row["optional_slots"]},
     } for row in BLANK_BLUEPRINTS]
@@ -83,6 +143,10 @@ def choose_blueprint(package: dict, actions: Sequence[str] = ()) -> dict[str, An
         _conditional_report(package),
         _rescue_report(package),
         _omission_report(package),
+        _diversion_report(package),
+        _risk_report(package),
+        *[_plan_only_report(package, row) for row in BLANK_BLUEPRINTS
+          if row["graph_builder"] == "plan_only"],
     ]
     filled = [row for row in considered if row["status"] == "FILLED"]
 
@@ -103,6 +167,53 @@ def choose_blueprint(package: dict, actions: Sequence[str] = ()) -> dict[str, An
     }
 
 
+def _plan_only_report(package: dict, plan: dict[str, Any]) -> dict[str, Any]:
+    """Expose the schema without pretending that it can materialize a world."""
+    evidence, seed_ids = _plan_evidence(package, plan["blueprint_id"])
+    required = {name: evidence.get(name) for name in plan["required_slots"]}
+    optional = {name: evidence.get(name) for name in plan["optional_slots"]}
+    selection, validation = _selection(package, seed_ids)
+    clauses = [
+        {"clause_id": row["clause_id"], "text": row["text"]}
+        for row in segment_source_clauses(package["document"]["text"])
+    ]
+    missing = [name for name, value in required.items() if not value]
+    problem = {
+        "code": f"{plan['blueprint_id']}_not_representable_in_world_1_3",
+        "message": "The evidence is retained without converting it into an admitted world fact.",
+    }
+    proposal = withheld_proposal(
+        proposal_id=f"{plan['blueprint_id']}_0",
+        blueprint_id=plan["blueprint_id"],
+        assignment=[str(value) for name, value in required.items()
+                    if "action" in name and value],
+        slot_bindings={"required": required, "optional": optional,
+                       "seed_candidate_ids": sorted(seed_ids)},
+        selection=selection,
+        selection_validation=validation,
+        clauses=clauses,
+        unfilled_required_slots=missing,
+        unresolved_readings=_plan_unresolved_readings(plan["blueprint_id"], evidence),
+        construction_problems=[problem],
+        pre_world_assessment=_package_question_assessment(package, False),
+        accepted_evidence={
+            "required": required,
+            "optional": optional,
+            "seed_candidate_ids": sorted(seed_ids),
+        },
+    )
+    row = _report(plan["blueprint_id"], "PLAN_ONLY", {
+        "blueprint_id": plan["blueprint_id"],
+        "matched": not missing,
+        "required_slots": required,
+        "unfilled_required_slots": missing,
+    }, optional, [proposal])
+    row["world_withheld"] = [
+        "This evidence plan has no Parliament 1.3 graph builder yet."
+    ]
+    return row
+
+
 def _exclusive_report(package: dict, actions: Sequence[str]) -> dict[str, Any]:
     result = (instantiate_exclusive_allocation(package, actions) if actions
               else {"status": "NO_MATCH", "match": match_exclusive_allocation(package, ()),
@@ -115,6 +226,160 @@ def _exclusive_report(package: dict, actions: Sequence[str]) -> dict[str, Any]:
     return _report("exclusive_allocation", result.get("status", "NO_MATCH"),
                    result.get("match") or match_exclusive_allocation(package, actions),
                    optional, result.get("proposals") or [])
+
+
+def _plan_evidence(package: dict, blueprint_id: str) -> tuple[dict[str, Any], set[str]]:
+    """Bind non-world semantics to Z10 evidence or exact source copies."""
+    text = package["document"]["text"]
+    nodes = {row["id"]: row for row in package["nodes"]}
+    evidence: dict[str, Any] = {}
+    seeds: set[str] = set()
+    modalities = [row for row in package["candidates"] if row["type"] == "MODALITY"]
+    if blueprint_id in {"ability_permission", "deontic_rule"}:
+        allowed = ({"ability", "permission", "possibility", "unresolved"}
+                   if blueprint_id == "ability_permission"
+                   else {"obligation", "permission", "unresolved"})
+        matches = [row for row in modalities if str(row.get("value")).casefold() in allowed]
+        if matches:
+            seeds.update(row["id"] for row in matches)
+            proposition = matches[0]["arguments"].get("proposition")
+            prop = nodes.get(proposition, {})
+            label = prop.get("label") or prop.get("predicate")
+            roles = _role_rows(package, proposition) if proposition else {}
+            actor_row = (roles.get("subject") or roles.get("agent") or [None])[0]
+            target_row = (roles.get("object") or roles.get("destination") or
+                          roles.get("patient") or [None])[0]
+            actor = _mention_node(package, actor_row)["label"] if actor_row else None
+            target = _mention_node(package, target_row)["label"] if target_row else None
+            if blueprint_id == "ability_permission":
+                evidence.update({
+                    "modal_action": label,
+                    "actor": actor,
+                    "target": target,
+                    "modal_reading": [row.get("value") for row in matches],
+                    "option_membership": [
+                        row["id"] for row in package["candidates"]
+                        if row["type"] == "OPTION_OF"
+                        and row["arguments"].get("proposition") == proposition
+                    ] or None,
+                })
+            else:
+                words = re.search(
+                    r"\b(?:must|shall|should|required to|obligated to|"
+                    r"forbidden to|prohibited from|may not|must not)\b", text, re.I)
+                evidence.update({
+                    "deontic_words": words.group(0) if words else None,
+                    "governed_action": label,
+                    "bearer": actor,
+                    "conflicting_rule": [row.get("value") for row in matches],
+                })
+    elif blueprint_id == "promise_reliance":
+        event = re.search(
+            r"\b(?:promise|promises|promised|commit|commits|committed|pledge|pledges)\b",
+            text, re.I)
+        names = re.findall(r"\b[A-Z][a-z]+\b", text)
+        content = re.search(r"\b(?:that|to)\s+(.+?)(?:[.!?]|$)", text, re.I)
+        evidence.update({
+            "commitment_event": event.group(0) if event else None,
+            "promisor": names[0] if event and names else None,
+            "promisee": names[1] if event and len(names) > 1 else None,
+            "commitment_content": content.group(1) if event and content else None,
+            "reliance": _first_copy(text, r"\b(?:rely|relies|relied|depend|depends)\b[^.!?]*"),
+            "breach": _first_copy(text, r"\b(?:breach|breaks|broke|fails|failed)\b[^.!?]*"),
+        })
+    elif blueprint_id == "disputed_report":
+        report = re.search(
+            r"\b(?:report|reports|reported|say|says|said|claim|claims|claimed|"
+            r"believe|believes|allege|alleges)\b", text, re.I)
+        names = re.findall(r"\b[A-Z][a-z]+\b", text)
+        content = text[report.end():].strip(" ,.") if report else None
+        attributed = [
+            row for row in package["candidates"]
+            if row["type"] == "PREDICATION"
+            and "attributed" in str(row.get("scope") or row.get("value") or "").casefold()
+        ]
+        seeds.update(row["id"] for row in attributed)
+        evidence.update({
+            "source": names[0] if report and names else None,
+            "report_words": report.group(0) if report else None,
+            "reported_content": content,
+            "competing_report": None,
+            "reliability": _first_copy(
+                text, r"\b(?:reliable|unreliable|credible|trustworthy|false|accurate)\b"),
+            "confirmation": _first_copy(
+                text, r"\b(?:confirm|confirmed|refute|refuted|verify|verified)\b[^.!?]*"),
+        })
+    return evidence, seeds
+
+
+def _plan_unresolved_readings(blueprint_id: str,
+                              evidence: dict[str, Any]) -> list[dict[str, Any]]:
+    if blueprint_id == "ability_permission":
+        return [{
+            "kind": "modal_force",
+            "alternatives": evidence.get("modal_reading")
+            or ["ability", "permission", "possibility"],
+        }]
+    if blueprint_id == "deontic_rule":
+        return [{"kind": "normative_force", "status": "not_represented_in_world_1_3"}]
+    if blueprint_id == "promise_reliance":
+        return [{"kind": "commitment_status", "status": "not_world_occurrence"}]
+    if blueprint_id == "disputed_report":
+        return [{"kind": "reported_truth", "status": "unresolved"}]
+    return []
+
+
+def _first_copy(text: str, pattern: str) -> str | None:
+    match = re.search(pattern, text, re.I)
+    return match.group(0) if match else None
+
+
+def _package_question_assessment(package: dict,
+                                 eligible: bool) -> dict[str, Any]:
+    nodes = {row["id"]: row for row in package["nodes"]}
+    candidates = {row["id"]: row for row in package["candidates"]}
+    options = []
+    for group in package.get("choice_sets", []):
+        if group.get("kind") != "scenario_option":
+            continue
+        labels = []
+        for candidate_id in group.get("candidate_ids", []):
+            proposition = candidates.get(candidate_id, {}).get("arguments", {}).get("proposition")
+            label = nodes.get(proposition, {}).get("label")
+            if label:
+                labels.append(label)
+        options.append({
+            "choice_set_id": group["id"],
+            "selection_rule": group.get("selection_rule"),
+            "exhaustive": group.get("exhaustive"),
+            "options": labels,
+        })
+    participants = []
+    for row in package["candidates"]:
+        if row["type"] != "PARTICIPANT":
+            continue
+        mention = nodes.get(row["arguments"].get("mention"), {}).get("label")
+        proposition = nodes.get(row["arguments"].get("proposition"), {}).get("label")
+        if mention and proposition:
+            participants.append({
+                "role": row.get("value"),
+                "mention": mention,
+                "predicate": proposition,
+            })
+    return {
+        "status": "ASSESSED" if eligible else "WITHHELD",
+        "eligible_for_world_state": eligible,
+        "ethical_question": next(
+            (row.get("label") for row in package["nodes"]
+             if row.get("kind") == "choice_point"), ""),
+        "scenario_options": options,
+        "exclusivity": (
+            "evidenced" if re.search(
+                r"\bnot\s+both\b", package["document"]["text"], re.I)
+            else "unspecified"
+        ),
+        "participants": participants,
+    }
 
 
 def _conditional_report(package: dict) -> dict[str, Any]:
@@ -135,22 +400,27 @@ def _conditional_report(package: dict) -> dict[str, Any]:
 
 
 def _rescue_report(package: dict) -> dict[str, Any]:
-    rescue = _rescue_link(package)
-    remnant = _contrasting_remnant(package, rescue)
+    rescues = _rescue_links(package)
+    targets = {
+        row["saved"]["label"].casefold() for row in rescues if row.get("saved")
+    }
+    explicit_exclusivity = bool(re.search(
+        r"\bnot\s+both\b", package["document"]["text"], re.I))
     required = {
-        "rescue_action": bool(rescue),
-        "contrasting_remnant": bool(remnant),
-        "conditional_survival": bool(rescue and rescue["survival"]),
+        "two_rescue_actions": len(rescues) >= 2,
+        "distinct_rescue_targets": len(targets) >= 2,
+        "explicit_exclusivity": explicit_exclusivity,
+        "branch_outcomes": len(rescues) >= 2 and all(row["survival"] for row in rescues[:2]),
     }
     scene = _scene_parties(package)
     optional = {
         "scene_parties": bool(scene),
-        "foregone_harm": False,
+        "foregone_harms": False,
     }
     if not all(required.values()):
         return _unmatched("rescue_contrast", required, optional)
     return _filled("rescue_contrast", required, optional,
-                   _rescue_proposal(package, rescue, remnant, scene))
+                   _rescue_proposal(package, rescues[:2], scene))
 
 
 def _omission_report(package: dict) -> dict[str, Any]:
@@ -168,6 +438,153 @@ def _omission_report(package: dict) -> dict[str, Any]:
     if not pair or not all(required.values()):
         return _unmatched("omission_harm", required, optional)
     return _filled("omission_harm", required, optional, _omission_proposal(package, pair))
+
+
+def _diversion_report(package: dict) -> dict[str, Any]:
+    slots = _diversion_slots(package["document"]["text"])
+    required_names = next(
+        row["required_slots"] for row in BLANK_BLUEPRINTS
+        if row["blueprint_id"] == "diversion_redirection")
+    optional_names = next(
+        row["optional_slots"] for row in BLANK_BLUEPRINTS
+        if row["blueprint_id"] == "diversion_redirection")
+    required = {name: slots.get(name) for name in required_names}
+    optional = {name: slots.get(name) for name in optional_names}
+    if not all(required.values()):
+        return _unmatched("diversion_redirection", required, optional)
+    return _filled(
+        "diversion_redirection", required, optional,
+        _slot_graph_proposal(package, "diversion_redirection", slots))
+
+
+def _risk_report(package: dict) -> dict[str, Any]:
+    slots = _risk_slots(package["document"]["text"])
+    required_names = next(
+        row["required_slots"] for row in BLANK_BLUEPRINTS
+        if row["blueprint_id"] == "uncertain_risk")
+    optional_names = next(
+        row["optional_slots"] for row in BLANK_BLUEPRINTS
+        if row["blueprint_id"] == "uncertain_risk")
+    required = {name: slots.get(name) for name in required_names}
+    optional = {name: slots.get(name) for name in optional_names}
+    if not all(required.values()):
+        return _unmatched("uncertain_risk", required, optional)
+    return _filled(
+        "uncertain_risk", required, optional,
+        _slot_graph_proposal(package, "uncertain_risk", slots))
+
+
+def _slot_graph_proposal(package: dict, blueprint_id: str,
+                         slots: dict[str, str]) -> dict[str, Any]:
+    # The text-slot graph constructors are shared with the cloze path.  The
+    # ensemble adds the dependency-closed Z10 selection and source assessment.
+    from blueprint_cloze_chooser import _diversion_graph, _risk_graph
+
+    builder = _diversion_graph if blueprint_id == "diversion_redirection" else _risk_graph
+    world, notes = builder(package["document"]["text"], slots)
+    seeds = _seed_ids_for_slots(package, slots.values())
+    selection, validation = _selection(package, seeds)
+    clauses = [
+        {"clause_id": row["clause_id"], "text": row["text"]}
+        for row in segment_source_clauses(package["document"]["text"])
+    ]
+    action_sources = {
+        row["action_id"]: {
+            "clause_ids": list(row["clause_ids"]),
+            "reason": f"Filled by {blueprint_id} evidence plan.",
+        }
+        for row in world["actions"]
+    }
+    return normalized_proposal(
+        proposal_id=f"{blueprint_id}_0",
+        blueprint_id=blueprint_id,
+        status="FILLED",
+        assignment_kind="intervention_text",
+        assignment=[row["intervention"] for row in world["actions"]],
+        slot_bindings={
+            "copied_spans": dict(slots),
+            "seed_candidate_ids": sorted(seeds),
+        },
+        selection=selection,
+        selection_validation=validation,
+        candidate_value=proposal_candidate(action_sources, world),
+        clauses=clauses,
+        unresolved_readings=(
+            [{"kind": "risk_likelihood", "status": "source_qualified"}]
+            if blueprint_id == "uncertain_risk" else []
+        ),
+        admission_authorized=True,
+        notes=notes,
+        pre_world_assessment={
+            "status": "ASSESSED",
+            "eligible_for_world_state": True,
+            "ethical_question": blueprint_id,
+            "scenario_options": [row["intervention"] for row in world["actions"]],
+            "exclusivity": "unspecified",
+            "participants": [row["label"] for row in world["parties"]],
+        },
+        accepted_evidence=dict(slots),
+    )
+
+
+def _diversion_slots(text: str) -> dict[str, str]:
+    actor = re.search(r"\b([A-Z][a-z]+)\s+(?:can|may|must|could)?\s*"
+                      r"(divert\w*|redirect\w*|switch\w*|turn\w*)\b", text)
+    intervention = re.search(
+        r"\b(?:divert\w*|redirect\w*|switch\w*|turn\w*)\b"
+        r"[^,.!?]*(?=,|\band\b|[.!?])", text, re.I)
+    process = re.search(
+        r"\b(?:the\s+)?(?:flow|trolley|train|water|traffic|current|fire|process)\b",
+        text, re.I)
+    outcome = re.search(
+        r"\b((?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\s+"
+        r"(?:people|workers?|patients?|residents?)|(?:the\s+)?(?:person|child|dog))\s+"
+        r"(?:will|may|might|could)\s+(?:die|live|drown|suffer|survive)\b[^.!?]*",
+        text, re.I)
+    return {
+        "actor": actor.group(1) if actor else "",
+        "controllable_process": process.group(0) if process else "",
+        "intervention": (
+            f"{actor.group(2)} {process.group(0)}"
+            if actor and process else
+            intervention.group(0).strip() if intervention else ""
+        ),
+        "affected_party": outcome.group(1).strip() if outcome else "",
+        "outcome": outcome.group(0).strip() if outcome else "",
+    }
+
+
+def _risk_slots(text: str) -> dict[str, str]:
+    action_match = re.search(
+        r"\b([A-Z][a-z]+)\s+(?:may|might|could)\s+([^,.!?]+)", text)
+    outcome = re.search(
+        r"\b([A-Z][a-z]+|(?:one|two|three|four|five|\d+)\s+"
+        r"(?:people|workers|patients|residents))\s+"
+        r"(may|might|could|has\s+a\s+\d+(?:\.\d+)?%\s+chance\s+of)\s+"
+        r"(?:die|live|drown|survival|survive|recover)\b[^.!?]*",
+        text, re.I)
+    return {
+        "actor": action_match.group(1) if action_match else "",
+        "action": action_match.group(2).strip() if action_match else "",
+        "possible_outcome": outcome.group(0).strip() if outcome else "",
+        "affected_party": outcome.group(1).strip() if outcome else "",
+        "likelihood": outcome.group(2).strip() if outcome else "",
+    }
+
+
+def _seed_ids_for_slots(package: dict, values: Sequence[str]) -> set[str]:
+    spans = [value.casefold() for value in values if isinstance(value, str) and value]
+    evidence = {row["id"]: row for row in package["evidence"]}
+    seeds = set()
+    for row in package["candidates"]:
+        snippets = [
+            package["document"]["text"][evidence[ident]["start"]:evidence[ident]["end"]].casefold()
+            for ident in row.get("evidence_ids", []) if ident in evidence
+        ]
+        if any(any(span in snippet or snippet in span for span in spans)
+               for snippet in snippets if snippet):
+            seeds.add(row["id"])
+    return seeds
 
 
 def _outcome_links(package: dict) -> list[dict[str, Any]]:
@@ -203,7 +620,8 @@ def _outcome_links(package: dict) -> list[dict[str, Any]]:
     return links
 
 
-def _rescue_link(package: dict) -> dict[str, Any] | None:
+def _rescue_links(package: dict) -> list[dict[str, Any]]:
+    rescues = []
     for row in _outcome_links(package):
         predicate = str(row["condition_predicate"] or "")
         outcome = str(row["outcome_predicate"] or "")
@@ -216,28 +634,8 @@ def _rescue_link(package: dict) -> dict[str, Any] | None:
                 continue
             row["saved"] = saved_node
             row["survival"] = True
-            return row
-    return None
-
-
-def _contrasting_remnant(package: dict, rescue: dict[str, Any] | None) -> dict[str, Any] | None:
-    if not rescue:
-        return None
-    nodes = {row["id"]: row for row in package["nodes"]}
-    candidates = {row["id"]: row for row in package["candidates"]}
-    saved = rescue["saved"]["label"].casefold()
-    actor = rescue["actor"]["label"].casefold()
-    for reconstruction in package.get("reconstructions", []):
-        labels = []
-        for ident in reconstruction.get("participant_candidate_ids", []):
-            mention = candidates[ident]["arguments"].get("mention")
-            if mention:
-                labels.append(nodes[mention]["label"])
-        novel = [label for label in labels
-                 if label.casefold() not in {saved, actor}]
-        if novel:
-            return {"reconstruction": reconstruction, "label": novel[0]}
-    return None
+            rescues.append(row)
+    return rescues
 
 
 def _scene_parties(package: dict) -> list[str]:
@@ -287,23 +685,23 @@ def _conditional_proposal(package: dict, links: list[dict[str, Any]]) -> dict[st
     ], [row["link"]["id"] for row in links])
 
 
-def _rescue_proposal(package: dict, rescue: dict[str, Any], remnant: dict[str, Any],
+def _rescue_proposal(package: dict, rescues: list[dict[str, Any]],
                      scene: list[str]) -> dict[str, Any]:
-    branch = _branch(package, 0, rescue, f"save {rescue['saved']['label']}", "live", "BENEFICIAL")
-    dog = remnant["label"]
-    if dog.casefold() not in {row["label"].casefold() for row in branch["parties"]}:
-        branch["parties"].append({
-            "party_id": f"P{len(branch['parties']) + 1}",
-            "label": dog, "kind": "ANIMAL", "quantities": [],
-            "clause_ids": _clause_ids_containing(package, dog),
-        })
-    branch["slot_note"] = {
-        "contrasting_remnant": remnant["label"],
-        "reconstruction_id": remnant["reconstruction"]["id"],
-        "scene_parties": scene,
-        "foregone_harm": None,
-    }
-    return _proposal(package, "rescue_contrast_0", [branch], [rescue["link"]["id"]])
+    branches = []
+    for index, rescue in enumerate(rescues):
+        branch = _branch(
+            package, index, rescue, f"save {rescue['saved']['label']}",
+            "live", "BENEFICIAL")
+        branch["slot_note"] = {
+            "rescue_target": rescue["saved"]["label"],
+            "explicit_exclusivity": "not both",
+            "scene_parties": scene,
+            "foregone_harm": None,
+        }
+        branches.append(branch)
+    return _proposal(
+        package, "rescue_contrast_0", branches,
+        [rescue["link"]["id"] for rescue in rescues])
 
 
 def _omission_proposal(package: dict, pair: dict[str, Any]) -> dict[str, Any]:
@@ -346,15 +744,22 @@ def _branch(package: dict, index: int, row: dict[str, Any], intervention: str,
                 host["text"], [direct_id], host["clause_id"],
                 "The source states this outcome on this branch."),
     ]
+    chance = re.search(r"\b\d+(?:\.\d+)?%\s*chance\b", row["outcome_source"], re.I)
+    if chance:
+        effects[1]["modality"] = "PROBABILISTIC"
+        effects[1]["likelihood_qualifiers"] = [chance.group(0)]
     effects[0]["party_id"] = "BEARER"
     return {
         "intervention": intervention,
         "actor_label": actor["label"],
         "bearer_label": bearer["label"],
+        "actor_node_id": actor.get("id"),
+        "bearer_node_id": bearer.get("id"),
         "parties": [actor, bearer],
         "effects": effects,
         "link": {"action_id": action_id, "source_id": direct_id, "target_id": outcome_id,
-                 "clause_id": host["clause_id"]},
+                 "clause_id": host["clause_id"],
+                 "modality": effects[1]["modality"]},
         "seed": [row["link"]["id"]],
     }
 
@@ -366,10 +771,11 @@ def _proposal(package: dict, proposal_id: str, branches: list[dict[str, Any]],
     for branch in branches:
         for node in branch["parties"]:
             label = node["label"]
-            if label.casefold() in party_id:
+            mention_key = str(node.get("id") or f"{len(parties)}:{label}")
+            if mention_key in party_id:
                 continue
             ident = f"P{len(parties) + 1}"
-            party_id[label.casefold()] = ident
+            party_id[mention_key] = ident
             kind = _kind(label, "")
             parties.append({
                 "party_id": ident, "label": label, "kind": kind, "quantities": [],
@@ -378,8 +784,8 @@ def _proposal(package: dict, proposal_id: str, branches: list[dict[str, Any]],
     actions, effects, links = [], [], []
     for index, branch in enumerate(branches):
         action_id = f"A{index}"
-        actor = party_id[branch["actor_label"].casefold()]
-        bearer = party_id[branch["bearer_label"].casefold()]
+        actor = party_id[str(branch["actor_node_id"])]
+        bearer = party_id[str(branch["bearer_node_id"])]
         direct, outcome = branch["effects"]
         direct["effect_id"] = f"E{index * 2 + 1}"
         outcome["effect_id"] = f"E{index * 2 + 2}"
@@ -397,7 +803,8 @@ def _proposal(package: dict, proposal_id: str, branches: list[dict[str, Any]],
         effects.extend([direct, outcome])
         links.append({"action_id": action_id, "source_id": direct["effect_id"],
                       "link_relation": "CAUSES", "target_id": outcome["effect_id"],
-                      "modality": "CERTAIN", "condition_ids": [], "clause_ids": [clause]})
+                      "modality": branch["link"].get("modality", "CERTAIN"),
+                      "condition_ids": [], "clause_ids": [clause]})
         actions.append({"action_id": action_id, "intervention": branch["intervention"],
                         "actor_party_id": actor, "recipient_party_ids": [bearer],
                         "effect_ids": [direct["effect_id"], outcome["effect_id"]],
@@ -409,19 +816,61 @@ def _proposal(package: dict, proposal_id: str, branches: list[dict[str, Any]],
     if not validation["contract_valid"]:
         raise ValueError("Blueprint produced an invalid Z10 selection: "
                          + str(validation["errors"]))
+    blueprint_id = proposal_id.rsplit("_", 1)[0]
     world = {"schema_version": "1.3", "parties": parties, "actions": actions,
              "effects": effects, "conditions": [], "temporal_relations": [],
              "causal_links": links, "counterfactual_links": []}
-    return {
-        "proposal_id": proposal_id, "status": "FILLED",
-        "selection_validation": validation,
-        "candidate": {"actions": {row["action_id"]: {"clause_ids": row["clause_ids"],
-                                                     "reason": "Filled from the blank blueprint."}
-                                  for row in actions},
-                      "world_model": world, "ellipsis_resolutions": []},
-        "unfilled_required_slots": [],
-        "notes": [branch.get("slot_note") for branch in branches if branch.get("slot_note")],
-    }
+    return normalized_proposal(
+        proposal_id=proposal_id,
+        blueprint_id=blueprint_id,
+        status="FILLED",
+        assignment_kind="intervention_text",
+        assignment=[row["intervention"] for row in actions],
+        slot_bindings={
+            "seed_candidate_ids": sorted(seed),
+            "actions": [
+                {"action_id": row["action_id"], "intervention": row["intervention"],
+                 "effect_ids": list(row["effect_ids"])}
+                for row in actions
+            ],
+        },
+        selection=selection,
+        selection_validation=validation,
+        candidate_value=proposal_candidate(
+            {row["action_id"]: {
+                "clause_ids": row["clause_ids"],
+                "reason": "Filled from the blank blueprint.",
+            } for row in actions},
+            world,
+        ),
+        clauses=[
+            {"clause_id": row["clause_id"], "text": row["text"]}
+            for row in segment_source_clauses(package["document"]["text"])
+        ],
+        unresolved_readings=(
+            [{"kind": "conditional_relation", "alternatives": ["CAUSES", "ENABLES"]}]
+            if blueprint_id == "conditional_outcome" else []
+        ),
+        admission_authorized=True,
+        notes=[branch.get("slot_note") for branch in branches if branch.get("slot_note")],
+        pre_world_assessment={
+            "status": "ASSESSED",
+            "eligible_for_world_state": True,
+            "ethical_question": proposal_id.rsplit("_", 1)[0],
+            "scenario_options": [row["intervention"] for row in actions],
+            "exclusivity": (
+                "evidenced" if re.search(r"\bnot\s+both\b", package["document"]["text"], re.I)
+                else "unspecified"
+            ),
+            "participants": [row["label"] for row in parties],
+        },
+        accepted_evidence={
+            "seed_candidate_ids": sorted(seed),
+            "action_clause_ids": {
+                row["action_id"]: list(row["clause_ids"]) for row in actions
+            },
+        },
+    )
 
 
 def _effect(effect_id: str, action_id: str, party_id: str, outcome: str, predicate: str,
@@ -457,13 +906,7 @@ def _count_token(label: str, source: str) -> str | None:
 
 
 def _kind(label: str, predicate: str) -> str:
-    folded = label.casefold()
-    if "dog" in folded:
-        return "ANIMAL"
-    # A plural headcount is a group. "one worker" stays a person.
-    if re.search(r"\b(?:workers|people|patients|residents)\b", folded) and "one" not in folded:
-        return "HUMAN_GROUP"
-    return "PERSON"
+    return party_kind(label)
 
 
 def _outcome_polarity(row: dict[str, Any]) -> str:
@@ -528,5 +971,12 @@ def _report(blueprint_id: str, status: str, match: dict[str, Any],
         "blank": blank,
         "match": match,
         "optional_slots": optional,
+        "coverage_metrics": coverage_metrics(
+            match.get("required_slots") or {}, optional,
+            unsupported_atoms=sum(
+                len(row.get("construction_problems") or []) for row in proposals),
+            unresolved_readings=sum(
+                len(row.get("unresolved_readings") or []) for row in proposals),
+        ),
         "proposals": proposals,
     }

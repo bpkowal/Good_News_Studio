@@ -1,6 +1,12 @@
 import json
+import os
+from pathlib import Path
+import subprocess
+import tempfile
 import unittest
+from unittest import mock
 
+from blueprint_allocation_invariants import group_quantity, party_kind
 from blueprint_cloze_chooser import _implied_sentence, choose_by_cloze
 
 
@@ -16,15 +22,19 @@ MEDICINE = (
     "The patient who does not get the medicine will die."
 )
 RESCUE = (
-    "A child and a dog are in the water. "
-    "Maria can save the child, but not the dog. "
-    "If Maria saves the child, the child will live."
+    "Maria can save either the child or the dog, but not both. "
+    "If Maria saves the child, the child will live and the dog will drown. "
+    "If Maria saves the dog, the dog will live and the child will drown."
 )
 TROLLEY = (
     "Five workers are on the track. One worker is on the side track. "
     "Maria can pull the lever, but not the brake. "
     "If Maria pulls the lever, one worker will die. "
     "If Maria does not pull the lever, five workers will die."
+)
+CONDITIONAL = (
+    "If Maria pulls the lever, one worker will live. "
+    "If Maria does not pull the lever, five workers will live."
 )
 
 
@@ -84,7 +94,8 @@ class ClozeChooserTests(unittest.TestCase):
         self.assertEqual(script.cloze_ids, [
             "exclusive_allocation", "exclusive_allocation",
             "conditional_outcome", "rescue_contrast"])
-        self.assertEqual(result["left_out"], ["omission_harm"])
+        self.assertIn("omission_harm", result["left_out"])
+        self.assertIn("disputed_report", result["left_out"])
         self.assertEqual(result["chosen_blueprint_id"], "exclusive_allocation")
         self.assertEqual(result["status"], "WITHHELD")
         winner = result["considered"][0]
@@ -107,6 +118,10 @@ class ClozeChooserTests(unittest.TestCase):
             "a small town that will lose 100 people to drowning",
         )
         self.assertIsNone(result["graph"])
+        self.assertEqual(result["proposals"][0]["candidate"], None)
+        self.assertFalse(result["proposals"][0]["admission_authorized"])
+        self.assertFalse(result["proposals"][0]["pre_world_assessment"][
+            "eligible_for_world_state"])
         self.assertEqual(result["question"]["exclusivity"], "unspecified")
         self.assertFalse(result["question"]["eligible_for_world_state"])
         mentions = {row["mention"] for row in result["question"]["participants"]}
@@ -168,18 +183,175 @@ class ClozeChooserTests(unittest.TestCase):
         deaths = [row for row in world["effects"] if row["predicate"] == "die"]
         self.assertEqual(len(deaths), 2)
         self.assertTrue(all(row["modality"] == "CERTAIN" and row["polarity"] == "ADVERSE" for row in deaths))
+        complements = [
+            row for row in world["effects"]
+            if row["derivation_operation"] == "EXCLUSIVE_ALLOCATION_COMPLEMENT"
+        ]
+        self.assertEqual(len(complements), 2)
+        self.assertTrue(all(row["predicate"] == "NOT_RECEIVES" for row in complements))
+        self.assertTrue(result["graph"]["pre_world_assessment"][
+            "eligible_for_world_state"])
 
-    def test_rescue_blanks_keep_the_dog_and_do_not_add_a_death(self):
+    def test_group_recipient_headcount_stays_on_transfer_and_out_of_complement(self):
+        text = (
+            "A clinic has one dose of antiviral. Dr. Rivera must give the antiviral "
+            "to either one child or three adult patients, but not both. If Dr. Rivera "
+            "gives the antiviral to the child, the child has an 80% chance of survival. "
+            "If Dr. Rivera gives the antiviral to the three adult patients, each of "
+            "the three adult patients has a 60% chance of survival. The patients who "
+            "do not receive the antiviral will die."
+        )
+        script = Script(
+            ["exclusive_allocation", "conditional_outcome", "omission_harm"],
+            {
+                "exclusive_allocation": {
+                    "decider": "Dr. Rivera", "resource": "antiviral",
+                    "assignment": "give the antiviral", "quantity": "one dose",
+                    "first_recipient": "one child",
+                    "second_recipient": "three adult patients",
+                    "exclusivity": "but not both",
+                    "first_outcome": "the child has an 80% chance of survival",
+                    "second_outcome": (
+                        "each of the three adult patients has a 60% chance of survival"
+                    ),
+                    "first_hedge": "80% chance",
+                    "second_hedge": "60% chance",
+                    "first_branch_sentence": (
+                        "If Dr. Rivera gives the antiviral to the child, the child "
+                        "has an 80% chance of survival"
+                    ),
+                    "second_branch_sentence": (
+                        "If Dr. Rivera gives the antiviral to the three adult patients, "
+                        "each of the three adult patients has a 60% chance of survival"
+                    ),
+                    "nonreceipt": (
+                        "The patients who do not receive the antiviral will die"
+                    ),
+                },
+                "conditional_outcome": _none_sheet("conditional_outcome"),
+                "omission_harm": _none_sheet("omission_harm"),
+            },
+        )
+        question = {
+            "ethical_question": "give to the child / give to the adult patients",
+            "scenario_options": [],
+            "participants": [],
+            "exclusivity": "evidenced",
+            "eligible_for_world_state": True,
+        }
+        with mock.patch("blueprint_cloze_chooser.assess_question",
+                        return_value=question):
+            proposal = choose_by_cloze(text, script)["graph"]
+        world = proposal["candidate"]["world_model"]
+        self.assertEqual(
+            [row["intervention"] for row in world["actions"]],
+            [
+                "gives the antiviral to the child",
+                "gives the antiviral to the three adult patients",
+            ],
+        )
+        transfers = [
+            row for row in world["effects"]
+            if row["effect_kind"] == "RESOURCE_TRANSFER"
+        ]
+        adult_transfer = next(row for row in transfers if row["party_id"] == "P4")
+        self.assertEqual(adult_transfer["quantities"], ["three"])
+        complements = [
+            row for row in world["effects"]
+            if row["derivation_operation"] == "EXCLUSIVE_ALLOCATION_COMPLEMENT"
+        ]
+        child_complement = next(
+            row for row in complements if row["party_id"] == "P3"
+        )
+        self.assertEqual(child_complement["quantities"], ["one"])
+        self.assertNotIn("three", child_complement["quantities"])
+        root = os.environ.get("PARLIAMENT_SMOKE_ROOT")
+        python = os.environ.get("PARLIAMENT_SMOKE_PYTHON")
+        if root and python:
+            with tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / "world.json"
+                path.write_text(json.dumps(proposal), encoding="utf-8")
+                code = r'''
+import json, sys
+sys.path.insert(0, sys.argv[1])
+from global_workspace.world_admission import restore_admitted_world
+from global_workspace.world_state import parse_world_model
+p = json.load(open(sys.argv[2]))
+w = p["candidate"]["world_model"]
+ids = [a["action_id"] for a in w["actions"]]
+actions = [a["intervention"] for a in w["actions"]]
+compiled = parse_world_model(
+    w, clauses=p["clauses"], action_ids=ids,
+    action_texts=dict(zip(ids, actions)), require_completeness=True)
+restore_admitted_world(compiled.as_dict())
+'''
+                completed = subprocess.run(
+                    [python, "-c", code, root, str(path)],
+                    text=True, capture_output=True, timeout=60)
+            self.assertEqual(
+                completed.returncode, 0, completed.stdout + completed.stderr)
+
+    @unittest.skipUnless(os.environ.get("PARLIAMENT_SMOKE_ROOT") and
+                         os.environ.get("PARLIAMENT_SMOKE_PYTHON"),
+                         "requires the isolated patched Parliament checkout")
+    def test_normalized_medicine_cloze_candidate_passes_parliament_admission(self):
+        script = Script(
+            ["exclusive_allocation", "conditional_outcome", "omission_harm"],
+            {
+                "exclusive_allocation": {
+                    "decider": "Ada", "resource": "the medicine",
+                    "assignment": "give the medicine", "quantity": "one dose",
+                    "first_recipient": "Ben", "second_recipient": "Cara",
+                    "exclusivity": "but not both",
+                    "first_outcome": "Ben has a 95% chance of survival",
+                    "second_outcome": "Cara has a 5% chance of survival",
+                    "survival_chance": "95% chance",
+                    "nonreceipt": "The patient who does not get the medicine will die",
+                },
+                "conditional_outcome": _none_sheet("conditional_outcome"),
+                "omission_harm": _none_sheet("omission_harm"),
+            },
+        )
+        proposal = choose_by_cloze(MEDICINE, script)["graph"]
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "proposal.json"
+            path.write_text(json.dumps(proposal), encoding="utf-8")
+            code = r'''
+import json, sys
+sys.path.insert(0, sys.argv[1])
+from global_workspace.local_specialists import _admit_action_source_rows
+from global_workspace.world_state import parse_world_model
+p = json.load(open(sys.argv[2]))
+w = p["candidate"]["world_model"]
+ids = [a["action_id"] for a in w["actions"]]
+actions = [a["intervention"] for a in w["actions"]]
+parse_world_model(w, clauses=p["clauses"], action_ids=ids,
+                  action_texts=dict(zip(ids, actions)), require_completeness=True)
+r = _admit_action_source_rows(p["candidate"], actions, ids, p["clauses"])
+assert r["status"] == "COMMITTED", r.get("errors")
+'''
+            completed = subprocess.run(
+                [os.environ["PARLIAMENT_SMOKE_PYTHON"], "-c", code,
+                 os.environ["PARLIAMENT_SMOKE_ROOT"], str(path)],
+                text=True, capture_output=True, timeout=60)
+        self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
+
+    def test_rescue_blanks_build_two_exclusive_rescue_branches(self):
         script = Script(
             ["rescue_contrast", "exclusive_allocation", "conditional_outcome"],
             {
                 "rescue_contrast": {
                     "rescuer": "Maria",
-                    "saved": "the child",
-                    "not_saved": "the dog",
-                    "survival": "the child will live",
-                    "scene": "A child and a dog",
-                    "foregone": "the dog",
+                    "first_saved": "the child",
+                    "second_saved": "the dog",
+                    "rescue_exclusivity": "but not both",
+                    "first_rescue_action": "Maria saves the child",
+                    "second_rescue_action": "Maria saves the dog",
+                    "first_benefit": "the child will live",
+                    "first_harm": "the dog will drown",
+                    "second_benefit": "the dog will live",
+                    "second_harm": "the child will drown",
+                    "scene": "NONE",
                 },
                 "exclusive_allocation": _none_sheet("exclusive_allocation"),
                 "conditional_outcome": _none_sheet("conditional_outcome"),
@@ -190,10 +362,91 @@ class ClozeChooserTests(unittest.TestCase):
         world = result["graph"]["candidate"]["world_model"]
         labels = {row["label"]: row["kind"] for row in world["parties"]}
         self.assertEqual(labels["the dog"], "ANIMAL")
-        self.assertTrue(any(row["predicate"] == "live" for row in world["effects"]))
-        self.assertFalse(any(row["predicate"] == "die" for row in world["effects"]))
-        foregone = next(row for row in result["considered"][0]["items"] if row["id"] == "foregone")
-        self.assertEqual(foregone["verdict"], "rejected")
+        self.assertEqual(len(world["actions"]), 2)
+        self.assertEqual(len(world["effects"]), 6)
+        self.assertEqual(len(world["causal_links"]), 4)
+        self.assertEqual(
+            [row["intervention"] for row in world["actions"]],
+            ["Maria saves the child", "Maria saves the dog"],
+        )
+        self.assertEqual(len([row for row in world["effects"] if row["predicate"] == "live"]), 2)
+        self.assertEqual(len([row for row in world["effects"] if row["predicate"] == "drown"]), 2)
+        self.assertEqual(
+            result["graph"]["construction_problems"][0]["code"],
+            "rescue_harm_missing_named_process",
+        )
+
+    @unittest.skipUnless(os.environ.get("PARLIAMENT_SMOKE_ROOT") and
+                         os.environ.get("PARLIAMENT_SMOKE_PYTHON"),
+                         "requires the isolated patched Parliament checkout")
+    def test_rescue_process_gap_is_an_explicit_parliament_rejection(self):
+        script = Script(
+            ["rescue_contrast", "conditional_outcome", "exclusive_allocation"],
+            {
+                "rescue_contrast": {
+                    "rescuer": "Maria", "first_saved": "the child",
+                    "second_saved": "the dog", "rescue_exclusivity": "but not both",
+                    "first_rescue_action": "Maria saves the child",
+                    "second_rescue_action": "Maria saves the dog",
+                    "first_benefit": "the child will live",
+                    "first_harm": "the dog will drown",
+                    "second_benefit": "the dog will live",
+                    "second_harm": "the child will drown", "scene": "NONE",
+                },
+                "conditional_outcome": _none_sheet("conditional_outcome"),
+                "exclusive_allocation": _none_sheet("exclusive_allocation"),
+            },
+        )
+        proposal = choose_by_cloze(RESCUE, script)["graph"]
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "proposal.json"
+            path.write_text(json.dumps(proposal), encoding="utf-8")
+            code = r'''
+import json, sys
+sys.path.insert(0, sys.argv[1])
+from global_workspace.world_state import parse_world_model
+p = json.load(open(sys.argv[2]))
+w = p["candidate"]["world_model"]
+ids = [a["action_id"] for a in w["actions"]]
+actions = [a["intervention"] for a in w["actions"]]
+parse_world_model(w, clauses=p["clauses"], action_ids=ids,
+                  action_texts=dict(zip(ids, actions)), require_completeness=True)
+'''
+            completed = subprocess.run(
+                [os.environ["PARLIAMENT_SMOKE_PYTHON"], "-c", code,
+                 os.environ["PARLIAMENT_SMOKE_ROOT"], str(path)],
+                text=True, capture_output=True, timeout=60)
+        self.assertNotEqual(completed.returncode, 0)
+        self.assertIn("insert a PROCESS", completed.stderr)
+
+    def test_rescue_without_stated_harms_does_not_invent_them(self):
+        text = (
+            "Maria can save either the child or the dog, but not both. "
+            "If Maria saves the child, the child will live. "
+            "If Maria saves the dog, the dog will live."
+        )
+        script = Script(
+            ["rescue_contrast", "conditional_outcome", "exclusive_allocation"],
+            {
+                "rescue_contrast": {
+                    "rescuer": "Maria",
+                    "first_saved": "the child", "second_saved": "the dog",
+                    "rescue_exclusivity": "but not both",
+                    "first_rescue_action": "Maria saves the child",
+                    "second_rescue_action": "Maria saves the dog",
+                    "first_benefit": "the child will live", "first_harm": "NONE",
+                    "second_benefit": "the dog will live", "second_harm": "NONE",
+                    "scene": "NONE",
+                },
+                "conditional_outcome": _none_sheet("conditional_outcome"),
+                "exclusive_allocation": _none_sheet("exclusive_allocation"),
+            },
+        )
+        result = choose_by_cloze(text, script)
+        world = result["graph"]["candidate"]["world_model"]
+        self.assertEqual(len(world["actions"]), 2)
+        self.assertEqual(len(world["effects"]), 4)
+        self.assertFalse(any(row["polarity"] == "ADVERSE" for row in world["effects"]))
 
     def test_lever_blanks_keep_both_harms_and_leave_the_brake_off_the_actions(self):
         script = Script(
@@ -202,16 +455,27 @@ class ClozeChooserTests(unittest.TestCase):
                 "omission_harm": {
                     "actor": "Maria",
                     "done": "pull the lever",
-                    "omitted": "does not pull the lever",
-                    "harm_done": "one worker",
-                    "harm_omitted": "five workers",
+                    "omitted": "NONE",
+                    "harm_done": "one worker will die",
+                    "harm_omitted": "five workers will die",
+                    "done_hedge": "If",
+                    "omitted_hedge": "If Maria does not pull the lever",
+                    "group_counts": "Five workers",
                     "instrument": "the brake",
                 },
                 "rescue_contrast": _none_sheet("rescue_contrast"),
                 "exclusive_allocation": _none_sheet("exclusive_allocation"),
             },
         )
-        result = choose_by_cloze(TROLLEY, script)
+        question = {
+            "ethical_question": "pulls / not pull",
+            "scenario_options": [],
+            "participants": [],
+            "exclusivity": "unspecified",
+        }
+        with mock.patch("blueprint_cloze_chooser.assess_question",
+                        return_value=question):
+            result = choose_by_cloze(TROLLEY, script)
         self.assertEqual(result["chosen_blueprint_id"], "omission_harm")
         world = result["graph"]["candidate"]["world_model"]
         self.assertEqual(
@@ -219,8 +483,238 @@ class ClozeChooserTests(unittest.TestCase):
             ["pull the lever", "does not pull the lever"],
         )
         self.assertEqual(len([row for row in world["effects"] if row["predicate"] == "die"]), 2)
+        deaths = [row for row in world["effects"] if row["predicate"] == "die"]
+        self.assertTrue(all(row["modality"] == "CERTAIN" for row in deaths))
+        one = next(row for row in deaths if "one worker" in row["outcome"])
+        self.assertEqual(one["quantities"], ["one"])
+        pull = next(row for row in world["effects"] if "lever" in row["outcome"]
+                    and "not" not in row["outcome"])
+        self.assertEqual(pull["source_proposition"], "pull the lever")
+        self.assertNotIn("one", pull["quantities"])
         self.assertTrue(any("the brake" in note for note in result["graph"]["notes"]))
         self.assertNotIn("the brake", [row["intervention"] for row in world["actions"]])
+        omitted = next(row for row in result["considered"][0]["items"]
+                       if row["id"] == "omitted")
+        self.assertEqual(omitted["reason"], "recovered_from_copied_conditional")
+
+    @unittest.skipUnless(os.environ.get("PARLIAMENT_SMOKE_ROOT") and
+                         os.environ.get("PARLIAMENT_SMOKE_PYTHON"),
+                         "requires the isolated patched Parliament checkout")
+    def test_trolley_omission_cloze_candidate_passes_parliament_admission(self):
+        script = Script(
+            ["omission_harm", "rescue_contrast", "exclusive_allocation"],
+            {
+                "omission_harm": {
+                    "actor": "Maria",
+                    "done": "pulls the lever",
+                    "omitted": "does not pull the lever",
+                    "harm_done": "one worker will die",
+                    "harm_omitted": "five workers will die",
+                    "done_hedge": "If Maria pulls the lever",
+                    "omitted_hedge": "If Maria does not pull the lever",
+                    "group_counts": "Five workers",
+                    "instrument": "the brake",
+                },
+                "rescue_contrast": _none_sheet("rescue_contrast"),
+                "exclusive_allocation": _none_sheet("exclusive_allocation"),
+            },
+        )
+        question = {
+            "ethical_question": "pulls / not pull",
+            "scenario_options": [],
+            "participants": [],
+            "exclusivity": "unspecified",
+        }
+        with mock.patch("blueprint_cloze_chooser.assess_question",
+                        return_value=question):
+            proposal = choose_by_cloze(TROLLEY, script)["graph"]
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "proposal.json"
+            path.write_text(json.dumps(proposal), encoding="utf-8")
+            code = r'''
+import json, sys
+sys.path.insert(0, sys.argv[1])
+from global_workspace.local_specialists import _admit_action_source_rows
+from global_workspace.world_state import parse_world_model
+p = json.load(open(sys.argv[2]))
+w = p["candidate"]["world_model"]
+ids = [a["action_id"] for a in w["actions"]]
+actions = [a["intervention"] for a in w["actions"]]
+model = parse_world_model(
+    w, clauses=p["clauses"], action_ids=ids,
+    action_texts=dict(zip(ids, actions)), require_completeness=True)
+assert model.admission.status in {
+    "COMMITTED", "COMMITTED_WITH_UNCERTAINTY"}, model.admission.status
+result = _admit_action_source_rows(p["candidate"], actions, ids, p["clauses"])
+assert result["status"] in {"COMMITTED", "COMMITTED_WITH_UNCERTAINTY"}, result
+assert result["world_model_status"] in {
+    "COMMITTED", "COMMITTED_WITH_UNCERTAINTY"}, result
+'''
+            completed = subprocess.run(
+                [os.environ["PARLIAMENT_SMOKE_PYTHON"], "-c", code,
+                 os.environ["PARLIAMENT_SMOKE_ROOT"], str(path)],
+                text=True, capture_output=True, timeout=60)
+        self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
+
+    def test_children_count_as_a_human_group(self):
+        self.assertEqual(party_kind("two children"), "HUMAN_GROUP")
+        self.assertEqual(group_quantity("two children"), ["two"])
+        self.assertEqual(party_kind("one child"), "PERSON")
+        self.assertEqual(group_quantity("one child"), [])
+
+    def test_conditional_template_keeps_two_branches_separate(self):
+        script = Script(
+            ["conditional_outcome", "omission_harm", "exclusive_allocation"],
+            {
+                "conditional_outcome": {
+                    "actor": "Maria",
+                    "condition": "If Maria pulls the lever",
+                    "bearer": "one worker",
+                    "outcome": "one worker will live",
+                    "second_condition": "If Maria does not pull the lever",
+                    "second_bearer": "five workers",
+                    "second_outcome": "five workers will live",
+                    "chance": "NONE",
+                },
+                "omission_harm": _none_sheet("omission_harm"),
+                "exclusive_allocation": _none_sheet("exclusive_allocation"),
+            },
+        )
+        result = choose_by_cloze(CONDITIONAL, script)
+        world = result["graph"]["candidate"]["world_model"]
+        self.assertEqual(len(world["actions"]), 2)
+        self.assertEqual(
+            [row["intervention"] for row in world["actions"]],
+            ["If Maria pulls the lever", "If Maria does not pull the lever"],
+        )
+        self.assertEqual([row["party_id"] for row in world["effects"][1::2]], ["P2", "P3"])
+        self.assertEqual(world["conditions"], [])
+        self.assertEqual(
+            result["graph"]["unresolved_readings"][0]["kind"],
+            "conditional_relation",
+        )
+        self.assertEqual(len(result["graph"]["clauses"]), 2)
+
+    def test_conditional_chance_stays_on_its_own_outcome(self):
+        text = "If Ada gives medicine to Ben, Ben has a 95% chance of survival."
+        script = Script(
+            ["conditional_outcome", "exclusive_allocation", "uncertain_risk"],
+            {
+                "conditional_outcome": {
+                    "actor": "Ada", "condition": "If Ada gives medicine to Ben",
+                    "bearer": "Ben", "outcome": "Ben has a 95% chance of survival",
+                    "second_condition": "NONE", "second_bearer": "NONE",
+                    "second_outcome": "NONE", "chance": "95% chance",
+                },
+                "exclusive_allocation": _none_sheet("exclusive_allocation"),
+                "uncertain_risk": _none_sheet("uncertain_risk"),
+            },
+        )
+        result = choose_by_cloze(text, script)
+        outcome = result["graph"]["candidate"]["world_model"]["effects"][1]
+        self.assertEqual(outcome["modality"], "PROBABILISTIC")
+        self.assertEqual(outcome["likelihood_qualifiers"], ["95% chance"])
+
+    def test_plan_only_template_preserves_slots_and_withholds_graph(self):
+        text = "Ada promised Ben that Ada would deliver the medicine."
+        script = Script(
+            ["promise_reliance", "conditional_outcome", "exclusive_allocation"],
+            {
+                "promise_reliance": {
+                    "promisor": "Ada",
+                    "commitment_event": "promised",
+                    "commitment_content": "Ada would deliver the medicine",
+                    "promisee": "Ben",
+                    "reliance": "NONE",
+                    "breach": "NONE",
+                },
+                "conditional_outcome": _none_sheet("conditional_outcome"),
+                "exclusive_allocation": _none_sheet("exclusive_allocation"),
+            },
+        )
+        result = choose_by_cloze(text, script)
+        self.assertEqual(result["chosen_blueprint_id"], "promise_reliance")
+        self.assertEqual(result["status"], "WITHHELD")
+        self.assertIsNone(result["graph"])
+        self.assertEqual(result["considered"][0]["graph_builder"], "plan_only")
+        self.assertIn("no Parliament 1.3 graph builder", result["world_withheld"][0])
+        proposal = result["proposals"][0]
+        self.assertIsNone(proposal["candidate"])
+        self.assertFalse(proposal["admission_authorized"])
+        self.assertEqual(
+            proposal["unresolved_readings"][0]["kind"], "commitment_status")
+        self.assertEqual(
+            proposal["accepted_evidence"]["commitment_event"], "promised")
+
+    def test_remaining_semantic_plans_collect_evidence_without_emitting_a_world(self):
+        cases = (
+            ("ability_permission", "Ada can give medicine to Ben.", {
+                "actor": "Ada", "modal_action": "can give medicine", "target": "Ben",
+                "modal_words": "can", "outcome": "NONE", "duty_or_prohibition": "NONE",
+            }),
+            ("deontic_rule", "Ada must deliver medicine to Ben.", {
+                "deontic_words": "must", "governed_action": "deliver medicine to Ben",
+                "bearer": "Ada", "authority": "NONE", "exception": "NONE", "sanction": "NONE",
+            }),
+            ("disputed_report", "Ada claims the medicine is safe.", {
+                "source": "Ada", "report_words": "claims",
+                "reported_content": "the medicine is safe",
+                "competing_report": "NONE", "reliability": "NONE", "confirmation": "NONE",
+            }),
+        )
+        for blueprint_id, text, sheet in cases:
+            with self.subTest(blueprint_id=blueprint_id):
+                script = Script(
+                    [blueprint_id, "conditional_outcome", "exclusive_allocation"],
+                    {
+                        blueprint_id: sheet,
+                        "conditional_outcome": _none_sheet("conditional_outcome"),
+                        "exclusive_allocation": _none_sheet("exclusive_allocation"),
+                    },
+                )
+                result = choose_by_cloze(text, script)
+                self.assertEqual(result["chosen_blueprint_id"], blueprint_id)
+                self.assertEqual(result["status"], "WITHHELD")
+                self.assertIsNone(result["graph"])
+                proposal = result["proposals"][0]
+                self.assertIsNone(proposal["candidate"])
+                self.assertFalse(proposal["admission_authorized"])
+                self.assertTrue(proposal["slot_bindings"]["copied_spans"])
+                self.assertTrue(proposal["unresolved_readings"])
+
+    def test_diversion_and_risk_emit_normalized_candidates(self):
+        cases = (
+            ("diversion_redirection",
+             "Maria can divert the trolley toward one worker, and one worker will die.", {
+                 "actor": "Maria", "controllable_process": "the trolley",
+                 "intervention": "divert the trolley",
+                 "affected_party": "one worker", "outcome": "one worker will die",
+                 "alternative_route": "NONE", "omission_branch": "NONE",
+                 "uncertainty": "NONE",
+             }),
+            ("uncertain_risk", "Ada may administer medicine to Ben, and Ben could die.", {
+                "actor": "Ada", "action": "administer medicine to Ben",
+                "possible_outcome": "Ben could die", "affected_party": "Ben",
+                "likelihood": "could", "second_action": "NONE",
+                "second_affected_party": "NONE", "second_outcome": "NONE",
+                "second_likelihood": "NONE", "expected_quantity": "NONE",
+            }),
+        )
+        for blueprint_id, text, sheet in cases:
+            with self.subTest(blueprint_id=blueprint_id):
+                script = Script(
+                    [blueprint_id, "conditional_outcome", "exclusive_allocation"],
+                    {
+                        blueprint_id: sheet,
+                        "conditional_outcome": _none_sheet("conditional_outcome"),
+                        "exclusive_allocation": _none_sheet("exclusive_allocation"),
+                    },
+                )
+                result = choose_by_cloze(text, script)
+                self.assertEqual(result["status"], "FILLED")
+                self.assertIsNotNone(result["graph"])
+                self.assertTrue(result["graph"]["admission_authorized"])
+                self.assertEqual(result["proposals"], [result["graph"]])
 
     def test_no_accepted_blank_passes_nothing_forward(self):
         script = Script(

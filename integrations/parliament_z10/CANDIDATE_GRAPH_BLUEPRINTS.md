@@ -1,6 +1,6 @@
 # Candidate graph blueprint ensemble
 
-Status: proposed generation architecture.
+Status: ten normalized evidence plans; six Parliament 1.3 graph builders.
 
 Parliament keeps one world-state schema. These blueprints are alternative initial
 graph plans, not new world schemas and not ethical verdicts. A scenario is matched
@@ -29,9 +29,10 @@ text, records unfilled slots, and is evaluated as a whole.
    - Optional: exclusivity, outcomes, duty or prohibition.
 
 4. **Rescue under limited capacity**
-   - Required: endangered parties, rescue actions, limited rescuer capacity.
-   - Proposed edges: rescue intervention, saved party, foregone rescue, survival
-     or harm candidates, exclusive choice.
+   - Required: two rescue actions, distinct rescue targets, explicit “not both”
+     capacity evidence, and a copied outcome for each branch.
+   - Proposed edges: each rescue intervention, saved party, branch-local survival
+     and stated harm, and the exclusive choice.
    - Optional: differential risk, group size, temporal urgency.
 
 5. **Diversion or redirection**
@@ -69,6 +70,72 @@ text, records unfilled slots, and is evaluated as a whole.
       competing factual hypotheses.
     - Optional: evidence reliability, downstream decisions, later confirmation.
 
+## Runtime status
+
+The blank-plan ensemble and cloze chooser now expose all ten families. Their
+implementation status is explicit:
+
+- `exclusive_allocation`, `conditional_outcome`, `rescue_contrast`,
+  `omission_harm`, `diversion_redirection`, and `uncertain_risk` have
+  Parliament 1.3 graph builders;
+- `ability_permission`, `deontic_rule`, `promise_reliance`, and
+  `disputed_report` emit deep withheld envelopes because schema 1.3 cannot
+  preserve their modal, normative, commitment, or attribution semantics.
+
+A withheld plan still records its question assessment, accepted evidence,
+typed slot bindings, Z10 selection witness where available, unresolved readings,
+full source clauses, and named construction problems. Its `candidate` is `null`
+and `admission_authorized` is false.
+
+## Reference depth: water-first question gate
+
+The deepest generation contract is the water-allocation sequence, not the
+medicine graph alone. Every normalized proposal first records:
+
+1. the ethical question and scenario options;
+2. whether exclusivity is evidenced (`not both`) or merely suggested by `or`;
+3. every parsed participant, including outcome participants outside recipient
+   heads;
+4. accepted copied evidence, unresolved slots/readings, and process warnings;
+5. `eligible_for_world_state` plus explicit withholding reasons.
+
+Only then may a candidate world be materialized. The medicine allocation builder
+contributes the stronger downstream bookkeeping—Z10 selection closure,
+receipt/nonreceipt complements, quantities, likelihoods, and death provenance—
+inside this water-first envelope.
+
+The cloze templates use family-specific instructions. Rescue requires the
+`either … but not both` structure and keeps both rescue actions and their
+outcomes in separate branches. Omission keeps an instrument out of the action
+list. Conditional branches retain separate condition, bearer, and
+outcome slots. Reports remain attributed content rather than admitted facts.
+Only exclusive allocation currently has a warning-only implied-process pass;
+its non-copied answer is retained as a note and never becomes a causal edge.
+
+## Cross-family generalization invariants
+
+`blueprint_allocation_invariants.py` is shared by the Z10, ensemble, and cloze
+paths. A quantified recipient is typed and counted the same way in each path.
+For an exclusive allocation:
+
+- a recipient headcount stays on that recipient, its transfer, and its stated
+  outcome;
+- the nonrecipient complement carries the indivisible resource quantity, not
+  the rival recipient's headcount;
+- the complement's local clause evidence is restricted to the resource
+  constraint; Parliament attaches the global exclusivity and parent-transfer
+  evidence during deterministic compilation;
+- compilation, admission, serialization, and frozen replay must be idempotent;
+- an authorized allocation envelope is invalid unless its pre-world assessment
+  records exclusivity as `evidenced`.
+
+The replay requirement is tested for every implemented family: allocation,
+conditional outcome, rescue, omission, diversion, and uncertain risk. The
+ability/permission, deontic-rule, promise/reliance, and disputed-report families
+must instead remain complete evidence envelopes with `candidate: null` and
+`admission_authorized: false`; replay tests must not turn those semantics into
+world facts.
+
 ## Matching and generation
 
 The matcher scores every blueprint using positive textual evidence rather than
@@ -92,9 +159,9 @@ For each scenario:
    different blueprint.
 
 Slots can contain candidate sets. For example, an explicitly conditional action
-and recovery statement can propose both `CAUSES` and `ENABLES` relations when the
-text does not distinguish them. The graph keeps both readings rather than omitting
-the edge entirely.
+and recovery statement records `CAUSES | ENABLES` in `unresolved_readings` when
+the text does not distinguish them; the world model does not invent a second
+relation type.
 
 ## Serum scenario: three initial candidates
 
@@ -150,6 +217,14 @@ separate comparison candidates.
 
 ## Output requirement
 
+[`blueprint_proposal_contract.py`](../../blueprint_proposal_contract.py)
+defines the common envelope used by Z10, ensemble, and cloze generation. Every
+proposal records `pre_world_assessment`, `accepted_evidence`, typed
+`slot_bindings`, selection validation, unresolved readings, construction
+problems, withholding reasons, and admission authorization. Authorized
+candidates contain only Parliament 1.3 world fields. Withheld semantic families
+carry the same provenance envelope with `candidate: null`.
+
 Every unsuccessful candidate-generation run must include:
 
 - the graph actually generated;
@@ -159,10 +234,32 @@ Every unsuccessful candidate-generation run must include:
 - unfilled required and optional slots; and
 - the competing candidates considered.
 
+For a withheld family, “the graph actually generated” is explicitly `null`.
+The withholding reason, accepted evidence, and unresolved slots take its place;
+no empty or guessed Parliament graph is presented as an implementation.
+
 This output is diagnostic evidence for improving generation. It is not an
 additional rejection policy.
 
-## Functional baseline: exclusive allocation
+## Functional graph builders
+
+The water-first question gate plus exclusive-allocation bookkeeping form the
+reference implementation. Conditional outcome
+can now materialize one or two independently copied condition/outcome chains
+with branch-local chances and conditions. Rescue contrast requires two copied
+rescue actions, explicit `not both` evidence, and independent copied outcomes
+for each branch. Omission
+harm builds separate positive and negated action branches, copies each complete
+harm proposition and group count, and retains a brake or other instrument only
+as context.
+
+The non-allocation ensemble proposals now use the same outer bookkeeping shape:
+source clauses, assignment, slot bindings, Z10 selection and validation,
+action-source rows, world model, and unresolved required slots. Cloze proposals
+carry the same shape where available; because cloze copies are not Z10 candidate
+selections, their selection validation is explicitly `not_assessed`.
+
+## Functional allocation baseline
 
 The first blueprint is implemented in
 [`candidate_graph_blueprints.py`](../../candidate_graph_blueprints.py). It matches
