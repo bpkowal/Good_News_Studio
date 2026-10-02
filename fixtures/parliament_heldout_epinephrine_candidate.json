@@ -1,0 +1,360 @@
+{
+  "scenario": "A clinic has a single injector of epinephrine. Sora needs the epinephrine. Malik needs the epinephrine. Dr. Reed must give the injector to either Sora or Malik, but not both. If Dr. Reed gives the injector to Sora, Sora will survive. If Dr. Reed gives the injector to Malik, Malik will survive.",
+  "actions": [
+    "give the injector to Sora",
+    "give the injector to Malik"
+  ],
+  "action_ids": [
+    "A0",
+    "A1"
+  ],
+  "clauses": [
+    {
+      "clause_id": "C0",
+      "text": "A clinic has a single injector of epinephrine."
+    },
+    {
+      "clause_id": "C1",
+      "text": "Sora needs the epinephrine."
+    },
+    {
+      "clause_id": "C2",
+      "text": "Malik needs the epinephrine."
+    },
+    {
+      "clause_id": "C4",
+      "text": "Reed must give the injector to either Sora or Malik, but not both."
+    },
+    {
+      "clause_id": "C6",
+      "text": "Reed gives the injector to Sora, Sora will survive."
+    },
+    {
+      "clause_id": "C7",
+      "text": "Reed gives the injector to Malik, Malik will survive."
+    }
+  ],
+  "candidate": {
+    "actions": {
+      "A0": {
+        "clause_ids": [
+          "C4",
+          "C6"
+        ],
+        "reason": "C6 explicitly states the action (Reed gives the injector to Sora) and its consequence that Sora will survive. C4 shows this is one of two mutually-exclusive 1--"
+      },
+      "A1": {
+        "clause_ids": [
+          "C4",
+          "C7"
+        ],
+        "reason": "C7 explicitly states the action (Reed gives the injector to Malik) and its consequence that Malik will survive. C4 shows this is one of two mutually-exclusive 1"
+      }
+    },
+    "world_model": {
+      "schema_version": "1.3",
+      "parties": [
+        {
+          "party_id": "PT1",
+          "label": "Dr. Reed",
+          "kind": "PERSON",
+          "quantities": [],
+          "clause_ids": [
+            "C4",
+            "C6",
+            "C7"
+          ]
+        },
+        {
+          "party_id": "PT2",
+          "label": "Sora",
+          "kind": "PERSON",
+          "quantities": [],
+          "clause_ids": [
+            "C1",
+            "C4",
+            "C6"
+          ]
+        },
+        {
+          "party_id": "PT3",
+          "label": "Malik",
+          "kind": "PERSON",
+          "quantities": [],
+          "clause_ids": [
+            "C2",
+            "C4",
+            "C7"
+          ]
+        },
+        {
+          "party_id": "PT4",
+          "label": "injector of epinephrine",
+          "kind": "RESOURCE",
+          "quantities": [],
+          "clause_ids": [
+            "C0"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "action_id": "A0",
+          "intervention": "give the injector to Sora",
+          "actor_party_id": "PT1",
+          "recipient_party_ids": [
+            "PT2"
+          ],
+          "effect_ids": [
+            "E0",
+            "E1",
+            "E2"
+          ],
+          "clause_ids": [
+            "C4",
+            "C6"
+          ]
+        },
+        {
+          "action_id": "A1",
+          "intervention": "give the injector to Malik",
+          "actor_party_id": "PT1",
+          "recipient_party_ids": [
+            "PT3"
+          ],
+          "effect_ids": [
+            "E3",
+            "E4",
+            "E5"
+          ],
+          "clause_ids": [
+            "C4",
+            "C7"
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "effect_id": "E0",
+          "action_id": "A0",
+          "party_id": "PT2",
+          "outcome": "receives the injector",
+          "predicate": "RECEIVES",
+          "polarity": "BENEFICIAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "condition_ids": [],
+          "quantities": [],
+          "likelihood_qualifiers": [],
+          "overall_likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "source_proposition": "Reed gives the injector to Sora",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED",
+          "clause_ids": [
+            "C6"
+          ]
+        },
+        {
+          "effect_id": "E1",
+          "action_id": "A0",
+          "party_id": "PT3",
+          "outcome": "does not receive the allocated resource",
+          "predicate": "NOT_RECEIVE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [],
+          "likelihood_qualifiers": [],
+          "overall_likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "source_proposition": "Reed must give the injector to either Sora or Malik, but not both.",
+          "source_effect_ids": [
+            "E0"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "Exclusive allocation: giving the injector to Sora necessarily means Malik does not receive it.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED",
+          "clause_ids": [
+            "C4"
+          ]
+        },
+        {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "PT2",
+          "outcome": "survives",
+          "predicate": "SURVIVES",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "likelihood_qualifiers": [],
+          "overall_likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "source_proposition": "Sora will survive.",
+          "source_effect_ids": [
+            "E0"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "Clause C6 states Sora's survival follows receiving the injector.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED",
+          "clause_ids": [
+            "C6"
+          ]
+        },
+        {
+          "effect_id": "E3",
+          "action_id": "A1",
+          "party_id": "PT3",
+          "outcome": "receives the injector",
+          "predicate": "RECEIVES",
+          "polarity": "BENEFICIAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "condition_ids": [],
+          "quantities": [],
+          "likelihood_qualifiers": [],
+          "overall_likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "source_proposition": "Reed gives the injector to Malik",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED",
+          "clause_ids": [
+            "C7"
+          ]
+        },
+        {
+          "effect_id": "E4",
+          "action_id": "A1",
+          "party_id": "PT2",
+          "outcome": "does not receive the allocated resource",
+          "predicate": "NOT_RECEIVE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [],
+          "likelihood_qualifiers": [],
+          "overall_likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "source_proposition": "Reed must give the injector to either Sora or Malik, but not both.",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "Exclusive allocation: giving the injector to Malik necessarily means Sora does not receive it.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED",
+          "clause_ids": [
+            "C4"
+          ]
+        },
+        {
+          "effect_id": "E5",
+          "action_id": "A1",
+          "party_id": "PT3",
+          "outcome": "survives",
+          "predicate": "SURVIVES",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "likelihood_qualifiers": [],
+          "overall_likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "source_proposition": "Malik will survive.",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "Clause C7 states Malik's survival follows receiving the injector.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED",
+          "clause_ids": [
+            "C7"
+          ]
+        }
+      ],
+      "conditions": [],
+      "temporal_relations": [],
+      "causal_links": [
+        {
+          "action_id": "A0",
+          "source_id": "E0",
+          "link_relation": "CAUSES",
+          "target_id": "E1",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "clause_ids": [
+            "C4"
+          ]
+        },
+        {
+          "action_id": "A0",
+          "source_id": "E0",
+          "link_relation": "CAUSES",
+          "target_id": "E2",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "clause_ids": [
+            "C6"
+          ]
+        },
+        {
+          "action_id": "A1",
+          "source_id": "E3",
+          "link_relation": "CAUSES",
+          "target_id": "E4",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "clause_ids": [
+            "C4"
+          ]
+        },
+        {
+          "action_id": "A1",
+          "source_id": "E3",
+          "link_relation": "CAUSES",
+          "target_id": "E5",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "clause_ids": [
+            "C7"
+          ]
+        }
+      ],
+      "counterfactual_links": []
+    },
+    "ellipsis_resolutions": []
+  }
+}

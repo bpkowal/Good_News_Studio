@@ -1,0 +1,72 @@
+{
+  "schema_version": "ellipsis-proposer-1",
+  "citation": "Cavar, Mompelat, and Abdo (2024), The Typology of Ellipsis. English THEC.",
+  "feature_names": [
+    "bias",
+    "verb_and_nominal",
+    "verb_only",
+    "nominal_only",
+    "nearest",
+    "same_sentence",
+    "aux_match",
+    "abstain_bias",
+    "bare_auxiliary",
+    "too_either",
+    "do_the_same",
+    "wh_remnant",
+    "coordinate_gap",
+    "verbless_fragment",
+    "not_nominal",
+    "than_nominal"
+  ],
+  "weights": [
+    0.1257302210933933,
+    0.26789513670869813,
+    0.6404226504432821,
+    0.10490011715303971,
+    0.964330626838889,
+    0.36159505490948474,
+    3.8040000451301372,
+    0.9470809631292422,
+    -0.7037352358069926,
+    -1.2654214710460525,
+    -0.6232744625373522,
+    0.0413259793472436,
+    -2.3250307746388343,
+    -0.21879166393254573,
+    -1.2459109472530652,
+    -0.7322673547034516
+  ],
+  "margin": 0.0,
+  "independent_of": "parsing_game four-action relation CEM",
+  "rewrites_sentence": false,
+  "world_state_commitment": "not_authorized",
+  "runs_only_after_detector": true,
+  "phrase_gate": [
+    "bare_auxiliary_clause",
+    "too_either",
+    "do_the_same"
+  ],
+  "copy_kind": "verb_and_nominal",
+  "probe_not_used_for_fitting": true,
+  "metrics": {
+    "synthetic_train": {
+      "rows": 138,
+      "objective": 1.0,
+      "exact_when_recoverable": 1.0,
+      "gold_in_set_when_recoverable": 1.0,
+      "false_proposal_when_empty": 0.0,
+      "mean_proposals": 1.0,
+      "search_accuracy": 1.0
+    },
+    "synthetic_dev": {
+      "rows": 58,
+      "objective": 1.0,
+      "exact_when_recoverable": 1.0,
+      "gold_in_set_when_recoverable": 1.0,
+      "false_proposal_when_empty": 0.0,
+      "mean_proposals": 1.0
+    },
+    "fitted_on": "synthetic training rows from Hoosier train phrases"
+  }
+}

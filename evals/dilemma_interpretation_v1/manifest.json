@@ -1,0 +1,62 @@
+{
+  "dataset_id": "dilemma_interpretation_v1",
+  "version": "1.0-draft",
+  "created": "2026-09-30",
+  "annotation_origin": "assistant-authored independently of parser outputs; human semantic review pending",
+  "intended_use": "comparative evaluation, not training or proof of general semantic accuracy",
+  "splits": {
+    "dev": {
+      "cases": 16,
+      "file": "dev.jsonl",
+      "sha256": "f7a94856f0ce9da0a5f970e19b3ac3ede12892f2d81f4e7a3a4b65f91f1f89cb"
+    },
+    "heldout": {
+      "cases": 16,
+      "file": "heldout.jsonl",
+      "sha256": "78f2345097ef2249d83a02519cbec1b8f9477e639fa59172ff359f9c8bfac0cc"
+    }
+  },
+  "split_policy": "Disjoint scenario and template families. Construction categories intentionally shared. No paraphrase or whitespace variants across splits.",
+  "heldout_status": "Author-visible local holdout; no model/parser evaluation performed during creation. Independence from all prior development templates requires reviewer audit.",
+  "baseline": {
+    "entrypoint": "parsing_game_Z10.export_candidate_graph",
+    "files": {
+      "candidate_validation.py": "f6b3f0be7899ad6648a0965c580347f4250bfda582f6b6bbbade2d29e6a9c718",
+      "ellipsis_corpus.py": "bfe0397321cd0f66a90253cf4d2fc8517b4ba83fd69fb1ed8237ef18d2c86a84",
+      "ellipsis_coverage.py": "44cbe87f5a1cb473852a84858c82f6428f2cd4a13c9a2edafaf95b5d23c247fc",
+      "ellipsis_detector.py": "27cc5b41fe56d17daf02c7b515e5f5c99c6df8084f7476f7320ade26395c0995",
+      "ellipsis_proposer.py": "0728a417f4d5d492c2487b3f5ace6b116a36a2c5857cfe013d89b8560621af9c",
+      "parsing_game_S.py": "4691aec059a718023970bfc5a7eebc64ff780e470f10a372c42964149f91614f",
+      "parsing_game_Z10.py": "314b7d75dd3d766f74d792e21aeb618d81aeb9d6ec93e14f6c8f5c0a8898c9ff",
+      "parsing_game_Z4.py": "66af2f1277fd3bf8c01af75bca565a9aec1af7cb4b86bd275dd4f1221f7d29be",
+      "parsing_game_Z5.py": "611b0a2e4df2271a8c896552ce5202f392e186f7a3a82cb77430d1403e54d509",
+      "parsing_game_Z6.py": "bcfb320d74a023954c6d340e4b4c3ca74ae2a361252d5f3a8adb1a070390528f",
+      "parsing_game_Z7.py": "5b27e81ac5c382164fe5730b00a31c6908369b6f448204fca9a4f1e3f5b3ff9a",
+      "parsing_game_Z8.py": "574fbc9befd3f24b0ec22d3570b07567f083fdacef5d8039ddb02fde69c8bf93",
+      "parsing_game_Z9.py": "56aa646848b6e852b1bd2a8b0fd682d800f2a9db5dd70fc897db08e6bfe9cd50",
+      "parsing_references.py": "446836b3745d52a65d23867664ad20e6ae0c8337576a3b1228f26fc1dcfabe94",
+      "resources/T_reference_policy.json": "9c37224830d1ab277e297005925001be31234ec5e58200e80dd69a5af1bbbe9e",
+      "resources/ellipsis_detector_v1.json": "69f22a6da8ae8d3b4ca404e02397000780e156299c9fd300b7d4f9f21bea7f0a",
+      "resources/ellipsis_proposer_v1.json": "f88b60534e4f4d483d51f4b5b2bcab770ed6167e0ff7e31ca992586a5ea1c03b",
+      "resources/reduced_passive_Q.json": "d3f12c42365729d169bede61e9ad65adf300ba2fefd7ce964b97579cbe53f06d",
+      "resources/to_attachment_valency.json": "eb139270aa3da948ccaf5dff310d4a3e25cc9c41cf5d7d6c523c0628b849a10b",
+      "resources/verbnet_attempt_adapter.json": "ebd59f1cdc6060f464b8672a30619ac7d459568a390c13c62dc559c3ea8446c1"
+    },
+    "environment": {
+      "spacy": "3.7.5",
+      "en-core-web-sm": "3.7.1",
+      "numpy": "1.26.4"
+    },
+    "freeze_policy": "Detect drift; never automatically refresh hashes to hide changes. Keep baseline artifacts unchanged."
+  },
+  "evaluation_policy": {
+    "default_split": "dev",
+    "gold_hidden_from_model": true,
+    "heldout_requires_explicit_split": true,
+    "report_by_construction": true,
+    "empty_denominator": null,
+    "automatic_entailment_is_diagnostic_only": true,
+    "contract_validity_is_not_semantic_accuracy": true,
+    "semantic_judgments_require_evidence_and_review": true
+  }
+}

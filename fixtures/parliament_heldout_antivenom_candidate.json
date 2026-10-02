@@ -1,0 +1,341 @@
+{
+  "source": "Dr. Chen has one vial of antivenom. Imani needs the antivenom. Pavel needs the antivenom. Dr. Chen can administer the antivenom to either Imani or Pavel, but not both. If Dr. Chen administers the antivenom to Imani, Imani will recover. If Dr. Chen administers the antivenom to Pavel, Pavel will recover.\n",
+  "clauses": [
+    {
+      "clause_id": "C0",
+      "text": "Dr. Chen has one vial of antivenom."
+    },
+    {
+      "clause_id": "C1",
+      "text": "Imani needs the antivenom."
+    },
+    {
+      "clause_id": "C2",
+      "text": "Pavel needs the antivenom."
+    },
+    {
+      "clause_id": "C3",
+      "text": "Dr. Chen can administer the antivenom to either Imani or Pavel, but not both."
+    },
+    {
+      "clause_id": "C4",
+      "text": "If Dr. Chen administers the antivenom to Imani, Imani will recover."
+    },
+    {
+      "clause_id": "C5",
+      "text": "If Dr. Chen administers the antivenom to Pavel, Pavel will recover."
+    }
+  ],
+  "actions": [
+    "administer the antivenom to Imani",
+    "administer the antivenom to Pavel"
+  ],
+  "action_ids": [
+    "A0",
+    "A1"
+  ],
+  "candidate": {
+    "actions": {
+      "A0": {
+        "clause_ids": [
+          "C3",
+          "C4"
+        ],
+        "reason": "C3 names the Imani option; C4 states its consequence."
+      },
+      "A1": {
+        "clause_ids": [
+          "C3",
+          "C5"
+        ],
+        "reason": "C3 names the Pavel option; C5 states its consequence."
+      }
+    },
+    "world_model": {
+      "schema_version": "1.3",
+      "parties": [
+        {
+          "party_id": "P1",
+          "label": "Dr. Chen",
+          "kind": "PERSON",
+          "quantities": [],
+          "clause_ids": [
+            "C0",
+            "C3",
+            "C4",
+            "C5"
+          ]
+        },
+        {
+          "party_id": "P2",
+          "label": "Imani",
+          "kind": "PERSON",
+          "quantities": [],
+          "clause_ids": [
+            "C1",
+            "C3",
+            "C4"
+          ]
+        },
+        {
+          "party_id": "P3",
+          "label": "Pavel",
+          "kind": "PERSON",
+          "quantities": [],
+          "clause_ids": [
+            "C2",
+            "C3",
+            "C5"
+          ]
+        },
+        {
+          "party_id": "P4",
+          "label": "the antivenom",
+          "kind": "RESOURCE",
+          "quantities": [
+            "one vial"
+          ],
+          "clause_ids": [
+            "C0"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "action_id": "A0",
+          "intervention": "administer the antivenom to Imani",
+          "actor_party_id": "P1",
+          "recipient_party_ids": [
+            "P2"
+          ],
+          "effect_ids": [
+            "E1",
+            "E2",
+            "E3"
+          ],
+          "clause_ids": [
+            "C0",
+            "C3",
+            "C4"
+          ]
+        },
+        {
+          "action_id": "A1",
+          "intervention": "administer the antivenom to Pavel",
+          "actor_party_id": "P1",
+          "recipient_party_ids": [
+            "P3"
+          ],
+          "effect_ids": [
+            "E4",
+            "E5",
+            "E6"
+          ],
+          "clause_ids": [
+            "C0",
+            "C3",
+            "C5"
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "effect_id": "E1",
+          "action_id": "A0",
+          "party_id": "P2",
+          "outcome": "receives the antivenom",
+          "predicate": "RECEIVES",
+          "polarity": "BENEFICIAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "condition_ids": [],
+          "quantities": [],
+          "likelihood_qualifiers": [],
+          "overall_likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "source_proposition": "administers the antivenom to Imani",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED",
+          "clause_ids": [
+            "C4"
+          ]
+        },
+        {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "does not receive the antivenom",
+          "predicate": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "condition_ids": [],
+          "quantities": [],
+          "likelihood_qualifiers": [],
+          "overall_likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "source_proposition": "Dr. Chen has one vial of antivenom.",
+          "source_effect_ids": [],
+          "derivation_operation": "STRUCTURAL_ABSTRACTION",
+          "derivation_explanation": "Only one vial exists; administering it to Imani precludes simultaneously administering it to Pavel.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED",
+          "clause_ids": [
+            "C0",
+            "C3"
+          ]
+        },
+        {
+          "effect_id": "E3",
+          "action_id": "A0",
+          "party_id": "P2",
+          "outcome": "recovers",
+          "predicate": "SURVIVES",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "likelihood_qualifiers": [],
+          "overall_likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "source_proposition": "Imani will recover.",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "C4 states that administering Imani the antivenom causes Imani to live.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED",
+          "clause_ids": [
+            "C4"
+          ]
+        },
+        {
+          "effect_id": "E4",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "receives the antivenom",
+          "predicate": "RECEIVES",
+          "polarity": "BENEFICIAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "condition_ids": [],
+          "quantities": [],
+          "likelihood_qualifiers": [],
+          "overall_likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "source_proposition": "administers the antivenom to Pavel",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED",
+          "clause_ids": [
+            "C5"
+          ]
+        },
+        {
+          "effect_id": "E5",
+          "action_id": "A1",
+          "party_id": "P2",
+          "outcome": "does not receive the antivenom",
+          "predicate": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "condition_ids": [],
+          "quantities": [],
+          "likelihood_qualifiers": [],
+          "overall_likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "source_proposition": "Dr. Chen has one vial of antivenom.",
+          "source_effect_ids": [],
+          "derivation_operation": "STRUCTURAL_ABSTRACTION",
+          "derivation_explanation": "Only one vial exists; administering it to Pavel precludes simultaneously administering it to Imani.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED",
+          "clause_ids": [
+            "C0",
+            "C3"
+          ]
+        },
+        {
+          "effect_id": "E6",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "recovers",
+          "predicate": "SURVIVES",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "likelihood_qualifiers": [],
+          "overall_likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "source_proposition": "Pavel will recover.",
+          "source_effect_ids": [
+            "E4"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "C5 states that administering Pavel the antivenom causes Pavel to live.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED",
+          "clause_ids": [
+            "C5"
+          ]
+        }
+      ],
+      "conditions": [],
+      "temporal_relations": [],
+      "causal_links": [
+        {
+          "action_id": "A0",
+          "source_id": "E1",
+          "link_relation": "CAUSES",
+          "target_id": "E3",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "clause_ids": [
+            "C4"
+          ]
+        },
+        {
+          "action_id": "A1",
+          "source_id": "E4",
+          "link_relation": "CAUSES",
+          "target_id": "E6",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "clause_ids": [
+            "C5"
+          ]
+        }
+      ],
+      "counterfactual_links": []
+    },
+    "ellipsis_resolutions": []
+  }
+}
