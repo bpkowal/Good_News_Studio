@@ -9,6 +9,7 @@ empty. This module does not admit a world and does not pick a moral act.
 from __future__ import annotations
 
 import argparse
+from copy import deepcopy
 import json
 import os
 from pathlib import Path
@@ -21,19 +22,27 @@ from blueprint_allocation_invariants import (
     complement_clause_ids,
     group_quantity,
     group_span,
-    party_kind,
+)
+from blueprint_derivation_license import apply_derivation_license, origin_for_effect
+from blueprint_kind_license import (
+    apply_kind_license,
+    kind_problems,
+    license_effect_kind,
+    license_kind,
+    licensed_source_predicate,
 )
 from blueprint_proposal_contract import (
     candidate as proposal_candidate,
     coverage_metrics,
     proposal as normalized_proposal,
+    validate_proposal,
     withheld_proposal,
 )
 from candidate_graph_blueprints import _clause_holding
 from z10_world_model_adapter import segment_source_clauses
 
 
-CLOZE_VERSION = "blueprint-cloze-chooser/0.6"
+CLOZE_VERSION = "blueprint-cloze-chooser/0.9"
 DEFAULT_OPENAI_ENV = Path(
     "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/.env"
 )
@@ -42,6 +51,16 @@ _STOP = {
 }
 _ABSTAIN = {"none", "n/a", "null", "unknown", "no", "not stated"}
 _EXCLUSIVITY = re.compile(r"\b(?:but\s+)?not\s+both\b|\beither\b[\s\S]{0,80}\bor\b", re.I)
+_EXPLICIT_EXCLUSIVITY = re.compile(
+    r"\b(?:but\s+)?not\s+both\b|"
+    r"\b(?:cannot|can\s+not|can't)\b[^.!?]{0,80}\bboth\b",
+    re.I,
+)
+_INDIVISIBLE_ONE = re.compile(
+    r"\b(?:one|1|single)\s+(?:[A-Za-z-]+\s+){0,3}"
+    r"(?:dose|vial|unit|organ|seat|ticket|bed|ventilator)\b",
+    re.I,
+)
 _NUMBER = re.compile(r"\b(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten)\b", re.I)
 _CHANCE = re.compile(r"\d+(?:\.\d+)?%\s*chance", re.I)
 _NONRECEIPT = re.compile(
@@ -292,25 +311,34 @@ TEMPLATES: tuple[dict[str, Any], ...] = (
     },
 )
 _BY_ID = {row["blueprint_id"]: row for row in TEMPLATES}
+_META_BLUEPRINTS = {
+    "none": "No listed blueprint is supported by the scenario.",
+    "composite": "The scenario needs a composition of multiple blueprint families.",
+}
 
 
-def choose_by_cloze(text: str, complete: Complete) -> dict[str, Any]:
+def choose_by_cloze(text: str, complete: Complete,
+                    question: dict[str, Any] | None = None) -> dict[str, Any]:
     """Ask for the three most likely templates, finish each, and keep the best.
 
     The ethical question and its alternatives are read from the parser before a
     world graph is built. An exclusive graph is withheld when exclusivity was
     not evidenced, so a later compiler cannot treat "or" as an averted harm.
     """
-    question = assess_question(text)
+    question = deepcopy(question) if question is not None else assess_question(text)
     rank_raw = complete(_messages(_rank_prompt(text)))
     ranking = _parse_ranking(rank_raw)
     considered = []
     for index, blueprint_id in enumerate(ranking):
+        if blueprint_id in _META_BLUEPRINTS:
+            considered.append(_meta_attempt(blueprint_id, index))
+            continue
         template = _BY_ID[blueprint_id]
         raw = complete(_messages(_cloze_prompt(text, template)))
         scored = _score_template(text, template, _parse_answers(raw), index)
+        scored = _enrich_from_z10(text, template, scored)
         considered.append(_ask_implied(text, template, scored, complete))
-    winner = _winner(considered)
+    winner = considered[0] if considered and considered[0].get("meta_option") else _winner(considered)
     withheld = _world_withheld(question, winner)
     question["eligible_for_world_state"] = bool(
         winner and winner["status"] == "FILLED"
@@ -318,6 +346,7 @@ def choose_by_cloze(text: str, complete: Complete) -> dict[str, Any]:
     graph = _graph(text, winner, question) if question["eligible_for_world_state"] else None
     proposals = ([graph] if graph else
                  [_withheld_cloze_proposal(text, winner, withheld)] if winner else [])
+    candidate_attempts = _candidate_attempts(text, question, considered, winner, graph)
     status = "WITHHELD" if withheld else (winner["status"] if winner else "NO_MATCH")
     return {
         "cloze_version": CLOZE_VERSION,
@@ -328,9 +357,94 @@ def choose_by_cloze(text: str, complete: Complete) -> dict[str, Any]:
         "question": question,
         "world_withheld": withheld,
         "considered": considered,
+        "candidate_attempts": candidate_attempts,
         "proposals": proposals,
         "graph": graph,
     }
+
+
+def _meta_attempt(blueprint_id: str, rank: int) -> dict[str, Any]:
+    return {
+        "blueprint_id": blueprint_id,
+        "graph_builder": "meta",
+        "meta_option": True,
+        "status": "FILLED",
+        "rank": rank,
+        "core_filled": 0,
+        "core_count": 0,
+        "optional_filled": 0,
+        "rejected": 0,
+        "coverage_metrics": coverage_metrics({}, {}),
+        "unfilled": [],
+        "unresolved_slots": [],
+        "accepted_evidence": {},
+        "slots": {},
+        "items": [],
+    }
+
+
+def _candidate_attempts(text: str, question: dict[str, Any],
+                        considered: list[dict[str, Any]],
+                        winner: dict[str, Any] | None,
+                        selected_graph: dict[str, Any] | None) -> list[dict[str, Any]]:
+    """Materialize every ranked template without changing chooser selection.
+
+    Complete implemented templates become proposal envelopes. Partial, unmatched,
+    and plan-only templates remain visible as withheld attempts with their missing
+    slots. This makes the alternatives inspectable without allowing a lower-ranked
+    interpretation to silently replace the chosen reading.
+    """
+    attempts = []
+    for row in considered:
+        selected = row is winner
+        reasons = _world_withheld(question, row)
+        proposal = None
+        errors: list[str] = []
+        if selected and selected_graph is not None:
+            proposal = selected_graph
+        elif (
+            row.get("status") == "FILLED"
+            and row.get("graph_builder") == "implemented"
+            and not reasons
+        ):
+            try:
+                proposal = _graph(text, row, {
+                    **question,
+                    "eligible_for_world_state": True,
+                })
+            except (KeyError, TypeError, ValueError) as exc:
+                errors.append(str(exc))
+        if proposal is None:
+            withheld_reasons = list(reasons)
+            if errors:
+                withheld_reasons.extend(
+                    "Candidate construction failed: " + error for error in errors
+                )
+            if row.get("status") != "FILLED":
+                missing = [
+                    item["id"] for item in row.get("items", [])
+                    if item.get("core") and item.get("verdict") != "accepted"
+                ]
+                withheld_reasons.append(
+                    "Required slots remain unfilled: " + ", ".join(missing)
+                    if missing else "The template did not match the scenario."
+                )
+            proposal = _withheld_cloze_proposal(text, row, withheld_reasons)
+        contract_errors = validate_proposal(proposal)
+        attempts.append({
+            "blueprint_id": row["blueprint_id"],
+            "rank": row["rank"],
+            "template_status": row["status"],
+            "selected": selected,
+            "core_filled": row["core_filled"],
+            "core_count": row["core_count"],
+            "optional_filled": row["optional_filled"],
+            "unfilled_slots": list(row["unfilled"]),
+            "contract_valid": not contract_errors,
+            "contract_errors": contract_errors,
+            "proposal": proposal,
+        })
+    return attempts
 
 
 def assess_question(text: str) -> dict[str, Any]:
@@ -376,12 +490,64 @@ def assess_question(text: str) -> dict[str, Any]:
         (node.get("label") or "" for node in package["nodes"] if node.get("kind") == "choice_point"),
         "",
     )
-    exclusivity = "evidenced" if re.search(r"\bnot both\b", text, re.I) else "unspecified"
+    exclusivity_proof = _exclusivity_proof(text, options, participants)
+    exclusivity = (
+        "evidenced"
+        if exclusivity_proof["status"] in {"EXPLICIT", "DERIVED"}
+        else "unspecified"
+    )
     return {
         "ethical_question": question,
         "scenario_options": options,
         "exclusivity": exclusivity,
+        "exclusivity_proof": exclusivity_proof,
         "participants": participants,
+    }
+
+
+def _exclusivity_proof(text: str, options: list[dict[str, Any]],
+                       participants: list[dict[str, Any]]) -> dict[str, Any]:
+    explicit = _EXPLICIT_EXCLUSIVITY.search(text)
+    if explicit:
+        host = _clause_for(text, explicit.group(0))
+        return {
+            "status": "EXPLICIT",
+            "evidence": [{
+                "text": explicit.group(0), "clause_id": host["clause_id"],
+                "start": explicit.start(), "end": explicit.end(),
+            }],
+            "assumptions": [],
+            "explanation": "The source explicitly says that both alternatives cannot occur.",
+        }
+    has_alternatives = any(len(row.get("options") or []) >= 2 for row in options)
+    if not has_alternatives:
+        mentions = {row.get("mention") for row in participants if row.get("mention")}
+        has_alternatives = len(mentions) >= 2 and bool(re.search(r"\bor\b", text, re.I))
+    # Dose/vial/organ lists may witness a countable unit. They may not mint
+    # exclusivity. Bare ``or`` stays hypothesized even with "one dose".
+    indivisible = _INDIVISIBLE_ONE.search(text)
+    generic_one = re.search(r"\b(?:one|1|single)\b", text, re.I)
+    unit = indivisible or generic_one
+    if unit and has_alternatives:
+        evidence = [{"text": unit.group(0)}]
+        if indivisible:
+            host = _clause_for(text, indivisible.group(0))
+            evidence = [{
+                "text": indivisible.group(0), "clause_id": host["clause_id"],
+                "start": indivisible.start(), "end": indivisible.end(),
+            }]
+        return {
+            "status": "HYPOTHESIZED",
+            "evidence": evidence,
+            "assumptions": ["the resource is indivisible", "allocation consumes it"],
+            "explanation": (
+                "A single item is mentioned, but indivisibility is not exclusivity "
+                "and bare or is not exclusive."
+            ),
+        }
+    return {
+        "status": "UNKNOWN", "evidence": [], "assumptions": [],
+        "explanation": "The source does not establish mutual exclusion.",
     }
 
 
@@ -389,6 +555,8 @@ def _world_withheld(question: dict[str, Any], winner: dict[str, Any] | None) -> 
     """Hold the graph until the question's alternatives are actually exclusive."""
     if winner is None:
         return []
+    if winner.get("meta_option"):
+        return [_META_BLUEPRINTS[winner["blueprint_id"]]]
     if winner.get("graph_builder") == "plan_only" and winner.get("status") == "FILLED":
         return [
             f"{winner['blueprint_id']} has an evidence plan but no Parliament 1.3 graph builder yet."
@@ -397,7 +565,9 @@ def _world_withheld(question: dict[str, Any], winner: dict[str, Any] | None) -> 
         return []
     if winner.get("status") != "FILLED":
         return []
-    if question.get("exclusivity") == "evidenced":
+    proof = question.get("exclusivity_proof") or {}
+    if (proof.get("status") in {"EXPLICIT", "DERIVED"}
+            or question.get("exclusivity") == "evidenced"):
         return []
     kept = {
         winner["slots"].get("first_recipient", ""),
@@ -464,10 +634,14 @@ def _messages(user: str) -> list[dict[str, str]]:
 def _rank_prompt(text: str) -> str:
     lines = ["Which three templates can be completed from this scenario?",
              "Return a JSON object {\"templates\": [id, id, id]} with the most likely first.",
+             "Use none first when no listed template fits. Use composite first when two or more "
+             "template families are jointly required and no single family is adequate.",
              "", "Scenario:", text, ""]
     for template in TEMPLATES:
         sample = template["items"][0]["sentence"]
         lines.append(f"- {template['blueprint_id']}: {template['summary']} Example: {sample} _______.")
+    for blueprint_id, summary in _META_BLUEPRINTS.items():
+        lines.append(f"- {blueprint_id}: {summary}")
     return "\n".join(lines)
 
 
@@ -723,6 +897,21 @@ def _score_template(text: str, template: dict[str, Any], answers: dict[str, str]
                         "reason": "recovered_from_copied_conditional",
                     })
                     break
+    if template["blueprint_id"] == "exclusive_allocation" and "assignment" not in accepted:
+        # The assignment is often expressed once as a shared infinitive ("give
+        # the medicine to Ben or Cara") while a copied branch supplies a valid
+        # transfer event. Reuse that source-copied event rather than asking the
+        # model to manufacture a second surface form.
+        recovered = accepted.get("first_transfer") or accepted.get("second_transfer")
+        if recovered:
+            accepted["assignment"] = recovered
+            for row in items:
+                if row["id"] == "assignment":
+                    row.update({
+                        "span": recovered, "verdict": "accepted",
+                        "reason": "recovered_from_copied_transfer",
+                    })
+                    break
     core = [row for row in items if row["core"]]
     optional = [row for row in items if not row["core"]]
     core_filled = sum(row["verdict"] == "accepted" for row in core)
@@ -759,6 +948,446 @@ def _score_template(text: str, template: dict[str, Any], answers: dict[str, str]
     }
 
 
+def _enrich_conditional_from_z10(text: str, template: dict[str, Any],
+                                 row: dict[str, Any]) -> dict[str, Any]:
+    """Fill conditional and omission branches from Z10's typed graph.
+
+    The adapter only copies source spans.  It uses ``CONDITIONAL_ON`` to keep
+    each condition with its own consequence, PREDICATION polarity to
+    distinguish doing from omission, and PARTICIPANT/QUANTITY candidates for
+    the actor and affected party.  It does not infer exclusivity or causation.
+    """
+    import parsing_game_S as parsing
+    import parsing_game_Z10 as z10
+
+    package = z10.export_candidate_graph(text, package_id="blueprint_conditional_recovery")
+    doc = parsing.get_nlp()(text)
+    nodes = {node["id"]: node for node in package["nodes"]}
+    candidates = package["candidates"]
+
+    roles: dict[str, list[tuple[str, str]]] = {}
+    predications: dict[str, dict[str, Any]] = {}
+    for candidate in candidates:
+        if candidate["type"] == "PARTICIPANT":
+            prop = candidate["arguments"]["proposition"]
+            mention = nodes.get(candidate["arguments"]["mention"], {}).get("label", "")
+            if mention:
+                roles.setdefault(prop, []).append((candidate["value"], mention))
+        elif candidate["type"] == "PREDICATION":
+            predications[candidate["arguments"]["proposition"]] = candidate
+
+    def token_for(prop_id: str):
+        if not re.fullmatch(r"p\d+", prop_id or ""):
+            return None
+        index = int(prop_id[1:])
+        return doc[index] if 0 <= index < len(doc) else None
+
+    def exact(value: str) -> str:
+        value = (value or "").strip(" ,.")
+        copies = _copy_spans(text, value)[0]
+        return copies[0] if copies else ""
+
+    def recover(item_id: str, value: str, *, replace: bool = True) -> None:
+        value = exact(value)
+        if not value:
+            return
+        item = next((entry for entry in row["items"] if entry["id"] == item_id), None)
+        if item is None:
+            return
+        current = row["slots"].get(item_id)
+        if current and not replace and item["verdict"] == "accepted":
+            return
+        row["slots"][item_id] = value
+        row.setdefault("semantic_recoveries", {})[item_id] = {
+            "producer": "parsing_game_Z10",
+            "method": "conditional_candidate_source_alignment",
+            "span": value,
+        }
+        item.update({
+            "span": value,
+            "verdict": "accepted",
+            "reason": "recovered_from_z10_conditional_structure",
+        })
+
+    def split_conditional(prop_id: str) -> tuple[str, str, str]:
+        token = token_for(prop_id)
+        if token is None:
+            return "", "", ""
+        sentence = token.sent.text.strip().rstrip(".")
+        leading = re.match(r"^\s*((?:if|unless)\b[^,]+),\s*(.+)$", sentence, re.I)
+        if leading:
+            condition, outcome = leading.group(1), leading.group(2)
+        else:
+            trailing = re.match(
+                r"^\s*(.+?)(?:,\s*|\s+)((?:if|unless)\b.+)$", sentence, re.I)
+            if not trailing:
+                return "", "", ""
+            outcome, condition = trailing.group(1), trailing.group(2)
+        return exact(condition), exact(outcome), exact(sentence)
+
+    branches: list[dict[str, Any]] = []
+    for link in candidates:
+        if link["type"] != "CONDITIONAL_ON":
+            continue
+        condition_prop = link["arguments"]["condition"]
+        consequence_prop = link["arguments"]["consequence"]
+        condition_token = token_for(condition_prop)
+        consequence_token = token_for(consequence_prop)
+        if condition_token is None or consequence_token is None:
+            continue
+        condition, outcome, sentence = split_conditional(condition_prop)
+        if not condition or not outcome:
+            continue
+        condition_roles = roles.get(condition_prop, [])
+        consequence_roles = roles.get(consequence_prop, [])
+        actors = [mention for role, mention in condition_roles
+                  if role in {"agent", "controller"}]
+        # Z10 preserves the passive condition but may expose only its surface
+        # subject.  Reuse the same dependency parse to recover an explicit
+        # ``by Maria`` agent before falling back to that subject.
+        for child in condition_token.children:
+            if child.dep_ == "agent" or (child.lemma_.casefold() == "by"
+                                         and child.dep_ == "prep"):
+                actors.extend(grand.text for grand in child.children
+                              if grand.dep_ == "pobj")
+        actors.extend(mention for role, mention in condition_roles
+                      if role == "subject" and mention not in actors)
+        bearers = [mention for role, mention in consequence_roles
+                   if role in {"subject", "patient", "object"}]
+        if not actors or not bearers:
+            continue
+        polarity = predications.get(condition_prop, {}).get(
+            "scope", {}).get("polarity", "unresolved")
+        predicate = nodes.get(condition_prop, {}).get("predicate", "").casefold()
+        content = re.sub(r"^(?:if|unless)\s+", "", condition, flags=re.I)
+        content = re.sub(rf"^{re.escape(actors[0])}\s+", "", content, flags=re.I)
+        content = exact(content)
+        branches.append({
+            "condition": condition,
+            "action": content,
+            "outcome": outcome,
+            "sentence": sentence,
+            "actor": actors[0],
+            "bearer": bearers[0],
+            "polarity": polarity,
+            "predicate": predicate,
+            "order": condition_token.i,
+        })
+    branches.sort(key=lambda branch: branch["order"])
+    if not branches:
+        return row
+
+    blueprint_id = template["blueprint_id"]
+    if blueprint_id == "conditional_outcome":
+        recover("actor", branches[0]["actor"])
+        for index, branch in enumerate(branches[:2]):
+            prefix = "" if index == 0 else "second_"
+            recover(f"{prefix}condition", branch["condition"])
+            recover(f"{prefix}bearer", branch["bearer"])
+            recover(f"{prefix}outcome", branch["outcome"])
+        # A chance remains attached to its own copied outcome.  The graph
+        # builder checks the containing clause before applying this shared slot.
+        chance = next((_CHANCE.search(branch["outcome"]) for branch in branches
+                       if _CHANCE.search(branch["outcome"])), None)
+        if chance:
+            recover("chance", chance.group(0))
+    elif blueprint_id == "omission_harm":
+        positive = next((branch for branch in branches
+                         if branch["polarity"] == "positive"), None)
+        negative = next((branch for branch in branches
+                         if branch["polarity"] == "negative"), None)
+        # Omission is supported only when Z10 found opposite polarities of the
+        # same predicate and both consequences actually state harm.  Otherwise
+        # leave the cloze answer untouched for the general conditional template.
+        harm_pattern = re.compile(
+            r"\b(?:die|dies|died|kill|kills|killed|harm|harms|harmed|"
+            r"drown|drowns|drowned|suffer|suffers|suffered)\b", re.I)
+        if not positive or not negative or positive["predicate"] != negative["predicate"]:
+            return row
+        if not harm_pattern.search(positive["outcome"]) or not harm_pattern.search(negative["outcome"]):
+            return row
+        recover("actor", positive["actor"])
+        recover("done", positive["action"])
+        recover("omitted", negative["action"])
+        recover("harm_done", positive["outcome"])
+        recover("harm_omitted", negative["outcome"])
+        recover("done_hedge", positive["condition"])
+        recover("omitted_hedge", negative["condition"])
+        recover("group_counts", positive["bearer"], replace=False)
+    return _refresh_scored_row(row)
+
+
+def _enrich_from_z10(text: str, template: dict[str, Any],
+                     row: dict[str, Any]) -> dict[str, Any]:
+    """Recover typed source spans that the cloze model omitted or paraphrased.
+
+    Z10 is the repository's source-aligned semantic parser.  The cloze answers
+    still choose a blueprint, but they are no longer the sole source of its
+    slots.  This first integration covers the allocation construction where a
+    quantity, participant role, conditional branch, or passive surface form is
+    already represented in Z10.  Every recovered value remains an exact source
+    span; this function never synthesizes an event or resolves a Z10 ambiguity.
+    """
+    if template["blueprint_id"] in {"conditional_outcome", "omission_harm"}:
+        return _enrich_conditional_from_z10(text, template, row)
+    if template["blueprint_id"] != "exclusive_allocation":
+        return row
+
+    import parsing_game_S as parsing
+    import parsing_game_Z10 as z10
+
+    package = z10.export_candidate_graph(text, package_id="blueprint_slot_recovery")
+    doc = parsing.get_nlp()(text)
+    nodes = {node["id"]: node for node in package["nodes"]}
+    evidence = {item["id"]: item for item in package["evidence"]}
+    candidates = package["candidates"]
+    propositions = {
+        node["id"]: node for node in package["nodes"]
+        if node.get("kind") == "proposition"
+    }
+    roles: dict[str, list[tuple[str, str]]] = {}
+    for item in candidates:
+        if item["type"] != "PARTICIPANT":
+            continue
+        prop = item["arguments"]["proposition"]
+        mention = nodes.get(item["arguments"]["mention"], {}).get("label", "")
+        if mention:
+            roles.setdefault(prop, []).append((item["value"], mention))
+
+    transfer_lemmas = {
+        "give", "receive", "allocate", "assign", "send", "deliver",
+        "transfer", "administer", "provide", "supply",
+    }
+
+    def prop_token(prop_id: str):
+        if not prop_id.startswith("p"):
+            return None
+        index = int(prop_id[1:])
+        return doc[index] if 0 <= index < len(doc) else None
+
+    def proposition_span(prop_id: str) -> str:
+        token = prop_token(prop_id)
+        if token is None:
+            return ""
+        subtree = [part for part in token.subtree if not part.is_punct]
+        if not subtree:
+            return token.text
+        start = min(part.idx for part in subtree)
+        end = max(part.idx + len(part.text) for part in subtree)
+        span = text[start:end].strip(" ,.")
+        span = re.sub(r"^(?:if|unless)\s+", "", span, flags=re.I)
+        copies = _copy_spans(text, span)[0]
+        return copies[0] if copies else ""
+
+    def predicate_span(prop_id: str) -> str:
+        """Return the exact predicate phrase without its surface subject."""
+        token = prop_token(prop_id)
+        if token is None:
+            return ""
+        subtree = [part for part in token.subtree if not part.is_punct and part.idx >= token.idx]
+        if not subtree:
+            return token.text
+        start = token.idx
+        end = max(part.idx + len(part.text) for part in subtree)
+        span = text[start:end].strip(" ,.")
+        copies = _copy_spans(text, span)[0]
+        return copies[0] if copies else ""
+
+    def sentence_for_prop(prop_id: str) -> str:
+        token = prop_token(prop_id)
+        return token.sent.text.strip() if token is not None else ""
+
+    def recover(item_id: str, value: str, *, replace: bool = False) -> None:
+        value = (value or "").strip(" ,.")
+        if not value or not _copy_spans(text, value)[0]:
+            return
+        current = row["slots"].get(item_id)
+        item = next((entry for entry in row["items"] if entry["id"] == item_id), None)
+        if item is None or (current and not replace and item["verdict"] == "accepted"):
+            return
+        exact = _copy_spans(text, value)[0][0]
+        row["slots"][item_id] = exact
+        row.setdefault("semantic_recoveries", {})[item_id] = {
+            "producer": "parsing_game_Z10",
+            "method": "typed_candidate_source_alignment",
+            "span": exact,
+        }
+        item.update({
+            "span": exact,
+            "verdict": "accepted",
+            "reason": "recovered_from_z10_semantics",
+        })
+
+    # Quantity comes from Z10's typed QUANTITY candidate, including forms such
+    # as "a single dose" and "one indivisible dose".
+    resource_units = {
+        "dose", "vial", "unit", "organ", "seat", "ticket", "bed", "ventilator",
+    }
+    quantity_rows = [
+        item for item in candidates
+        if item["type"] == "QUANTITY"
+        and str((item.get("value") or {}).get("unit") or "").casefold() in resource_units
+    ]
+    if quantity_rows:
+        mention_id = quantity_rows[0]["arguments"]["mention"]
+        recover("quantity", nodes.get(mention_id, {}).get("label", ""))
+    else:
+        # Z10 intentionally freezes its quantity vocabulary at explicit
+        # numerals.  Its aligned mention plus the existing dependency parse
+        # still lets this adapter interpret adjectival ``single`` as exact one
+        # without changing the frozen package schema.
+        for token in doc:
+            if token.lemma_.casefold() not in resource_units:
+                continue
+            if not any(child.lemma_.casefold() == "single" and child.dep_ == "amod"
+                       for child in token.children):
+                continue
+            mention = nodes.get(f"m{token.i}", {}).get("label", "")
+            recover("quantity", mention)
+            break
+
+    transfer_props = [
+        prop_id for prop_id, node in propositions.items()
+        if node.get("predicate", "").casefold() in transfer_lemmas
+    ]
+    main_prop = max(
+        transfer_props,
+        key=lambda prop_id: (
+            sum(role == "destination" and mention.casefold() != "both"
+                for role, mention in roles.get(prop_id, [])),
+            not any(ctx.get("kind") == "hypothetical"
+                    for item in candidates
+                    if item["type"] == "PREDICATION"
+                    and item["arguments"].get("proposition") == prop_id
+                    for ctx in item.get("scope", {}).get("contexts", [])),
+            -int(prop_id[1:]),
+        ),
+        default=None,
+    )
+
+    if main_prop:
+        token = prop_token(main_prop)
+        main_roles = roles.get(main_prop, [])
+        actors = [mention for role, mention in main_roles
+                  if role in {"subject", "agent", "controller"}
+                  and mention.casefold() not in {"it", "they", "both"}]
+        if not actors and token is not None:
+            for child in token.children:
+                if child.dep_ == "agent":
+                    actors.extend(grand.text for grand in child.children if grand.dep_ == "pobj")
+        malformed_decider = bool(row["slots"].get("decider") and
+                                 _TRANSFER_EVENT.search(row["slots"]["decider"]))
+        if actors:
+            recover("decider", actors[0], replace=malformed_decider)
+        objects = [mention for role, mention in main_roles
+                   if role == "object" and mention.casefold() not in {"it", "both"}]
+        if objects:
+            recover("resource", objects[0])
+        main_surface = predicate_span(main_prop)
+        if main_surface:
+            recover(
+                "assignment", main_surface,
+                replace=bool(re.search(
+                    r"\b(?:it|this|that)\b", row["slots"].get("assignment", ""), re.I)),
+            )
+
+    # Build branch records from conditional transfer propositions.  Z10 has
+    # already distinguished the condition from its consequence and attached
+    # participant roles to each proposition.
+    conditional_rows = [item for item in candidates if item["type"] == "CONDITIONAL_ON"]
+    branches: list[dict[str, str]] = []
+    for link in conditional_rows:
+        condition = link["arguments"]["condition"]
+        consequence = link["arguments"]["consequence"]
+        if condition not in transfer_props:
+            continue
+        participant_rows = roles.get(condition, [])
+        recipients = [mention for role, mention in participant_rows
+                      if role in {"subject", "destination"}
+                      and mention.casefold() not in {"it", "they", "both"}]
+        if not recipients:
+            continue
+        sentence = sentence_for_prop(condition)
+        marker = next((evidence[eid]["text"] for eid in link["evidence_ids"]
+                       if eid in evidence), "")
+        outcome = sentence.strip(" .")
+        if re.match(r"\s*(?:if|unless)\b", outcome, re.I) and "," in outcome:
+            outcome = outcome.split(",", 1)[1].strip()
+        else:
+            split = re.split(r"\s+\b(?:if|unless)\b\s+", outcome, maxsplit=1, flags=re.I)
+            if len(split) == 2:
+                outcome = split[0].strip()
+        branches.append({
+            "recipient": recipients[0],
+            "transfer": predicate_span(condition),
+            "outcome": outcome,
+            "hedge": marker,
+            "sentence": sentence.strip(" ."),
+        })
+
+    # Preserve source order and match existing recipient choices when possible.
+    by_recipient = {branch["recipient"].casefold(): branch for branch in branches}
+    ordered_names = [row["slots"].get("first_recipient"), row["slots"].get("second_recipient")]
+    remaining = list(branches)
+    ordered: list[dict[str, str]] = []
+    for name in ordered_names:
+        branch = by_recipient.get((name or "").casefold())
+        if branch and branch not in ordered:
+            ordered.append(branch)
+    ordered.extend(branch for branch in remaining if branch not in ordered)
+    for index, branch in enumerate(ordered[:2]):
+        prefix = "first" if index == 0 else "second"
+        recover(f"{prefix}_recipient", branch["recipient"])
+        recover(f"{prefix}_transfer", branch["transfer"])
+        recover(f"{prefix}_outcome", branch["outcome"])
+        recover(f"{prefix}_hedge", branch["hedge"])
+        recover(f"{prefix}_branch_sentence", branch["sentence"])
+
+    explicit = _EXPLICIT_EXCLUSIVITY.search(text)
+    if explicit:
+        recover("exclusivity", explicit.group(0))
+
+    # A nonreceipt consequence can be expressed lexically ("untreated") or by
+    # a compositional modifier ("left without serum").  Require a parsed death
+    # proposition in the same source sentence before accepting the clause.
+    for prop_id, node in propositions.items():
+        if node.get("predicate", "").casefold() != "die":
+            continue
+        sentence = sentence_for_prop(prop_id).strip(" .")
+        if re.search(r"\b(?:untreated|without|not\s+(?:receive|get)|doesn't\s+get)\b",
+                     sentence, re.I):
+            recover("nonreceipt", sentence)
+            break
+
+    return _refresh_scored_row(row)
+
+
+def _refresh_scored_row(row: dict[str, Any]) -> dict[str, Any]:
+    core = [item for item in row["items"] if item["core"]]
+    optional = [item for item in row["items"] if not item["core"]]
+    row["core_filled"] = sum(item["verdict"] == "accepted" for item in core)
+    row["optional_filled"] = sum(item["verdict"] == "accepted" for item in optional)
+    row["rejected"] = sum(item["verdict"] == "rejected" for item in row["items"])
+    row["unfilled"] = [item["id"] for item in row["items"] if item["verdict"] != "accepted"]
+    row["unresolved_slots"] = list(row["unfilled"])
+    row["accepted_evidence"] = {
+        item["id"]: item["span"] for item in row["items"]
+        if item["verdict"] == "accepted"
+    }
+    row["coverage_metrics"] = coverage_metrics(
+        {item["id"]: item["verdict"] == "accepted" for item in core},
+        {item["id"]: item["verdict"] == "accepted" for item in optional},
+        rejected=row["rejected"],
+    )
+    if row["core_filled"] == 0 and row["optional_filled"] == 0:
+        row["status"] = "NO_MATCH"
+    elif row["core_filled"] == len(core):
+        row["status"] = "FILLED"
+    else:
+        row["status"] = "PARTIAL"
+    return row
+
+
 def _winner(considered: list[dict[str, Any]]) -> dict[str, Any] | None:
     usable = [row for row in considered if row["core_filled"] or row["optional_filled"]]
     if not usable:
@@ -775,6 +1404,11 @@ def _winner(considered: list[dict[str, Any]]) -> dict[str, Any] | None:
 def _graph(text: str, winner: dict[str, Any],
            question: dict[str, Any]) -> dict[str, Any]:
     slots = winner["slots"]
+    proof = question.get("exclusivity_proof") or {
+        "status": "EXPLICIT" if question.get("exclusivity") == "evidenced" else "UNKNOWN",
+        "evidence": [], "assumptions": [],
+        "explanation": "Compatibility record from the question assessment.",
+    }
     builder = {
         "exclusive_allocation": _allocation_graph,
         "rescue_contrast": _rescue_graph,
@@ -783,18 +1417,32 @@ def _graph(text: str, winner: dict[str, Any],
         "diversion_redirection": _diversion_graph,
         "uncertain_risk": _risk_graph,
     }[winner["blueprint_id"]]
-    world, notes = builder(text, slots)
+    if winner["blueprint_id"] == "exclusive_allocation":
+        world, notes = builder(text, slots, proof)
+    else:
+        world, notes = builder(text, slots)
     clauses = [
         {"clause_id": row["clause_id"], "text": row["text"]}
         for row in segment_source_clauses(text)
     ]
+    apply_derivation_license(world, clauses, proof)
+    apply_kind_license(world, clauses, winner["blueprint_id"])
+    for effect in world.get("effects", []):
+        if effect.get("derivation_operation") == "EXCLUSIVE_ALLOCATION_COMPLEMENT":
+            # Complements require an explicit exclusivity proof. Dose lists
+            # cannot discharge those premises.
+            effect["derivation_assumptions"] = []
+    relation_alternatives = _relation_alternatives(world, clauses)
     return normalized_proposal(
         proposal_id=f"{winner['blueprint_id']}_cloze",
         blueprint_id=winner["blueprint_id"],
         status="FILLED",
         assignment_kind="intervention_text",
         assignment=[row["intervention"] for row in world["actions"]],
-        slot_bindings={"copied_spans": dict(slots)},
+        slot_bindings={
+            "copied_spans": dict(slots),
+            "z10_recovered_slots": dict(winner.get("semantic_recoveries") or {}),
+        },
         selection=None,
         selection_validation={
             "contract_valid": None,
@@ -817,7 +1465,7 @@ def _graph(text: str, winner: dict[str, Any],
             if row["core"] and row["verdict"] != "accepted"
         ],
         unresolved_readings=_cloze_unresolved_readings(winner),
-        construction_problems=_cloze_construction_problems(winner),
+        construction_problems=_cloze_construction_problems(winner, world),
         admission_authorized=True,
         notes=notes,
         pre_world_assessment={
@@ -825,6 +1473,9 @@ def _graph(text: str, winner: dict[str, Any],
             "status": "ASSESSED",
         },
         accepted_evidence=dict(winner["accepted_evidence"]),
+        construction_provenance=_construction_provenance(world, clauses, slots, proof),
+        relation_alternatives=relation_alternatives,
+        exclusivity_proof=proof,
     )
 
 
@@ -854,7 +1505,100 @@ def _withheld_cloze_proposal(text: str, winner: dict[str, Any],
             "eligible_for_world_state": False,
         },
         accepted_evidence=dict(winner["accepted_evidence"]),
+        construction_provenance=_withheld_provenance(winner),
+        exclusivity_proof=(assess_question(text).get("exclusivity_proof")),
     )
+
+
+def _construction_provenance(world: dict[str, Any], clauses: list[dict[str, str]],
+                             slots: dict[str, str],
+                             proof: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    """Describe construction outside Parliament's closed world-state records."""
+    rows: list[dict[str, Any]] = []
+    for collection, id_key, kind in (
+        ("parties", "party_id", "party"),
+        ("actions", "action_id", "action"),
+        ("effects", "effect_id", "effect"),
+        ("conditions", "condition_id", "condition"),
+    ):
+        for atom in world.get(collection, []):
+            operation = atom.get("derivation_operation", "DIRECT_COPY")
+            if kind == "effect":
+                origin = origin_for_effect(
+                    atom, clauses, world.get("parties") or [], proof)
+            elif kind == "party":
+                origin = atom.get("kind_origin") or "UNRESOLVED"
+            else:
+                origin = (
+                    "SOURCE_ASSERTED"
+                    if operation in {
+                        "DIRECT_COPY", "UNSPECIFIED", "SOURCE_STIPULATED_CAUSAL", "",
+                    }
+                    else "STRUCTURALLY_DERIVED"
+                )
+            rows.append({
+                "atom_id": f"{kind}:{atom[id_key]}",
+                "atom_kind": kind,
+                "origin": origin,
+                "clause_ids": list(atom.get("clause_ids") or []),
+                "evidence": [atom.get("source_proposition") or atom.get("label")
+                             or atom.get("intervention") or atom.get("description")],
+                "explanation": operation,
+            })
+    clause_text = {row["clause_id"]: row["text"] for row in clauses}
+    for index, link in enumerate(world.get("causal_links", [])):
+        cue = _explicit_relation_cue(" ".join(
+            clause_text.get(cid, "") for cid in link.get("clause_ids", [])))
+        rows.append({
+            "atom_id": f"relation:{index}", "atom_kind": "relation",
+            "origin": "SOURCE_ASSERTED" if cue else "UNRESOLVED",
+            "clause_ids": list(link.get("clause_ids") or []),
+            "evidence": [cue] if cue else [],
+            "explanation": (
+                "Explicit relation cue copied from the source."
+                if cue else "A conditional association requires a working Parliament relation."
+            ),
+        })
+    for name, value in slots.items():
+        if name.endswith("implied_process") and value:
+            rows.append({
+                "atom_id": f"hypothesis:{name}", "atom_kind": "hypothesis",
+                "origin": "WORLD_KNOWLEDGE_HYPOTHESIS", "clause_ids": [],
+                "evidence": [value],
+                "explanation": "Model-suggested process; excluded from the Parliament world.",
+            })
+    return rows
+
+
+def _withheld_provenance(winner: dict[str, Any]) -> list[dict[str, Any]]:
+    return [{
+        "atom_id": f"slot:{name}", "atom_kind": "slot",
+        "origin": "SOURCE_ASSERTED", "clause_ids": [], "evidence": [value],
+        "explanation": "Copied cloze evidence; no world atom was authorized.",
+    } for name, value in winner.get("accepted_evidence", {}).items()]
+
+
+def _relation_alternatives(world: dict[str, Any],
+                           clauses: list[dict[str, str]]) -> list[dict[str, Any]]:
+    clause_text = {row["clause_id"]: row["text"] for row in clauses}
+    rows = []
+    for index, link in enumerate(world.get("causal_links", [])):
+        text = " ".join(clause_text.get(cid, "") for cid in link.get("clause_ids", []))
+        cue = _explicit_relation_cue(text)
+        selected = link.get("link_relation") or link.get("relation")
+        alternatives = [selected] if cue else list(dict.fromkeys([selected, "CAUSES"]))
+        conditional = bool(re.search(r"\b(?:if|unless|whether|who\s+(?:does|do)\s+not)\b", text, re.I))
+        rows.append({
+            "relation_id": f"relation:{index}",
+            "source_id": link["source_id"], "target_id": link["target_id"],
+            "selected_for_parliament": selected,
+            "alternatives": alternatives,
+            "status": "EXPLICIT" if cue else "UNRESOLVED",
+            "evidence": [cue] if cue else [],
+            "condition_ids": list(link.get("condition_ids") or []),
+            "structural_basis": "conditional_parent" if conditional else "associated_parent",
+        })
+    return rows
 
 
 def _cloze_unresolved_readings(winner: dict[str, Any]) -> list[dict[str, Any]]:
@@ -878,39 +1622,52 @@ def _cloze_unresolved_readings(winner: dict[str, Any]) -> list[dict[str, Any]]:
     return readings
 
 
-def _cloze_construction_problems(winner: dict[str, Any]) -> list[dict[str, str]]:
+def _cloze_construction_problems(
+        winner: dict[str, Any],
+        world: dict[str, Any] | None = None) -> list[dict[str, str]]:
+    problems: list[dict[str, str]] = []
+    if world:
+        problems.extend(kind_problems(world))
     if winner["blueprint_id"] != "rescue_contrast":
-        return []
+        return problems
     harms = [
         name for name in ("first_harm", "second_harm")
         if winner["slots"].get(name)
     ]
     if not harms:
-        return []
-    return [{
+        return problems
+    problems.append({
         "code": "rescue_harm_missing_named_process",
         "message": (
             "The branch states a cross-party harm but names no physical process "
             "between the rescue action and that harm."
         ),
-    }]
+    })
+    return problems
 
 
-def _allocation_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str]]:
+def _allocation_graph(text: str, slots: dict[str, str],
+                      exclusivity_proof: dict[str, Any] | None = None) -> tuple[dict, list[str]]:
     parties: list[dict[str, Any]] = []
     index = {"n": 0}
     issued = {"n": 0}
 
-    def party(label: str, kind: str | None = None, quantities: list[str] | None = None) -> str:
-        return _party(text, parties, index, label, kind or _kind(label), quantities or [])
+    def party(label: str, role: str = "recipient",
+              quantities: list[str] | None = None) -> str:
+        return _party(
+            text, parties, index, label, quantities=quantities,
+            role=role, construction="exclusive_allocation")
 
     def effect_id() -> str:
         issued["n"] += 1
         return f"E{issued['n']}"
 
-    actor = party(slots["decider"])
-    resource = party(slots["resource"], "RESOURCE",
-                     [_quantity_token(slots["quantity"])] if slots.get("quantity") else [])
+    actor = party(slots["decider"], role="actor")
+    resource = party(
+        slots["resource"], role="resource",
+        quantities=[_quantity_token(slots["quantity"])] if slots.get("quantity") else [])
+    licensed_resource = next(
+        (row for row in parties if row["party_id"] == resource), {"kind": "OTHER"})
     actions, effects, links, conditions = [], [], [], []
     notes = []
     rows = (
@@ -927,8 +1684,28 @@ def _allocation_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str]
             text, slots["decider"], branch_sentence or outcome or "")
         copied_transfer = transfer or recovered_transfer or (
             slots["assignment"] if _TRANSFER_EVENT.search(slots["assignment"]) else None)
+        claimed_kind = "RESOURCE_TRANSFER" if copied_transfer else "INTERVENTION"
+        licensed_kind = license_effect_kind(
+            claimed_kind,
+            span=copied_transfer or slots["assignment"],
+            construction="exclusive_allocation",
+            parties=parties,
+            predicate=licensed_source_predicate(copied_transfer or slots["assignment"]),
+        )
         if copied_transfer:
-            direct_outcome, direct_kind = copied_transfer, "RESOURCE_TRANSFER"
+            direct_outcome, direct_kind = copied_transfer, licensed_kind["kind"]
+            # Keep the branch surface as the intervention, but bind the direct
+            # transfer state to the named resource when a conditional uses an
+            # unresolved pronoun ("administers it to Ana").  The shared
+            # assignment is itself an exact source copy; no referent is invented.
+            if (re.search(r"\b(?:it|this|that)\b", copied_transfer, re.I)
+                    and _shares_word(slots["assignment"], slots["resource"])
+                    and _TRANSFER_EVENT.search(slots["assignment"])):
+                direct_outcome = slots["assignment"]
+            if direct_kind != "RESOURCE_TRANSFER":
+                notes.append(
+                    f"{action_id} has a giving or receipt span, but no licensed "
+                    "RESOURCE, so the act stays an intervention.")
         else:
             direct_outcome, direct_kind = slots["assignment"], "INTERVENTION"
             notes.append(f"{action_id} has no source giving or receipt event, so the act stays an intervention.")
@@ -938,10 +1715,16 @@ def _allocation_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str]
         host = _clause_for(text, branch_sentence or outcome or recipient_label)
         act_host = _clause_for(text, direct_outcome)
         direct_id = effect_id()
-        effects.append(_effect(
+        direct_effect = _effect(
             direct_id, action_id, recipient, direct_outcome, _predicate(direct_outcome),
             "NEUTRAL", "DIRECT", direct_kind, "CERTAIN", act_host, [], [],
-            source=direct_outcome))
+            source=direct_outcome)
+        # The shared either/or sentence identifies the resource; the branch
+        # condition identifies the recipient-specific transfer.  Preserve both
+        # source clauses when those facts are distributed across the text.
+        direct_effect["clause_ids"] = list(dict.fromkeys(
+            direct_effect["clause_ids"] + [host["clause_id"]]))
+        effects.append(direct_effect)
         effect_ids = [direct_id]
         parent_id = direct_id
         if outcome:
@@ -971,6 +1754,8 @@ def _allocation_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str]
             # carried by the outcome, while the relation itself is certain.
             link = _link(action_id, parent_id, outcome_id, "CERTAIN", outcome_host)
             link["condition_ids"] = condition_ids
+            if condition_ids:
+                link["modality"] = modality
             links.append(link)
         actions.append({
             "action_id": action_id, "intervention": intervention,
@@ -979,7 +1764,9 @@ def _allocation_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str]
             "clause_ids": list(dict.fromkeys([act_host["clause_id"], host["clause_id"]])),
         })
     complement_by_action: dict[str, str] = {}
-    if slots.get("exclusivity") and slots.get("quantity"):
+    proof_status = (exclusivity_proof or {}).get("status", "UNKNOWN")
+    if slots.get("quantity") and licensed_resource.get("kind") == "RESOURCE" and (
+            slots.get("exclusivity") or proof_status in {"EXPLICIT", "DERIVED"}):
         quantity_host = _clause_for(text, slots["quantity"])
         for branch, other in ((0, slots["second_recipient"]), (1, slots["first_recipient"])):
             action_id = f"A{branch}"
@@ -995,8 +1782,9 @@ def _allocation_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str]
             complement["quantities"] = [_quantity_token(slots["quantity"])]
             complement["derivation_operation"] = "EXCLUSIVE_ALLOCATION_COMPLEMENT"
             complement["derivation_explanation"] = (
-                f"Only {slots['quantity']} exists, and the copied 'not both' "
-                "evidence precludes simultaneous receipt by the other recipient."
+                f"Only {slots['quantity']} exists, and the "
+                f"{proof_status.lower()} exclusivity proof precludes simultaneous "
+                "receipt by the other recipient."
             )
             # Keep local quantity provenance on the indivisible resource. The
             # exclusivity sentence names both recipient populations, so citing
@@ -1008,7 +1796,8 @@ def _allocation_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str]
             effects.append(complement)
             actions[branch]["effect_ids"].append(complement_id)
             complement_by_action[action_id] = complement_id
-    if slots.get("nonreceipt") and slots.get("exclusivity"):
+    if slots.get("nonreceipt") and licensed_resource.get("kind") == "RESOURCE" and (
+            slots.get("exclusivity") or proof_status in {"EXPLICIT", "DERIVED"}):
         host = _clause_for(text, slots["nonreceipt"])
         # "do not get ... will die" keeps the negation on receiving. The death
         # itself is the "will die" span, so polarity is not read as a negated harm.
@@ -1041,7 +1830,9 @@ def _allocation_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str]
 def _rescue_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str]]:
     parties: list[dict[str, Any]] = []
     index = {"n": 0}
-    actor = _party(text, parties, index, slots["rescuer"], _kind(slots["rescuer"]))
+    actor = _party(
+        text, parties, index, slots["rescuer"], role="actor",
+        construction="rescue_contrast")
     actions, effects, links, conditions = [], [], [], []
     notes = []
     if slots.get("scene"):
@@ -1056,8 +1847,9 @@ def _rescue_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str]]:
     issued = 0
     for branch, (saved_label, intervention, benefit, harm) in enumerate(branches):
         action_id = f"A{branch}"
-        saved = _party(text, parties, index, saved_label, _kind(saved_label),
-                       group_quantity(saved_label))
+        saved = _party(
+            text, parties, index, saved_label, group_quantity(saved_label),
+            role="saved", construction="rescue_contrast")
         action_host = _clause_for(text, intervention)
         issued += 1
         direct_id = f"E{issued}"
@@ -1071,8 +1863,9 @@ def _rescue_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str]]:
                 continue
             reading = _outcome_reading(outcome)
             bearer_label = _party_head(text, outcome)
-            bearer = _party(text, parties, index, bearer_label, _kind(bearer_label),
-                            group_quantity(bearer_label))
+            bearer = _party(
+                text, parties, index, bearer_label, group_quantity(bearer_label),
+                role="bearer", construction="rescue_contrast")
             outcome_host = _clause_for(text, outcome)
             issued += 1
             outcome_id = f"E{issued}"
@@ -1099,7 +1892,9 @@ def _rescue_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str]]:
 def _omission_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str]]:
     parties: list[dict[str, Any]] = []
     index = {"n": 0}
-    actor = _party(text, parties, index, slots["actor"], _kind(slots["actor"]))
+    actor = _party(
+        text, parties, index, slots["actor"], role="actor",
+        construction="omission_harm")
     actions, effects, links, conditions = [], [], [], []
     pairs = ((slots["done"], slots["harm_done"], slots.get("done_hedge")),
              (slots["omitted"], slots["harm_omitted"], slots.get("omitted_hedge")))
@@ -1107,9 +1902,11 @@ def _omission_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str]]:
         reading = _outcome_reading(harm_span)
         copied_bearer = _party_head(text, harm_span)
         bearer_label, quantities = _outcome_bearer(harm_span, copied_bearer)
-        bearer = _party(text, parties, index, bearer_label, _kind(bearer_label),
-                        quantities or ([_quantity_token(bearer_label)]
-                                       if _quantity_token(bearer_label) else []))
+        bearer = _party(
+            text, parties, index, bearer_label,
+            quantities or ([_quantity_token(bearer_label)]
+                           if _quantity_token(bearer_label) else []),
+            role="bearer", construction="omission_harm")
         direct_host = _clause_for(text, action_span)
         outcome_host = _clause_for(text, harm_span)
         modality, qualifiers = _checked_modality(harm_span, hedge)
@@ -1118,62 +1915,191 @@ def _omission_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str]]:
             # stipulated, not an unresolved possibility.
             modality, qualifiers = "CERTAIN", []
         action_id = f"A{branch}"
-        direct_id, outcome_id = f"E{branch * 2 + 1}", f"E{branch * 2 + 2}"
+        direct_id = f"E{len(effects) + 1}"
+        condition_id = f"CND{branch + 1}"
+        condition_text = hedge or action_span
+        conditions.append({
+            "condition_id": condition_id,
+            "description": condition_text,
+            "value_status": "UNKNOWN",
+            "decision_relevance": "MATERIAL",
+            "clause_ids": [outcome_host["clause_id"]],
+            "polarity": "NEGATED" if re.search(r"\bnot\b|n't", condition_text, re.I)
+            else "POSITIVE",
+            "operator": "IF",
+        })
+        process_label = _action_object(text, action_span)
+        direct_party = (_party(
+            text, parties, index, process_label, role="process",
+            construction="omission_harm", action_span=action_span)
+                        if process_label else actor)
+        process_kind = license_effect_kind(
+            "PHYSICAL_STATE", span=action_span, construction="omission_harm",
+            parties=parties, predicate=_predicate(action_span),
+        )["kind"] if process_label else "INTERVENTION"
         effects.append(_effect(
-            direct_id, action_id, bearer, action_span, _predicate(action_span),
+            direct_id, action_id, direct_party, action_span, _predicate(action_span),
             "NEUTRAL", "DIRECT", "INTERVENTION", "CERTAIN", direct_host, [], [],
             source=action_span))
+        parent_id = direct_id
+        effect_ids = [direct_id]
+        if process_label:
+            process_id = f"E{len(effects) + 1}"
+            effects.append(_effect(
+                process_id, action_id, direct_party, action_span,
+                _predicate(action_span), "NEUTRAL", "DOWNSTREAM",
+                process_kind, "CERTAIN", direct_host, [direct_id], [],
+                source=action_span))
+            links.append(_link(
+                action_id, direct_id, process_id, "CERTAIN", direct_host))
+            parent_id = process_id
+            effect_ids.append(process_id)
+        outcome_id = f"E{len(effects) + 1}"
         death = _effect(
             outcome_id, action_id, bearer, harm_span, reading["predicate"],
             reading["polarity"], "DOWNSTREAM", reading["kind"], modality,
-            outcome_host, [direct_id], qualifiers, source=harm_span)
+            outcome_host, [parent_id], qualifiers, source=harm_span)
         death["quantities"] = group_quantity(harm_span) or (
             [_quantity_token(harm_span)] if _quantity_token(harm_span) else [])
         effects.append(death)
-        links.append(_link(action_id, direct_id, outcome_id, modality, outcome_host))
+        link = _link(action_id, parent_id, outcome_id, modality, outcome_host)
+        links.append(link)
+        effect_ids.append(outcome_id)
         clause_ids = list(dict.fromkeys([direct_host["clause_id"], outcome_host["clause_id"]]))
         actions.append({"action_id": action_id, "intervention": action_span,
-                        "actor_party_id": actor, "recipient_party_ids": [bearer],
-                        "effect_ids": [direct_id, outcome_id], "clause_ids": clause_ids})
+                        "actor_party_id": actor, "recipient_party_ids": [direct_party],
+                        "effect_ids": effect_ids, "clause_ids": clause_ids})
     notes = []
     if slots.get("instrument"):
         notes.append(f"Instrument named in the text: {slots['instrument']}. It is not an action.")
-    return _world(parties, actions, effects, links), notes
+    return _world(parties, actions, effects, links, conditions), notes
+
+
+def _condition_action(condition: str, actor: str) -> str:
+    """Return the copied action content of an if/unless clause."""
+    action = re.sub(r"^(?:if|unless)\s+", "", condition.strip(" ,."), flags=re.I)
+    if actor:
+        action = re.sub(rf"^{re.escape(actor)}\s+", "", action, flags=re.I)
+    return action.strip(" ,.") or condition
+
+
+def _action_object(text: str, action: str) -> str:
+    """Return a copied object that can bear an intervention/process state."""
+    try:
+        import parsing_game_S as parsing
+        parsed = parsing.get_nlp()(action)
+        objects = [token for token in parsed
+                   if token.dep_ in {"dobj", "obj", "pobj", "attr", "nsubjpass"}
+                   and token.pos_ in {"NOUN", "PROPN", "PRON"}]
+        if not objects:
+            return ""
+        token = objects[0]
+        parts = [part for part in token.subtree if not part.is_punct]
+        start = min(part.idx for part in parts)
+        end = max(part.idx + len(part.text) for part in parts)
+        local = action[start:end].strip(" ,.")
+        copies = _copy_spans(text, local)[0]
+        return copies[0] if copies else ""
+    except (OSError, RuntimeError, ValueError):
+        return ""
 
 
 def _conditional_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str]]:
     parties: list[dict[str, Any]] = []
     index = {"n": 0}
     actor_label = slots.get("actor") or slots["bearer"]
-    actor = _party(text, parties, index, actor_label, _kind(actor_label))
+    actor = _party(
+        text, parties, index, actor_label, role="actor",
+        construction="conditional_outcome")
     rows = [(slots["condition"], slots["bearer"], slots["outcome"])]
     if all(slots.get(name) for name in ("second_condition", "second_bearer", "second_outcome")):
         rows.append((slots["second_condition"], slots["second_bearer"], slots["second_outcome"]))
-    effects, links, actions = [], [], []
+    effects, links, actions, conditions = [], [], [], []
     notes = []
     for branch, (condition, bearer_label, outcome) in enumerate(rows):
-        bearer = _party(text, parties, index, bearer_label, _kind(bearer_label),
-                        group_quantity(bearer_label))
+        bearer = _party(
+            text, parties, index, bearer_label, group_quantity(bearer_label),
+            role="bearer", construction="conditional_outcome")
         reading = _outcome_reading(outcome)
         host = _clause_for(text, outcome, condition)
+        action_text = _condition_action(condition, actor_label)
+        action_host = _clause_for(text, action_text)
         chance = slots.get("chance") if slots.get("chance") and slots["chance"].casefold() in host["text"].casefold() else None
         modality, qualifiers = _checked_modality(outcome, chance or "if")
-        action_id, direct_id, outcome_id = f"A{branch}", f"E{branch * 2 + 1}", f"E{branch * 2 + 2}"
+        if _stipulated_certain_outcome(outcome) and not chance:
+            modality, qualifiers = "CERTAIN", []
+        action_id = f"A{branch}"
+        direct_id = f"E{len(effects) + 1}"
+        condition_id = f"CND{branch + 1}"
+        conditions.append({
+            "condition_id": condition_id,
+            "description": condition,
+            "value_status": "UNKNOWN",
+            "decision_relevance": "MATERIAL",
+            "clause_ids": [host["clause_id"]],
+            "polarity": "NEGATED" if re.search(r"\bnot\b|n't", condition, re.I)
+            else "POSITIVE",
+            "operator": "IF",
+        })
+        transfer = bool(_TRANSFER_EVENT.search(action_text))
+        process_label = "" if transfer else _action_object(text, action_text)
+        if process_label:
+            direct_party = _party(
+                text, parties, index, process_label, role="process",
+                construction="conditional_outcome", action_span=action_text)
+            direct_kind = "INTERVENTION"
+        elif transfer:
+            claimed = license_effect_kind(
+                "RESOURCE_TRANSFER", span=action_text,
+                construction="conditional_outcome", parties=parties,
+                predicate=_predicate(action_text),
+            )
+            direct_party = bearer
+            direct_kind = claimed["kind"]
+        else:
+            direct_party, direct_kind = actor, "INTERVENTION"
         direct = _effect(
-            direct_id, action_id, bearer, condition, _predicate(condition),
-            "NEUTRAL", "DIRECT", "INTERVENTION", "CERTAIN", host, [], [],
-            source=condition)
+            direct_id, action_id, direct_party, action_text, _predicate(action_text),
+            "NEUTRAL", "DIRECT", direct_kind, "CERTAIN", action_host, [], [],
+            source=action_text)
+        effects.append(direct)
+        parent_id = direct_id
+        effect_ids = [direct_id]
+        if process_label:
+            process_id = f"E{len(effects) + 1}"
+            process = _effect(
+                process_id, action_id, direct_party, action_text,
+                _predicate(action_text), "NEUTRAL", "DOWNSTREAM",
+                license_effect_kind(
+                    "PHYSICAL_STATE", span=action_text,
+                    construction="conditional_outcome", parties=parties,
+                    predicate=_predicate(action_text),
+                )["kind"],
+                "CERTAIN", action_host, [direct_id], [],
+                source=action_text)
+            effects.append(process)
+            links.append(_link(
+                action_id, direct_id, process_id, "CERTAIN", action_host))
+            parent_id = process_id
+            effect_ids.append(process_id)
+        outcome_id = f"E{len(effects) + 1}"
         result = _effect(
             outcome_id, action_id, bearer, outcome, reading["predicate"], reading["polarity"],
-            "DOWNSTREAM", reading["kind"], modality, host, [direct_id], qualifiers,
+            "DOWNSTREAM", reading["kind"], modality, host, [parent_id], qualifiers,
             source=outcome)
-        effects.extend([direct, result])
-        link = _link(action_id, direct_id, outcome_id, modality, host)
+        result["quantities"] = group_quantity(outcome) or (
+            [_quantity_token(outcome)] if _quantity_token(outcome) else [])
+        effects.append(result)
+        link = _link(action_id, parent_id, outcome_id, modality, host)
         links.append(link)
+        effect_ids.append(outcome_id)
         actions.append({
-            "action_id": action_id, "intervention": condition,
-            "actor_party_id": actor, "recipient_party_ids": [bearer],
-            "effect_ids": [direct_id, outcome_id], "clause_ids": [host["clause_id"]],
+            "action_id": action_id, "intervention": action_text,
+            "actor_party_id": actor, "recipient_party_ids": [direct_party],
+            "effect_ids": effect_ids,
+            "clause_ids": list(dict.fromkeys([
+                action_host["clause_id"], host["clause_id"],
+            ])),
         })
     partial_second = [
         name for name in ("second_condition", "second_bearer", "second_outcome")
@@ -1183,18 +2109,22 @@ def _conditional_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str
         notes.append(
             "A partial second conditional remains unresolved: " + ", ".join(partial_second) + "."
         )
-    return _world(parties, actions, effects, links), notes
+    return _world(parties, actions, effects, links, conditions), notes
 
 
 def _diversion_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str]]:
     parties: list[dict[str, Any]] = []
     index = {"n": 0}
-    actor = _party(text, parties, index, slots["actor"], _kind(slots["actor"]))
+    actor = _party(
+        text, parties, index, slots["actor"], role="actor",
+        construction="diversion_redirection")
     process = _party(
-        text, parties, index, slots["controllable_process"], "PROCESS")
+        text, parties, index, slots["controllable_process"], role="process",
+        construction="diversion_redirection")
     affected = _party(
         text, parties, index, slots["affected_party"],
-        _kind(slots["affected_party"]), group_quantity(slots["affected_party"]))
+        group_quantity(slots["affected_party"]),
+        role="affected", construction="diversion_redirection")
     action_host = _clause_for(text, slots["intervention"])
     outcome_host = _clause_for(text, slots["outcome"])
     reading = _outcome_reading(slots["outcome"])
@@ -1207,7 +2137,13 @@ def _diversion_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str]]
     process_state = _effect(
         "E2", "A0", process, slots["intervention"],
         _predicate(slots["intervention"]),
-        "NEUTRAL", "DOWNSTREAM", "PHYSICAL_STATE", "CERTAIN", action_host,
+        "NEUTRAL", "DOWNSTREAM",
+        license_effect_kind(
+            "PHYSICAL_STATE", span=slots["intervention"],
+            construction="diversion_redirection", parties=parties,
+            predicate=_predicate(slots["intervention"]),
+        )["kind"],
+        "CERTAIN", action_host,
         ["E1"], [], source=slots["intervention"])
     outcome = _effect(
         "E3", "A0", affected, slots["outcome"], reading["predicate"],
@@ -1244,7 +2180,9 @@ def _diversion_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str]]
 def _risk_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str]]:
     parties: list[dict[str, Any]] = []
     index = {"n": 0}
-    actor = _party(text, parties, index, slots["actor"], _kind(slots["actor"]))
+    actor = _party(
+        text, parties, index, slots["actor"], role="actor",
+        construction="uncertain_risk")
     branches = [(
         slots["action"], slots["affected_party"], slots["possible_outcome"],
         slots["likelihood"],
@@ -1260,8 +2198,8 @@ def _risk_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str]]:
     for branch, (action_text, affected_label, outcome_text, likelihood) in enumerate(branches):
         action_id = f"A{branch}"
         affected = _party(
-            text, parties, index, affected_label, _kind(affected_label),
-            group_quantity(affected_label))
+            text, parties, index, affected_label, group_quantity(affected_label),
+            role="affected", construction="uncertain_risk")
         action_host = _clause_for(text, action_text)
         outcome_host = _clause_for(text, outcome_text)
         reading = _outcome_reading(outcome_text)
@@ -1341,6 +2279,8 @@ def _effect(effect_id: str, action_id: str, party_id: str, outcome: str, predica
         "likelihood_qualifiers": qualifiers, "overall_likelihood_qualifiers": [],
         "scope_qualifiers": [], "temporal_qualifiers": [], "condition_join": "AND",
         "source_proposition": proposition, "source_effect_ids": parents,
+        # Parenthood only proposes stipulated-causal. The proposal envelope
+        # licenses asserted copies and demotes polarity inversions.
         "derivation_operation": "DIRECT_COPY" if not parents else "SOURCE_STIPULATED_CAUSAL",
         "derivation_explanation": "The blank was filled with this copy of the scenario.",
         "derivation_assumptions": [], "outcome_type_transformation": "PRESERVED",
@@ -1348,25 +2288,69 @@ def _effect(effect_id: str, action_id: str, party_id: str, outcome: str, predica
     }
 
 
+def _explicit_relation_cue(span: str) -> str:
+    patterns = (
+        (r"\b(?:cause|causes|caused|causing|lead to|leads to|led to|"
+         r"result in|results in|resulted in|produce|produces|produced|trigger|triggers|triggered)\b",
+         "CAUSES"),
+        (r"\b(?:enable|enables|enabled|allow|allows|allowed|permit|permits|permitted|"
+         r"make possible|makes possible|made possible)\b", "ENABLES"),
+        (r"\b(?:prevent|prevents|prevented|avoid|avoids|avoided|block|blocks|blocked|"
+         r"inhibit|inhibits|inhibited)\b", "PREVENTS"),
+    )
+    for pattern, relation in patterns:
+        match = re.search(pattern, span or "", re.I)
+        if match:
+            return match.group(0)
+    return ""
+
+
 def _link(action_id: str, source: str, target: str, modality: str, host: dict) -> dict[str, Any]:
+    cue = _explicit_relation_cue(host.get("text", ""))
+    if cue:
+        relation = (
+            "CAUSES" if re.search(r"\b(?:cause|lead|led|result|produce|trigger)", cue, re.I)
+            else "PREVENTS" if re.search(r"\b(?:prevent|avoid|block|inhibit)", cue, re.I)
+            else "ENABLES"
+        )
+    else:
+        # Parliament currently requires a typed parent for downstream human
+        # outcomes. ENABLES preserves that topology without silently classifying
+        # a bare conditional as direct doing; the proposal envelope retains
+        # CAUSES as an unresolved alternative.
+        relation = "ENABLES"
     return {
-        "action_id": action_id, "source_id": source, "link_relation": "CAUSES",
+        "action_id": action_id, "source_id": source, "link_relation": relation,
         "target_id": target, "modality": modality, "condition_ids": [],
         "clause_ids": [host["clause_id"]],
     }
 
 
-def _party(text: str, parties: list[dict], index: dict, label: str, kind: str,
-           quantities: list[str] | None = None) -> str:
+_ORIGIN_RANK = {"UNRESOLVED": 0, "STRUCTURALLY_DERIVED": 1, "SOURCE_ASSERTED": 2}
+
+
+def _party(text: str, parties: list[dict], index: dict, label: str,
+           quantities: list[str] | None = None, *, role: str = "",
+           construction: str = "", action_span: str = "") -> str:
+    licensed = license_kind(
+        _nominal_before_clause(label), role=role, text=text,
+        construction=construction, quantities=quantities,
+        action_span=action_span,
+    )
     folded = label.casefold()
     for row in parties:
         if row["label"].casefold() == folded:
+            if (_ORIGIN_RANK.get(licensed["origin"], 0)
+                    > _ORIGIN_RANK.get(row.get("kind_origin"), 0)):
+                row["kind"] = licensed["kind"]
+                row["kind_origin"] = licensed["origin"]
             return row["party_id"]
     index["n"] += 1
     ident = f"P{index['n']}"
     clauses = segment_source_clauses(text)
     parties.append({
-        "party_id": ident, "label": label, "kind": kind,
+        "party_id": ident, "label": label, "kind": licensed["kind"],
+        "kind_origin": licensed["origin"],
         "quantities": [token for token in (quantities or []) if token],
         "clause_ids": [row["clause_id"] for row in clauses if label.casefold() in row["text"].casefold()],
     })
@@ -1448,6 +2432,9 @@ def _stipulated_certain_outcome(span: str) -> bool:
 
 def _checked_modality(outcome: str, hedge: str | None) -> tuple[str, list[str]]:
     """Use a hedge the world-model check recognizes. Bare can stays CERTAIN."""
+    outcome_chance = _CHANCE.search(outcome or "")
+    if outcome_chance:
+        return "PROBABILISTIC", [outcome_chance.group(0)]
     chosen = hedge or ""
     if not chosen:
         match = _CHANCE.search(outcome or "")
@@ -1652,11 +2639,22 @@ def _content_words(span: str) -> list[str]:
     return [word for word in _WORD.findall(span) if word.casefold() not in _STOP and len(word) > 2]
 
 
-def _kind(label: str) -> str:
-    return party_kind(_nominal_before_clause(label))
-
-
 def _predicate(span: str) -> str:
+    """Prefer a licensed source verb. SpaCy ROOT is a suggestion only."""
+    copied = licensed_source_predicate(span)
+    if copied:
+        return copied
+    try:
+        import parsing_game_S as parsing
+        parsed = parsing.get_nlp()(span)
+        verbal = [token for token in parsed
+                  if token.pos_ in {"VERB", "AUX"} and token.dep_ == "ROOT"]
+        if not verbal:
+            verbal = [token for token in parsed if token.pos_ == "VERB"]
+        if verbal:
+            return verbal[0].lemma_.casefold()
+    except (OSError, RuntimeError, ValueError):
+        pass
     words = [word.casefold() for word in _WORD.findall(span) if word.casefold() not in _STOP]
     return words[0] if words else "act"
 
@@ -1673,7 +2671,7 @@ def _parse_ranking(raw: str) -> list[str]:
         data = {}
     found = []
     for item in data.get("templates") or data.get("blueprint_ids") or []:
-        if item in _BY_ID and item not in found:
+        if (item in _BY_ID or item in _META_BLUEPRINTS) and item not in found:
             found.append(item)
     for item in _BY_ID:
         if len(found) >= 3:

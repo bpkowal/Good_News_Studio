@@ -6,8 +6,9 @@ import tempfile
 import unittest
 from unittest import mock
 
-from blueprint_allocation_invariants import group_quantity, party_kind
-from blueprint_cloze_chooser import _implied_sentence, choose_by_cloze
+from blueprint_allocation_invariants import group_quantity
+from blueprint_kind_license import license_kind
+from blueprint_cloze_chooser import _implied_sentence, _link, assess_question, choose_by_cloze
 
 
 WATER = (
@@ -63,6 +64,110 @@ def _none_sheet(blueprint_id):
 
 
 class ClozeChooserTests(unittest.TestCase):
+    def _allocation_run(self, text, answers):
+        sheet = _none_sheet("exclusive_allocation")
+        sheet.update(answers)
+        script = Script(
+            ["exclusive_allocation", "conditional_outcome", "omission_harm"],
+            {
+                "exclusive_allocation": sheet,
+                "conditional_outcome": _none_sheet("conditional_outcome"),
+                "omission_harm": _none_sheet("omission_harm"),
+            },
+        )
+        return choose_by_cloze(text, script)
+
+    def test_z10_recovers_synonymous_exclusivity_and_postposed_conditions(self):
+        text = (
+            "A hospital has one vial of antidote. Dr. Lee must administer the antidote "
+            "either to Ana or to Bo, but cannot treat both. Ana has an 85% chance of "
+            "recovering if Dr. Lee administers it to Ana. Bo has a 40% chance of "
+            "recovering if Dr. Lee administers it to Bo. Whoever is untreated will die."
+        )
+        result = self._allocation_run(text, {
+            "decider": "Dr. Lee", "resource": "antidote",
+            "assignment": "administer the antidote",
+            "first_recipient": "Ana", "second_recipient": "Bo",
+            "first_outcome": "Ana has an 85% chance of recovering",
+            "second_outcome": "Bo has a 40% chance of recovering",
+        })
+        winner = result["considered"][0]
+        self.assertEqual(winner["slots"]["exclusivity"], "cannot treat both")
+        self.assertEqual(winner["slots"]["quantity"], "one vial")
+        self.assertEqual(winner["slots"]["nonreceipt"], "Whoever is untreated will die")
+        self.assertIn("administers it to Ana", winner["slots"]["first_transfer"])
+        world = result["graph"]["candidate"]["world_model"]
+        self.assertEqual(len([e for e in world["effects"] if e["predicate"] == "die"]), 2)
+        self.assertEqual(result["question"]["exclusivity_proof"]["status"], "EXPLICIT")
+
+    def test_z10_recovers_passive_quantity_and_without_outcome(self):
+        text = (
+            "There is a single dose of serum. It can be given by Priya to either Malik "
+            "or Rosa, but not both. If Malik receives the serum, he has a 70% chance "
+            "of surviving. If Rosa receives the serum, she has a 60% chance of surviving. "
+            "The person left without serum will die."
+        )
+        result = self._allocation_run(text, {
+            "decider": "Priya", "resource": "serum", "assignment": "given by Priya",
+            "first_recipient": "Malik", "second_recipient": "Rosa",
+            "exclusivity": "not both",
+            "first_outcome": "he has a 70% chance of surviving",
+            "second_outcome": "she has a 60% chance of surviving",
+        })
+        winner = result["considered"][0]
+        self.assertEqual(winner["slots"]["quantity"], "a single dose")
+        self.assertEqual(winner["slots"]["nonreceipt"], "The person left without serum will die")
+        world = result["graph"]["candidate"]["world_model"]
+        self.assertEqual({e["predicate"] for e in world["effects"]
+                          if e["effect_kind"] == "RESOURCE_TRANSFER"}, {"receive"})
+        self.assertEqual(len([e for e in world["effects"] if e["predicate"] == "die"]), 2)
+
+    def test_one_dose_and_or_does_not_license_exclusivity(self):
+        text = (
+            "A clinic has one indivisible dose of medicine. Ada may give the dose to "
+            "Ben or Cara. If Ben receives it, Ben will recover. If Cara receives it, "
+            "Cara will recover."
+        )
+        result = self._allocation_run(text, {
+            "decider": "Ada", "resource": "the dose", "assignment": "give the dose",
+            "first_recipient": "Ben", "second_recipient": "Cara",
+            "first_outcome": "Ben will recover", "second_outcome": "Cara will recover",
+        })
+        self.assertEqual(result["question"]["exclusivity_proof"]["status"], "HYPOTHESIZED")
+        self.assertNotIn("exclusivity", result["considered"][0]["slots"])
+        self.assertIsNone(result["graph"])
+        self.assertTrue(any("exclusive" in reason.lower() for reason in result["world_withheld"]))
+
+    def test_relation_generation_uses_explicit_cues_and_conservative_default(self):
+        host = {"clause_id": "C0", "text": "Pulling the lever causes the trolley to move."}
+        self.assertEqual(_link("A0", "E1", "E2", "CERTAIN", host)["link_relation"],
+                         "CAUSES")
+        host["text"] = "If Maria pulls the lever, the trolley moves."
+        self.assertEqual(_link("A0", "E1", "E2", "CERTAIN", host)["link_relation"],
+                         "ENABLES")
+
+    def test_allocation_recovers_assignment_from_a_copied_transfer(self):
+        sheet = _none_sheet("exclusive_allocation")
+        sheet.update({
+            "decider": "Ada", "resource": "one dose of medicine",
+            "assignment": "give", "first_transfer": "give the medicine to Ben",
+            "quantity": "one dose", "first_recipient": "Ben",
+            "second_recipient": "Cara", "exclusivity": "but not both",
+        })
+        script = Script(
+            ["exclusive_allocation", "conditional_outcome", "rescue_contrast"],
+            {
+                "exclusive_allocation": sheet,
+                "conditional_outcome": _none_sheet("conditional_outcome"),
+                "rescue_contrast": _none_sheet("rescue_contrast"),
+            },
+        )
+        result = choose_by_cloze(MEDICINE, script)
+        winner = result["considered"][0]
+        assignment = next(row for row in winner["items"] if row["id"] == "assignment")
+        self.assertEqual(assignment["reason"], "recovered_from_copied_transfer")
+        self.assertEqual(winner["slots"]["assignment"], "give the medicine to Ben")
+
     def test_water_sentence_fills_the_allocation_blanks_it_actually_states(self):
         script = Script(
             ["exclusive_allocation", "conditional_outcome", "rescue_contrast"],
@@ -177,6 +282,13 @@ class ClozeChooserTests(unittest.TestCase):
             },
         )
         result = choose_by_cloze(MEDICINE, script)
+        attempts = result["candidate_attempts"]
+        self.assertEqual(len(attempts), 3)
+        self.assertEqual(attempts[0]["blueprint_id"], "exclusive_allocation")
+        self.assertTrue(attempts[0]["selected"])
+        self.assertTrue(attempts[0]["contract_valid"])
+        self.assertIsNotNone(attempts[0]["proposal"]["candidate"])
+        self.assertTrue(all("unfilled_slots" in row for row in attempts))
         world = result["graph"]["candidate"]["world_model"]
         chances = [row["likelihood_qualifiers"] for row in world["effects"] if row["modality"] == "PROBABILISTIC"]
         self.assertEqual(chances, [["95% chance"], ["5% chance"]])
@@ -243,6 +355,13 @@ class ClozeChooserTests(unittest.TestCase):
                         return_value=question):
             proposal = choose_by_cloze(text, script)["graph"]
         world = proposal["candidate"]["world_model"]
+        kinds = {row["label"]: row["kind"] for row in world["parties"]}
+        self.assertEqual(kinds["Dr. Rivera"], "PERSON")
+        self.assertEqual(kinds["antiviral"], "RESOURCE")
+        self.assertEqual(kinds["one child"], "PERSON")
+        self.assertEqual(kinds["three adult patients"], "HUMAN_GROUP")
+        self.assertTrue(all(row.get("kind_origin") != "UNRESOLVED"
+                            for row in world["parties"]))
         self.assertEqual(
             [row["intervention"] for row in world["actions"]],
             [
@@ -480,22 +599,53 @@ parse_world_model(w, clauses=p["clauses"], action_ids=ids,
         world = result["graph"]["candidate"]["world_model"]
         self.assertEqual(
             [row["intervention"] for row in world["actions"]],
-            ["pull the lever", "does not pull the lever"],
+            ["pulls the lever", "does not pull the lever"],
         )
         self.assertEqual(len([row for row in world["effects"] if row["predicate"] == "die"]), 2)
         deaths = [row for row in world["effects"] if row["predicate"] == "die"]
         self.assertTrue(all(row["modality"] == "CERTAIN" for row in deaths))
         one = next(row for row in deaths if "one worker" in row["outcome"])
         self.assertEqual(one["quantities"], ["one"])
+        aversions = [
+            row for row in world["effects"]
+            if row["derivation_operation"] == "AVERTED_ALTERNATIVE_HARM"
+        ]
+        self.assertEqual(len(aversions), 2)
+        self.assertTrue(all(row["derivation_assumptions"] for row in aversions))
+        self.assertTrue(all(
+            row["outcome_type_transformation"] == "POLARITY_INVERTED"
+            for row in aversions
+        ))
+        self.assertTrue(all(
+            row["derivation_operation"] == "SOURCE_STIPULATED_CAUSAL"
+            for row in deaths
+        ))
         pull = next(row for row in world["effects"] if "lever" in row["outcome"]
-                    and "not" not in row["outcome"])
-        self.assertEqual(pull["source_proposition"], "pull the lever")
+                    and "not" not in row["outcome"] and row["directness"] == "DIRECT")
+        self.assertEqual(pull["source_proposition"], "pulls the lever")
         self.assertNotIn("one", pull["quantities"])
+        process_party = next(row for row in world["parties"]
+                             if row["party_id"] == pull["party_id"])
+        self.assertEqual((process_party["label"], process_party["kind"]),
+                         ("the lever", "PROCESS"))
+        self.assertEqual(
+            [(row["description"], row["polarity"]) for row in world["conditions"]],
+            [
+                ("If Maria pulls the lever", "POSITIVE"),
+                ("If Maria does not pull the lever", "NEGATED"),
+            ],
+        )
+        self.assertTrue(all(not row["condition_ids"] for row in deaths))
+        process_states = [row for row in world["effects"]
+                          if row["effect_kind"] == "PHYSICAL_STATE"]
+        self.assertEqual(len(process_states), 2)
+        self.assertTrue(all(row["party_id"] == process_party["party_id"]
+                            for row in process_states))
         self.assertTrue(any("the brake" in note for note in result["graph"]["notes"]))
         self.assertNotIn("the brake", [row["intervention"] for row in world["actions"]])
         omitted = next(row for row in result["considered"][0]["items"]
                        if row["id"] == "omitted")
-        self.assertEqual(omitted["reason"], "recovered_from_copied_conditional")
+        self.assertEqual(omitted["reason"], "recovered_from_z10_conditional_structure")
 
     @unittest.skipUnless(os.environ.get("PARLIAMENT_SMOKE_ROOT") and
                          os.environ.get("PARLIAMENT_SMOKE_PYTHON"),
@@ -557,9 +707,12 @@ assert result["world_model_status"] in {
         self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
 
     def test_children_count_as_a_human_group(self):
-        self.assertEqual(party_kind("two children"), "HUMAN_GROUP")
+        group = license_kind("two children", role="bearer")
+        self.assertEqual(group["kind"], "HUMAN_GROUP")
+        self.assertEqual(group["origin"], "STRUCTURALLY_DERIVED")
         self.assertEqual(group_quantity("two children"), ["two"])
-        self.assertEqual(party_kind("one child"), "PERSON")
+        one = license_kind("one child", role="bearer")
+        self.assertEqual(one["kind"], "PERSON")
         self.assertEqual(group_quantity("one child"), [])
 
     def test_conditional_template_keeps_two_branches_separate(self):
@@ -585,15 +738,92 @@ assert result["world_model_status"] in {
         self.assertEqual(len(world["actions"]), 2)
         self.assertEqual(
             [row["intervention"] for row in world["actions"]],
-            ["If Maria pulls the lever", "If Maria does not pull the lever"],
+            ["pulls the lever", "does not pull the lever"],
         )
-        self.assertEqual([row["party_id"] for row in world["effects"][1::2]], ["P2", "P3"])
-        self.assertEqual(world["conditions"], [])
+        outcomes = [row for row in world["effects"]
+                    if row["effect_kind"] == "HEALTH_OUTCOME"]
+        labels = {row["party_id"]: row["label"] for row in world["parties"]}
+        self.assertEqual([labels[row["party_id"]] for row in outcomes],
+                         ["one worker", "five workers"])
+        self.assertEqual(
+            [(row["description"], row["polarity"]) for row in world["conditions"]],
+            [
+                ("If Maria pulls the lever", "POSITIVE"),
+                ("If Maria does not pull the lever", "NEGATED"),
+            ],
+        )
+        self.assertTrue(all(row["link_relation"] == "ENABLES"
+                            for row in world["causal_links"]))
+        self.assertTrue(all(not row["condition_ids"]
+                            for row in world["causal_links"]))
+        self.assertTrue(all(row["modality"] == "CERTAIN" for row in outcomes))
+        alternatives = result["graph"]["relation_alternatives"]
+        self.assertTrue(all(row["status"] == "UNRESOLVED" for row in alternatives))
+        self.assertTrue(all(row["alternatives"] == ["ENABLES", "CAUSES"]
+                            for row in alternatives))
         self.assertEqual(
             result["graph"]["unresolved_readings"][0]["kind"],
             "conditional_relation",
         )
         self.assertEqual(len(result["graph"]["clauses"]), 2)
+
+    def test_z10_recovers_postposed_conditionals_when_cloze_returns_none(self):
+        text = (
+            "One worker will live if Maria pulls the lever. "
+            "Five workers will live if Maria does not pull the lever."
+        )
+        script = Script(
+            ["conditional_outcome", "exclusive_allocation", "uncertain_risk"],
+            {
+                "conditional_outcome": _none_sheet("conditional_outcome"),
+                "exclusive_allocation": _none_sheet("exclusive_allocation"),
+                "uncertain_risk": _none_sheet("uncertain_risk"),
+            },
+        )
+        result = choose_by_cloze(text, script)
+        self.assertEqual(result["chosen_blueprint_id"], "conditional_outcome")
+        world = result["graph"]["candidate"]["world_model"]
+        self.assertEqual(
+            [row["intervention"] for row in world["actions"]],
+            ["pulls the lever", "does not pull the lever"],
+        )
+        self.assertEqual(
+            [row["description"] for row in world["conditions"]],
+            ["if Maria pulls the lever", "if Maria does not pull the lever"],
+        )
+        outcomes = [row for row in world["effects"]
+                    if row["effect_kind"] == "HEALTH_OUTCOME"]
+        self.assertEqual([row["quantities"] for row in outcomes],
+                         [["One"], ["Five"]])
+        recovered = result["considered"][0]["semantic_recoveries"]
+        self.assertEqual(recovered["condition"]["producer"], "parsing_game_Z10")
+
+    def test_z10_recovers_passive_trolley_actor_and_process(self):
+        text = (
+            "If the lever is pulled by Maria, one worker will die. "
+            "If the lever is not pulled by Maria, five workers will die."
+        )
+        script = Script(
+            ["omission_harm", "conditional_outcome", "exclusive_allocation"],
+            {
+                "omission_harm": _none_sheet("omission_harm"),
+                "conditional_outcome": _none_sheet("conditional_outcome"),
+                "exclusive_allocation": _none_sheet("exclusive_allocation"),
+            },
+        )
+        result = choose_by_cloze(text, script)
+        self.assertEqual(result["chosen_blueprint_id"], "omission_harm")
+        world = result["graph"]["candidate"]["world_model"]
+        parties = {row["party_id"]: row for row in world["parties"]}
+        self.assertTrue(all(parties[row["actor_party_id"]]["label"] == "Maria"
+                            for row in world["actions"]))
+        recipients = [parties[row["recipient_party_ids"][0]] for row in world["actions"]]
+        self.assertTrue(all((row["label"], row["kind"]) == ("the lever", "PROCESS")
+                            for row in recipients))
+        self.assertEqual(
+            [row["intervention"] for row in world["actions"]],
+            ["the lever is pulled by Maria", "the lever is not pulled by Maria"],
+        )
 
     def test_conditional_chance_stays_on_its_own_outcome(self):
         text = "If Ada gives medicine to Ben, Ben has a 95% chance of survival."
@@ -614,6 +844,45 @@ assert result["world_model_status"] in {
         outcome = result["graph"]["candidate"]["world_model"]["effects"][1]
         self.assertEqual(outcome["modality"], "PROBABILISTIC")
         self.assertEqual(outcome["likelihood_qualifiers"], ["95% chance"])
+
+    @unittest.skipUnless(os.environ.get("PARLIAMENT_SMOKE_ROOT") and
+                         os.environ.get("PARLIAMENT_SMOKE_PYTHON"),
+                         "requires the isolated patched Parliament checkout")
+    def test_conditional_candidate_passes_parliament_admission(self):
+        script = Script(
+            ["conditional_outcome", "exclusive_allocation", "uncertain_risk"],
+            {
+                "conditional_outcome": _none_sheet("conditional_outcome"),
+                "exclusive_allocation": _none_sheet("exclusive_allocation"),
+                "uncertain_risk": _none_sheet("uncertain_risk"),
+            },
+        )
+        proposal = choose_by_cloze(CONDITIONAL, script)["graph"]
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "proposal.json"
+            path.write_text(json.dumps(proposal), encoding="utf-8")
+            code = r'''
+import json, sys
+sys.path.insert(0, sys.argv[1])
+from global_workspace.local_specialists import _admit_action_source_rows
+from global_workspace.world_state import parse_world_model
+p = json.load(open(sys.argv[2]))
+w = p["candidate"]["world_model"]
+ids = [a["action_id"] for a in w["actions"]]
+actions = [a["intervention"] for a in w["actions"]]
+model = parse_world_model(
+    w, clauses=p["clauses"], action_ids=ids,
+    action_texts=dict(zip(ids, actions)), require_completeness=True)
+assert model.admission.status in {
+    "COMMITTED", "COMMITTED_WITH_UNCERTAINTY"}, model.admission.status
+result = _admit_action_source_rows(p["candidate"], actions, ids, p["clauses"])
+assert result["status"] in {"COMMITTED", "COMMITTED_WITH_UNCERTAINTY"}, result
+'''
+            completed = subprocess.run(
+                [os.environ["PARLIAMENT_SMOKE_PYTHON"], "-c", code,
+                 os.environ["PARLIAMENT_SMOKE_ROOT"], str(path)],
+                text=True, capture_output=True, timeout=60)
+        self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
 
     def test_plan_only_template_preserves_slots_and_withholds_graph(self):
         text = "Ada promised Ben that Ada would deliver the medicine."
@@ -726,6 +995,49 @@ assert result["world_model_status"] in {
         self.assertIsNone(result["chosen_blueprint_id"])
         self.assertEqual(result["status"], "NO_MATCH")
         self.assertIsNone(result["graph"])
+
+    def test_none_and_composite_are_explicit_withheld_ranking_choices(self):
+        for option in ("none", "composite"):
+            with self.subTest(option=option):
+                script = Script([option, "conditional_outcome", "exclusive_allocation"], {
+                    "conditional_outcome": _none_sheet("conditional_outcome"),
+                    "exclusive_allocation": _none_sheet("exclusive_allocation"),
+                })
+                result = choose_by_cloze("Ada described a difficult situation.", script)
+                self.assertEqual(result["chosen_blueprint_id"], option)
+                self.assertEqual(result["status"], "WITHHELD")
+                self.assertIsNone(result["graph"])
+                self.assertEqual(result["candidate_attempts"][0]["blueprint_id"], option)
+
+    def test_exclusivity_proof_distinguishes_explicit_hypothesized_and_unknown(self):
+        explicit = assess_question("Ada can give one dose to Ben or Cara, but not both.")
+        hypothesized = assess_question("Ada can give one dose to Ben or Cara.")
+        unknown = assess_question("Ada may help Ben and Cara.")
+        self.assertEqual(explicit["exclusivity_proof"]["status"], "EXPLICIT")
+        self.assertEqual(hypothesized["exclusivity_proof"]["status"], "HYPOTHESIZED")
+        self.assertEqual(unknown["exclusivity_proof"]["status"], "UNKNOWN")
+
+    def test_constructed_atoms_and_relations_have_external_provenance(self):
+        script = Script(
+            ["conditional_outcome", "omission_harm", "exclusive_allocation"],
+            {
+                "conditional_outcome": {
+                    "actor": "Maria", "condition": "If Maria pulls the lever",
+                    "bearer": "one worker", "outcome": "one worker will live",
+                    "second_condition": "NONE", "second_bearer": "NONE",
+                    "second_outcome": "NONE", "chance": "NONE",
+                },
+                "omission_harm": _none_sheet("omission_harm"),
+                "exclusive_allocation": _none_sheet("exclusive_allocation"),
+            },
+        )
+        proposal = choose_by_cloze(CONDITIONAL.split(". ")[0] + ".", script)["graph"]
+        ids = {row["atom_id"] for row in proposal["construction_provenance"]}
+        self.assertIn("action:A0", ids)
+        self.assertIn("effect:E2", ids)
+        relation = next(row for row in proposal["construction_provenance"]
+                        if row["atom_id"] == "relation:0")
+        self.assertEqual(relation["origin"], "UNRESOLVED")
 
 
 if __name__ == "__main__":

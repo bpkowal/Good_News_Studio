@@ -24,7 +24,11 @@ def group_span(label: str) -> str | None:
 
 
 def party_kind(label: str) -> str:
-    """Classify party labels consistently across cloze and Z10 builders."""
+    """Lexicon witness/veto only. Never write ``parties[].kind``.
+
+    A hit may support or block a licensed proposal. Missing evidence is OTHER,
+    not PERSON. PERSON is licensed from a construction role.
+    """
     folded = label.casefold()
     if _GROUP.search(label):
         return "HUMAN_GROUP"
@@ -36,7 +40,7 @@ def party_kind(label: str) -> str:
         return "COMMUNITY"
     if re.search(r"\b(?:bot|model|system)\b", folded):
         return "OTHER"
-    return "PERSON"
+    return "OTHER"
 
 
 def complement_clause_ids(quantity_clause_ids: list[str]) -> list[str]:

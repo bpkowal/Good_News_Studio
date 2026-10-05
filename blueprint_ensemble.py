@@ -10,7 +10,7 @@ from __future__ import annotations
 import re
 from typing import Any, Sequence
 
-from blueprint_allocation_invariants import party_kind
+from blueprint_kind_license import license_kind
 from blueprint_proposal_contract import (
     candidate as proposal_candidate,
     coverage_metrics,
@@ -732,7 +732,7 @@ def _branch(package: dict, index: int, row: dict[str, Any], intervention: str,
     action_id = f"A{index}"
     parties = [
         _party(package, "P1" if index == 0 else None, actor, "PERSON"),
-        _party(package, "P2" if index == 0 else None, bearer, _kind(bearer["label"], outcome_predicate)),
+        _party(package, "P2" if index == 0 else None, bearer, "PERSON"),
     ]
     # The caller merges parties across branches. Local ids are rewritten there.
     effects = [
@@ -766,6 +766,8 @@ def _branch(package: dict, index: int, row: dict[str, Any], intervention: str,
 
 def _proposal(package: dict, proposal_id: str, branches: list[dict[str, Any]],
               seed_ids: list[str]) -> dict[str, Any]:
+    blueprint_id = proposal_id.rsplit("_", 1)[0]
+    actor_labels = {branch["actor_label"].casefold() for branch in branches}
     parties: list[dict[str, Any]] = []
     party_id: dict[str, str] = {}
     for branch in branches:
@@ -776,9 +778,13 @@ def _proposal(package: dict, proposal_id: str, branches: list[dict[str, Any]],
                 continue
             ident = f"P{len(parties) + 1}"
             party_id[mention_key] = ident
-            kind = _kind(label, "")
+            role = "actor" if label.casefold() in actor_labels else "bearer"
+            licensed = license_kind(
+                label, role=role, text=package["document"]["text"],
+                construction=blueprint_id)
             parties.append({
-                "party_id": ident, "label": label, "kind": kind, "quantities": [],
+                "party_id": ident, "label": label, "kind": licensed["kind"],
+                "kind_origin": licensed["origin"], "quantities": [],
                 "clause_ids": _clause_ids_containing(package, label),
             })
     actions, effects, links = [], [], []
@@ -884,6 +890,8 @@ def _effect(effect_id: str, action_id: str, party_id: str, outcome: str, predica
         "overall_likelihood_qualifiers": [], "scope_qualifiers": [],
         "temporal_qualifiers": [], "condition_join": "AND",
         "source_proposition": source, "source_effect_ids": parents,
+        # Parenthood only proposes stipulated-causal. The proposal envelope
+        # licenses asserted copies and demotes polarity inversions.
         "derivation_operation": "DIRECT_COPY" if not parents else "SOURCE_STIPULATED_CAUSAL",
         "derivation_explanation": explanation, "derivation_assumptions": [],
         "outcome_type_transformation": "PRESERVED", "clause_ids": [clause_id],
@@ -903,10 +911,6 @@ def _count_token(label: str, source: str) -> str | None:
         if match:
             return match.group(0)
     return None
-
-
-def _kind(label: str, predicate: str) -> str:
-    return party_kind(label)
 
 
 def _outcome_polarity(row: dict[str, Any]) -> str:

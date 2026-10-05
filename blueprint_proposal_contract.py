@@ -9,15 +9,24 @@ from __future__ import annotations
 
 from typing import Any, Iterable, Sequence
 
+from blueprint_derivation_license import apply_derivation_license, derivation_errors
+from blueprint_kind_license import apply_kind_license
 
-CONTRACT_VERSION = "blueprint-proposal-contract/0.2"
+
+CONTRACT_VERSION = "blueprint-proposal-contract/0.4"
 ASSIGNMENT_KINDS = {"z10_proposition_ids", "intervention_text", "none"}
+PROVENANCE_ORIGINS = {
+    "SOURCE_ASSERTED", "STRUCTURALLY_DERIVED",
+    "WORLD_KNOWLEDGE_HYPOTHESIS", "UNRESOLVED",
+}
+EXCLUSIVITY_STATUSES = {"EXPLICIT", "DERIVED", "HYPOTHESIZED", "UNKNOWN"}
 PROPOSAL_KEYS = {
     "proposal_id", "blueprint_id", "status", "assignment_kind", "assignment",
     "slot_bindings", "selection", "selection_validation", "candidate", "clauses",
     "unfilled_required_slots", "unresolved_readings", "construction_problems",
     "admission_authorized", "notes",
     "pre_world_assessment", "accepted_evidence", "world_withheld",
+    "construction_provenance", "relation_alternatives", "exclusivity_proof",
 }
 WORLD_KEYS = {
     "schema_version", "parties", "actions", "effects", "conditions",
@@ -77,6 +86,9 @@ def proposal(*, proposal_id: str, blueprint_id: str, status: str,
              notes: Sequence[Any] = (),
              pre_world_assessment: dict[str, Any] | None = None,
              accepted_evidence: dict[str, Any] | None = None,
+             construction_provenance: Sequence[dict[str, Any]] = (),
+             relation_alternatives: Sequence[dict[str, Any]] = (),
+             exclusivity_proof: dict[str, Any] | None = None,
              world_withheld: Sequence[str] = ()) -> dict[str, Any]:
     row = {
         "proposal_contract_version": CONTRACT_VERSION,
@@ -100,8 +112,25 @@ def proposal(*, proposal_id: str, blueprint_id: str, status: str,
             "eligible_for_world_state": admission_authorized,
         },
         "accepted_evidence": accepted_evidence or {},
+        "construction_provenance": list(construction_provenance),
+        "relation_alternatives": list(relation_alternatives),
+        "exclusivity_proof": exclusivity_proof or {
+            "status": "UNKNOWN", "evidence": [], "assumptions": [],
+            "explanation": "No exclusivity claim is needed or established.",
+        },
         "world_withheld": list(world_withheld),
     }
+    if isinstance(candidate_value, dict) and isinstance(candidate_value.get("world_model"), dict):
+        apply_derivation_license(
+            candidate_value["world_model"],
+            list(clauses),
+            exclusivity_proof or row.get("exclusivity_proof") or {},
+        )
+        apply_kind_license(
+            candidate_value["world_model"],
+            list(clauses),
+            blueprint_id,
+        )
     errors = validate_proposal(row)
     if errors:
         raise ValueError("Invalid blueprint proposal envelope: " + "; ".join(errors))
@@ -118,7 +147,10 @@ def withheld_proposal(*, proposal_id: str, blueprint_id: str,
                       selection_validation: dict[str, Any] | None = None,
                       notes: Sequence[Any] = (),
                       pre_world_assessment: dict[str, Any] | None = None,
-                      accepted_evidence: dict[str, Any] | None = None) -> dict[str, Any]:
+                      accepted_evidence: dict[str, Any] | None = None,
+                      construction_provenance: Sequence[dict[str, Any]] = (),
+                      relation_alternatives: Sequence[dict[str, Any]] = (),
+                      exclusivity_proof: dict[str, Any] | None = None) -> dict[str, Any]:
     validation = selection_validation or {
         "contract_valid": None,
         "status": "not_assessed",
@@ -145,6 +177,9 @@ def withheld_proposal(*, proposal_id: str, blueprint_id: str,
             "eligible_for_world_state": False,
         },
         accepted_evidence=accepted_evidence or slot_bindings,
+        construction_provenance=construction_provenance,
+        relation_alternatives=relation_alternatives,
+        exclusivity_proof=exclusivity_proof,
         world_withheld=[
             problem.get("message", str(problem)) if isinstance(problem, dict) else str(problem)
             for problem in construction_problems
@@ -159,6 +194,14 @@ def validate_proposal(row: dict[str, Any]) -> list[str]:
         errors.append("missing proposal fields: " + ", ".join(missing))
     if row.get("assignment_kind") not in ASSIGNMENT_KINDS:
         errors.append("assignment_kind is invalid")
+    proof = row.get("exclusivity_proof") or {}
+    if proof.get("status") not in EXCLUSIVITY_STATUSES:
+        errors.append("exclusivity_proof.status is invalid")
+    for index, provenance in enumerate(row.get("construction_provenance") or []):
+        if provenance.get("origin") not in PROVENANCE_ORIGINS:
+            errors.append(f"construction_provenance[{index}] has invalid origin")
+        if not provenance.get("atom_id"):
+            errors.append(f"construction_provenance[{index}] has no atom_id")
     candidate_value = row.get("candidate")
     authorized = row.get("admission_authorized")
     problems = row.get("construction_problems") or []
@@ -177,6 +220,7 @@ def validate_proposal(row: dict[str, Any]) -> list[str]:
         errors.append("an authorized candidate cannot fail the pre-world assessment")
     if (
         row.get("blueprint_id") == "exclusive_allocation"
+        and proof.get("status") not in {"EXPLICIT", "DERIVED"}
         and assessment.get("exclusivity") != "evidenced"
     ):
         errors.append(
@@ -208,6 +252,8 @@ def validate_proposal(row: dict[str, Any]) -> list[str]:
             errors.append(f"{effect.get('effect_id', 'effect')} has no clause evidence")
         if not effect.get("source_proposition"):
             errors.append(f"{effect.get('effect_id', 'effect')} has no source proposition")
+    errors.extend(derivation_errors(
+        world, row.get("clauses") or [], row.get("exclusivity_proof") or {}))
     return errors
 
 

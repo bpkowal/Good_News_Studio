@@ -16,8 +16,8 @@ from typing import Any, Sequence
 from blueprint_allocation_invariants import (
     complement_clause_ids,
     group_quantity,
-    party_kind,
 )
+from blueprint_kind_license import license_kind
 from blueprint_proposal_contract import (
     candidate as proposal_candidate,
     proposal as normalized_proposal,
@@ -182,22 +182,38 @@ def instantiate_exclusive_allocation(package: dict, actions: Sequence[str]) -> d
         raise ValueError("Exact quantity is not textually attached to the allocated resource")
 
     actor_label = actors[0]["label"]
-    party_specs = [(actor_label, party_kind(actor_label), []),
-                   (recipients[0]["label"], party_kind(recipients[0]["label"]),
-                    group_quantity(recipients[0]["label"])),
-                   (recipients[1]["label"], party_kind(recipients[1]["label"]),
-                    group_quantity(recipients[1]["label"])),
-                   (resource_label, "RESOURCE", [_quantity_text(quantity_row["value"])])]
+    text = package["document"]["text"]
+    first_recipient = license_kind(
+        recipients[0]["label"], role="recipient", text=text,
+        construction="exclusive_allocation",
+        quantities=group_quantity(recipients[0]["label"]))
+    second_recipient = license_kind(
+        recipients[1]["label"], role="recipient", text=text,
+        construction="exclusive_allocation",
+        quantities=group_quantity(recipients[1]["label"]))
+    actor_license = license_kind(
+        actor_label, role="actor", text=text, construction="exclusive_allocation")
+    resource_license = license_kind(
+        resource_label, role="resource", text=text,
+        construction="exclusive_allocation",
+        quantities=[_quantity_text(quantity_row["value"])])
+    party_specs = [
+        (actor_label, actor_license, []),
+        (recipients[0]["label"], first_recipient, group_quantity(recipients[0]["label"])),
+        (recipients[1]["label"], second_recipient, group_quantity(recipients[1]["label"])),
+        (resource_label, resource_license, [_quantity_text(quantity_row["value"])]),
+    ]
     parties = []
     party_id: dict[str, str] = {}
     clauses = segment_source_clauses(package["document"]["text"])
-    for index, (label, kind, quantities) in enumerate(party_specs, 1):
+    for index, (label, licensed, quantities) in enumerate(party_specs, 1):
         ident = f"P{index}"
         party_id[label.casefold()] = ident
         clause_ids = [row["clause_id"] for row in clauses
                       if re.search(r"\b" + re.escape(_clean_label(label)) + r"\b",
                                    row["text"], flags=re.IGNORECASE)]
-        parties.append({"party_id": ident, "label": label, "kind": kind,
+        parties.append({"party_id": ident, "label": label, "kind": licensed["kind"],
+                        "kind_origin": licensed["origin"],
                         "quantities": quantities, "clause_ids": clause_ids})
 
     seed: set[str] = {quantity_row["id"]}
