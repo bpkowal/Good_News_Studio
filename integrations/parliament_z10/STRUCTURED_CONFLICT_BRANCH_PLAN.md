@@ -1,6 +1,31 @@
 # Proposed structured-conflict branch
 
-Status: design proposal, no scheduling or judgment changes implemented.
+Status: `Logic_Puzzles` branch started. Read-only claim/conflict projection
+implemented; independent generation, scheduling and judgment changes remain planned.
+
+## Current increment
+
+`run_logic_puzzles.py` projects the final cycle's committed native ledger records
+from a saved Parliament trace. It retains full records, attributed commitments,
+effect references, proposition dependencies, calibration objections, reported
+internal conflicts and reversal conditions. Rejected ledger proposals remain in
+diagnostics. Its proposed review queue contains at most two issues; no review or
+model call is executed. This increment does not change the shared world.
+
+Run from the repository root:
+
+```bash
+.venv/bin/python run_logic_puzzles.py \
+  --trace diagnostics/promise_specialist_handoff/live/workspace_scenario_20261004_234129.json
+.venv/bin/python -m unittest test_logic_puzzles
+```
+
+Outputs are `diagnostics/logic_puzzles_projection/conflict_graph.json` and
+`conflict_graph.md`. The saved two-action run yields 31 nodes and 23 edges.
+Three regression tests check lossless, deterministic projection without source
+mutation, rejected records and dangling references, and avoidance of false
+conflicts from different preferences alone. This establishes inspectable data;
+it does not yet demonstrate improved deliberation.
 
 Preserve the admitted-world schema, blueprints, composition engine, source
 advisory, original framework ledgers, and the legacy runner as a comparison arm.
