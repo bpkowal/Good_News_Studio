@@ -90,6 +90,13 @@ def project_conflicts(trace):
                  source='FRAMEWORK_REPORT', claim_ids=claim_ids,
                  localization_status='CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION')
             issues.append(conflict)
+        for warning in candidate.get('framework_validation_errors', []):
+            conflict = _id('CONFLICT', [origin, 'native_framework_warning', warning])
+            node(conflict, 'UNRESOLVED_CONFLICT', origin=origin, label=warning,
+                 conflict_type='NATIVE_FRAMEWORK_WARNING', status='OPEN',
+                 source='NATIVE_FRAMEWORK_VALIDATION', claim_ids=claim_ids,
+                 localization_status='CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION')
+            issues.append(conflict)
         condition = candidate.get('reversal_condition')
         if condition and condition != 'NONE':
             ident = _id('REVERSAL', [origin, condition])
@@ -99,8 +106,12 @@ def project_conflicts(trace):
             'mode': 'READ_ONLY_PROJECTION', 'world_mutation': False,
             'source_judgment_status': trace.get('judgment_status'),
             'nodes': list(nodes.values()), 'edges': edges, 'diagnostics': diagnostics,
-            'review_queue': list(dict.fromkeys(issues))[:2],
-            'limits': ['No independent model pass or targeted review executed.',
+            'review_queue': sorted(dict.fromkeys(issues), key=lambda ident: {
+                'UNSUPPORTED_INFERENCE': 0, 'REPORTED_INTERNAL_CONFLICT': 1,
+                'NATIVE_FRAMEWORK_WARNING': 2}.get(nodes[ident]['conflict_type'], 3))[:2],
+            'limits': [('Targeted native revisions are projected; no collective judgment.' if trace.get('targeted_review') else
+                        'Independent assessments are projected; no targeted review executed.' if trace.get('framework_runs') else
+                        'No independent model pass or targeted review executed.'),
                        'Different preferences do not establish a contradiction.',
                        'Native record commitment is not proof of every asserted premise.']}
 
@@ -129,12 +140,21 @@ def main():
     parser.add_argument('--trace', type=Path, required=True)
     parser.add_argument('--output-dir', type=Path, default=Path('diagnostics/logic_puzzles_projection'))
     parser.add_argument('--generate-frameworks', action='store_true')
+    parser.add_argument('--targeted-review', action='store_true')
     parser.add_argument('--frameworks', nargs='+', default=['utilitarian', 'deontological', 'care', 'virtue', 'rawlsian'])
     parser.add_argument('--model', default='o3')
     parser.add_argument('--parliament-root', type=Path, default=Path('/tmp/parliament-smoke-614af0c'))
     parser.add_argument('--parliament-python', type=Path, default=Path('/tmp/parliament-smoke-env/bin/python'))
     parser.add_argument('--core-root', type=Path)
     args = parser.parse_args()
+    if args.targeted_review and args.generate_frameworks:
+        parser.error('Choose generation or review for this invocation')
+    if args.targeted_review:
+        import subprocess
+        raise SystemExit(subprocess.call([
+            str(args.parliament_python), str(Path(__file__).with_name('logic_puzzles_review.py')),
+            '--trace', str(args.trace), '--output-dir', str(args.output_dir),
+            '--parliament-root', str(args.parliament_root), '--model', args.model]))
     if args.generate_frameworks:
         import subprocess
         command = [str(args.parliament_python), str(Path(__file__).with_name('logic_puzzles_frameworks.py')),

@@ -16,19 +16,28 @@ def fingerprint(value):
 
 class RecordedModel:
     """Bound native primary/repair calls and retain inspectable prompts/results."""
-    def __init__(self, backend, scenario, destination, max_calls=2):
+    def __init__(self, backend, scenario, destination, max_calls=2, review_context=None, response_normalizer=None):
         self.backend = backend
         self.scenario = scenario
         self.destination = Path(destination)
         self.max_calls = max_calls
         self.calls = []
+        self.review_context = deepcopy(review_context)
+        self.response_normalizer = response_normalizer
 
     def complete_json(self, prompt, **kwargs):
         if len(self.calls) >= self.max_calls:
             from global_workspace.structured_io import ModelCallBudgetExceeded
             raise ModelCallBudgetExceeded('Independent framework call limit reached')
-        prompt = ('INDEPENDENT FRAMEWORK PASS: no peer assessments, votes or confidence '
-                  'are available. Use your assigned framework and preserve unresolved premises.\n'
+        mode = ('TARGETED FRAMEWORK REVIEW: answer the assigned objections from your own framework. '
+                'Prior claim records are attributed arguments, not new world facts. '
+                'Do not invent a causal path or occurrence to make an objection disappear. '
+                'Retain a commitment, revise your native assessment, or leave the issue unresolved.\n'
+                'Localized review packet: ' + json.dumps(self.review_context) + '\n'
+                if self.review_context is not None else
+                'INDEPENDENT FRAMEWORK PASS: no peer assessments, votes or confidence '
+                'are available. Use your assigned framework and preserve unresolved premises.\n')
+        prompt = (mode +
                   'Exact source scenario (unabridged): ' + json.dumps(self.scenario) + '\n' + prompt)
         record = {'prompt': prompt, 'schema': deepcopy(kwargs.get('schema')),
                   'max_tokens': kwargs.get('max_tokens'), 'status': 'STARTED',
@@ -38,6 +47,10 @@ class RecordedModel:
         try:
             response = self.backend.complete_json(prompt, **kwargs)
             record.update(status='RETURNED', response=deepcopy(response))
+            if self.response_normalizer:
+                response, normalization = self.response_normalizer(response)
+                if normalization:
+                    record.update(normalization=normalization, normalized_response=deepcopy(response))
             return response
         except Exception as error:
             # Native adapter classifies provider errors without exposing credentials.
@@ -105,6 +118,7 @@ def generate(trace_path, output_dir, frameworks, backend_factory, *, tokens=3072
     aggregate = {'version': 'logic-puzzles-independent-pass/0.1',
                  'scenario': replay.scenario, 'actions': list(replay.canonical_actions),
                  'presentation_actions': list(replay.presentation_actions),
+                 'canonical_action_records': deepcopy(list(replay.canonical_action_records)),
                  'action_source_grounding': deepcopy(before), 'proposition_ledger': seed,
                  'source_construction_advisory': deepcopy(replay.source_construction_advisory),
                  'framework_proposition_ledgers': {}, 'cycles': [{'cycle': 1, 'candidates': []}],

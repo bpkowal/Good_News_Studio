@@ -42,6 +42,7 @@ class ConflictProjectionTests(unittest.TestCase):
         trace=self.trace()
         for candidate in trace['cycles'][-1]['candidates']:
             candidate['framework_internal_conflicts']=[]
+            candidate['framework_validation_errors']=[]
             for record in candidate['committed_native_ledger']['records']:
                 record['calibration_errors']=[]
         graph=project_conflicts(trace)

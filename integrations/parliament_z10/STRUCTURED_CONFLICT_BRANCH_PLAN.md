@@ -1,8 +1,8 @@
 # Proposed structured-conflict branch
 
-Status: `Logic_Puzzles` branch started. Read-only claim/conflict projection and
-isolated native framework generation implemented. Targeted review and collective
-judgment changes remain planned.
+Status: `Logic_Puzzles` branch started. Read-only claim/conflict projection,
+isolated native generation and one bounded targeted review round implemented.
+Collective judgment changes and a matched comparison remain planned.
 
 ## Current increment
 
@@ -71,7 +71,60 @@ deontology, care and Rawls committed with uncertainty. The combined graph has 14
 native claim records, 54 nodes and 33 edges. It retains three calibration objections
 and three reported internal conflicts from deontology. The source world remained
 unchanged. These are usable independent outputs, not a demonstration of improved
-ethical conclusions; targeted review and a matched legacy comparison remain next.
+ethical conclusions; a matched legacy comparison remains next.
+
+## Targeted review increment
+
+```bash
+.venv/bin/python run_logic_puzzles.py --targeted-review \
+  --trace diagnostics/logic_puzzles_independent_live/framework_generation.json \
+  --output-dir diagnostics/logic_puzzles_targeted_review_live
+```
+
+Select at most two existing graph objections. Bundle issues owned by the same
+framework into one coherent native assessment; this avoids two competing rewrites
+of a single claim. The packet includes full targeted records, their attributed
+support and dependencies, the original source advisory and the immutable world.
+It excludes unrelated peer assessments, votes and confidence. Native `qa` answers
+the bundle; the report separately checks each original calibration objection.
+
+Revisions run through the existing native ledger transaction path in a fresh
+one-cycle workspace, with at most two adapter calls per framework. Reconciliation
+replaces only that framework's admitted proposal; failed or misaddressed attempts
+remain diagnostic and leave original claims operative. Every original assessment
+is retained. New local hypotheses remain attributed and never modify the world.
+`NO_LONGER_REPORTED_BY_NATIVE_VALIDATOR` describes an absent calibration warning,
+not independently verified semantic correctness. A model's `RESOLVED` answer
+does not erase an objection still reported by the validator. Native uncertainty
+is preserved and collective judgment remains `NOT_ADJUDICATED`.
+
+Outputs include original and revised graphs, exact review packets/model calls,
+full native traces and `targeted_review.md` with original/proposed records and
+residual issues. Five review regressions cover packet locality, the two-issue
+limit, failed/misaddressed revisions, untouched frameworks and false resolution
+claims. The native challenge ID prefix is `CHALLENGE:`; tests verify the agenda
+survives native broadcast filtering and that the `qa` schema is actually required.
+
+The live answer revised `INTENDED_AS_MEANS` to `FORESEEN_SIDE_EFFECT` and left
+`DOING_HARM` as `UNRESOLVED`. Its duplicate prose action map contradicted one typed
+duty verdict, so the native parser initially discarded the ledger. A deterministic
+review-only rendering now derives that display map from the typed duty fields,
+retaining the raw answer and transformation provenance. It does not change duties,
+participants, scope, premises or the world. Unsupported typed content still receives
+ordinary native validation. This closes a redundant representation, rather than
+loosening semantic admission.
+
+Replaying that same saved live response through the corrected path (no new API
+call) reconciles the native revision with `COMMITTED_WITH_UNCERTAINTY`. Both original
+calibration warnings disappear; doing harm remains unresolved. The recommendation
+stays not to pull the lever. A remaining required-duty/consistent-relation warning
+and the other frameworks' native warnings remain visible in the graph. No majority
+decision or governing verdict is inferred. The failed handoff and original live
+answer remain separate artifacts. Results:
+`diagnostics/logic_puzzles_targeted_review_live/closed_replay_final/targeted_review.md`.
+
+All 17 review, projection/isolation and source-advisory tests pass, including a
+saved-response native regression for the exact revision and retained uncertainty.
 
 Preserve the admitted-world schema, blueprints, composition engine, source
 advisory, original framework ledgers, and the legacy runner as a comparison arm.
