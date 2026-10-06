@@ -16,7 +16,7 @@ def fingerprint(value):
 
 class RecordedModel:
     """Bound native primary/repair calls and retain inspectable prompts/results."""
-    def __init__(self, backend, scenario, destination, max_calls=2, review_context=None, response_normalizer=None):
+    def __init__(self, backend, scenario, destination, max_calls=2, review_context=None, response_normalizer=None, independent=True):
         self.backend = backend
         self.scenario = scenario
         self.destination = Path(destination)
@@ -24,6 +24,7 @@ class RecordedModel:
         self.calls = []
         self.review_context = deepcopy(review_context)
         self.response_normalizer = response_normalizer
+        self.independent = independent
 
     def complete_json(self, prompt, **kwargs):
         if len(self.calls) >= self.max_calls:
@@ -36,7 +37,9 @@ class RecordedModel:
                 'Localized review packet: ' + json.dumps(self.review_context) + '\n'
                 if self.review_context is not None else
                 'INDEPENDENT FRAMEWORK PASS: no peer assessments, votes or confidence '
-                'are available. Use your assigned framework and preserve unresolved premises.\n')
+                'are available. Use your assigned framework and preserve unresolved premises.\n'
+                if self.independent else
+                'NATIVE PARLIAMENT PASS: peer arguments remain attributed; preserve your framework and unresolved premises.\n')
         prompt = (mode +
                   'Exact source scenario (unabridged): ' + json.dumps(self.scenario) + '\n' + prompt)
         record = {'prompt': prompt, 'schema': deepcopy(kwargs.get('schema')),
@@ -46,7 +49,8 @@ class RecordedModel:
         self.save()
         try:
             response = self.backend.complete_json(prompt, **kwargs)
-            record.update(status='RETURNED', response=deepcopy(response))
+            record.update(status='RETURNED', response=deepcopy(response),
+                          response_origin=getattr(self.backend, 'last_call_origin', 'MODEL_BACKEND'))
             if self.response_normalizer:
                 response, normalization = self.response_normalizer(response)
                 if normalization:
@@ -89,7 +93,7 @@ def write_outputs(aggregate, output_dir):
     (output_dir/'framework_generation.md').write_text('\n'.join(lines))
 
 
-def generate(trace_path, output_dir, frameworks, backend_factory, *, tokens=3072, core_root=None):
+def generate(trace_path, output_dir, frameworks, backend_factory, *, tokens=3072, core_root=None, core_quotes=None, response_normalizers=None):
     from global_workspace.core_quote_pack import core_pack_for_specialists
     from global_workspace.engine import WorkspaceEngine, WorkspaceConfig
     from global_workspace.epistemic_ledger import seed_proposition_ledger, ledger_projection
@@ -127,14 +131,16 @@ def generate(trace_path, output_dir, frameworks, backend_factory, *, tokens=3072
                  'limits': ['Independent generation only; no peer review or collective judgment.',
                             'Native ledger admission does not establish every generated premise.',
                             'At most two adapter calls per framework; provider retry behavior is unchanged.']}
-    quotes = (core_pack_for_specialists(frameworks, root=Path(core_root))
+    quotes = (deepcopy(core_quotes) if core_quotes is not None else
+              core_pack_for_specialists(frameworks, root=Path(core_root))
               if core_root else core_pack_for_specialists(frameworks))
     (output_dir/'framework_commitments.json').write_text(json.dumps(quotes, indent=2) + '\n')
     for name in frameworks:
         print('Independent ' + name + ' generation...', flush=True)
         folder = output_dir/name
         folder.mkdir(parents=True, exist_ok=True)
-        recorded = RecordedModel(backend_factory(name), replay.scenario, folder/'model_calls.json')
+        recorded = RecordedModel(backend_factory(name), replay.scenario, folder/'model_calls.json',
+                                 response_normalizer=(response_normalizers or {}).get(name))
         specialist = CompactLocalSpecialist(
             name, recorded, max_tokens=tokens,
             scenario_facts=extract_scenario_facts(replay.scenario),

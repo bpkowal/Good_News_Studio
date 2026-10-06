@@ -118,7 +118,7 @@ assert (Path(sys.argv[3])/'targeted_review.md').exists()
         self.assertEqual(provenance['changed_fields'], ['fm'])
         self.assertFalse(provenance['semantic_fields_changed'])
 
-    def test_saved_live_answer_reconciles_through_native_ledgers(self):
+    def test_native_review_preserves_prior_after_conflicting_saved_revision(self):
         native = Path('/tmp/parliament-smoke-env/bin/python')
         root = Path('/tmp/parliament-smoke-614af0c')
         if not native.exists() or not root.exists():
@@ -135,15 +135,20 @@ class Saved:
     execution_mode='SAVED_RESPONSE_REPLAY'
     def complete_json(self,prompt,**kwargs):return response
 source=json.loads(Path(sys.argv[2]).read_text())
-result=review(Path(sys.argv[2]),Path(sys.argv[4]),lambda name:Saved())
+result=review(Path(sys.argv[2]),Path(sys.argv[4]),lambda name:Saved(),allow_partial=False)
 assert result['targeted_review']['execution_modes']=={'deontological':'SAVED_RESPONSE_REPLAY'}
-assert all(i['review_status']=='RECONCILED' for i in result['targeted_review']['issues'])
-assert all(i['objection_check']=='NO_LONGER_REPORTED_BY_NATIVE_VALIDATOR' for i in result['targeted_review']['issues'])
+assert all(i['review_status']=='RETAINED_AFTER_NATIVE_REJECTION' for i in result['targeted_review']['issues'])
+assert all(i['objection_check']=='OPEN' for i in result['targeted_review']['issues'])
 assert result['action_source_grounding']==source['action_source_grounding']
 candidate=next(c for c in result['cycles'][-1]['candidates'] if c['specialist']=='deontological')
 record=next(r for r in candidate['committed_native_ledger']['records'] if r['canonical_action_id']=='A0')
-assert record['harm_relation']=='UNRESOLVED'
-assert record['means_relation']=='FORESEEN_SIDE_EFFECT'
+assert record['harm_relation']=='DOING_HARM'
+assert record['means_relation']=='INTENDED_AS_MEANS'
+assert result['targeted_review']['acceptance_path']=='NATIVE_RECURRENT_PROPOSAL_REVIEW'
+native=json.loads((Path(sys.argv[4])/'deontological/native_trace.json').read_text())
+assert len(native['cycles'])==2
+assert native['cycles'][0]['candidates'][0]['committed_native_ledger']==candidate['committed_native_ledger']
+assert json.loads((Path(sys.argv[4])/'deontological/prior_framework_state.json').read_text())['prior_framework_state']
 assert candidate['committed_native_ledger']['transaction_status']=='COMMITTED_WITH_UNCERTAINTY'
 assert candidate['framework_validation_errors']
 for c in source['cycles'][0]['candidates']:
@@ -152,6 +157,38 @@ for c in source['cycles'][0]['candidates']:
         with tempfile.TemporaryDirectory() as folder:
             result = subprocess.run([str(native), '-c', code, str(root), str(FIXTURE.resolve()),
                                      str(saved.resolve()), folder], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_native_review_accepts_saved_means_correction_and_exposes_other_changes(self):
+        native = Path('/tmp/parliament-smoke-env/bin/python')
+        root = Path('/tmp/parliament-smoke-614af0c')
+        if not native.exists() or not root.exists():
+            self.skipTest('Pinned native Parliament unavailable')
+        code = r'''
+import json,sys
+from pathlib import Path
+sys.path.insert(0,sys.argv[1])
+from logic_puzzles_review import review
+from logic_puzzles_acceptance import SavedResponses
+source=Path('diagnostics/logic_puzzles_matched_live/independent/framework_generation.json')
+response=json.loads(Path('diagnostics/logic_puzzles_matched_live/targeted/deontological/model_calls.json').read_text())[0]['response']
+before=json.loads(source.read_text())
+result=review(source,Path(sys.argv[2]),lambda name:SavedResponses([response]),max_calls=1)
+assert result['targeted_review']['adapter_calls']=={'deontological':1}
+assert result['targeted_review']['prior_replay_calls']=={'deontological':1}
+assert all(i['review_status']=='RECONCILED' for i in result['targeted_review']['issues'])
+assert [i['objection_check'] for i in result['targeted_review']['issues']]==['OPEN','NO_LONGER_REPORTED_BY_NATIVE_VALIDATOR']
+native=json.loads((Path(sys.argv[2])/'deontological/native_trace.json').read_text())
+prior=next(c for c in before['cycles'][-1]['candidates'] if c['specialist']=='deontological')
+assert native['cycles'][0]['candidates'][0]['committed_native_ledger']==prior['committed_native_ledger']
+assert result['action_source_grounding']==before['action_source_grounding']
+assert any('competing_protected_party' in row for issue in result['targeted_review']['issues'] for row in issue['classification_changes'])
+assert 'competing_protected_party' in (Path(sys.argv[2])/'targeted_review.md').read_text()
+for c in before['cycles'][-1]['candidates']:
+ if c['specialist']!='deontological':assert c in result['cycles'][-1]['candidates']
+'''
+        with tempfile.TemporaryDirectory() as folder:
+            result = subprocess.run([str(native), '-c', code, str(root), folder], capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
 

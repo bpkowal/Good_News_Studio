@@ -1,0 +1,2145 @@
+{
+  "version": "logic-puzzles-conflict-projection/0.1",
+  "mode": "READ_ONLY_PROJECTION",
+  "world_mutation": false,
+  "source_judgment_status": "NOT_ADJUDICATED",
+  "nodes": [
+    {
+      "id": "WORLD:E1",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E1",
+        "action_id": "A0",
+        "party_id": "P3",
+        "outcome": "pulls the lever",
+        "relation": "PULL",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "INTERVENTION",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C2",
+            "excerpt": "If Maria pulls the lever, one worker will die."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "pulls the lever",
+        "source_effect_ids": [],
+        "derivation_operation": "DIRECT_COPY",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "pulls the lever"
+    },
+    {
+      "id": "WORLD:E2",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E2",
+        "action_id": "A0",
+        "party_id": "P3",
+        "outcome": "pulls the lever",
+        "relation": "PULL",
+        "polarity": "NEUTRAL",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "PHYSICAL_STATE",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C2",
+            "excerpt": "If Maria pulls the lever, one worker will die."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "pulls the lever",
+        "source_effect_ids": [
+          "E1"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "pulls the lever"
+    },
+    {
+      "id": "WORLD:E3",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E3",
+        "action_id": "A0",
+        "party_id": "P2",
+        "outcome": "one worker will die",
+        "relation": "DIE",
+        "polarity": "ADVERSE",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "HEALTH_OUTCOME",
+        "condition_ids": [],
+        "quantities": [
+          "one"
+        ],
+        "provenance": [
+          {
+            "clause_id": "C2",
+            "excerpt": "If Maria pulls the lever, one worker will die."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "one worker will die",
+        "source_effect_ids": [
+          "E2"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "one worker will die"
+    },
+    {
+      "id": "WORLD:E4",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E4",
+        "action_id": "A1",
+        "party_id": "P3",
+        "outcome": "does not pull the lever",
+        "relation": "PULL",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "INTERVENTION",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "If Maria does not pull the lever, five workers will die."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "does not pull the lever",
+        "source_effect_ids": [],
+        "derivation_operation": "DIRECT_COPY",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "does not pull the lever"
+    },
+    {
+      "id": "WORLD:E5",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E5",
+        "action_id": "A1",
+        "party_id": "P3",
+        "outcome": "does not pull the lever",
+        "relation": "PULL",
+        "polarity": "NEUTRAL",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "PHYSICAL_STATE",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "If Maria does not pull the lever, five workers will die."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "does not pull the lever",
+        "source_effect_ids": [
+          "E4"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "does not pull the lever"
+    },
+    {
+      "id": "WORLD:E6",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E6",
+        "action_id": "A1",
+        "party_id": "P4",
+        "outcome": "five workers will die",
+        "relation": "DIE",
+        "polarity": "ADVERSE",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "HEALTH_OUTCOME",
+        "condition_ids": [],
+        "quantities": [
+          "five"
+        ],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "If Maria does not pull the lever, five workers will die."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "five workers will die",
+        "source_effect_ids": [
+          "E5"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "five workers will die"
+    },
+    {
+      "id": "PROP:WORLD:CONDITION:CND1",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:CONDITION:CND1",
+        "claim": "If Maria pulls the lever",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "UNRESOLVED",
+        "support_ids": [
+          "CND1"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "UNKNOWN_PARAMETER",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "UNRESOLVED",
+      "label": "If Maria pulls the lever"
+    },
+    {
+      "id": "PROP:WORLD:CONDITION:CND2",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:CONDITION:CND2",
+        "claim": "If Maria does not pull the lever",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "UNRESOLVED",
+        "support_ids": [
+          "CND2"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "UNKNOWN_PARAMETER",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "UNRESOLVED",
+      "label": "If Maria does not pull the lever"
+    },
+    {
+      "id": "PROP:WORLD:E1",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E1",
+        "claim": "pulls the lever; affected subject: the lever",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E1"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "pulls the lever"
+        ],
+        "action_id": "A0",
+        "outcome": "pulls the lever",
+        "polarity": "NEUTRAL",
+        "party_labels": [
+          "the lever"
+        ],
+        "quantities": [],
+        "effect_kind": "INTERVENTION",
+        "context_terms": [
+          "pulls the lever"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DIRECT",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "pulls the lever; affected subject: the lever"
+    },
+    {
+      "id": "PROP:WORLD:E2",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E2",
+        "claim": "pulls the lever; affected subject: the lever",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E2"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "pulls the lever"
+        ],
+        "action_id": "A0",
+        "outcome": "pulls the lever",
+        "polarity": "NEUTRAL",
+        "party_labels": [
+          "the lever"
+        ],
+        "quantities": [],
+        "effect_kind": "PHYSICAL_STATE",
+        "context_terms": [
+          "pulls the lever"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "pulls the lever; affected subject: the lever"
+    },
+    {
+      "id": "PROP:WORLD:E3",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E3",
+        "claim": "one worker will die; affected subject: one worker",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E3"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "one worker will die"
+        ],
+        "action_id": "A0",
+        "outcome": "one worker will die",
+        "polarity": "ADVERSE",
+        "party_labels": [
+          "one worker"
+        ],
+        "quantities": [
+          "one"
+        ],
+        "effect_kind": "HEALTH_OUTCOME",
+        "context_terms": [
+          "one worker will die",
+          "pulls the lever"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "one worker will die; affected subject: one worker"
+    },
+    {
+      "id": "PROP:WORLD:E4",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E4",
+        "claim": "does not pull the lever; affected subject: the lever",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E4"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "does not pull the lever"
+        ],
+        "action_id": "A1",
+        "outcome": "does not pull the lever",
+        "polarity": "NEUTRAL",
+        "party_labels": [
+          "the lever"
+        ],
+        "quantities": [],
+        "effect_kind": "INTERVENTION",
+        "context_terms": [
+          "does not pull the lever"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DIRECT",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "does not pull the lever; affected subject: the lever"
+    },
+    {
+      "id": "PROP:WORLD:E5",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E5",
+        "claim": "does not pull the lever; affected subject: the lever",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E5"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "does not pull the lever"
+        ],
+        "action_id": "A1",
+        "outcome": "does not pull the lever",
+        "polarity": "NEUTRAL",
+        "party_labels": [
+          "the lever"
+        ],
+        "quantities": [],
+        "effect_kind": "PHYSICAL_STATE",
+        "context_terms": [
+          "does not pull the lever"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "does not pull the lever; affected subject: the lever"
+    },
+    {
+      "id": "PROP:WORLD:E6",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E6",
+        "claim": "five workers will die; affected subject: five workers",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E6"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "five workers will die"
+        ],
+        "action_id": "A1",
+        "outcome": "five workers will die",
+        "polarity": "ADVERSE",
+        "party_labels": [
+          "five workers"
+        ],
+        "quantities": [
+          "five"
+        ],
+        "effect_kind": "HEALTH_OUTCOME",
+        "context_terms": [
+          "five workers will die",
+          "does not pull the lever"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "five workers will die; affected subject: five workers"
+    },
+    {
+      "id": "PROP:WORLD:PARTY:P4:QUANTITY:87ef15574ecb",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:PARTY:P4:QUANTITY:87ef15574ecb",
+        "claim": "five workers",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "P4",
+          "five"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [],
+        "action_id": "A1",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [
+          "five workers"
+        ],
+        "quantities": [
+          "five"
+        ],
+        "effect_kind": "",
+        "context_terms": [
+          "does not pull the lever"
+        ],
+        "modality": "",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "five workers"
+    },
+    {
+      "id": "utilitarian::PROP:WORLD:E3",
+      "kind": "PROPOSITION",
+      "origin": "utilitarian",
+      "native_proposition_id": "PROP:WORLD:E3",
+      "record": {
+        "proposition_id": "PROP:WORLD:E3",
+        "claim": "one worker will die; affected subject: one worker",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E3"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 2,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "one worker will die"
+        ],
+        "action_id": "A0",
+        "outcome": "one worker will die",
+        "polarity": "ADVERSE",
+        "party_labels": [
+          "one worker"
+        ],
+        "quantities": [
+          "one"
+        ],
+        "effect_kind": "HEALTH_OUTCOME",
+        "context_terms": [
+          "one worker will die",
+          "pulls the lever"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "one worker will die; affected subject: one worker"
+    },
+    {
+      "id": "utilitarian::PROP:WORLD:E6",
+      "kind": "PROPOSITION",
+      "origin": "utilitarian",
+      "native_proposition_id": "PROP:WORLD:E6",
+      "record": {
+        "proposition_id": "PROP:WORLD:E6",
+        "claim": "five workers will die; affected subject: five workers",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E6"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 2,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "five workers will die"
+        ],
+        "action_id": "A1",
+        "outcome": "five workers will die",
+        "polarity": "ADVERSE",
+        "party_labels": [
+          "five workers"
+        ],
+        "quantities": [
+          "five"
+        ],
+        "effect_kind": "HEALTH_OUTCOME",
+        "context_terms": [
+          "five workers will die",
+          "does not pull the lever"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "five workers will die; affected subject: five workers"
+    },
+    {
+      "id": "deontological::PROP:WORLD:E3",
+      "kind": "PROPOSITION",
+      "origin": "deontological",
+      "native_proposition_id": "PROP:WORLD:E3",
+      "record": {
+        "proposition_id": "PROP:WORLD:E3",
+        "claim": "one worker will die; affected subject: one worker",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E3"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 2,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "one worker will die"
+        ],
+        "action_id": "A0",
+        "outcome": "one worker will die",
+        "polarity": "ADVERSE",
+        "party_labels": [
+          "one worker"
+        ],
+        "quantities": [
+          "one"
+        ],
+        "effect_kind": "HEALTH_OUTCOME",
+        "context_terms": [
+          "one worker will die",
+          "pulls the lever"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "one worker will die; affected subject: one worker"
+    },
+    {
+      "id": "deontological::PROP:WORLD:E6",
+      "kind": "PROPOSITION",
+      "origin": "deontological",
+      "native_proposition_id": "PROP:WORLD:E6",
+      "record": {
+        "proposition_id": "PROP:WORLD:E6",
+        "claim": "five workers will die; affected subject: five workers",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E6"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 2,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "five workers will die"
+        ],
+        "action_id": "A1",
+        "outcome": "five workers will die",
+        "polarity": "ADVERSE",
+        "party_labels": [
+          "five workers"
+        ],
+        "quantities": [
+          "five"
+        ],
+        "effect_kind": "HEALTH_OUTCOME",
+        "context_terms": [
+          "five workers will die",
+          "does not pull the lever"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "five workers will die; affected subject: five workers"
+    },
+    {
+      "id": "care::PROP:WORLD:CONDITION:CND1",
+      "kind": "PROPOSITION",
+      "origin": "care",
+      "native_proposition_id": "PROP:WORLD:CONDITION:CND1",
+      "record": {
+        "proposition_id": "PROP:WORLD:CONDITION:CND1",
+        "claim": "If Maria pulls the lever",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "UNRESOLVED",
+        "support_ids": [
+          "CND1"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 2,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "UNKNOWN_PARAMETER",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "UNRESOLVED",
+      "label": "If Maria pulls the lever"
+    },
+    {
+      "id": "care::PROP:WORLD:CONDITION:CND2",
+      "kind": "PROPOSITION",
+      "origin": "care",
+      "native_proposition_id": "PROP:WORLD:CONDITION:CND2",
+      "record": {
+        "proposition_id": "PROP:WORLD:CONDITION:CND2",
+        "claim": "If Maria does not pull the lever",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "UNRESOLVED",
+        "support_ids": [
+          "CND2"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 2,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "UNKNOWN_PARAMETER",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "UNRESOLVED",
+      "label": "If Maria does not pull the lever"
+    },
+    {
+      "id": "virtue::PROP:WORLD:E3",
+      "kind": "PROPOSITION",
+      "origin": "virtue",
+      "native_proposition_id": "PROP:WORLD:E3",
+      "record": {
+        "proposition_id": "PROP:WORLD:E3",
+        "claim": "one worker will die; affected subject: one worker",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E3"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 2,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "one worker will die"
+        ],
+        "action_id": "A0",
+        "outcome": "one worker will die",
+        "polarity": "ADVERSE",
+        "party_labels": [
+          "one worker"
+        ],
+        "quantities": [
+          "one"
+        ],
+        "effect_kind": "HEALTH_OUTCOME",
+        "context_terms": [
+          "one worker will die",
+          "pulls the lever"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "one worker will die; affected subject: one worker"
+    },
+    {
+      "id": "virtue::PROP:WORLD:E6",
+      "kind": "PROPOSITION",
+      "origin": "virtue",
+      "native_proposition_id": "PROP:WORLD:E6",
+      "record": {
+        "proposition_id": "PROP:WORLD:E6",
+        "claim": "five workers will die; affected subject: five workers",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E6"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 2,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "five workers will die"
+        ],
+        "action_id": "A1",
+        "outcome": "five workers will die",
+        "polarity": "ADVERSE",
+        "party_labels": [
+          "five workers"
+        ],
+        "quantities": [
+          "five"
+        ],
+        "effect_kind": "HEALTH_OUTCOME",
+        "context_terms": [
+          "five workers will die",
+          "does not pull the lever"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "five workers will die; affected subject: five workers"
+    },
+    {
+      "id": "rawlsian::PROP:WORLD:E3",
+      "kind": "PROPOSITION",
+      "origin": "rawlsian",
+      "native_proposition_id": "PROP:WORLD:E3",
+      "record": {
+        "proposition_id": "PROP:WORLD:E3",
+        "claim": "one worker will die; affected subject: one worker",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E3"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 2,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "one worker will die"
+        ],
+        "action_id": "A0",
+        "outcome": "one worker will die",
+        "polarity": "ADVERSE",
+        "party_labels": [
+          "one worker"
+        ],
+        "quantities": [
+          "one"
+        ],
+        "effect_kind": "HEALTH_OUTCOME",
+        "context_terms": [
+          "one worker will die",
+          "pulls the lever"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "one worker will die; affected subject: one worker"
+    },
+    {
+      "id": "rawlsian::PROP:WORLD:E6",
+      "kind": "PROPOSITION",
+      "origin": "rawlsian",
+      "native_proposition_id": "PROP:WORLD:E6",
+      "record": {
+        "proposition_id": "PROP:WORLD:E6",
+        "claim": "five workers will die; affected subject: five workers",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E6"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 2,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "five workers will die"
+        ],
+        "action_id": "A1",
+        "outcome": "five workers will die",
+        "polarity": "ADVERSE",
+        "party_labels": [
+          "five workers"
+        ],
+        "quantities": [
+          "five"
+        ],
+        "effect_kind": "HEALTH_OUTCOME",
+        "context_terms": [
+          "five workers will die",
+          "does not pull the lever"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "five workers will die; affected subject: five workers"
+    },
+    {
+      "id": "CLAIM:341a1dd87a753f5b",
+      "kind": "CLAIM",
+      "origin": "utilitarian",
+      "native_ledger_kind": "UTILITARIAN_CONSEQUENCE_LEDGER",
+      "native_record_id": null,
+      "record": {
+        "consequence_node_id": "UTIL_CONSEQUENCE:utilitarian:A0:183499aaeec2",
+        "outcome": "one worker will die",
+        "framework": "UTILITARIAN",
+        "specialist": "utilitarian",
+        "cycle": 1,
+        "canonical_action_id": "A0",
+        "grounded_effect_id": "E3",
+        "world_effect_id": "E3",
+        "direction": "HARM",
+        "direction_source": "GROUNDED_WORLD_POLARITY",
+        "polarity": "ADVERSE",
+        "grounded_world_polarity": "ADVERSE",
+        "probability": "CERTAIN",
+        "modality": "CERTAIN",
+        "magnitude": "one",
+        "duration": "UNKNOWN",
+        "reversibility": "UNKNOWN",
+        "support": "STATED",
+        "epistemic_status": "SCENARIO_GROUNDED",
+        "importance": "CRITICAL",
+        "valuation_reason": "Loss of one life significant negative welfare",
+        "scope_node_id": "UTIL_SCOPE:879bcf30890178b8",
+        "provenance": [
+          "delegate:utilitarian",
+          "cycle:1",
+          "grounded_effect:E3"
+        ]
+      },
+      "action_id": "A0",
+      "epistemic_status": "SCENARIO_GROUNDED",
+      "label": "utilitarian: A0 assessment"
+    },
+    {
+      "id": "CLAIM:98ea70af0ddfa925",
+      "kind": "CLAIM",
+      "origin": "utilitarian",
+      "native_ledger_kind": "UTILITARIAN_CONSEQUENCE_LEDGER",
+      "native_record_id": null,
+      "record": {
+        "consequence_node_id": "UTIL_CONSEQUENCE:utilitarian:A0:22249aa61fd2",
+        "outcome": "pulls the lever",
+        "framework": "UTILITARIAN",
+        "specialist": "utilitarian",
+        "cycle": 1,
+        "canonical_action_id": "A0",
+        "grounded_effect_id": "E1",
+        "world_effect_id": "E1",
+        "direction": "NEUTRAL",
+        "direction_source": "GROUNDED_WORLD_POLARITY",
+        "polarity": "NEUTRAL",
+        "grounded_world_polarity": "NEUTRAL",
+        "probability": "CERTAIN",
+        "modality": "CERTAIN",
+        "magnitude": "UNKNOWN",
+        "duration": "UNKNOWN",
+        "reversibility": "UNKNOWN",
+        "support": "STATED",
+        "epistemic_status": "SCENARIO_GROUNDED",
+        "importance": "NEGLIGIBLE",
+        "valuation_reason": "Neutral physical act",
+        "scope_node_id": "UTIL_SCOPE:de77f43f328b2bb4",
+        "provenance": [
+          "delegate:utilitarian",
+          "cycle:1",
+          "grounded_effect:E1"
+        ]
+      },
+      "action_id": "A0",
+      "epistemic_status": "SCENARIO_GROUNDED",
+      "label": "utilitarian: A0 assessment"
+    },
+    {
+      "id": "CLAIM:5bbdd427a46e4157",
+      "kind": "CLAIM",
+      "origin": "utilitarian",
+      "native_ledger_kind": "UTILITARIAN_CONSEQUENCE_LEDGER",
+      "native_record_id": null,
+      "record": {
+        "consequence_node_id": "UTIL_CONSEQUENCE:utilitarian:A0:713a5bb2d170",
+        "outcome": "pulls the lever",
+        "framework": "UTILITARIAN",
+        "specialist": "utilitarian",
+        "cycle": 1,
+        "canonical_action_id": "A0",
+        "grounded_effect_id": "E2",
+        "world_effect_id": "E2",
+        "direction": "NEUTRAL",
+        "direction_source": "GROUNDED_WORLD_POLARITY",
+        "polarity": "NEUTRAL",
+        "grounded_world_polarity": "NEUTRAL",
+        "probability": "CERTAIN",
+        "modality": "CERTAIN",
+        "magnitude": "UNKNOWN",
+        "duration": "UNKNOWN",
+        "reversibility": "UNKNOWN",
+        "support": "STATED",
+        "epistemic_status": "SCENARIO_GROUNDED",
+        "importance": "NEGLIGIBLE",
+        "valuation_reason": "Neutral downstream state",
+        "scope_node_id": "UTIL_SCOPE:de77f43f328b2bb4",
+        "provenance": [
+          "delegate:utilitarian",
+          "cycle:1",
+          "grounded_effect:E2"
+        ]
+      },
+      "action_id": "A0",
+      "epistemic_status": "SCENARIO_GROUNDED",
+      "label": "utilitarian: A0 assessment"
+    },
+    {
+      "id": "CLAIM:e58a0c5b5664d58a",
+      "kind": "CLAIM",
+      "origin": "utilitarian",
+      "native_ledger_kind": "UTILITARIAN_CONSEQUENCE_LEDGER",
+      "native_record_id": null,
+      "record": {
+        "consequence_node_id": "UTIL_CONSEQUENCE:utilitarian:A1:b073b98568c2",
+        "outcome": "five workers will die",
+        "framework": "UTILITARIAN",
+        "specialist": "utilitarian",
+        "cycle": 1,
+        "canonical_action_id": "A1",
+        "grounded_effect_id": "E6",
+        "world_effect_id": "E6",
+        "direction": "HARM",
+        "direction_source": "GROUNDED_WORLD_POLARITY",
+        "polarity": "ADVERSE",
+        "grounded_world_polarity": "ADVERSE",
+        "probability": "CERTAIN",
+        "modality": "CERTAIN",
+        "magnitude": "five",
+        "duration": "UNKNOWN",
+        "reversibility": "UNKNOWN",
+        "support": "STATED",
+        "epistemic_status": "SCENARIO_GROUNDED",
+        "importance": "CRITICAL",
+        "valuation_reason": "Loss of five lives very large negative welfare",
+        "scope_node_id": "UTIL_SCOPE:e099130fb57c35fc",
+        "provenance": [
+          "delegate:utilitarian",
+          "cycle:1",
+          "grounded_effect:E6"
+        ]
+      },
+      "action_id": "A1",
+      "epistemic_status": "SCENARIO_GROUNDED",
+      "label": "utilitarian: A1 assessment"
+    },
+    {
+      "id": "CLAIM:eb776a95b0782b88",
+      "kind": "CLAIM",
+      "origin": "utilitarian",
+      "native_ledger_kind": "UTILITARIAN_CONSEQUENCE_LEDGER",
+      "native_record_id": null,
+      "record": {
+        "consequence_node_id": "UTIL_CONSEQUENCE:utilitarian:A1:de793ba19330",
+        "outcome": "does not pull the lever",
+        "framework": "UTILITARIAN",
+        "specialist": "utilitarian",
+        "cycle": 1,
+        "canonical_action_id": "A1",
+        "grounded_effect_id": "E4",
+        "world_effect_id": "E4",
+        "direction": "NEUTRAL",
+        "direction_source": "GROUNDED_WORLD_POLARITY",
+        "polarity": "NEUTRAL",
+        "grounded_world_polarity": "NEUTRAL",
+        "probability": "CERTAIN",
+        "modality": "CERTAIN",
+        "magnitude": "UNKNOWN",
+        "duration": "UNKNOWN",
+        "reversibility": "UNKNOWN",
+        "support": "STATED",
+        "epistemic_status": "SCENARIO_GROUNDED",
+        "importance": "NEGLIGIBLE",
+        "valuation_reason": "Neutral omission",
+        "scope_node_id": "UTIL_SCOPE:de77f43f328b2bb4",
+        "provenance": [
+          "delegate:utilitarian",
+          "cycle:1",
+          "grounded_effect:E4"
+        ]
+      },
+      "action_id": "A1",
+      "epistemic_status": "SCENARIO_GROUNDED",
+      "label": "utilitarian: A1 assessment"
+    },
+    {
+      "id": "CLAIM:bf160c9bb33166fb",
+      "kind": "CLAIM",
+      "origin": "utilitarian",
+      "native_ledger_kind": "UTILITARIAN_CONSEQUENCE_LEDGER",
+      "native_record_id": null,
+      "record": {
+        "consequence_node_id": "UTIL_CONSEQUENCE:utilitarian:A1:ef099fcece6e",
+        "outcome": "does not pull the lever",
+        "framework": "UTILITARIAN",
+        "specialist": "utilitarian",
+        "cycle": 1,
+        "canonical_action_id": "A1",
+        "grounded_effect_id": "E5",
+        "world_effect_id": "E5",
+        "direction": "NEUTRAL",
+        "direction_source": "GROUNDED_WORLD_POLARITY",
+        "polarity": "NEUTRAL",
+        "grounded_world_polarity": "NEUTRAL",
+        "probability": "CERTAIN",
+        "modality": "CERTAIN",
+        "magnitude": "UNKNOWN",
+        "duration": "UNKNOWN",
+        "reversibility": "UNKNOWN",
+        "support": "STATED",
+        "epistemic_status": "SCENARIO_GROUNDED",
+        "importance": "NEGLIGIBLE",
+        "valuation_reason": "Neutral downstream state",
+        "scope_node_id": "UTIL_SCOPE:de77f43f328b2bb4",
+        "provenance": [
+          "delegate:utilitarian",
+          "cycle:1",
+          "grounded_effect:E5"
+        ]
+      },
+      "action_id": "A1",
+      "epistemic_status": "SCENARIO_GROUNDED",
+      "label": "utilitarian: A1 assessment"
+    },
+    {
+      "id": "CONFLICT:9b3dd9634b28e68e",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "utilitarian",
+      "label": "numeric reversal threshold lacks a scenario-grounded quantity",
+      "conflict_type": "NATIVE_FRAMEWORK_WARNING",
+      "status": "OPEN",
+      "source": "NATIVE_FRAMEWORK_VALIDATION",
+      "claim_ids": [
+        "CLAIM:341a1dd87a753f5b",
+        "CLAIM:98ea70af0ddfa925",
+        "CLAIM:5bbdd427a46e4157",
+        "CLAIM:e58a0c5b5664d58a",
+        "CLAIM:eb776a95b0782b88",
+        "CLAIM:bf160c9bb33166fb"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CLAIM:81c199ad9ef1cc13",
+      "kind": "CLAIM",
+      "origin": "deontological",
+      "native_ledger_kind": "DEONTOLOGICAL_DUTY_LEDGER",
+      "native_record_id": "DEON_ASSESSMENT:deontological:A0",
+      "record": {
+        "assessment_node_id": "DEON_ASSESSMENT:deontological:A0",
+        "framework": "DEONTOLOGICAL",
+        "specialist": "deontological",
+        "assessment_role": "PRIMARY",
+        "cycle": 1,
+        "canonical_action_id": "A0",
+        "verdict": "CONFLICTED",
+        "proposed_verdict": "CONFLICTED",
+        "relation": "VIOLATES",
+        "proposed_relation": "VIOLATES",
+        "norm_kind": "RESPECT_PERSONS",
+        "norm_node_id": "DEON_NORM:4e9d4d2dc06149cc",
+        "party_node_id": "DEON_PARTY:879bcf30890178b8",
+        "bearer_node_id": "DEON_BEARER:94aec9fbed989ece",
+        "competing_norm": "duty to rescue/save lives and keep promise",
+        "competing_norm_kind": "DUTY",
+        "competing_relation": "SATISFIES",
+        "competing_protected_party": "five workers & anna",
+        "competing_reason": "rescue and promise are imperfect duties",
+        "duty_type": "PERFECT_NEGATIVE",
+        "harm_relation": "DOING_HARM",
+        "special_obligation_status": "NOT_REQUIRED",
+        "special_obligation_basis": "no special relation with the victim required",
+        "means_relation": "INTENDED_AS_MEANS",
+        "governing_norm": "UNRESOLVED",
+        "priority_basis": "UNRESOLVED",
+        "priority_rule": "perfect negative duty overrides imperfect duties",
+        "protected_standing": "BODILY_INTEGRITY",
+        "competing_protected_standing": "SPECIAL_OBLIGATION",
+        "coercion_kind": "NONE",
+        "coercive_actor": "NONE",
+        "coerced_party": "NONE",
+        "public_justification": "No universal law can will killing one to save others",
+        "reciprocity_status": "FAILED",
+        "necessity_status": "UNKNOWN",
+        "authorization_status": "NOT_APPLICABLE",
+        "derivation": "RESPECT_PERSONS",
+        "resolution_status": "CONTESTED",
+        "calibration_errors": [
+          "doing-harm classification lacks an agent-caused settled welfare harm on the protected party",
+          "intended-as-means classification lacks an in-action causal path",
+          "resolved adjudication rests on unsupported decisive premises"
+        ],
+        "calibration_issues": [
+          {
+            "kind": "HARM_RELATION_GRAPH_MISALIGN",
+            "message": "doing-harm classification lacks an agent-caused settled welfare harm on the protected party",
+            "status": "ACTIVE"
+          },
+          {
+            "kind": "INTENDED_AS_MEANS_LACKS_PATH",
+            "message": "intended-as-means classification lacks an in-action causal path",
+            "status": "ACTIVE"
+          },
+          {
+            "kind": "CALIBRATION",
+            "message": "resolved adjudication rests on unsupported decisive premises",
+            "status": "ACTIVE"
+          }
+        ],
+        "calibration_support_node_ids": [],
+        "evidence_basis": "FRAMEWORK_ONLY",
+        "epistemic_status": "FRAMEWORK_INTERPRETATION",
+        "reason": "Direct killing violates humanity as an end",
+        "protected_party": "one worker",
+        "norm": "do not kill innocent person",
+        "duty_bearer": "maria",
+        "provenance": [
+          "delegate:deontological",
+          "cycle:1"
+        ]
+      },
+      "action_id": "A0",
+      "epistemic_status": "FRAMEWORK_INTERPRETATION",
+      "label": "deontological: A0 CONFLICTED"
+    },
+    {
+      "id": "COMMITMENT:5ca34c39cbf56166",
+      "kind": "FRAMEWORK_COMMITMENT",
+      "origin": "deontological",
+      "field": "norm",
+      "value": "do not kill innocent person",
+      "label": "do not kill innocent person",
+      "authority": "FRAMEWORK_LOCAL"
+    },
+    {
+      "id": "COMMITMENT:e4479cb11e69fd09",
+      "kind": "FRAMEWORK_COMMITMENT",
+      "origin": "deontological",
+      "field": "priority_rule",
+      "value": "perfect negative duty overrides imperfect duties",
+      "label": "perfect negative duty overrides imperfect duties",
+      "authority": "FRAMEWORK_LOCAL"
+    },
+    {
+      "id": "CONFLICT:726f0aacdec9e1ff",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "doing-harm classification lacks an agent-caused settled welfare harm on the protected party",
+      "conflict_type": "UNSUPPORTED_INFERENCE",
+      "status": "OPEN",
+      "source": "NATIVE_LEDGER_CALIBRATION",
+      "claim_ids": [
+        "CLAIM:81c199ad9ef1cc13"
+      ]
+    },
+    {
+      "id": "CONFLICT:07d26365000fdcf8",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "intended-as-means classification lacks an in-action causal path",
+      "conflict_type": "UNSUPPORTED_INFERENCE",
+      "status": "OPEN",
+      "source": "NATIVE_LEDGER_CALIBRATION",
+      "claim_ids": [
+        "CLAIM:81c199ad9ef1cc13"
+      ]
+    },
+    {
+      "id": "CONFLICT:4b5f832dd369b7db",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "resolved adjudication rests on unsupported decisive premises",
+      "conflict_type": "UNSUPPORTED_INFERENCE",
+      "status": "OPEN",
+      "source": "NATIVE_LEDGER_CALIBRATION",
+      "claim_ids": [
+        "CLAIM:81c199ad9ef1cc13"
+      ]
+    },
+    {
+      "id": "CLAIM:45017d7615c7bde9",
+      "kind": "CLAIM",
+      "origin": "deontological",
+      "native_ledger_kind": "DEONTOLOGICAL_DUTY_LEDGER",
+      "native_record_id": "DEON_ASSESSMENT:deontological:A1",
+      "record": {
+        "assessment_node_id": "DEON_ASSESSMENT:deontological:A1",
+        "framework": "DEONTOLOGICAL",
+        "specialist": "deontological",
+        "assessment_role": "PRIMARY",
+        "cycle": 1,
+        "canonical_action_id": "A1",
+        "verdict": "PERMISSIBLE",
+        "proposed_verdict": "PERMISSIBLE",
+        "relation": "CONSISTENT",
+        "proposed_relation": "CONSISTENT",
+        "norm_kind": "RESPECT_PERSONS",
+        "norm_node_id": "DEON_NORM:0794c79701e3d473",
+        "party_node_id": "DEON_PARTY:879bcf30890178b8",
+        "bearer_node_id": "DEON_BEARER:94aec9fbed989ece",
+        "competing_norm": "imperfect duty to rescue/save more lives and keep promise",
+        "competing_norm_kind": "DUTY",
+        "competing_relation": "CONFLICTS",
+        "competing_protected_party": "five workers & anna",
+        "competing_reason": "imperfect duties cannot override perfect duty",
+        "duty_type": "PERFECT_NEGATIVE",
+        "harm_relation": "ALLOWING_HARM",
+        "special_obligation_status": "NOT_REQUIRED",
+        "special_obligation_basis": "no special relation with endangered workers",
+        "means_relation": "NO_INSTRUMENTALIZATION",
+        "governing_norm": "PRIMARY",
+        "priority_basis": "RESPECT_PERSONS",
+        "priority_rule": "permissibility from not killing outweighs rescuing",
+        "protected_standing": "BODILY_INTEGRITY",
+        "competing_protected_standing": "SPECIAL_OBLIGATION",
+        "coercion_kind": "NONE",
+        "coercive_actor": "NONE",
+        "coerced_party": "NONE",
+        "public_justification": "Universal law permits refraining from killing even when rescue omitted",
+        "reciprocity_status": "SATISFIED",
+        "necessity_status": "UNKNOWN",
+        "authorization_status": "NOT_APPLICABLE",
+        "derivation": "RESPECT_PERSONS",
+        "resolution_status": "RESOLVED",
+        "calibration_errors": [],
+        "calibration_issues": [],
+        "calibration_support_node_ids": [],
+        "evidence_basis": "FRAMEWORK_ONLY",
+        "epistemic_status": "FRAMEWORK_INTERPRETATION",
+        "reason": "Allows harm but does not directly violate right to life",
+        "protected_party": "one worker",
+        "norm": "avoid killing",
+        "duty_bearer": "maria",
+        "provenance": [
+          "delegate:deontological",
+          "cycle:1"
+        ]
+      },
+      "action_id": "A1",
+      "epistemic_status": "FRAMEWORK_INTERPRETATION",
+      "label": "deontological: A1 PERMISSIBLE"
+    },
+    {
+      "id": "COMMITMENT:0ed40af6812e39b5",
+      "kind": "FRAMEWORK_COMMITMENT",
+      "origin": "deontological",
+      "field": "norm",
+      "value": "avoid killing",
+      "label": "avoid killing",
+      "authority": "FRAMEWORK_LOCAL"
+    },
+    {
+      "id": "COMMITMENT:3658812542d0e794",
+      "kind": "FRAMEWORK_COMMITMENT",
+      "origin": "deontological",
+      "field": "priority_rule",
+      "value": "permissibility from not killing outweighs rescuing",
+      "label": "permissibility from not killing outweighs rescuing",
+      "authority": "FRAMEWORK_LOCAL"
+    },
+    {
+      "id": "CONFLICT:df1b5a70638bb3b1",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "one worker: avoid killing \u2194 five workers & anna: imperfect duty to rescue/save more lives and keep promise",
+      "conflict_type": "REPORTED_INTERNAL_CONFLICT",
+      "status": "OPEN",
+      "source": "FRAMEWORK_REPORT",
+      "claim_ids": [
+        "CLAIM:81c199ad9ef1cc13",
+        "CLAIM:45017d7615c7bde9"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CONFLICT:5afde2b3dc744879",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "A0 prohibited by do not kill innocent person \u2194 whether the harm-relation follows the admitted graph's causal topology rather than a relabel chosen to fit the verdict",
+      "conflict_type": "REPORTED_INTERNAL_CONFLICT",
+      "status": "OPEN",
+      "source": "FRAMEWORK_REPORT",
+      "claim_ids": [
+        "CLAIM:81c199ad9ef1cc13",
+        "CLAIM:45017d7615c7bde9"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CONFLICT:2098045699371336",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "A0 prohibited by do not kill innocent person \u2194 whether an in-action causal path makes the burden instrumental to the chosen end",
+      "conflict_type": "REPORTED_INTERNAL_CONFLICT",
+      "status": "OPEN",
+      "source": "FRAMEWORK_REPORT",
+      "claim_ids": [
+        "CLAIM:81c199ad9ef1cc13",
+        "CLAIM:45017d7615c7bde9"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CONFLICT:ca49be511198b0c9",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "A0 ADJUDICATION_CALIBRATION: doing-harm classification lacks an agent-caused settled welfare harm on the protected party",
+      "conflict_type": "NATIVE_FRAMEWORK_WARNING",
+      "status": "OPEN",
+      "source": "NATIVE_FRAMEWORK_VALIDATION",
+      "claim_ids": [
+        "CLAIM:81c199ad9ef1cc13",
+        "CLAIM:45017d7615c7bde9"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CONFLICT:44f01d0505a1ab11",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "A0 ADJUDICATION_CALIBRATION: intended-as-means classification lacks an in-action causal path",
+      "conflict_type": "NATIVE_FRAMEWORK_WARNING",
+      "status": "OPEN",
+      "source": "NATIVE_FRAMEWORK_VALIDATION",
+      "claim_ids": [
+        "CLAIM:81c199ad9ef1cc13",
+        "CLAIM:45017d7615c7bde9"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CONFLICT:df661734d150a7b0",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "A0 ADJUDICATION_CALIBRATION: resolved adjudication rests on unsupported decisive premises",
+      "conflict_type": "NATIVE_FRAMEWORK_WARNING",
+      "status": "OPEN",
+      "source": "NATIVE_FRAMEWORK_VALIDATION",
+      "claim_ids": [
+        "CLAIM:81c199ad9ef1cc13",
+        "CLAIM:45017d7615c7bde9"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CLAIM:4a67b1e51eebb5ec",
+      "kind": "CLAIM",
+      "origin": "care",
+      "native_ledger_kind": "CARE_RELATIONSHIP_LEDGER",
+      "native_record_id": "CARE_RELATIONSHIP:care:A0",
+      "record": {
+        "assessment_node_id": "CARE_RELATIONSHIP:care:A0",
+        "framework": "CARE",
+        "specialist": "care",
+        "cycle": 1,
+        "canonical_action_id": "A0",
+        "verdict": "RESPONSIVE",
+        "affected_party": "five workers",
+        "relationship_type": "DEPENDENCY",
+        "relationship_evidence_status": "NOT_ASSESSED",
+        "dependency_source": "workers' lives depend on lever position",
+        "responsibility_basis": "control of lever creates responsibility",
+        "need_kind": "SURVIVAL_HEALTH",
+        "need_urgency": "IMMEDIATE",
+        "trust_effect": "STRENGTHENS",
+        "responsiveness": "DIRECT",
+        "feasibility": "ESTABLISHED",
+        "competing_care_claim": "harm to one worker",
+        "resolution_status": "CONTESTED",
+        "evidence_basis": "ACTION_GRAPH",
+        "reason": "Pulling directly meets urgent dependency, honoring promise",
+        "ranking_basis": "ACUTE_DEPENDENCY",
+        "grounded_effect_ids": [],
+        "grounded_consequence_ids": [],
+        "effect_grounding_status": "UNMATCHED",
+        "epistemic_status": "EXPLICIT_UNCERTAINTY",
+        "provenance": [
+          "delegate:care",
+          "cycle:1"
+        ]
+      },
+      "action_id": "A0",
+      "epistemic_status": "EXPLICIT_UNCERTAINTY",
+      "label": "care: A0 RESPONSIVE"
+    },
+    {
+      "id": "COMMITMENT:d65634d59638bb6b",
+      "kind": "FRAMEWORK_COMMITMENT",
+      "origin": "care",
+      "field": "responsibility_basis",
+      "value": "control of lever creates responsibility",
+      "label": "control of lever creates responsibility",
+      "authority": "FRAMEWORK_LOCAL"
+    },
+    {
+      "id": "COMMITMENT:af349d4b19619c7a",
+      "kind": "FRAMEWORK_COMMITMENT",
+      "origin": "care",
+      "field": "ranking_basis",
+      "value": "ACUTE_DEPENDENCY",
+      "label": "ACUTE_DEPENDENCY",
+      "authority": "FRAMEWORK_LOCAL"
+    },
+    {
+      "id": "CLAIM:518579ed50b96e19",
+      "kind": "CLAIM",
+      "origin": "care",
+      "native_ledger_kind": "CARE_RELATIONSHIP_LEDGER",
+      "native_record_id": "CARE_RELATIONSHIP:care:A1",
+      "record": {
+        "assessment_node_id": "CARE_RELATIONSHIP:care:A1",
+        "framework": "CARE",
+        "specialist": "care",
+        "cycle": 1,
+        "canonical_action_id": "A1",
+        "verdict": "NEGLECTFUL",
+        "affected_party": "five workers",
+        "relationship_type": "DEPENDENCY",
+        "relationship_evidence_status": "NOT_ASSESSED",
+        "dependency_source": "workers rely on Maria to act",
+        "responsibility_basis": "ignoring control fails responsibility",
+        "need_kind": "SURVIVAL_HEALTH",
+        "need_urgency": "IMMEDIATE",
+        "trust_effect": "BETRAYS",
+        "responsiveness": "WITHHELD",
+        "feasibility": "ESTABLISHED",
+        "competing_care_claim": "protecting one worker from direct harm",
+        "resolution_status": "CONTESTED",
+        "evidence_basis": "ACTION_GRAPH",
+        "reason": "Not pulling withholds needed action and breaks promise",
+        "ranking_basis": "ACUTE_DEPENDENCY",
+        "grounded_effect_ids": [
+          "E6"
+        ],
+        "grounded_consequence_ids": [
+          "A1:WORLD_EFFECT:E6"
+        ],
+        "effect_grounding_status": "MATCHED",
+        "epistemic_status": "EXPLICIT_UNCERTAINTY",
+        "provenance": [
+          "delegate:care",
+          "cycle:1"
+        ]
+      },
+      "action_id": "A1",
+      "epistemic_status": "EXPLICIT_UNCERTAINTY",
+      "label": "care: A1 NEGLECTFUL"
+    },
+    {
+      "id": "COMMITMENT:34e1033a29da01a9",
+      "kind": "FRAMEWORK_COMMITMENT",
+      "origin": "care",
+      "field": "responsibility_basis",
+      "value": "ignoring control fails responsibility",
+      "label": "ignoring control fails responsibility",
+      "authority": "FRAMEWORK_LOCAL"
+    },
+    {
+      "id": "CONFLICT:6db0257287ac37f3",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "care",
+      "label": "A0 Care relation claims scenario grounding without a matching action effect",
+      "conflict_type": "NATIVE_FRAMEWORK_WARNING",
+      "status": "OPEN",
+      "source": "NATIVE_FRAMEWORK_VALIDATION",
+      "claim_ids": [
+        "CLAIM:4a67b1e51eebb5ec",
+        "CLAIM:518579ed50b96e19"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CONFLICT:ab2310145174396a",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "care",
+      "label": "A0 competing Care claim remains contested",
+      "conflict_type": "NATIVE_FRAMEWORK_WARNING",
+      "status": "OPEN",
+      "source": "NATIVE_FRAMEWORK_VALIDATION",
+      "claim_ids": [
+        "CLAIM:4a67b1e51eebb5ec",
+        "CLAIM:518579ed50b96e19"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CONFLICT:7bcd1e9b1260167d",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "care",
+      "label": "A1 competing Care claim remains contested",
+      "conflict_type": "NATIVE_FRAMEWORK_WARNING",
+      "status": "OPEN",
+      "source": "NATIVE_FRAMEWORK_VALIDATION",
+      "claim_ids": [
+        "CLAIM:4a67b1e51eebb5ec",
+        "CLAIM:518579ed50b96e19"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CLAIM:e2065ac50ec95835",
+      "kind": "CLAIM",
+      "origin": "virtue",
+      "native_ledger_kind": "VIRTUE_CHARACTER_LEDGER",
+      "native_record_id": "VIRTUE_CHARACTER:virtue:A0",
+      "record": {
+        "assessment_node_id": "VIRTUE_CHARACTER:virtue:A0",
+        "framework": "VIRTUE",
+        "specialist": "virtue",
+        "cycle": 1,
+        "canonical_action_id": "A0",
+        "verdict": "EXEMPLIFIES",
+        "actor_role": "promisor-rescuer",
+        "virtues": "compassion, courage, fidelity",
+        "vice_risk": "possible recklessness",
+        "circumstance": "life-or-death emergency",
+        "evidence_basis": "SCENARIO",
+        "reason": "acts to save more lives while honoring promise",
+        "ranking_basis": "PRACTICAL_WISDOM",
+        "grounded_effect_ids": [],
+        "grounded_consequence_ids": [],
+        "epistemic_status": "UNRESOLVED_ACTION_GROUNDING",
+        "provenance": [
+          "delegate:virtue",
+          "cycle:1"
+        ]
+      },
+      "action_id": "A0",
+      "epistemic_status": "UNRESOLVED_ACTION_GROUNDING",
+      "label": "virtue: A0 EXEMPLIFIES"
+    },
+    {
+      "id": "COMMITMENT:c2759640b128277d",
+      "kind": "FRAMEWORK_COMMITMENT",
+      "origin": "virtue",
+      "field": "ranking_basis",
+      "value": "PRACTICAL_WISDOM",
+      "label": "PRACTICAL_WISDOM",
+      "authority": "FRAMEWORK_LOCAL"
+    },
+    {
+      "id": "CLAIM:5af320826c8bd581",
+      "kind": "CLAIM",
+      "origin": "virtue",
+      "native_ledger_kind": "VIRTUE_CHARACTER_LEDGER",
+      "native_record_id": "VIRTUE_CHARACTER:virtue:A1",
+      "record": {
+        "assessment_node_id": "VIRTUE_CHARACTER:virtue:A1",
+        "framework": "VIRTUE",
+        "specialist": "virtue",
+        "cycle": 1,
+        "canonical_action_id": "A1",
+        "verdict": "UNDERMINES",
+        "actor_role": "promisor-rescuer",
+        "virtues": "none prominent",
+        "vice_risk": "cowardice, negligence",
+        "circumstance": "life-or-death emergency",
+        "evidence_basis": "SCENARIO",
+        "reason": "fails to act, more die",
+        "ranking_basis": "PRACTICAL_WISDOM",
+        "grounded_effect_ids": [
+          "E6"
+        ],
+        "grounded_consequence_ids": [
+          "A1:WORLD_EFFECT:E6"
+        ],
+        "epistemic_status": "FRAMEWORK_GROUNDED_WITH_ACTION_EFFECTS",
+        "provenance": [
+          "delegate:virtue",
+          "cycle:1"
+        ]
+      },
+      "action_id": "A1",
+      "epistemic_status": "FRAMEWORK_GROUNDED_WITH_ACTION_EFFECTS",
+      "label": "virtue: A1 UNDERMINES"
+    },
+    {
+      "id": "CLAIM:ccf8abf5121dd6b8",
+      "kind": "CLAIM",
+      "origin": "rawlsian",
+      "native_ledger_kind": "RAWLSIAN_POSITION_LEDGER",
+      "native_record_id": "RAWLS_POSITION:rawlsian:A0:e9b7a612ddac48ea",
+      "record": {
+        "assessment_node_id": "RAWLS_POSITION:rawlsian:A0:e9b7a612ddac48ea",
+        "framework": "RAWLSIAN",
+        "specialist": "rawlsian",
+        "cycle": 1,
+        "canonical_action_id": "A0",
+        "compared_to_action_id": "A1",
+        "effect": "UNCERTAIN",
+        "proposed_effect": "IMPROVES",
+        "subject": "any worker",
+        "proposed_subject": "any worker",
+        "dimension_subject_repaired": false,
+        "affected_subject": "any worker",
+        "subject_kind": "INDIVIDUAL",
+        "dimension": "BASIC_INTEREST_SECURITY",
+        "basic_liberty_kind": "NOT_APPLICABLE",
+        "institutional_relation": "NATURAL_CONTINGENCY",
+        "additional_dimensions": [],
+        "dimension_bundle": [
+          "BASIC_INTEREST_SECURITY"
+        ],
+        "comparative_effect": "UNCERTAIN",
+        "group_node_id": "RAWLS_SUBJECT:1fbd3f5a662b3c0c",
+        "subject_node_id": "RAWLS_SUBJECT:1fbd3f5a662b3c0c",
+        "dimension_node_id": "RAWLS_VALUE:BASIC_INTEREST_SECURITY",
+        "subject_binding_mode": "LEXICAL",
+        "group_binding_mode": "LEXICAL",
+        "evidence_basis": "ACTION_GRAPH",
+        "epistemic_status": "UNSUPPORTED_DIRECTION",
+        "reason": "each person less likely to die",
+        "ranking_basis": "MAXIMIN_PRIMARY_GOODS",
+        "ranking_classification_justification": "compares distribution of life-or-death security",
+        "lexical_priority_justification": "no basic liberty conflict; rely on maximin",
+        "liberty_status": "NOT_APPLICABLE",
+        "subject_selection_status": "BOUND_TO_ACTION",
+        "group_selection_status": "BOUND_TO_ACTION",
+        "provenance": [
+          "delegate:rawlsian",
+          "cycle:1"
+        ]
+      },
+      "action_id": "A0",
+      "epistemic_status": "UNSUPPORTED_DIRECTION",
+      "label": "rawlsian: A0 assessment"
+    },
+    {
+      "id": "COMMITMENT:f81d304332a64fc2",
+      "kind": "FRAMEWORK_COMMITMENT",
+      "origin": "rawlsian",
+      "field": "ranking_basis",
+      "value": "MAXIMIN_PRIMARY_GOODS",
+      "label": "MAXIMIN_PRIMARY_GOODS",
+      "authority": "FRAMEWORK_LOCAL"
+    },
+    {
+      "id": "CLAIM:c5ef5037fc1502b6",
+      "kind": "CLAIM",
+      "origin": "rawlsian",
+      "native_ledger_kind": "RAWLSIAN_POSITION_LEDGER",
+      "native_record_id": "RAWLS_POSITION:rawlsian:A1:1604025a227b07f9",
+      "record": {
+        "assessment_node_id": "RAWLS_POSITION:rawlsian:A1:1604025a227b07f9",
+        "framework": "RAWLSIAN",
+        "specialist": "rawlsian",
+        "cycle": 1,
+        "canonical_action_id": "A1",
+        "compared_to_action_id": "A0",
+        "effect": "UNCERTAIN",
+        "proposed_effect": "WORSENS",
+        "subject": "any worker",
+        "proposed_subject": "any worker",
+        "dimension_subject_repaired": false,
+        "affected_subject": "any worker",
+        "subject_kind": "INDIVIDUAL",
+        "dimension": "BASIC_INTEREST_SECURITY",
+        "basic_liberty_kind": "NOT_APPLICABLE",
+        "institutional_relation": "NATURAL_CONTINGENCY",
+        "additional_dimensions": [],
+        "dimension_bundle": [
+          "BASIC_INTEREST_SECURITY"
+        ],
+        "comparative_effect": "UNCERTAIN",
+        "group_node_id": "RAWLS_SUBJECT:1fbd3f5a662b3c0c",
+        "subject_node_id": "RAWLS_SUBJECT:1fbd3f5a662b3c0c",
+        "dimension_node_id": "RAWLS_VALUE:BASIC_INTEREST_SECURITY",
+        "subject_binding_mode": "LEXICAL",
+        "group_binding_mode": "LEXICAL",
+        "evidence_basis": "ACTION_GRAPH",
+        "epistemic_status": "UNSUPPORTED_DIRECTION",
+        "reason": "greater chance of death",
+        "ranking_basis": "MAXIMIN_PRIMARY_GOODS",
+        "ranking_classification_justification": "compares distribution of life-or-death security",
+        "lexical_priority_justification": "no basic liberty conflict; rely on maximin",
+        "liberty_status": "NOT_APPLICABLE",
+        "subject_selection_status": "BOUND_TO_ACTION",
+        "group_selection_status": "BOUND_TO_ACTION",
+        "provenance": [
+          "delegate:rawlsian",
+          "cycle:1"
+        ]
+      },
+      "action_id": "A1",
+      "epistemic_status": "UNSUPPORTED_DIRECTION",
+      "label": "rawlsian: A1 assessment"
+    },
+    {
+      "id": "CONFLICT:3f284fcd04b56d48",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "rawlsian",
+      "label": "framework map for does not pull the lever lacks framework-specific grounds",
+      "conflict_type": "NATIVE_FRAMEWORK_WARNING",
+      "status": "OPEN",
+      "source": "NATIVE_FRAMEWORK_VALIDATION",
+      "claim_ids": [
+        "CLAIM:ccf8abf5121dd6b8",
+        "CLAIM:c5ef5037fc1502b6"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CONFLICT:566666d4b9d39c40",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "rawlsian",
+      "label": "decisive numbers are not tied to the affected subject or Rawlsian position",
+      "conflict_type": "NATIVE_FRAMEWORK_WARNING",
+      "status": "OPEN",
+      "source": "NATIVE_FRAMEWORK_VALIDATION",
+      "claim_ids": [
+        "CLAIM:ccf8abf5121dd6b8",
+        "CLAIM:c5ef5037fc1502b6"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CONFLICT:89174f87eee1d76b",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "rawlsian",
+      "label": "A0 IMPROVES lacked directional support; committed as UNCERTAIN",
+      "conflict_type": "NATIVE_FRAMEWORK_WARNING",
+      "status": "OPEN",
+      "source": "NATIVE_FRAMEWORK_VALIDATION",
+      "claim_ids": [
+        "CLAIM:ccf8abf5121dd6b8",
+        "CLAIM:c5ef5037fc1502b6"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CONFLICT:2c608540769c1f82",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "rawlsian",
+      "label": "A1 WORSENS lacked directional support; committed as UNCERTAIN",
+      "conflict_type": "NATIVE_FRAMEWORK_WARNING",
+      "status": "OPEN",
+      "source": "NATIVE_FRAMEWORK_VALIDATION",
+      "claim_ids": [
+        "CLAIM:ccf8abf5121dd6b8",
+        "CLAIM:c5ef5037fc1502b6"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    }
+  ],
+  "edges": [
+    {
+      "source": "CLAIM:341a1dd87a753f5b",
+      "target": "utilitarian::PROP:WORLD:E3",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "ESTABLISHED"
+    },
+    {
+      "source": "CLAIM:341a1dd87a753f5b",
+      "target": "utilitarian::PROP:WORLD:E6",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "ESTABLISHED"
+    },
+    {
+      "source": "CLAIM:98ea70af0ddfa925",
+      "target": "utilitarian::PROP:WORLD:E3",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "ESTABLISHED"
+    },
+    {
+      "source": "CLAIM:98ea70af0ddfa925",
+      "target": "utilitarian::PROP:WORLD:E6",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "ESTABLISHED"
+    },
+    {
+      "source": "CLAIM:5bbdd427a46e4157",
+      "target": "utilitarian::PROP:WORLD:E3",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "ESTABLISHED"
+    },
+    {
+      "source": "CLAIM:5bbdd427a46e4157",
+      "target": "utilitarian::PROP:WORLD:E6",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "ESTABLISHED"
+    },
+    {
+      "source": "CLAIM:e58a0c5b5664d58a",
+      "target": "utilitarian::PROP:WORLD:E3",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "ESTABLISHED"
+    },
+    {
+      "source": "CLAIM:e58a0c5b5664d58a",
+      "target": "utilitarian::PROP:WORLD:E6",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "ESTABLISHED"
+    },
+    {
+      "source": "CLAIM:eb776a95b0782b88",
+      "target": "utilitarian::PROP:WORLD:E3",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "ESTABLISHED"
+    },
+    {
+      "source": "CLAIM:eb776a95b0782b88",
+      "target": "utilitarian::PROP:WORLD:E6",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "ESTABLISHED"
+    },
+    {
+      "source": "CLAIM:bf160c9bb33166fb",
+      "target": "utilitarian::PROP:WORLD:E3",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "ESTABLISHED"
+    },
+    {
+      "source": "CLAIM:bf160c9bb33166fb",
+      "target": "utilitarian::PROP:WORLD:E6",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "ESTABLISHED"
+    },
+    {
+      "source": "COMMITMENT:5ca34c39cbf56166",
+      "target": "CLAIM:81c199ad9ef1cc13",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "COMMITMENT:e4479cb11e69fd09",
+      "target": "CLAIM:81c199ad9ef1cc13",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "CONFLICT:726f0aacdec9e1ff",
+      "target": "CLAIM:81c199ad9ef1cc13",
+      "kind": "OBJECTION",
+      "target_kind": "INFERENCE"
+    },
+    {
+      "source": "CONFLICT:07d26365000fdcf8",
+      "target": "CLAIM:81c199ad9ef1cc13",
+      "kind": "OBJECTION",
+      "target_kind": "INFERENCE"
+    },
+    {
+      "source": "CONFLICT:4b5f832dd369b7db",
+      "target": "CLAIM:81c199ad9ef1cc13",
+      "kind": "OBJECTION",
+      "target_kind": "INFERENCE"
+    },
+    {
+      "source": "COMMITMENT:0ed40af6812e39b5",
+      "target": "CLAIM:45017d7615c7bde9",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "COMMITMENT:3658812542d0e794",
+      "target": "CLAIM:45017d7615c7bde9",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "COMMITMENT:d65634d59638bb6b",
+      "target": "CLAIM:4a67b1e51eebb5ec",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "COMMITMENT:af349d4b19619c7a",
+      "target": "CLAIM:4a67b1e51eebb5ec",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "WORLD:E6",
+      "target": "CLAIM:518579ed50b96e19",
+      "kind": "SUPPORT",
+      "extent": "REFERENCED_EFFECT_ONLY"
+    },
+    {
+      "source": "COMMITMENT:34e1033a29da01a9",
+      "target": "CLAIM:518579ed50b96e19",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "COMMITMENT:af349d4b19619c7a",
+      "target": "CLAIM:518579ed50b96e19",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "CLAIM:e2065ac50ec95835",
+      "target": "virtue::PROP:WORLD:E3",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "ESTABLISHED"
+    },
+    {
+      "source": "CLAIM:e2065ac50ec95835",
+      "target": "virtue::PROP:WORLD:E6",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "ESTABLISHED"
+    },
+    {
+      "source": "COMMITMENT:c2759640b128277d",
+      "target": "CLAIM:e2065ac50ec95835",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "WORLD:E6",
+      "target": "CLAIM:5af320826c8bd581",
+      "kind": "SUPPORT",
+      "extent": "REFERENCED_EFFECT_ONLY"
+    },
+    {
+      "source": "CLAIM:5af320826c8bd581",
+      "target": "virtue::PROP:WORLD:E3",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "ESTABLISHED"
+    },
+    {
+      "source": "CLAIM:5af320826c8bd581",
+      "target": "virtue::PROP:WORLD:E6",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "ESTABLISHED"
+    },
+    {
+      "source": "COMMITMENT:c2759640b128277d",
+      "target": "CLAIM:5af320826c8bd581",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "COMMITMENT:f81d304332a64fc2",
+      "target": "CLAIM:ccf8abf5121dd6b8",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "COMMITMENT:f81d304332a64fc2",
+      "target": "CLAIM:c5ef5037fc1502b6",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    }
+  ],
+  "diagnostics": [],
+  "review_queue": [
+    "CONFLICT:9b3dd9634b28e68e",
+    "CONFLICT:726f0aacdec9e1ff"
+  ],
+  "limits": [
+    "Independent assessments are projected; no targeted review executed.",
+    "Different preferences do not establish a contradiction.",
+    "Native record commitment is not proof of every asserted premise."
+  ]
+}

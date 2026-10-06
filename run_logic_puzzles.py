@@ -39,6 +39,12 @@ def project_conflicts(trace):
                 scoped_dependencies[(origin, local_id)] = ident
     candidates = trace.get('cycles', [])[-1]['candidates'] if trace.get('cycles') else []
     issues = []
+    for proposal in trace.get('targeted_review', {}).get('retained_proposals', []):
+        ident = _id('PROPOSED_REVISION', proposal)
+        node(ident, 'PROPOSED_REVISION', origin=proposal['framework'],
+             status=proposal['status'], world_state_authority='NONE',
+             semantic_support='NOT_INDEPENDENTLY_VERIFIED', record=proposal,
+             label=proposal['framework'] + ': disputed full revision; not operative')
     for candidate in candidates:
         origin = candidate['specialist']
         ledger = candidate.get('committed_native_ledger') or {}
@@ -141,14 +147,21 @@ def main():
     parser.add_argument('--output-dir', type=Path, default=Path('diagnostics/logic_puzzles_projection'))
     parser.add_argument('--generate-frameworks', action='store_true')
     parser.add_argument('--targeted-review', action='store_true')
+    parser.add_argument('--matched-comparison', action='store_true', help='Use --trace parent as saved opening directory')
     parser.add_argument('--frameworks', nargs='+', default=['utilitarian', 'deontological', 'care', 'virtue', 'rawlsian'])
     parser.add_argument('--model', default='o3')
     parser.add_argument('--parliament-root', type=Path, default=Path('/tmp/parliament-smoke-614af0c'))
     parser.add_argument('--parliament-python', type=Path, default=Path('/tmp/parliament-smoke-env/bin/python'))
     parser.add_argument('--core-root', type=Path)
     args = parser.parse_args()
-    if args.targeted_review and args.generate_frameworks:
-        parser.error('Choose generation or review for this invocation')
+    if sum((args.targeted_review, args.generate_frameworks, args.matched_comparison)) > 1:
+        parser.error('Choose generation, review, or comparison for this invocation')
+    if args.matched_comparison:
+        import subprocess
+        raise SystemExit(subprocess.call([
+            str(args.parliament_python), str(Path(__file__).with_name('logic_puzzles_comparison.py')),
+            '--opening-dir', str(args.trace.parent), '--output-dir', str(args.output_dir),
+            '--parliament-root', str(args.parliament_root), '--model', args.model]))
     if args.targeted_review:
         import subprocess
         raise SystemExit(subprocess.call([

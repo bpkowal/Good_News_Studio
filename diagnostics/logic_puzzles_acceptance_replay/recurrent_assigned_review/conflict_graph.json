@@ -1,0 +1,850 @@
+{
+  "version": "logic-puzzles-conflict-projection/0.1",
+  "mode": "READ_ONLY_PROJECTION",
+  "world_mutation": false,
+  "source_judgment_status": "UNRESOLVED",
+  "nodes": [
+    {
+      "id": "WORLD:E1",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E1",
+        "action_id": "A0",
+        "party_id": "P3",
+        "outcome": "pulls the lever",
+        "relation": "PULL",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "INTERVENTION",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C2",
+            "excerpt": "If Maria pulls the lever, one worker will die."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "pulls the lever",
+        "source_effect_ids": [],
+        "derivation_operation": "DIRECT_COPY",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "pulls the lever"
+    },
+    {
+      "id": "WORLD:E2",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E2",
+        "action_id": "A0",
+        "party_id": "P3",
+        "outcome": "pulls the lever",
+        "relation": "PULL",
+        "polarity": "NEUTRAL",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "PHYSICAL_STATE",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C2",
+            "excerpt": "If Maria pulls the lever, one worker will die."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "pulls the lever",
+        "source_effect_ids": [
+          "E1"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "pulls the lever"
+    },
+    {
+      "id": "WORLD:E3",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E3",
+        "action_id": "A0",
+        "party_id": "P2",
+        "outcome": "one worker will die",
+        "relation": "DIE",
+        "polarity": "ADVERSE",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "HEALTH_OUTCOME",
+        "condition_ids": [],
+        "quantities": [
+          "one"
+        ],
+        "provenance": [
+          {
+            "clause_id": "C2",
+            "excerpt": "If Maria pulls the lever, one worker will die."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "one worker will die",
+        "source_effect_ids": [
+          "E2"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "one worker will die"
+    },
+    {
+      "id": "WORLD:E4",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E4",
+        "action_id": "A1",
+        "party_id": "P3",
+        "outcome": "does not pull the lever",
+        "relation": "PULL",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "INTERVENTION",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "If Maria does not pull the lever, five workers will die."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "does not pull the lever",
+        "source_effect_ids": [],
+        "derivation_operation": "DIRECT_COPY",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "does not pull the lever"
+    },
+    {
+      "id": "WORLD:E5",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E5",
+        "action_id": "A1",
+        "party_id": "P3",
+        "outcome": "does not pull the lever",
+        "relation": "PULL",
+        "polarity": "NEUTRAL",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "PHYSICAL_STATE",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "If Maria does not pull the lever, five workers will die."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "does not pull the lever",
+        "source_effect_ids": [
+          "E4"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "does not pull the lever"
+    },
+    {
+      "id": "WORLD:E6",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E6",
+        "action_id": "A1",
+        "party_id": "P4",
+        "outcome": "five workers will die",
+        "relation": "DIE",
+        "polarity": "ADVERSE",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "HEALTH_OUTCOME",
+        "condition_ids": [],
+        "quantities": [
+          "five"
+        ],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "If Maria does not pull the lever, five workers will die."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "five workers will die",
+        "source_effect_ids": [
+          "E5"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "five workers will die"
+    },
+    {
+      "id": "PROP:WORLD:CONDITION:CND1",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:CONDITION:CND1",
+        "claim": "If Maria pulls the lever",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "UNRESOLVED",
+        "support_ids": [
+          "CND1"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 2,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "UNKNOWN_PARAMETER",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "UNRESOLVED",
+      "label": "If Maria pulls the lever"
+    },
+    {
+      "id": "PROP:WORLD:CONDITION:CND2",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:CONDITION:CND2",
+        "claim": "If Maria does not pull the lever",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "UNRESOLVED",
+        "support_ids": [
+          "CND2"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "UNKNOWN_PARAMETER",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "UNRESOLVED",
+      "label": "If Maria does not pull the lever"
+    },
+    {
+      "id": "PROP:WORLD:E1",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E1",
+        "claim": "pulls the lever; affected subject: the lever",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E1"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "pulls the lever"
+        ],
+        "action_id": "A0",
+        "outcome": "pulls the lever",
+        "polarity": "NEUTRAL",
+        "party_labels": [
+          "the lever"
+        ],
+        "quantities": [],
+        "effect_kind": "INTERVENTION",
+        "context_terms": [
+          "pulls the lever"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DIRECT",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "pulls the lever; affected subject: the lever"
+    },
+    {
+      "id": "PROP:WORLD:E2",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E2",
+        "claim": "pulls the lever; affected subject: the lever",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E2"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "pulls the lever"
+        ],
+        "action_id": "A0",
+        "outcome": "pulls the lever",
+        "polarity": "NEUTRAL",
+        "party_labels": [
+          "the lever"
+        ],
+        "quantities": [],
+        "effect_kind": "PHYSICAL_STATE",
+        "context_terms": [
+          "pulls the lever"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "pulls the lever; affected subject: the lever"
+    },
+    {
+      "id": "PROP:WORLD:E3",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E3",
+        "claim": "one worker will die; affected subject: one worker",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E3"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 3,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "one worker will die"
+        ],
+        "action_id": "A0",
+        "outcome": "one worker will die",
+        "polarity": "ADVERSE",
+        "party_labels": [
+          "one worker"
+        ],
+        "quantities": [
+          "one"
+        ],
+        "effect_kind": "HEALTH_OUTCOME",
+        "context_terms": [
+          "one worker will die",
+          "pulls the lever"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "one worker will die; affected subject: one worker"
+    },
+    {
+      "id": "PROP:WORLD:E4",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E4",
+        "claim": "does not pull the lever; affected subject: the lever",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E4"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "does not pull the lever"
+        ],
+        "action_id": "A1",
+        "outcome": "does not pull the lever",
+        "polarity": "NEUTRAL",
+        "party_labels": [
+          "the lever"
+        ],
+        "quantities": [],
+        "effect_kind": "INTERVENTION",
+        "context_terms": [
+          "does not pull the lever"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DIRECT",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "does not pull the lever; affected subject: the lever"
+    },
+    {
+      "id": "PROP:WORLD:E5",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E5",
+        "claim": "does not pull the lever; affected subject: the lever",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E5"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "does not pull the lever"
+        ],
+        "action_id": "A1",
+        "outcome": "does not pull the lever",
+        "polarity": "NEUTRAL",
+        "party_labels": [
+          "the lever"
+        ],
+        "quantities": [],
+        "effect_kind": "PHYSICAL_STATE",
+        "context_terms": [
+          "does not pull the lever"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "does not pull the lever; affected subject: the lever"
+    },
+    {
+      "id": "PROP:WORLD:E6",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E6",
+        "claim": "five workers will die; affected subject: five workers",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E6"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 3,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "five workers will die"
+        ],
+        "action_id": "A1",
+        "outcome": "five workers will die",
+        "polarity": "ADVERSE",
+        "party_labels": [
+          "five workers"
+        ],
+        "quantities": [
+          "five"
+        ],
+        "effect_kind": "HEALTH_OUTCOME",
+        "context_terms": [
+          "five workers will die",
+          "does not pull the lever"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "five workers will die; affected subject: five workers"
+    },
+    {
+      "id": "PROP:WORLD:PARTY:P4:QUANTITY:87ef15574ecb",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:PARTY:P4:QUANTITY:87ef15574ecb",
+        "claim": "five workers",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "P4",
+          "five"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [],
+        "action_id": "A1",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [
+          "five workers"
+        ],
+        "quantities": [
+          "five"
+        ],
+        "effect_kind": "",
+        "context_terms": [
+          "does not pull the lever"
+        ],
+        "modality": "",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "five workers"
+    },
+    {
+      "id": "CLAIM:ee2494ecb15d01c7",
+      "kind": "CLAIM",
+      "origin": "deontological",
+      "native_ledger_kind": "DEONTOLOGICAL_DUTY_LEDGER",
+      "native_record_id": "DEON_ASSESSMENT:deontological:A0",
+      "record": {
+        "assessment_node_id": "DEON_ASSESSMENT:deontological:A0",
+        "framework": "DEONTOLOGICAL",
+        "specialist": "deontological",
+        "assessment_role": "PRIMARY",
+        "cycle": 2,
+        "canonical_action_id": "A0",
+        "verdict": "CONFLICTED",
+        "proposed_verdict": "CONFLICTED",
+        "relation": "VIOLATES",
+        "proposed_relation": "VIOLATES",
+        "norm_kind": "RESPECT_PERSONS",
+        "norm_node_id": "DEON_NORM:4e9d4d2dc06149cc",
+        "party_node_id": "DEON_PARTY:879bcf30890178b8",
+        "bearer_node_id": "DEON_BEARER:94aec9fbed989ece",
+        "competing_norm": "duty to rescue",
+        "competing_norm_kind": "DUTY",
+        "competing_relation": "SATISFIES",
+        "competing_protected_party": "five workers",
+        "competing_reason": "act rescues five workers",
+        "duty_type": "PERFECT_NEGATIVE",
+        "harm_relation": "DOING_HARM",
+        "special_obligation_status": "NOT_REQUIRED",
+        "special_obligation_basis": "NONE",
+        "means_relation": "FORESEEN_SIDE_EFFECT",
+        "governing_norm": "UNRESOLVED",
+        "priority_basis": "UNRESOLVED",
+        "priority_rule": "perfect negative duty overrides imperfect duty",
+        "protected_standing": "BODILY_INTEGRITY",
+        "competing_protected_standing": "OTHER",
+        "coercion_kind": "NONE",
+        "coercive_actor": "Maria",
+        "coerced_party": "one worker",
+        "public_justification": "Cannot universalize killing one to save others",
+        "reciprocity_status": "FAILED",
+        "necessity_status": "UNKNOWN",
+        "authorization_status": "NOT_APPLICABLE",
+        "derivation": "RESPECT_PERSONS",
+        "resolution_status": "CONTESTED",
+        "calibration_errors": [
+          "doing-harm classification lacks an agent-caused settled welfare harm on the protected party",
+          "resolved adjudication rests on unsupported decisive premises"
+        ],
+        "calibration_issues": [
+          {
+            "kind": "HARM_RELATION_GRAPH_MISALIGN",
+            "message": "doing-harm classification lacks an agent-caused settled welfare harm on the protected party",
+            "status": "ACTIVE"
+          },
+          {
+            "kind": "CALIBRATION",
+            "message": "resolved adjudication rests on unsupported decisive premises",
+            "status": "ACTIVE"
+          }
+        ],
+        "calibration_support_node_ids": [],
+        "evidence_basis": "SCENARIO",
+        "epistemic_status": "GROUNDED_PARTY",
+        "reason": "directly causes death",
+        "protected_party": "one worker",
+        "norm": "do not kill innocent person",
+        "duty_bearer": "maria",
+        "provenance": [
+          "delegate:deontological",
+          "cycle:2"
+        ]
+      },
+      "action_id": "A0",
+      "epistemic_status": "GROUNDED_PARTY",
+      "label": "deontological: A0 CONFLICTED"
+    },
+    {
+      "id": "COMMITMENT:5ca34c39cbf56166",
+      "kind": "FRAMEWORK_COMMITMENT",
+      "origin": "deontological",
+      "field": "norm",
+      "value": "do not kill innocent person",
+      "label": "do not kill innocent person",
+      "authority": "FRAMEWORK_LOCAL"
+    },
+    {
+      "id": "COMMITMENT:2a333b218af4c2af",
+      "kind": "FRAMEWORK_COMMITMENT",
+      "origin": "deontological",
+      "field": "priority_rule",
+      "value": "perfect negative duty overrides imperfect duty",
+      "label": "perfect negative duty overrides imperfect duty",
+      "authority": "FRAMEWORK_LOCAL"
+    },
+    {
+      "id": "CONFLICT:3c33fdbc9b71b172",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "doing-harm classification lacks an agent-caused settled welfare harm on the protected party",
+      "conflict_type": "UNSUPPORTED_INFERENCE",
+      "status": "OPEN",
+      "source": "NATIVE_LEDGER_CALIBRATION",
+      "claim_ids": [
+        "CLAIM:ee2494ecb15d01c7"
+      ]
+    },
+    {
+      "id": "CONFLICT:1d6d8f8a27e0a36a",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "resolved adjudication rests on unsupported decisive premises",
+      "conflict_type": "UNSUPPORTED_INFERENCE",
+      "status": "OPEN",
+      "source": "NATIVE_LEDGER_CALIBRATION",
+      "claim_ids": [
+        "CLAIM:ee2494ecb15d01c7"
+      ]
+    },
+    {
+      "id": "CLAIM:72c4d3a6ed452983",
+      "kind": "CLAIM",
+      "origin": "deontological",
+      "native_ledger_kind": "DEONTOLOGICAL_DUTY_LEDGER",
+      "native_record_id": "DEON_ASSESSMENT:deontological:A1",
+      "record": {
+        "assessment_node_id": "DEON_ASSESSMENT:deontological:A1",
+        "framework": "DEONTOLOGICAL",
+        "specialist": "deontological",
+        "assessment_role": "PRIMARY",
+        "cycle": 2,
+        "canonical_action_id": "A1",
+        "verdict": "REQUIRED",
+        "proposed_verdict": "REQUIRED",
+        "relation": "SATISFIES",
+        "proposed_relation": "SATISFIES",
+        "norm_kind": "RESPECT_PERSONS",
+        "norm_node_id": "DEON_NORM:4e9d4d2dc06149cc",
+        "party_node_id": "DEON_PARTY:879bcf30890178b8",
+        "bearer_node_id": "DEON_BEARER:94aec9fbed989ece",
+        "competing_norm": "duty to rescue",
+        "competing_norm_kind": "DUTY",
+        "competing_relation": "VIOLATES",
+        "competing_protected_party": "five workers",
+        "competing_reason": "omits rescue",
+        "duty_type": "PERFECT_NEGATIVE",
+        "harm_relation": "ALLOWING_HARM",
+        "special_obligation_status": "NOT_REQUIRED",
+        "special_obligation_basis": "NONE",
+        "means_relation": "NO_INSTRUMENTALIZATION",
+        "governing_norm": "PRIMARY",
+        "priority_basis": "RESPECT_PERSONS",
+        "priority_rule": "perfect negative duty overrides imperfect duty",
+        "protected_standing": "BODILY_INTEGRITY",
+        "competing_protected_standing": "OTHER",
+        "coercion_kind": "NONE",
+        "coercive_actor": "NONE",
+        "coerced_party": "NONE",
+        "public_justification": "Avoids killing; omission not perfect duty breach",
+        "reciprocity_status": "SATISFIED",
+        "necessity_status": "UNKNOWN",
+        "authorization_status": "NOT_APPLICABLE",
+        "derivation": "RESPECT_PERSONS",
+        "resolution_status": "RESOLVED",
+        "calibration_errors": [],
+        "calibration_issues": [],
+        "calibration_support_node_ids": [],
+        "evidence_basis": "SCENARIO",
+        "epistemic_status": "GROUNDED_PARTY",
+        "reason": "refrains from killing",
+        "protected_party": "one worker",
+        "norm": "do not kill innocent person",
+        "duty_bearer": "maria",
+        "provenance": [
+          "delegate:deontological",
+          "cycle:2"
+        ]
+      },
+      "action_id": "A1",
+      "epistemic_status": "GROUNDED_PARTY",
+      "label": "deontological: A1 REQUIRED"
+    },
+    {
+      "id": "CONFLICT:422f28331dfa451f",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "one worker: do not kill innocent person \u2194 five workers: duty to rescue",
+      "conflict_type": "REPORTED_INTERNAL_CONFLICT",
+      "status": "OPEN",
+      "source": "FRAMEWORK_REPORT",
+      "claim_ids": [
+        "CLAIM:ee2494ecb15d01c7",
+        "CLAIM:72c4d3a6ed452983"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CONFLICT:5afde2b3dc744879",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "A0 prohibited by do not kill innocent person \u2194 whether the harm-relation follows the admitted graph's causal topology rather than a relabel chosen to fit the verdict",
+      "conflict_type": "REPORTED_INTERNAL_CONFLICT",
+      "status": "OPEN",
+      "source": "FRAMEWORK_REPORT",
+      "claim_ids": [
+        "CLAIM:ee2494ecb15d01c7",
+        "CLAIM:72c4d3a6ed452983"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CONFLICT:ca49be511198b0c9",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "A0 ADJUDICATION_CALIBRATION: doing-harm classification lacks an agent-caused settled welfare harm on the protected party",
+      "conflict_type": "NATIVE_FRAMEWORK_WARNING",
+      "status": "OPEN",
+      "source": "NATIVE_FRAMEWORK_VALIDATION",
+      "claim_ids": [
+        "CLAIM:ee2494ecb15d01c7",
+        "CLAIM:72c4d3a6ed452983"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CONFLICT:df661734d150a7b0",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "A0 ADJUDICATION_CALIBRATION: resolved adjudication rests on unsupported decisive premises",
+      "conflict_type": "NATIVE_FRAMEWORK_WARNING",
+      "status": "OPEN",
+      "source": "NATIVE_FRAMEWORK_VALIDATION",
+      "claim_ids": [
+        "CLAIM:ee2494ecb15d01c7",
+        "CLAIM:72c4d3a6ed452983"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    }
+  ],
+  "edges": [
+    {
+      "source": "COMMITMENT:5ca34c39cbf56166",
+      "target": "CLAIM:ee2494ecb15d01c7",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "COMMITMENT:2a333b218af4c2af",
+      "target": "CLAIM:ee2494ecb15d01c7",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "CONFLICT:3c33fdbc9b71b172",
+      "target": "CLAIM:ee2494ecb15d01c7",
+      "kind": "OBJECTION",
+      "target_kind": "INFERENCE"
+    },
+    {
+      "source": "CONFLICT:1d6d8f8a27e0a36a",
+      "target": "CLAIM:ee2494ecb15d01c7",
+      "kind": "OBJECTION",
+      "target_kind": "INFERENCE"
+    },
+    {
+      "source": "COMMITMENT:5ca34c39cbf56166",
+      "target": "CLAIM:72c4d3a6ed452983",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "COMMITMENT:2a333b218af4c2af",
+      "target": "CLAIM:72c4d3a6ed452983",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    }
+  ],
+  "diagnostics": [],
+  "review_queue": [
+    "CONFLICT:3c33fdbc9b71b172",
+    "CONFLICT:1d6d8f8a27e0a36a"
+  ],
+  "limits": [
+    "No independent model pass or targeted review executed.",
+    "Different preferences do not establish a contradiction.",
+    "Native record commitment is not proof of every asserted premise."
+  ]
+}
