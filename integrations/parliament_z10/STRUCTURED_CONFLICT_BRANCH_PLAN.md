@@ -1,7 +1,8 @@
 # Proposed structured-conflict branch
 
-Status: `Logic_Puzzles` branch started. Read-only claim/conflict projection
-implemented; independent generation, scheduling and judgment changes remain planned.
+Status: `Logic_Puzzles` branch started. Read-only claim/conflict projection and
+isolated native framework generation implemented. Targeted review and collective
+judgment changes remain planned.
 
 ## Current increment
 
@@ -26,6 +27,51 @@ Three regression tests check lossless, deterministic projection without source
 mutation, rejected records and dangling references, and avoidance of false
 conflicts from different preferences alone. This establishes inspectable data;
 it does not yet demonstrate improved deliberation.
+
+## Independent framework generation
+
+The runner now launches one fresh, one-cycle native Parliament workspace per
+framework against exactly two admitted actions. Each starts from the same frozen
+world and seeded propositions, with no peer positions, previous testimony vote,
+episodic memory or generated peer hypotheses. It reuses native framework schemas,
+CORE dialect excerpts where available, and transactional ledger validation.
+Frameworks still retain different normative commitments. No collective judgment
+is inferred from the separate native runs.
+
+```bash
+.venv/bin/python run_logic_puzzles.py --generate-frameworks \
+  --trace diagnostics/promise_specialist_handoff/live/workspace_scenario_20261004_234129.json \
+  --output-dir diagnostics/logic_puzzles_independent_live
+```
+
+Defaults use the existing pinned patched Parliament checkout and Python runtime;
+`--parliament-root`, `--parliament-python`, `--model`, `--core-root`, and
+`--frameworks` allow explicit alternatives. The native worker loads the existing
+RAGAIMODEL `.env` without exporting its contents. The OpenAI backend remains
+unchanged and uses its existing schema-constrained API calls. See the
+[official structured-output documentation](https://developers.openai.com/api/docs/guides/structured-outputs).
+
+Each framework gets at most two adapter calls (initial plus native repair).
+Existing provider retry behavior is unchanged. Generation writes exact shared
+input, prompts/schemas/responses, full native traces, per-framework propositions,
+a readable generation summary and the combined conflict graph. New proposition
+IDs remain scoped to their originating framework, preventing different generated
+premises with the same local ID from merging. Invalid submissions are displayed
+as diagnostics rather than becoming committed claim nodes. This is an experiment
+in independent assessment, not an added admission gate for the legacy pipeline.
+
+Five projection/isolation tests plus the existing five source-advisory tests pass.
+Capture tests exercise all five native framework paths, identical seeded inputs,
+empty peer state, rejected responses and the two-call bound without making API
+calls. Live semantic quality is assessed separately.
+
+The first live `o3` pass completed all five frameworks with one adapter call each.
+All five submissions were native `VALID`: utilitarian and virtue ledgers committed;
+deontology, care and Rawls committed with uncertainty. The combined graph has 14
+native claim records, 54 nodes and 33 edges. It retains three calibration objections
+and three reported internal conflicts from deontology. The source world remained
+unchanged. These are usable independent outputs, not a demonstration of improved
+ethical conclusions; targeted review and a matched legacy comparison remain next.
 
 Preserve the admitted-world schema, blueprints, composition engine, source
 advisory, original framework ledgers, and the legacy runner as a comparison arm.

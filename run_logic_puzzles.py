@@ -26,6 +26,17 @@ def project_conflicts(trace):
     for proposition in trace.get('proposition_ledger', []):
         node(proposition['proposition_id'], 'PROPOSITION', record=proposition,
              epistemic_status=proposition['epistemic_status'], label=proposition['claim'])
+    scoped_dependencies = {}
+    for origin, propositions in trace.get('framework_proposition_ledgers', {}).items():
+        for proposition in propositions:
+            local_id = proposition['proposition_id']
+            # Generated premises from isolated runs must not alias one another.
+            if local_id not in nodes or nodes[local_id]['record'] != proposition:
+                ident = origin + '::' + local_id
+                node(ident, 'PROPOSITION', origin=origin, native_proposition_id=local_id,
+                     record=proposition, epistemic_status=proposition['epistemic_status'],
+                     label=proposition['claim'])
+                scoped_dependencies[(origin, local_id)] = ident
     candidates = trace.get('cycles', [])[-1]['candidates'] if trace.get('cycles') else []
     issues = []
     for candidate in candidates:
@@ -53,9 +64,10 @@ def project_conflicts(trace):
                 else:
                     diagnostics.append({'claim_id': ident, 'unresolved_effect_id': effect_id})
             for dependency in candidate.get('decision_critical_proposition_ids', []):
-                if dependency in nodes:
-                    edge(ident, dependency, 'DEPENDENCY', scope='CANDIDATE_LEVEL',
-                         epistemic_status=nodes[dependency]['epistemic_status'])
+                target = scoped_dependencies.get((origin, dependency), dependency)
+                if target in nodes:
+                    edge(ident, target, 'DEPENDENCY', scope='CANDIDATE_LEVEL',
+                         epistemic_status=nodes[target]['epistemic_status'])
                 else:
                     diagnostics.append({'claim_id': ident, 'unresolved_dependency_id': dependency})
             for field in ('norm', 'priority_rule', 'responsibility_basis', 'ranking_basis'):
@@ -93,14 +105,10 @@ def project_conflicts(trace):
                        'Native record commitment is not proof of every asserted premise.']}
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--trace', type=Path, required=True)
-    parser.add_argument('--output-dir', type=Path, default=Path('diagnostics/logic_puzzles_projection'))
-    args = parser.parse_args()
-    graph = project_conflicts(json.loads(args.trace.read_text()))
-    args.output_dir.mkdir(parents=True, exist_ok=True)
-    (args.output_dir/'conflict_graph.json').write_text(json.dumps(graph, indent=2)+'\n')
+def write_graph(graph, output_dir):
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    (output_dir/'conflict_graph.json').write_text(json.dumps(graph, indent=2)+'\n')
     aliases = {n['id']: 'n'+str(i) for i,n in enumerate(graph['nodes'])}
     lines = ['# Logic_Puzzles claim/conflict projection', '',
              'Read-only projection. Native records remain attributed; evidence links do not establish whole-record correctness.', '',
@@ -113,7 +121,31 @@ def main():
     lines += ['```', '', 'Proposed review queue (at most two issues):', '']
     by_id = {n['id']: n for n in graph['nodes']}
     lines += ['- '+by_id[i]['label'] for i in graph['review_queue']]
-    (args.output_dir/'conflict_graph.md').write_text('\n'.join(lines)+'\n')
+    (output_dir/'conflict_graph.md').write_text('\n'.join(lines)+'\n')
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--trace', type=Path, required=True)
+    parser.add_argument('--output-dir', type=Path, default=Path('diagnostics/logic_puzzles_projection'))
+    parser.add_argument('--generate-frameworks', action='store_true')
+    parser.add_argument('--frameworks', nargs='+', default=['utilitarian', 'deontological', 'care', 'virtue', 'rawlsian'])
+    parser.add_argument('--model', default='o3')
+    parser.add_argument('--parliament-root', type=Path, default=Path('/tmp/parliament-smoke-614af0c'))
+    parser.add_argument('--parliament-python', type=Path, default=Path('/tmp/parliament-smoke-env/bin/python'))
+    parser.add_argument('--core-root', type=Path)
+    args = parser.parse_args()
+    if args.generate_frameworks:
+        import subprocess
+        command = [str(args.parliament_python), str(Path(__file__).with_name('logic_puzzles_frameworks.py')),
+                   '--trace', str(args.trace), '--output-dir', str(args.output_dir),
+                   '--parliament-root', str(args.parliament_root), '--model', args.model,
+                   '--frameworks', *args.frameworks]
+        if args.core_root:
+            command += ['--core-root', str(args.core_root)]
+        raise SystemExit(subprocess.call(command))
+    graph = project_conflicts(json.loads(args.trace.read_text()))
+    write_graph(graph, args.output_dir)
     print(f'{len(graph["nodes"])} nodes; {len(graph["edges"])} edges; {len(graph["review_queue"])} proposed review issues. No model calls.')
 
 
