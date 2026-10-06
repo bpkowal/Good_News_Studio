@@ -6,6 +6,7 @@ the original attempt remains available if an amendment fails admission.
 from copy import deepcopy
 import re
 
+from blueprint_evidence_graph import bind_world_atoms
 from blueprint_kind_license import license_kind
 from blueprint_proposal_contract import validate_proposal
 
@@ -216,6 +217,8 @@ def expand_candidates(text, package, blueprint, inventory=None):
                                                     "reason": "Copied conditional branch."})
         projected["construction_provenance"] = _construction_provenance(world, projected["clauses"], {})
         projected["relation_alternatives"] = _relation_alternatives(world, projected["clauses"])
+        projected["evidence_graph"] = bind_world_atoms(
+            list(projected.get("evidence_graph") or []), world, projected["clauses"])
         projected["unresolved_readings"].extend(unresolved)
         return projected, added
     # Original proposal rank stays unchanged; amended variants are preferred

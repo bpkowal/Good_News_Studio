@@ -1,19 +1,35 @@
 """Shared proposal-envelope contract for candidate graph blueprints.
 
-The envelope is diagnostic until Parliament admits its candidate.  A family
-whose semantics cannot be represented in world schema 1.3 still emits the same
-evidence/provenance envelope, with ``candidate`` set to ``None`` and a named
-construction problem.
+The envelope is diagnostic until Parliament admits its candidate.  Schema 1.4
+keeps the 1.3 occurrence subgraph and adds discourse collections.  Content of
+reports, commitments, and modals is not an occurrence effect.
 """
 from __future__ import annotations
 
 from typing import Any, Iterable, Sequence
 
 from blueprint_derivation_license import apply_derivation_license, derivation_errors
+from blueprint_discourse import (
+    COMMITMENT_KEYS,
+    DISCOURSE_KEYS,
+    MODAL_KEYS,
+    NORM_KEYS,
+    PROPOSITION_KEYS,
+    PROPOSITION_STATUSES,
+    REPORT_KEYS,
+    SCHEMA_VERSION,
+    content_as_effect_errors,
+    ensure_schema,
+)
+from blueprint_evidence_graph import (
+    bind_world_atoms,
+    citation_errors,
+    source_copy_validation,
+)
 from blueprint_kind_license import apply_kind_license
 
 
-CONTRACT_VERSION = "blueprint-proposal-contract/0.4"
+CONTRACT_VERSION = "blueprint-proposal-contract/0.6"
 ASSIGNMENT_KINDS = {"z10_proposition_ids", "intervention_text", "none"}
 PROVENANCE_ORIGINS = {
     "SOURCE_ASSERTED", "STRUCTURALLY_DERIVED",
@@ -27,10 +43,12 @@ PROPOSAL_KEYS = {
     "admission_authorized", "notes",
     "pre_world_assessment", "accepted_evidence", "world_withheld",
     "construction_provenance", "relation_alternatives", "exclusivity_proof",
+    "evidence_graph",
 }
 WORLD_KEYS = {
     "schema_version", "parties", "actions", "effects", "conditions",
     "temporal_relations", "causal_links", "counterfactual_links",
+    *DISCOURSE_KEYS,
 }
 ACTION_KEYS = {
     "action_id", "intervention", "actor_party_id", "recipient_party_ids",
@@ -52,9 +70,14 @@ def world_model(parties: Sequence[dict[str, Any]],
                 causal_links: Sequence[dict[str, Any]],
                 conditions: Sequence[dict[str, Any]] = (),
                 temporal_relations: Sequence[dict[str, Any]] = (),
-                counterfactual_links: Sequence[dict[str, Any]] = ()) -> dict[str, Any]:
-    return {
-        "schema_version": "1.3",
+                counterfactual_links: Sequence[dict[str, Any]] = (),
+                propositions: Sequence[dict[str, Any]] = (),
+                reports: Sequence[dict[str, Any]] = (),
+                commitments: Sequence[dict[str, Any]] = (),
+                modal_operators: Sequence[dict[str, Any]] = (),
+                normative_propositions: Sequence[dict[str, Any]] = ()) -> dict[str, Any]:
+    return ensure_schema({
+        "schema_version": SCHEMA_VERSION,
         "parties": list(parties),
         "actions": list(actions),
         "effects": list(effects),
@@ -62,7 +85,12 @@ def world_model(parties: Sequence[dict[str, Any]],
         "temporal_relations": list(temporal_relations),
         "causal_links": list(causal_links),
         "counterfactual_links": list(counterfactual_links),
-    }
+        "propositions": list(propositions),
+        "reports": list(reports),
+        "commitments": list(commitments),
+        "modal_operators": list(modal_operators),
+        "normative_propositions": list(normative_propositions),
+    })
 
 
 def candidate(actions: dict[str, dict[str, Any]], world: dict[str, Any],
@@ -89,7 +117,8 @@ def proposal(*, proposal_id: str, blueprint_id: str, status: str,
              construction_provenance: Sequence[dict[str, Any]] = (),
              relation_alternatives: Sequence[dict[str, Any]] = (),
              exclusivity_proof: dict[str, Any] | None = None,
-             world_withheld: Sequence[str] = ()) -> dict[str, Any]:
+             world_withheld: Sequence[str] = (),
+             evidence_graph: Sequence[dict[str, Any]] = ()) -> dict[str, Any]:
     row = {
         "proposal_contract_version": CONTRACT_VERSION,
         "proposal_id": proposal_id,
@@ -119,8 +148,10 @@ def proposal(*, proposal_id: str, blueprint_id: str, status: str,
             "explanation": "No exclusivity claim is needed or established.",
         },
         "world_withheld": list(world_withheld),
+        "evidence_graph": list(evidence_graph or []),
     }
     if isinstance(candidate_value, dict) and isinstance(candidate_value.get("world_model"), dict):
+        candidate_value["world_model"] = ensure_schema(candidate_value["world_model"])
         apply_derivation_license(
             candidate_value["world_model"],
             list(clauses),
@@ -131,6 +162,11 @@ def proposal(*, proposal_id: str, blueprint_id: str, status: str,
             list(clauses),
             blueprint_id,
         )
+        row["evidence_graph"] = bind_world_atoms(
+            row["evidence_graph"], candidate_value["world_model"], list(clauses))
+        if (row.get("admission_authorized")
+                and (row.get("selection_validation") or {}).get("status") == "not_assessed"):
+            row["selection_validation"] = source_copy_validation()
     errors = validate_proposal(row)
     if errors:
         raise ValueError("Invalid blueprint proposal envelope: " + "; ".join(errors))
@@ -150,7 +186,8 @@ def withheld_proposal(*, proposal_id: str, blueprint_id: str,
                       accepted_evidence: dict[str, Any] | None = None,
                       construction_provenance: Sequence[dict[str, Any]] = (),
                       relation_alternatives: Sequence[dict[str, Any]] = (),
-                      exclusivity_proof: dict[str, Any] | None = None) -> dict[str, Any]:
+                      exclusivity_proof: dict[str, Any] | None = None,
+                      evidence_graph: Sequence[dict[str, Any]] = ()) -> dict[str, Any]:
     validation = selection_validation or {
         "contract_valid": None,
         "status": "not_assessed",
@@ -184,6 +221,7 @@ def withheld_proposal(*, proposal_id: str, blueprint_id: str,
             problem.get("message", str(problem)) if isinstance(problem, dict) else str(problem)
             for problem in construction_problems
         ],
+        evidence_graph=evidence_graph,
     )
 
 
@@ -229,8 +267,11 @@ def validate_proposal(row: dict[str, Any]) -> list[str]:
     if not isinstance(world, dict):
         errors.append("candidate.world_model is missing")
         return errors
-    if world.get("schema_version") != "1.3":
-        errors.append("candidate world schema must be 1.3")
+    world = ensure_schema(world)
+    if isinstance(candidate_value, dict):
+        candidate_value["world_model"] = world
+    if world.get("schema_version") != SCHEMA_VERSION:
+        errors.append("candidate world schema must be 1.4")
     absent_world = sorted(WORLD_KEYS - set(world))
     if absent_world:
         errors.append("missing world fields: " + ", ".join(absent_world))
@@ -252,8 +293,17 @@ def validate_proposal(row: dict[str, Any]) -> list[str]:
             errors.append(f"{effect.get('effect_id', 'effect')} has no clause evidence")
         if not effect.get("source_proposition"):
             errors.append(f"{effect.get('effect_id', 'effect')} has no source proposition")
+    _validate_discourse(world, errors)
+    errors.extend(content_as_effect_errors(world))
     errors.extend(derivation_errors(
         world, row.get("clauses") or [], row.get("exclusivity_proof") or {}))
+    if authorized is True:
+        status = (row.get("selection_validation") or {}).get("status")
+        if status == "not_assessed":
+            errors.append(
+                "Authorized worlds must cite source-copy or Z10 selection, "
+                "not not_assessed")
+        errors.extend(citation_errors(row.get("evidence_graph") or [], world))
     return errors
 
 
@@ -282,3 +332,58 @@ def _validate_unique_ids(rows: Iterable[dict[str, Any]], key: str,
             errors.append(f"duplicate {key}: {ident}")
         else:
             seen.add(ident)
+
+
+def _validate_discourse(world: dict[str, Any], errors: list[str]) -> None:
+    _validate_unique_ids(world.get("propositions") or [], "proposition_id", errors)
+    _validate_unique_ids(world.get("reports") or [], "report_id", errors)
+    _validate_unique_ids(world.get("commitments") or [], "commitment_id", errors)
+    _validate_unique_ids(world.get("modal_operators") or [], "modal_id", errors)
+    _validate_unique_ids(world.get("normative_propositions") or [], "norm_id", errors)
+    proposition_ids = {row.get("proposition_id") for row in world.get("propositions") or []}
+    for proposition in world.get("propositions") or []:
+        missing = sorted(PROPOSITION_KEYS - set(proposition))
+        if missing:
+            errors.append(
+                f"{proposition.get('proposition_id', 'proposition')} missing fields: "
+                + ", ".join(missing))
+        if proposition.get("status") not in PROPOSITION_STATUSES:
+            errors.append(
+                f"{proposition.get('proposition_id', 'proposition')} has invalid status")
+        if not proposition.get("clause_ids"):
+            errors.append(
+                f"{proposition.get('proposition_id', 'proposition')} has no clause evidence")
+    for report in world.get("reports") or []:
+        missing = sorted(REPORT_KEYS - set(report))
+        if missing:
+            errors.append(
+                f"{report.get('report_id', 'report')} missing fields: " + ", ".join(missing))
+        if report.get("content_proposition_id") not in proposition_ids:
+            errors.append(
+                f"{report.get('report_id', 'report')} content is not a world proposition")
+    for commitment in world.get("commitments") or []:
+        missing = sorted(COMMITMENT_KEYS - set(commitment))
+        if missing:
+            errors.append(
+                f"{commitment.get('commitment_id', 'commitment')} missing fields: "
+                + ", ".join(missing))
+        if commitment.get("content_proposition_id") not in proposition_ids:
+            errors.append(
+                f"{commitment.get('commitment_id', 'commitment')} content is not a "
+                "world proposition")
+    for modal in world.get("modal_operators") or []:
+        missing = sorted(MODAL_KEYS - set(modal))
+        if missing:
+            errors.append(
+                f"{modal.get('modal_id', 'modal')} missing fields: " + ", ".join(missing))
+        if modal.get("governed_proposition_id") not in proposition_ids:
+            errors.append(
+                f"{modal.get('modal_id', 'modal')} does not govern a world proposition")
+    for norm in world.get("normative_propositions") or []:
+        missing = sorted(NORM_KEYS - set(norm))
+        if missing:
+            errors.append(
+                f"{norm.get('norm_id', 'norm')} missing fields: " + ", ".join(missing))
+        if norm.get("governed_proposition_id") not in proposition_ids:
+            errors.append(
+                f"{norm.get('norm_id', 'norm')} does not govern a world proposition")

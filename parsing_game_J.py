@@ -8,6 +8,8 @@ No graph writes occur here. Importing this module never trains or opens logs.
 import argparse
 from dataclasses import dataclass
 from functools import lru_cache
+from typing import Optional
+
 import json
 import sys
 import tempfile
@@ -852,6 +854,229 @@ def collect_claim_evidence(sentence, lexicon=LEXICON):
         records.append(dict(sentence=sentence, tokens=tokens, proposals=proposals,
                             entities=[], issues=["no_supported_argument_pair"], features=None))
     return records
+# ============================================================
+# PROPOSITION FRAME EXTRACTION
+#
+# Converts existing claim-evidence records into a purely
+# structural proposition representation.
+#
+# This layer intentionally does NOT use CEM.
+# ============================================================
+
+def extract_proposition_frames(
+    sentence,
+    lexicon=LEXICON,
+):
+
+    evidence_records = (
+        collect_claim_evidence(
+            sentence,
+            lexicon
+        )
+    )
+
+
+    frames = []
+
+
+    for frame_number, evidence in enumerate(
+        evidence_records
+    ):
+
+        candidate = evidence.get(
+            "selected_candidate"
+        )
+
+
+        # No predicate / argument structure was recovered.
+        # Keep that information in collect_claim_evidence(),
+        # but do not invent a proposition frame.
+
+        if (
+            candidate is None
+            or
+            not evidence.get(
+                "entities"
+            )
+        ):
+
+            continue
+
+
+        predicate_index = (
+            candidate[
+                "index"
+            ]
+        )
+
+
+        # ----------------------------------------------------
+        # Find the predicate token from the token snapshot.
+        # ----------------------------------------------------
+
+        predicate_token = next(
+            (
+                token
+
+                for token in evidence[
+                    "tokens"
+                ]
+
+                if token[
+                    "index"
+                ]
+                ==
+                predicate_index
+            ),
+            None,
+        )
+
+
+        if predicate_token is None:
+
+            continue
+
+
+        # ----------------------------------------------------
+        # IMPORTANT:
+        #
+        # evidence["entities"] is stored in TEXT ORDER.
+        #
+        # That is useful for CEM, but proposition frames need
+        # SYNTACTIC roles.
+        #
+        # candidate["subject_index"] and ["object_index"]
+        # tell us which entity fills which role.
+        # ----------------------------------------------------
+
+        subject_index = (
+            candidate.get(
+                "subject_index"
+            )
+        )
+
+
+        object_index = (
+            candidate.get(
+                "object_index"
+            )
+        )
+
+
+        subject_entity = next(
+            (
+                entity
+
+                for entity in evidence[
+                    "entities"
+                ]
+
+                if entity[
+                    "token_index"
+                ]
+                ==
+                subject_index
+            ),
+            None,
+        )
+
+
+        object_entity = next(
+            (
+                entity
+
+                for entity in evidence[
+                    "entities"
+                ]
+
+                if entity[
+                    "token_index"
+                ]
+                ==
+                object_index
+            ),
+            None,
+        )
+
+
+        frame = PropositionFrame(
+
+            frame_id=
+                f"p{frame_number}",
+
+
+            predicate_text=
+                predicate_token[
+                    "text"
+                ],
+
+            predicate_lemma=
+                predicate_token[
+                    "lemma"
+                ],
+
+            predicate_index=
+                predicate_index,
+
+
+            subject=
+                subject_entity,
+
+            object=
+                object_entity,
+
+
+            clause_start=
+                candidate.get(
+                    "clause_start",
+                    predicate_index,
+                ),
+
+            clause_end=
+                candidate.get(
+                    "clause_end",
+                    predicate_index + 1,
+                ),
+
+
+            dependency_role=
+                predicate_token[
+                    "dependency"
+                ],
+
+
+            assertion=
+                evidence.get(
+                    "assertion",
+                    {
+                        "status":
+                            "unresolved"
+                    }
+                ),
+
+
+            issues=
+                list(
+                    evidence.get(
+                        "issues",
+                        []
+                    )
+                ),
+
+
+            candidate_source=
+                candidate.get(
+                    "source"
+                ),
+        )
+
+
+        frames.append(
+            frame
+        )
+
+
+    return frames
 
 
 def collect_evidence(sentence, lexicon=LEXICON):
@@ -874,6 +1099,43 @@ def extract_channels(example_or_sentence):
         features = evidence["features"]
     return np.array([features[name] for name in FEATURE_NAMES], dtype=np.float64)
 
+
+# ============================================================
+# PROPOSITION FRAME
+#
+# Structural description of one local proposition.
+#
+# IMPORTANT:
+# This does NOT decide whether the proposition is causal.
+# It describes:
+#
+#     SUBJECT -- PREDICATE --> OBJECT
+#
+# plus clause / assertion information.
+# ============================================================
+
+@dataclass
+class PropositionFrame:
+
+    frame_id: str
+
+    predicate_text: str
+    predicate_lemma: str
+    predicate_index: int
+
+    subject: Optional[dict]
+    object: Optional[dict]
+
+    clause_start: int
+    clause_end: int
+
+    dependency_role: str
+
+    assertion: dict
+
+    issues: list
+
+    candidate_source: Optional[str]
 
 @dataclass
 class CEMPolicy:

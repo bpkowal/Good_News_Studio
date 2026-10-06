@@ -163,6 +163,29 @@ and recovery statement records `CAUSES | ENABLES` in `unresolved_readings` when
 the text does not distinguish them; the world model does not invent a second
 relation type.
 
+### Parser-first slot recovery
+
+The cloze model selects and supplements a blueprint; it is no longer the sole
+source of slot values. After each cloze pass, the builder reuses the frozen Z10
+package and its underlying dependency parse to recover exact source spans for:
+
+- typed quantities and aligned resource mentions;
+- active and passive transfer predicates, actors, and destinations;
+- conditional propositions in either condition-first or condition-last order;
+- positive and negated condition pairs, including passive `by` agents;
+- outcome clauses, modal/conditional markers, and branch sentences;
+- explicit exclusivity variants such as `cannot ... both`;
+- nonreceipt descriptions expressed through negation, `untreated`, or
+  `left without`.
+
+Recovered slots carry `parsing_game_Z10` provenance in `z10_recovered_slots`.
+They remain exact source spans. Z10 ambiguity is preserved rather than silently
+resolved. Derived exclusivity uses its proof record to close allocation branches
+without fabricating a `not both` quotation. Parliament's matching constraint
+recognizers allow modifiers between a singular marker and resource head, so
+`one indivisible dose` retains its exact evidence instead of being normalized to
+an unsupported phrase.
+
 ## Serum scenario: three initial candidates
 
 Text signals:
@@ -246,7 +269,11 @@ additional rejection policy.
 The water-first question gate plus exclusive-allocation bookkeeping form the
 reference implementation. Conditional outcome
 can now materialize one or two independently copied condition/outcome chains
-with branch-local chances and conditions. Rescue contrast requires two copied
+with branch-local chances and explicit positive/negated condition records.
+Non-transfer actions use a source-named process such as the lever between the
+direct intervention and a different party's welfare outcome. This preserves
+Parliament's required `act -> process state -> outcome` topology without
+inventing a process absent from the text. Rescue contrast requires two copied
 rescue actions, explicit `not both` evidence, and independent copied outcomes
 for each branch. Omission
 harm builds separate positive and negated action branches, copies each complete
@@ -311,23 +338,258 @@ Artifacts are under
 including the source candidate, native frozen trace, semantic-preservation trace,
 full Parliament trace, summary, and public answer.
 
-From the parser repository root, the complete default run is now one command:
+From the parser repository root, the complete run is one command. With no input
+argument it uses the development medicine scenario:
 
 ```bash
 ./run_blueprint_parliament.sh
 ```
 
-It creates `diagnostics/blueprint_parliament_runs/<timestamp>/`, prepares and
-admits the graph, writes `world_state_topology.md` and
-`world_state_topology.json`, runs Parliament, and records every result path in
-`preparation_manifest.json`. The wrapper internally applies the frozen-world
-test profile and loads the existing OpenAI environment without copying secrets
-into an artifact.
-
-To stop after graph admission and topology generation:
+Pass arbitrary text directly or from a UTF-8 file:
 
 ```bash
+./run_blueprint_parliament.sh --text \
+  "Maria can divert the trolley toward one worker, and one worker will die."
+
+./run_blueprint_parliament.sh --scenario-file my_scenario.txt
+```
+
+The runner first writes `question_assessment.json`, ranks and fills three
+blueprints, and writes every graph or withheld attempt to
+`candidate_graphs.md` and `candidate_attempts.json`. Only the selected
+contract-valid proposal reaches Parliament. A withheld construction still writes
+the question, copied evidence, candidate attempts, missing slots,
+`blueprint_candidate.json`, and `preparation_manifest.json`; its exit status is
+2 and Parliament is not called.
+
+Ranking includes the explicit meta-options `none` and `composite`. If either is
+ranked first, construction is withheld while the remaining ranked attempts stay
+visible. Every filled proposal now keeps construction provenance outside
+Parliament's closed 1.3 world records, using `SOURCE_ASSERTED`,
+`STRUCTURALLY_DERIVED`, `WORLD_KNOWLEDGE_HYPOTHESIS`, or `UNRESOLVED`.
+Exclusivity has a proof record with status `EXPLICIT`, `DERIVED`,
+`HYPOTHESIZED`, or `UNKNOWN`.
+
+Bare conditionals no longer become `CAUSES` automatically. The working
+Parliament graph uses `ENABLES` where Parliament requires a downstream parent,
+while the proposal retains `ENABLES | CAUSES` as an unresolved relation
+alternative. Explicit causal, enabling, and preventing words license their
+corresponding relation. A conditional that restates the parent action remains an
+explicit condition record and appears as branch scope in the diagnostic graph.
+It is not attached as a `condition_id` gate to a `CERTAIN` effect or link: the
+selected action and its process-state edge already carry that dependency, and
+Parliament rejects a redundant gate that restates its own source. Independent
+conditions continue to use attached 1.3 condition structures.
+
+The runner also writes `z10_blueprint_comparison.json`. It compares predicates,
+roles, scope structures, and relations for every candidate attempt. Differences
+remain diagnostic and never rewrite Z10, change the chosen blueprint, or force
+agreement.
+
+An admitted run additionally writes `world_state_topology.md`,
+`world_state_topology.json`, and the native `frozen_world_trace.json`, then runs
+Parliament and records every result path in `preparation_manifest.json`. The
+wrapper loads the existing OpenAI environment without copying secrets into an
+artifact. Set `BLUEPRINT_PYTHON` to select a Python executable; otherwise it uses
+the repository `.venv` and falls back to `python3` in a clean checkout.
+
+After admission the runner hands the frozen world to RelEnt's
+`global_workspace_pipeline.py`. It does not call `parliament.py`, which would
+rewrite a new scenario file. Default deliberation is full RelEnt: all five
+frameworks, original agents, three cycles, and synthesis/planning/audits on.
+The manifest records the Parliament commit, branch, modified source files, and
+integration-patch fingerprint. Completed runs also write
+`parliament/deliberation_report.md`: original testimony and errors, every cycle
+including dissent, framework ledgers, and audit/synthesis records. The native
+short answer remains available separately. Admission failures retain their error
+and candidate artifact paths in the manifest.
+On a TTY it presents RelEnt's own choices (frameworks, max cycles, corpus RAG)
+unless those flags were already passed. `--prepare-only` still stops after
+graph admission and never starts deliberation.
+
+`--prototype-deliberation` is a pipeline-only cheap smoke: utilitarian and
+deontological compact specialists, original agents skipped, one cycle, and no
+synthesis, planning, or audits. RelEnt itself has no matching flag.
+
+```bash
+# Graph only
 ./run_blueprint_parliament.sh --prepare-only
+
+# Full RelEnt after cloze admission (TTY prompts unless flags are set)
+./run_blueprint_parliament.sh --text "A clinic has one dose of medicine. ..."
+
+# Cheap compact smoke
+./run_blueprint_parliament.sh --prototype-deliberation
 ```
 This is the baseline that later blueprints must reproduce: match, fill, show the
 graph, validate, and admit before expanding the blueprint ensemble.
+
+## Additive graph amendments (2026-10-04)
+
+The runner now retains the chooser's original candidates and appends separate
+amended candidates when Z10 exposes additional supported conditional branches.
+The amendment layer uses the existing constructors and Parliament 1.3 schema;
+it has no fixed branch/node count. Matching actions and process nodes are reused,
+and additional outcomes retain their own source clauses and quantities. Every
+candidate core gets native admission; the highest-ranked admitted attempt wins.
+An amended candidate is considered immediately before its original, which stays
+available if the amendment fails. Unsupported constructions remain visible in
+`amendment_inventory.json`.
+
+`flexible_graph` is an additional fallback constructed from the same branch
+inventory. It can represent more than two explicit conditional branches, even
+when the chooser returned `none` or `composite`. It does not yet represent every
+kind of moral dilemma: unresolved references, coordinated consequences, attributed
+conditions, and predicates outside the existing outcome interpreter stay recorded
+as gaps. No extra model call is made for this expansion.
+
+The supported-core projection preserves arbitrary existing causal, temporal,
+and counterfactual links between retained nodes. Hypothetical effects and relations
+to their excluded endpoints remain in `hypothesis_overlay.json`. The integration
+patch removes Parliament's automatic averted-harm construction step so it cannot
+reinsert those hypotheses during admission/replay. Explicit source-supported
+benefits continue to be admitted. This is a construction change; validation rules
+and the world-state schema are unchanged.
+
+Native example: the two-branch trolley baseline plus “If Maria presses the button,
+two workers will survive.” produces admitted amended and flexible graphs with
+three actions, nine effects, and six links. See
+`diagnostics/blueprint_amendment_three_branches_final/candidate_graphs.md` and
+`admission_results.json`. These are deterministic construction/admission checks,
+not a fresh live-model generation or deliberation run.
+
+### Explicit process-state outcomes
+
+The additive layer also recognizes positive, unhedged `will` outcomes for
+parser predicates `stop`, `start`, `open`, `close`, `fail`, and `activate`, when
+the bearer is explicitly a signal, alarm, gate, door, pump, brake, engine, valve,
+machine, or switch. It uses `PHYSICAL_STATE` on a `PROCESS` party; no injury,
+benefit, or survival consequence is inferred. The source sentence, modality,
+parent link, and provenance remain bound to the added node. A conditional remains
+a branch association with relation alternatives, not proof of causation.
+
+Example: adding “If Maria pulls the lever, the warning signal will stop.” to the
+two-branch trolley yields seven admitted effects while the original six-effect
+candidate remains available. See
+`diagnostics/blueprint_process_state_amendment_final/candidate_graphs.md`.
+Negated and hedged process readings remain visible unresolved constructions;
+they are not converted into positive/certain states. Other physical predicates
+and nonconditional causal/temporal sentences are not yet generally generated by
+this layer. Existing builders and the Parliament schema are unchanged.
+## Primitive composition pilot (choice plus conditional outcomes)
+
+The runner now exports `primitive_inventory.json` before macro ranking. It reuses
+the Z10-backed conditional extractor and retains scenario-option sets, evidence,
+scope, and the candidates needed by those constructions. This is a partial
+inventory; the original Z10 package remains the record for other semantics.
+
+After the existing baseline/amended/flexible attempts, the runner appends a
+`primitive_composition` attempt built directly from the inventory. It uses the
+existing conditional atom builder, graph union, provenance closure and supported
+core projection, without a blueprint-family dispatch or new Parliament schema.
+It does not change the ranks of existing candidates. The pilot covers at most
+two constructed actions; larger inputs still follow the existing blueprint paths.
+Additional outcomes on either action do not create another construction family.
+
+Choice alternatives retain their original scope and selection rule in the
+inventory. They do not establish exclusive actions, exhaustiveness or occurrence.
+This increment does not resolve ambiguous modalities, references or unsupported
+outcomes. It tests the already-supported positive conditional outcomes, including
+an explicit process-state outcome on an existing branch.
+
+`primitive_comparison.json` compares supported cores (not speculative overlays):
+effect readings and ID-independent topology, preserving quantities, parents,
+conditions, and relation records. Differences are diagnostics, not admission
+requirements. Every composition attempt receives the usual candidate graph and
+native admission result, including an explicit pilot-scope problem when withheld.
+
+The reproducible deterministic probes are under
+`diagnostics/primitive_composition_pilot/{baseline,signal}`. They use fixed cloze
+bindings to isolate construction from model variation and run native Parliament
+admission/frozen-trace validation. They do not run live model generation or RelEnt
+deliberation. The baseline admits six effects; adding the warning-signal stopping
+outcome admits seven, on the same two actions.
+
+### Bounded Care evidence binding
+
+The pinned Parliament integration patch also corrects Care's effect references.
+Care selects evidence within the assessed action and matches the full affected
+party label (case/spacing/leading articles normalized; quantities preserved).
+Keywords in an explanation about rival parties cannot establish party identity.
+The live prompt asks for copied local party labels and keeps unsupported
+relationships as framework interpretations. There is no inferred entity merge.
+
+An unmatched scenario-grounding claim remains a committed uncertain assessment,
+without a false `SUPPORTED_BY` edge; it does not reject or rewrite the world.
+`effect_grounding_status` makes matched/unmatched evidence explicit. Matching a
+party's outcome is not proof of entrustment, intent, or normative priority.
+`test_parliament_care_binding.py` replays the earlier Care failure against the
+frozen composition graph and checks wrong-party, wrong-action, quantity, valid
+binding, and world preservation. Other frameworks' query behavior is unchanged.
+
+### Entrustment hypothesis containment
+
+Care's structured ENTRUSTED reading now enters the existing proposition ledger
+as an unverified hypothesis, even if a model omits it from its empirical-premise
+list. ENTRUSTED_RESPONSIBILITY rankings carry it as decision-critical; an outcome
+citation cannot verify the relationship. Care assessments separately display
+`relationship_evidence_status: UNVERIFIED` for this reading. Other relationship
+types remain outside this bounded extension; this is not a general relation verifier.
+
+Shared unresolved dependency records include origin (`introduced_by`), epistemic
+type/status, evidence support IDs and derivation dependencies. Existing identity
+and status machinery preserves the origin when another agent cites or repeats the
+same hypothesis. Adoption retains its uncertainty, and recommendation continuity
+cannot silently drop it. Repetition changes attention counts, not truth status.
+
+`test_parliament_hypothesis_containment.py` exercises storage, broadcast data,
+explicit citation and repeated-claim adoption, a declaration of ESTABLISHED that
+cannot override the ledger, and next-cycle continuity. It confirms the world and
+semantic graph remain exactly unchanged. It tests declared adoption of the same
+claim, not reliable detection of every hidden or paraphrased premise in prose.
+
+
+### Quantity atoms cannot verify agent outcomes or relationships
+
+A two-cycle live Care/Deontology replay exposed a binding error: an independent
+NEW_HYPOTHESIS audit finding about five workers surviving was rebound to the
+established "five workers" cardinality atom. Quantity-only atoms now accept
+canonical copies only; they do not borrow outcome/action context from the effect
+that seeded them. This rule also covers audit-supplied quantity IDs. Other atoms'
+paraphrase matching remains unchanged, and world admission is unchanged.
+
+`test_parliament_hypothesis_containment.py` replays the actual live audit findings,
+checks repeated hypothesis identity and Care attribution, checks explicit-ID
+bypass attempts, and preserves genuine quantity/effect bindings and the admitted
+graph. Evidence and limitations: `diagnostics/hypothesis_containment_live/RESULT.md`.
+The live run occurred before this fix; post-fix verification is deterministic.
+
+
+### Source accounting and promise retention
+
+The pre-ranking inventory now retains all Z10 candidates, source choice sets,
+open questions, parser coverage and producer resources. Every candidate has a
+construction consumer or a named unconsumed-reading question. This is accounting
+of generated readings, not a completeness claim or an additional admission gate.
+
+A bounded `promise` primitive retains Z10's predication, participants, complement
+links and scope. It does not infer a semantic promisee from an object, resolve
+reference, or establish reliance, breach, duty or content occurrence. Positive,
+negative and hypothetical scope survive unchanged. Other unconsumed constructions
+remain explicit instead of being recast into conditional outcomes.
+
+All runner attempts (including withheld ones) show retained promise graphs and
+missing-construction questions. The proposal envelope uses its existing
+`unresolved_readings` field; Parliament's world schema is unchanged. Independent
+composition retains these diagnostics even when called without the runner.
+`semantic_coverage.json` and the preparation manifest expose accounting separately
+from admission. Exact source-aligned conditional records are diagnostics only.
+Unconsumed candidates do not necessarily mean omitted world content because
+existing builders may recover it directly from text.
+
+The baseline, promise and negated-promise preparation probes admit two actions
+and six supported effects with unchanged branch readings. Promise graphs are
+retained outside the admitted world: **a typed mapping to Parliament specialists
+remains unimplemented**. These are fixed-macro native-admission tests, not live
+promise deliberation. Evidence: `diagnostics/primitive_promise_coverage/RESULT.md`.
+Tests: `test_blueprint_semantic_coverage.py` plus the existing regression suite.

@@ -53,7 +53,7 @@ class BlueprintEnsembleTests(unittest.TestCase):
         self.assertEqual(
             [row["graph_builder"] for row in plans].count("implemented"), 6)
         self.assertEqual(
-            [row["graph_builder"] for row in plans].count("plan_only"), 4)
+            [row["graph_builder"] for row in plans].count("discourse"), 4)
 
     def test_chooser_prefers_allocation_for_the_scarce_dose(self):
         package = z10.export_candidate_graph(MEDICINE, package_id="ensemble_medicine")
@@ -103,17 +103,29 @@ class BlueprintEnsembleTests(unittest.TestCase):
         self.assertTrue(all(row["polarity"] == "ADVERSE" for row in deaths))
         self.assertTrue(proposal["optional_slots"]["instrument_contrast"])
 
-    def test_four_semantic_families_emit_deep_withheld_envelopes(self):
-        package = z10.export_candidate_graph(RESCUE, package_id="ensemble_plan_only")
+    def test_discourse_families_emit_authorized_or_incomplete_envelopes(self):
+        package = z10.export_candidate_graph(RESCUE, package_id="ensemble_discourse")
         choice = choose_blueprint(package)
-        rows = [row for row in choice["considered"] if row["status"] == "PLAN_ONLY"]
+        rows = [row for row in choice["considered"] if row["blueprint_id"] in {
+            "ability_permission", "deontic_rule", "promise_reliance", "disputed_report",
+        }]
         self.assertEqual(len(rows), 4)
         self.assertTrue(all(len(row["proposals"]) == 1 for row in rows))
-        self.assertTrue(all(row["proposals"][0]["candidate"] is None for row in rows))
-        self.assertTrue(all(not row["proposals"][0]["admission_authorized"] for row in rows))
-        self.assertTrue(all(row["proposals"][0]["accepted_evidence"] for row in rows))
-        self.assertTrue(all(row["proposals"][0]["construction_problems"] for row in rows))
-        self.assertTrue(all(row["world_withheld"] for row in rows))
+        filled = [row for row in rows if row["status"] == "FILLED"]
+        incomplete = [row for row in rows if row["status"] != "FILLED"]
+        self.assertTrue(filled)
+        for row in filled:
+            proposal = row["proposals"][0]
+            self.assertTrue(proposal["admission_authorized"])
+            world = proposal["candidate"]["world_model"]
+            self.assertEqual(world["schema_version"], "1.4")
+            self.assertEqual(world["effects"], [])
+            self.assertFalse(proposal["world_withheld"])
+        for row in incomplete:
+            proposal = row["proposals"][0]
+            self.assertIsNone(proposal["candidate"])
+            self.assertFalse(proposal["admission_authorized"])
+            self.assertTrue(proposal["world_withheld"])
 
     def test_diversion_and_risk_build_source_grounded_candidates(self):
         for text, blueprint_id in (

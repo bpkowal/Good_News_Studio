@@ -1,0 +1,167 @@
+diff --git a/global_workspace/semantic_graph.py b/global_workspace/semantic_graph.py
+index 0000000..1111111 100644
+--- a/global_workspace/semantic_graph.py
++++ b/global_workspace/semantic_graph.py
+@@ -82,6 +82,7 @@
+ class SemanticGraph:
+     nodes: dict[str, SemanticNode] = field(default_factory=dict)
+     edges: list[SemanticEdge] = field(default_factory=list)
++    discourse_collections: dict[str, list[Any]] = field(default_factory=dict)
+     _revision: int = field(default=0, init=False, repr=False, compare=False)
+     _projection_cache: dict[str, tuple[int, tuple[Any, ...]]] = field(
+         default_factory=dict, init=False, repr=False, compare=False,
+     )
+
+diff --git a/global_workspace/world_state.py b/global_workspace/world_state.py
+index 0000000..1111111 100644
+--- a/global_workspace/world_state.py
++++ b/global_workspace/world_state.py
+@@ -2845,6 +2845,9 @@ def parse_world_model(
+         raise ValueError("world_model must be an object")
+     schema_version = _clean(raw.get("schema_version"), 16) or "1.0"
++    if schema_version == "1.4":
++        # Occurrence subgraph of additive discourse worlds.
++        schema_version = "1.3"
+     lookup = {
+         _clean(row.get("clause_id"), 32): _clean(row.get("text"), 1000)
+         for row in clauses if isinstance(row, dict)
+
+diff --git a/global_workspace/scenario_semantics.py b/global_workspace/scenario_semantics.py
+index 0000000..1111111 100644
+--- a/global_workspace/scenario_semantics.py
++++ b/global_workspace/scenario_semantics.py
+@@ -1929,6 +1929,15 @@ def compile_scenario_graph(
+                     "typed world projection mismatch: semantic graph effects differ "
+                     "from the admitted world model"
+                 )
++        graph.discourse_collections = {
++            "propositions": list(world_model.get("propositions") or []),
++            "reports": list(world_model.get("reports") or []),
++            "commitments": list(world_model.get("commitments") or []),
++            "modal_operators": list(world_model.get("modal_operators") or []),
++            "normative_propositions": list(world_model.get("normative_propositions") or []),
++        }
+     for fact in compile_observability_facts(scenario):
+         graph.add_node(SemanticNode(
+             fact.node_id, "TARGET", fact.target_label, (fact.evidence,),
+
+diff --git a/global_workspace/epistemic_ledger.py b/global_workspace/epistemic_ledger.py
+index 0000000..1111111 100644
+--- a/global_workspace/epistemic_ledger.py
++++ b/global_workspace/epistemic_ledger.py
+@@ -348,10 +348,105 @@ def seed_proposition_ledger(graph: SemanticGraph) -> dict[str, PropositionRecord]:
+     _seed_protective_relations(ledger)
+     _annotate_binding_context(ledger, graph)
+     _seed_unknown_parameters(ledger, graph)
++    _seed_discourse_collections(ledger, graph)
+     return ledger
+ 
+ 
++_NONFACTUAL_STATUSES = {
++    "ATTRIBUTED", "COMMITTED_CONTENT", "GOVERNED", "UNASSERTED",
++}
++
++
++def _seed_discourse_collections(ledger: dict[str, PropositionRecord], graph: SemanticGraph) -> None:
++    """Cite reports, commitments, and modals without establishing their content."""
++    collections = getattr(graph, "discourse_collections", None) or {}
++    for proposition in collections.get("propositions") or []:
++        if proposition.get("status") not in _NONFACTUAL_STATUSES:
++            continue
++        ident = str(proposition.get("proposition_id") or "")
++        claim = str(proposition.get("predication") or "")
++        if not ident:
++            continue
++        ledger[f"PROP:DISCOURSE:{ident}"] = PropositionRecord(
++            proposition_id=f"PROP:DISCOURSE:{ident}",
++            claim=claim,
++            proposition_type="DESCRIPTIVE",
++            epistemic_status="UNRESOLVED",
++            support_ids=[ident],
++            introduced_by="DISCOURSE",
++            epistemic_type="ATTRIBUTED" if proposition.get("status") == "ATTRIBUTED" else "NOT_ESTABLISHED",
++        )
++    for report in collections.get("reports") or []:
++        ident = str(report.get("report_id") or "")
++        if not ident:
++            continue
++        ledger[f"PROP:REPORT:{ident}"] = PropositionRecord(
++            proposition_id=f"PROP:REPORT:{ident}",
++            claim=str(report.get("speech_act") or "claims"),
++            proposition_type="DESCRIPTIVE",
++            epistemic_status="UNRESOLVED",
++            support_ids=[ident, str(report.get("content_proposition_id") or "")],
++            introduced_by="DISCOURSE",
++            epistemic_type="REPORT_ACT",
++        )
++    for commitment in collections.get("commitments") or []:
++        ident = str(commitment.get("commitment_id") or "")
++        if not ident:
++            continue
++        content_id = str(commitment.get("content_proposition_id") or "")
++        content = next(
++            (str(row.get("predication") or "")
++             for row in collections.get("propositions") or []
++             if str(row.get("proposition_id") or "") == content_id),
++            "",
++        )
++        claim = " ".join(
++            part for part in (
++                str(commitment.get("commitment_event") or "promised"),
++                content,
++            ) if part
++        ).strip()
++        ledger[f"PROP:COMMITMENT:{ident}"] = PropositionRecord(
++            proposition_id=f"PROP:COMMITMENT:{ident}",
++            claim=claim,
++            proposition_type="NORMATIVE",
++            epistemic_status="UNRESOLVED",
++            support_ids=[ident, content_id] if content_id else [ident],
++            introduced_by="DISCOURSE",
++            epistemic_type="COMMITMENT",
++        )
++    for modal in collections.get("modal_operators") or []:
++        ident = str(modal.get("modal_id") or "")
++        if not ident:
++            continue
++        ledger[f"PROP:MODAL:{ident}"] = PropositionRecord(
++            proposition_id=f"PROP:MODAL:{ident}",
++            claim=str(modal.get("force") or "modal"),
++            proposition_type="DESCRIPTIVE",
++            epistemic_status="UNRESOLVED",
++            support_ids=[ident],
++            introduced_by="DISCOURSE",
++            epistemic_type="MODAL",
++        )
++    for norm in collections.get("normative_propositions") or []:
++        ident = str(norm.get("norm_id") or "")
++        if not ident:
++            continue
++        ledger[f"PROP:NORM:{ident}"] = PropositionRecord(
++            proposition_id=f"PROP:NORM:{ident}",
++            claim=str(norm.get("force") or "norm"),
++            proposition_type="NORMATIVE",
++            epistemic_status="UNRESOLVED",
++            support_ids=[ident],
++            introduced_by="DISCOURSE",
++            epistemic_type="NORMATIVE",
++        )
++    forbidden = {
++        str(row.get("predication") or "").casefold()
++        for row in collections.get("propositions") or []
++        if row.get("status") in _NONFACTUAL_STATUSES
++    }
++    for key, record in list(ledger.items()):
++        if record.epistemic_type != "WORLD_ESTABLISHED":
++            continue
++        claim = (record.claim or "").casefold()
++        outcome = (record.outcome or "").casefold()
++        if any(content and (content == outcome or content in claim) for content in forbidden):
++            record.epistemic_type = "NOT_ESTABLISHED"
++            record.epistemic_status = "UNRESOLVED"
++            record.introduced_by = "DISCOURSE_LEAK_BLOCKED"
++
++
+ def ledger_projection(
+     ledger: dict[str, PropositionRecord],
+ ) -> list[dict[str, Any]]:

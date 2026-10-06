@@ -93,6 +93,7 @@ sys.path.insert(0, sys.argv[1])
 from global_workspace.local_specialists import _admit_action_source_rows
 from global_workspace.world_state import parse_world_model
 x = json.load(open(sys.argv[2])); p = x["proposal"]
+p["candidate"]["world_model"]["schema_version"] = "1.3"
 ids = ["A0", "A1"]
 parse_world_model(
     p["candidate"]["world_model"], clauses=p["clauses"], action_ids=ids,
@@ -125,7 +126,12 @@ class ChanceAndDeathAllocationTests(unittest.TestCase):
         proposal = result["proposals"][0]
         self.assertTrue(proposal["selection_validation"]["contract_valid"])
         world = proposal["candidate"]["world_model"]
-        self.assertEqual(world["schema_version"], "1.3")
+        self.assertEqual(world["schema_version"], "1.4")
+        self.assertEqual(world["propositions"], [])
+        self.assertEqual(world["reports"], [])
+        self.assertEqual(world["commitments"], [])
+        self.assertEqual(world["modal_operators"], [])
+        self.assertEqual(world["normative_propositions"], [])
         self.assertEqual(len(world["effects"]), 8)
         self.assertEqual(len(world["causal_links"]), 4)
         by_action = {}
@@ -162,6 +168,7 @@ sys.path.insert(0, sys.argv[1])
 from global_workspace.local_specialists import _admit_action_source_rows
 from global_workspace.world_state import parse_world_model
 x = json.load(open(sys.argv[2])); p = x["proposal"]
+p["candidate"]["world_model"]["schema_version"] = "1.3"
 ids = ["A0", "A1"]
 parse_world_model(
     p["candidate"]["world_model"], clauses=p["clauses"], action_ids=ids,
@@ -232,7 +239,7 @@ from global_workspace.local_specialists import _admit_action_source_rows
 from global_workspace.world_admission import restore_admitted_world
 from global_workspace.world_state import parse_world_model
 p = json.load(open(sys.argv[2]))
-w = p["candidate"]["world_model"]
+w = p["candidate"]["world_model"]; w["schema_version"] = "1.3"
 ids = [a["action_id"] for a in w["actions"]]
 actions = [a["intervention"] for a in w["actions"]]
 compiled = parse_world_model(

@@ -24,6 +24,14 @@ from blueprint_allocation_invariants import (
     group_span,
 )
 from blueprint_derivation_license import apply_derivation_license, origin_for_effect
+from blueprint_discourse import (
+    DISCOURSE_BUILDERS,
+    assignment_for,
+    attach_source_discourse,
+    discourse_provenance_rows,
+    ensure_schema,
+)
+from blueprint_evidence_graph import assemble_evidence_graph, source_copy_validation
 from blueprint_kind_license import (
     apply_kind_license,
     kind_problems,
@@ -38,7 +46,7 @@ from blueprint_proposal_contract import (
     validate_proposal,
     withheld_proposal,
 )
-from candidate_graph_blueprints import _clause_holding
+from candidate_graph_blueprints import _clause_holding, match_exclusive_allocation
 from z10_world_model_adapter import segment_source_clauses
 
 
@@ -228,7 +236,7 @@ TEMPLATES: tuple[dict[str, Any], ...] = (
     {
         "blueprint_id": "ability_permission",
         "summary": "A modal states what an actor can, may, or is permitted to do.",
-        "graph_builder": "plan_only",
+        "graph_builder": "discourse",
         "items": (
             {"id": "actor", "core": True, "check": "party", "sentence": "The actor governed by the modal is"},
             {"id": "modal_action", "core": True, "check": "modal_action", "sentence": "The copied action stated with can, may, able, or permitted is"},
@@ -256,11 +264,12 @@ TEMPLATES: tuple[dict[str, Any], ...] = (
     {
         "blueprint_id": "deontic_rule",
         "summary": "A rule obligates, permits, or prohibits an action.",
-        "graph_builder": "plan_only",
+        "graph_builder": "discourse",
         "items": (
             {"id": "deontic_words", "core": True, "check": "deontic_words", "sentence": "The words that state the obligation, permission, or prohibition are"},
             {"id": "governed_action", "core": True, "check": "copy", "sentence": "The action governed by that rule is"},
             {"id": "bearer", "core": True, "check": "party", "sentence": "The person or institution governed by the rule is"},
+            {"id": "target", "core": False, "check": "party", "sentence": "The party that action is directed toward is"},
             {"id": "authority", "core": False, "check": "party", "sentence": "The stated source or authority for the rule is"},
             {"id": "exception", "core": False, "check": "exception_words", "sentence": "A stated exception to the rule is"},
             {"id": "sanction", "core": False, "check": "outcome_clause", "sentence": "A stated consequence of violating the rule is"},
@@ -269,7 +278,7 @@ TEMPLATES: tuple[dict[str, Any], ...] = (
     {
         "blueprint_id": "promise_reliance",
         "summary": "Someone promises or commits to future conduct for another party.",
-        "graph_builder": "plan_only",
+        "graph_builder": "discourse",
         "items": (
             {"id": "promisor", "core": True, "check": "party", "sentence": "The person who makes the promise or commitment is"},
             {"id": "commitment_event", "core": True, "check": "commitment_words", "sentence": "The copied promise or commitment event is"},
@@ -299,7 +308,7 @@ TEMPLATES: tuple[dict[str, Any], ...] = (
     {
         "blueprint_id": "disputed_report",
         "summary": "A source reports or believes a proposition that may be disputed.",
-        "graph_builder": "plan_only",
+        "graph_builder": "discourse",
         "items": (
             {"id": "source", "core": True, "check": "party", "sentence": "The source or speaker of the report is"},
             {"id": "report_words", "core": True, "check": "report_words", "sentence": "The copied reporting, claiming, or belief words are"},
@@ -327,7 +336,7 @@ def choose_by_cloze(text: str, complete: Complete,
     """
     question = deepcopy(question) if question is not None else assess_question(text)
     rank_raw = complete(_messages(_rank_prompt(text)))
-    ranking = _parse_ranking(rank_raw)
+    ranking = _inject_discourse_ranking(text, _parse_ranking(rank_raw))
     considered = []
     for index, blueprint_id in enumerate(ranking):
         if blueprint_id in _META_BLUEPRINTS:
@@ -342,7 +351,8 @@ def choose_by_cloze(text: str, complete: Complete,
     withheld = _world_withheld(question, winner)
     question["eligible_for_world_state"] = bool(
         winner and winner["status"] == "FILLED"
-        and winner.get("graph_builder") == "implemented" and not withheld)
+        and winner.get("graph_builder") in {"implemented", "discourse"}
+        and not withheld)
     graph = _graph(text, winner, question) if question["eligible_for_world_state"] else None
     proposals = ([graph] if graph else
                  [_withheld_cloze_proposal(text, winner, withheld)] if winner else [])
@@ -389,10 +399,10 @@ def _candidate_attempts(text: str, question: dict[str, Any],
                         selected_graph: dict[str, Any] | None) -> list[dict[str, Any]]:
     """Materialize every ranked template without changing chooser selection.
 
-    Complete implemented templates become proposal envelopes. Partial, unmatched,
-    and plan-only templates remain visible as withheld attempts with their missing
-    slots. This makes the alternatives inspectable without allowing a lower-ranked
-    interpretation to silently replace the chosen reading.
+    Complete implemented and discourse templates become proposal envelopes.
+    Partial and unmatched templates remain visible as withheld attempts with
+    their missing slots. This makes the alternatives inspectable without allowing
+    a lower-ranked interpretation to silently replace the chosen reading.
     """
     attempts = []
     for row in considered:
@@ -404,7 +414,7 @@ def _candidate_attempts(text: str, question: dict[str, Any],
             proposal = selected_graph
         elif (
             row.get("status") == "FILLED"
-            and row.get("graph_builder") == "implemented"
+            and row.get("graph_builder") in {"implemented", "discourse"}
             and not reasons
         ):
             try:
@@ -557,10 +567,6 @@ def _world_withheld(question: dict[str, Any], winner: dict[str, Any] | None) -> 
         return []
     if winner.get("meta_option"):
         return [_META_BLUEPRINTS[winner["blueprint_id"]]]
-    if winner.get("graph_builder") == "plan_only" and winner.get("status") == "FILLED":
-        return [
-            f"{winner['blueprint_id']} has an evidence plan but no Parliament 1.3 graph builder yet."
-        ]
     if winner.get("blueprint_id") != "exclusive_allocation":
         return []
     if winner.get("status") != "FILLED":
@@ -789,6 +795,36 @@ _DECISION_FRAME = re.compile(
     r"^(?:(?:must|can|could|will|should)\s+)?(?:decide|choose|chooses)\s+whether\s+to\s+",
     re.I,
 )
+_ALLOCATION_DECISION = re.compile(
+    r"\b(?:must|can|could|will|should)\s+(?:decide|choose|chooses)\s+whether\b",
+    re.I,
+)
+_COMMITMENT_VERB = re.compile(
+    r"\b(?:promised|promises|promise|committed|commits|commit|pledged|pledges|pledge)\b",
+    re.I,
+)
+
+
+def _allocation_locks_discourse(text: str) -> bool:
+    """A decision frame or explicit not-both is allocation, not duty or ability."""
+    return bool(_EXPLICIT_EXCLUSIVITY.search(text or "")
+                or _ALLOCATION_DECISION.search(text or ""))
+
+
+def _inject_discourse_ranking(text: str, ranking: Sequence[str]) -> list[str]:
+    """Score duty/ability when a modal governs a transfer, even if the LLM skipped it."""
+    ranking = list(ranking)
+    if _allocation_locks_discourse(text):
+        return ranking
+    if not _TRANSFER_EVENT.search(text or ""):
+        return ranking
+    injected = []
+    if _DEONTIC_WORDS.search(text or ""):
+        injected.append("deontic_rule")
+    elif _MODAL_WORDS.search(text or ""):
+        injected.append("ability_permission")
+    extra = [item for item in injected if item not in ranking]
+    return extra + ranking
 
 
 def _assigned_act(text: str, span: str) -> str:
@@ -801,26 +837,114 @@ def _assigned_act(text: str, span: str) -> str:
     return copies[0] if copies else span
 
 
-def _branch_transfer(text: str, actor: str, branch_span: str) -> str:
+def _commitment_event_head(text: str, span: str) -> str:
+    """Keep the promise verb; the promisee is a party, not part of the event."""
+    match = _COMMITMENT_VERB.search(span or "")
+    if not match:
+        return span
+    copies = _copy_spans(text, match.group(0))[0]
+    return copies[0] if copies else span
+
+
+def _include_copied_target(text: str, accepted: dict[str, str],
+                           items: list[dict[str, Any]]) -> None:
+    """Prefer a licensed copy that already includes the copied destination."""
+    target = accepted.get("target") or ""
+    for action_key in ("modal_action", "governed_action"):
+        action = accepted.get(action_key) or ""
+        if not action or not target or target.casefold() in action.casefold():
+            continue
+        for glue in (f"{action} to {target}", f"{action} {target}"):
+            copies = _copy_spans(text, glue)[0]
+            if not copies:
+                continue
+            accepted[action_key] = copies[0]
+            for row in items:
+                if row["id"] == action_key and row["verdict"] == "accepted":
+                    row["span"] = copies[0]
+            break
+
+
+def _branch_transfer(text: str, actor: str, branch_span: str,
+                     recipient: str = "") -> str:
     """Recover the exact transfer event from its copied if-branch.
 
     The model often answers with the base form from the choice sentence
     (``give``), while the branch contains the factual support form (``gives``).
-    This recovery strips only the copied IF frame and actor.
+    This recovery strips only the copied IF frame and the copied subject
+    (decider or recipient).
     """
     host = _span_host(text, branch_span)
-    if not host or not actor:
+    if not host or not str(branch_span or "").strip():
         return ""
-    match = re.match(
-        rf"\s*If\s+{re.escape(actor)}\s+(.+?),",
-        host["text"], re.I)
-    if not match:
-        return ""
-    candidate = match.group(1).strip()
-    if not _TRANSFER_EVENT.search(candidate):
-        return ""
-    copies = _copy_spans(text, candidate)[0]
-    return copies[0] if copies else ""
+    receipt = re.compile(
+        r"\b(?:get|gets|got|getting|receive|receives|received|receiving)\b", re.I)
+    match = re.match(r"\s*If\s+(.+?),", host["text"], re.I)
+    if match:
+        candidate = match.group(1).strip()
+        if actor and candidate.casefold().startswith(actor.casefold()):
+            rest = candidate[len(actor):].strip()
+            if rest and (_TRANSFER_EVENT.search(rest) or receipt.search(rest)):
+                copies = _copy_spans(text, rest)[0]
+                if copies and not re.search(r"\bnot\s+both\b", copies[0], re.I):
+                    return copies[0]
+        if _TRANSFER_EVENT.search(candidate) or receipt.search(candidate):
+            copies = _copy_spans(text, candidate)[0]
+            if copies and not re.search(r"\bnot\s+both\b", copies[0], re.I):
+                return copies[0]
+    for subject in (recipient, actor):
+        if not subject:
+            continue
+        match = re.match(
+            rf"\s*If\s+{re.escape(subject)}\s+(.+?),",
+            host["text"], re.I)
+        if not match:
+            continue
+        candidate = match.group(1).strip()
+        if not (_TRANSFER_EVENT.search(candidate) or receipt.search(candidate)):
+            continue
+        copies = _copy_spans(text, candidate)[0]
+        if copies:
+            return copies[0]
+    return ""
+
+
+def _branch_intervention(text: str, assignment: str, recipient: str,
+                         transfer: str, recovered: str = "") -> str:
+    """A branch act is a source copy naming that recipient, not the exclusive or-clause."""
+    assignment_head = _assigned_act(text, assignment)
+    glued = f"{assignment_head} to {recipient}" if assignment_head and recipient else ""
+    ranked = []
+    if transfer and _span_names_recipient(transfer, recipient):
+        ranked.append(transfer)
+    if recovered:
+        ranked.append(recovered)
+    ranked.extend([transfer, glued, assignment_head])
+    for candidate in ranked:
+        candidate = " ".join(str(candidate or "").split())
+        if not candidate or re.search(r"\bnot\s+both\b", candidate, re.I):
+            continue
+        copies = _copy_spans(text, candidate)[0]
+        if copies:
+            span = copies[0]
+            if not re.search(r"\bnot\s+both\b", span, re.I):
+                return span
+    return recovered or transfer or assignment_head or assignment
+
+
+def _span_names_recipient(span: str, recipient: str) -> bool:
+    span = (span or "").casefold()
+    recipient = (recipient or "").casefold()
+    if not span or not recipient:
+        return False
+    if recipient in span:
+        return True
+    for prefix in ("a ", "an ", "the ", "one ", "two ", "three ", "four ",
+                   "five ", "six ", "seven ", "eight ", "nine ", "ten "):
+        if recipient.startswith(prefix):
+            recipient = recipient[len(prefix):]
+            break
+    return bool(recipient) and recipient in span
 
 
 def _score_template(text: str, template: dict[str, Any], answers: dict[str, str],
@@ -860,6 +984,8 @@ def _score_template(text: str, template: dict[str, Any], answers: dict[str, str]
                 head = _party_head(text, candidate) if item["id"] in _PARTY_IDS else candidate
                 if item["check"] == "assignment":
                     head = _assigned_act(text, head)
+                elif item["check"] == "commitment_words":
+                    head = _commitment_event_head(text, head)
                 if head != candidate and not _answers_sentence(text, item, head, accepted):
                     head = candidate
                 span = head
@@ -897,6 +1023,7 @@ def _score_template(text: str, template: dict[str, Any], answers: dict[str, str]
                         "reason": "recovered_from_copied_conditional",
                     })
                     break
+    _include_copied_target(text, accepted, items)
     if template["blueprint_id"] == "exclusive_allocation" and "assignment" not in accepted:
         # The assignment is often expressed once as a shared infinitive ("give
         # the medicine to Ben or Cara") while a copied branch supplies a valid
@@ -987,7 +1114,8 @@ def _enrich_conditional_from_z10(text: str, template: dict[str, Any],
         copies = _copy_spans(text, value)[0]
         return copies[0] if copies else ""
 
-    def recover(item_id: str, value: str, *, replace: bool = True) -> None:
+    def recover(item_id: str, value: str, *, replace: bool = True,
+                candidate_ids: Sequence[str] = ()) -> None:
         value = exact(value)
         if not value:
             return
@@ -998,11 +1126,14 @@ def _enrich_conditional_from_z10(text: str, template: dict[str, Any],
         if current and not replace and item["verdict"] == "accepted":
             return
         row["slots"][item_id] = value
-        row.setdefault("semantic_recoveries", {})[item_id] = {
+        recovery = {
             "producer": "parsing_game_Z10",
             "method": "conditional_candidate_source_alignment",
             "span": value,
         }
+        if candidate_ids:
+            recovery["z10_candidate_ids"] = list(candidate_ids)
+        row.setdefault("semantic_recoveries", {})[item_id] = recovery
         item.update({
             "span": value,
             "verdict": "accepted",
@@ -1072,6 +1203,7 @@ def _enrich_conditional_from_z10(text: str, template: dict[str, Any],
             "polarity": polarity,
             "predicate": predicate,
             "order": condition_token.i,
+            "link_id": link["id"],
         })
     branches.sort(key=lambda branch: branch["order"])
     if not branches:
@@ -1082,9 +1214,10 @@ def _enrich_conditional_from_z10(text: str, template: dict[str, Any],
         recover("actor", branches[0]["actor"])
         for index, branch in enumerate(branches[:2]):
             prefix = "" if index == 0 else "second_"
-            recover(f"{prefix}condition", branch["condition"])
-            recover(f"{prefix}bearer", branch["bearer"])
-            recover(f"{prefix}outcome", branch["outcome"])
+            ids = [branch["link_id"]]
+            recover(f"{prefix}condition", branch["condition"], candidate_ids=ids)
+            recover(f"{prefix}bearer", branch["bearer"], candidate_ids=ids)
+            recover(f"{prefix}outcome", branch["outcome"], candidate_ids=ids)
         # A chance remains attached to its own copied outcome.  The graph
         # builder checks the containing clause before applying this shared slot.
         chance = next((_CHANCE.search(branch["outcome"]) for branch in branches
@@ -1107,13 +1240,33 @@ def _enrich_conditional_from_z10(text: str, template: dict[str, Any],
         if not harm_pattern.search(positive["outcome"]) or not harm_pattern.search(negative["outcome"]):
             return row
         recover("actor", positive["actor"])
-        recover("done", positive["action"])
-        recover("omitted", negative["action"])
-        recover("harm_done", positive["outcome"])
-        recover("harm_omitted", negative["outcome"])
-        recover("done_hedge", positive["condition"])
-        recover("omitted_hedge", negative["condition"])
+        recover("done", positive["action"], candidate_ids=[positive["link_id"]])
+        recover("omitted", negative["action"], candidate_ids=[negative["link_id"]])
+        recover("harm_done", positive["outcome"], candidate_ids=[positive["link_id"]])
+        recover("harm_omitted", negative["outcome"], candidate_ids=[negative["link_id"]])
+        recover("done_hedge", positive["condition"], candidate_ids=[positive["link_id"]])
+        recover("omitted_hedge", negative["condition"], candidate_ids=[negative["link_id"]])
         recover("group_counts", positive["bearer"], replace=False)
+    return _refresh_scored_row(row)
+
+
+def _enrich_discourse_target(text: str, template: dict[str, Any],
+                             row: dict[str, Any]) -> dict[str, Any]:
+    """Copy a destination participant onto duty/ability when cloze omitted it."""
+    import parsing_game_Z10 as z10
+    from blueprint_discourse import destination_from_package
+
+    package = z10.export_candidate_graph(text, package_id="blueprint_discourse_target")
+    destination = destination_from_package(package)
+    copies = _copy_spans(text, destination)[0] if destination else []
+    if copies and not row["slots"].get("target"):
+        span = copies[0]
+        row["slots"]["target"] = span
+        for item in row["items"]:
+            if item["id"] == "target":
+                item.update({"span": span, "verdict": "accepted", "reason": "copied"})
+                break
+    _include_copied_target(text, row["slots"], row["items"])
     return _refresh_scored_row(row)
 
 
@@ -1130,6 +1283,8 @@ def _enrich_from_z10(text: str, template: dict[str, Any],
     """
     if template["blueprint_id"] in {"conditional_outcome", "omission_harm"}:
         return _enrich_conditional_from_z10(text, template, row)
+    if template["blueprint_id"] in {"ability_permission", "deontic_rule"}:
+        return _enrich_discourse_target(text, template, row)
     if template["blueprint_id"] != "exclusive_allocation":
         return row
 
@@ -1197,7 +1352,8 @@ def _enrich_from_z10(text: str, template: dict[str, Any],
         token = prop_token(prop_id)
         return token.sent.text.strip() if token is not None else ""
 
-    def recover(item_id: str, value: str, *, replace: bool = False) -> None:
+    def recover(item_id: str, value: str, *, replace: bool = False,
+                candidate_ids: Sequence[str] = ()) -> None:
         value = (value or "").strip(" ,.")
         if not value or not _copy_spans(text, value)[0]:
             return
@@ -1207,11 +1363,14 @@ def _enrich_from_z10(text: str, template: dict[str, Any],
             return
         exact = _copy_spans(text, value)[0][0]
         row["slots"][item_id] = exact
-        row.setdefault("semantic_recoveries", {})[item_id] = {
+        recovery = {
             "producer": "parsing_game_Z10",
             "method": "typed_candidate_source_alignment",
             "span": exact,
         }
+        if candidate_ids:
+            recovery["z10_candidate_ids"] = list(candidate_ids)
+        row.setdefault("semantic_recoveries", {})[item_id] = recovery
         item.update({
             "span": exact,
             "verdict": "accepted",
@@ -1230,7 +1389,8 @@ def _enrich_from_z10(text: str, template: dict[str, Any],
     ]
     if quantity_rows:
         mention_id = quantity_rows[0]["arguments"]["mention"]
-        recover("quantity", nodes.get(mention_id, {}).get("label", ""))
+        recover("quantity", nodes.get(mention_id, {}).get("label", ""),
+                candidate_ids=[quantity_rows[0]["id"]])
     else:
         # Z10 intentionally freezes its quantity vocabulary at explicit
         # numerals.  Its aligned mention plus the existing dependency parse
@@ -1323,6 +1483,7 @@ def _enrich_from_z10(text: str, template: dict[str, Any],
             "outcome": outcome,
             "hedge": marker,
             "sentence": sentence.strip(" ."),
+            "link_id": link["id"],
         })
 
     # Preserve source order and match existing recipient choices when possible.
@@ -1338,10 +1499,13 @@ def _enrich_from_z10(text: str, template: dict[str, Any],
     for index, branch in enumerate(ordered[:2]):
         prefix = "first" if index == 0 else "second"
         recover(f"{prefix}_recipient", branch["recipient"])
-        recover(f"{prefix}_transfer", branch["transfer"])
-        recover(f"{prefix}_outcome", branch["outcome"])
+        recover(f"{prefix}_transfer", branch["transfer"],
+                candidate_ids=[branch["link_id"]])
+        recover(f"{prefix}_outcome", branch["outcome"],
+                candidate_ids=[branch["link_id"]])
         recover(f"{prefix}_hedge", branch["hedge"])
-        recover(f"{prefix}_branch_sentence", branch["sentence"])
+        recover(f"{prefix}_branch_sentence", branch["sentence"],
+                candidate_ids=[branch["link_id"]])
 
     explicit = _EXPLICIT_EXCLUSIVITY.search(text)
     if explicit:
@@ -1409,18 +1573,25 @@ def _graph(text: str, winner: dict[str, Any],
         "evidence": [], "assumptions": [],
         "explanation": "Compatibility record from the question assessment.",
     }
-    builder = {
-        "exclusive_allocation": _allocation_graph,
-        "rescue_contrast": _rescue_graph,
-        "omission_harm": _omission_graph,
-        "conditional_outcome": _conditional_graph,
-        "diversion_redirection": _diversion_graph,
-        "uncertain_risk": _risk_graph,
-    }[winner["blueprint_id"]]
-    if winner["blueprint_id"] == "exclusive_allocation":
-        world, notes = builder(text, slots, proof)
+    import parsing_game_Z10 as z10
+    package = z10.export_candidate_graph(text, package_id="cloze_evidence")
+    if winner["blueprint_id"] in DISCOURSE_BUILDERS:
+        world, notes = DISCOURSE_BUILDERS[winner["blueprint_id"]](text, slots, package)
     else:
-        world, notes = builder(text, slots)
+        builder = {
+            "exclusive_allocation": _allocation_graph,
+            "rescue_contrast": _rescue_graph,
+            "omission_harm": _omission_graph,
+            "conditional_outcome": _conditional_graph,
+            "diversion_redirection": _diversion_graph,
+            "uncertain_risk": _risk_graph,
+        }[winner["blueprint_id"]]
+        if winner["blueprint_id"] == "exclusive_allocation":
+            world, notes = builder(text, slots, proof)
+            world = attach_source_discourse(text, world, package)
+        else:
+            world, notes = builder(text, slots)
+        world = ensure_schema(world)
     clauses = [
         {"clause_id": row["clause_id"], "text": row["text"]}
         for row in segment_source_clauses(text)
@@ -1433,22 +1604,40 @@ def _graph(text: str, winner: dict[str, Any],
             # cannot discharge those premises.
             effect["derivation_assumptions"] = []
     relation_alternatives = _relation_alternatives(world, clauses)
+    graph = assemble_evidence_graph(
+        package=package,
+        text=text,
+        clauses=clauses,
+        accepted=winner.get("accepted_evidence") or {},
+        recoveries=winner.get("semantic_recoveries") or {},
+        slots=slots,
+        world=world,
+    )
+    slot_bindings = {
+        "copied_spans": dict(slots),
+        "z10_recovered_slots": dict(winner.get("semantic_recoveries") or {}),
+    }
+    if winner["blueprint_id"] == "exclusive_allocation":
+        match = match_exclusive_allocation(
+            package,
+            [row["intervention"] for row in world["actions"]],
+            evidence_graph=graph,
+        )
+        slot_bindings["exclusive_allocation_match"] = {
+            "matched": match["matched"],
+            "unfilled_required_slots": match["unfilled_required_slots"],
+            "quantity_candidate_ids": match["quantity_candidate_ids"],
+        }
+    assignment = assignment_for(world)
     return normalized_proposal(
         proposal_id=f"{winner['blueprint_id']}_cloze",
         blueprint_id=winner["blueprint_id"],
         status="FILLED",
         assignment_kind="intervention_text",
-        assignment=[row["intervention"] for row in world["actions"]],
-        slot_bindings={
-            "copied_spans": dict(slots),
-            "z10_recovered_slots": dict(winner.get("semantic_recoveries") or {}),
-        },
+        assignment=assignment,
+        slot_bindings=slot_bindings,
         selection=None,
-        selection_validation={
-            "contract_valid": None,
-            "status": "not_assessed",
-            "reason": "The cloze path has no Z10 candidate selection.",
-        },
+        selection_validation=source_copy_validation(),
         candidate_value=proposal_candidate(
             {
                 row["action_id"]: {
@@ -1476,6 +1665,7 @@ def _graph(text: str, winner: dict[str, Any],
         construction_provenance=_construction_provenance(world, clauses, slots, proof),
         relation_alternatives=relation_alternatives,
         exclusivity_proof=proof,
+        evidence_graph=graph,
     )
 
 
@@ -1567,6 +1757,7 @@ def _construction_provenance(world: dict[str, Any], clauses: list[dict[str, str]
                 "evidence": [value],
                 "explanation": "Model-suggested process; excluded from the Parliament world.",
             })
+    rows.extend(discourse_provenance_rows(world))
     return rows
 
 
@@ -1614,7 +1805,7 @@ def _cloze_unresolved_readings(winner: dict[str, Any]) -> list[dict[str, Any]]:
             "alternatives": ["ability", "permission", "possibility"],
         })
     elif winner["blueprint_id"] == "deontic_rule":
-        readings.append({"kind": "normative_force", "status": "not_represented_in_world_1_3"})
+        readings.append({"kind": "normative_force", "status": "governed_not_occurrence"})
     elif winner["blueprint_id"] == "promise_reliance":
         readings.append({"kind": "commitment_status", "status": "not_world_occurrence"})
     elif winner["blueprint_id"] == "disputed_report":
@@ -1681,7 +1872,8 @@ def _allocation_graph(text: str, slots: dict[str, str],
             recipient_label, quantities=group_quantity(_nominal_before_clause(recipient_label)))
         action_id = f"A{branch}"
         recovered_transfer = _branch_transfer(
-            text, slots["decider"], branch_sentence or outcome or "")
+            text, slots["decider"], branch_sentence or outcome or "",
+            recipient_label)
         copied_transfer = transfer or recovered_transfer or (
             slots["assignment"] if _TRANSFER_EVENT.search(slots["assignment"]) else None)
         claimed_kind = "RESOURCE_TRANSFER" if copied_transfer else "INTERVENTION"
@@ -1709,7 +1901,9 @@ def _allocation_graph(text: str, slots: dict[str, str],
         else:
             direct_outcome, direct_kind = slots["assignment"], "INTERVENTION"
             notes.append(f"{action_id} has no source giving or receipt event, so the act stays an intervention.")
-        intervention = copied_transfer or f"{slots['assignment']} to {recipient_label}"
+        intervention = _branch_intervention(
+            text, slots["assignment"], recipient_label,
+            transfer or "", recovered_transfer)
         if intervention not in text:
             notes.append(f"{action_id} joins two copied spans that are not adjacent.")
         host = _clause_for(text, branch_sentence or outcome or recipient_label)
@@ -1765,8 +1959,8 @@ def _allocation_graph(text: str, slots: dict[str, str],
         })
     complement_by_action: dict[str, str] = {}
     proof_status = (exclusivity_proof or {}).get("status", "UNKNOWN")
-    if slots.get("quantity") and licensed_resource.get("kind") == "RESOURCE" and (
-            slots.get("exclusivity") or proof_status in {"EXPLICIT", "DERIVED"}):
+    exclusive = bool(slots.get("exclusivity") or proof_status in {"EXPLICIT", "DERIVED"})
+    if slots.get("quantity") and licensed_resource.get("kind") == "RESOURCE" and exclusive:
         quantity_host = _clause_for(text, slots["quantity"])
         for branch, other in ((0, slots["second_recipient"]), (1, slots["first_recipient"])):
             action_id = f"A{branch}"
@@ -1796,17 +1990,47 @@ def _allocation_graph(text: str, slots: dict[str, str],
             effects.append(complement)
             actions[branch]["effect_ids"].append(complement_id)
             complement_by_action[action_id] = complement_id
-    if slots.get("nonreceipt") and licensed_resource.get("kind") == "RESOURCE" and (
-            slots.get("exclusivity") or proof_status in {"EXPLICIT", "DERIVED"}):
+    if slots.get("nonreceipt") and licensed_resource.get("kind") == "RESOURCE" and exclusive:
         host = _clause_for(text, slots["nonreceipt"])
         # "do not get ... will die" keeps the negation on receiving. The death
         # itself is the "will die" span, so polarity is not read as a negated harm.
         death_copies = _copy_spans(text, "will die")[0]
         death_outcome = death_copies[0] if death_copies and "will die" in slots["nonreceipt"].casefold() else slots["nonreceipt"]
+        state_span = slots["nonreceipt"]
+        if death_copies and death_copies[0].casefold() in state_span.casefold():
+            cut = state_span.casefold().rfind(death_copies[0].casefold())
+            state_span = state_span[:cut].strip(" ,") or slots["nonreceipt"]
         for branch, other in ((0, slots["second_recipient"]), (1, slots["first_recipient"])):
             other_id = party(other)
-            parent = complement_by_action.get(
-                f"A{branch}", actions[branch]["effect_ids"][0])
+            action_id = f"A{branch}"
+            parent = complement_by_action.get(action_id)
+            if parent is None:
+                # Copied nonreceipt is not a quantity-derived complement.
+                # Parliament requires an indivisibility source for that
+                # derivation; this state stays a source copy of nonreceipt
+                # parented on a resource-bearer copy, not immediately on DIRECT.
+                direct_id = actions[branch]["effect_ids"][0]
+                resource_id = effect_id()
+                resource_state = _effect(
+                    resource_id, action_id, resource, state_span,
+                    _predicate(state_span), "NEUTRAL", "DOWNSTREAM",
+                    "OTHER", "CERTAIN", host, [direct_id], [],
+                    source=state_span,
+                )
+                effects.append(resource_state)
+                actions[branch]["effect_ids"].append(resource_id)
+                parent = effect_id()
+                state = _effect(
+                    parent, action_id, other_id, state_span, "NOT_RECEIVES",
+                    "ADVERSE", "DOWNSTREAM", "OTHER", "CERTAIN", host,
+                    [resource_id], [],
+                    source=state_span,
+                )
+                effects.append(state)
+                actions[branch]["effect_ids"].append(parent)
+                complement_by_action[action_id] = parent
+                links.append(_link(action_id, direct_id, resource_id, "CERTAIN", host))
+                links.append(_link(action_id, resource_id, parent, "CERTAIN", host))
             death_id = effect_id()
             effects.append(_effect(
                 death_id, f"A{branch}", other_id, death_outcome, "die",
@@ -2260,11 +2484,11 @@ def _risk_modality(outcome: str, likelihood: str | None) -> tuple[str, list[str]
 
 def _world(parties: list[dict], actions: list[dict], effects: list[dict],
            links: list[dict], conditions: list[dict] | None = None) -> dict[str, Any]:
-    return {
-        "schema_version": "1.3", "parties": parties, "actions": actions,
-        "effects": effects, "conditions": conditions or [], "temporal_relations": [],
+    return ensure_schema({
+        "parties": parties, "actions": actions, "effects": effects,
+        "conditions": conditions or [], "temporal_relations": [],
         "causal_links": links, "counterfactual_links": [],
-    }
+    })
 
 
 def _effect(effect_id: str, action_id: str, party_id: str, outcome: str, predicate: str,

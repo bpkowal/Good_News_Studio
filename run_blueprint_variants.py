@@ -200,7 +200,7 @@ def _admit(proposal: dict[str, Any], scenario: str, actions: list[str],
         helper.write_text(_parliament_admission_script(), encoding="utf-8")
         completed = subprocess.run(
             [str(parliament_python), str(helper), str(parliament_root),
-             str(candidate), str(trace)],
+             str(candidate), str(trace), str(PROJECT_ROOT)],
             text=True, capture_output=True, timeout=120,
         )
     if completed.returncode:

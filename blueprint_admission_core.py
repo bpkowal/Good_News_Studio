@@ -6,6 +6,7 @@ Native Parliament admission remains the authority for the projected world.
 """
 from copy import deepcopy
 
+from blueprint_evidence_graph import overlay_hypotheses
 from blueprint_kind_license import overlay_unlicensed_atoms
 
 
@@ -62,4 +63,6 @@ def supported_core(proposal: dict) -> tuple[dict, dict]:
          "excluded_effect_id": e["effect_id"], "status": "UNKNOWN"}
         for e in overlay["effects"]
     ]
+    overlay["hypotheses"] = overlay_hypotheses(
+        projected.get("evidence_graph") or [], world)
     return projected, overlay

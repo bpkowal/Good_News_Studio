@@ -3,7 +3,8 @@
 The first functional blueprint is exclusive allocation.  It proposes a complete
 candidate rather than treating absent derived edges as blockers.  Every slot keeps
 its Z10 or source-text witness, and Parliament remains responsible for validating
-the resulting schema.  Schema 1.3 is unchanged.  A stated survival chance is a
+the resulting schema.  Schema 1.4 keeps this 1.3 occurrence subgraph and may
+carry empty discourse collections.  A stated survival chance is a
 PROBABILISTIC health outcome with that hedge copied onto likelihood_qualifiers.
 A stated death for the patient who does not receive the dose is a CERTAIN adverse
 health outcome caused by nonreceipt.
@@ -16,6 +17,12 @@ from typing import Any, Sequence
 from blueprint_allocation_invariants import (
     complement_clause_ids,
     group_quantity,
+)
+from blueprint_discourse import ensure_schema
+from blueprint_evidence_graph import (
+    assemble_evidence_graph,
+    exclusive_allocation_signals,
+    hypotheses_from_z10,
 )
 from blueprint_kind_license import license_kind
 from blueprint_proposal_contract import (
@@ -105,24 +112,22 @@ def _outcome_bearer_matches_recipient(text: str, bearer: dict,
     ))
 
 
-def match_exclusive_allocation(package: dict, actions: Sequence[str]) -> dict:
-    """Match structural signals and return explicit filled/unfilled slots."""
+def match_exclusive_allocation(package: dict, actions: Sequence[str],
+                               evidence_graph: Sequence[dict] | None = None) -> dict:
+    """Match structural signals from the shared evidence graph."""
+    records = (list(evidence_graph) if evidence_graph is not None
+               else hypotheses_from_z10(package))
+    signals = exclusive_allocation_signals(records, package)
     assignments = _enumerate_assignments(package, actions, 8)
-    candidates = package["candidates"]
-    quantity = [row for row in candidates if row["type"] == "QUANTITY"
-                and row["value"].get("operator") == "exact"]
-    option_props = {row["arguments"]["proposition"] for row in candidates
-                    if row["type"] == "OPTION_OF"}
-    conditional = {row["arguments"]["condition"]: row for row in candidates
-                   if row["type"] == "CONDITIONAL_ON"}
-    exclusive_evidence = _clause_ids_for_text(
-        package, r"\b(?:but\s+)?not\s+both\b")
+    option_props = signals["option_propositions"]
+    conditional = signals["conditional"]
     valid_assignments = [values for values in assignments
-                         if all(prop in option_props and prop in conditional for prop in values)]
+                         if all(prop in option_props and prop in conditional
+                                for prop in values)]
     required = {
         "two_action_options": bool(valid_assignments and len(actions) == 2),
-        "exact_quantity": bool(quantity),
-        "explicit_exclusivity": bool(exclusive_evidence),
+        "exact_quantity": bool(signals["quantity_ids"] or signals["quantity_spans"]),
+        "explicit_exclusivity": bool(signals["exclusivity_clause_ids"]),
         "conditional_outcomes": bool(valid_assignments),
     }
     return {
@@ -131,8 +136,8 @@ def match_exclusive_allocation(package: dict, actions: Sequence[str]) -> dict:
         "required_slots": required,
         "unfilled_required_slots": [key for key, filled in required.items() if not filled],
         "assignments": [list(values) for values in valid_assignments],
-        "quantity_candidate_ids": [row["id"] for row in quantity],
-        "exclusivity_clause_ids": exclusive_evidence,
+        "quantity_candidate_ids": signals["quantity_ids"],
+        "exclusivity_clause_ids": signals["exclusivity_clause_ids"],
     }
 
 
@@ -151,7 +156,13 @@ def instantiate_exclusive_allocation(package: dict, actions: Sequence[str]) -> d
                    if row["type"] == "CONDITIONAL_ON"}
     option_rows = {row["arguments"]["proposition"]: row for row in package["candidates"]
                    if row["type"] == "OPTION_OF"}
-    quantity_row = candidates[match["quantity_candidate_ids"][0]]
+    quantity_ids = list(match["quantity_candidate_ids"])
+    if not quantity_ids:
+        quantity_ids = [
+            row["id"] for row in package["candidates"]
+            if row["type"] == "QUANTITY" and (row.get("value") or {}).get("operator") == "exact"
+        ]
+    quantity_row = candidates[quantity_ids[0]]
     quantity_mention = nodes[quantity_row["arguments"]["mention"]]
 
     action_roles = [_role_rows(package, proposition) for proposition in assignment]
@@ -401,9 +412,19 @@ def instantiate_exclusive_allocation(package: dict, actions: Sequence[str]) -> d
     selection, selection_validation = _selection(package, seed)
     if not selection_validation["contract_valid"]:
         raise ValueError("Blueprint produced an invalid Z10 selection")
-    world = {"schema_version": "1.3", "parties": parties, "actions": world_actions,
-             "effects": effects, "conditions": [], "temporal_relations": [],
-             "causal_links": causal_links, "counterfactual_links": []}
+    world = ensure_schema({
+        "parties": parties, "actions": world_actions, "effects": effects,
+        "conditions": [], "temporal_relations": [],
+        "causal_links": causal_links, "counterfactual_links": [],
+    })
+    clause_rows = [{"clause_id": row["clause_id"], "text": row["text"]}
+                   for row in clauses]
+    graph = assemble_evidence_graph(
+        package=package,
+        text=package["document"]["text"],
+        clauses=clause_rows,
+        world=world,
+    )
     proposal = normalized_proposal(
         proposal_id="exclusive_allocation_0",
         blueprint_id="exclusive_allocation",
@@ -414,8 +435,7 @@ def instantiate_exclusive_allocation(package: dict, actions: Sequence[str]) -> d
         selection=selection,
         selection_validation=selection_validation,
         candidate_value=proposal_candidate(action_sources, world),
-        clauses=[{"clause_id": row["clause_id"], "text": row["text"]}
-                 for row in clauses],
+        clauses=clause_rows,
         unresolved_readings=[
             {"kind": "z10_question", "question_id": question_id}
             for question_id in selection_validation.get("unresolved_question_ids", [])
@@ -434,6 +454,7 @@ def instantiate_exclusive_allocation(package: dict, actions: Sequence[str]) -> d
             },
         },
         accepted_evidence=slot_bindings,
+        evidence_graph=graph,
     )
     return {"blueprint_version": BLUEPRINT_VERSION,
             "blueprint_id": "exclusive_allocation", "status": "FILLED",

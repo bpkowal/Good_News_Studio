@@ -1,7 +1,9 @@
 """Blank ethical blueprints, filled from a Z10 package, then ranked.
 
-Each blueprint starts as an empty slot list. A filler writes a Parliament 1.3
-candidate only for slots the scenario actually supports. The chooser keeps every
+Each blueprint starts as an empty slot list. A filler writes a Parliament 1.4
+candidate only for slots the scenario actually supports. Occurrence families
+keep the 1.3 subgraph. Discourse families admit reports, commitments, and
+modals without minting their content as effects. The chooser keeps every
 attempt and selects the filled plan whose required slots are the most specific.
 Unfilled slots stay visible. Nothing here admits a world or picks a moral act.
 """
@@ -10,6 +12,12 @@ from __future__ import annotations
 import re
 from typing import Any, Sequence
 
+from blueprint_discourse import (
+    DISCOURSE_BUILDERS,
+    assignment_for,
+    ensure_schema,
+)
+from blueprint_evidence_graph import assemble_evidence_graph, source_copy_validation
 from blueprint_kind_license import license_kind
 from blueprint_proposal_contract import (
     candidate as proposal_candidate,
@@ -76,7 +84,7 @@ BLANK_BLUEPRINTS: tuple[dict[str, Any], ...] = (
     {
         "blueprint_id": "ability_permission",
         "summary": "A modal states what an actor is able or permitted to do.",
-        "graph_builder": "plan_only",
+        "graph_builder": "discourse",
         "required_slots": ("modal_action", "actor", "target"),
         "optional_slots": ("modal_reading", "option_membership", "outcome", "duty_or_prohibition"),
     },
@@ -90,14 +98,14 @@ BLANK_BLUEPRINTS: tuple[dict[str, Any], ...] = (
     {
         "blueprint_id": "deontic_rule",
         "summary": "A rule states an obligation, permission, or prohibition over an action.",
-        "graph_builder": "plan_only",
+        "graph_builder": "discourse",
         "required_slots": ("deontic_words", "governed_action", "bearer"),
         "optional_slots": ("authority", "exception", "conflicting_rule", "sanction"),
     },
     {
         "blueprint_id": "promise_reliance",
         "summary": "A promisor commits to future conduct that another party may rely on.",
-        "graph_builder": "plan_only",
+        "graph_builder": "discourse",
         "required_slots": ("commitment_event", "promisor", "commitment_content", "promisee"),
         "optional_slots": ("reliance", "breach", "changed_condition", "competing_commitment"),
     },
@@ -114,7 +122,7 @@ BLANK_BLUEPRINTS: tuple[dict[str, Any], ...] = (
     {
         "blueprint_id": "disputed_report",
         "summary": "A speaker attributes a proposition or conflicts with another report.",
-        "graph_builder": "plan_only",
+        "graph_builder": "discourse",
         "required_slots": ("source", "reported_content", "report_words"),
         "optional_slots": ("competing_report", "reliability", "downstream_decision", "confirmation"),
     },
@@ -145,8 +153,8 @@ def choose_blueprint(package: dict, actions: Sequence[str] = ()) -> dict[str, An
         _omission_report(package),
         _diversion_report(package),
         _risk_report(package),
-        *[_plan_only_report(package, row) for row in BLANK_BLUEPRINTS
-          if row["graph_builder"] == "plan_only"],
+        *[_discourse_report(package, row) for row in BLANK_BLUEPRINTS
+          if row["graph_builder"] == "discourse"],
     ]
     filled = [row for row in considered if row["status"] == "FILLED"]
 
@@ -167,51 +175,97 @@ def choose_blueprint(package: dict, actions: Sequence[str] = ()) -> dict[str, An
     }
 
 
-def _plan_only_report(package: dict, plan: dict[str, Any]) -> dict[str, Any]:
-    """Expose the schema without pretending that it can materialize a world."""
+def _discourse_report(package: dict, plan: dict[str, Any]) -> dict[str, Any]:
+    """Admit typed 1.4 objects without converting content into occurrence."""
     evidence, seed_ids = _plan_evidence(package, plan["blueprint_id"])
     required = {name: evidence.get(name) for name in plan["required_slots"]}
     optional = {name: evidence.get(name) for name in plan["optional_slots"]}
+    missing = [name for name, value in required.items() if not value]
     selection, validation = _selection(package, seed_ids)
+    if not seed_ids or not validation.get("contract_valid"):
+        selection, validation = None, source_copy_validation()
     clauses = [
         {"clause_id": row["clause_id"], "text": row["text"]}
         for row in segment_source_clauses(package["document"]["text"])
     ]
-    missing = [name for name, value in required.items() if not value]
-    problem = {
-        "code": f"{plan['blueprint_id']}_not_representable_in_world_1_3",
-        "message": "The evidence is retained without converting it into an admitted world fact.",
-    }
-    proposal = withheld_proposal(
+    if missing:
+        proposal = withheld_proposal(
+            proposal_id=f"{plan['blueprint_id']}_0",
+            blueprint_id=plan["blueprint_id"],
+            assignment=[],
+            slot_bindings={"required": required, "optional": optional,
+                           "seed_candidate_ids": sorted(seed_ids)},
+            selection=selection,
+            selection_validation=validation,
+            clauses=clauses,
+            unfilled_required_slots=missing,
+            unresolved_readings=_plan_unresolved_readings(plan["blueprint_id"], evidence),
+            construction_problems=[{
+                "code": "incomplete_template",
+                "message": "Required discourse slots remain unfilled.",
+            }],
+            pre_world_assessment=_package_question_assessment(package, False),
+            accepted_evidence={
+                "required": required,
+                "optional": optional,
+                "seed_candidate_ids": sorted(seed_ids),
+            },
+        )
+        row = _report(plan["blueprint_id"], "NO_MATCH", {
+            "blueprint_id": plan["blueprint_id"],
+            "matched": False,
+            "required_slots": required,
+            "unfilled_required_slots": missing,
+        }, {name: bool(value) for name, value in optional.items()}, [proposal])
+        row["world_withheld"] = [
+            "Required discourse slots remain unfilled: " + ", ".join(missing) + "."
+        ]
+        return row
+    slots = {name: value or "" for name, value in {**required, **optional}.items()}
+    world, notes = DISCOURSE_BUILDERS[plan["blueprint_id"]](
+        package["document"]["text"], slots, package)
+    graph = assemble_evidence_graph(
+        package=package,
+        text=package["document"]["text"],
+        clauses=clauses,
+        world=world,
+    )
+    assignment = assignment_for(world)
+    proposal = normalized_proposal(
         proposal_id=f"{plan['blueprint_id']}_0",
         blueprint_id=plan["blueprint_id"],
-        assignment=[str(value) for name, value in required.items()
-                    if "action" in name and value],
+        status="FILLED",
+        assignment_kind="intervention_text",
+        assignment=assignment,
         slot_bindings={"required": required, "optional": optional,
                        "seed_candidate_ids": sorted(seed_ids)},
         selection=selection,
         selection_validation=validation,
+        candidate_value=proposal_candidate(
+            {row["action_id"]: {
+                "clause_ids": list(row["clause_ids"]),
+                "reason": "Filled from copied discourse evidence.",
+            } for row in world.get("actions") or []},
+            world,
+        ),
         clauses=clauses,
-        unfilled_required_slots=missing,
         unresolved_readings=_plan_unresolved_readings(plan["blueprint_id"], evidence),
-        construction_problems=[problem],
-        pre_world_assessment=_package_question_assessment(package, False),
+        admission_authorized=True,
+        notes=notes,
+        pre_world_assessment=_package_question_assessment(package, True),
         accepted_evidence={
             "required": required,
             "optional": optional,
             "seed_candidate_ids": sorted(seed_ids),
         },
+        evidence_graph=graph,
     )
-    row = _report(plan["blueprint_id"], "PLAN_ONLY", {
-        "blueprint_id": plan["blueprint_id"],
-        "matched": not missing,
-        "required_slots": required,
-        "unfilled_required_slots": missing,
-    }, optional, [proposal])
-    row["world_withheld"] = [
-        "This evidence plan has no Parliament 1.3 graph builder yet."
-    ]
-    return row
+    return _filled(
+        plan["blueprint_id"],
+        {name: bool(value) for name, value in required.items()},
+        {name: bool(value) for name, value in optional.items()},
+        proposal,
+    )
 
 
 def _exclusive_report(package: dict, actions: Sequence[str]) -> dict[str, Any]:
@@ -273,6 +327,29 @@ def _plan_evidence(package: dict, blueprint_id: str) -> tuple[dict[str, Any], se
                     "bearer": actor,
                     "conflicting_rule": [row.get("value") for row in matches],
                 })
+        elif blueprint_id == "ability_permission":
+            modal = re.search(
+                r"\b(?:can|may|able to|permitted to)\b[^.!?]*", text, re.I)
+            names = re.findall(r"\b[A-Z][a-z]+\b", text)
+            if modal:
+                evidence.update({
+                    "modal_action": modal.group(0),
+                    "actor": names[0] if names else None,
+                    "target": names[1] if len(names) > 1 else None,
+                    "modal_words": re.search(
+                        r"\b(?:can|may|able to|permitted to)\b", text, re.I).group(0),
+                })
+        elif blueprint_id == "deontic_rule":
+            words = re.search(
+                r"\b(?:must not|may not|must|shall|should|required to|"
+                r"obligated to|forbidden to|prohibited from)\b", text, re.I)
+            names = re.findall(r"\b[A-Z][a-z]+\b", text)
+            if words:
+                evidence.update({
+                    "deontic_words": words.group(0),
+                    "governed_action": text[words.end():].strip(" ,."),
+                    "bearer": names[0] if names else None,
+                })
     elif blueprint_id == "promise_reliance":
         event = re.search(
             r"\b(?:promise|promises|promised|commit|commits|committed|pledge|pledges)\b",
@@ -321,7 +398,7 @@ def _plan_unresolved_readings(blueprint_id: str,
             or ["ability", "permission", "possibility"],
         }]
     if blueprint_id == "deontic_rule":
-        return [{"kind": "normative_force", "status": "not_represented_in_world_1_3"}]
+        return [{"kind": "normative_force", "status": "governed_not_occurrence"}]
     if blueprint_id == "promise_reliance":
         return [{"kind": "commitment_status", "status": "not_world_occurrence"}]
     if blueprint_id == "disputed_report":
@@ -495,6 +572,14 @@ def _slot_graph_proposal(package: dict, blueprint_id: str,
         }
         for row in world["actions"]
     }
+    graph = assemble_evidence_graph(
+        package=package,
+        text=package["document"]["text"],
+        clauses=clauses,
+        accepted=dict(slots),
+        slots=slots,
+        world=world,
+    )
     return normalized_proposal(
         proposal_id=f"{blueprint_id}_0",
         blueprint_id=blueprint_id,
@@ -524,6 +609,7 @@ def _slot_graph_proposal(package: dict, blueprint_id: str,
             "participants": [row["label"] for row in world["parties"]],
         },
         accepted_evidence=dict(slots),
+        evidence_graph=graph,
     )
 
 
@@ -823,9 +909,21 @@ def _proposal(package: dict, proposal_id: str, branches: list[dict[str, Any]],
         raise ValueError("Blueprint produced an invalid Z10 selection: "
                          + str(validation["errors"]))
     blueprint_id = proposal_id.rsplit("_", 1)[0]
-    world = {"schema_version": "1.3", "parties": parties, "actions": actions,
-             "effects": effects, "conditions": [], "temporal_relations": [],
-             "causal_links": links, "counterfactual_links": []}
+    world = ensure_schema({
+        "parties": parties, "actions": actions, "effects": effects,
+        "conditions": [], "temporal_relations": [],
+        "causal_links": links, "counterfactual_links": [],
+    })
+    clauses = [
+        {"clause_id": row["clause_id"], "text": row["text"]}
+        for row in segment_source_clauses(package["document"]["text"])
+    ]
+    graph = assemble_evidence_graph(
+        package=package,
+        text=package["document"]["text"],
+        clauses=clauses,
+        world=world,
+    )
     return normalized_proposal(
         proposal_id=proposal_id,
         blueprint_id=blueprint_id,
@@ -849,10 +947,7 @@ def _proposal(package: dict, proposal_id: str, branches: list[dict[str, Any]],
             } for row in actions},
             world,
         ),
-        clauses=[
-            {"clause_id": row["clause_id"], "text": row["text"]}
-            for row in segment_source_clauses(package["document"]["text"])
-        ],
+        clauses=clauses,
         unresolved_readings=(
             [{"kind": "conditional_relation", "alternatives": ["CAUSES", "ENABLES"]}]
             if blueprint_id == "conditional_outcome" else []
@@ -876,6 +971,7 @@ def _proposal(package: dict, proposal_id: str, branches: list[dict[str, Any]],
                 row["action_id"]: list(row["clause_ids"]) for row in actions
             },
         },
+        evidence_graph=graph,
     )
 
 
