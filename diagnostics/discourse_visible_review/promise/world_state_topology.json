@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.4",
+  "admission": null,
+  "nodes": [
+    {
+      "id": "P1",
+      "kind": "party",
+      "label": "Ada"
+    },
+    {
+      "id": "P2",
+      "kind": "party",
+      "label": "Ben"
+    },
+    {
+      "id": "A0",
+      "kind": "action",
+      "label": "Ada promised Ben"
+    },
+    {
+      "id": "PR1",
+      "kind": "proposition",
+      "label": "she would deliver the water",
+      "status": "COMMITTED_CONTENT"
+    },
+    {
+      "id": "K0",
+      "kind": "commitment",
+      "label": "Ada promised Ben"
+    }
+  ],
+  "edges": [
+    {
+      "source": "P1",
+      "relation": "ACTOR",
+      "target": "A0"
+    },
+    {
+      "source": "A0",
+      "relation": "RECIPIENT",
+      "target": "P2"
+    },
+    {
+      "source": "P1",
+      "relation": "PROMISOR",
+      "target": "K0"
+    },
+    {
+      "source": "K0",
+      "relation": "PROMISEE",
+      "target": "P2"
+    },
+    {
+      "source": "K0",
+      "relation": "CONTENT",
+      "target": "PR1"
+    }
+  ],
+  "conditions": [],
+  "temporal_relations": [],
+  "counterfactual_links": []
+}

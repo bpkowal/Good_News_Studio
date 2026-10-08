@@ -1,0 +1,262 @@
+{
+  "status": "COMMITTED",
+  "world_model_status": "COMMITTED",
+  "repair_attempts": 0,
+  "repairs": [],
+  "action_propositions": [
+    {
+      "action_id": "A0",
+      "text": "gets the water",
+      "propositions": []
+    },
+    {
+      "action_id": "A1",
+      "text": "get the water",
+      "propositions": []
+    }
+  ],
+  "compact_role_assignments": [
+    {
+      "action_id": "A0",
+      "bucket": "beneficiaries",
+      "label": "the child",
+      "effect_id": "E3",
+      "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; compact beneficiaries"
+    },
+    {
+      "action_id": "A1",
+      "bucket": "beneficiaries",
+      "label": "the five elderly patients",
+      "effect_id": "E6",
+      "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; affected quantity five; compact beneficiaries"
+    }
+  ],
+  "chains": [
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C2",
+          "text": "If the child gets the water, the child will live."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "gets the water"
+      },
+      "world": {
+        "effect_id": "E1",
+        "party_id": "P2",
+        "party_label": "the water",
+        "outcome": "gets the water",
+        "directness": "DIRECT",
+        "effect_kind": "INTERVENTION",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C2",
+          "text": "If the child gets the water, the child will live."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "gets the water"
+      },
+      "world": {
+        "effect_id": "E2",
+        "party_id": "P2",
+        "party_label": "the water",
+        "outcome": "gets the water",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "OTHER",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C2",
+          "text": "If the child gets the water, the child will live."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "gets the water"
+      },
+      "world": {
+        "effect_id": "E3",
+        "party_id": "P1",
+        "party_label": "the child",
+        "outcome": "the child will live",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "HEALTH_OUTCOME",
+        "polarity": "BENEFICIAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A0",
+        "bucket": "beneficiaries",
+        "label": "the child",
+        "effect_id": "E3",
+        "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; compact beneficiaries"
+      }
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C3",
+          "text": "If the five elderly patients get the water, the five elderly patients will live."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "get the water"
+      },
+      "world": {
+        "effect_id": "E4",
+        "party_id": "P2",
+        "party_label": "the water",
+        "outcome": "get the water",
+        "directness": "DIRECT",
+        "effect_kind": "INTERVENTION",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C3",
+          "text": "If the five elderly patients get the water, the five elderly patients will live."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "get the water"
+      },
+      "world": {
+        "effect_id": "E5",
+        "party_id": "P2",
+        "party_label": "the water",
+        "outcome": "get the water",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "OTHER",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C3",
+          "text": "If the five elderly patients get the water, the five elderly patients will live."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "get the water"
+      },
+      "world": {
+        "effect_id": "E6",
+        "party_id": "P3",
+        "party_label": "the five elderly patients",
+        "outcome": "the five elderly patients will live",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "HEALTH_OUTCOME",
+        "polarity": "BENEFICIAL",
+        "modality": "CERTAIN",
+        "quantities": [
+          "five"
+        ],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A1",
+        "bucket": "beneficiaries",
+        "label": "the five elderly patients",
+        "effect_id": "E6",
+        "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; affected quantity five; compact beneficiaries"
+      }
+    }
+  ],
+  "topology_edges": [
+    {
+      "layer": "ACTUAL",
+      "action_id": "A0",
+      "source_id": "E1",
+      "target_id": "E2",
+      "relation": "ENABLES",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    },
+    {
+      "layer": "ACTUAL",
+      "action_id": "A0",
+      "source_id": "E2",
+      "target_id": "E3",
+      "relation": "ENABLES",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    },
+    {
+      "layer": "ACTUAL",
+      "action_id": "A1",
+      "source_id": "E4",
+      "target_id": "E5",
+      "relation": "ENABLES",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    },
+    {
+      "layer": "ACTUAL",
+      "action_id": "A1",
+      "source_id": "E5",
+      "target_id": "E6",
+      "relation": "ENABLES",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    }
+  ]
+}

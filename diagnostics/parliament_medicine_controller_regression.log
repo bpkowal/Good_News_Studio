@@ -1,0 +1,105 @@
+Using openai as the workspace backend.
+Corpus RAG: off.
+Corpus RAG: off.
+Corpus RAG: on (original-agent consult only).
+Corpus RAG: off.
+Corpus RAG: off.
+Treating that entry as the ethical problem (workspace mode).
+Corpus RAG: off.
+
+Deliberation remains unresolved (entropy=0.91) while reviewing: a grounded third action
+Necessary condition: the third action succeeds
+Failure condition: the third action fails
+Next question: If it fails, should we choose the first or second action?
+Interpreting 'workspadce' as mode 'workspace'.
+Corpus RAG: off.
+======================================================================
+ERROR: test_atomic_temporal_qualifiers_do_not_cross_contrast_segments (tests.test_world_compiler_regression.HospitalMalwareCompilerRegressionTests.test_atomic_temporal_qualifiers_do_not_cross_contrast_segments)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/parliament-smoke-614af0c/tests/test_world_compiler_regression.py", line 152, in test_atomic_temporal_qualifiers_do_not_cross_contrast_segments
+    model = parse_world_model(
+            ^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/parliament-smoke-614af0c/global_workspace/world_state.py", line 3106, in parse_world_model
+    raise WorldModelValidationError(
+global_workspace.world_validation.WorldModelValidationError: E14 omits quantities stated in its outcome and provenance: ['8 years']; F1 omits quantities stated in its outcome and provenance: ['8 years']; COND2 is caused directly by act E11 while its source names P1 (FACILITY Hospital network) as the intervening process; insert a PHYSICAL_STATE or OTHER effect on that named process as the immediate parent, replace the direct E11 -> COND2 link with E11 -> process -> COND2, and preserve the child effect; E16 condition CND1 restates immediate parent COND2 ('malware'); drop the condition and type CERTAIN, or keep a non-certain modality only with a source hedge that is not this parent restated; E17 condition CND2 restates immediate parent E16 ('life-support systems shut down'); drop the condition and type CERTAIN, or keep a non-certain modality only with a source hedge that is not this parent restated; causal_link[5] condition CND1 restates source COND2 ('malware'); make the link CERTAIN or use an independent condition; causal_link[6] condition CND2 restates source E16 ('life-support systems shut down'); make the link CERTAIN or use an independent condition; CND1 references human welfare outcome COND2; point at the independent process event, not the gated harm or benefit; E16 is referenced by CND2 and must not also be an ordinary causal parent of ['E17']; gate the action-mediated path with this condition
+
+======================================================================
+ERROR: test_derived_averted_risk_is_unknown_without_rejecting_ledger (tests.test_world_compiler_regression.HospitalMalwareCompilerRegressionTests.test_derived_averted_risk_is_unknown_without_rejecting_ledger)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/parliament-smoke-614af0c/tests/test_world_compiler_regression.py", line 377, in test_derived_averted_risk_is_unknown_without_rejecting_ledger
+    _model, graph = self._admitted_graph()
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/parliament-smoke-614af0c/tests/test_world_compiler_regression.py", line 310, in _admitted_graph
+    model = parse_world_model(
+            ^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/parliament-smoke-614af0c/global_workspace/world_state.py", line 3106, in parse_world_model
+    raise WorldModelValidationError(
+global_workspace.world_validation.WorldModelValidationError: E14 omits quantities stated in its outcome and provenance: ['8 years']; F1 omits quantities stated in its outcome and provenance: ['8 years']; COND2 is caused directly by act E11 while its source names P1 (FACILITY Hospital network) as the intervening process; insert a PHYSICAL_STATE or OTHER effect on that named process as the immediate parent, replace the direct E11 -> COND2 link with E11 -> process -> COND2, and preserve the child effect; E16 condition CND1 restates immediate parent COND2 ('malware'); drop the condition and type CERTAIN, or keep a non-certain modality only with a source hedge that is not this parent restated; E17 condition CND2 restates immediate parent E16 ('life-support systems shut down'); drop the condition and type CERTAIN, or keep a non-certain modality only with a source hedge that is not this parent restated; causal_link[5] condition CND1 restates source COND2 ('malware'); make the link CERTAIN or use an independent condition; causal_link[6] condition CND2 restates source E16 ('life-support systems shut down'); make the link CERTAIN or use an independent condition; CND1 references human welfare outcome COND2; point at the independent process event, not the gated harm or benefit; E16 is referenced by CND2 and must not also be an ordinary causal parent of ['E17']; gate the action-mediated path with this condition
+
+======================================================================
+ERROR: test_effect_valuation_transaction_commits_the_admitted_world (tests.test_world_compiler_regression.HospitalMalwareCompilerRegressionTests.test_effect_valuation_transaction_commits_the_admitted_world)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/parliament-smoke-614af0c/tests/test_world_compiler_regression.py", line 346, in test_effect_valuation_transaction_commits_the_admitted_world
+    _model, graph = self._admitted_graph()
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/parliament-smoke-614af0c/tests/test_world_compiler_regression.py", line 310, in _admitted_graph
+    model = parse_world_model(
+            ^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/parliament-smoke-614af0c/global_workspace/world_state.py", line 3106, in parse_world_model
+    raise WorldModelValidationError(
+global_workspace.world_validation.WorldModelValidationError: E14 omits quantities stated in its outcome and provenance: ['8 years']; F1 omits quantities stated in its outcome and provenance: ['8 years']; COND2 is caused directly by act E11 while its source names P1 (FACILITY Hospital network) as the intervening process; insert a PHYSICAL_STATE or OTHER effect on that named process as the immediate parent, replace the direct E11 -> COND2 link with E11 -> process -> COND2, and preserve the child effect; E16 condition CND1 restates immediate parent COND2 ('malware'); drop the condition and type CERTAIN, or keep a non-certain modality only with a source hedge that is not this parent restated; E17 condition CND2 restates immediate parent E16 ('life-support systems shut down'); drop the condition and type CERTAIN, or keep a non-certain modality only with a source hedge that is not this parent restated; causal_link[5] condition CND1 restates source COND2 ('malware'); make the link CERTAIN or use an independent condition; causal_link[6] condition CND2 restates source E16 ('life-support systems shut down'); make the link CERTAIN or use an independent condition; CND1 references human welfare outcome COND2; point at the independent process event, not the gated harm or benefit; E16 is referenced by CND2 and must not also be an ordinary causal parent of ['E17']; gate the action-mediated path with this condition
+
+======================================================================
+ERROR: test_guaranteed_survival_remains_a_utilitarian_benefit (tests.test_world_compiler_regression.HospitalMalwareCompilerRegressionTests.test_guaranteed_survival_remains_a_utilitarian_benefit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/parliament-smoke-614af0c/tests/test_world_compiler_regression.py", line 328, in test_guaranteed_survival_remains_a_utilitarian_benefit
+    _model, graph = self._admitted_graph()
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/parliament-smoke-614af0c/tests/test_world_compiler_regression.py", line 310, in _admitted_graph
+    model = parse_world_model(
+            ^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/parliament-smoke-614af0c/global_workspace/world_state.py", line 3106, in parse_world_model
+    raise WorldModelValidationError(
+global_workspace.world_validation.WorldModelValidationError: E14 omits quantities stated in its outcome and provenance: ['8 years']; F1 omits quantities stated in its outcome and provenance: ['8 years']; COND2 is caused directly by act E11 while its source names P1 (FACILITY Hospital network) as the intervening process; insert a PHYSICAL_STATE or OTHER effect on that named process as the immediate parent, replace the direct E11 -> COND2 link with E11 -> process -> COND2, and preserve the child effect; E16 condition CND1 restates immediate parent COND2 ('malware'); drop the condition and type CERTAIN, or keep a non-certain modality only with a source hedge that is not this parent restated; E17 condition CND2 restates immediate parent E16 ('life-support systems shut down'); drop the condition and type CERTAIN, or keep a non-certain modality only with a source hedge that is not this parent restated; causal_link[5] condition CND1 restates source COND2 ('malware'); make the link CERTAIN or use an independent condition; causal_link[6] condition CND2 restates source E16 ('life-support systems shut down'); make the link CERTAIN or use an independent condition; CND1 references human welfare outcome COND2; point at the independent process event, not the gated harm or benefit; E16 is referenced by CND2 and must not also be an ordinary causal parent of ['E17']; gate the action-mediated path with this condition
+
+======================================================================
+ERROR: test_rejected_candidate_now_commits_without_semantic_loss (tests.test_world_compiler_regression.HospitalMalwareCompilerRegressionTests.test_rejected_candidate_now_commits_without_semantic_loss)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/parliament-smoke-614af0c/tests/test_world_compiler_regression.py", line 50, in test_rejected_candidate_now_commits_without_semantic_loss
+    model = parse_world_model(
+            ^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/parliament-smoke-614af0c/global_workspace/world_state.py", line 3106, in parse_world_model
+    raise WorldModelValidationError(
+global_workspace.world_validation.WorldModelValidationError: E14 omits quantities stated in its outcome and provenance: ['8 years']; F1 omits quantities stated in its outcome and provenance: ['8 years']; COND2 is caused directly by act E11 while its source names P1 (FACILITY Hospital network) as the intervening process; insert a PHYSICAL_STATE or OTHER effect on that named process as the immediate parent, replace the direct E11 -> COND2 link with E11 -> process -> COND2, and preserve the child effect; E16 condition CND1 restates immediate parent COND2 ('malware'); drop the condition and type CERTAIN, or keep a non-certain modality only with a source hedge that is not this parent restated; E17 condition CND2 restates immediate parent E16 ('life-support systems shut down'); drop the condition and type CERTAIN, or keep a non-certain modality only with a source hedge that is not this parent restated; causal_link[5] condition CND1 restates source COND2 ('malware'); make the link CERTAIN or use an independent condition; causal_link[6] condition CND2 restates source E16 ('life-support systems shut down'); make the link CERTAIN or use an independent condition; CND1 references human welfare outcome COND2; point at the independent process event, not the gated harm or benefit; E16 is referenced by CND2 and must not also be an ordinary causal parent of ['E17']; gate the action-mediated path with this condition
+
+======================================================================
+ERROR: test_semantic_causal_edge_retains_the_world_gate (tests.test_world_compiler_regression.HospitalMalwareCompilerRegressionTests.test_semantic_causal_edge_retains_the_world_gate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/parliament-smoke-614af0c/tests/test_world_compiler_regression.py", line 335, in test_semantic_causal_edge_retains_the_world_gate
+    _model, graph = self._admitted_graph()
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/parliament-smoke-614af0c/tests/test_world_compiler_regression.py", line 310, in _admitted_graph
+    model = parse_world_model(
+            ^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/parliament-smoke-614af0c/global_workspace/world_state.py", line 3106, in parse_world_model
+    raise WorldModelValidationError(
+global_workspace.world_validation.WorldModelValidationError: E14 omits quantities stated in its outcome and provenance: ['8 years']; F1 omits quantities stated in its outcome and provenance: ['8 years']; COND2 is caused directly by act E11 while its source names P1 (FACILITY Hospital network) as the intervening process; insert a PHYSICAL_STATE or OTHER effect on that named process as the immediate parent, replace the direct E11 -> COND2 link with E11 -> process -> COND2, and preserve the child effect; E16 condition CND1 restates immediate parent COND2 ('malware'); drop the condition and type CERTAIN, or keep a non-certain modality only with a source hedge that is not this parent restated; E17 condition CND2 restates immediate parent E16 ('life-support systems shut down'); drop the condition and type CERTAIN, or keep a non-certain modality only with a source hedge that is not this parent restated; causal_link[5] condition CND1 restates source COND2 ('malware'); make the link CERTAIN or use an independent condition; causal_link[6] condition CND2 restates source E16 ('life-support systems shut down'); make the link CERTAIN or use an independent condition; CND1 references human welfare outcome COND2; point at the independent process event, not the gated harm or benefit; E16 is referenced by CND2 and must not also be an ordinary causal parent of ['E17']; gate the action-mediated path with this condition
+
+======================================================================
+FAIL: test_world_checkpoint_summary_names_actual_and_foregone_rows (tests.test_parliament.ParliamentLauncherTests.test_world_checkpoint_summary_names_actual_and_foregone_rows)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/parliament-smoke-614af0c/tests/test_parliament.py", line 664, in test_world_checkpoint_summary_names_actual_and_foregone_rows
+    self.assertIn("FOREGONE E0_4 -> A1 E1_3", text)
+AssertionError: 'FOREGONE E0_4 -> A1 E1_3' not found in '\n--- Admitted world ---\nstatus: COMMITTED\nrepairs: 0\n\nA0: Refuse to frame\n  certain benefits: innocent citizen\n  certain harms: city residents\n  at risk: none\n  conditionally benefited: none\n  mechanism: CONTINUES causes DIES\n  E0_2 CAUSES E0_3\n  E0_3 DOWNSTREAM ADVERSE DIES [P3] (over five hundred)\n  COUNTERFACTUAL E0_4 -> A1 E1_3'
+
+----------------------------------------------------------------------
+Ran 71 tests in 0.518s
+
+FAILED (failures=1, errors=6)

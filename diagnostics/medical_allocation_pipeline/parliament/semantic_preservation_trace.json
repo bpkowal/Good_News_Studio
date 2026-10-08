@@ -1,0 +1,406 @@
+{
+  "status": "COMMITTED",
+  "world_model_status": "COMMITTED",
+  "repair_attempts": 0,
+  "repairs": [],
+  "action_propositions": [
+    {
+      "action_id": "A0",
+      "text": "gives the antiviral to the child",
+      "propositions": []
+    },
+    {
+      "action_id": "A1",
+      "text": "gives the antiviral to the three adult patients",
+      "propositions": [
+        {
+          "kind": "quantity",
+          "text": "three",
+          "supported": true
+        },
+        {
+          "kind": "participant",
+          "text": "three adult patients",
+          "supported": true
+        },
+        {
+          "kind": "quantity",
+          "text": "three adult patients",
+          "supported": true
+        }
+      ]
+    }
+  ],
+  "compact_role_assignments": [
+    {
+      "action_id": "A0",
+      "bucket": "conditionally_benefited",
+      "label": "one child",
+      "effect_id": "E2",
+      "reason": "PROBABILISTIC HEALTH_OUTCOME BENEFICIAL; compact conditionally_benefited because the outcome is not obtained"
+    },
+    {
+      "action_id": "A0",
+      "bucket": "harmed",
+      "label": "three adult patients",
+      "effect_id": "E7",
+      "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; compact harmed"
+    },
+    {
+      "action_id": "A1",
+      "bucket": "conditionally_benefited",
+      "label": "three adult patients",
+      "effect_id": "E4",
+      "reason": "PROBABILISTIC HEALTH_OUTCOME BENEFICIAL; affected quantity three; compact conditionally_benefited because the outcome is not obtained"
+    },
+    {
+      "action_id": "A1",
+      "bucket": "harmed",
+      "label": "one child",
+      "effect_id": "E8",
+      "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; compact harmed"
+    }
+  ],
+  "chains": [
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C2",
+          "text": "If Dr. Rivera gives the antiviral to the child, the child has an 80% chance of survival."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "gives the antiviral to the child"
+      },
+      "world": {
+        "effect_id": "E1",
+        "party_id": "P3",
+        "party_label": "one child",
+        "outcome": "gives the antiviral to the child",
+        "directness": "DIRECT",
+        "effect_kind": "RESOURCE_TRANSFER",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C2",
+          "text": "If Dr. Rivera gives the antiviral to the child, the child has an 80% chance of survival."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "gives the antiviral to the child"
+      },
+      "world": {
+        "effect_id": "E2",
+        "party_id": "P3",
+        "party_label": "one child",
+        "outcome": "the child has an 80% chance of survival",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "HEALTH_OUTCOME",
+        "polarity": "BENEFICIAL",
+        "modality": "PROBABILISTIC",
+        "quantities": [],
+        "likelihood_qualifiers": [
+          "80% chance"
+        ],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A0",
+        "bucket": "conditionally_benefited",
+        "label": "one child",
+        "effect_id": "E2",
+        "reason": "PROBABILISTIC HEALTH_OUTCOME BENEFICIAL; compact conditionally_benefited because the outcome is not obtained"
+      }
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C3",
+          "text": "If Dr. Rivera gives the antiviral to the three adult patients, each of the three adult patients has a 60% chance of survival."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "gives the antiviral to the three adult patients"
+      },
+      "world": {
+        "effect_id": "E3",
+        "party_id": "P4",
+        "party_label": "three adult patients",
+        "outcome": "gives the antiviral to the three adult patients",
+        "directness": "DIRECT",
+        "effect_kind": "RESOURCE_TRANSFER",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [
+          "three"
+        ],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C3",
+          "text": "If Dr. Rivera gives the antiviral to the three adult patients, each of the three adult patients has a 60% chance of survival."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "gives the antiviral to the three adult patients"
+      },
+      "world": {
+        "effect_id": "E4",
+        "party_id": "P4",
+        "party_label": "three adult patients",
+        "outcome": "each of the three adult patients has a 60% chance of survival",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "HEALTH_OUTCOME",
+        "polarity": "BENEFICIAL",
+        "modality": "PROBABILISTIC",
+        "quantities": [
+          "three"
+        ],
+        "likelihood_qualifiers": [
+          "60% chance"
+        ],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A1",
+        "bucket": "conditionally_benefited",
+        "label": "three adult patients",
+        "effect_id": "E4",
+        "reason": "PROBABILISTIC HEALTH_OUTCOME BENEFICIAL; affected quantity three; compact conditionally_benefited because the outcome is not obtained"
+      }
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C0",
+          "text": "A clinic has one dose of antiviral."
+        },
+        {
+          "clause_id": "C1",
+          "text": "Dr. Rivera must give the antiviral to either one child or three adult patients, but not both."
+        },
+        {
+          "clause_id": "C2",
+          "text": "If Dr. Rivera gives the antiviral to the child, the child has an 80% chance of survival."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "gives the antiviral to the child"
+      },
+      "world": {
+        "effect_id": "E5",
+        "party_id": "P4",
+        "party_label": "three adult patients",
+        "outcome": "does not receive one dose of antiviral",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "OTHER",
+        "polarity": "ADVERSE",
+        "modality": "CERTAIN",
+        "quantities": [
+          "one"
+        ],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C0",
+          "text": "A clinic has one dose of antiviral."
+        },
+        {
+          "clause_id": "C1",
+          "text": "Dr. Rivera must give the antiviral to either one child or three adult patients, but not both."
+        },
+        {
+          "clause_id": "C3",
+          "text": "If Dr. Rivera gives the antiviral to the three adult patients, each of the three adult patients has a 60% chance of survival."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "gives the antiviral to the three adult patients"
+      },
+      "world": {
+        "effect_id": "E6",
+        "party_id": "P3",
+        "party_label": "one child",
+        "outcome": "does not receive one dose of antiviral",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "OTHER",
+        "polarity": "ADVERSE",
+        "modality": "CERTAIN",
+        "quantities": [
+          "one"
+        ],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C4",
+          "text": "The patients who do not receive the antiviral will die."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "gives the antiviral to the child"
+      },
+      "world": {
+        "effect_id": "E7",
+        "party_id": "P4",
+        "party_label": "three adult patients",
+        "outcome": "will die",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "HEALTH_OUTCOME",
+        "polarity": "ADVERSE",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A0",
+        "bucket": "harmed",
+        "label": "three adult patients",
+        "effect_id": "E7",
+        "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; compact harmed"
+      }
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C4",
+          "text": "The patients who do not receive the antiviral will die."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "gives the antiviral to the three adult patients"
+      },
+      "world": {
+        "effect_id": "E8",
+        "party_id": "P3",
+        "party_label": "one child",
+        "outcome": "will die",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "HEALTH_OUTCOME",
+        "polarity": "ADVERSE",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A1",
+        "bucket": "harmed",
+        "label": "one child",
+        "effect_id": "E8",
+        "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; compact harmed"
+      }
+    }
+  ],
+  "topology_edges": [
+    {
+      "layer": "ACTUAL",
+      "action_id": "A0",
+      "source_id": "E1",
+      "target_id": "E2",
+      "relation": "CAUSES",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    },
+    {
+      "layer": "ACTUAL",
+      "action_id": "A1",
+      "source_id": "E3",
+      "target_id": "E4",
+      "relation": "CAUSES",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    },
+    {
+      "layer": "ACTUAL",
+      "action_id": "A0",
+      "source_id": "E5",
+      "target_id": "E7",
+      "relation": "CAUSES",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    },
+    {
+      "layer": "ACTUAL",
+      "action_id": "A1",
+      "source_id": "E6",
+      "target_id": "E8",
+      "relation": "CAUSES",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    },
+    {
+      "layer": "ACTUAL",
+      "action_id": "A0",
+      "source_id": "E1",
+      "target_id": "E5",
+      "relation": "CAUSES",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    },
+    {
+      "layer": "ACTUAL",
+      "action_id": "A1",
+      "source_id": "E3",
+      "target_id": "E6",
+      "relation": "CAUSES",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    }
+  ]
+}

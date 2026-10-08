@@ -1,0 +1,1273 @@
+{
+  "scenario": "Dr. Lee promised Sam that she would return tomorrow.",
+  "actions": [],
+  "package": {
+    "schema_version": "0.4",
+    "package_id": "blueprint_run_74bbc010c489",
+    "document": {
+      "id": "document",
+      "text": "Dr. Lee promised Sam that she would return tomorrow."
+    },
+    "producer": {
+      "name": "parsing_game_Z10",
+      "version": "Z10",
+      "resources": [
+        {
+          "id": "T_reference_policy",
+          "version": "1",
+          "description": "Curated candidate-generation and ranking policy, not learned probabilities or a complete animacy lexicon."
+        }
+      ]
+    },
+    "evidence": [
+      {
+        "id": "e0",
+        "start": 8,
+        "end": 16,
+        "text": "promised"
+      },
+      {
+        "id": "e1",
+        "start": 36,
+        "end": 42,
+        "text": "return"
+      },
+      {
+        "id": "e2",
+        "start": 30,
+        "end": 35,
+        "text": "would"
+      },
+      {
+        "id": "e3",
+        "start": 0,
+        "end": 7,
+        "text": "Dr. Lee"
+      },
+      {
+        "id": "e4",
+        "start": 4,
+        "end": 7,
+        "text": "Lee"
+      },
+      {
+        "id": "e5",
+        "start": 17,
+        "end": 20,
+        "text": "Sam"
+      },
+      {
+        "id": "e6",
+        "start": 26,
+        "end": 29,
+        "text": "she"
+      },
+      {
+        "id": "e7",
+        "start": 43,
+        "end": 51,
+        "text": "tomorrow"
+      },
+      {
+        "id": "e8",
+        "start": 0,
+        "end": 52,
+        "text": "Dr. Lee promised Sam that she would return tomorrow."
+      }
+    ],
+    "nodes": [
+      {
+        "id": "p2",
+        "kind": "proposition",
+        "label": "promised",
+        "predicate": "promise",
+        "evidence_ids": [
+          "e0"
+        ],
+        "predicate_evidence_ids": [
+          "e0"
+        ]
+      },
+      {
+        "id": "p7",
+        "kind": "proposition",
+        "label": "return",
+        "predicate": "return",
+        "evidence_ids": [
+          "e1"
+        ],
+        "predicate_evidence_ids": [
+          "e1"
+        ]
+      },
+      {
+        "id": "m1",
+        "kind": "mention",
+        "label": "Dr. Lee",
+        "evidence_ids": [
+          "e3"
+        ]
+      },
+      {
+        "id": "m3",
+        "kind": "mention",
+        "label": "Sam",
+        "evidence_ids": [
+          "e5"
+        ]
+      },
+      {
+        "id": "m5",
+        "kind": "mention",
+        "label": "she",
+        "evidence_ids": [
+          "e6"
+        ]
+      },
+      {
+        "id": "m8",
+        "kind": "mention",
+        "label": "tomorrow",
+        "evidence_ids": [
+          "e7"
+        ]
+      }
+    ],
+    "candidates": [
+      {
+        "id": "c0",
+        "type": "PREDICATION",
+        "arguments": {
+          "proposition": "p2"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e0"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c1",
+        "type": "PREDICATION",
+        "arguments": {
+          "proposition": "p7"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e1"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "modal_choice",
+              "modality_choice_set_id": "choice0",
+              "evidence_ids": [
+                "e2"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c2",
+        "type": "MODALITY",
+        "arguments": {
+          "proposition": "p7"
+        },
+        "value": "prediction",
+        "evidence_ids": [
+          "e2"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": null
+        },
+        "requires": [
+          "c1"
+        ],
+        "exclusive_with": [
+          "c3"
+        ]
+      },
+      {
+        "id": "c3",
+        "type": "MODALITY",
+        "arguments": {
+          "proposition": "p7"
+        },
+        "value": "possibility",
+        "evidence_ids": [
+          "e2"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": null
+        },
+        "requires": [
+          "c1"
+        ],
+        "exclusive_with": [
+          "c2"
+        ]
+      },
+      {
+        "id": "c4",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p2",
+          "mention": "m1"
+        },
+        "value": "subject",
+        "evidence_ids": [
+          "e4"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c0"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c5",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p2",
+          "mention": "m3"
+        },
+        "value": "object",
+        "evidence_ids": [
+          "e5"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c0"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c6",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p7",
+          "mention": "m5"
+        },
+        "value": "subject",
+        "evidence_ids": [
+          "e6"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "modal_choice",
+              "modality_choice_set_id": "choice0",
+              "evidence_ids": [
+                "e2"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c1"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c7",
+        "type": "SAME_REFERENT",
+        "arguments": {
+          "mention_a": "m5",
+          "mention_b": "m1"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e6",
+          "e3"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "reference_candidates",
+            "version": "T1",
+            "method": "bounded_number_animacy_recency_role_ranking",
+            "resource_ids": [
+              "T_reference_policy"
+            ]
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": {
+            "value": 0.8,
+            "kind": "uncalibrated_score",
+            "source": "T_reference_policy",
+            "calibration_id": null
+          }
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c8",
+        "type": "SAME_REFERENT",
+        "arguments": {
+          "mention_a": "m5",
+          "mention_b": "m3"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e6",
+          "e5"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "reference_candidates",
+            "version": "T1",
+            "method": "bounded_number_animacy_recency_role_ranking",
+            "resource_ids": [
+              "T_reference_policy"
+            ]
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": {
+            "value": 0.7000000000000001,
+            "kind": "uncalibrated_score",
+            "source": "T_reference_policy",
+            "calibration_id": null
+          }
+        },
+        "requires": [],
+        "exclusive_with": []
+      }
+    ],
+    "choice_sets": [
+      {
+        "id": "choice0",
+        "kind": "interpretation",
+        "candidate_ids": [
+          "c2",
+          "c3"
+        ],
+        "selection_rule": "at_most_one",
+        "exhaustive": false,
+        "evidence_ids": [
+          "e2"
+        ]
+      },
+      {
+        "id": "choice1",
+        "kind": "interpretation",
+        "candidate_ids": [
+          "c7",
+          "c8"
+        ],
+        "selection_rule": "any_subset",
+        "exhaustive": false,
+        "evidence_ids": [
+          "e6"
+        ]
+      }
+    ],
+    "open_questions": [
+      {
+        "id": "q0",
+        "kind": "modality",
+        "evidence_ids": [
+          "e2"
+        ],
+        "candidate_ids": [
+          "c2",
+          "c3"
+        ],
+        "question": "Select the modal meaning; prediction, ability and obligation are distinct.",
+        "blocking_for": [
+          "c1"
+        ]
+      },
+      {
+        "id": "q1",
+        "kind": "reference",
+        "evidence_ids": [
+          "e6"
+        ],
+        "candidate_ids": [
+          "c7",
+          "c8"
+        ],
+        "question": "Which earlier mention, if any, has the same referent? Ranked candidates are not identity decisions.",
+        "blocking_for": [
+          "c6"
+        ]
+      },
+      {
+        "id": "q2",
+        "kind": "missing_representation",
+        "evidence_ids": [
+          "e8"
+        ],
+        "candidate_ids": [],
+        "question": "Review unrepresented semantics and scope, including attribution, choice and entailment.",
+        "blocking_for": []
+      }
+    ],
+    "coverage": {
+      "status": "partial",
+      "unrepresented_evidence_ids": [
+        "e8"
+      ],
+      "limitations": [
+        "reference_candidates_only_no_identity_merging",
+        "no_world_state_commitment",
+        "bounded_if_and_local_modal_scope",
+        "no_semantic_support_validation",
+        "purpose_and_attachment_readings_are_candidates",
+        "subject_control_is_an_unresolved_candidate",
+        "unambiguous_condition_complements_are_required",
+        "attempt_does_not_entail_the_child",
+        "choice_sets_are_not_exhaustive",
+        "quantity_is_explicit_cardinality_only",
+        "comma_clause_subject_repairs_a_false_conjunct",
+        "same_name_reference_does_not_block_roles",
+        "transfer_recipient_is_destination",
+        "definite_locative_is_location",
+        "definite_reference_does_not_block_roles",
+        "conditional_alternatives_are_not_exhaustive_or_exclusive",
+        "quantity_match_is_not_group_membership",
+        "coordination_shares_the_head_role",
+        "clause_boundary_stops_role_sharing",
+        "clause_boundary_attachment_stays_a_candidate",
+        "stripping_not_nominal_is_an_unresolved_copy"
+      ]
+    },
+    "reconstructions": [],
+    "condition_contents": []
+  },
+  "blueprint_result": {
+    "cloze_version": "blueprint-cloze-chooser/0.6",
+    "chosen_blueprint_id": "promise_reliance",
+    "status": "PARTIAL",
+    "ranking": [
+      "promise_reliance",
+      "conditional_outcome",
+      "ability_permission"
+    ],
+    "left_out": [
+      "exclusive_allocation",
+      "rescue_contrast",
+      "omission_harm",
+      "diversion_redirection",
+      "deontic_rule",
+      "uncertain_risk",
+      "disputed_report"
+    ],
+    "question": {
+      "ethical_question": "",
+      "scenario_options": [],
+      "exclusivity": "unspecified",
+      "participants": [
+        {
+          "role": "subject",
+          "mention": "Dr. Lee",
+          "predicate": "promised"
+        },
+        {
+          "role": "object",
+          "mention": "Sam",
+          "predicate": "promised"
+        },
+        {
+          "role": "subject",
+          "mention": "she",
+          "predicate": "return"
+        }
+      ],
+      "eligible_for_world_state": false
+    },
+    "world_withheld": [],
+    "considered": [
+      {
+        "blueprint_id": "promise_reliance",
+        "graph_builder": "plan_only",
+        "status": "PARTIAL",
+        "rank": 0,
+        "core_filled": 3,
+        "core_count": 4,
+        "optional_filled": 0,
+        "rejected": 1,
+        "coverage_metrics": {
+          "required_filled": 3,
+          "required_total": 4,
+          "optional_filled": 0,
+          "optional_total": 2,
+          "rejected_evidence": 1,
+          "unsupported_atoms": 0,
+          "unresolved_readings": 1
+        },
+        "unfilled": [
+          "commitment_event",
+          "reliance",
+          "breach"
+        ],
+        "unresolved_slots": [
+          "commitment_event",
+          "reliance",
+          "breach"
+        ],
+        "accepted_evidence": {
+          "promisor": "Dr. Lee",
+          "commitment_content": "that she would return tomorrow",
+          "promisee": "Sam"
+        },
+        "slots": {
+          "promisor": "Dr. Lee",
+          "commitment_content": "that she would return tomorrow",
+          "promisee": "Sam"
+        },
+        "items": [
+          {
+            "id": "promisor",
+            "core": true,
+            "sentence": "The person who makes the promise or commitment is",
+            "completion": "Dr. Lee",
+            "span": "Dr. Lee",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "commitment_event",
+            "core": true,
+            "sentence": "The copied promise or commitment event is",
+            "completion": "that she would return tomorrow",
+            "span": null,
+            "verdict": "rejected",
+            "reason": "does_not_answer"
+          },
+          {
+            "id": "commitment_content",
+            "core": true,
+            "sentence": "What the promisor commits to do is",
+            "completion": "that she would return tomorrow",
+            "span": "that she would return tomorrow",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "promisee",
+            "core": true,
+            "sentence": "The party to whom the commitment is made is",
+            "completion": "Sam",
+            "span": "Sam",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "reliance",
+            "core": false,
+            "sentence": "What the text says someone relies on is",
+            "completion": "NONE",
+            "span": null,
+            "verdict": "empty",
+            "reason": "not_stated"
+          },
+          {
+            "id": "breach",
+            "core": false,
+            "sentence": "The copied breach or failure to perform is",
+            "completion": "NONE",
+            "span": null,
+            "verdict": "empty",
+            "reason": "not_stated"
+          }
+        ]
+      },
+      {
+        "blueprint_id": "conditional_outcome",
+        "graph_builder": "implemented",
+        "status": "PARTIAL",
+        "rank": 1,
+        "core_filled": 2,
+        "core_count": 3,
+        "optional_filled": 1,
+        "rejected": 1,
+        "coverage_metrics": {
+          "required_filled": 2,
+          "required_total": 3,
+          "optional_filled": 1,
+          "optional_total": 5,
+          "rejected_evidence": 1,
+          "unsupported_atoms": 0,
+          "unresolved_readings": 0
+        },
+        "unfilled": [
+          "condition",
+          "second_condition",
+          "second_bearer",
+          "second_outcome",
+          "chance"
+        ],
+        "unresolved_slots": [
+          "condition",
+          "second_condition",
+          "second_bearer",
+          "second_outcome",
+          "chance"
+        ],
+        "accepted_evidence": {
+          "actor": "Dr. Lee",
+          "bearer": "Sam",
+          "outcome": "that she would return tomorrow"
+        },
+        "slots": {
+          "actor": "Dr. Lee",
+          "bearer": "Sam",
+          "outcome": "that she would return tomorrow"
+        },
+        "items": [
+          {
+            "id": "actor",
+            "core": false,
+            "sentence": "The person whose action an outcome depends on is",
+            "completion": "Dr. Lee",
+            "span": "Dr. Lee",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "condition",
+            "core": true,
+            "sentence": "The if-clause the outcome depends on is",
+            "completion": "she would return tomorrow",
+            "span": null,
+            "verdict": "rejected",
+            "reason": "does_not_answer"
+          },
+          {
+            "id": "bearer",
+            "core": true,
+            "sentence": "The party that outcome happens to is",
+            "completion": "Sam",
+            "span": "Sam",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "outcome",
+            "core": true,
+            "sentence": "The outcome stated for that party is",
+            "completion": "that she would return tomorrow",
+            "span": "that she would return tomorrow",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "second_condition",
+            "core": false,
+            "sentence": "The second if-clause, distinct from the first, is",
+            "completion": "NONE",
+            "span": null,
+            "verdict": "empty",
+            "reason": "not_stated"
+          },
+          {
+            "id": "second_bearer",
+            "core": false,
+            "sentence": "The party the second outcome happens to is",
+            "completion": "NONE",
+            "span": null,
+            "verdict": "empty",
+            "reason": "not_stated"
+          },
+          {
+            "id": "second_outcome",
+            "core": false,
+            "sentence": "The outcome stated for that second party is",
+            "completion": "NONE",
+            "span": null,
+            "verdict": "empty",
+            "reason": "not_stated"
+          },
+          {
+            "id": "chance",
+            "core": false,
+            "sentence": "A stated chance attached to an outcome is",
+            "completion": "NONE",
+            "span": null,
+            "verdict": "empty",
+            "reason": "not_stated"
+          }
+        ]
+      },
+      {
+        "blueprint_id": "ability_permission",
+        "graph_builder": "plan_only",
+        "status": "PARTIAL",
+        "rank": 2,
+        "core_filled": 2,
+        "core_count": 3,
+        "optional_filled": 0,
+        "rejected": 2,
+        "coverage_metrics": {
+          "required_filled": 2,
+          "required_total": 3,
+          "optional_filled": 0,
+          "optional_total": 3,
+          "rejected_evidence": 2,
+          "unsupported_atoms": 0,
+          "unresolved_readings": 1
+        },
+        "unfilled": [
+          "modal_action",
+          "modal_words",
+          "outcome",
+          "duty_or_prohibition"
+        ],
+        "unresolved_slots": [
+          "modal_action",
+          "modal_words",
+          "outcome",
+          "duty_or_prohibition"
+        ],
+        "accepted_evidence": {
+          "actor": "Dr. Lee",
+          "target": "Sam"
+        },
+        "slots": {
+          "actor": "Dr. Lee",
+          "target": "Sam"
+        },
+        "items": [
+          {
+            "id": "actor",
+            "core": true,
+            "sentence": "The actor governed by the modal is",
+            "completion": "Dr. Lee",
+            "span": "Dr. Lee",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "modal_action",
+            "core": true,
+            "sentence": "The copied action stated with can, may, able, or permitted is",
+            "completion": "return",
+            "span": null,
+            "verdict": "rejected",
+            "reason": "does_not_answer"
+          },
+          {
+            "id": "target",
+            "core": true,
+            "sentence": "The target or recipient of that possible action is",
+            "completion": "Sam",
+            "span": "Sam",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "modal_words",
+            "core": false,
+            "sentence": "The exact modal words are",
+            "completion": "would",
+            "span": null,
+            "verdict": "rejected",
+            "reason": "does_not_answer"
+          },
+          {
+            "id": "outcome",
+            "core": false,
+            "sentence": "A stated outcome of that action is",
+            "completion": "NONE",
+            "span": null,
+            "verdict": "empty",
+            "reason": "not_stated"
+          },
+          {
+            "id": "duty_or_prohibition",
+            "core": false,
+            "sentence": "Any duty or prohibition attached to that action is",
+            "completion": "NONE",
+            "span": null,
+            "verdict": "empty",
+            "reason": "not_stated"
+          }
+        ]
+      }
+    ],
+    "candidate_attempts": [
+      {
+        "blueprint_id": "promise_reliance",
+        "rank": 0,
+        "template_status": "PARTIAL",
+        "selected": true,
+        "core_filled": 3,
+        "core_count": 4,
+        "optional_filled": 0,
+        "unfilled_slots": [
+          "commitment_event",
+          "reliance",
+          "breach"
+        ],
+        "contract_valid": true,
+        "contract_errors": [],
+        "proposal": {
+          "proposal_contract_version": "blueprint-proposal-contract/0.2",
+          "proposal_id": "promise_reliance_cloze",
+          "blueprint_id": "promise_reliance",
+          "status": "WITHHELD",
+          "assignment_kind": "none",
+          "assignment": [],
+          "slot_bindings": {
+            "copied_spans": {
+              "promisor": "Dr. Lee",
+              "commitment_content": "that she would return tomorrow",
+              "promisee": "Sam"
+            }
+          },
+          "selection": null,
+          "selection_validation": {
+            "contract_valid": null,
+            "status": "not_assessed",
+            "reason": "No Z10 candidate selection was constructed."
+          },
+          "candidate": null,
+          "clauses": [
+            {
+              "clause_id": "C0",
+              "text": "Dr. Lee promised Sam that she would return tomorrow."
+            }
+          ],
+          "unfilled_required_slots": [
+            "commitment_event"
+          ],
+          "unresolved_readings": [
+            {
+              "kind": "commitment_status",
+              "status": "not_world_occurrence"
+            }
+          ],
+          "construction_problems": [
+            {
+              "code": "world_withheld",
+              "message": "Required slots remain unfilled: commitment_event"
+            }
+          ],
+          "admission_authorized": false,
+          "notes": [],
+          "pre_world_assessment": {
+            "ethical_question": "",
+            "scenario_options": [],
+            "exclusivity": "unspecified",
+            "participants": [
+              {
+                "role": "subject",
+                "mention": "Dr. Lee",
+                "predicate": "promised"
+              },
+              {
+                "role": "object",
+                "mention": "Sam",
+                "predicate": "promised"
+              },
+              {
+                "role": "subject",
+                "mention": "she",
+                "predicate": "return"
+              }
+            ],
+            "status": "WITHHELD",
+            "eligible_for_world_state": false
+          },
+          "accepted_evidence": {
+            "promisor": "Dr. Lee",
+            "commitment_content": "that she would return tomorrow",
+            "promisee": "Sam"
+          },
+          "world_withheld": [
+            "Required slots remain unfilled: commitment_event"
+          ]
+        }
+      },
+      {
+        "blueprint_id": "conditional_outcome",
+        "rank": 1,
+        "template_status": "PARTIAL",
+        "selected": false,
+        "core_filled": 2,
+        "core_count": 3,
+        "optional_filled": 1,
+        "unfilled_slots": [
+          "condition",
+          "second_condition",
+          "second_bearer",
+          "second_outcome",
+          "chance"
+        ],
+        "contract_valid": true,
+        "contract_errors": [],
+        "proposal": {
+          "proposal_contract_version": "blueprint-proposal-contract/0.2",
+          "proposal_id": "conditional_outcome_cloze",
+          "blueprint_id": "conditional_outcome",
+          "status": "WITHHELD",
+          "assignment_kind": "none",
+          "assignment": [],
+          "slot_bindings": {
+            "copied_spans": {
+              "actor": "Dr. Lee",
+              "bearer": "Sam",
+              "outcome": "that she would return tomorrow"
+            }
+          },
+          "selection": null,
+          "selection_validation": {
+            "contract_valid": null,
+            "status": "not_assessed",
+            "reason": "No Z10 candidate selection was constructed."
+          },
+          "candidate": null,
+          "clauses": [
+            {
+              "clause_id": "C0",
+              "text": "Dr. Lee promised Sam that she would return tomorrow."
+            }
+          ],
+          "unfilled_required_slots": [
+            "condition"
+          ],
+          "unresolved_readings": [
+            {
+              "kind": "conditional_relation",
+              "alternatives": [
+                "CAUSES",
+                "ENABLES"
+              ]
+            }
+          ],
+          "construction_problems": [
+            {
+              "code": "world_withheld",
+              "message": "Required slots remain unfilled: condition"
+            }
+          ],
+          "admission_authorized": false,
+          "notes": [],
+          "pre_world_assessment": {
+            "ethical_question": "",
+            "scenario_options": [],
+            "exclusivity": "unspecified",
+            "participants": [
+              {
+                "role": "subject",
+                "mention": "Dr. Lee",
+                "predicate": "promised"
+              },
+              {
+                "role": "object",
+                "mention": "Sam",
+                "predicate": "promised"
+              },
+              {
+                "role": "subject",
+                "mention": "she",
+                "predicate": "return"
+              }
+            ],
+            "status": "WITHHELD",
+            "eligible_for_world_state": false
+          },
+          "accepted_evidence": {
+            "actor": "Dr. Lee",
+            "bearer": "Sam",
+            "outcome": "that she would return tomorrow"
+          },
+          "world_withheld": [
+            "Required slots remain unfilled: condition"
+          ]
+        }
+      },
+      {
+        "blueprint_id": "ability_permission",
+        "rank": 2,
+        "template_status": "PARTIAL",
+        "selected": false,
+        "core_filled": 2,
+        "core_count": 3,
+        "optional_filled": 0,
+        "unfilled_slots": [
+          "modal_action",
+          "modal_words",
+          "outcome",
+          "duty_or_prohibition"
+        ],
+        "contract_valid": true,
+        "contract_errors": [],
+        "proposal": {
+          "proposal_contract_version": "blueprint-proposal-contract/0.2",
+          "proposal_id": "ability_permission_cloze",
+          "blueprint_id": "ability_permission",
+          "status": "WITHHELD",
+          "assignment_kind": "none",
+          "assignment": [],
+          "slot_bindings": {
+            "copied_spans": {
+              "actor": "Dr. Lee",
+              "target": "Sam"
+            }
+          },
+          "selection": null,
+          "selection_validation": {
+            "contract_valid": null,
+            "status": "not_assessed",
+            "reason": "No Z10 candidate selection was constructed."
+          },
+          "candidate": null,
+          "clauses": [
+            {
+              "clause_id": "C0",
+              "text": "Dr. Lee promised Sam that she would return tomorrow."
+            }
+          ],
+          "unfilled_required_slots": [
+            "modal_action"
+          ],
+          "unresolved_readings": [
+            {
+              "kind": "modal_force",
+              "alternatives": [
+                "ability",
+                "permission",
+                "possibility"
+              ]
+            }
+          ],
+          "construction_problems": [
+            {
+              "code": "world_withheld",
+              "message": "Required slots remain unfilled: modal_action"
+            }
+          ],
+          "admission_authorized": false,
+          "notes": [],
+          "pre_world_assessment": {
+            "ethical_question": "",
+            "scenario_options": [],
+            "exclusivity": "unspecified",
+            "participants": [
+              {
+                "role": "subject",
+                "mention": "Dr. Lee",
+                "predicate": "promised"
+              },
+              {
+                "role": "object",
+                "mention": "Sam",
+                "predicate": "promised"
+              },
+              {
+                "role": "subject",
+                "mention": "she",
+                "predicate": "return"
+              }
+            ],
+            "status": "WITHHELD",
+            "eligible_for_world_state": false
+          },
+          "accepted_evidence": {
+            "actor": "Dr. Lee",
+            "target": "Sam"
+          },
+          "world_withheld": [
+            "Required slots remain unfilled: modal_action"
+          ]
+        }
+      }
+    ],
+    "proposals": [
+      {
+        "proposal_contract_version": "blueprint-proposal-contract/0.2",
+        "proposal_id": "promise_reliance_cloze",
+        "blueprint_id": "promise_reliance",
+        "status": "WITHHELD",
+        "assignment_kind": "none",
+        "assignment": [],
+        "slot_bindings": {
+          "copied_spans": {
+            "promisor": "Dr. Lee",
+            "commitment_content": "that she would return tomorrow",
+            "promisee": "Sam"
+          }
+        },
+        "selection": null,
+        "selection_validation": {
+          "contract_valid": null,
+          "status": "not_assessed",
+          "reason": "No Z10 candidate selection was constructed."
+        },
+        "candidate": null,
+        "clauses": [
+          {
+            "clause_id": "C0",
+            "text": "Dr. Lee promised Sam that she would return tomorrow."
+          }
+        ],
+        "unfilled_required_slots": [
+          "commitment_event"
+        ],
+        "unresolved_readings": [
+          {
+            "kind": "commitment_status",
+            "status": "not_world_occurrence"
+          }
+        ],
+        "construction_problems": [
+          {
+            "code": "incomplete_template",
+            "message": "Required slots remain unfilled."
+          }
+        ],
+        "admission_authorized": false,
+        "notes": [],
+        "pre_world_assessment": {
+          "ethical_question": "",
+          "scenario_options": [],
+          "exclusivity": "unspecified",
+          "participants": [
+            {
+              "role": "subject",
+              "mention": "Dr. Lee",
+              "predicate": "promised"
+            },
+            {
+              "role": "object",
+              "mention": "Sam",
+              "predicate": "promised"
+            },
+            {
+              "role": "subject",
+              "mention": "she",
+              "predicate": "return"
+            }
+          ],
+          "status": "WITHHELD",
+          "eligible_for_world_state": false
+        },
+        "accepted_evidence": {
+          "promisor": "Dr. Lee",
+          "commitment_content": "that she would return tomorrow",
+          "promisee": "Sam"
+        },
+        "world_withheld": [
+          "Required slots remain unfilled."
+        ]
+      }
+    ],
+    "graph": null
+  }
+}

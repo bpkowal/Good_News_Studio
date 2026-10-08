@@ -1,0 +1,766 @@
+{
+  "packet_version": "z10-advisory/1",
+  "authority": "ADVISORY_EVIDENCE_ONLY",
+  "source_sha256": "f678ab9808c6cc392b7161dc85332f1ebb8d4b62b6e9044676d14328f46368a4",
+  "package": {
+    "schema_version": "0.4",
+    "package_id": "pkg_eb8791bf0231408b8217f88006a08130",
+    "document": {
+      "id": "document",
+      "text": "Maria can save the child, but not the dog."
+    },
+    "producer": {
+      "name": "parsing_game_Z10",
+      "version": "Z10",
+      "resources": [
+        {
+          "id": "T_reference_policy",
+          "version": "1",
+          "description": "Curated candidate-generation and ranking policy, not learned probabilities or a complete animacy lexicon."
+        }
+      ]
+    },
+    "evidence": [
+      {
+        "id": "e0",
+        "start": 10,
+        "end": 14,
+        "text": "save"
+      },
+      {
+        "id": "e1",
+        "start": 6,
+        "end": 9,
+        "text": "can"
+      },
+      {
+        "id": "e2",
+        "start": 0,
+        "end": 5,
+        "text": "Maria"
+      },
+      {
+        "id": "e3",
+        "start": 15,
+        "end": 24,
+        "text": "the child"
+      },
+      {
+        "id": "e4",
+        "start": 19,
+        "end": 24,
+        "text": "child"
+      },
+      {
+        "id": "e5",
+        "start": 34,
+        "end": 41,
+        "text": "the dog"
+      },
+      {
+        "id": "e6",
+        "start": 0,
+        "end": 42,
+        "text": "Maria can save the child, but not the dog."
+      },
+      {
+        "id": "e7",
+        "start": 30,
+        "end": 33,
+        "text": "not"
+      },
+      {
+        "id": "e8",
+        "start": 30,
+        "end": 41,
+        "text": "not the dog"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "p2",
+        "kind": "proposition",
+        "label": "save",
+        "predicate": "save",
+        "evidence_ids": [
+          "e0"
+        ],
+        "predicate_evidence_ids": [
+          "e0"
+        ]
+      },
+      {
+        "id": "m0",
+        "kind": "mention",
+        "label": "Maria",
+        "evidence_ids": [
+          "e2"
+        ]
+      },
+      {
+        "id": "m4",
+        "kind": "mention",
+        "label": "the child",
+        "evidence_ids": [
+          "e3"
+        ]
+      },
+      {
+        "id": "m9",
+        "kind": "mention",
+        "label": "the dog",
+        "evidence_ids": [
+          "e5"
+        ]
+      },
+      {
+        "id": "p_reconstructed_4",
+        "kind": "proposition",
+        "label": "reconstructed save",
+        "predicate": "save",
+        "evidence_ids": [
+          "e0",
+          "e7",
+          "e5"
+        ],
+        "predicate_evidence_ids": [
+          "e0"
+        ]
+      }
+    ],
+    "candidates": [
+      {
+        "id": "c0",
+        "type": "PREDICATION",
+        "arguments": {
+          "proposition": "p2"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e0"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "modal_choice",
+              "modality_choice_set_id": "choice0",
+              "evidence_ids": [
+                "e1"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c1",
+        "type": "MODALITY",
+        "arguments": {
+          "proposition": "p2"
+        },
+        "value": "ability",
+        "evidence_ids": [
+          "e1"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": null
+        },
+        "requires": [
+          "c0"
+        ],
+        "exclusive_with": [
+          "c2",
+          "c3"
+        ]
+      },
+      {
+        "id": "c2",
+        "type": "MODALITY",
+        "arguments": {
+          "proposition": "p2"
+        },
+        "value": "permission",
+        "evidence_ids": [
+          "e1"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": null
+        },
+        "requires": [
+          "c0"
+        ],
+        "exclusive_with": [
+          "c1",
+          "c3"
+        ]
+      },
+      {
+        "id": "c3",
+        "type": "MODALITY",
+        "arguments": {
+          "proposition": "p2"
+        },
+        "value": "possibility",
+        "evidence_ids": [
+          "e1"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": null
+        },
+        "requires": [
+          "c0"
+        ],
+        "exclusive_with": [
+          "c1",
+          "c2"
+        ]
+      },
+      {
+        "id": "c4",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p2",
+          "mention": "m0"
+        },
+        "value": "subject",
+        "evidence_ids": [
+          "e2"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "modal_choice",
+              "modality_choice_set_id": "choice0",
+              "evidence_ids": [
+                "e1"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c0"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c5",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p2",
+          "mention": "m4"
+        },
+        "value": "object",
+        "evidence_ids": [
+          "e4"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "modal_choice",
+              "modality_choice_set_id": "choice0",
+              "evidence_ids": [
+                "e1"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c0"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c6",
+        "type": "PREDICATION",
+        "arguments": {
+          "proposition": "p_reconstructed_4"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e0",
+          "e7",
+          "e5"
+        ],
+        "scope": {
+          "polarity": "unresolved",
+          "contexts": [
+            {
+              "kind": "modal_choice",
+              "modality_choice_set_id": "choice1",
+              "evidence_ids": [
+                "e1"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z5",
+            "version": "Z5",
+            "method": "stripping_not_nominal",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": null
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c7",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p_reconstructed_4",
+          "mention": "m0"
+        },
+        "value": "subject",
+        "evidence_ids": [
+          "e0",
+          "e7",
+          "e5",
+          "e2"
+        ],
+        "scope": {
+          "polarity": "unresolved",
+          "contexts": [
+            {
+              "kind": "modal_choice",
+              "modality_choice_set_id": "choice1",
+              "evidence_ids": [
+                "e1"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z5",
+            "version": "Z5",
+            "method": "stripping_not_nominal",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": null
+        },
+        "requires": [
+          "c6"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c8",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p_reconstructed_4",
+          "mention": "m9"
+        },
+        "value": "object",
+        "evidence_ids": [
+          "e0",
+          "e7",
+          "e5"
+        ],
+        "scope": {
+          "polarity": "unresolved",
+          "contexts": [
+            {
+              "kind": "modal_choice",
+              "modality_choice_set_id": "choice1",
+              "evidence_ids": [
+                "e1"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z5",
+            "version": "Z5",
+            "method": "stripping_not_nominal",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": null
+        },
+        "requires": [
+          "c6"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c9",
+        "type": "MODALITY",
+        "arguments": {
+          "proposition": "p_reconstructed_4"
+        },
+        "value": "ability",
+        "evidence_ids": [
+          "e1"
+        ],
+        "scope": {
+          "polarity": "unresolved",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": null
+        },
+        "requires": [
+          "c6"
+        ],
+        "exclusive_with": [
+          "c10",
+          "c11"
+        ]
+      },
+      {
+        "id": "c10",
+        "type": "MODALITY",
+        "arguments": {
+          "proposition": "p_reconstructed_4"
+        },
+        "value": "permission",
+        "evidence_ids": [
+          "e1"
+        ],
+        "scope": {
+          "polarity": "unresolved",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": null
+        },
+        "requires": [
+          "c6"
+        ],
+        "exclusive_with": [
+          "c9",
+          "c11"
+        ]
+      },
+      {
+        "id": "c11",
+        "type": "MODALITY",
+        "arguments": {
+          "proposition": "p_reconstructed_4"
+        },
+        "value": "possibility",
+        "evidence_ids": [
+          "e1"
+        ],
+        "scope": {
+          "polarity": "unresolved",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": null
+        },
+        "requires": [
+          "c6"
+        ],
+        "exclusive_with": [
+          "c9",
+          "c10"
+        ]
+      }
+    ],
+    "choice_sets": [
+      {
+        "id": "choice0",
+        "kind": "interpretation",
+        "candidate_ids": [
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "selection_rule": "at_most_one",
+        "exhaustive": false,
+        "evidence_ids": [
+          "e1"
+        ]
+      },
+      {
+        "id": "choice1",
+        "kind": "interpretation",
+        "candidate_ids": [
+          "c9",
+          "c10",
+          "c11"
+        ],
+        "selection_rule": "at_most_one",
+        "exhaustive": false,
+        "evidence_ids": [
+          "e1"
+        ]
+      }
+    ],
+    "open_questions": [
+      {
+        "id": "q0",
+        "kind": "modality",
+        "evidence_ids": [
+          "e1"
+        ],
+        "candidate_ids": [
+          "c1",
+          "c2",
+          "c3"
+        ],
+        "question": "Select the modal meaning; prediction, ability and obligation are distinct.",
+        "blocking_for": [
+          "c0"
+        ]
+      },
+      {
+        "id": "q1",
+        "kind": "reference",
+        "evidence_ids": [
+          "e3"
+        ],
+        "candidate_ids": [],
+        "question": "Which earlier mention, if any, has the same referent? Ranked candidates are not identity decisions.",
+        "blocking_for": []
+      },
+      {
+        "id": "q2",
+        "kind": "reference",
+        "evidence_ids": [
+          "e5"
+        ],
+        "candidate_ids": [],
+        "question": "Which earlier mention, if any, has the same referent? Ranked candidates are not identity decisions.",
+        "blocking_for": []
+      },
+      {
+        "id": "q3",
+        "kind": "missing_representation",
+        "evidence_ids": [
+          "e8"
+        ],
+        "candidate_ids": [],
+        "question": "Stripping: identify the missing predicate, contrast role, unchanged participants and negation scope.",
+        "blocking_for": []
+      },
+      {
+        "id": "q4",
+        "kind": "missing_representation",
+        "evidence_ids": [
+          "e0",
+          "e7",
+          "e5"
+        ],
+        "candidate_ids": [
+          "c6",
+          "c7",
+          "c8"
+        ],
+        "question": "This nominal after not is an unresolved negative copy of the earlier verb.",
+        "blocking_for": []
+      },
+      {
+        "id": "q5",
+        "kind": "modality",
+        "evidence_ids": [
+          "e1"
+        ],
+        "candidate_ids": [
+          "c9",
+          "c10",
+          "c11"
+        ],
+        "question": "Select the modal meaning; prediction, ability and obligation are distinct.",
+        "blocking_for": [
+          "c6"
+        ]
+      },
+      {
+        "id": "q6",
+        "kind": "scope",
+        "evidence_ids": [
+          "e0",
+          "e7",
+          "e5",
+          "e1"
+        ],
+        "candidate_ids": [
+          "c6",
+          "c7",
+          "c8",
+          "c9",
+          "c10",
+          "c11"
+        ],
+        "question": "Resolve negation of the modal versus negation of its content in this ellipsis reconstruction: NOT MODAL(P) versus MODAL(NOT P). For an ability reading, inability to perform the reconstructed action differs from ability to refrain from it. No operator order is selected.",
+        "blocking_for": [
+          "c6",
+          "c7",
+          "c8",
+          "c9",
+          "c10",
+          "c11"
+        ]
+      }
+    ],
+    "coverage": {
+      "status": "partial",
+      "unrepresented_evidence_ids": [
+        "e6"
+      ],
+      "limitations": [
+        "reference_candidates_only_no_identity_merging",
+        "no_world_state_commitment",
+        "bounded_if_and_local_modal_scope",
+        "no_semantic_support_validation",
+        "purpose_and_attachment_readings_are_candidates",
+        "subject_control_is_an_unresolved_candidate",
+        "unambiguous_condition_complements_are_required",
+        "attempt_does_not_entail_the_child",
+        "choice_sets_are_not_exhaustive",
+        "quantity_is_explicit_cardinality_only",
+        "comma_clause_subject_repairs_a_false_conjunct",
+        "same_name_reference_does_not_block_roles",
+        "transfer_recipient_is_destination",
+        "definite_locative_is_location",
+        "definite_reference_does_not_block_roles",
+        "conditional_alternatives_are_not_exhaustive_or_exclusive",
+        "quantity_match_is_not_group_membership",
+        "coordination_shares_the_head_role",
+        "clause_boundary_stops_role_sharing",
+        "clause_boundary_attachment_stays_a_candidate",
+        "stripping_not_nominal_is_an_unresolved_copy",
+        "construction_cues_are_bounded_and_do_not_exhaust_semantic_gaps"
+      ]
+    },
+    "reconstructions": [
+      {
+        "id": "reconstruction_0",
+        "proposition_id": "p_reconstructed_4",
+        "antecedent_proposition_id": "p2",
+        "antecedent_candidate_id": "c0",
+        "predication_candidate_id": "c6",
+        "participant_candidate_ids": [
+          "c7",
+          "c8"
+        ],
+        "evidence_ids": [
+          "e0",
+          "e7",
+          "e5"
+        ],
+        "method": "stripping_not_nominal"
+      }
+    ],
+    "condition_contents": []
+  }
+}

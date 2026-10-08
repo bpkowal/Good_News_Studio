@@ -1,0 +1,178 @@
+{
+  "argument_response": {
+    "target": "utilitarian",
+    "reply": "The objection targets my earlier empirical claim that the welfare loss from breaking Ada’s promise is normally less than 0.9 expected life. That statement is not scenario-established. I now downgrade it to an explicit defeasible assumption rather than evidence.  Admitted facts still fix the expected survival gap at 0.90 persons (0.95 – 0.05).  Without a quantified cost for promise-breaking, the utilitarian ranking remains provisional but leans to A0 so long as total disutility from the broken promise (psychic harm to Cara + ripple trust effects) is plausibly smaller than 0.9 life-equivalents.  Because that cost is unspecified, the preference stands conditionally.\n",
+    "framework_commitment": "Utilitarianism: choose the act that maximises expected total welfare, counting all benefits and harms (including psychological and social trust effects).",
+    "reasoning_bridge": "1. Expected survivors: A0 = 0.95, A1 = 0.05. 2. Additional welfare components: unknown cost of breaking promise. 3. Provisional assumption: that cost < 0.9 life-equivalents. 4. Therefore, conditional on that assumption, A0 yields greater expected welfare.",
+    "remaining_uncertainty": "Magnitude of welfare loss from breaking Ada’s promise is not given; could in principle exceed 0.9 life-equivalents.",
+    "reversal_condition": "If credible evidence showed the broken-promise disutility ≥ 0.9 life-equivalents, utilitarian preference would switch to keeping the promise (A1).",
+    "evidence_ids": [
+      "PROP:WORLD:E2",
+      "PROP:WORLD:E4",
+      "PROP:WORLD:RECOGNITION:4697fd89cd506cc4"
+    ],
+    "disposition": "partly_answered"
+  },
+  "native_submission": {
+    "scores": {
+      "A0": 0.9,
+      "A1": 0.1
+    },
+    "r": "A0",
+    "c": "UNCERTAINTY",
+    "u": "DECISION_BOUNDARY",
+    "w": "Life gain still outweighs",
+    "j": "Bound on promise harm now explicit assumption; confidence slightly reduced.",
+    "e": "UNSTATED_FACTS",
+    "x": "Assume broken-promise harm < 0.9 life-equivalents",
+    "l": {
+      "A0": "Provides 0.90 more expected survivors; conditionally preferable unless promise harm exceeds that gap",
+      "A1": "Honours promise, avoiding trust harm, but yields 0.90 fewer expected survivors"
+    },
+    "da": "expected welfare",
+    "t": "Compare expected welfare; leave promise-harm as variable",
+    "tf": "NONE",
+    "dr": "Prefer A0 when (expected life saved − promise-harm) > 0",
+    "ft": "Promise-harm ≥ 0.9 life-equivalents",
+    "nt": "Assign absolute priority to promise-keeping",
+    "z": 0.75,
+    "gu": {
+      "operation": "NONE",
+      "from_action": "NONE",
+      "to_action": "NONE",
+      "clauses": []
+    },
+    "ev": {
+      "A0": {
+        "value": 0.95,
+        "unit": "PERSON",
+        "direction": "BENEFIT",
+        "grounded": true,
+        "method": "EXPECTED_COUNT",
+        "source_effect_ids": [
+          "E2"
+        ],
+        "calculation": "1*0.95",
+        "assumptions": []
+      },
+      "A1": {
+        "value": 0.05,
+        "unit": "PERSON",
+        "direction": "BENEFIT",
+        "grounded": true,
+        "method": "EXPECTED_COUNT",
+        "source_effect_ids": [
+          "E4"
+        ],
+        "calculation": "1*0.05",
+        "assumptions": []
+      }
+    },
+    "ss": "SELECTED",
+    "am": {
+      "A0": "PERMISSIBLE",
+      "A1": "REJECTED"
+    },
+    "cc": true,
+    "esa": true,
+    "ia": "A0",
+    "wp": "NOT_APPLICABLE",
+    "we": "NONE",
+    "fa": "NONE",
+    "fr": true,
+    "bd": "NONE",
+    "fic": [],
+    "foq": [],
+    "sps": [
+      "PROP:WORLD:E2",
+      "PROP:WORLD:E4"
+    ],
+    "dcp": [
+      "PROP:WORLD:E2",
+      "PROP:WORLD:E4"
+    ],
+    "ep": [
+      {
+        "c": "Ben has a 95% chance of survival; affected subject: Ben; modality: PROBABILISTIC",
+        "p": "PROP:WORLD:E2",
+        "dc": true,
+        "a": "GLOBAL",
+        "se": [],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      },
+      {
+        "c": "Cara has a 5% chance of survival; affected subject: Cara; modality: PROBABILISTIC",
+        "p": "PROP:WORLD:E4",
+        "dc": true,
+        "a": "GLOBAL",
+        "se": [],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      },
+      {
+        "c": "Ada promised Cara that she would give Cara the medicine.",
+        "p": "PROP:WORLD:RECOGNITION:4697fd89cd506cc4",
+        "dc": false,
+        "a": "GLOBAL",
+        "se": [],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      }
+    ],
+    "ct": {
+      "A0": [
+        {
+          "eid": "E1",
+          "wi": "LOW",
+          "vr": "resource transfer itself"
+        },
+        {
+          "eid": "E2",
+          "wi": "HIGH",
+          "vr": "95% survival chance for Ben"
+        },
+        {
+          "eid": "E5",
+          "wi": "HIGH",
+          "vr": "Cara loses medicine"
+        },
+        {
+          "eid": "E7",
+          "wi": "HIGH",
+          "vr": "Cara dies"
+        }
+      ],
+      "A1": [
+        {
+          "eid": "E3",
+          "wi": "LOW",
+          "vr": "resource transfer itself"
+        },
+        {
+          "eid": "E4",
+          "wi": "HIGH",
+          "vr": "5% survival chance for Cara"
+        },
+        {
+          "eid": "E6",
+          "wi": "HIGH",
+          "vr": "Ben loses medicine"
+        },
+        {
+          "eid": "E8",
+          "wi": "HIGH",
+          "vr": "Ben dies"
+        }
+      ]
+    },
+    "cd": false,
+    "cm": "NONE"
+  }
+}

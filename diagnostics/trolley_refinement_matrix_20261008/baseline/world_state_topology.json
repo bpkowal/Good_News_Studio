@@ -1,0 +1,384 @@
+{
+  "schema_version": "1.4",
+  "admission": {
+    "status": "COMMITTED",
+    "admitted_effect_ids": [
+      "E1",
+      "E2",
+      "E3",
+      "E4",
+      "E5",
+      "E6",
+      "E7",
+      "E8"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "P1",
+      "kind": "party",
+      "label": "Maria"
+    },
+    {
+      "id": "P2",
+      "kind": "party",
+      "label": "one worker"
+    },
+    {
+      "id": "P3",
+      "kind": "party",
+      "label": "the trolley"
+    },
+    {
+      "id": "P4",
+      "kind": "party",
+      "label": "five workers"
+    },
+    {
+      "id": "P6",
+      "kind": "party",
+      "label": "a lever"
+    },
+    {
+      "id": "P7",
+      "kind": "party",
+      "label": "the main track"
+    },
+    {
+      "id": "P8",
+      "kind": "party",
+      "label": "a side track"
+    },
+    {
+      "id": "A0",
+      "kind": "action",
+      "label": "pulls the lever"
+    },
+    {
+      "id": "A1",
+      "kind": "action",
+      "label": "does not pull the lever"
+    },
+    {
+      "id": "E1",
+      "kind": "effect",
+      "label": "pulls the lever",
+      "polarity": "NEUTRAL",
+      "modality": "CERTAIN",
+      "directness": "DIRECT"
+    },
+    {
+      "id": "E2",
+      "kind": "effect",
+      "label": "switches the trolley onto a side track",
+      "polarity": "NEUTRAL",
+      "modality": "CERTAIN",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "E3",
+      "kind": "effect",
+      "label": "the trolley will kill that worker",
+      "polarity": "ADVERSE",
+      "modality": "CERTAIN",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "E4",
+      "kind": "effect",
+      "label": "spare the five",
+      "polarity": "BENEFICIAL",
+      "modality": "CERTAIN",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "E5",
+      "kind": "effect",
+      "label": "does not",
+      "polarity": "NEUTRAL",
+      "modality": "CERTAIN",
+      "directness": "DIRECT"
+    },
+    {
+      "id": "E6",
+      "kind": "effect",
+      "label": "it will kill the five",
+      "polarity": "NEUTRAL",
+      "modality": "CERTAIN",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "E7",
+      "kind": "effect",
+      "label": "it will kill the five",
+      "polarity": "ADVERSE",
+      "modality": "CERTAIN",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "E8",
+      "kind": "effect",
+      "label": "spare the one",
+      "polarity": "BENEFICIAL",
+      "modality": "CERTAIN",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "CND1",
+      "kind": "condition",
+      "label": "If she pulls the lever",
+      "polarity": "POSITIVE"
+    },
+    {
+      "id": "CND2",
+      "kind": "condition",
+      "label": "If she does not",
+      "polarity": "NEGATED"
+    },
+    {
+      "id": "PR1",
+      "kind": "proposition",
+      "label": "A runaway trolley is heading toward five workers on the main track.",
+      "status": "ASSERTED"
+    },
+    {
+      "id": "PR2",
+      "kind": "proposition",
+      "label": "Maria can pull a lever that switches the trolley onto a side track, where one worker stands.",
+      "status": "ASSERTED"
+    },
+    {
+      "id": "PR3",
+      "kind": "proposition",
+      "label": "Maria cannot stop the trolley.",
+      "status": "ASSERTED"
+    }
+  ],
+  "edges": [
+    {
+      "source": "P1",
+      "relation": "ACTOR",
+      "target": "A0"
+    },
+    {
+      "source": "A0",
+      "relation": "RECIPIENT",
+      "target": "P6"
+    },
+    {
+      "source": "A0",
+      "relation": "HAS_EFFECT",
+      "target": "E1"
+    },
+    {
+      "source": "A0",
+      "relation": "HAS_EFFECT",
+      "target": "E2"
+    },
+    {
+      "source": "A0",
+      "relation": "HAS_EFFECT",
+      "target": "E3"
+    },
+    {
+      "source": "A0",
+      "relation": "HAS_EFFECT",
+      "target": "E4"
+    },
+    {
+      "source": "P1",
+      "relation": "ACTOR",
+      "target": "A1"
+    },
+    {
+      "source": "A1",
+      "relation": "RECIPIENT",
+      "target": "P6"
+    },
+    {
+      "source": "A1",
+      "relation": "HAS_EFFECT",
+      "target": "E5"
+    },
+    {
+      "source": "A1",
+      "relation": "HAS_EFFECT",
+      "target": "E6"
+    },
+    {
+      "source": "A1",
+      "relation": "HAS_EFFECT",
+      "target": "E7"
+    },
+    {
+      "source": "A1",
+      "relation": "HAS_EFFECT",
+      "target": "E8"
+    },
+    {
+      "source": "E1",
+      "relation": "AFFECTS",
+      "target": "P6"
+    },
+    {
+      "source": "E2",
+      "relation": "AFFECTS",
+      "target": "P3"
+    },
+    {
+      "source": "E3",
+      "relation": "AFFECTS",
+      "target": "P2"
+    },
+    {
+      "source": "E4",
+      "relation": "AFFECTS",
+      "target": "P4"
+    },
+    {
+      "source": "E5",
+      "relation": "AFFECTS",
+      "target": "P6"
+    },
+    {
+      "source": "E6",
+      "relation": "AFFECTS",
+      "target": "P3"
+    },
+    {
+      "source": "E7",
+      "relation": "AFFECTS",
+      "target": "P4"
+    },
+    {
+      "source": "E8",
+      "relation": "AFFECTS",
+      "target": "P2"
+    },
+    {
+      "source": "E1",
+      "relation": "ENABLES",
+      "target": "E2",
+      "modality": "CERTAIN"
+    },
+    {
+      "source": "E2",
+      "relation": "ENABLES",
+      "target": "E3",
+      "modality": "CERTAIN"
+    },
+    {
+      "source": "E2",
+      "relation": "ENABLES",
+      "target": "E4",
+      "modality": "CERTAIN"
+    },
+    {
+      "source": "E5",
+      "relation": "ENABLES",
+      "target": "E6",
+      "modality": "CERTAIN"
+    },
+    {
+      "source": "E6",
+      "relation": "ENABLES",
+      "target": "E7",
+      "modality": "CERTAIN"
+    },
+    {
+      "source": "E6",
+      "relation": "ENABLES",
+      "target": "E8",
+      "modality": "CERTAIN"
+    },
+    {
+      "source": "CND1",
+      "relation": "BRANCH_SCOPE",
+      "target": "A0"
+    },
+    {
+      "source": "CND2",
+      "relation": "BRANCH_SCOPE",
+      "target": "A1"
+    },
+    {
+      "source": "P4",
+      "relation": "MENTIONED_IN",
+      "target": "PR1"
+    },
+    {
+      "source": "P7",
+      "relation": "MENTIONED_IN",
+      "target": "PR1"
+    },
+    {
+      "source": "P1",
+      "relation": "MENTIONED_IN",
+      "target": "PR2"
+    },
+    {
+      "source": "P2",
+      "relation": "MENTIONED_IN",
+      "target": "PR2"
+    },
+    {
+      "source": "P3",
+      "relation": "MENTIONED_IN",
+      "target": "PR2"
+    },
+    {
+      "source": "P6",
+      "relation": "MENTIONED_IN",
+      "target": "PR2"
+    },
+    {
+      "source": "P8",
+      "relation": "MENTIONED_IN",
+      "target": "PR2"
+    },
+    {
+      "source": "P1",
+      "relation": "MENTIONED_IN",
+      "target": "PR3"
+    },
+    {
+      "source": "P3",
+      "relation": "MENTIONED_IN",
+      "target": "PR3"
+    }
+  ],
+  "conditions": [
+    {
+      "condition_id": "CND1",
+      "description": "If she pulls the lever",
+      "value_status": "UNKNOWN",
+      "decision_relevance": "MATERIAL",
+      "provenance": [
+        {
+          "clause_id": "C2",
+          "excerpt": "If she pulls the lever, the trolley will kill that worker and spare the five."
+        }
+      ],
+      "event_effect_id": "",
+      "polarity": "POSITIVE",
+      "operator": "IF"
+    },
+    {
+      "condition_id": "CND2",
+      "description": "If she does not",
+      "value_status": "UNKNOWN",
+      "decision_relevance": "MATERIAL",
+      "provenance": [
+        {
+          "clause_id": "C3",
+          "excerpt": "If she does not, it will kill the five and spare the one."
+        }
+      ],
+      "event_effect_id": "",
+      "polarity": "NEGATED",
+      "operator": "IF"
+    }
+  ],
+  "temporal_relations": [],
+  "counterfactual_links": []
+}

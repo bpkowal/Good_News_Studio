@@ -1,0 +1,549 @@
+{
+  "prior_framework_state": {
+    "ranking_basis": "ACUTE_DEPENDENCY",
+    "assessments": [
+      {
+        "action_id": "A0",
+        "verdict": "RESPONSIVE",
+        "affected_party": "Ben",
+        "relationship_type": "DEPENDENCY",
+        "dependency_source": "Ben\u2019s survival depends on medicine Ada controls",
+        "responsibility_basis": "Control creates responsibility to respond competently",
+        "need_kind": "SURVIVAL_HEALTH",
+        "need_urgency": "IMMEDIATE",
+        "trust_effect": "PRESERVES",
+        "responsiveness": "DIRECT",
+        "feasibility": "ESTABLISHED",
+        "competing_care_claim": "Cara\u2019s equal dependency",
+        "resolution_status": "CONTESTED"
+      },
+      {
+        "action_id": "A1",
+        "verdict": "MIXED",
+        "affected_party": "Cara",
+        "relationship_type": "DEPENDENCY",
+        "dependency_source": "Cara\u2019s survival depends on medicine Ada controls",
+        "responsibility_basis": "Control creates responsibility to respond",
+        "need_kind": "SURVIVAL_HEALTH",
+        "need_urgency": "IMMEDIATE",
+        "trust_effect": "STRAINS",
+        "responsiveness": "DIRECT",
+        "feasibility": "ESTABLISHED",
+        "competing_care_claim": "Ben\u2019s stronger survival prospect neglected",
+        "resolution_status": "CONTESTED"
+      }
+    ]
+  },
+  "prior_candidate": {
+    "specialist": "care",
+    "constraint": "CARE",
+    "action_scores": {
+      "If Ada gives the medicine to Ben,": 0.76,
+      "If Ada gives the medicine to Cara,": 0.24
+    },
+    "surprise": 0.3,
+    "friction": 0.52,
+    "confidence": 0.55,
+    "unresolved": "NONE",
+    "rationale": "competent care saves most",
+    "salience": 0.49094000000000004,
+    "tension_engagement": 0.0,
+    "tension_target_keys": [],
+    "schema_valid": true,
+    "delegate_status": "VALID",
+    "error_type": "NONE",
+    "exception_type": "NONE",
+    "failure_stage": "NONE",
+    "validation_errors": [],
+    "recommended_action": "If Ada gives the medicine to Ben,",
+    "baseline_action": "",
+    "baseline_status": "UNAVAILABLE",
+    "baseline_condition": "",
+    "baseline_preferred_extension": "",
+    "testimony_alignment": "UNCLEAR",
+    "previous_action": "",
+    "position_changed": false,
+    "change_justification": "NONE",
+    "conformity_penalty": 0.0,
+    "previous_confidence": 0.0,
+    "confidence_drift": 0.0,
+    "confidence_drift_penalty": 0.0,
+    "assumption_status": "NOT_AUDITED",
+    "unsupported_assumption": "",
+    "reversal_condition": "",
+    "boundary_position": "NOT_TESTED",
+    "decisive_axis": "",
+    "boundary_switch_condition": "",
+    "evidence_basis": "STATED_FACTS",
+    "speculative_claim": "NONE",
+    "evidence_calibration_tier": "NOT_APPLICABLE",
+    "evidence_calibration_reason": "",
+    "evidence_direction_retention": 1.0,
+    "supporting_proposition_ids": [
+      "PROP:WORLD:E2",
+      "PROP:WORLD:E4"
+    ],
+    "decision_critical_proposition_ids": [
+      "PROP:WORLD:E2",
+      "PROP:WORLD:E4"
+    ],
+    "weakest_decision_critical_status": "STIPULATED",
+    "decision_critical_dependency_claims": [
+      "Ben has a 95% chance of survival; affected subject: Ben; modality: PROBABILISTIC",
+      "Cara has a 5% chance of survival; affected subject: Cara; modality: PROBABILISTIC"
+    ],
+    "material_empirical_claims": [
+      {
+        "claim": "Ben has a 95% chance of survival; affected subject: Ben; modality: PROBABILISTIC",
+        "proposition_id": "PROP:WORLD:E2",
+        "declared_basis": "PROP:WORLD:E2",
+        "decision_critical": true,
+        "scope_action_id": "COMPARISON",
+        "source_effect_ids": [
+          "E2"
+        ],
+        "derivation_operation": "DIRECT_COPY",
+        "calculation": "copy survival probability for Ben",
+        "assumptions": [],
+        "outcome_type_transformation": "PRESERVED",
+        "canonical_proposition": "PROP:WORLD:E2"
+      },
+      {
+        "claim": "Cara has a 5% chance of survival; affected subject: Cara; modality: PROBABILISTIC",
+        "proposition_id": "PROP:WORLD:E4",
+        "declared_basis": "PROP:WORLD:E4",
+        "decision_critical": true,
+        "scope_action_id": "COMPARISON",
+        "source_effect_ids": [
+          "E4"
+        ],
+        "derivation_operation": "DIRECT_COPY",
+        "calculation": "copy survival probability for Cara",
+        "assumptions": [],
+        "outcome_type_transformation": "PRESERVED",
+        "canonical_proposition": "PROP:WORLD:E4"
+      }
+    ],
+    "epistemic_binding_notes": [],
+    "side_premise_audit_status": "NOT_RUN",
+    "side_premise_audit_findings": [],
+    "coercion_tag": "NONE",
+    "coercion_surcharge": 0.0,
+    "visibility_response": "NOT_TESTED",
+    "visibility_justification": "",
+    "visibility_harm_revision": "NONE",
+    "visibility_magnitude_status": "NOT_APPLICABLE",
+    "visibility_magnitude_overreach": false,
+    "landscape_cases": {
+      "If Ada gives the medicine to Ben,": "Gives scarce drug where it has best chance to preserve life, showing competent, attentive care to an",
+      "If Ada gives the medicine to Cara,": "Attempts equal concern for Cara but ignores competence, exposing Ben to certain death with little"
+    },
+    "landscape_decisive_axis": "competence-based care duty",
+    "landscape_tiebreaker": "prefer action that meets urgent need most effectively",
+    "landscape_tiebreaker_failure": "NONE",
+    "landscape_search_complete": true,
+    "landscape_search_attempted": true,
+    "landscape_semantic_valid": true,
+    "landscape_validation_errors": [],
+    "independence_bonus": 0.0,
+    "preference_strength": 0.52,
+    "reported_preference_strength": 0.8,
+    "epistemic_confidence": 0.55,
+    "previous_preference_strength": 0.0,
+    "preference_drift": 0.0,
+    "preference_drift_penalty": 0.0,
+    "preference_shift_reason_strength": 0.2,
+    "decision_rule": "prefer A0 when same dependency but markedly higher survival chance",
+    "adjudication_status": "SUPPORTS",
+    "broadcast_authority": "NONE",
+    "governing_eligible": false,
+    "policy_weight_factor": 0.5,
+    "framework_vote_integrity_required": true,
+    "framework_vote_status": "ATTENUATED",
+    "framework_vote_reason": "framework ledger committed with unresolved validation residue",
+    "framework_ledger_kind": "CARE_RELATIONSHIP_LEDGER",
+    "framework_ledger_status": "COMMITTED_WITH_UNCERTAINTY",
+    "framework_ranking_validation_status": "PASSED",
+    "framework_ranking_validation_errors": [],
+    "derived_claim_validation_status": "PASSED",
+    "derived_claim_validation_errors": [],
+    "investigative_claim": "",
+    "investigative_priority": 0.020159999999999997,
+    "reopen_eligible": false,
+    "reopen_reason": "",
+    "reopen_question_key": "QUESTION:authority:care:03c6f2c2f0",
+    "factual_reversal_threshold": "Cara survival chance rises above Ben\u2019s",
+    "normative_reversal_threshold": "NONE",
+    "reversal_review_response": "NOT_TESTED",
+    "reversal_review_justification": "",
+    "revised_reversal_condition": "",
+    "reversal_review_valid": true,
+    "reversal_review_error": "",
+    "contingency_choice": "",
+    "contingency_justification": "",
+    "contingency_response_valid": true,
+    "contingency_response_error": "",
+    "audit_variable": {},
+    "audit_internal_effect": "UNRESOLVED",
+    "audit_participation": "NOT_TESTED",
+    "audit_framework_explanation": "",
+    "challenge_response": {},
+    "graph_update_proposal": {
+      "operation": "NONE",
+      "from_action": "NONE",
+      "to_action": "NONE",
+      "clauses": []
+    },
+    "expected_value_estimates": {
+      "If Ada gives the medicine to Ben,": {
+        "value": 0.0,
+        "unit": "NONE",
+        "direction": "HARM",
+        "grounded": false,
+        "claimed_grounded": false,
+        "method": "NOT_COMPUTED",
+        "source_effect_ids": [],
+        "calculation": "not computed",
+        "assumptions": [],
+        "validation_status": "NOT_CLAIMED",
+        "validation_errors": [],
+        "arithmetic_identity": "",
+        "symbolic_expression": ""
+      },
+      "If Ada gives the medicine to Cara,": {
+        "value": 0.0,
+        "unit": "NONE",
+        "direction": "HARM",
+        "grounded": false,
+        "claimed_grounded": false,
+        "method": "NOT_COMPUTED",
+        "source_effect_ids": [],
+        "calculation": "not computed",
+        "assumptions": [],
+        "validation_status": "NOT_CLAIMED",
+        "validation_errors": [],
+        "arithmetic_identity": "",
+        "symbolic_expression": ""
+      }
+    },
+    "expected_value_validation_status": "NOT_CLAIMED",
+    "expected_value_validation_errors": [],
+    "selection_status": "SELECTED",
+    "action_admissibility": {
+      "If Ada gives the medicine to Ben,": "PERMISSIBLE",
+      "If Ada gives the medicine to Cara,": "REJECTED"
+    },
+    "comparison_complete": true,
+    "evidence_sufficient_for_action": true,
+    "interim_action": "If Ada gives the medicine to Ben,",
+    "workspace_proposition_response": "NOT_APPLICABLE",
+    "workspace_reasoning_effect": "NONE",
+    "framework_application": "NONE",
+    "framework_constraint_retained": true,
+    "self_reported_broadcast_dependence": "NONE",
+    "framework_retention_status": "FIRST_STATE_ADMITTED_WITH_WARNINGS",
+    "proposed_framework_state": {
+      "constraint": "CARE",
+      "action_scores": {
+        "If Ada gives the medicine to Ben,": 0.76,
+        "If Ada gives the medicine to Cara,": 0.24
+      },
+      "recommended_action": "If Ada gives the medicine to Ben,",
+      "rationale": "competent care saves most",
+      "decision_rule": "prefer A0 when same dependency but markedly higher survival chance",
+      "framework_action_map": {
+        "If Ada gives the medicine to Ben,": "answers Ben\u2019s acute dependency with competent care",
+        "If Ada gives the medicine to Cara,": "addresses Cara but neglects competence, worsening Ben\u2019s dependency"
+      },
+      "framework_numerical_role": "DECISIVE",
+      "framework_numerical_justification": "large survival probability gap determines competent responsiveness",
+      "action_admissibility": {
+        "If Ada gives the medicine to Ben,": "PERMISSIBLE",
+        "If Ada gives the medicine to Cara,": "REJECTED"
+      },
+      "comparison_complete": true,
+      "evidence_sufficient_for_action": true,
+      "interim_action": "If Ada gives the medicine to Ben,",
+      "factual_reversal_threshold": "Cara survival chance rises above Ben\u2019s",
+      "normative_reversal_threshold": "NONE",
+      "utilitarian_consequence_table": {},
+      "utilitarian_ledger_proposal": {},
+      "rawls_position_proposal": {},
+      "deontological_ledger_proposal": {},
+      "virtue_character_proposal": {},
+      "care_ledger_proposal": {
+        "ranking_basis": "ACUTE_DEPENDENCY",
+        "assessments": [
+          {
+            "action_id": "A0",
+            "verdict": "RESPONSIVE",
+            "affected_party": "Ben",
+            "relationship_type": "DEPENDENCY",
+            "dependency_source": "Ben\u2019s survival depends on medicine Ada controls",
+            "responsibility_basis": "Control creates responsibility to respond competently",
+            "need_kind": "SURVIVAL_HEALTH",
+            "need_urgency": "IMMEDIATE",
+            "trust_effect": "PRESERVES",
+            "responsiveness": "DIRECT",
+            "feasibility": "ESTABLISHED",
+            "competing_care_claim": "Cara\u2019s equal dependency",
+            "resolution_status": "CONTESTED",
+            "evidence_basis": "ACTION_GRAPH",
+            "reason": "Competently meets Ben\u2019s immediate life-or-death need"
+          },
+          {
+            "action_id": "A1",
+            "verdict": "MIXED",
+            "affected_party": "Cara",
+            "relationship_type": "DEPENDENCY",
+            "dependency_source": "Cara\u2019s survival depends on medicine Ada controls",
+            "responsibility_basis": "Control creates responsibility to respond",
+            "need_kind": "SURVIVAL_HEALTH",
+            "need_urgency": "IMMEDIATE",
+            "trust_effect": "STRAINS",
+            "responsiveness": "DIRECT",
+            "feasibility": "ESTABLISHED",
+            "competing_care_claim": "Ben\u2019s stronger survival prospect neglected",
+            "resolution_status": "CONTESTED",
+            "evidence_basis": "ACTION_GRAPH",
+            "reason": "Responds but with low competence, leaving Ben to certain death"
+          }
+        ]
+      },
+      "care_relational_map": {
+        "If Ada gives the medicine to Ben,": "answers Ben\u2019s acute dependency with competent care",
+        "If Ada gives the medicine to Cara,": "addresses Cara but neglects competence, worsening Ben\u2019s dependency"
+      },
+      "care_numerical_role": "DECISIVE",
+      "care_numerical_justification": "large survival probability gap determines competent responsiveness"
+    },
+    "committed_framework_state": {
+      "constraint": "CARE",
+      "action_scores": {
+        "If Ada gives the medicine to Ben,": 0.76,
+        "If Ada gives the medicine to Cara,": 0.24
+      },
+      "recommended_action": "If Ada gives the medicine to Ben,",
+      "rationale": "competent care saves most",
+      "decision_rule": "prefer A0 when same dependency but markedly higher survival chance",
+      "framework_action_map": {
+        "If Ada gives the medicine to Ben,": "answers Ben\u2019s acute dependency with competent care",
+        "If Ada gives the medicine to Cara,": "addresses Cara but neglects competence, worsening Ben\u2019s dependency"
+      },
+      "framework_numerical_role": "DECISIVE",
+      "framework_numerical_justification": "large survival probability gap determines competent responsiveness",
+      "action_admissibility": {
+        "If Ada gives the medicine to Ben,": "PERMISSIBLE",
+        "If Ada gives the medicine to Cara,": "REJECTED"
+      },
+      "comparison_complete": true,
+      "evidence_sufficient_for_action": true,
+      "interim_action": "If Ada gives the medicine to Ben,",
+      "factual_reversal_threshold": "Cara survival chance rises above Ben\u2019s",
+      "normative_reversal_threshold": "NONE",
+      "utilitarian_consequence_table": {},
+      "utilitarian_ledger_proposal": {},
+      "rawls_position_proposal": {},
+      "deontological_ledger_proposal": {},
+      "virtue_character_proposal": {},
+      "care_ledger_proposal": {
+        "ranking_basis": "ACUTE_DEPENDENCY",
+        "assessments": [
+          {
+            "action_id": "A0",
+            "verdict": "RESPONSIVE",
+            "affected_party": "Ben",
+            "relationship_type": "DEPENDENCY",
+            "dependency_source": "Ben\u2019s survival depends on medicine Ada controls",
+            "responsibility_basis": "Control creates responsibility to respond competently",
+            "need_kind": "SURVIVAL_HEALTH",
+            "need_urgency": "IMMEDIATE",
+            "trust_effect": "PRESERVES",
+            "responsiveness": "DIRECT",
+            "feasibility": "ESTABLISHED",
+            "competing_care_claim": "Cara\u2019s equal dependency",
+            "resolution_status": "CONTESTED",
+            "evidence_basis": "ACTION_GRAPH",
+            "reason": "Competently meets Ben\u2019s immediate life-or-death need"
+          },
+          {
+            "action_id": "A1",
+            "verdict": "MIXED",
+            "affected_party": "Cara",
+            "relationship_type": "DEPENDENCY",
+            "dependency_source": "Cara\u2019s survival depends on medicine Ada controls",
+            "responsibility_basis": "Control creates responsibility to respond",
+            "need_kind": "SURVIVAL_HEALTH",
+            "need_urgency": "IMMEDIATE",
+            "trust_effect": "STRAINS",
+            "responsiveness": "DIRECT",
+            "feasibility": "ESTABLISHED",
+            "competing_care_claim": "Ben\u2019s stronger survival prospect neglected",
+            "resolution_status": "CONTESTED",
+            "evidence_basis": "ACTION_GRAPH",
+            "reason": "Responds but with low competence, leaving Ben to certain death"
+          }
+        ]
+      },
+      "care_relational_map": {
+        "If Ada gives the medicine to Ben,": "answers Ben\u2019s acute dependency with competent care",
+        "If Ada gives the medicine to Cara,": "addresses Cara but neglects competence, worsening Ben\u2019s dependency"
+      },
+      "care_numerical_role": "DECISIVE",
+      "care_numerical_justification": "large survival probability gap determines competent responsiveness"
+    },
+    "committed_native_ledger": {
+      "ledger_kind": "CARE_RELATIONSHIP_LEDGER",
+      "transaction_status": "COMMITTED_WITH_UNCERTAINTY",
+      "records": [
+        {
+          "assessment_node_id": "CARE_RELATIONSHIP:care:A0",
+          "framework": "CARE",
+          "specialist": "care",
+          "cycle": 1,
+          "canonical_action_id": "A0",
+          "verdict": "RESPONSIVE",
+          "affected_party": "Ben",
+          "relationship_type": "DEPENDENCY",
+          "relationship_evidence_status": "NOT_ASSESSED",
+          "dependency_source": "Ben\u2019s survival depends on medicine Ada controls",
+          "responsibility_basis": "Control creates responsibility to respond competently",
+          "need_kind": "SURVIVAL_HEALTH",
+          "need_urgency": "IMMEDIATE",
+          "trust_effect": "PRESERVES",
+          "responsiveness": "DIRECT",
+          "feasibility": "ESTABLISHED",
+          "competing_care_claim": "Cara\u2019s equal dependency",
+          "resolution_status": "CONTESTED",
+          "evidence_basis": "ACTION_GRAPH",
+          "reason": "Competently meets Ben\u2019s immediate life-or-death need",
+          "ranking_basis": "ACUTE_DEPENDENCY",
+          "grounded_effect_ids": [
+            "E1",
+            "E2"
+          ],
+          "grounded_consequence_ids": [
+            "A0:WORLD_EFFECT:E1",
+            "A0:WORLD_EFFECT:E2"
+          ],
+          "effect_grounding_status": "MATCHED",
+          "epistemic_status": "EXPLICIT_UNCERTAINTY",
+          "provenance": [
+            "delegate:care",
+            "cycle:1"
+          ]
+        },
+        {
+          "assessment_node_id": "CARE_RELATIONSHIP:care:A1",
+          "framework": "CARE",
+          "specialist": "care",
+          "cycle": 1,
+          "canonical_action_id": "A1",
+          "verdict": "MIXED",
+          "affected_party": "Cara",
+          "relationship_type": "DEPENDENCY",
+          "relationship_evidence_status": "NOT_ASSESSED",
+          "dependency_source": "Cara\u2019s survival depends on medicine Ada controls",
+          "responsibility_basis": "Control creates responsibility to respond",
+          "need_kind": "SURVIVAL_HEALTH",
+          "need_urgency": "IMMEDIATE",
+          "trust_effect": "STRAINS",
+          "responsiveness": "DIRECT",
+          "feasibility": "ESTABLISHED",
+          "competing_care_claim": "Ben\u2019s stronger survival prospect neglected",
+          "resolution_status": "CONTESTED",
+          "evidence_basis": "ACTION_GRAPH",
+          "reason": "Responds but with low competence, leaving Ben to certain death",
+          "ranking_basis": "ACUTE_DEPENDENCY",
+          "grounded_effect_ids": [
+            "E3",
+            "E4"
+          ],
+          "grounded_consequence_ids": [
+            "A1:WORLD_EFFECT:E3",
+            "A1:WORLD_EFFECT:E4"
+          ],
+          "effect_grounding_status": "MATCHED",
+          "epistemic_status": "EXPLICIT_UNCERTAINTY",
+          "provenance": [
+            "delegate:care",
+            "cycle:1"
+          ]
+        }
+      ]
+    },
+    "preserved_current_cycle_components": [],
+    "framework_internal_conflicts": [],
+    "framework_specific_open_questions": [],
+    "framework_insights": [],
+    "framework_action_map": {
+      "If Ada gives the medicine to Ben,": "answers Ben\u2019s acute dependency with competent care",
+      "If Ada gives the medicine to Cara,": "addresses Cara but neglects competence, worsening Ben\u2019s dependency"
+    },
+    "framework_numerical_role": "DECISIVE",
+    "framework_numerical_justification": "large survival probability gap determines competent responsiveness",
+    "framework_grounding_penalty": 0.35,
+    "framework_validation_errors": [
+      "decisive counts lack relational comparability",
+      "A0 competing Care claim remains contested",
+      "A1 competing Care claim remains contested"
+    ],
+    "utilitarian_consequence_table": {},
+    "utilitarian_decision_depends_on_unknown": false,
+    "utilitarian_missing_comparison": "",
+    "utilitarian_incommensurable_remainder": [],
+    "utilitarian_ranking_certificate": {},
+    "utilitarian_ledger_proposal": {},
+    "rawls_position_proposal": {},
+    "deontological_ledger_proposal": {},
+    "virtue_character_proposal": {},
+    "care_ledger_proposal": {
+      "ranking_basis": "ACUTE_DEPENDENCY",
+      "assessments": [
+        {
+          "action_id": "A0",
+          "verdict": "RESPONSIVE",
+          "affected_party": "Ben",
+          "relationship_type": "DEPENDENCY",
+          "dependency_source": "Ben\u2019s survival depends on medicine Ada controls",
+          "responsibility_basis": "Control creates responsibility to respond competently",
+          "need_kind": "SURVIVAL_HEALTH",
+          "need_urgency": "IMMEDIATE",
+          "trust_effect": "PRESERVES",
+          "responsiveness": "DIRECT",
+          "feasibility": "ESTABLISHED",
+          "competing_care_claim": "Cara\u2019s equal dependency",
+          "resolution_status": "CONTESTED",
+          "evidence_basis": "ACTION_GRAPH",
+          "reason": "Competently meets Ben\u2019s immediate life-or-death need"
+        },
+        {
+          "action_id": "A1",
+          "verdict": "MIXED",
+          "affected_party": "Cara",
+          "relationship_type": "DEPENDENCY",
+          "dependency_source": "Cara\u2019s survival depends on medicine Ada controls",
+          "responsibility_basis": "Control creates responsibility to respond",
+          "need_kind": "SURVIVAL_HEALTH",
+          "need_urgency": "IMMEDIATE",
+          "trust_effect": "STRAINS",
+          "responsiveness": "DIRECT",
+          "feasibility": "ESTABLISHED",
+          "competing_care_claim": "Ben\u2019s stronger survival prospect neglected",
+          "resolution_status": "CONTESTED",
+          "evidence_basis": "ACTION_GRAPH",
+          "reason": "Responds but with low competence, leaving Ben to certain death"
+        }
+      ]
+    },
+    "care_relational_map": {
+      "If Ada gives the medicine to Ben,": "answers Ben\u2019s acute dependency with competent care",
+      "If Ada gives the medicine to Cara,": "addresses Cara but neglects competence, worsening Ben\u2019s dependency"
+    },
+    "care_numerical_role": "DECISIVE",
+    "care_numerical_justification": "large survival probability gap determines competent responsiveness",
+    "care_grounding_penalty": 0.35,
+    "proposal_review": null
+  },
+  "review_constraint": "PROPOSAL_REVIEW"
+}

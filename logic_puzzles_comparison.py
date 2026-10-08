@@ -102,7 +102,7 @@ def compare(opening_dir, output_dir, backend_factory, *, tokens=3072):
     (folder/'native_trace.json').write_text(json.dumps(legacy, indent=2)+'\n')
     write_graph(project_conflicts(legacy), folder)
     targeted = review(output_dir/'independent/framework_generation.json', output_dir/'targeted',
-        matched_backend, tokens=tokens, max_calls=1)
+        matched_backend, tokens=tokens, max_calls=1, allow_residual=False)
     traces = {'independent': independent, 'legacy': legacy, 'targeted': targeted}
     result = {'design': 'matched openings; equal maximum allowance, unequal actual usage',
         'controls': {'shared_input_sha256': fingerprint(shared), 'commitments_sha256': fingerprint(quotes),

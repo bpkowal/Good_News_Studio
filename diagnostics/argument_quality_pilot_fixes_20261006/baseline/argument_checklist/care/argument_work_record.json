@@ -1,0 +1,103 @@
+{
+  "origin": "MODEL_AUTHORED_ARGUMENT",
+  "authority": "ATTRIBUTED_NOT_WORLD_STATE",
+  "raw_fields": {
+    "ev": {
+      "A0": {
+        "value": 0,
+        "unit": "NONE",
+        "direction": "HARM",
+        "grounded": false,
+        "method": "NOT_COMPUTED",
+        "source_effect_ids": [],
+        "calculation": "not computed",
+        "assumptions": []
+      },
+      "A1": {
+        "value": 0,
+        "unit": "NONE",
+        "direction": "HARM",
+        "grounded": false,
+        "method": "NOT_COMPUTED",
+        "source_effect_ids": [],
+        "calculation": "not computed",
+        "assumptions": []
+      }
+    },
+    "dp": null,
+    "cl": {
+      "A0": {
+        "v": "RESPONSIVE",
+        "p": "Ben",
+        "rt": "CARE_ROLE",
+        "ds": "Ada is clinician responsible for Ben",
+        "rb": "professional duty of competent care",
+        "nk": "SURVIVAL_HEALTH",
+        "nu": "IMMEDIATE",
+        "te": "PRESERVES",
+        "rr": "DIRECT",
+        "f": "ESTABLISHED",
+        "cc": "equal claim of Cara",
+        "res": "CONTESTED",
+        "g": "ACTION_GRAPH",
+        "rs": "meets Ben\u2019s urgent need with high efficacy"
+      },
+      "A1": {
+        "v": "MIXED",
+        "p": "Cara",
+        "rt": "CARE_ROLE",
+        "ds": "Ada is clinician responsible for Cara",
+        "rb": "professional duty of competent care",
+        "nk": "SURVIVAL_HEALTH",
+        "nu": "IMMEDIATE",
+        "te": "STRAINS",
+        "rr": "DIRECT",
+        "f": "ESTABLISHED",
+        "cc": "Ben\u2019s higher survival chance",
+        "res": "CONTESTED",
+        "g": "ACTION_GRAPH",
+        "rs": "attempts help but neglects competence, sacrifices Ben"
+      }
+    },
+    "ep": [
+      {
+        "c": "Ben has a 95% chance of survival; affected subject: Ben; modality: PROBABILISTIC",
+        "p": "PROP:WORLD:E2",
+        "dc": true,
+        "a": "COMPARISON",
+        "se": [
+          "E2"
+        ],
+        "op": "DIRECT_COPY",
+        "calc": "copy stated probability",
+        "asm": [],
+        "ot": "PRESERVED"
+      },
+      {
+        "c": "Cara has a 5% chance of survival; affected subject: Cara; modality: PROBABILISTIC",
+        "p": "PROP:WORLD:E4",
+        "dc": true,
+        "a": "COMPARISON",
+        "se": [
+          "E4"
+        ],
+        "op": "DIRECT_COPY",
+        "calc": "copy stated probability",
+        "asm": [],
+        "ot": "PRESERVED"
+      }
+    ],
+    "dr": "Prefer A0 when its far higher survival efficacy outweighs equal relational claims",
+    "ft": "Cara survival probability rises near Ben\u2019s level",
+    "nt": "Principle: always treat most vulnerable even if effectiveness low",
+    "fic": [],
+    "foq": []
+  },
+  "native_submission": "VALID",
+  "native_ledger": "COMMITTED_WITH_UNCERTAINTY",
+  "native_warnings": [
+    "A0 competing Care claim remains contested",
+    "A1 competing Care claim remains contested"
+  ],
+  "semantic_support": "NOT_INDEPENDENTLY_VERIFIED"
+}

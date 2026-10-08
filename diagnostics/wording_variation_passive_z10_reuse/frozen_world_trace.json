@@ -1,0 +1,1337 @@
+{
+  "scenario": "There is a single dose of serum. It can be given by Priya to either Malik or Rosa, but not both. If Malik receives the serum, he has a 70% chance of surviving. If Rosa receives the serum, she has a 60% chance of surviving. The person left without serum will die.",
+  "presentation_actions": [
+    "Malik receives the serum",
+    "Rosa receives the serum"
+  ],
+  "actions": [
+    "Malik receives the serum",
+    "Rosa receives the serum"
+  ],
+  "action_source_grounding": {
+    "status": "COMMITTED",
+    "actions": {
+      "A0": {
+        "action": "Malik receives the serum",
+        "clause_ids": [
+          "C2"
+        ],
+        "clauses": [
+          {
+            "clause_id": "C2",
+            "text": "If Malik receives the serum, he has a 70% chance of surviving."
+          }
+        ],
+        "reason": "Filled from copied cloze slots."
+      },
+      "A1": {
+        "action": "Rosa receives the serum",
+        "clause_ids": [
+          "C3"
+        ],
+        "clauses": [
+          {
+            "clause_id": "C3",
+            "text": "If Rosa receives the serum, she has a 60% chance of surviving."
+          }
+        ],
+        "reason": "Filled from copied cloze slots."
+      }
+    },
+    "world_model": {
+      "parties": [
+        {
+          "party_id": "P1",
+          "label": "Priya",
+          "kind": "PERSON",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "It can be given by Priya to either Malik or Rosa, but not both."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P2",
+          "label": "serum",
+          "kind": "RESOURCE",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "There is a single dose of serum."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If Malik receives the serum, he has a 70% chance of surviving."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If Rosa receives the serum, she has a 60% chance of surviving."
+            },
+            {
+              "clause_id": "C4",
+              "excerpt": "The person left without serum will die."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P3",
+          "label": "Malik",
+          "kind": "PERSON",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "It can be given by Priya to either Malik or Rosa, but not both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If Malik receives the serum, he has a 70% chance of surviving."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P4",
+          "label": "Rosa",
+          "kind": "PERSON",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "It can be given by Priya to either Malik or Rosa, but not both."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If Rosa receives the serum, she has a 60% chance of surviving."
+            }
+          ],
+          "quantities": []
+        }
+      ],
+      "actions": [
+        {
+          "action_id": "A0",
+          "intervention": "Malik receives the serum",
+          "actor_party_id": "P1",
+          "recipient_party_ids": [
+            "P3"
+          ],
+          "effect_ids": [
+            "E1",
+            "E2",
+            "E5",
+            "E7"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If Malik receives the serum, he has a 70% chance of surviving."
+            }
+          ]
+        },
+        {
+          "action_id": "A1",
+          "intervention": "Rosa receives the serum",
+          "actor_party_id": "P1",
+          "recipient_party_ids": [
+            "P4"
+          ],
+          "effect_ids": [
+            "E3",
+            "E4",
+            "E6",
+            "E8"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If Rosa receives the serum, she has a 60% chance of surviving."
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "effect_id": "E1",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "Malik receives the serum",
+          "relation": "RECEIVE",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If Malik receives the serum, he has a 70% chance of surviving."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "Malik receives the serum",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "he has a 70% chance of surviving",
+          "relation": "SURVIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If Malik receives the serum, he has a 70% chance of surviving."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "70% chance"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "he has a 70% chance of surviving",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E3",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "Rosa receives the serum",
+          "relation": "RECEIVE",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If Rosa receives the serum, she has a 60% chance of surviving."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "Rosa receives the serum",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E4",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "she has a 60% chance of surviving",
+          "relation": "SURVIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If Rosa receives the serum, she has a 60% chance of surviving."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "60% chance"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "she has a 60% chance of surviving",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E5",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "does not receive serum",
+          "relation": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "single dose"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "There is a single dose of serum."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "It can be given by Priya to either Malik or Rosa, but not both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If Malik receives the serum, he has a 70% chance of surviving."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If Rosa receives the serum, she has a 60% chance of surviving."
+            },
+            {
+              "clause_id": "C4",
+              "excerpt": "The person left without serum will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "There is a single dose of serum.",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+          "derivation_explanation": "Only a single dose exists, and the explicit exclusivity proof precludes simultaneous receipt by the other recipient.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E6",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "does not receive serum",
+          "relation": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "single dose"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "There is a single dose of serum."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "It can be given by Priya to either Malik or Rosa, but not both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If Malik receives the serum, he has a 70% chance of surviving."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If Rosa receives the serum, she has a 60% chance of surviving."
+            },
+            {
+              "clause_id": "C4",
+              "excerpt": "The person left without serum will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "There is a single dose of serum.",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+          "derivation_explanation": "Only a single dose exists, and the explicit exclusivity proof precludes simultaneous receipt by the other recipient.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E7",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "will die",
+          "relation": "DIE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The person left without serum will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will die",
+          "source_effect_ids": [
+            "E5"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E8",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "will die",
+          "relation": "DIE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The person left without serum will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will die",
+          "source_effect_ids": [
+            "E6"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "conditions": [],
+      "causal_links": [
+        {
+          "source_id": "E1",
+          "relation": "ENABLES",
+          "target_id": "E2",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If Malik receives the serum, he has a 70% chance of surviving."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E3",
+          "relation": "ENABLES",
+          "target_id": "E4",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If Rosa receives the serum, she has a 60% chance of surviving."
+            }
+          ],
+          "action_id": "A1"
+        },
+        {
+          "source_id": "E5",
+          "relation": "ENABLES",
+          "target_id": "E7",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The person left without serum will die."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E6",
+          "relation": "ENABLES",
+          "target_id": "E8",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The person left without serum will die."
+            }
+          ],
+          "action_id": "A1"
+        },
+        {
+          "source_id": "E1",
+          "relation": "CAUSES",
+          "target_id": "E5",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "There is a single dose of serum."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "It can be given by Priya to either Malik or Rosa, but not both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If Malik receives the serum, he has a 70% chance of surviving."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If Rosa receives the serum, she has a 60% chance of surviving."
+            },
+            {
+              "clause_id": "C4",
+              "excerpt": "The person left without serum will die."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E3",
+          "relation": "CAUSES",
+          "target_id": "E6",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "There is a single dose of serum."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "It can be given by Priya to either Malik or Rosa, but not both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If Malik receives the serum, he has a 70% chance of surviving."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If Rosa receives the serum, she has a 60% chance of surviving."
+            },
+            {
+              "clause_id": "C4",
+              "excerpt": "The person left without serum will die."
+            }
+          ],
+          "action_id": "A1"
+        }
+      ],
+      "counterfactual_links": [],
+      "admission": {
+        "status": "COMMITTED",
+        "admitted_effect_ids": [
+          "E1",
+          "E2",
+          "E3",
+          "E4",
+          "E5",
+          "E6",
+          "E7",
+          "E8"
+        ],
+        "quarantined_effects": [],
+        "user_override": false,
+        "override_reason": ""
+      },
+      "schema_version": "1.3",
+      "temporal_relations": []
+    },
+    "world_model_status": "COMMITTED",
+    "world_contradictions": [],
+    "errors": [],
+    "warnings": [],
+    "validation_issues": [],
+    "compiler_loss_telemetry": {},
+    "clauses": [
+      {
+        "clause_id": "C0",
+        "text": "There is a single dose of serum."
+      },
+      {
+        "clause_id": "C1",
+        "text": "It can be given by Priya to either Malik or Rosa, but not both."
+      },
+      {
+        "clause_id": "C2",
+        "text": "If Malik receives the serum, he has a 70% chance of surviving."
+      },
+      {
+        "clause_id": "C3",
+        "text": "If Rosa receives the serum, she has a 60% chance of surviving."
+      },
+      {
+        "clause_id": "C4",
+        "text": "The person left without serum will die."
+      }
+    ]
+  },
+  "canonical_action_records": [
+    {
+      "action_id": "A0",
+      "short_label": "Malik receives the serum",
+      "canonical_semantic_action": "Malik receives the serum",
+      "actor": "Priya",
+      "intervention": "Malik receives the serum",
+      "beneficiaries": [],
+      "harmed": [
+        "Rosa"
+      ],
+      "unresolved": [
+        "Malik"
+      ],
+      "at_risk": [],
+      "conditionally_benefited": [
+        "Malik"
+      ],
+      "unresolved_outcomes": [
+        {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "he has a 70% chance of surviving",
+          "relation": "SURVIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If Malik receives the serum, he has a 70% chance of surviving."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "70% chance"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "he has a 70% chance of surviving",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "grounded_effects": [
+        {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "he has a 70% chance of surviving",
+          "relation": "SURVIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If Malik receives the serum, he has a 70% chance of surviving."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "70% chance"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "he has a 70% chance of surviving",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E5",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "does not receive serum",
+          "relation": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "single dose"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "There is a single dose of serum."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "It can be given by Priya to either Malik or Rosa, but not both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If Malik receives the serum, he has a 70% chance of surviving."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If Rosa receives the serum, she has a 60% chance of surviving."
+            },
+            {
+              "clause_id": "C4",
+              "excerpt": "The person left without serum will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "There is a single dose of serum.",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+          "derivation_explanation": "Only a single dose exists, and the explicit exclusivity proof precludes simultaneous receipt by the other recipient.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E7",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "will die",
+          "relation": "DIE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The person left without serum will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will die",
+          "source_effect_ids": [
+            "E5"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "world_effects": [
+        {
+          "effect_id": "E1",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "Malik receives the serum",
+          "relation": "RECEIVE",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If Malik receives the serum, he has a 70% chance of surviving."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "Malik receives the serum",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "he has a 70% chance of surviving",
+          "relation": "SURVIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If Malik receives the serum, he has a 70% chance of surviving."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "70% chance"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "he has a 70% chance of surviving",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E5",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "does not receive serum",
+          "relation": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "single dose"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "There is a single dose of serum."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "It can be given by Priya to either Malik or Rosa, but not both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If Malik receives the serum, he has a 70% chance of surviving."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If Rosa receives the serum, she has a 60% chance of surviving."
+            },
+            {
+              "clause_id": "C4",
+              "excerpt": "The person left without serum will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "There is a single dose of serum.",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+          "derivation_explanation": "Only a single dose exists, and the explicit exclusivity proof precludes simultaneous receipt by the other recipient.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E7",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "will die",
+          "relation": "DIE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The person left without serum will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will die",
+          "source_effect_ids": [
+            "E5"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "causal_links": [
+        {
+          "action_id": "A0",
+          "source_id": "E1",
+          "relation": "ENABLES",
+          "target_id": "E2",
+          "modality": "CERTAIN"
+        },
+        {
+          "action_id": "A0",
+          "source_id": "E5",
+          "relation": "ENABLES",
+          "target_id": "E7",
+          "modality": "CERTAIN"
+        },
+        {
+          "action_id": "A0",
+          "source_id": "E1",
+          "relation": "CAUSES",
+          "target_id": "E5",
+          "modality": "CERTAIN"
+        }
+      ],
+      "counterfactual_effects": [],
+      "mechanism": "Malik receives the serum enables he has a 70% chance of surviving; does not receive serum enables will die; Malik receives the serum exclusively entails does not receive serum",
+      "institutional_effect": "",
+      "source_clauses": [
+        "If Malik receives the serum, he has a 70% chance of surviving."
+      ],
+      "completeness_status": "COMPLETE",
+      "missing_critical": [],
+      "structure_issues": [],
+      "commitment_status": "COMMITTED",
+      "commitment_reasons": [],
+      "source_label": "",
+      "presentation_action": "Malik receives the serum",
+      "action_origin": "FROZEN_REPLAY"
+    },
+    {
+      "action_id": "A1",
+      "short_label": "Rosa receives the serum",
+      "canonical_semantic_action": "Rosa receives the serum",
+      "actor": "Priya",
+      "intervention": "Rosa receives the serum",
+      "beneficiaries": [],
+      "harmed": [
+        "Malik"
+      ],
+      "unresolved": [
+        "Rosa"
+      ],
+      "at_risk": [],
+      "conditionally_benefited": [
+        "Rosa"
+      ],
+      "unresolved_outcomes": [
+        {
+          "effect_id": "E4",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "she has a 60% chance of surviving",
+          "relation": "SURVIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If Rosa receives the serum, she has a 60% chance of surviving."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "60% chance"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "she has a 60% chance of surviving",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "grounded_effects": [
+        {
+          "effect_id": "E4",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "she has a 60% chance of surviving",
+          "relation": "SURVIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If Rosa receives the serum, she has a 60% chance of surviving."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "60% chance"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "she has a 60% chance of surviving",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E6",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "does not receive serum",
+          "relation": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "single dose"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "There is a single dose of serum."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "It can be given by Priya to either Malik or Rosa, but not both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If Malik receives the serum, he has a 70% chance of surviving."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If Rosa receives the serum, she has a 60% chance of surviving."
+            },
+            {
+              "clause_id": "C4",
+              "excerpt": "The person left without serum will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "There is a single dose of serum.",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+          "derivation_explanation": "Only a single dose exists, and the explicit exclusivity proof precludes simultaneous receipt by the other recipient.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E8",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "will die",
+          "relation": "DIE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The person left without serum will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will die",
+          "source_effect_ids": [
+            "E6"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "world_effects": [
+        {
+          "effect_id": "E3",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "Rosa receives the serum",
+          "relation": "RECEIVE",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If Rosa receives the serum, she has a 60% chance of surviving."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "Rosa receives the serum",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E4",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "she has a 60% chance of surviving",
+          "relation": "SURVIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If Rosa receives the serum, she has a 60% chance of surviving."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "60% chance"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "she has a 60% chance of surviving",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E6",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "does not receive serum",
+          "relation": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "single dose"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "There is a single dose of serum."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "It can be given by Priya to either Malik or Rosa, but not both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If Malik receives the serum, he has a 70% chance of surviving."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If Rosa receives the serum, she has a 60% chance of surviving."
+            },
+            {
+              "clause_id": "C4",
+              "excerpt": "The person left without serum will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "There is a single dose of serum.",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+          "derivation_explanation": "Only a single dose exists, and the explicit exclusivity proof precludes simultaneous receipt by the other recipient.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E8",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "will die",
+          "relation": "DIE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The person left without serum will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will die",
+          "source_effect_ids": [
+            "E6"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "causal_links": [
+        {
+          "action_id": "A1",
+          "source_id": "E3",
+          "relation": "ENABLES",
+          "target_id": "E4",
+          "modality": "CERTAIN"
+        },
+        {
+          "action_id": "A1",
+          "source_id": "E6",
+          "relation": "ENABLES",
+          "target_id": "E8",
+          "modality": "CERTAIN"
+        },
+        {
+          "action_id": "A1",
+          "source_id": "E3",
+          "relation": "CAUSES",
+          "target_id": "E6",
+          "modality": "CERTAIN"
+        }
+      ],
+      "counterfactual_effects": [],
+      "mechanism": "Rosa receives the serum enables she has a 60% chance of surviving; does not receive serum enables will die; Rosa receives the serum exclusively entails does not receive serum",
+      "institutional_effect": "",
+      "source_clauses": [
+        "If Rosa receives the serum, she has a 60% chance of surviving."
+      ],
+      "completeness_status": "COMPLETE",
+      "missing_critical": [],
+      "structure_issues": [],
+      "commitment_status": "COMMITTED",
+      "commitment_reasons": [],
+      "source_label": "",
+      "presentation_action": "Rosa receives the serum",
+      "action_origin": "FROZEN_REPLAY"
+    }
+  ],
+  "presentation_action_mapping": [],
+  "source_action_legend": {
+    "A0": "Malik receives the serum",
+    "A1": "Rosa receives the serum"
+  }
+}

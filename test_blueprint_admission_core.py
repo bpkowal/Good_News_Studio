@@ -7,6 +7,7 @@ from unittest import mock
 
 from blueprint_admission_core import supported_core
 from run_blueprint_parliament import _admit_candidates
+from blueprint_world_beam import COLLAPSE_SEPARATED, COLLAPSE_UNRESOLVED
 
 
 def example():
@@ -62,16 +63,56 @@ class CoreAdmissionTests(unittest.TestCase):
             mock.Mock(returncode=0, stdout=json.dumps({"status": "COMMITTED"}), stderr=""),
             mock.Mock(returncode=0, stdout=json.dumps({"status": "COMMITTED"}), stderr=""),
         ]
-        blueprint = {"candidate_attempts": [
-            {"rank": i, "blueprint_id": f"b{i}", "proposal": example(), "selected": i == 0}
-            for i in range(3)]}
+        attempts = []
+        for i in range(3):
+            proposal = copy.deepcopy(example())
+            proposal["assignment"] = [f"act-{i}"]
+            proposal["candidate"]["world_model"]["actions"][0]["intervention"] = f"act-{i}"
+            proposal["candidate"]["world_model"]["effects"][1]["relation"] = (
+                "DIE" if i == 1 else "LIVE")
+            attempts.append({
+                "rank": i, "blueprint_id": f"b{i}", "template_status": "FILLED",
+                "core_filled": 4, "proposal": proposal, "selected": i == 0,
+            })
+        blueprint = {"candidate_attempts": attempts}
         with tempfile.TemporaryDirectory() as tmp:
             chosen, records = _admit_candidates(blueprint, "scenario", {}, Path(tmp),
                                                 Path(tmp), Path("python"))
-            self.assertEqual(chosen["attempt"]["blueprint_id"], "b1")
+            self.assertIsNone(chosen)
+            self.assertEqual(blueprint["collapse_status"], COLLAPSE_UNRESOLVED)
             self.assertEqual([r["status"] for r in records], ["REJECTED", "ADMITTED", "ADMITTED"])
             self.assertEqual(run.call_count, 3)
             self.assertEqual(len(json.loads(Path(records[1]["overlay_path"]).read_text())["effects"]), 2)
+            beam = json.loads((Path(tmp) / "world_beam.json").read_text())
+            self.assertEqual(beam["collapse_status"], COLLAPSE_UNRESOLVED)
+            self.assertEqual(beam["label"], "relative_interpretive_support")
+
+    @mock.patch("run_blueprint_parliament.validate_proposal", return_value=[])
+    @mock.patch("run_blueprint_parliament.subprocess.run")
+    def test_rank0_exclusive_separates_from_flexible(self, run, validate):
+        run.return_value = mock.Mock(
+            returncode=0, stdout=json.dumps({"status": "COMMITTED"}), stderr="")
+        exclusive = example()
+        exclusive["assignment"] = ["give to Ben"]
+        exclusive["candidate"]["world_model"]["actions"][0]["intervention"] = "give to Ben"
+        exclusive["candidate"]["world_model"]["effects"][1]["relation"] = "DIE"
+        flexible = example()
+        flexible["assignment"] = ["give to Cara"]
+        flexible["candidate"]["world_model"]["actions"][0]["intervention"] = "give to Cara"
+        flexible["candidate"]["world_model"]["effects"][1]["relation"] = "LIVE"
+        blueprint = {"candidate_attempts": [
+            {"rank": 0, "blueprint_id": "exclusive_allocation", "template_status": "FILLED",
+             "core_filled": 5, "proposal": exclusive, "selected": True},
+            {"rank": 3, "blueprint_id": "flexible_graph", "template_status": "FILLED",
+             "core_filled": 0, "variant": "flexible", "proposal": flexible, "selected": False},
+        ]}
+        with tempfile.TemporaryDirectory() as tmp:
+            chosen, records = _admit_candidates(blueprint, "scenario", {}, Path(tmp),
+                                                Path(tmp), Path("python"))
+            self.assertEqual(chosen["attempt"]["blueprint_id"], "exclusive_allocation")
+            self.assertEqual(blueprint["collapse_status"], COLLAPSE_SEPARATED)
+            self.assertEqual(blueprint['world_beam']['collapse_reason'], 'SOLE_NONFALLBACK')
+            self.assertEqual([r["status"] for r in records], ["ADMITTED", "ADMITTED"])
 
     def test_unlicensed_resource_transfer_is_not_committed(self):
         original = example()

@@ -112,6 +112,7 @@ def project_conflicts(trace):
             'mode': 'READ_ONLY_PROJECTION', 'world_mutation': False,
             'source_judgment_status': trace.get('judgment_status'),
             'nodes': list(nodes.values()), 'edges': edges, 'diagnostics': diagnostics,
+            'open_conflicts': list(dict.fromkeys(issues)),
             'review_queue': sorted(dict.fromkeys(issues), key=lambda ident: {
                 'UNSUPPORTED_INFERENCE': 0, 'REPORTED_INTERNAL_CONFLICT': 1,
                 'NATIVE_FRAMEWORK_WARNING': 2}.get(nodes[ident]['conflict_type'], 3))[:2],

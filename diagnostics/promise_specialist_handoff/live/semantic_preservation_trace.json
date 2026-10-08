@@ -1,0 +1,264 @@
+{
+  "status": "COMMITTED",
+  "world_model_status": "COMMITTED",
+  "repair_attempts": 0,
+  "repairs": [],
+  "action_propositions": [
+    {
+      "action_id": "A0",
+      "text": "pulls the lever",
+      "propositions": []
+    },
+    {
+      "action_id": "A1",
+      "text": "does not pull the lever",
+      "propositions": []
+    }
+  ],
+  "compact_role_assignments": [
+    {
+      "action_id": "A0",
+      "bucket": "harmed",
+      "label": "one worker",
+      "effect_id": "E3",
+      "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; affected quantity one; compact harmed"
+    },
+    {
+      "action_id": "A1",
+      "bucket": "harmed",
+      "label": "five workers",
+      "effect_id": "E6",
+      "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; affected quantity five; compact harmed"
+    }
+  ],
+  "chains": [
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C2",
+          "text": "If Maria pulls the lever, one worker will die."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "pulls the lever"
+      },
+      "world": {
+        "effect_id": "E1",
+        "party_id": "P3",
+        "party_label": "the lever",
+        "outcome": "pulls the lever",
+        "directness": "DIRECT",
+        "effect_kind": "INTERVENTION",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C2",
+          "text": "If Maria pulls the lever, one worker will die."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "pulls the lever"
+      },
+      "world": {
+        "effect_id": "E2",
+        "party_id": "P3",
+        "party_label": "the lever",
+        "outcome": "pulls the lever",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "PHYSICAL_STATE",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C2",
+          "text": "If Maria pulls the lever, one worker will die."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "pulls the lever"
+      },
+      "world": {
+        "effect_id": "E3",
+        "party_id": "P2",
+        "party_label": "one worker",
+        "outcome": "one worker will die",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "HEALTH_OUTCOME",
+        "polarity": "ADVERSE",
+        "modality": "CERTAIN",
+        "quantities": [
+          "one"
+        ],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A0",
+        "bucket": "harmed",
+        "label": "one worker",
+        "effect_id": "E3",
+        "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; affected quantity one; compact harmed"
+      }
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C3",
+          "text": "If Maria does not pull the lever, five workers will die."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "does not pull the lever"
+      },
+      "world": {
+        "effect_id": "E4",
+        "party_id": "P3",
+        "party_label": "the lever",
+        "outcome": "does not pull the lever",
+        "directness": "DIRECT",
+        "effect_kind": "INTERVENTION",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C3",
+          "text": "If Maria does not pull the lever, five workers will die."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "does not pull the lever"
+      },
+      "world": {
+        "effect_id": "E5",
+        "party_id": "P3",
+        "party_label": "the lever",
+        "outcome": "does not pull the lever",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "PHYSICAL_STATE",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C3",
+          "text": "If Maria does not pull the lever, five workers will die."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "does not pull the lever"
+      },
+      "world": {
+        "effect_id": "E6",
+        "party_id": "P4",
+        "party_label": "five workers",
+        "outcome": "five workers will die",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "HEALTH_OUTCOME",
+        "polarity": "ADVERSE",
+        "modality": "CERTAIN",
+        "quantities": [
+          "five"
+        ],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A1",
+        "bucket": "harmed",
+        "label": "five workers",
+        "effect_id": "E6",
+        "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; affected quantity five; compact harmed"
+      }
+    }
+  ],
+  "topology_edges": [
+    {
+      "layer": "ACTUAL",
+      "action_id": "A0",
+      "source_id": "E1",
+      "target_id": "E2",
+      "relation": "ENABLES",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    },
+    {
+      "layer": "ACTUAL",
+      "action_id": "A0",
+      "source_id": "E2",
+      "target_id": "E3",
+      "relation": "ENABLES",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    },
+    {
+      "layer": "ACTUAL",
+      "action_id": "A1",
+      "source_id": "E4",
+      "target_id": "E5",
+      "relation": "ENABLES",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    },
+    {
+      "layer": "ACTUAL",
+      "action_id": "A1",
+      "source_id": "E5",
+      "target_id": "E6",
+      "relation": "ENABLES",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    }
+  ]
+}

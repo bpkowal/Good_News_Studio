@@ -1,0 +1,72 @@
+{
+  "parliament_version": {
+    "root": "/private/tmp/parliament-smoke-614af0c",
+    "commit": "614af0c1601dd7169842f130f1c26a5dd0b30564",
+    "branch": "relent-framework",
+    "modified_files": [
+      "global_workspace/frozen_world_replay.py",
+      "global_workspace/local_specialists.py",
+      "global_workspace/scenario_semantics.py",
+      "global_workspace/world_state.py"
+    ],
+    "integration_patch_sha256": "a4a5bd9349f9071866a6d44be074d018374711ed806a4e02b5d26b18f1870dd4"
+  },
+  "command": [
+    "/tmp/parliament-smoke-env/bin/python",
+    "global_workspace_pipeline.py",
+    "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/trolley_omission_up_to_snuff/scenario.json",
+    "--frozen-world-trace",
+    "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/trolley_omission_up_to_snuff/frozen_world_trace.json",
+    "--backend",
+    "openai",
+    "--openai-model",
+    "o3",
+    "--agents",
+    "utilitarian",
+    "deontological",
+    "virtue",
+    "care",
+    "rawlsian",
+    "--max-cycles",
+    "3",
+    "--time-budget",
+    "900.0",
+    "--agent-timeout",
+    "600.0",
+    "--openai-concurrency",
+    "2",
+    "--delegate-tokens",
+    "128",
+    "--output-dir",
+    "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/trolley_relent_verified_replay",
+    "--no-rag-context"
+  ],
+  "mode": "full",
+  "use_rag": false,
+  "result": {
+    "judgment_status": "CONTESTED_RECOMMENDATION",
+    "selected_action": "pulls the lever",
+    "current_plurality": "pulls the lever",
+    "halted_by": "cycle_budget",
+    "frozen_world_replay": {
+      "mode": "FROZEN_WORLD_TRACE",
+      "source_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/trolley_omission_up_to_snuff/frozen_world_trace.json",
+      "fingerprint_sha256": "dc5d7765a11d140f95e332f41075f4b60f1e750f1170136f900d10e9436e66e6",
+      "scenario_match": true,
+      "action_identity_match": true,
+      "world_generation_calls": 0,
+      "validated": true
+    },
+    "source_errors": {},
+    "cycles": 3,
+    "original_agents": [
+      "utilitarian",
+      "deontological",
+      "virtue",
+      "care",
+      "rawlsian"
+    ],
+    "trace": "diagnostics/trolley_relent_verified_replay/workspace_scenario_20261003_231711.json",
+    "report": "diagnostics/trolley_relent_verified_replay/deliberation_report.md"
+  }
+}

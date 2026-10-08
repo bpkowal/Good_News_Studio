@@ -1,0 +1,96 @@
+{
+  "cases": [
+    {
+      "source": "A runaway trolley is heading toward five workers on the main track. Maria can pull a lever that switches the trolley onto a side track, where one worker stands. If she pulls the lever, the trolley will kill that worker and spare the five. If she does not, it will kill the five and spare the one. Maria cannot stop the trolley. Should she pull the lever?",
+      "origin": "diagnostics/trolley_explicit_tracks_live_20261007/pipeline/blueprint_candidate.json",
+      "ranking": [
+        "rescue_contrast",
+        "omission_harm",
+        "conditional_outcome"
+      ],
+      "answers": {
+        "rescue_contrast": {
+          "rescuer": "Maria",
+          "first_saved": "five workers on the main track",
+          "second_saved": "one worker stands",
+          "rescue_exclusivity": "not both",
+          "first_rescue_action": "pull the lever that switches the trolley onto a side track",
+          "second_rescue_action": "not pull the lever",
+          "first_benefit": "spare the five",
+          "first_harm": "kill that worker",
+          "second_benefit": "spare the one",
+          "second_harm": "kill the five",
+          "scene": "five workers on the main track, one worker stands"
+        },
+        "omission_harm": {
+          "actor": "Maria",
+          "done": "NONE",
+          "omitted": "does not pull the lever",
+          "harm_done": "the trolley will kill that worker",
+          "harm_omitted": "it will kill the five",
+          "done_hedge": "NONE",
+          "omitted_hedge": "NONE",
+          "group_counts": "five",
+          "instrument": "lever"
+        },
+        "conditional_outcome": {
+          "actor": "Maria",
+          "condition": "If she pulls the lever, the trolley will kill that worker and spare the five.",
+          "bearer": "the one worker",
+          "outcome": "the trolley will kill that worker and spare the five.",
+          "second_condition": "If she does not, it will kill the five and spare the one.",
+          "second_bearer": "the five workers",
+          "second_outcome": "it will kill the five and spare the one.",
+          "chance": "NONE"
+        }
+      }
+    },
+    {
+      "source": "A runaway trolley is heading toward five workers on the main track. Maria can pull a lever that switches the trolley onto a side track, where one worker stands. If she pulls the lever, the trolley will kill that worker and spare the five. If she does not, it will kill the five and spare the one. Maria cannot stop the trolley. Should she pull the lever?",
+      "origin": "diagnostics/trolley_scene_live_20261008/pipeline/blueprint_candidate.json",
+      "ranking": [
+        "rescue_contrast",
+        "omission_harm",
+        "conditional_outcome"
+      ],
+      "answers": {
+        "rescue_contrast": {
+          "rescuer": "Maria",
+          "first_saved": "five workers on the main track",
+          "second_saved": "one worker on a side track",
+          "rescue_exclusivity": "not both",
+          "first_rescue_action": "pull the lever that switches the trolley onto a side track",
+          "second_rescue_action": "not pull the lever",
+          "first_benefit": "spare the five",
+          "first_harm": "kill that worker",
+          "second_benefit": "spare the one",
+          "second_harm": "kill the five",
+          "scene": "five workers on the main track, one worker stands"
+        },
+        "omission_harm": {
+          "actor": "Maria",
+          "done": "pull a lever that switches the trolley onto a side track",
+          "omitted": "does not pull the lever",
+          "harm_done": "the trolley will kill that worker",
+          "harm_omitted": "it will kill the five",
+          "done_hedge": "if she pulls the lever",
+          "omitted_hedge": "if she does not",
+          "group_counts": "five",
+          "instrument": "lever",
+          "controllable_process": "switches the trolley"
+        },
+        "conditional_outcome": {
+          "actor": "Maria",
+          "condition": "If she pulls the lever",
+          "bearer": "the one",
+          "outcome": "the trolley will kill that worker and spare the five",
+          "second_condition": "If she does not",
+          "second_bearer": "the five",
+          "second_outcome": "it will kill the five and spare the one",
+          "chance": "NONE",
+          "controllable_process": "the trolley"
+        }
+      }
+    }
+  ]
+}

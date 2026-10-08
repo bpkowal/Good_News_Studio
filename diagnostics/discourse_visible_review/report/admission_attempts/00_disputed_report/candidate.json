@@ -1,0 +1,854 @@
+{
+  "scenario": "Ada claims the water is safe.",
+  "actions": [
+    "claims"
+  ],
+  "package": {
+    "schema_version": "0.4",
+    "package_id": "blueprint_run_1d68ba9d865d",
+    "document": {
+      "id": "document",
+      "text": "Ada claims the water is safe."
+    },
+    "producer": {
+      "name": "parsing_game_Z10",
+      "version": "Z10",
+      "resources": [
+        {
+          "id": "T_reference_policy",
+          "version": "1",
+          "description": "Curated candidate-generation and ranking policy, not learned probabilities or a complete animacy lexicon."
+        }
+      ]
+    },
+    "evidence": [
+      {
+        "id": "e0",
+        "start": 4,
+        "end": 10,
+        "text": "claims"
+      },
+      {
+        "id": "e1",
+        "start": 21,
+        "end": 23,
+        "text": "is"
+      },
+      {
+        "id": "e2",
+        "start": 0,
+        "end": 3,
+        "text": "Ada"
+      },
+      {
+        "id": "e3",
+        "start": 11,
+        "end": 20,
+        "text": "the water"
+      },
+      {
+        "id": "e4",
+        "start": 15,
+        "end": 20,
+        "text": "water"
+      },
+      {
+        "id": "e5",
+        "start": 0,
+        "end": 29,
+        "text": "Ada claims the water is safe."
+      }
+    ],
+    "nodes": [
+      {
+        "id": "p1",
+        "kind": "proposition",
+        "label": "claims",
+        "predicate": "claim",
+        "evidence_ids": [
+          "e0"
+        ],
+        "predicate_evidence_ids": [
+          "e0"
+        ]
+      },
+      {
+        "id": "p4",
+        "kind": "proposition",
+        "label": "is",
+        "predicate": "be",
+        "evidence_ids": [
+          "e1"
+        ],
+        "predicate_evidence_ids": [
+          "e1"
+        ]
+      },
+      {
+        "id": "m0",
+        "kind": "mention",
+        "label": "Ada",
+        "evidence_ids": [
+          "e2"
+        ]
+      },
+      {
+        "id": "m3",
+        "kind": "mention",
+        "label": "the water",
+        "evidence_ids": [
+          "e3"
+        ]
+      }
+    ],
+    "candidates": [
+      {
+        "id": "c0",
+        "type": "PREDICATION",
+        "arguments": {
+          "proposition": "p1"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e0"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c1",
+        "type": "PREDICATION",
+        "arguments": {
+          "proposition": "p4"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e1"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "attributed",
+              "source_mention_id": "m0",
+              "report_proposition_id": "p1",
+              "evidence_ids": [
+                "e0"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c0"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c2",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p1",
+          "mention": "m0"
+        },
+        "value": "subject",
+        "evidence_ids": [
+          "e2"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c0"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c3",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p4",
+          "mention": "m3"
+        },
+        "value": "subject",
+        "evidence_ids": [
+          "e4"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "attributed",
+              "source_mention_id": "m0",
+              "report_proposition_id": "p1",
+              "evidence_ids": [
+                "e0"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c1"
+        ],
+        "exclusive_with": []
+      }
+    ],
+    "choice_sets": [],
+    "open_questions": [
+      {
+        "id": "q0",
+        "kind": "reference",
+        "evidence_ids": [
+          "e3"
+        ],
+        "candidate_ids": [],
+        "question": "Which earlier mention, if any, has the same referent? Ranked candidates are not identity decisions.",
+        "blocking_for": []
+      },
+      {
+        "id": "q1",
+        "kind": "missing_representation",
+        "evidence_ids": [
+          "e5"
+        ],
+        "candidate_ids": [],
+        "question": "Review unrepresented semantics and scope, including attribution, choice and entailment.",
+        "blocking_for": []
+      }
+    ],
+    "coverage": {
+      "status": "partial",
+      "unrepresented_evidence_ids": [
+        "e5"
+      ],
+      "limitations": [
+        "reference_candidates_only_no_identity_merging",
+        "no_world_state_commitment",
+        "bounded_if_and_local_modal_scope",
+        "no_semantic_support_validation",
+        "purpose_and_attachment_readings_are_candidates",
+        "subject_control_is_an_unresolved_candidate",
+        "unambiguous_condition_complements_are_required",
+        "attempt_does_not_entail_the_child",
+        "choice_sets_are_not_exhaustive",
+        "quantity_is_explicit_cardinality_only",
+        "comma_clause_subject_repairs_a_false_conjunct",
+        "same_name_reference_does_not_block_roles",
+        "transfer_recipient_is_destination",
+        "definite_locative_is_location",
+        "definite_reference_does_not_block_roles",
+        "conditional_alternatives_are_not_exhaustive_or_exclusive",
+        "quantity_match_is_not_group_membership",
+        "coordination_shares_the_head_role",
+        "clause_boundary_stops_role_sharing",
+        "clause_boundary_attachment_stays_a_candidate",
+        "stripping_not_nominal_is_an_unresolved_copy"
+      ]
+    },
+    "reconstructions": [],
+    "condition_contents": []
+  },
+  "blueprint_result": {
+    "proposals": [
+      {
+        "proposal_contract_version": "blueprint-proposal-contract/0.6",
+        "proposal_id": "disputed_report_cloze",
+        "blueprint_id": "disputed_report",
+        "status": "FILLED",
+        "assignment_kind": "intervention_text",
+        "assignment": [
+          "claims"
+        ],
+        "slot_bindings": {
+          "copied_spans": {
+            "source": "Ada",
+            "report_words": "claims",
+            "reported_content": "the water is safe"
+          },
+          "z10_recovered_slots": {}
+        },
+        "selection": null,
+        "selection_validation": {
+          "contract_valid": true,
+          "status": "source_copy",
+          "reason": "Authorized from copied source spans with clause evidence."
+        },
+        "candidate": {
+          "actions": {
+            "A0": {
+              "clause_ids": [
+                "C0"
+              ],
+              "reason": "Filled from copied cloze slots."
+            }
+          },
+          "world_model": {
+            "parties": [
+              {
+                "party_id": "P1",
+                "label": "Ada",
+                "kind": "PERSON",
+                "kind_origin": "STRUCTURALLY_DERIVED",
+                "quantities": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              }
+            ],
+            "actions": [
+              {
+                "action_id": "A0",
+                "intervention": "claims",
+                "actor_party_id": "P1",
+                "recipient_party_ids": [],
+                "effect_ids": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              }
+            ],
+            "effects": [],
+            "conditions": [],
+            "temporal_relations": [],
+            "causal_links": [],
+            "counterfactual_links": [],
+            "propositions": [
+              {
+                "proposition_id": "PR1",
+                "predication": "the water is safe",
+                "polarity": "positive",
+                "status": "ATTRIBUTED",
+                "clause_ids": [
+                  "C0"
+                ]
+              }
+            ],
+            "reports": [
+              {
+                "report_id": "R0",
+                "source_party_id": "P1",
+                "speech_act": "claims",
+                "content_proposition_id": "PR1",
+                "action_id": "A0",
+                "clause_ids": [
+                  "C0"
+                ]
+              }
+            ],
+            "schema_version": "1.4",
+            "commitments": [],
+            "modal_operators": [],
+            "normative_propositions": []
+          },
+          "ellipsis_resolutions": []
+        },
+        "clauses": [
+          {
+            "clause_id": "C0",
+            "text": "Ada claims the water is safe."
+          }
+        ],
+        "unfilled_required_slots": [],
+        "unresolved_readings": [
+          {
+            "kind": "reported_truth",
+            "status": "unresolved"
+          },
+          {
+            "kind": "semantic_construction_retention",
+            "coverage": {
+              "proposal_id": "disputed_report_cloze",
+              "source_candidate_count": 4,
+              "unconsumed_candidate_ids": [
+                "c0",
+                "c1",
+                "c2",
+                "c3"
+              ],
+              "source_aligned_conditional_ids": [],
+              "retained_not_projected_construction_ids": [],
+              "mapped_commitment_construction_ids": [],
+              "source_fields_missing": [],
+              "unconsumed_does_not_imply_world_omission": true,
+              "semantic_completeness": "not_assessed",
+              "admission_is_separate": true
+            },
+            "package_id": "blueprint_run_1d68ba9d865d",
+            "source_constructions": [],
+            "source_choice_sets": [],
+            "source_producer": {
+              "name": "parsing_game_Z10",
+              "version": "Z10",
+              "resources": [
+                {
+                  "id": "T_reference_policy",
+                  "version": "1",
+                  "description": "Curated candidate-generation and ranking policy, not learned probabilities or a complete animacy lexicon."
+                }
+              ]
+            },
+            "missing_construction_questions": [
+              {
+                "id": "unconsumed:c0",
+                "kind": "missing_construction",
+                "candidate_ids": [
+                  "c0"
+                ],
+                "evidence_ids": [
+                  "e0"
+                ],
+                "question": "Which construction should preserve this PREDICATION reading?"
+              },
+              {
+                "id": "unconsumed:c1",
+                "kind": "missing_construction",
+                "candidate_ids": [
+                  "c1"
+                ],
+                "evidence_ids": [
+                  "e1"
+                ],
+                "question": "Which construction should preserve this PREDICATION reading?"
+              },
+              {
+                "id": "unconsumed:c2",
+                "kind": "missing_construction",
+                "candidate_ids": [
+                  "c2"
+                ],
+                "evidence_ids": [
+                  "e2"
+                ],
+                "question": "Which construction should preserve this PARTICIPANT reading?"
+              },
+              {
+                "id": "unconsumed:c3",
+                "kind": "missing_construction",
+                "candidate_ids": [
+                  "c3"
+                ],
+                "evidence_ids": [
+                  "e4"
+                ],
+                "question": "Which construction should preserve this PARTICIPANT reading?"
+              }
+            ],
+            "source_open_questions": [
+              {
+                "id": "q0",
+                "kind": "reference",
+                "evidence_ids": [
+                  "e3"
+                ],
+                "candidate_ids": [],
+                "question": "Which earlier mention, if any, has the same referent? Ranked candidates are not identity decisions.",
+                "blocking_for": []
+              },
+              {
+                "id": "q1",
+                "kind": "missing_representation",
+                "evidence_ids": [
+                  "e5"
+                ],
+                "candidate_ids": [],
+                "question": "Review unrepresented semantics and scope, including attribution, choice and entailment.",
+                "blocking_for": []
+              }
+            ],
+            "source_coverage": {
+              "status": "partial",
+              "unrepresented_evidence_ids": [
+                "e5"
+              ],
+              "limitations": [
+                "reference_candidates_only_no_identity_merging",
+                "no_world_state_commitment",
+                "bounded_if_and_local_modal_scope",
+                "no_semantic_support_validation",
+                "purpose_and_attachment_readings_are_candidates",
+                "subject_control_is_an_unresolved_candidate",
+                "unambiguous_condition_complements_are_required",
+                "attempt_does_not_entail_the_child",
+                "choice_sets_are_not_exhaustive",
+                "quantity_is_explicit_cardinality_only",
+                "comma_clause_subject_repairs_a_false_conjunct",
+                "same_name_reference_does_not_block_roles",
+                "transfer_recipient_is_destination",
+                "definite_locative_is_location",
+                "definite_reference_does_not_block_roles",
+                "conditional_alternatives_are_not_exhaustive_or_exclusive",
+                "quantity_match_is_not_group_membership",
+                "coordination_shares_the_head_role",
+                "clause_boundary_stops_role_sharing",
+                "clause_boundary_attachment_stays_a_candidate",
+                "stripping_not_nominal_is_an_unresolved_copy"
+              ]
+            }
+          }
+        ],
+        "construction_problems": [],
+        "admission_authorized": true,
+        "notes": [],
+        "pre_world_assessment": {
+          "ethical_question": "",
+          "scenario_options": [],
+          "exclusivity": "unspecified",
+          "exclusivity_proof": {
+            "status": "UNKNOWN",
+            "evidence": [],
+            "assumptions": [],
+            "explanation": "The source does not establish mutual exclusion."
+          },
+          "participants": [
+            {
+              "role": "subject",
+              "mention": "Ada",
+              "predicate": "claims"
+            },
+            {
+              "role": "subject",
+              "mention": "the water",
+              "predicate": "is"
+            }
+          ],
+          "eligible_for_world_state": true,
+          "status": "ASSESSED"
+        },
+        "accepted_evidence": {
+          "source": "Ada",
+          "report_words": "claims",
+          "reported_content": "the water is safe"
+        },
+        "construction_provenance": [
+          {
+            "atom_id": "party:P1",
+            "atom_kind": "party",
+            "origin": "STRUCTURALLY_DERIVED",
+            "clause_ids": [
+              "C0"
+            ],
+            "evidence": [
+              "Ada"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "action:A0",
+            "atom_kind": "action",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C0"
+            ],
+            "evidence": [
+              "claims"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "proposition:PR1",
+            "atom_kind": "proposition",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C0"
+            ],
+            "evidence": [
+              "the water is safe"
+            ],
+            "explanation": "Copied discourse object; content is not occurrence."
+          },
+          {
+            "atom_id": "report:R0",
+            "atom_kind": "report",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C0"
+            ],
+            "evidence": [
+              "claims"
+            ],
+            "explanation": "Copied discourse object; content is not occurrence."
+          }
+        ],
+        "relation_alternatives": [],
+        "exclusivity_proof": {
+          "status": "UNKNOWN",
+          "evidence": [],
+          "assumptions": [],
+          "explanation": "The source does not establish mutual exclusion."
+        },
+        "world_withheld": [],
+        "evidence_graph": [
+          {
+            "hypothesis_id": "z10:c0",
+            "producer": "z10",
+            "span": "claims",
+            "clause_ids": [
+              "C0"
+            ],
+            "z10_candidate_ids": [
+              "c0"
+            ],
+            "hypothesis": {
+              "kind": "PREDICATION",
+              "value": null,
+              "arguments": {
+                "proposition": "p1"
+              }
+            },
+            "scope": {
+              "contexts": [
+                {
+                  "kind": "UNRESOLVED"
+                }
+              ]
+            },
+            "provenance": "SOURCE_ASSERTED",
+            "atom_ids": [
+              "action:A0",
+              "proposition:PR1",
+              "report:R0"
+            ]
+          },
+          {
+            "hypothesis_id": "z10:c1",
+            "producer": "z10",
+            "span": "is",
+            "clause_ids": [
+              "C0"
+            ],
+            "z10_candidate_ids": [
+              "c1"
+            ],
+            "hypothesis": {
+              "kind": "PREDICATION",
+              "value": null,
+              "arguments": {
+                "proposition": "p4"
+              }
+            },
+            "scope": {
+              "contexts": [
+                {
+                  "kind": "attributed",
+                  "source_mention_id": "m0",
+                  "report_proposition_id": "p1",
+                  "evidence_ids": [
+                    "e0"
+                  ]
+                }
+              ]
+            },
+            "provenance": "SOURCE_ASSERTED",
+            "atom_ids": [
+              "action:A0",
+              "proposition:PR1",
+              "report:R0"
+            ]
+          },
+          {
+            "hypothesis_id": "z10:c2",
+            "producer": "z10",
+            "span": "Ada",
+            "clause_ids": [
+              "C0"
+            ],
+            "z10_candidate_ids": [
+              "c2"
+            ],
+            "hypothesis": {
+              "kind": "PARTICIPANT",
+              "value": "subject",
+              "arguments": {
+                "proposition": "p1",
+                "mention": "m0"
+              }
+            },
+            "scope": {
+              "contexts": [
+                {
+                  "kind": "UNRESOLVED"
+                }
+              ]
+            },
+            "provenance": "SOURCE_ASSERTED",
+            "atom_ids": [
+              "action:A0",
+              "proposition:PR1",
+              "report:R0"
+            ]
+          },
+          {
+            "hypothesis_id": "z10:c3",
+            "producer": "z10",
+            "span": "water",
+            "clause_ids": [
+              "C0"
+            ],
+            "z10_candidate_ids": [
+              "c3"
+            ],
+            "hypothesis": {
+              "kind": "PARTICIPANT",
+              "value": "subject",
+              "arguments": {
+                "proposition": "p4",
+                "mention": "m3"
+              }
+            },
+            "scope": {
+              "contexts": [
+                {
+                  "kind": "attributed",
+                  "source_mention_id": "m0",
+                  "report_proposition_id": "p1",
+                  "evidence_ids": [
+                    "e0"
+                  ]
+                }
+              ]
+            },
+            "provenance": "SOURCE_ASSERTED",
+            "atom_ids": [
+              "action:A0",
+              "proposition:PR1",
+              "report:R0"
+            ]
+          },
+          {
+            "hypothesis_id": "cloze:source",
+            "producer": "cloze_copy",
+            "span": "Ada",
+            "clause_ids": [
+              "C0"
+            ],
+            "z10_candidate_ids": [],
+            "hypothesis": {
+              "kind": "copied_span",
+              "slot": "source",
+              "value": "Ada"
+            },
+            "scope": {
+              "contexts": [
+                {
+                  "kind": "UNRESOLVED"
+                }
+              ]
+            },
+            "provenance": "SOURCE_ASSERTED",
+            "atom_ids": [
+              "action:A0",
+              "proposition:PR1",
+              "report:R0"
+            ]
+          },
+          {
+            "hypothesis_id": "cloze:report_words",
+            "producer": "cloze_copy",
+            "span": "claims",
+            "clause_ids": [
+              "C0"
+            ],
+            "z10_candidate_ids": [],
+            "hypothesis": {
+              "kind": "copied_span",
+              "slot": "report_words",
+              "value": "claims"
+            },
+            "scope": {
+              "contexts": [
+                {
+                  "kind": "UNRESOLVED"
+                }
+              ]
+            },
+            "provenance": "SOURCE_ASSERTED",
+            "atom_ids": [
+              "action:A0",
+              "proposition:PR1",
+              "report:R0"
+            ]
+          },
+          {
+            "hypothesis_id": "cloze:reported_content",
+            "producer": "cloze_copy",
+            "span": "the water is safe",
+            "clause_ids": [
+              "C0"
+            ],
+            "z10_candidate_ids": [],
+            "hypothesis": {
+              "kind": "copied_span",
+              "slot": "reported_content",
+              "value": "the water is safe"
+            },
+            "scope": {
+              "contexts": [
+                {
+                  "kind": "UNRESOLVED"
+                }
+              ]
+            },
+            "provenance": "SOURCE_ASSERTED",
+            "atom_ids": [
+              "action:A0",
+              "proposition:PR1",
+              "report:R0"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

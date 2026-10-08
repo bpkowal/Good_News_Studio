@@ -1,0 +1,483 @@
+{
+  "cloze_version": "blueprint-cloze-chooser/0.5",
+  "chosen_blueprint_id": "ability_permission",
+  "status": "WITHHELD",
+  "ranking": [
+    "omission_harm",
+    "conditional_outcome",
+    "ability_permission"
+  ],
+  "left_out": [
+    "exclusive_allocation",
+    "rescue_contrast",
+    "diversion_redirection",
+    "deontic_rule",
+    "promise_reliance",
+    "uncertain_risk",
+    "disputed_report"
+  ],
+  "question": {
+    "ethical_question": "",
+    "scenario_options": [],
+    "exclusivity": "unspecified",
+    "participants": [
+      {
+        "role": "subject",
+        "mention": "Ada",
+        "predicate": "administer"
+      },
+      {
+        "role": "object",
+        "mention": "medicine",
+        "predicate": "administer"
+      },
+      {
+        "role": "subject",
+        "mention": "Ben",
+        "predicate": "die"
+      },
+      {
+        "role": "destination",
+        "mention": "Ben",
+        "predicate": "administer"
+      }
+    ],
+    "eligible_for_world_state": false
+  },
+  "world_withheld": [
+    "ability_permission has an evidence plan but no Parliament 1.3 graph builder yet."
+  ],
+  "considered": [
+    {
+      "blueprint_id": "omission_harm",
+      "graph_builder": "implemented",
+      "status": "PARTIAL",
+      "rank": 0,
+      "core_filled": 3,
+      "core_count": 5,
+      "optional_filled": 0,
+      "rejected": 0,
+      "coverage_metrics": {
+        "required_filled": 3,
+        "required_total": 5,
+        "optional_filled": 0,
+        "optional_total": 4,
+        "rejected_evidence": 0,
+        "unsupported_atoms": 0,
+        "unresolved_readings": 0
+      },
+      "unfilled": [
+        "omitted",
+        "harm_omitted",
+        "done_hedge",
+        "omitted_hedge",
+        "group_counts",
+        "instrument"
+      ],
+      "unresolved_slots": [
+        "omitted",
+        "harm_omitted",
+        "done_hedge",
+        "omitted_hedge",
+        "group_counts",
+        "instrument"
+      ],
+      "accepted_evidence": {
+        "actor": "Ada",
+        "done": "administer medicine",
+        "harm_done": "Ben could die"
+      },
+      "slots": {
+        "actor": "Ada",
+        "done": "administer medicine",
+        "harm_done": "Ben could die"
+      },
+      "items": [
+        {
+          "id": "actor",
+          "core": true,
+          "sentence": "The person who may do the action or not do it is",
+          "completion": "Ada",
+          "span": "Ada",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "done",
+          "core": true,
+          "sentence": "The action the text says is done is",
+          "completion": "administer medicine",
+          "span": "administer medicine",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "omitted",
+          "core": true,
+          "sentence": "The copied non-action branch, including the word not, is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "harm_done",
+          "core": true,
+          "sentence": "The stated harmful outcome if the action is done is",
+          "completion": "Ben could die",
+          "span": "Ben could die",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "harm_omitted",
+          "core": true,
+          "sentence": "The stated harmful outcome if the action is not done is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "done_hedge",
+          "core": false,
+          "sentence": "The conditional words attached to the harm from doing the action are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "omitted_hedge",
+          "core": false,
+          "sentence": "The conditional words attached to the harm from not doing the action are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "group_counts",
+          "core": false,
+          "sentence": "One copied group count in a harmful outcome is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "instrument",
+          "core": false,
+          "sentence": "The contrasting instrument named after but not is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        }
+      ]
+    },
+    {
+      "blueprint_id": "conditional_outcome",
+      "graph_builder": "implemented",
+      "status": "PARTIAL",
+      "rank": 1,
+      "core_filled": 2,
+      "core_count": 3,
+      "optional_filled": 1,
+      "rejected": 1,
+      "coverage_metrics": {
+        "required_filled": 2,
+        "required_total": 3,
+        "optional_filled": 1,
+        "optional_total": 5,
+        "rejected_evidence": 1,
+        "unsupported_atoms": 0,
+        "unresolved_readings": 0
+      },
+      "unfilled": [
+        "condition",
+        "second_condition",
+        "second_bearer",
+        "second_outcome",
+        "chance"
+      ],
+      "unresolved_slots": [
+        "condition",
+        "second_condition",
+        "second_bearer",
+        "second_outcome",
+        "chance"
+      ],
+      "accepted_evidence": {
+        "actor": "Ada",
+        "bearer": "Ben",
+        "outcome": "Ben could die"
+      },
+      "slots": {
+        "actor": "Ada",
+        "bearer": "Ben",
+        "outcome": "Ben could die"
+      },
+      "items": [
+        {
+          "id": "actor",
+          "core": false,
+          "sentence": "The person whose action an outcome depends on is",
+          "completion": "Ada",
+          "span": "Ada",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "condition",
+          "core": true,
+          "sentence": "The if-clause the outcome depends on is",
+          "completion": "if Ada may administer medicine to Ben",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "not_a_copy"
+        },
+        {
+          "id": "bearer",
+          "core": true,
+          "sentence": "The party that outcome happens to is",
+          "completion": "Ben",
+          "span": "Ben",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "outcome",
+          "core": true,
+          "sentence": "The outcome stated for that party is",
+          "completion": "Ben could die",
+          "span": "Ben could die",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_condition",
+          "core": false,
+          "sentence": "The second if-clause, distinct from the first, is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "second_bearer",
+          "core": false,
+          "sentence": "The party the second outcome happens to is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "second_outcome",
+          "core": false,
+          "sentence": "The outcome stated for that second party is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "chance",
+          "core": false,
+          "sentence": "A stated chance attached to an outcome is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        }
+      ]
+    },
+    {
+      "blueprint_id": "ability_permission",
+      "graph_builder": "plan_only",
+      "status": "FILLED",
+      "rank": 2,
+      "core_filled": 3,
+      "core_count": 3,
+      "optional_filled": 2,
+      "rejected": 0,
+      "coverage_metrics": {
+        "required_filled": 3,
+        "required_total": 3,
+        "optional_filled": 2,
+        "optional_total": 3,
+        "rejected_evidence": 0,
+        "unsupported_atoms": 0,
+        "unresolved_readings": 1
+      },
+      "unfilled": [
+        "duty_or_prohibition"
+      ],
+      "unresolved_slots": [
+        "duty_or_prohibition"
+      ],
+      "accepted_evidence": {
+        "actor": "Ada",
+        "modal_action": "administer medicine",
+        "target": "Ben",
+        "modal_words": "may",
+        "outcome": "Ben could die"
+      },
+      "slots": {
+        "actor": "Ada",
+        "modal_action": "administer medicine",
+        "target": "Ben",
+        "modal_words": "may",
+        "outcome": "Ben could die"
+      },
+      "items": [
+        {
+          "id": "actor",
+          "core": true,
+          "sentence": "The actor governed by the modal is",
+          "completion": "Ada",
+          "span": "Ada",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "modal_action",
+          "core": true,
+          "sentence": "The copied action stated with can, may, able, or permitted is",
+          "completion": "administer medicine",
+          "span": "administer medicine",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "target",
+          "core": true,
+          "sentence": "The target or recipient of that possible action is",
+          "completion": "Ben",
+          "span": "Ben",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "modal_words",
+          "core": false,
+          "sentence": "The exact modal words are",
+          "completion": "may",
+          "span": "may",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "outcome",
+          "core": false,
+          "sentence": "A stated outcome of that action is",
+          "completion": "Ben could die",
+          "span": "Ben could die",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "duty_or_prohibition",
+          "core": false,
+          "sentence": "Any duty or prohibition attached to that action is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        }
+      ]
+    }
+  ],
+  "proposals": [
+    {
+      "proposal_contract_version": "blueprint-proposal-contract/0.2",
+      "proposal_id": "ability_permission_cloze",
+      "blueprint_id": "ability_permission",
+      "status": "WITHHELD",
+      "assignment_kind": "none",
+      "assignment": [],
+      "slot_bindings": {
+        "copied_spans": {
+          "actor": "Ada",
+          "modal_action": "administer medicine",
+          "target": "Ben",
+          "modal_words": "may",
+          "outcome": "Ben could die"
+        }
+      },
+      "selection": null,
+      "selection_validation": {
+        "contract_valid": null,
+        "status": "not_assessed",
+        "reason": "No Z10 candidate selection was constructed."
+      },
+      "candidate": null,
+      "clauses": [
+        {
+          "clause_id": "C0",
+          "text": "Ada may administer medicine to Ben, and Ben could die."
+        }
+      ],
+      "unfilled_required_slots": [],
+      "unresolved_readings": [
+        {
+          "kind": "modal_force",
+          "alternatives": [
+            "ability",
+            "permission",
+            "possibility"
+          ]
+        }
+      ],
+      "construction_problems": [
+        {
+          "code": "world_withheld",
+          "message": "ability_permission has an evidence plan but no Parliament 1.3 graph builder yet."
+        }
+      ],
+      "admission_authorized": false,
+      "notes": [],
+      "pre_world_assessment": {
+        "ethical_question": "",
+        "scenario_options": [],
+        "exclusivity": "unspecified",
+        "participants": [
+          {
+            "role": "subject",
+            "mention": "Ada",
+            "predicate": "administer"
+          },
+          {
+            "role": "object",
+            "mention": "medicine",
+            "predicate": "administer"
+          },
+          {
+            "role": "subject",
+            "mention": "Ben",
+            "predicate": "die"
+          },
+          {
+            "role": "destination",
+            "mention": "Ben",
+            "predicate": "administer"
+          }
+        ],
+        "status": "WITHHELD",
+        "eligible_for_world_state": false
+      },
+      "accepted_evidence": {
+        "actor": "Ada",
+        "modal_action": "administer medicine",
+        "target": "Ben",
+        "modal_words": "may",
+        "outcome": "Ben could die"
+      },
+      "world_withheld": [
+        "ability_permission has an evidence plan but no Parliament 1.3 graph builder yet."
+      ]
+    }
+  ],
+  "graph": null
+}

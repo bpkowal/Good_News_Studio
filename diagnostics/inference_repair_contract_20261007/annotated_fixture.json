@@ -1,0 +1,58 @@
+{
+  "origin": "REVIEWER_TEST_FIXTURE_NOT_MODEL_OUTPUT",
+  "record": {
+    "challenged_inference_id": "promise_cost_to_total_welfare",
+    "repair_operation": "CONDITIONALIZE",
+    "supported_conclusion": {
+      "scope": "TOTAL_WELFARE",
+      "status": "UNRESOLVED",
+      "action_id": "NONE",
+      "text": "Total welfare ranking is not established."
+    },
+    "conditional_assumptions": [
+      {
+        "id": "assumption_cost",
+        "text": "Promise costs do not outweigh survival benefit.",
+        "provenance": "EMPIRICAL_ASSUMPTION",
+        "evidence_ids": []
+      }
+    ],
+    "conditional_preference": {
+      "action_id": "A0",
+      "text": "A0 only if a justified welfare comparison supports it.",
+      "assumption_ids": [
+        "assumption_cost"
+      ]
+    },
+    "preserved_restricted_findings": [
+      {
+        "value": 0.95,
+        "unit": "PERSON",
+        "method": "EXPECTED_COUNT",
+        "source_effect_ids": [
+          "E2"
+        ],
+        "action_id": "A0"
+      },
+      {
+        "value": 0.05,
+        "unit": "PERSON",
+        "method": "EXPECTED_COUNT",
+        "source_effect_ids": [
+          "E4"
+        ],
+        "action_id": "A1"
+      }
+    ],
+    "unresolved_claims": [
+      "Total welfare comparison",
+      "Common welfare unit"
+    ],
+    "reversal_condition": {
+      "text": "Promise-harm ≥ 0.9 life-equivalents",
+      "status": "UNSUPPORTED",
+      "evidence_ids": [],
+      "derivation_id": null
+    }
+  }
+}

@@ -1,0 +1,1840 @@
+{
+  "cloze_version": "blueprint-cloze-chooser/0.4",
+  "chosen_blueprint_id": "exclusive_allocation",
+  "status": "FILLED",
+  "ranking": [
+    "exclusive_allocation",
+    "rescue_contrast",
+    "uncertain_risk"
+  ],
+  "left_out": [
+    "omission_harm",
+    "conditional_outcome",
+    "ability_permission",
+    "diversion_redirection",
+    "deontic_rule",
+    "promise_reliance",
+    "disputed_report"
+  ],
+  "question": {
+    "ethical_question": "gives / gives",
+    "scenario_options": [
+      {
+        "id": "choice11",
+        "selection_rule": "any_subset",
+        "exhaustive": false,
+        "options": [
+          "gives",
+          "gives"
+        ]
+      }
+    ],
+    "exclusivity": "evidenced",
+    "participants": [
+      {
+        "role": "subject",
+        "mention": "A clinic",
+        "predicate": "has"
+      },
+      {
+        "role": "object",
+        "mention": "one dose",
+        "predicate": "has"
+      },
+      {
+        "role": "subject",
+        "mention": "Dr. Rivera",
+        "predicate": "give"
+      },
+      {
+        "role": "object",
+        "mention": "the antiviral",
+        "predicate": "give"
+      },
+      {
+        "role": "destination",
+        "mention": "one child",
+        "predicate": "give"
+      },
+      {
+        "role": "subject",
+        "mention": "Dr. Rivera",
+        "predicate": "gives"
+      },
+      {
+        "role": "object",
+        "mention": "the antiviral",
+        "predicate": "gives"
+      },
+      {
+        "role": "destination",
+        "mention": "the child",
+        "predicate": "gives"
+      },
+      {
+        "role": "subject",
+        "mention": "the child",
+        "predicate": "has"
+      },
+      {
+        "role": "object",
+        "mention": "an 80% chance",
+        "predicate": "has"
+      },
+      {
+        "role": "subject",
+        "mention": "Dr. Rivera",
+        "predicate": "gives"
+      },
+      {
+        "role": "object",
+        "mention": "the antiviral",
+        "predicate": "gives"
+      },
+      {
+        "role": "destination",
+        "mention": "the three adult patients",
+        "predicate": "gives"
+      },
+      {
+        "role": "subject",
+        "mention": "each",
+        "predicate": "has"
+      },
+      {
+        "role": "object",
+        "mention": "a 60% chance",
+        "predicate": "has"
+      },
+      {
+        "role": "subject",
+        "mention": "who",
+        "predicate": "receive"
+      },
+      {
+        "role": "object",
+        "mention": "the antiviral",
+        "predicate": "receive"
+      },
+      {
+        "role": "subject",
+        "mention": "The patients",
+        "predicate": "die"
+      },
+      {
+        "role": "destination",
+        "mention": "three adult patients",
+        "predicate": "give"
+      }
+    ],
+    "eligible_for_world_state": true
+  },
+  "world_withheld": [],
+  "considered": [
+    {
+      "blueprint_id": "exclusive_allocation",
+      "graph_builder": "implemented",
+      "status": "FILLED",
+      "rank": 0,
+      "core_filled": 5,
+      "core_count": 5,
+      "optional_filled": 9,
+      "rejected": 3,
+      "coverage_metrics": {
+        "required_filled": 5,
+        "required_total": 5,
+        "optional_filled": 9,
+        "optional_total": 14,
+        "rejected_evidence": 3,
+        "unsupported_atoms": 0,
+        "unresolved_readings": 0
+      },
+      "unfilled": [
+        "first_transfer",
+        "second_transfer",
+        "first_hedge",
+        "second_hedge",
+        "second_branch_sentence"
+      ],
+      "unresolved_slots": [
+        "first_transfer",
+        "second_transfer",
+        "first_hedge",
+        "second_hedge",
+        "second_branch_sentence"
+      ],
+      "accepted_evidence": {
+        "decider": "Dr. Rivera",
+        "resource": "one dose of antiviral",
+        "assignment": "give the antiviral",
+        "quantity": "one dose",
+        "first_recipient": "one child",
+        "second_recipient": "three adult patients",
+        "exclusivity": "but not both",
+        "first_outcome": "the child has an 80% chance of survival",
+        "second_outcome": "each of the three adult patients has a 60% chance of survival",
+        "first_implied_process": "administration",
+        "second_implied_process": "administration",
+        "first_branch_sentence": "If Dr. Rivera gives the antiviral to the child, the child has an 80% chance of survival",
+        "survival_chance": "80% chance of survival",
+        "nonreceipt": "The patients who do not receive the antiviral will die"
+      },
+      "slots": {
+        "decider": "Dr. Rivera",
+        "resource": "one dose of antiviral",
+        "assignment": "give the antiviral",
+        "quantity": "one dose",
+        "first_recipient": "one child",
+        "second_recipient": "three adult patients",
+        "exclusivity": "but not both",
+        "first_outcome": "the child has an 80% chance of survival",
+        "second_outcome": "each of the three adult patients has a 60% chance of survival",
+        "first_implied_process": "administration",
+        "second_implied_process": "administration",
+        "first_branch_sentence": "If Dr. Rivera gives the antiviral to the child, the child has an 80% chance of survival",
+        "survival_chance": "80% chance of survival",
+        "nonreceipt": "The patients who do not receive the antiviral will die"
+      },
+      "items": [
+        {
+          "id": "decider",
+          "core": true,
+          "sentence": "The person who must decide who gets the resource is",
+          "completion": "Dr. Rivera",
+          "span": "Dr. Rivera",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "resource",
+          "core": true,
+          "sentence": "The resource that can be given is",
+          "completion": "one dose of antiviral",
+          "span": "one dose of antiviral",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "assignment",
+          "core": true,
+          "sentence": "The act that assigns that resource, in the text's own words, is",
+          "completion": "give the antiviral",
+          "span": "give the antiviral",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "first_transfer",
+          "core": false,
+          "sentence": "The giving, receipt, allocation, delivery, or administration of the resource to the first party is",
+          "completion": "give the antiviral to the child",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "not_a_copy"
+        },
+        {
+          "id": "second_transfer",
+          "core": false,
+          "sentence": "The giving, receipt, allocation, delivery, or administration of the resource to the second party is",
+          "completion": "give the antiviral to the three adult patients",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "not_a_copy"
+        },
+        {
+          "id": "quantity",
+          "core": false,
+          "sentence": "The exact amount of that resource, stated in the text, is",
+          "completion": "one dose",
+          "span": "one dose",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "first_recipient",
+          "core": true,
+          "sentence": "The first party mentioned in the text who could receive the resource or benefit is",
+          "completion": "one child",
+          "span": "one child",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_recipient",
+          "core": true,
+          "sentence": "The second party mentioned in the text who could receive the resource or benefit is",
+          "completion": "three adult patients",
+          "span": "three adult patients",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "exclusivity",
+          "core": false,
+          "sentence": "The words that say both parties cannot receive it are",
+          "completion": "but not both",
+          "span": "but not both",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "first_outcome",
+          "core": false,
+          "sentence": "The words that license what happens for the first party are",
+          "completion": "the child has an 80% chance of survival",
+          "span": "the child has an 80% chance of survival",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "first_hedge",
+          "core": false,
+          "sentence": "The if, unless, whether, or percent-chance words inside that first outcome are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "second_outcome",
+          "core": false,
+          "sentence": "The words that license what happens for the second party are",
+          "completion": "each of the three adult patients has a 60% chance of survival",
+          "span": "each of the three adult patients has a 60% chance of survival",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_hedge",
+          "core": false,
+          "sentence": "The if, unless, whether, or percent-chance words inside that second outcome are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "first_implied_process",
+          "core": false,
+          "sentence": "The process most aligned with the text might explain how \"one dose of antiviral\" leads to \"the child has an 80% chance of survival\" is",
+          "completion": "administration",
+          "span": "administration",
+          "verdict": "accepted",
+          "reason": "implied"
+        },
+        {
+          "id": "second_implied_process",
+          "core": false,
+          "sentence": "The process most aligned with the text might explain how \"one dose of antiviral\" leads to \"each of the three adult patients has a 60% chance of survival\" is",
+          "completion": "administration",
+          "span": "administration",
+          "verdict": "accepted",
+          "reason": "implied"
+        },
+        {
+          "id": "first_branch_sentence",
+          "core": false,
+          "sentence": "The sentence that states the first branch and does not state the second is",
+          "completion": "If Dr. Rivera gives the antiviral to the child, the child has an 80% chance of survival.",
+          "span": "If Dr. Rivera gives the antiviral to the child, the child has an 80% chance of survival",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_branch_sentence",
+          "core": false,
+          "sentence": "The sentence that states the second branch and does not state the first is",
+          "completion": "If Dr. Rivera gives the antiviral to the three adult patients, each of the three adult patients has a 60% chance of survival.",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "too_long"
+        },
+        {
+          "id": "survival_chance",
+          "core": false,
+          "sentence": "A stated chance of survival is",
+          "completion": "80% chance of survival",
+          "span": "80% chance of survival",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "nonreceipt",
+          "core": false,
+          "sentence": "The words that say the other party does not receive it are",
+          "completion": "The patients who do not receive the antiviral will die.",
+          "span": "The patients who do not receive the antiviral will die",
+          "verdict": "accepted",
+          "reason": "copied"
+        }
+      ]
+    },
+    {
+      "blueprint_id": "rescue_contrast",
+      "graph_builder": "implemented",
+      "status": "PARTIAL",
+      "rank": 1,
+      "core_filled": 2,
+      "core_count": 8,
+      "optional_filled": 3,
+      "rejected": 6,
+      "coverage_metrics": {
+        "required_filled": 2,
+        "required_total": 8,
+        "optional_filled": 3,
+        "optional_total": 3,
+        "rejected_evidence": 6,
+        "unsupported_atoms": 0,
+        "unresolved_readings": 0
+      },
+      "unfilled": [
+        "first_saved",
+        "second_saved",
+        "first_rescue_action",
+        "second_rescue_action",
+        "first_benefit",
+        "second_benefit"
+      ],
+      "unresolved_slots": [
+        "first_saved",
+        "second_saved",
+        "first_rescue_action",
+        "second_rescue_action",
+        "first_benefit",
+        "second_benefit"
+      ],
+      "accepted_evidence": {
+        "rescuer": "Dr. Rivera",
+        "rescue_exclusivity": "but not both",
+        "first_harm": "The patients who do not receive the antiviral will die",
+        "second_harm": "The patients who do not receive the antiviral will die",
+        "scene": "The patients who do not receive the antiviral will die"
+      },
+      "slots": {
+        "rescuer": "Dr. Rivera",
+        "rescue_exclusivity": "but not both",
+        "first_harm": "The patients who do not receive the antiviral will die",
+        "second_harm": "The patients who do not receive the antiviral will die",
+        "scene": "The patients who do not receive the antiviral will die"
+      },
+      "items": [
+        {
+          "id": "rescuer",
+          "core": true,
+          "sentence": "The person who must choose between the rescues is",
+          "completion": "Dr. Rivera",
+          "span": "Dr. Rivera",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "first_saved",
+          "core": true,
+          "sentence": "The first party who can be rescued is",
+          "completion": "one child",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "second_saved",
+          "core": true,
+          "sentence": "The second, distinct party who can be rescued is",
+          "completion": "three adult patients",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "rescue_exclusivity",
+          "core": true,
+          "sentence": "The exact words that say both rescues cannot happen are",
+          "completion": "but not both",
+          "span": "but not both",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "first_rescue_action",
+          "core": true,
+          "sentence": "The copied first rescue action is",
+          "completion": "gives the antiviral to the child",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "second_rescue_action",
+          "core": true,
+          "sentence": "The copied second rescue action is",
+          "completion": "gives the antiviral to the three adult patients",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "first_benefit",
+          "core": true,
+          "sentence": "The beneficial outcome in the first rescue branch is",
+          "completion": "the child has an 80% chance of survival",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "first_harm",
+          "core": false,
+          "sentence": "The harmful outcome in the first rescue branch is",
+          "completion": "the patients who do not receive the antiviral will die",
+          "span": "The patients who do not receive the antiviral will die",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_benefit",
+          "core": true,
+          "sentence": "The beneficial outcome in the second rescue branch is",
+          "completion": "each of the three adult patients has a 60% chance of survival",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "second_harm",
+          "core": false,
+          "sentence": "The harmful outcome in the second rescue branch is",
+          "completion": "the patients who do not receive the antiviral will die",
+          "span": "The patients who do not receive the antiviral will die",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "scene",
+          "core": false,
+          "sentence": "The copied words that describe the parties already in danger are",
+          "completion": "the patients who do not receive the antiviral will die",
+          "span": "The patients who do not receive the antiviral will die",
+          "verdict": "accepted",
+          "reason": "copied"
+        }
+      ]
+    },
+    {
+      "blueprint_id": "uncertain_risk",
+      "graph_builder": "implemented",
+      "status": "PARTIAL",
+      "rank": 2,
+      "core_filled": 4,
+      "core_count": 5,
+      "optional_filled": 3,
+      "rejected": 3,
+      "coverage_metrics": {
+        "required_filled": 4,
+        "required_total": 5,
+        "optional_filled": 3,
+        "optional_total": 5,
+        "rejected_evidence": 3,
+        "unsupported_atoms": 0,
+        "unresolved_readings": 0
+      },
+      "unfilled": [
+        "possible_outcome",
+        "second_action",
+        "second_outcome"
+      ],
+      "unresolved_slots": [
+        "possible_outcome",
+        "second_action",
+        "second_outcome"
+      ],
+      "accepted_evidence": {
+        "actor": "Dr. Rivera",
+        "action": "give the antiviral to either one child or three adult patients",
+        "affected_party": "the child",
+        "likelihood": "80% chance",
+        "second_affected_party": "each of the three adult patients",
+        "second_likelihood": "60% chance",
+        "expected_quantity": "one dose of antiviral"
+      },
+      "slots": {
+        "actor": "Dr. Rivera",
+        "action": "give the antiviral to either one child or three adult patients",
+        "affected_party": "the child",
+        "likelihood": "80% chance",
+        "second_affected_party": "each of the three adult patients",
+        "second_likelihood": "60% chance",
+        "expected_quantity": "one dose of antiviral"
+      },
+      "items": [
+        {
+          "id": "actor",
+          "core": true,
+          "sentence": "The actor who may perform the risky action is",
+          "completion": "Dr. Rivera",
+          "span": "Dr. Rivera",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "action",
+          "core": true,
+          "sentence": "The action carrying the stated risk is",
+          "completion": "give the antiviral to either one child or three adult patients",
+          "span": "give the antiviral to either one child or three adult patients",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "possible_outcome",
+          "core": true,
+          "sentence": "The possible or probabilistic outcome is",
+          "completion": "the child has an 80% chance of survival",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "affected_party",
+          "core": true,
+          "sentence": "The party exposed to that outcome is",
+          "completion": "the child",
+          "span": "the child",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "likelihood",
+          "core": true,
+          "sentence": "The copied likelihood or uncertainty words are",
+          "completion": "80% chance",
+          "span": "80% chance",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_action",
+          "core": false,
+          "sentence": "A second action with a different risk is",
+          "completion": "give the antiviral to the three adult patients",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "not_a_copy"
+        },
+        {
+          "id": "second_affected_party",
+          "core": false,
+          "sentence": "The party exposed to the second outcome is",
+          "completion": "each of the three adult patients",
+          "span": "each of the three adult patients",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_outcome",
+          "core": false,
+          "sentence": "The stated outcome of that second action is",
+          "completion": "each of the three adult patients has a 60% chance of survival",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "second_likelihood",
+          "core": false,
+          "sentence": "The likelihood words attached to the second outcome are",
+          "completion": "60% chance",
+          "span": "60% chance",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "expected_quantity",
+          "core": false,
+          "sentence": "A stated quantity affected by the risk is",
+          "completion": "one dose of antiviral",
+          "span": "one dose of antiviral",
+          "verdict": "accepted",
+          "reason": "copied"
+        }
+      ]
+    }
+  ],
+  "proposals": [
+    {
+      "proposal_contract_version": "blueprint-proposal-contract/0.1",
+      "proposal_id": "exclusive_allocation_cloze",
+      "blueprint_id": "exclusive_allocation",
+      "status": "FILLED",
+      "assignment_kind": "intervention_text",
+      "assignment": [
+        "gives the antiviral to the child",
+        "gives the antiviral to the three adult patients"
+      ],
+      "slot_bindings": {
+        "copied_spans": {
+          "decider": "Dr. Rivera",
+          "resource": "one dose of antiviral",
+          "assignment": "give the antiviral",
+          "quantity": "one dose",
+          "first_recipient": "one child",
+          "second_recipient": "three adult patients",
+          "exclusivity": "but not both",
+          "first_outcome": "the child has an 80% chance of survival",
+          "second_outcome": "each of the three adult patients has a 60% chance of survival",
+          "first_implied_process": "administration",
+          "second_implied_process": "administration",
+          "first_branch_sentence": "If Dr. Rivera gives the antiviral to the child, the child has an 80% chance of survival",
+          "survival_chance": "80% chance of survival",
+          "nonreceipt": "The patients who do not receive the antiviral will die"
+        }
+      },
+      "selection": null,
+      "selection_validation": {
+        "contract_valid": null,
+        "status": "not_assessed",
+        "reason": "The cloze path has no Z10 candidate selection."
+      },
+      "candidate": {
+        "actions": {
+          "A0": {
+            "clause_ids": [
+              "C2"
+            ],
+            "reason": "Filled from copied cloze slots."
+          },
+          "A1": {
+            "clause_ids": [
+              "C3"
+            ],
+            "reason": "Filled from copied cloze slots."
+          }
+        },
+        "world_model": {
+          "schema_version": "1.3",
+          "parties": [
+            {
+              "party_id": "P1",
+              "label": "Dr. Rivera",
+              "kind": "PERSON",
+              "quantities": [],
+              "clause_ids": [
+                "C1",
+                "C2",
+                "C3"
+              ]
+            },
+            {
+              "party_id": "P2",
+              "label": "one dose of antiviral",
+              "kind": "RESOURCE",
+              "quantities": [
+                "one"
+              ],
+              "clause_ids": [
+                "C0"
+              ]
+            },
+            {
+              "party_id": "P3",
+              "label": "one child",
+              "kind": "PERSON",
+              "quantities": [],
+              "clause_ids": [
+                "C1"
+              ]
+            },
+            {
+              "party_id": "P4",
+              "label": "three adult patients",
+              "kind": "HUMAN_GROUP",
+              "quantities": [
+                "three"
+              ],
+              "clause_ids": [
+                "C1",
+                "C3"
+              ]
+            }
+          ],
+          "actions": [
+            {
+              "action_id": "A0",
+              "intervention": "gives the antiviral to the child",
+              "actor_party_id": "P1",
+              "recipient_party_ids": [
+                "P3"
+              ],
+              "effect_ids": [
+                "E1",
+                "E2",
+                "E5",
+                "E7"
+              ],
+              "clause_ids": [
+                "C2"
+              ]
+            },
+            {
+              "action_id": "A1",
+              "intervention": "gives the antiviral to the three adult patients",
+              "actor_party_id": "P1",
+              "recipient_party_ids": [
+                "P4"
+              ],
+              "effect_ids": [
+                "E3",
+                "E4",
+                "E6",
+                "E8"
+              ],
+              "clause_ids": [
+                "C3"
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "effect_id": "E1",
+              "action_id": "A0",
+              "party_id": "P3",
+              "outcome": "gives the antiviral to the child",
+              "predicate": "gives",
+              "polarity": "NEUTRAL",
+              "directness": "DIRECT",
+              "modality": "CERTAIN",
+              "effect_kind": "RESOURCE_TRANSFER",
+              "condition_ids": [],
+              "quantities": [],
+              "likelihood_qualifiers": [],
+              "overall_likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "source_proposition": "gives the antiviral to the child",
+              "source_effect_ids": [],
+              "derivation_operation": "DIRECT_COPY",
+              "derivation_explanation": "The blank was filled with this copy of the scenario.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED",
+              "clause_ids": [
+                "C2"
+              ]
+            },
+            {
+              "effect_id": "E2",
+              "action_id": "A0",
+              "party_id": "P3",
+              "outcome": "the child has an 80% chance of survival",
+              "predicate": "survive",
+              "polarity": "BENEFICIAL",
+              "directness": "DOWNSTREAM",
+              "modality": "PROBABILISTIC",
+              "effect_kind": "HEALTH_OUTCOME",
+              "condition_ids": [],
+              "quantities": [],
+              "likelihood_qualifiers": [
+                "80% chance"
+              ],
+              "overall_likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "source_proposition": "the child has an 80% chance of survival",
+              "source_effect_ids": [
+                "E1"
+              ],
+              "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+              "derivation_explanation": "The blank was filled with this copy of the scenario.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED",
+              "clause_ids": [
+                "C2"
+              ]
+            },
+            {
+              "effect_id": "E3",
+              "action_id": "A1",
+              "party_id": "P4",
+              "outcome": "gives the antiviral to the three adult patients",
+              "predicate": "gives",
+              "polarity": "NEUTRAL",
+              "directness": "DIRECT",
+              "modality": "CERTAIN",
+              "effect_kind": "RESOURCE_TRANSFER",
+              "condition_ids": [],
+              "quantities": [
+                "three"
+              ],
+              "likelihood_qualifiers": [],
+              "overall_likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "source_proposition": "gives the antiviral to the three adult patients",
+              "source_effect_ids": [],
+              "derivation_operation": "DIRECT_COPY",
+              "derivation_explanation": "The blank was filled with this copy of the scenario.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED",
+              "clause_ids": [
+                "C3"
+              ]
+            },
+            {
+              "effect_id": "E4",
+              "action_id": "A1",
+              "party_id": "P4",
+              "outcome": "each of the three adult patients has a 60% chance of survival",
+              "predicate": "survive",
+              "polarity": "BENEFICIAL",
+              "directness": "DOWNSTREAM",
+              "modality": "PROBABILISTIC",
+              "effect_kind": "HEALTH_OUTCOME",
+              "condition_ids": [],
+              "quantities": [
+                "three"
+              ],
+              "likelihood_qualifiers": [
+                "60% chance"
+              ],
+              "overall_likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "source_proposition": "each of the three adult patients has a 60% chance of survival",
+              "source_effect_ids": [
+                "E3"
+              ],
+              "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+              "derivation_explanation": "The blank was filled with this copy of the scenario.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED",
+              "clause_ids": [
+                "C3"
+              ]
+            },
+            {
+              "effect_id": "E5",
+              "action_id": "A0",
+              "party_id": "P4",
+              "outcome": "does not receive one dose of antiviral",
+              "predicate": "NOT_RECEIVES",
+              "polarity": "ADVERSE",
+              "directness": "DOWNSTREAM",
+              "modality": "CERTAIN",
+              "effect_kind": "OTHER",
+              "condition_ids": [],
+              "quantities": [
+                "one"
+              ],
+              "likelihood_qualifiers": [],
+              "overall_likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "source_proposition": "A clinic has one dose of antiviral.",
+              "source_effect_ids": [
+                "E1"
+              ],
+              "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+              "derivation_explanation": "Only one dose exists, and the copied 'not both' evidence precludes simultaneous receipt by the other recipient.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED",
+              "clause_ids": [
+                "C0"
+              ]
+            },
+            {
+              "effect_id": "E6",
+              "action_id": "A1",
+              "party_id": "P3",
+              "outcome": "does not receive one dose of antiviral",
+              "predicate": "NOT_RECEIVES",
+              "polarity": "ADVERSE",
+              "directness": "DOWNSTREAM",
+              "modality": "CERTAIN",
+              "effect_kind": "OTHER",
+              "condition_ids": [],
+              "quantities": [
+                "one"
+              ],
+              "likelihood_qualifiers": [],
+              "overall_likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "source_proposition": "A clinic has one dose of antiviral.",
+              "source_effect_ids": [
+                "E3"
+              ],
+              "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+              "derivation_explanation": "Only one dose exists, and the copied 'not both' evidence precludes simultaneous receipt by the other recipient.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED",
+              "clause_ids": [
+                "C0"
+              ]
+            },
+            {
+              "effect_id": "E7",
+              "action_id": "A0",
+              "party_id": "P4",
+              "outcome": "will die",
+              "predicate": "die",
+              "polarity": "ADVERSE",
+              "directness": "DOWNSTREAM",
+              "modality": "CERTAIN",
+              "effect_kind": "HEALTH_OUTCOME",
+              "condition_ids": [],
+              "quantities": [],
+              "likelihood_qualifiers": [],
+              "overall_likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "source_proposition": "will die",
+              "source_effect_ids": [
+                "E5"
+              ],
+              "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+              "derivation_explanation": "The blank was filled with this copy of the scenario.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED",
+              "clause_ids": [
+                "C4"
+              ]
+            },
+            {
+              "effect_id": "E8",
+              "action_id": "A1",
+              "party_id": "P3",
+              "outcome": "will die",
+              "predicate": "die",
+              "polarity": "ADVERSE",
+              "directness": "DOWNSTREAM",
+              "modality": "CERTAIN",
+              "effect_kind": "HEALTH_OUTCOME",
+              "condition_ids": [],
+              "quantities": [],
+              "likelihood_qualifiers": [],
+              "overall_likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "source_proposition": "will die",
+              "source_effect_ids": [
+                "E6"
+              ],
+              "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+              "derivation_explanation": "The blank was filled with this copy of the scenario.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED",
+              "clause_ids": [
+                "C4"
+              ]
+            }
+          ],
+          "conditions": [],
+          "temporal_relations": [],
+          "causal_links": [
+            {
+              "action_id": "A0",
+              "source_id": "E1",
+              "link_relation": "CAUSES",
+              "target_id": "E2",
+              "modality": "CERTAIN",
+              "condition_ids": [],
+              "clause_ids": [
+                "C2"
+              ]
+            },
+            {
+              "action_id": "A1",
+              "source_id": "E3",
+              "link_relation": "CAUSES",
+              "target_id": "E4",
+              "modality": "CERTAIN",
+              "condition_ids": [],
+              "clause_ids": [
+                "C3"
+              ]
+            },
+            {
+              "action_id": "A0",
+              "source_id": "E5",
+              "link_relation": "CAUSES",
+              "target_id": "E7",
+              "modality": "CERTAIN",
+              "condition_ids": [],
+              "clause_ids": [
+                "C4"
+              ]
+            },
+            {
+              "action_id": "A1",
+              "source_id": "E6",
+              "link_relation": "CAUSES",
+              "target_id": "E8",
+              "modality": "CERTAIN",
+              "condition_ids": [],
+              "clause_ids": [
+                "C4"
+              ]
+            }
+          ],
+          "counterfactual_links": []
+        },
+        "ellipsis_resolutions": []
+      },
+      "clauses": [
+        {
+          "clause_id": "C0",
+          "text": "A clinic has one dose of antiviral."
+        },
+        {
+          "clause_id": "C1",
+          "text": "Dr. Rivera must give the antiviral to either one child or three adult patients, but not both."
+        },
+        {
+          "clause_id": "C2",
+          "text": "If Dr. Rivera gives the antiviral to the child, the child has an 80% chance of survival."
+        },
+        {
+          "clause_id": "C3",
+          "text": "If Dr. Rivera gives the antiviral to the three adult patients, each of the three adult patients has a 60% chance of survival."
+        },
+        {
+          "clause_id": "C4",
+          "text": "The patients who do not receive the antiviral will die."
+        }
+      ],
+      "unfilled_required_slots": [],
+      "unresolved_readings": [],
+      "construction_problems": [],
+      "admission_authorized": true,
+      "notes": [
+        "Implied process for the first outcome: administration. This is a warning, not a cause copied from the text.",
+        "Implied process for the second outcome: administration. This is a warning, not a cause copied from the text."
+      ],
+      "pre_world_assessment": {
+        "ethical_question": "gives / gives",
+        "scenario_options": [
+          {
+            "id": "choice11",
+            "selection_rule": "any_subset",
+            "exhaustive": false,
+            "options": [
+              "gives",
+              "gives"
+            ]
+          }
+        ],
+        "exclusivity": "evidenced",
+        "participants": [
+          {
+            "role": "subject",
+            "mention": "A clinic",
+            "predicate": "has"
+          },
+          {
+            "role": "object",
+            "mention": "one dose",
+            "predicate": "has"
+          },
+          {
+            "role": "subject",
+            "mention": "Dr. Rivera",
+            "predicate": "give"
+          },
+          {
+            "role": "object",
+            "mention": "the antiviral",
+            "predicate": "give"
+          },
+          {
+            "role": "destination",
+            "mention": "one child",
+            "predicate": "give"
+          },
+          {
+            "role": "subject",
+            "mention": "Dr. Rivera",
+            "predicate": "gives"
+          },
+          {
+            "role": "object",
+            "mention": "the antiviral",
+            "predicate": "gives"
+          },
+          {
+            "role": "destination",
+            "mention": "the child",
+            "predicate": "gives"
+          },
+          {
+            "role": "subject",
+            "mention": "the child",
+            "predicate": "has"
+          },
+          {
+            "role": "object",
+            "mention": "an 80% chance",
+            "predicate": "has"
+          },
+          {
+            "role": "subject",
+            "mention": "Dr. Rivera",
+            "predicate": "gives"
+          },
+          {
+            "role": "object",
+            "mention": "the antiviral",
+            "predicate": "gives"
+          },
+          {
+            "role": "destination",
+            "mention": "the three adult patients",
+            "predicate": "gives"
+          },
+          {
+            "role": "subject",
+            "mention": "each",
+            "predicate": "has"
+          },
+          {
+            "role": "object",
+            "mention": "a 60% chance",
+            "predicate": "has"
+          },
+          {
+            "role": "subject",
+            "mention": "who",
+            "predicate": "receive"
+          },
+          {
+            "role": "object",
+            "mention": "the antiviral",
+            "predicate": "receive"
+          },
+          {
+            "role": "subject",
+            "mention": "The patients",
+            "predicate": "die"
+          },
+          {
+            "role": "destination",
+            "mention": "three adult patients",
+            "predicate": "give"
+          }
+        ],
+        "eligible_for_world_state": true,
+        "status": "ASSESSED"
+      },
+      "accepted_evidence": {
+        "decider": "Dr. Rivera",
+        "resource": "one dose of antiviral",
+        "assignment": "give the antiviral",
+        "quantity": "one dose",
+        "first_recipient": "one child",
+        "second_recipient": "three adult patients",
+        "exclusivity": "but not both",
+        "first_outcome": "the child has an 80% chance of survival",
+        "second_outcome": "each of the three adult patients has a 60% chance of survival",
+        "first_implied_process": "administration",
+        "second_implied_process": "administration",
+        "first_branch_sentence": "If Dr. Rivera gives the antiviral to the child, the child has an 80% chance of survival",
+        "survival_chance": "80% chance of survival",
+        "nonreceipt": "The patients who do not receive the antiviral will die"
+      },
+      "world_withheld": []
+    }
+  ],
+  "graph": {
+    "proposal_contract_version": "blueprint-proposal-contract/0.1",
+    "proposal_id": "exclusive_allocation_cloze",
+    "blueprint_id": "exclusive_allocation",
+    "status": "FILLED",
+    "assignment_kind": "intervention_text",
+    "assignment": [
+      "gives the antiviral to the child",
+      "gives the antiviral to the three adult patients"
+    ],
+    "slot_bindings": {
+      "copied_spans": {
+        "decider": "Dr. Rivera",
+        "resource": "one dose of antiviral",
+        "assignment": "give the antiviral",
+        "quantity": "one dose",
+        "first_recipient": "one child",
+        "second_recipient": "three adult patients",
+        "exclusivity": "but not both",
+        "first_outcome": "the child has an 80% chance of survival",
+        "second_outcome": "each of the three adult patients has a 60% chance of survival",
+        "first_implied_process": "administration",
+        "second_implied_process": "administration",
+        "first_branch_sentence": "If Dr. Rivera gives the antiviral to the child, the child has an 80% chance of survival",
+        "survival_chance": "80% chance of survival",
+        "nonreceipt": "The patients who do not receive the antiviral will die"
+      }
+    },
+    "selection": null,
+    "selection_validation": {
+      "contract_valid": null,
+      "status": "not_assessed",
+      "reason": "The cloze path has no Z10 candidate selection."
+    },
+    "candidate": {
+      "actions": {
+        "A0": {
+          "clause_ids": [
+            "C2"
+          ],
+          "reason": "Filled from copied cloze slots."
+        },
+        "A1": {
+          "clause_ids": [
+            "C3"
+          ],
+          "reason": "Filled from copied cloze slots."
+        }
+      },
+      "world_model": {
+        "schema_version": "1.3",
+        "parties": [
+          {
+            "party_id": "P1",
+            "label": "Dr. Rivera",
+            "kind": "PERSON",
+            "quantities": [],
+            "clause_ids": [
+              "C1",
+              "C2",
+              "C3"
+            ]
+          },
+          {
+            "party_id": "P2",
+            "label": "one dose of antiviral",
+            "kind": "RESOURCE",
+            "quantities": [
+              "one"
+            ],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P3",
+            "label": "one child",
+            "kind": "PERSON",
+            "quantities": [],
+            "clause_ids": [
+              "C1"
+            ]
+          },
+          {
+            "party_id": "P4",
+            "label": "three adult patients",
+            "kind": "HUMAN_GROUP",
+            "quantities": [
+              "three"
+            ],
+            "clause_ids": [
+              "C1",
+              "C3"
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "action_id": "A0",
+            "intervention": "gives the antiviral to the child",
+            "actor_party_id": "P1",
+            "recipient_party_ids": [
+              "P3"
+            ],
+            "effect_ids": [
+              "E1",
+              "E2",
+              "E5",
+              "E7"
+            ],
+            "clause_ids": [
+              "C2"
+            ]
+          },
+          {
+            "action_id": "A1",
+            "intervention": "gives the antiviral to the three adult patients",
+            "actor_party_id": "P1",
+            "recipient_party_ids": [
+              "P4"
+            ],
+            "effect_ids": [
+              "E3",
+              "E4",
+              "E6",
+              "E8"
+            ],
+            "clause_ids": [
+              "C3"
+            ]
+          }
+        ],
+        "effects": [
+          {
+            "effect_id": "E1",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "gives the antiviral to the child",
+            "predicate": "gives",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "RESOURCE_TRANSFER",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "gives the antiviral to the child",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C2"
+            ]
+          },
+          {
+            "effect_id": "E2",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "the child has an 80% chance of survival",
+            "predicate": "survive",
+            "polarity": "BENEFICIAL",
+            "directness": "DOWNSTREAM",
+            "modality": "PROBABILISTIC",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [
+              "80% chance"
+            ],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "the child has an 80% chance of survival",
+            "source_effect_ids": [
+              "E1"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C2"
+            ]
+          },
+          {
+            "effect_id": "E3",
+            "action_id": "A1",
+            "party_id": "P4",
+            "outcome": "gives the antiviral to the three adult patients",
+            "predicate": "gives",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "RESOURCE_TRANSFER",
+            "condition_ids": [],
+            "quantities": [
+              "three"
+            ],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "gives the antiviral to the three adult patients",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C3"
+            ]
+          },
+          {
+            "effect_id": "E4",
+            "action_id": "A1",
+            "party_id": "P4",
+            "outcome": "each of the three adult patients has a 60% chance of survival",
+            "predicate": "survive",
+            "polarity": "BENEFICIAL",
+            "directness": "DOWNSTREAM",
+            "modality": "PROBABILISTIC",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [
+              "three"
+            ],
+            "likelihood_qualifiers": [
+              "60% chance"
+            ],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "each of the three adult patients has a 60% chance of survival",
+            "source_effect_ids": [
+              "E3"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C3"
+            ]
+          },
+          {
+            "effect_id": "E5",
+            "action_id": "A0",
+            "party_id": "P4",
+            "outcome": "does not receive one dose of antiviral",
+            "predicate": "NOT_RECEIVES",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "OTHER",
+            "condition_ids": [],
+            "quantities": [
+              "one"
+            ],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "A clinic has one dose of antiviral.",
+            "source_effect_ids": [
+              "E1"
+            ],
+            "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+            "derivation_explanation": "Only one dose exists, and the copied 'not both' evidence precludes simultaneous receipt by the other recipient.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "effect_id": "E6",
+            "action_id": "A1",
+            "party_id": "P3",
+            "outcome": "does not receive one dose of antiviral",
+            "predicate": "NOT_RECEIVES",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "OTHER",
+            "condition_ids": [],
+            "quantities": [
+              "one"
+            ],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "A clinic has one dose of antiviral.",
+            "source_effect_ids": [
+              "E3"
+            ],
+            "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+            "derivation_explanation": "Only one dose exists, and the copied 'not both' evidence precludes simultaneous receipt by the other recipient.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "effect_id": "E7",
+            "action_id": "A0",
+            "party_id": "P4",
+            "outcome": "will die",
+            "predicate": "die",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "will die",
+            "source_effect_ids": [
+              "E5"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C4"
+            ]
+          },
+          {
+            "effect_id": "E8",
+            "action_id": "A1",
+            "party_id": "P3",
+            "outcome": "will die",
+            "predicate": "die",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "will die",
+            "source_effect_ids": [
+              "E6"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C4"
+            ]
+          }
+        ],
+        "conditions": [],
+        "temporal_relations": [],
+        "causal_links": [
+          {
+            "action_id": "A0",
+            "source_id": "E1",
+            "link_relation": "CAUSES",
+            "target_id": "E2",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C2"
+            ]
+          },
+          {
+            "action_id": "A1",
+            "source_id": "E3",
+            "link_relation": "CAUSES",
+            "target_id": "E4",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C3"
+            ]
+          },
+          {
+            "action_id": "A0",
+            "source_id": "E5",
+            "link_relation": "CAUSES",
+            "target_id": "E7",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C4"
+            ]
+          },
+          {
+            "action_id": "A1",
+            "source_id": "E6",
+            "link_relation": "CAUSES",
+            "target_id": "E8",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C4"
+            ]
+          }
+        ],
+        "counterfactual_links": []
+      },
+      "ellipsis_resolutions": []
+    },
+    "clauses": [
+      {
+        "clause_id": "C0",
+        "text": "A clinic has one dose of antiviral."
+      },
+      {
+        "clause_id": "C1",
+        "text": "Dr. Rivera must give the antiviral to either one child or three adult patients, but not both."
+      },
+      {
+        "clause_id": "C2",
+        "text": "If Dr. Rivera gives the antiviral to the child, the child has an 80% chance of survival."
+      },
+      {
+        "clause_id": "C3",
+        "text": "If Dr. Rivera gives the antiviral to the three adult patients, each of the three adult patients has a 60% chance of survival."
+      },
+      {
+        "clause_id": "C4",
+        "text": "The patients who do not receive the antiviral will die."
+      }
+    ],
+    "unfilled_required_slots": [],
+    "unresolved_readings": [],
+    "construction_problems": [],
+    "admission_authorized": true,
+    "notes": [
+      "Implied process for the first outcome: administration. This is a warning, not a cause copied from the text.",
+      "Implied process for the second outcome: administration. This is a warning, not a cause copied from the text."
+    ],
+    "pre_world_assessment": {
+      "ethical_question": "gives / gives",
+      "scenario_options": [
+        {
+          "id": "choice11",
+          "selection_rule": "any_subset",
+          "exhaustive": false,
+          "options": [
+            "gives",
+            "gives"
+          ]
+        }
+      ],
+      "exclusivity": "evidenced",
+      "participants": [
+        {
+          "role": "subject",
+          "mention": "A clinic",
+          "predicate": "has"
+        },
+        {
+          "role": "object",
+          "mention": "one dose",
+          "predicate": "has"
+        },
+        {
+          "role": "subject",
+          "mention": "Dr. Rivera",
+          "predicate": "give"
+        },
+        {
+          "role": "object",
+          "mention": "the antiviral",
+          "predicate": "give"
+        },
+        {
+          "role": "destination",
+          "mention": "one child",
+          "predicate": "give"
+        },
+        {
+          "role": "subject",
+          "mention": "Dr. Rivera",
+          "predicate": "gives"
+        },
+        {
+          "role": "object",
+          "mention": "the antiviral",
+          "predicate": "gives"
+        },
+        {
+          "role": "destination",
+          "mention": "the child",
+          "predicate": "gives"
+        },
+        {
+          "role": "subject",
+          "mention": "the child",
+          "predicate": "has"
+        },
+        {
+          "role": "object",
+          "mention": "an 80% chance",
+          "predicate": "has"
+        },
+        {
+          "role": "subject",
+          "mention": "Dr. Rivera",
+          "predicate": "gives"
+        },
+        {
+          "role": "object",
+          "mention": "the antiviral",
+          "predicate": "gives"
+        },
+        {
+          "role": "destination",
+          "mention": "the three adult patients",
+          "predicate": "gives"
+        },
+        {
+          "role": "subject",
+          "mention": "each",
+          "predicate": "has"
+        },
+        {
+          "role": "object",
+          "mention": "a 60% chance",
+          "predicate": "has"
+        },
+        {
+          "role": "subject",
+          "mention": "who",
+          "predicate": "receive"
+        },
+        {
+          "role": "object",
+          "mention": "the antiviral",
+          "predicate": "receive"
+        },
+        {
+          "role": "subject",
+          "mention": "The patients",
+          "predicate": "die"
+        },
+        {
+          "role": "destination",
+          "mention": "three adult patients",
+          "predicate": "give"
+        }
+      ],
+      "eligible_for_world_state": true,
+      "status": "ASSESSED"
+    },
+    "accepted_evidence": {
+      "decider": "Dr. Rivera",
+      "resource": "one dose of antiviral",
+      "assignment": "give the antiviral",
+      "quantity": "one dose",
+      "first_recipient": "one child",
+      "second_recipient": "three adult patients",
+      "exclusivity": "but not both",
+      "first_outcome": "the child has an 80% chance of survival",
+      "second_outcome": "each of the three adult patients has a 60% chance of survival",
+      "first_implied_process": "administration",
+      "second_implied_process": "administration",
+      "first_branch_sentence": "If Dr. Rivera gives the antiviral to the child, the child has an 80% chance of survival",
+      "survival_chance": "80% chance of survival",
+      "nonreceipt": "The patients who do not receive the antiviral will die"
+    },
+    "world_withheld": []
+  }
+}

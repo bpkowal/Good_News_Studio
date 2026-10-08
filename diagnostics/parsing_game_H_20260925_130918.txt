@@ -1,0 +1,1193 @@
+
+CHECKING ALL REPRESENTATIONS TOGETHER
+======================================================================
+No contradictory exact representation collisions found.
+
+NEAR-COLLISION CHECK
+======================================================================
+No opposite-label near-collisions within distance 0.35.
+Generation  1 | mean 0.26 | elite 0.47 | best 0.65
+Generation  2 | mean 0.35 | elite 0.59 | best 0.80
+Generation  3 | mean 0.48 | elite 0.70 | best 0.85
+Generation  4 | mean 0.56 | elite 0.80 | best 1.00
+Generation  5 | mean 0.67 | elite 0.87 | best 1.00
+Generation  6 | mean 0.70 | elite 0.89 | best 0.95
+Generation  7 | mean 0.74 | elite 0.92 | best 1.00
+Generation  8 | mean 0.78 | elite 0.93 | best 1.00
+Generation  9 | mean 0.82 | elite 0.96 | best 1.00
+Generation 10 | mean 0.88 | elite 0.98 | best 1.00
+Generation 11 | mean 0.92 | elite 1.00 | best 1.00
+Generation 12 | mean 0.94 | elite 1.00 | best 1.00
+Generation 13 | mean 0.93 | elite 1.00 | best 1.00
+Generation 14 | mean 0.96 | elite 1.00 | best 1.00
+Generation 15 | mean 0.96 | elite 1.00 | best 1.00
+Generation 16 | mean 0.96 | elite 1.00 | best 1.00
+Generation 17 | mean 0.98 | elite 1.00 | best 1.00
+Generation 18 | mean 0.99 | elite 1.00 | best 1.00
+Generation 19 | mean 0.98 | elite 1.00 | best 1.00
+Generation 20 | mean 0.98 | elite 1.00 | best 1.00
+Generation 21 | mean 0.99 | elite 1.00 | best 1.00
+Generation 22 | mean 0.99 | elite 1.00 | best 1.00
+Generation 23 | mean 0.99 | elite 1.00 | best 1.00
+Generation 24 | mean 0.99 | elite 1.00 | best 1.00
+Generation 25 | mean 0.99 | elite 1.00 | best 1.00
+Generation 26 | mean 1.00 | elite 1.00 | best 1.00
+Generation 27 | mean 1.00 | elite 1.00 | best 1.00
+Generation 28 | mean 1.00 | elite 1.00 | best 1.00
+Generation 29 | mean 1.00 | elite 1.00 | best 1.00
+Generation 30 | mean 1.00 | elite 1.00 | best 1.00
+Generation 31 | mean 1.00 | elite 1.00 | best 1.00
+Generation 32 | mean 1.00 | elite 1.00 | best 1.00
+Generation 33 | mean 1.00 | elite 1.00 | best 1.00
+Generation 34 | mean 1.00 | elite 1.00 | best 1.00
+Generation 35 | mean 1.00 | elite 1.00 | best 1.00
+Generation 36 | mean 1.00 | elite 1.00 | best 1.00
+Generation 37 | mean 1.00 | elite 1.00 | best 1.00
+Generation 38 | mean 1.00 | elite 1.00 | best 1.00
+Generation 39 | mean 1.00 | elite 1.00 | best 1.00
+Generation 40 | mean 1.00 | elite 1.00 | best 1.00
+
+
+ORDINARY HOLDOUT RESULTS
+======================================================================
+
+Stress causes insomnia.
+
+Automatic candidate discovery:
+  Pair: stress <-> insomnia
+  Predicate: causes
+  Candidate source: known_relation_lemma
+  Matched semantic pattern: None
+  Matches old gold pair: True
+
+Relation detection:
+  Stage: shortlist
+  Status: resolved
+  Semantic class: known
+  Candidate span: None
+  Candidate lemmas: None
+  Matched pattern: None
+  Relation token: causes
+  Relation lemma: cause
+  Relation POS: VERB
+  Relation dependency: ROOT
+  Relation head: causes
+
+spaCy entity structure:
+  Entity 1: Stress | lemma=stress | POS=NOUN | dep=nsubj | head=causes
+  Entity 2: insomnia | lemma=insomnia | POS=NOUN | dep=dobj | head=causes
+
+Structural channels:
+  relation_present                  1.00
+  relation_between_entities         1.00
+  distance_entity1_relation         0.50
+  distance_relation_entity2         0.50
+  bias                              1.00
+
+Scores:
+  FIRST causes SECOND       1.569
+  SECOND causes FIRST       0.328
+  NO causal relationship   -0.226
+  UNRESOLVED relationship  -2.532
+Margin: 1.242
+Prediction: FIRST causes SECOND
+Correct:    FIRST causes SECOND
+
+By midnight stress caused insomnia.
+
+Automatic candidate discovery:
+  Pair: stress <-> insomnia
+  Predicate: caused
+  Candidate source: known_relation_lemma
+  Matched semantic pattern: None
+  Matches old gold pair: True
+
+Relation detection:
+  Stage: shortlist
+  Status: resolved
+  Semantic class: known
+  Candidate span: None
+  Candidate lemmas: None
+  Matched pattern: None
+  Relation token: caused
+  Relation lemma: cause
+  Relation POS: VERB
+  Relation dependency: ROOT
+  Relation head: caused
+
+spaCy entity structure:
+  Entity 1: stress | lemma=stress | POS=NOUN | dep=nsubj | head=caused
+  Entity 2: insomnia | lemma=insomnia | POS=NOUN | dep=dobj | head=caused
+
+Structural channels:
+  relation_present                  1.00
+  relation_between_entities         1.00
+  marker_before_entity1             1.00
+  distance_entity1_relation         0.25
+  distance_relation_entity2         0.25
+  bias                              1.00
+
+Scores:
+  FIRST causes SECOND       3.173
+  SECOND causes FIRST      -1.109
+  NO causal relationship   -1.209
+  UNRESOLVED relationship  -2.662
+Margin: 4.282
+Prediction: FIRST causes SECOND
+Correct:    FIRST causes SECOND
+
+Stress caused insomnia by disrupting sleep.
+
+Automatic candidate discovery:
+  Pair: stress <-> insomnia
+  Predicate: caused
+  Candidate source: known_relation_lemma
+  Matched semantic pattern: None
+  Matches old gold pair: True
+
+Relation detection:
+  Stage: shortlist
+  Status: resolved
+  Semantic class: known
+  Candidate span: None
+  Candidate lemmas: None
+  Matched pattern: None
+  Relation token: caused
+  Relation lemma: cause
+  Relation POS: VERB
+  Relation dependency: ROOT
+  Relation head: caused
+
+spaCy entity structure:
+  Entity 1: Stress | lemma=stress | POS=NOUN | dep=nsubj | head=caused
+  Entity 2: insomnia | lemma=insomnia | POS=NOUN | dep=dobj | head=caused
+
+Structural channels:
+  relation_present                  1.00
+  relation_between_entities         1.00
+  marker_after_entity2              1.00
+  distance_entity1_relation         0.20
+  distance_relation_entity2         0.20
+  bias                              1.00
+
+Scores:
+  FIRST causes SECOND       1.082
+  SECOND causes FIRST      -0.602
+  NO causal relationship    0.147
+  UNRESOLVED relationship  -1.460
+Margin: 0.936
+Prediction: FIRST causes SECOND
+Correct:    FIRST causes SECOND
+
+Insomnia was caused by stress.
+
+Automatic candidate discovery:
+  Pair: insomnia <-> stress
+  Predicate: caused
+  Candidate source: known_relation_lemma
+  Matched semantic pattern: None
+  Matches old gold pair: True
+
+Relation detection:
+  Stage: shortlist
+  Status: resolved
+  Semantic class: known
+  Candidate span: None
+  Candidate lemmas: None
+  Matched pattern: None
+  Relation token: caused
+  Relation lemma: cause
+  Relation POS: VERB
+  Relation dependency: ROOT
+  Relation head: caused
+
+spaCy entity structure:
+  Entity 1: Insomnia | lemma=Insomnia | POS=PROPN | dep=nsubjpass | head=caused
+  Entity 2: stress | lemma=stress | POS=NOUN | dep=pobj | head=by
+
+Structural channels:
+  relation_present                  1.00
+  relation_between_entities         1.00
+  marker_between_relation_entity2   1.00
+  aux_between_entity1_relation      1.00
+  distance_entity1_relation         0.50
+  distance_relation_entity2         0.50
+  bias                              1.00
+
+Scores:
+  FIRST causes SECOND       1.394
+  SECOND causes FIRST       3.349
+  NO causal relationship    2.692
+  UNRESOLVED relationship  -3.322
+Margin: 0.657
+Prediction: SECOND causes FIRST
+Correct:    SECOND causes FIRST
+
+Insomnia caused by stress yesterday.
+
+Automatic candidate discovery:
+  Pair: insomnia <-> stress
+  Predicate: caused
+  Candidate source: known_relation_lemma
+  Matched semantic pattern: None
+  Matches old gold pair: True
+
+Relation detection:
+  Stage: shortlist
+  Status: resolved
+  Semantic class: known
+  Candidate span: None
+  Candidate lemmas: None
+  Matched pattern: None
+  Relation token: caused
+  Relation lemma: cause
+  Relation POS: VERB
+  Relation dependency: ROOT
+  Relation head: caused
+
+spaCy entity structure:
+  Entity 1: Insomnia | lemma=Insomnia | POS=PROPN | dep=nsubj | head=caused
+  Entity 2: stress | lemma=stress | POS=NOUN | dep=pobj | head=by
+
+Structural channels:
+  relation_present                  1.00
+  relation_between_entities         1.00
+  marker_between_relation_entity2   1.00
+  distance_entity1_relation         0.25
+  distance_relation_entity2         0.50
+  bias                              1.00
+
+Scores:
+  FIRST causes SECOND       1.425
+  SECOND causes FIRST       2.468
+  NO causal relationship    1.734
+  UNRESOLVED relationship  -3.177
+Margin: 0.733
+Prediction: SECOND causes FIRST
+Correct:    SECOND causes FIRST
+
+Stress does not cause insomnia.
+
+Automatic candidate discovery:
+  Pair: stress <-> insomnia
+  Predicate: cause
+  Candidate source: known_relation_lemma
+  Matched semantic pattern: None
+  Matches old gold pair: True
+
+Relation detection:
+  Stage: shortlist
+  Status: resolved
+  Semantic class: known
+  Candidate span: None
+  Candidate lemmas: None
+  Matched pattern: None
+  Relation token: cause
+  Relation lemma: cause
+  Relation POS: VERB
+  Relation dependency: ROOT
+  Relation head: cause
+
+spaCy entity structure:
+  Entity 1: Stress | lemma=stress | POS=NOUN | dep=nsubj | head=cause
+  Entity 2: insomnia | lemma=insomnia | POS=NOUN | dep=dobj | head=cause
+
+Structural channels:
+  relation_present                  1.00
+  relation_between_entities         1.00
+  aux_between_entity1_relation      1.00
+  negation_between_entity1_relation 1.00
+  negation_adjacent_relation        1.00
+  negation_closeness_relation       1.00
+  negated_relation_structure        1.00
+  distance_entity1_relation         0.75
+  distance_relation_entity2         0.25
+  bias                              1.00
+
+Scores:
+  FIRST causes SECOND      -2.306
+  SECOND causes FIRST      -1.281
+  NO causal relationship    1.341
+  UNRESOLVED relationship   0.100
+Margin: 1.241
+Prediction: NO causal relationship
+Correct:    NO causal relationship
+
+Stress not caffeine causes insomnia.
+
+Automatic candidate discovery:
+  Pair: stress <-> insomnia
+  Predicate: causes
+  Candidate source: known_relation_lemma
+  Matched semantic pattern: None
+  Matches old gold pair: True
+
+Relation detection:
+  Stage: shortlist
+  Status: resolved
+  Semantic class: known
+  Candidate span: None
+  Candidate lemmas: None
+  Matched pattern: None
+  Relation token: causes
+  Relation lemma: cause
+  Relation POS: VERB
+  Relation dependency: ROOT
+  Relation head: causes
+
+spaCy entity structure:
+  Entity 1: Stress | lemma=stress | POS=VERB | dep=nsubj | head=causes
+  Entity 2: insomnia | lemma=insomnia | POS=NOUN | dep=dobj | head=causes
+
+Structural channels:
+  relation_present                  1.00
+  relation_between_entities         1.00
+  negation_between_entity1_relation 1.00
+  negation_closeness_relation       0.50
+  negated_relation_structure        0.50
+  distance_entity1_relation         0.75
+  distance_relation_entity2         0.25
+  bias                              1.00
+
+Scores:
+  FIRST causes SECOND       0.506
+  SECOND causes FIRST      -0.757
+  NO causal relationship   -0.486
+  UNRESOLVED relationship  -2.982
+Margin: 0.992
+Prediction: FIRST causes SECOND
+Correct:    FIRST causes SECOND
+
+Music is unrelated to insomnia.
+
+Automatic candidate discovery:
+  Pair: music <-> insomnia
+  Predicate: None
+  Candidate source: entity_fallback
+  Matched semantic pattern: None
+  Matches old gold pair: True
+
+Relation detection:
+  Stage: none
+  Status: no_candidate
+  Semantic class: none
+  Candidate span: None
+  Candidate lemmas: None
+  Matched pattern: None
+  Relation token: None
+  Relation lemma: None
+  Relation POS: None
+  Relation dependency: None
+  Relation head: None
+
+spaCy entity structure:
+  Entity 1: Music | lemma=music | POS=NOUN | dep=nsubj | head=is
+  Entity 2: insomnia | lemma=insomnia | POS=NOUN | dep=pobj | head=to
+
+Structural channels:
+  no_relation_signal                1.00
+  bias                              1.00
+
+Scores:
+  FIRST causes SECOND      -1.975
+  SECOND causes FIRST      -0.831
+  NO causal relationship    0.976
+  UNRESOLVED relationship  -0.363
+Margin: 1.340
+Prediction: NO causal relationship
+Correct:    NO causal relationship
+
+Accuracy: 1.000
+Mean decision margin: 1.428
+Minimum decision margin: 0.657
+
+
+NEGATION GENERALIZATION RESULTS
+======================================================================
+
+Rain caused flooding.
+Family: active_positive
+
+Automatic candidate discovery:
+  Pair: rain <-> flooding
+  Predicate: caused
+  Candidate source: known_relation_lemma
+  Matched semantic pattern: None
+  Matches old gold pair: True
+
+Relation detection:
+  Stage: shortlist
+  Status: resolved
+  Semantic class: known
+  Candidate span: None
+  Candidate lemmas: None
+  Matched pattern: None
+  Relation token: caused
+  Relation lemma: cause
+  Relation POS: VERB
+  Relation dependency: ROOT
+  Relation head: caused
+
+spaCy entity structure:
+  Entity 1: Rain | lemma=rain | POS=NOUN | dep=nsubj | head=caused
+  Entity 2: flooding | lemma=flooding | POS=NOUN | dep=dobj | head=caused
+
+Structural channels:
+  relation_present                  1.00
+  relation_between_entities         1.00
+  distance_entity1_relation         0.50
+  distance_relation_entity2         0.50
+  bias                              1.00
+
+Scores:
+  FIRST causes SECOND       1.569
+  SECOND causes FIRST       0.328
+  NO causal relationship   -0.226
+  UNRESOLVED relationship  -2.532
+Margin: 1.242
+Prediction: FIRST causes SECOND
+Correct:    FIRST causes SECOND
+
+Rain did not cause flooding.
+Family: active_negative
+
+Automatic candidate discovery:
+  Pair: rain <-> flooding
+  Predicate: cause
+  Candidate source: known_relation_lemma
+  Matched semantic pattern: None
+  Matches old gold pair: True
+
+Relation detection:
+  Stage: shortlist
+  Status: resolved
+  Semantic class: known
+  Candidate span: None
+  Candidate lemmas: None
+  Matched pattern: None
+  Relation token: cause
+  Relation lemma: cause
+  Relation POS: VERB
+  Relation dependency: ROOT
+  Relation head: cause
+
+spaCy entity structure:
+  Entity 1: Rain | lemma=rain | POS=NOUN | dep=nsubj | head=cause
+  Entity 2: flooding | lemma=flooding | POS=NOUN | dep=dobj | head=cause
+
+Structural channels:
+  relation_present                  1.00
+  relation_between_entities         1.00
+  aux_between_entity1_relation      1.00
+  negation_between_entity1_relation 1.00
+  negation_adjacent_relation        1.00
+  negation_closeness_relation       1.00
+  negated_relation_structure        1.00
+  distance_entity1_relation         0.75
+  distance_relation_entity2         0.25
+  bias                              1.00
+
+Scores:
+  FIRST causes SECOND      -2.306
+  SECOND causes FIRST      -1.281
+  NO causal relationship    1.341
+  UNRESOLVED relationship   0.100
+Margin: 1.241
+Prediction: NO causal relationship
+Correct:    NO causal relationship
+
+Flooding was caused by rain.
+Family: passive_positive
+
+Automatic candidate discovery:
+  Pair: flooding <-> rain
+  Predicate: caused
+  Candidate source: known_relation_lemma
+  Matched semantic pattern: None
+  Matches old gold pair: True
+
+Relation detection:
+  Stage: shortlist
+  Status: resolved
+  Semantic class: known
+  Candidate span: None
+  Candidate lemmas: None
+  Matched pattern: None
+  Relation token: caused
+  Relation lemma: cause
+  Relation POS: VERB
+  Relation dependency: ROOT
+  Relation head: caused
+
+spaCy entity structure:
+  Entity 1: Flooding | lemma=flooding | POS=NOUN | dep=nsubjpass | head=caused
+  Entity 2: rain | lemma=rain | POS=NOUN | dep=pobj | head=by
+
+Structural channels:
+  relation_present                  1.00
+  relation_between_entities         1.00
+  marker_between_relation_entity2   1.00
+  aux_between_entity1_relation      1.00
+  distance_entity1_relation         0.50
+  distance_relation_entity2         0.50
+  bias                              1.00
+
+Scores:
+  FIRST causes SECOND       1.394
+  SECOND causes FIRST       3.349
+  NO causal relationship    2.692
+  UNRESOLVED relationship  -3.322
+Margin: 0.657
+Prediction: SECOND causes FIRST
+Correct:    SECOND causes FIRST
+
+Flooding was not caused by rain.
+Family: passive_negative
+
+Automatic candidate discovery:
+  Pair: flooding <-> rain
+  Predicate: caused
+  Candidate source: known_relation_lemma
+  Matched semantic pattern: None
+  Matches old gold pair: True
+
+Relation detection:
+  Stage: shortlist
+  Status: resolved
+  Semantic class: known
+  Candidate span: None
+  Candidate lemmas: None
+  Matched pattern: None
+  Relation token: caused
+  Relation lemma: cause
+  Relation POS: VERB
+  Relation dependency: ROOT
+  Relation head: caused
+
+spaCy entity structure:
+  Entity 1: Flooding | lemma=flooding | POS=NOUN | dep=nsubjpass | head=caused
+  Entity 2: rain | lemma=rain | POS=NOUN | dep=pobj | head=by
+
+Structural channels:
+  relation_present                  1.00
+  relation_between_entities         1.00
+  marker_between_relation_entity2   1.00
+  aux_between_entity1_relation      1.00
+  negation_between_entity1_relation 1.00
+  negation_adjacent_relation        1.00
+  negation_closeness_relation       1.00
+  negated_relation_structure        1.00
+  negated_reverse_structure         1.00
+  distance_entity1_relation         0.60
+  distance_relation_entity2         0.40
+  bias                              1.00
+
+Scores:
+  FIRST causes SECOND      -2.911
+  SECOND causes FIRST       0.929
+  NO causal relationship    3.975
+  UNRESOLVED relationship  -0.385
+Margin: 3.046
+Prediction: NO causal relationship
+Correct:    NO causal relationship
+
+Rain not snow caused flooding.
+Family: contrastive_not
+
+Automatic candidate discovery:
+  Pair: rain <-> flooding
+  Predicate: caused
+  Candidate source: known_relation_lemma
+  Matched semantic pattern: None
+  Matches old gold pair: True
+
+Relation detection:
+  Stage: shortlist
+  Status: resolved
+  Semantic class: known
+  Candidate span: None
+  Candidate lemmas: None
+  Matched pattern: None
+  Relation token: caused
+  Relation lemma: cause
+  Relation POS: VERB
+  Relation dependency: ROOT
+  Relation head: caused
+
+spaCy entity structure:
+  Entity 1: Rain | lemma=Rain | POS=PROPN | dep=nsubj | head=caused
+  Entity 2: flooding | lemma=flooding | POS=NOUN | dep=dobj | head=caused
+
+Structural channels:
+  relation_present                  1.00
+  relation_between_entities         1.00
+  negation_between_entity1_relation 1.00
+  negation_closeness_relation       0.50
+  negated_relation_structure        0.50
+  distance_entity1_relation         0.75
+  distance_relation_entity2         0.25
+  bias                              1.00
+
+Scores:
+  FIRST causes SECOND       0.506
+  SECOND causes FIRST      -0.757
+  NO causal relationship   -0.486
+  UNRESOLVED relationship  -2.982
+Margin: 0.992
+Prediction: FIRST causes SECOND
+Correct:    FIRST causes SECOND
+
+Rain caused flooding not drought.
+Family: object_contrast
+
+Automatic candidate discovery:
+  Pair: rain <-> flooding
+  Predicate: caused
+  Candidate source: known_relation_lemma
+  Matched semantic pattern: None
+  Matches old gold pair: True
+
+Relation detection:
+  Stage: shortlist
+  Status: resolved
+  Semantic class: known
+  Candidate span: None
+  Candidate lemmas: None
+  Matched pattern: None
+  Relation token: caused
+  Relation lemma: cause
+  Relation POS: VERB
+  Relation dependency: ROOT
+  Relation head: caused
+
+spaCy entity structure:
+  Entity 1: Rain | lemma=rain | POS=NOUN | dep=nsubj | head=caused
+  Entity 2: flooding | lemma=flooding | POS=NOUN | dep=dobj | head=caused
+
+Structural channels:
+  relation_present                  1.00
+  relation_between_entities         1.00
+  negation_closeness_relation       0.50
+  distance_entity1_relation         0.25
+  distance_relation_entity2         0.25
+  bias                              1.00
+
+Scores:
+  FIRST causes SECOND       0.648
+  SECOND causes FIRST      -0.112
+  NO causal relationship   -0.368
+  UNRESOLVED relationship  -2.839
+Margin: 0.760
+Prediction: FIRST causes SECOND
+Correct:    FIRST causes SECOND
+
+Accuracy: 1.000
+Mean decision margin: 1.323
+Minimum decision margin: 0.657
+
+
+ROBUSTNESS RESULTS
+======================================================================
+
+Rain accompanies flooding.
+Family: unresolved_relation
+
+Automatic candidate discovery:
+  Pair: rain <-> flooding
+  Predicate: accompanies
+  Candidate source: spacy_verb
+  Matched semantic pattern: None
+  Matches old gold pair: True
+
+Relation detection:
+  Stage: spacy_candidate
+  Status: unresolved
+  Semantic class: unknown
+  Candidate span: ['accompanies']
+  Candidate lemmas: ['accompany']
+  Matched pattern: None
+  Relation token: accompanies
+  Relation lemma: accompany
+  Relation POS: VERB
+  Relation dependency: ROOT
+  Relation head: accompanies
+
+spaCy entity structure:
+  Entity 1: Rain | lemma=rain | POS=NOUN | dep=nsubj | head=accompanies
+  Entity 2: flooding | lemma=flooding | POS=NOUN | dep=dobj | head=accompanies
+
+Structural channels:
+  unresolved_relation_signal        1.00
+  bias                              1.00
+
+Scores:
+  FIRST causes SECOND      -0.207
+  SECOND causes FIRST       0.761
+  NO causal relationship   -1.029
+  UNRESOLVED relationship   1.523
+Margin: 0.762
+Prediction: UNRESOLVED relationship
+Correct:    UNRESOLVED relationship
+
+Flooding was not caused by rain.
+Family: negation_scope
+
+Automatic candidate discovery:
+  Pair: flooding <-> rain
+  Predicate: caused
+  Candidate source: known_relation_lemma
+  Matched semantic pattern: None
+  Matches old gold pair: True
+
+Relation detection:
+  Stage: shortlist
+  Status: resolved
+  Semantic class: known
+  Candidate span: None
+  Candidate lemmas: None
+  Matched pattern: None
+  Relation token: caused
+  Relation lemma: cause
+  Relation POS: VERB
+  Relation dependency: ROOT
+  Relation head: caused
+
+spaCy entity structure:
+  Entity 1: Flooding | lemma=flooding | POS=NOUN | dep=nsubjpass | head=caused
+  Entity 2: rain | lemma=rain | POS=NOUN | dep=pobj | head=by
+
+Structural channels:
+  relation_present                  1.00
+  relation_between_entities         1.00
+  marker_between_relation_entity2   1.00
+  aux_between_entity1_relation      1.00
+  negation_between_entity1_relation 1.00
+  negation_adjacent_relation        1.00
+  negation_closeness_relation       1.00
+  negated_relation_structure        1.00
+  negated_reverse_structure         1.00
+  distance_entity1_relation         0.60
+  distance_relation_entity2         0.40
+  bias                              1.00
+
+Scores:
+  FIRST causes SECOND      -2.911
+  SECOND causes FIRST       0.929
+  NO causal relationship    3.975
+  UNRESOLVED relationship  -0.385
+Margin: 3.046
+Prediction: NO causal relationship
+Correct:    NO causal relationship
+
+Rain not snow caused flooding.
+Family: negation_scope
+
+Automatic candidate discovery:
+  Pair: rain <-> flooding
+  Predicate: caused
+  Candidate source: known_relation_lemma
+  Matched semantic pattern: None
+  Matches old gold pair: True
+
+Relation detection:
+  Stage: shortlist
+  Status: resolved
+  Semantic class: known
+  Candidate span: None
+  Candidate lemmas: None
+  Matched pattern: None
+  Relation token: caused
+  Relation lemma: cause
+  Relation POS: VERB
+  Relation dependency: ROOT
+  Relation head: caused
+
+spaCy entity structure:
+  Entity 1: Rain | lemma=Rain | POS=PROPN | dep=nsubj | head=caused
+  Entity 2: flooding | lemma=flooding | POS=NOUN | dep=dobj | head=caused
+
+Structural channels:
+  relation_present                  1.00
+  relation_between_entities         1.00
+  negation_between_entity1_relation 1.00
+  negation_closeness_relation       0.50
+  negated_relation_structure        0.50
+  distance_entity1_relation         0.75
+  distance_relation_entity2         0.25
+  bias                              1.00
+
+Scores:
+  FIRST causes SECOND       0.506
+  SECOND causes FIRST      -0.757
+  NO causal relationship   -0.486
+  UNRESOLVED relationship  -2.982
+Margin: 0.992
+Prediction: FIRST causes SECOND
+Correct:    FIRST causes SECOND
+
+Rain caused flooding not drought.
+Family: negation_scope
+
+Automatic candidate discovery:
+  Pair: rain <-> flooding
+  Predicate: caused
+  Candidate source: known_relation_lemma
+  Matched semantic pattern: None
+  Matches old gold pair: True
+
+Relation detection:
+  Stage: shortlist
+  Status: resolved
+  Semantic class: known
+  Candidate span: None
+  Candidate lemmas: None
+  Matched pattern: None
+  Relation token: caused
+  Relation lemma: cause
+  Relation POS: VERB
+  Relation dependency: ROOT
+  Relation head: caused
+
+spaCy entity structure:
+  Entity 1: Rain | lemma=rain | POS=NOUN | dep=nsubj | head=caused
+  Entity 2: flooding | lemma=flooding | POS=NOUN | dep=dobj | head=caused
+
+Structural channels:
+  relation_present                  1.00
+  relation_between_entities         1.00
+  negation_closeness_relation       0.50
+  distance_entity1_relation         0.25
+  distance_relation_entity2         0.25
+  bias                              1.00
+
+Scores:
+  FIRST causes SECOND       0.648
+  SECOND causes FIRST      -0.112
+  NO causal relationship   -0.368
+  UNRESOLVED relationship  -2.839
+Margin: 0.760
+Prediction: FIRST causes SECOND
+Correct:    FIRST causes SECOND
+
+Rain very often unexpectedly causes severe flooding.
+Family: distance_invariance
+
+Automatic candidate discovery:
+  Pair: rain <-> flooding
+  Predicate: causes
+  Candidate source: known_relation_lemma
+  Matched semantic pattern: None
+  Matches old gold pair: True
+
+Relation detection:
+  Stage: shortlist
+  Status: resolved
+  Semantic class: known
+  Candidate span: None
+  Candidate lemmas: None
+  Matched pattern: None
+  Relation token: causes
+  Relation lemma: cause
+  Relation POS: VERB
+  Relation dependency: ROOT
+  Relation head: causes
+
+spaCy entity structure:
+  Entity 1: Rain | lemma=rain | POS=NOUN | dep=nsubj | head=causes
+  Entity 2: flooding | lemma=flooding | POS=NOUN | dep=dobj | head=causes
+
+Structural channels:
+  relation_present                  1.00
+  relation_between_entities         1.00
+  distance_entity1_relation         0.67
+  distance_relation_entity2         0.33
+  bias                              1.00
+
+Scores:
+  FIRST causes SECOND       1.708
+  SECOND causes FIRST       0.261
+  NO causal relationship   -0.444
+  UNRESOLVED relationship  -2.631
+Margin: 1.447
+Prediction: FIRST causes SECOND
+Correct:    FIRST causes SECOND
+
+Flooding was frequently and unexpectedly caused directly by rain.
+Family: distance_invariance
+
+Automatic candidate discovery:
+  Pair: flooding <-> rain
+  Predicate: caused
+  Candidate source: known_relation_lemma
+  Matched semantic pattern: None
+  Matches old gold pair: True
+
+Relation detection:
+  Stage: shortlist
+  Status: resolved
+  Semantic class: known
+  Candidate span: None
+  Candidate lemmas: None
+  Matched pattern: None
+  Relation token: caused
+  Relation lemma: cause
+  Relation POS: VERB
+  Relation dependency: ROOT
+  Relation head: caused
+
+spaCy entity structure:
+  Entity 1: Flooding | lemma=flooding | POS=NOUN | dep=nsubjpass | head=caused
+  Entity 2: rain | lemma=rain | POS=NOUN | dep=pobj | head=by
+
+Structural channels:
+  relation_present                  1.00
+  relation_between_entities         1.00
+  marker_between_relation_entity2   1.00
+  aux_between_entity1_relation      1.00
+  distance_entity1_relation         0.62
+  distance_relation_entity2         0.38
+  bias                              1.00
+
+Scores:
+  FIRST causes SECOND       1.498
+  SECOND causes FIRST       3.299
+  NO causal relationship    2.528
+  UNRESOLVED relationship  -3.396
+Margin: 0.771
+Prediction: SECOND causes FIRST
+Correct:    SECOND causes FIRST
+
+Rain caused flooding by noon.
+Family: marker_role
+
+Automatic candidate discovery:
+  Pair: rain <-> flooding
+  Predicate: caused
+  Candidate source: known_relation_lemma
+  Matched semantic pattern: None
+  Matches old gold pair: True
+
+Relation detection:
+  Stage: shortlist
+  Status: resolved
+  Semantic class: known
+  Candidate span: None
+  Candidate lemmas: None
+  Matched pattern: None
+  Relation token: caused
+  Relation lemma: cause
+  Relation POS: VERB
+  Relation dependency: ROOT
+  Relation head: caused
+
+spaCy entity structure:
+  Entity 1: Rain | lemma=rain | POS=NOUN | dep=nsubj | head=caused
+  Entity 2: flooding | lemma=flooding | POS=NOUN | dep=dobj | head=caused
+
+Structural channels:
+  relation_present                  1.00
+  relation_between_entities         1.00
+  marker_after_entity2              1.00
+  distance_entity1_relation         0.25
+  distance_relation_entity2         0.25
+  bias                              1.00
+
+Scores:
+  FIRST causes SECOND       1.173
+  SECOND causes FIRST      -0.548
+  NO causal relationship    0.161
+  UNRESOLVED relationship  -1.561
+Margin: 1.012
+Prediction: FIRST causes SECOND
+Correct:    FIRST causes SECOND
+
+Flooding caused by rain continued.
+Family: marker_role
+
+Automatic candidate discovery:
+  Pair: flooding <-> rain
+  Predicate: caused
+  Candidate source: known_relation_lemma
+  Matched semantic pattern: None
+  Matches old gold pair: True
+
+Relation detection:
+  Stage: shortlist
+  Status: resolved
+  Semantic class: known
+  Candidate span: None
+  Candidate lemmas: None
+  Matched pattern: None
+  Relation token: caused
+  Relation lemma: cause
+  Relation POS: VERB
+  Relation dependency: acl
+  Relation head: Flooding
+
+spaCy entity structure:
+  Entity 1: Flooding | lemma=flooding | POS=NOUN | dep=nsubj | head=continued
+  Entity 2: rain | lemma=rain | POS=NOUN | dep=pobj | head=by
+
+Structural channels:
+  relation_present                  1.00
+  relation_between_entities         1.00
+  marker_between_relation_entity2   1.00
+  distance_entity1_relation         0.25
+  distance_relation_entity2         0.50
+  bias                              1.00
+
+Scores:
+  FIRST causes SECOND       1.425
+  SECOND causes FIRST       2.468
+  NO causal relationship    1.734
+  UNRESOLVED relationship  -3.177
+Margin: 0.733
+Prediction: SECOND causes FIRST
+Correct:    SECOND causes FIRST
+
+Rain caused flooding by blocking drains.
+Family: marker_role
+
+Automatic candidate discovery:
+  Pair: rain <-> flooding
+  Predicate: caused
+  Candidate source: known_relation_lemma
+  Matched semantic pattern: None
+  Matches old gold pair: True
+
+Relation detection:
+  Stage: shortlist
+  Status: resolved
+  Semantic class: known
+  Candidate span: None
+  Candidate lemmas: None
+  Matched pattern: None
+  Relation token: caused
+  Relation lemma: cause
+  Relation POS: VERB
+  Relation dependency: ROOT
+  Relation head: caused
+
+spaCy entity structure:
+  Entity 1: Rain | lemma=rain | POS=NOUN | dep=nsubj | head=caused
+  Entity 2: flooding | lemma=flooding | POS=NOUN | dep=dobj | head=caused
+
+Structural channels:
+  relation_present                  1.00
+  relation_between_entities         1.00
+  marker_after_entity2              1.00
+  distance_entity1_relation         0.20
+  distance_relation_entity2         0.20
+  bias                              1.00
+
+Scores:
+  FIRST causes SECOND       1.082
+  SECOND causes FIRST      -0.602
+  NO causal relationship    0.147
+  UNRESOLVED relationship  -1.460
+Margin: 0.936
+Prediction: FIRST causes SECOND
+Correct:    FIRST causes SECOND
+
+Rain leads to flooding.
+Family: lexical_ood
+
+Automatic candidate discovery:
+  Pair: rain <-> flooding
+  Predicate: leads
+  Candidate source: semantic_pattern
+  Matched semantic pattern: ('lead', 'to')
+  Matches old gold pair: True
+
+Relation detection:
+  Stage: semantic_span
+  Status: resolved
+  Semantic class: causal
+  Candidate span: ['leads', 'to']
+  Candidate lemmas: ['lead', 'to']
+  Matched pattern: ('lead', 'to')
+  Relation token: leads
+  Relation lemma: lead
+  Relation POS: VERB
+  Relation dependency: ROOT
+  Relation head: leads
+
+spaCy entity structure:
+  Entity 1: Rain | lemma=rain | POS=NOUN | dep=nsubj | head=leads
+  Entity 2: flooding | lemma=flooding | POS=NOUN | dep=pobj | head=to
+
+Structural channels:
+  relation_present                  1.00
+  relation_between_entities         1.00
+  distance_entity1_relation         0.33
+  distance_relation_entity2         0.67
+  bias                              1.00
+
+Scores:
+  FIRST causes SECOND       1.431
+  SECOND causes FIRST       0.394
+  NO causal relationship   -0.008
+  UNRESOLVED relationship  -2.433
+Margin: 1.037
+Prediction: FIRST causes SECOND
+Correct:    FIRST causes SECOND
+
+Flooding results from rain.
+Family: lexical_ood
+
+Automatic candidate discovery:
+  Pair: flooding <-> rain
+  Predicate: results
+  Candidate source: semantic_pattern
+  Matched semantic pattern: ('result', 'from')
+  Matches old gold pair: True
+
+Relation detection:
+  Stage: semantic_span
+  Status: resolved
+  Semantic class: causal
+  Candidate span: ['results', 'from']
+  Candidate lemmas: ['result', 'from']
+  Matched pattern: ('result', 'from')
+  Relation token: results
+  Relation lemma: result
+  Relation POS: NOUN
+  Relation dependency: dobj
+  Relation head: Flooding
+
+spaCy entity structure:
+  Entity 1: Flooding | lemma=flood | POS=VERB | dep=ROOT | head=Flooding
+  Entity 2: rain | lemma=rain | POS=NOUN | dep=pobj | head=from
+
+Structural channels:
+  relation_present                  1.00
+  relation_between_entities         1.00
+  marker_between_relation_entity2   1.00
+  distance_entity1_relation         0.33
+  distance_relation_entity2         0.67
+  bias                              1.00
+
+Scores:
+  FIRST causes SECOND       1.618
+  SECOND causes FIRST       2.621
+  NO causal relationship    1.826
+  UNRESOLVED relationship  -3.407
+Margin: 0.795
+Prediction: SECOND causes FIRST
+Correct:    SECOND causes FIRST
+
+Accuracy: 1.000
+Mean decision margin: 1.117
+Minimum decision margin: 0.733
+
+
+SUMMARY
+======================================================================
+Training best accuracy: 1.000
+Ordinary holdout accuracy: 1.000
+Negation generalization accuracy: 1.000
+Robustness accuracy: 1.000
+
+Diagnostic files:
+  Text:  diagnostics/parsing_game_H_20260925_130918.txt
+  JSONL: diagnostics/parsing_game_H_20260925_130918.jsonl

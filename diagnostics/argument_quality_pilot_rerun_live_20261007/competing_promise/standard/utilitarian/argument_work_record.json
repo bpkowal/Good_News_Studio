@@ -1,0 +1,67 @@
+{
+  "origin": "MODEL_AUTHORED_ARGUMENT",
+  "authority": "ATTRIBUTED_NOT_WORLD_STATE",
+  "raw_fields": {
+    "ev": {
+      "A0": {
+        "value": 0.95,
+        "unit": "EXPECTED_SURVIVORS",
+        "direction": "BENEFIT",
+        "grounded": true,
+        "method": "EXPECTED_COUNT",
+        "source_effect_ids": [
+          "E2"
+        ],
+        "calculation": "1 person * 0.95 survival probability",
+        "assumptions": []
+      },
+      "A1": {
+        "value": 0.05,
+        "unit": "EXPECTED_SURVIVORS",
+        "direction": "BENEFIT",
+        "grounded": true,
+        "method": "EXPECTED_COUNT",
+        "source_effect_ids": [
+          "E4"
+        ],
+        "calculation": "1 person * 0.05 survival probability",
+        "assumptions": []
+      }
+    },
+    "dp": null,
+    "cl": null,
+    "ep": [
+      {
+        "c": "Ben has a 95% chance of survival; affected subject: Ben; modality: PROBABILISTIC",
+        "p": "PROP:WORLD:E2",
+        "dc": false,
+        "a": "A0",
+        "se": [],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      },
+      {
+        "c": "Cara has a 5% chance of survival; affected subject: Cara; modality: PROBABILISTIC",
+        "p": "PROP:WORLD:E4",
+        "dc": false,
+        "a": "A1",
+        "se": [],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      }
+    ],
+    "dr": "prefer an action that produces higher expected survivors than alternative",
+    "ft": "if Cara\u2019s survival chance exceeded Ben\u2019s",
+    "nt": "if keeping promises outweighed lives saved",
+    "fic": [],
+    "foq": []
+  },
+  "native_submission": "VALID",
+  "native_ledger": "COMMITTED",
+  "native_warnings": [],
+  "semantic_support": "NOT_INDEPENDENTLY_VERIFIED"
+}

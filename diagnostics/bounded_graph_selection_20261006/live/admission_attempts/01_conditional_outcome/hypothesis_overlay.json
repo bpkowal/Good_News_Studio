@@ -1,0 +1,411 @@
+{
+  "effects": [
+    {
+      "effect_id": "AV3",
+      "action_id": "A1",
+      "party_id": "P2",
+      "outcome": "averts alternative harm to One worker",
+      "predicate": "avert",
+      "polarity": "BENEFICIAL",
+      "directness": "DOWNSTREAM",
+      "modality": "CERTAIN",
+      "effect_kind": "HEALTH_OUTCOME",
+      "condition_ids": [],
+      "quantities": [
+        "one"
+      ],
+      "likelihood_qualifiers": [],
+      "overall_likelihood_qualifiers": [],
+      "scope_qualifiers": [],
+      "temporal_qualifiers": [],
+      "condition_join": "AND",
+      "source_proposition": "one worker will die",
+      "source_effect_ids": [
+        "E3"
+      ],
+      "derivation_operation": "AVERTED_ALTERNATIVE_HARM",
+      "derivation_explanation": "A1 precludes CERTAIN alternative harm E3; the opposed death is the input, not a copied survival clause",
+      "derivation_assumptions": [
+        "the action branches partition the choice",
+        "a CERTAIN harm stated on the opposed branch does not occur on this branch",
+        "the opposed parties are not on the same fatal path"
+      ],
+      "outcome_type_transformation": "POLARITY_INVERTED",
+      "clause_ids": [
+        "C3"
+      ]
+    },
+    {
+      "effect_id": "AV6",
+      "action_id": "A0",
+      "party_id": "P4",
+      "outcome": "averts alternative harm to Five workers",
+      "predicate": "avert",
+      "polarity": "BENEFICIAL",
+      "directness": "DOWNSTREAM",
+      "modality": "CERTAIN",
+      "effect_kind": "HEALTH_OUTCOME",
+      "condition_ids": [],
+      "quantities": [
+        "five"
+      ],
+      "likelihood_qualifiers": [],
+      "overall_likelihood_qualifiers": [],
+      "scope_qualifiers": [],
+      "temporal_qualifiers": [],
+      "condition_join": "AND",
+      "source_proposition": "five workers will die",
+      "source_effect_ids": [
+        "E6"
+      ],
+      "derivation_operation": "AVERTED_ALTERNATIVE_HARM",
+      "derivation_explanation": "A0 precludes CERTAIN alternative harm E6; the opposed death is the input, not a copied survival clause",
+      "derivation_assumptions": [
+        "the action branches partition the choice",
+        "a CERTAIN harm stated on the opposed branch does not occur on this branch",
+        "the opposed parties are not on the same fatal path"
+      ],
+      "outcome_type_transformation": "POLARITY_INVERTED",
+      "clause_ids": [
+        "C4"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "collection": "counterfactual_links",
+      "record": {
+        "action_id": "A1",
+        "source_effect_id": "AV3",
+        "relation": "PRECLUDES_ALTERNATIVE_EFFECT",
+        "alternative_action_id": "A0",
+        "alternative_effect_id": "E3",
+        "modality": "CERTAIN",
+        "condition_ids": [],
+        "clause_ids": [
+          "C3"
+        ]
+      },
+      "reason": "excluded_endpoint"
+    },
+    {
+      "collection": "counterfactual_links",
+      "record": {
+        "action_id": "A0",
+        "source_effect_id": "AV6",
+        "relation": "PRECLUDES_ALTERNATIVE_EFFECT",
+        "alternative_action_id": "A1",
+        "alternative_effect_id": "E6",
+        "modality": "CERTAIN",
+        "condition_ids": [],
+        "clause_ids": [
+          "C4"
+        ]
+      },
+      "reason": "excluded_endpoint"
+    }
+  ],
+  "reasons": {
+    "AV3": [
+      "unresolved_derivation_assumptions",
+      "unsupported_outcome_transformation",
+      "hypothesized_averted_harm"
+    ],
+    "AV6": [
+      "unresolved_derivation_assumptions",
+      "unsupported_outcome_transformation",
+      "hypothesized_averted_harm"
+    ]
+  },
+  "status": "NOT_SUBMITTED_AS_WORLD",
+  "unknown_branch_outcomes": [
+    {
+      "action_id": "A1",
+      "party_id": "P2",
+      "excluded_effect_id": "AV3",
+      "status": "UNKNOWN"
+    },
+    {
+      "action_id": "A0",
+      "party_id": "P4",
+      "excluded_effect_id": "AV6",
+      "status": "UNKNOWN"
+    }
+  ],
+  "hypotheses": [
+    {
+      "hypothesis_id": "z10:c0",
+      "producer": "z10",
+      "span": "are",
+      "clause_ids": [
+        "C0"
+      ],
+      "z10_candidate_ids": [
+        "c0"
+      ],
+      "hypothesis": {
+        "kind": "PREDICATION",
+        "value": null,
+        "arguments": {
+          "proposition": "p2"
+        }
+      },
+      "scope": {
+        "contexts": [
+          {
+            "kind": "UNRESOLVED"
+          }
+        ]
+      },
+      "provenance": "SOURCE_ASSERTED",
+      "atom_ids": []
+    },
+    {
+      "hypothesis_id": "z10:c1",
+      "producer": "z10",
+      "span": "is",
+      "clause_ids": [
+        "C1"
+      ],
+      "z10_candidate_ids": [
+        "c1"
+      ],
+      "hypothesis": {
+        "kind": "PREDICATION",
+        "value": null,
+        "arguments": {
+          "proposition": "p9"
+        }
+      },
+      "scope": {
+        "contexts": [
+          {
+            "kind": "UNRESOLVED"
+          }
+        ]
+      },
+      "provenance": "SOURCE_ASSERTED",
+      "atom_ids": []
+    },
+    {
+      "hypothesis_id": "z10:c9",
+      "producer": "z10",
+      "span": "can",
+      "clause_ids": [
+        "C2"
+      ],
+      "z10_candidate_ids": [
+        "c9"
+      ],
+      "hypothesis": {
+        "kind": "MODALITY",
+        "value": "ability",
+        "arguments": {
+          "proposition": "p17"
+        }
+      },
+      "scope": {
+        "contexts": [
+          {
+            "kind": "UNRESOLVED"
+          }
+        ]
+      },
+      "provenance": "SOURCE_ASSERTED",
+      "atom_ids": []
+    },
+    {
+      "hypothesis_id": "z10:c10",
+      "producer": "z10",
+      "span": "can",
+      "clause_ids": [
+        "C2"
+      ],
+      "z10_candidate_ids": [
+        "c10"
+      ],
+      "hypothesis": {
+        "kind": "MODALITY",
+        "value": "permission",
+        "arguments": {
+          "proposition": "p17"
+        }
+      },
+      "scope": {
+        "contexts": [
+          {
+            "kind": "UNRESOLVED"
+          }
+        ]
+      },
+      "provenance": "SOURCE_ASSERTED",
+      "atom_ids": []
+    },
+    {
+      "hypothesis_id": "z10:c11",
+      "producer": "z10",
+      "span": "can",
+      "clause_ids": [
+        "C2"
+      ],
+      "z10_candidate_ids": [
+        "c11"
+      ],
+      "hypothesis": {
+        "kind": "MODALITY",
+        "value": "possibility",
+        "arguments": {
+          "proposition": "p17"
+        }
+      },
+      "scope": {
+        "contexts": [
+          {
+            "kind": "UNRESOLVED"
+          }
+        ]
+      },
+      "provenance": "SOURCE_ASSERTED",
+      "atom_ids": []
+    },
+    {
+      "hypothesis_id": "z10:c15",
+      "producer": "z10",
+      "span": "track",
+      "clause_ids": [
+        "C0",
+        "C1"
+      ],
+      "z10_candidate_ids": [
+        "c15"
+      ],
+      "hypothesis": {
+        "kind": "PARTICIPANT",
+        "value": "location",
+        "arguments": {
+          "proposition": "p2",
+          "mention": "m5"
+        }
+      },
+      "scope": {
+        "contexts": [
+          {
+            "kind": "UNRESOLVED"
+          }
+        ]
+      },
+      "provenance": "SOURCE_ASSERTED",
+      "atom_ids": []
+    },
+    {
+      "hypothesis_id": "z10:c17",
+      "producer": "z10",
+      "span": "track",
+      "clause_ids": [
+        "C0",
+        "C1"
+      ],
+      "z10_candidate_ids": [
+        "c17"
+      ],
+      "hypothesis": {
+        "kind": "PARTICIPANT",
+        "value": "location",
+        "arguments": {
+          "proposition": "p9",
+          "mention": "m13"
+        }
+      },
+      "scope": {
+        "contexts": [
+          {
+            "kind": "UNRESOLVED"
+          }
+        ]
+      },
+      "provenance": "SOURCE_ASSERTED",
+      "atom_ids": []
+    },
+    {
+      "hypothesis_id": "z10:c44",
+      "producer": "z10",
+      "span": "can",
+      "clause_ids": [
+        "C2"
+      ],
+      "z10_candidate_ids": [
+        "c44"
+      ],
+      "hypothesis": {
+        "kind": "MODALITY",
+        "value": "ability",
+        "arguments": {
+          "proposition": "p_reconstructed_21"
+        }
+      },
+      "scope": {
+        "contexts": [
+          {
+            "kind": "UNRESOLVED"
+          }
+        ]
+      },
+      "provenance": "SOURCE_ASSERTED",
+      "atom_ids": []
+    },
+    {
+      "hypothesis_id": "z10:c45",
+      "producer": "z10",
+      "span": "can",
+      "clause_ids": [
+        "C2"
+      ],
+      "z10_candidate_ids": [
+        "c45"
+      ],
+      "hypothesis": {
+        "kind": "MODALITY",
+        "value": "permission",
+        "arguments": {
+          "proposition": "p_reconstructed_21"
+        }
+      },
+      "scope": {
+        "contexts": [
+          {
+            "kind": "UNRESOLVED"
+          }
+        ]
+      },
+      "provenance": "SOURCE_ASSERTED",
+      "atom_ids": []
+    },
+    {
+      "hypothesis_id": "z10:c46",
+      "producer": "z10",
+      "span": "can",
+      "clause_ids": [
+        "C2"
+      ],
+      "z10_candidate_ids": [
+        "c46"
+      ],
+      "hypothesis": {
+        "kind": "MODALITY",
+        "value": "possibility",
+        "arguments": {
+          "proposition": "p_reconstructed_21"
+        }
+      },
+      "scope": {
+        "contexts": [
+          {
+            "kind": "UNRESOLVED"
+          }
+        ]
+      },
+      "provenance": "SOURCE_ASSERTED",
+      "atom_ids": []
+    }
+  ]
+}

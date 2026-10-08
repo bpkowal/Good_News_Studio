@@ -1,0 +1,107 @@
+{
+  "origin": "MODEL_AUTHORED_ARGUMENT",
+  "authority": "ATTRIBUTED_NOT_WORLD_STATE",
+  "raw_fields": {
+    "ev": {
+      "A0": {
+        "value": 0.95,
+        "unit": "PERSON",
+        "direction": "BENEFIT",
+        "grounded": true,
+        "method": "EXPECTED_COUNT",
+        "source_effect_ids": [
+          "E2"
+        ],
+        "calculation": "1 person * 0.95 = 0.95 expected survivor",
+        "assumptions": []
+      },
+      "A1": {
+        "value": 0.05,
+        "unit": "PERSON",
+        "direction": "BENEFIT",
+        "grounded": true,
+        "method": "EXPECTED_COUNT",
+        "source_effect_ids": [
+          "E4"
+        ],
+        "calculation": "1 person * 0.05 = 0.05 expected survivor",
+        "assumptions": []
+      }
+    },
+    "dp": null,
+    "cl": {
+      "A0": {
+        "v": "RESPONSIVE",
+        "p": "Ben",
+        "rt": "ENTRUSTED",
+        "ds": "Ada controls sole life-saving dose",
+        "rb": "control creates direct responsibility",
+        "nk": "SURVIVAL_HEALTH",
+        "nu": "IMMEDIATE",
+        "te": "PRESERVES",
+        "rr": "DIRECT",
+        "f": "ESTABLISHED",
+        "cc": "Cara\u2019s equal need",
+        "res": "CONTESTED",
+        "g": "ACTION_GRAPH",
+        "rs": "Action meets entrusted immediate need with high competence"
+      },
+      "A1": {
+        "v": "NEGLECTFUL",
+        "p": "Cara",
+        "rt": "ENTRUSTED",
+        "ds": "Ada controls sole life-saving dose",
+        "rb": "control creates direct responsibility",
+        "nk": "SURVIVAL_HEALTH",
+        "nu": "IMMEDIATE",
+        "te": "STRAINS",
+        "rr": "DIRECT",
+        "f": "ESTABLISHED",
+        "cc": "Ben\u2019s equal need with higher chance",
+        "res": "CONTESTED",
+        "g": "ACTION_GRAPH",
+        "rs": "Action attempts care but with very low competence"
+      }
+    },
+    "ep": [
+      {
+        "c": "Ben has a 95% chance of survival; affected subject: Ben; modality: PROBABILISTIC",
+        "p": "PROP:WORLD:E2",
+        "dc": true,
+        "a": "A0",
+        "se": [
+          "E2"
+        ],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      },
+      {
+        "c": "Cara has a 5% chance of survival; affected subject: Cara; modality: PROBABILISTIC",
+        "p": "PROP:WORLD:E4",
+        "dc": true,
+        "a": "A1",
+        "se": [
+          "E4"
+        ],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      }
+    ],
+    "dr": "prefer A0 when its survival probability exceeds A1 for equally dependent patients",
+    "ft": "Cara\u2019s survival chance rises near Ben\u2019s",
+    "nt": "prima-facie equality of patients outweighs competence",
+    "fic": [],
+    "foq": []
+  },
+  "native_submission": "VALID",
+  "native_ledger": "COMMITTED_WITH_UNCERTAINTY",
+  "native_warnings": [
+    "A0 competing Care claim remains contested",
+    "A1 competing Care claim remains contested"
+  ],
+  "semantic_support": "NOT_INDEPENDENTLY_VERIFIED"
+}

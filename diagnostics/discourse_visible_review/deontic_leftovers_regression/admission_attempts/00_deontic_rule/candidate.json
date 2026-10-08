@@ -1,0 +1,1082 @@
+{
+  "scenario": "Ada must deliver water to Ben.",
+  "actions": [],
+  "package": {
+    "schema_version": "0.4",
+    "package_id": "blueprint_run_f10e5f2e7628",
+    "document": {
+      "id": "document",
+      "text": "Ada must deliver water to Ben."
+    },
+    "producer": {
+      "name": "parsing_game_Z10",
+      "version": "Z10",
+      "resources": [
+        {
+          "id": "T_reference_policy",
+          "version": "1",
+          "description": "Curated candidate-generation and ranking policy, not learned probabilities or a complete animacy lexicon."
+        }
+      ]
+    },
+    "evidence": [
+      {
+        "id": "e0",
+        "start": 9,
+        "end": 16,
+        "text": "deliver"
+      },
+      {
+        "id": "e1",
+        "start": 4,
+        "end": 8,
+        "text": "must"
+      },
+      {
+        "id": "e2",
+        "start": 0,
+        "end": 3,
+        "text": "Ada"
+      },
+      {
+        "id": "e3",
+        "start": 17,
+        "end": 22,
+        "text": "water"
+      },
+      {
+        "id": "e4",
+        "start": 23,
+        "end": 29,
+        "text": "to Ben"
+      },
+      {
+        "id": "e5",
+        "start": 26,
+        "end": 29,
+        "text": "Ben"
+      },
+      {
+        "id": "e6",
+        "start": 0,
+        "end": 30,
+        "text": "Ada must deliver water to Ben."
+      }
+    ],
+    "nodes": [
+      {
+        "id": "p2",
+        "kind": "proposition",
+        "label": "deliver",
+        "predicate": "deliver",
+        "evidence_ids": [
+          "e0"
+        ],
+        "predicate_evidence_ids": [
+          "e0"
+        ]
+      },
+      {
+        "id": "m0",
+        "kind": "mention",
+        "label": "Ada",
+        "evidence_ids": [
+          "e2"
+        ]
+      },
+      {
+        "id": "m3",
+        "kind": "mention",
+        "label": "water",
+        "evidence_ids": [
+          "e3"
+        ]
+      },
+      {
+        "id": "m5",
+        "kind": "mention",
+        "label": "Ben",
+        "evidence_ids": [
+          "e5"
+        ]
+      }
+    ],
+    "candidates": [
+      {
+        "id": "c0",
+        "type": "PREDICATION",
+        "arguments": {
+          "proposition": "p2"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e0"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "modal_choice",
+              "modality_choice_set_id": "choice0",
+              "evidence_ids": [
+                "e1"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c1",
+        "type": "MODALITY",
+        "arguments": {
+          "proposition": "p2"
+        },
+        "value": "obligation",
+        "evidence_ids": [
+          "e1"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": null
+        },
+        "requires": [
+          "c0"
+        ],
+        "exclusive_with": [
+          "c2"
+        ]
+      },
+      {
+        "id": "c2",
+        "type": "MODALITY",
+        "arguments": {
+          "proposition": "p2"
+        },
+        "value": "unresolved",
+        "evidence_ids": [
+          "e1"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": null
+        },
+        "requires": [
+          "c0"
+        ],
+        "exclusive_with": [
+          "c1"
+        ]
+      },
+      {
+        "id": "c3",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p2",
+          "mention": "m0"
+        },
+        "value": "subject",
+        "evidence_ids": [
+          "e2"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "modal_choice",
+              "modality_choice_set_id": "choice0",
+              "evidence_ids": [
+                "e1"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c0"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c4",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p2",
+          "mention": "m3"
+        },
+        "value": "object",
+        "evidence_ids": [
+          "e3"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "modal_choice",
+              "modality_choice_set_id": "choice0",
+              "evidence_ids": [
+                "e1"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c0"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c5",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p2",
+          "mention": "m5"
+        },
+        "value": "destination",
+        "evidence_ids": [
+          "e4"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "modal_choice",
+              "modality_choice_set_id": "choice0",
+              "evidence_ids": [
+                "e1"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c0"
+        ],
+        "exclusive_with": []
+      }
+    ],
+    "choice_sets": [
+      {
+        "id": "choice0",
+        "kind": "interpretation",
+        "candidate_ids": [
+          "c1",
+          "c2"
+        ],
+        "selection_rule": "at_most_one",
+        "exhaustive": false,
+        "evidence_ids": [
+          "e1"
+        ]
+      }
+    ],
+    "open_questions": [
+      {
+        "id": "q0",
+        "kind": "modality",
+        "evidence_ids": [
+          "e1"
+        ],
+        "candidate_ids": [
+          "c1",
+          "c2"
+        ],
+        "question": "Select the modal meaning; prediction, ability and obligation are distinct.",
+        "blocking_for": [
+          "c0"
+        ]
+      },
+      {
+        "id": "q1",
+        "kind": "missing_representation",
+        "evidence_ids": [
+          "e6"
+        ],
+        "candidate_ids": [],
+        "question": "Review unrepresented semantics and scope, including attribution, choice and entailment.",
+        "blocking_for": []
+      }
+    ],
+    "coverage": {
+      "status": "partial",
+      "unrepresented_evidence_ids": [
+        "e6"
+      ],
+      "limitations": [
+        "reference_candidates_only_no_identity_merging",
+        "no_world_state_commitment",
+        "bounded_if_and_local_modal_scope",
+        "no_semantic_support_validation",
+        "purpose_and_attachment_readings_are_candidates",
+        "subject_control_is_an_unresolved_candidate",
+        "unambiguous_condition_complements_are_required",
+        "attempt_does_not_entail_the_child",
+        "choice_sets_are_not_exhaustive",
+        "quantity_is_explicit_cardinality_only",
+        "comma_clause_subject_repairs_a_false_conjunct",
+        "same_name_reference_does_not_block_roles",
+        "transfer_recipient_is_destination",
+        "definite_locative_is_location",
+        "definite_reference_does_not_block_roles",
+        "conditional_alternatives_are_not_exhaustive_or_exclusive",
+        "quantity_match_is_not_group_membership",
+        "coordination_shares_the_head_role",
+        "clause_boundary_stops_role_sharing",
+        "clause_boundary_attachment_stays_a_candidate",
+        "stripping_not_nominal_is_an_unresolved_copy"
+      ]
+    },
+    "reconstructions": [],
+    "condition_contents": []
+  },
+  "blueprint_result": {
+    "proposals": [
+      {
+        "proposal_contract_version": "blueprint-proposal-contract/0.6",
+        "proposal_id": "deontic_rule_cloze",
+        "blueprint_id": "deontic_rule",
+        "status": "FILLED",
+        "assignment_kind": "intervention_text",
+        "assignment": [],
+        "slot_bindings": {
+          "copied_spans": {
+            "deontic_words": "must",
+            "governed_action": "deliver water to Ben",
+            "bearer": "Ada",
+            "target": "Ben"
+          },
+          "z10_recovered_slots": {}
+        },
+        "selection": null,
+        "selection_validation": {
+          "contract_valid": true,
+          "status": "source_copy",
+          "reason": "Authorized from copied source spans with clause evidence."
+        },
+        "candidate": {
+          "actions": {},
+          "world_model": {
+            "parties": [
+              {
+                "party_id": "P1",
+                "label": "Ada",
+                "kind": "PERSON",
+                "kind_origin": "STRUCTURALLY_DERIVED",
+                "quantities": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "party_id": "P2",
+                "label": "Ben",
+                "kind": "PERSON",
+                "kind_origin": "STRUCTURALLY_DERIVED",
+                "quantities": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              }
+            ],
+            "actions": [],
+            "effects": [],
+            "conditions": [],
+            "temporal_relations": [],
+            "causal_links": [],
+            "counterfactual_links": [],
+            "propositions": [
+              {
+                "proposition_id": "PR1",
+                "predication": "deliver water to Ben",
+                "polarity": "positive",
+                "status": "GOVERNED",
+                "clause_ids": [
+                  "C0"
+                ]
+              }
+            ],
+            "normative_propositions": [
+              {
+                "norm_id": "N0",
+                "force": "obligation",
+                "bearer_party_id": "P1",
+                "authority_party_id": "",
+                "governed_proposition_id": "PR1",
+                "clause_ids": [
+                  "C0"
+                ]
+              }
+            ],
+            "schema_version": "1.4",
+            "reports": [],
+            "commitments": [],
+            "modal_operators": []
+          },
+          "ellipsis_resolutions": []
+        },
+        "clauses": [
+          {
+            "clause_id": "C0",
+            "text": "Ada must deliver water to Ben."
+          }
+        ],
+        "unfilled_required_slots": [],
+        "unresolved_readings": [
+          {
+            "kind": "normative_force",
+            "status": "governed_not_occurrence"
+          },
+          {
+            "kind": "semantic_construction_retention",
+            "coverage": {
+              "proposal_id": "deontic_rule_cloze",
+              "source_candidate_count": 6,
+              "unconsumed_candidate_ids": [
+                "c0",
+                "c1",
+                "c2",
+                "c3",
+                "c4",
+                "c5"
+              ],
+              "source_aligned_conditional_ids": [],
+              "retained_not_projected_construction_ids": [],
+              "mapped_commitment_construction_ids": [],
+              "source_fields_missing": [],
+              "unconsumed_does_not_imply_world_omission": true,
+              "semantic_completeness": "not_assessed",
+              "admission_is_separate": true
+            },
+            "package_id": "blueprint_run_f10e5f2e7628",
+            "source_constructions": [],
+            "source_choice_sets": [
+              {
+                "id": "choice0",
+                "kind": "interpretation",
+                "candidate_ids": [
+                  "c1",
+                  "c2"
+                ],
+                "selection_rule": "at_most_one",
+                "exhaustive": false,
+                "evidence_ids": [
+                  "e1"
+                ]
+              }
+            ],
+            "source_producer": {
+              "name": "parsing_game_Z10",
+              "version": "Z10",
+              "resources": [
+                {
+                  "id": "T_reference_policy",
+                  "version": "1",
+                  "description": "Curated candidate-generation and ranking policy, not learned probabilities or a complete animacy lexicon."
+                }
+              ]
+            },
+            "missing_construction_questions": [
+              {
+                "id": "unconsumed:c0",
+                "kind": "missing_construction",
+                "candidate_ids": [
+                  "c0"
+                ],
+                "evidence_ids": [
+                  "e0"
+                ],
+                "question": "Which construction should preserve this PREDICATION reading?"
+              },
+              {
+                "id": "unconsumed:c1",
+                "kind": "missing_construction",
+                "candidate_ids": [
+                  "c1"
+                ],
+                "evidence_ids": [
+                  "e1"
+                ],
+                "question": "Which construction should preserve this MODALITY reading?"
+              },
+              {
+                "id": "unconsumed:c2",
+                "kind": "missing_construction",
+                "candidate_ids": [
+                  "c2"
+                ],
+                "evidence_ids": [
+                  "e1"
+                ],
+                "question": "Which construction should preserve this MODALITY reading?"
+              },
+              {
+                "id": "unconsumed:c3",
+                "kind": "missing_construction",
+                "candidate_ids": [
+                  "c3"
+                ],
+                "evidence_ids": [
+                  "e2"
+                ],
+                "question": "Which construction should preserve this PARTICIPANT reading?"
+              },
+              {
+                "id": "unconsumed:c4",
+                "kind": "missing_construction",
+                "candidate_ids": [
+                  "c4"
+                ],
+                "evidence_ids": [
+                  "e3"
+                ],
+                "question": "Which construction should preserve this PARTICIPANT reading?"
+              },
+              {
+                "id": "unconsumed:c5",
+                "kind": "missing_construction",
+                "candidate_ids": [
+                  "c5"
+                ],
+                "evidence_ids": [
+                  "e4"
+                ],
+                "question": "Which construction should preserve this PARTICIPANT reading?"
+              }
+            ],
+            "source_open_questions": [
+              {
+                "id": "q0",
+                "kind": "modality",
+                "evidence_ids": [
+                  "e1"
+                ],
+                "candidate_ids": [
+                  "c1",
+                  "c2"
+                ],
+                "question": "Select the modal meaning; prediction, ability and obligation are distinct.",
+                "blocking_for": [
+                  "c0"
+                ]
+              },
+              {
+                "id": "q1",
+                "kind": "missing_representation",
+                "evidence_ids": [
+                  "e6"
+                ],
+                "candidate_ids": [],
+                "question": "Review unrepresented semantics and scope, including attribution, choice and entailment.",
+                "blocking_for": []
+              }
+            ],
+            "source_coverage": {
+              "status": "partial",
+              "unrepresented_evidence_ids": [
+                "e6"
+              ],
+              "limitations": [
+                "reference_candidates_only_no_identity_merging",
+                "no_world_state_commitment",
+                "bounded_if_and_local_modal_scope",
+                "no_semantic_support_validation",
+                "purpose_and_attachment_readings_are_candidates",
+                "subject_control_is_an_unresolved_candidate",
+                "unambiguous_condition_complements_are_required",
+                "attempt_does_not_entail_the_child",
+                "choice_sets_are_not_exhaustive",
+                "quantity_is_explicit_cardinality_only",
+                "comma_clause_subject_repairs_a_false_conjunct",
+                "same_name_reference_does_not_block_roles",
+                "transfer_recipient_is_destination",
+                "definite_locative_is_location",
+                "definite_reference_does_not_block_roles",
+                "conditional_alternatives_are_not_exhaustive_or_exclusive",
+                "quantity_match_is_not_group_membership",
+                "coordination_shares_the_head_role",
+                "clause_boundary_stops_role_sharing",
+                "clause_boundary_attachment_stays_a_candidate",
+                "stripping_not_nominal_is_an_unresolved_copy"
+              ]
+            }
+          }
+        ],
+        "construction_problems": [],
+        "admission_authorized": true,
+        "notes": [
+          "A deontic rule does not establish that the governed action occurred."
+        ],
+        "pre_world_assessment": {
+          "ethical_question": "",
+          "scenario_options": [],
+          "exclusivity": "unspecified",
+          "exclusivity_proof": {
+            "status": "UNKNOWN",
+            "evidence": [],
+            "assumptions": [],
+            "explanation": "The source does not establish mutual exclusion."
+          },
+          "participants": [
+            {
+              "role": "subject",
+              "mention": "Ada",
+              "predicate": "deliver"
+            },
+            {
+              "role": "object",
+              "mention": "water",
+              "predicate": "deliver"
+            },
+            {
+              "role": "destination",
+              "mention": "Ben",
+              "predicate": "deliver"
+            }
+          ],
+          "eligible_for_world_state": true,
+          "status": "ASSESSED"
+        },
+        "accepted_evidence": {
+          "deontic_words": "must",
+          "governed_action": "deliver water to Ben",
+          "bearer": "Ada",
+          "target": "Ben"
+        },
+        "construction_provenance": [
+          {
+            "atom_id": "party:P1",
+            "atom_kind": "party",
+            "origin": "STRUCTURALLY_DERIVED",
+            "clause_ids": [
+              "C0"
+            ],
+            "evidence": [
+              "Ada"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "party:P2",
+            "atom_kind": "party",
+            "origin": "STRUCTURALLY_DERIVED",
+            "clause_ids": [
+              "C0"
+            ],
+            "evidence": [
+              "Ben"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "proposition:PR1",
+            "atom_kind": "proposition",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C0"
+            ],
+            "evidence": [
+              "deliver water to Ben"
+            ],
+            "explanation": "Copied discourse object; content is not occurrence."
+          },
+          {
+            "atom_id": "norm:N0",
+            "atom_kind": "norm",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C0"
+            ],
+            "evidence": [
+              "obligation"
+            ],
+            "explanation": "Copied discourse object; content is not occurrence."
+          }
+        ],
+        "relation_alternatives": [],
+        "exclusivity_proof": {
+          "status": "UNKNOWN",
+          "evidence": [],
+          "assumptions": [],
+          "explanation": "The source does not establish mutual exclusion."
+        },
+        "world_withheld": [],
+        "evidence_graph": [
+          {
+            "hypothesis_id": "z10:c0",
+            "producer": "z10",
+            "span": "deliver",
+            "clause_ids": [
+              "C0"
+            ],
+            "z10_candidate_ids": [
+              "c0"
+            ],
+            "hypothesis": {
+              "kind": "PREDICATION",
+              "value": null,
+              "arguments": {
+                "proposition": "p2"
+              }
+            },
+            "scope": {
+              "contexts": [
+                {
+                  "kind": "modal_choice",
+                  "modality_choice_set_id": "choice0",
+                  "evidence_ids": [
+                    "e1"
+                  ]
+                }
+              ]
+            },
+            "provenance": "SOURCE_ASSERTED",
+            "atom_ids": [
+              "proposition:PR1",
+              "norm:N0"
+            ]
+          },
+          {
+            "hypothesis_id": "z10:c1",
+            "producer": "z10",
+            "span": "must",
+            "clause_ids": [
+              "C0"
+            ],
+            "z10_candidate_ids": [
+              "c1"
+            ],
+            "hypothesis": {
+              "kind": "MODALITY",
+              "value": "obligation",
+              "arguments": {
+                "proposition": "p2"
+              }
+            },
+            "scope": {
+              "contexts": [
+                {
+                  "kind": "UNRESOLVED"
+                }
+              ]
+            },
+            "provenance": "SOURCE_ASSERTED",
+            "atom_ids": [
+              "proposition:PR1",
+              "norm:N0"
+            ]
+          },
+          {
+            "hypothesis_id": "z10:c2",
+            "producer": "z10",
+            "span": "must",
+            "clause_ids": [
+              "C0"
+            ],
+            "z10_candidate_ids": [
+              "c2"
+            ],
+            "hypothesis": {
+              "kind": "MODALITY",
+              "value": "unresolved",
+              "arguments": {
+                "proposition": "p2"
+              }
+            },
+            "scope": {
+              "contexts": [
+                {
+                  "kind": "UNRESOLVED"
+                }
+              ]
+            },
+            "provenance": "SOURCE_ASSERTED",
+            "atom_ids": [
+              "proposition:PR1",
+              "norm:N0"
+            ]
+          },
+          {
+            "hypothesis_id": "z10:c3",
+            "producer": "z10",
+            "span": "Ada",
+            "clause_ids": [
+              "C0"
+            ],
+            "z10_candidate_ids": [
+              "c3"
+            ],
+            "hypothesis": {
+              "kind": "PARTICIPANT",
+              "value": "subject",
+              "arguments": {
+                "proposition": "p2",
+                "mention": "m0"
+              }
+            },
+            "scope": {
+              "contexts": [
+                {
+                  "kind": "modal_choice",
+                  "modality_choice_set_id": "choice0",
+                  "evidence_ids": [
+                    "e1"
+                  ]
+                }
+              ]
+            },
+            "provenance": "SOURCE_ASSERTED",
+            "atom_ids": [
+              "proposition:PR1",
+              "norm:N0"
+            ]
+          },
+          {
+            "hypothesis_id": "z10:c4",
+            "producer": "z10",
+            "span": "water",
+            "clause_ids": [
+              "C0"
+            ],
+            "z10_candidate_ids": [
+              "c4"
+            ],
+            "hypothesis": {
+              "kind": "PARTICIPANT",
+              "value": "object",
+              "arguments": {
+                "proposition": "p2",
+                "mention": "m3"
+              }
+            },
+            "scope": {
+              "contexts": [
+                {
+                  "kind": "modal_choice",
+                  "modality_choice_set_id": "choice0",
+                  "evidence_ids": [
+                    "e1"
+                  ]
+                }
+              ]
+            },
+            "provenance": "SOURCE_ASSERTED",
+            "atom_ids": [
+              "proposition:PR1",
+              "norm:N0"
+            ]
+          },
+          {
+            "hypothesis_id": "z10:c5",
+            "producer": "z10",
+            "span": "to Ben",
+            "clause_ids": [
+              "C0"
+            ],
+            "z10_candidate_ids": [
+              "c5"
+            ],
+            "hypothesis": {
+              "kind": "PARTICIPANT",
+              "value": "destination",
+              "arguments": {
+                "proposition": "p2",
+                "mention": "m5"
+              }
+            },
+            "scope": {
+              "contexts": [
+                {
+                  "kind": "modal_choice",
+                  "modality_choice_set_id": "choice0",
+                  "evidence_ids": [
+                    "e1"
+                  ]
+                }
+              ]
+            },
+            "provenance": "SOURCE_ASSERTED",
+            "atom_ids": [
+              "proposition:PR1",
+              "norm:N0"
+            ]
+          },
+          {
+            "hypothesis_id": "cloze:deontic_words",
+            "producer": "cloze_copy",
+            "span": "must",
+            "clause_ids": [
+              "C0"
+            ],
+            "z10_candidate_ids": [],
+            "hypothesis": {
+              "kind": "copied_span",
+              "slot": "deontic_words",
+              "value": "must"
+            },
+            "scope": {
+              "contexts": [
+                {
+                  "kind": "UNRESOLVED"
+                }
+              ]
+            },
+            "provenance": "SOURCE_ASSERTED",
+            "atom_ids": [
+              "proposition:PR1",
+              "norm:N0"
+            ]
+          },
+          {
+            "hypothesis_id": "cloze:governed_action",
+            "producer": "cloze_copy",
+            "span": "deliver water to Ben",
+            "clause_ids": [
+              "C0"
+            ],
+            "z10_candidate_ids": [],
+            "hypothesis": {
+              "kind": "copied_span",
+              "slot": "governed_action",
+              "value": "deliver water to Ben"
+            },
+            "scope": {
+              "contexts": [
+                {
+                  "kind": "UNRESOLVED"
+                }
+              ]
+            },
+            "provenance": "SOURCE_ASSERTED",
+            "atom_ids": [
+              "proposition:PR1",
+              "norm:N0"
+            ]
+          },
+          {
+            "hypothesis_id": "cloze:bearer",
+            "producer": "cloze_copy",
+            "span": "Ada",
+            "clause_ids": [
+              "C0"
+            ],
+            "z10_candidate_ids": [],
+            "hypothesis": {
+              "kind": "copied_span",
+              "slot": "bearer",
+              "value": "Ada"
+            },
+            "scope": {
+              "contexts": [
+                {
+                  "kind": "UNRESOLVED"
+                }
+              ]
+            },
+            "provenance": "SOURCE_ASSERTED",
+            "atom_ids": [
+              "proposition:PR1",
+              "norm:N0"
+            ]
+          },
+          {
+            "hypothesis_id": "cloze:target",
+            "producer": "cloze_copy",
+            "span": "Ben",
+            "clause_ids": [
+              "C0"
+            ],
+            "z10_candidate_ids": [],
+            "hypothesis": {
+              "kind": "copied_span",
+              "slot": "target",
+              "value": "Ben"
+            },
+            "scope": {
+              "contexts": [
+                {
+                  "kind": "UNRESOLVED"
+                }
+              ]
+            },
+            "provenance": "SOURCE_ASSERTED",
+            "atom_ids": [
+              "proposition:PR1",
+              "norm:N0"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

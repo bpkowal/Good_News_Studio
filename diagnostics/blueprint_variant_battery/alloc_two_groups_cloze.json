@@ -1,0 +1,1857 @@
+{
+  "cloze_version": "blueprint-cloze-chooser/0.5",
+  "chosen_blueprint_id": "exclusive_allocation",
+  "status": "FILLED",
+  "ranking": [
+    "exclusive_allocation",
+    "rescue_contrast",
+    "omission_harm"
+  ],
+  "left_out": [
+    "conditional_outcome",
+    "ability_permission",
+    "diversion_redirection",
+    "deontic_rule",
+    "promise_reliance",
+    "uncertain_risk",
+    "disputed_report"
+  ],
+  "question": {
+    "ethical_question": "gives / gives",
+    "scenario_options": [
+      {
+        "id": "choice12",
+        "selection_rule": "any_subset",
+        "exhaustive": false,
+        "options": [
+          "gives",
+          "gives"
+        ]
+      }
+    ],
+    "exclusivity": "evidenced",
+    "participants": [
+      {
+        "role": "subject",
+        "mention": "A ward",
+        "predicate": "has"
+      },
+      {
+        "role": "object",
+        "mention": "one ventilator",
+        "predicate": "has"
+      },
+      {
+        "role": "subject",
+        "mention": "Dr. Okonkwo",
+        "predicate": "give"
+      },
+      {
+        "role": "object",
+        "mention": "the ventilator",
+        "predicate": "give"
+      },
+      {
+        "role": "destination",
+        "mention": "two children",
+        "predicate": "give"
+      },
+      {
+        "role": "subject",
+        "mention": "Dr. Okonkwo",
+        "predicate": "gives"
+      },
+      {
+        "role": "object",
+        "mention": "the ventilator",
+        "predicate": "gives"
+      },
+      {
+        "role": "destination",
+        "mention": "the two children",
+        "predicate": "gives"
+      },
+      {
+        "role": "subject",
+        "mention": "each",
+        "predicate": "has"
+      },
+      {
+        "role": "object",
+        "mention": "a 70% chance",
+        "predicate": "has"
+      },
+      {
+        "role": "subject",
+        "mention": "Dr. Okonkwo",
+        "predicate": "gives"
+      },
+      {
+        "role": "object",
+        "mention": "the ventilator",
+        "predicate": "gives"
+      },
+      {
+        "role": "destination",
+        "mention": "the five adult patients",
+        "predicate": "gives"
+      },
+      {
+        "role": "subject",
+        "mention": "each",
+        "predicate": "has"
+      },
+      {
+        "role": "object",
+        "mention": "a 40% chance",
+        "predicate": "has"
+      },
+      {
+        "role": "subject",
+        "mention": "who",
+        "predicate": "receive"
+      },
+      {
+        "role": "object",
+        "mention": "the ventilator",
+        "predicate": "receive"
+      },
+      {
+        "role": "subject",
+        "mention": "The patients",
+        "predicate": "die"
+      },
+      {
+        "role": "destination",
+        "mention": "five adult patients",
+        "predicate": "give"
+      }
+    ],
+    "eligible_for_world_state": true
+  },
+  "world_withheld": [],
+  "considered": [
+    {
+      "blueprint_id": "exclusive_allocation",
+      "graph_builder": "implemented",
+      "status": "FILLED",
+      "rank": 0,
+      "core_filled": 5,
+      "core_count": 5,
+      "optional_filled": 9,
+      "rejected": 3,
+      "coverage_metrics": {
+        "required_filled": 5,
+        "required_total": 5,
+        "optional_filled": 9,
+        "optional_total": 14,
+        "rejected_evidence": 3,
+        "unsupported_atoms": 0,
+        "unresolved_readings": 0
+      },
+      "unfilled": [
+        "first_transfer",
+        "second_transfer",
+        "first_hedge",
+        "second_hedge",
+        "second_branch_sentence"
+      ],
+      "unresolved_slots": [
+        "first_transfer",
+        "second_transfer",
+        "first_hedge",
+        "second_hedge",
+        "second_branch_sentence"
+      ],
+      "accepted_evidence": {
+        "decider": "Dr. Okonkwo",
+        "resource": "the ventilator",
+        "assignment": "give the ventilator to either two children or five adult patients, but not both",
+        "quantity": "one ventilator",
+        "first_recipient": "the two children",
+        "second_recipient": "the five adult patients",
+        "exclusivity": "not both",
+        "first_outcome": "each of the two children has a 70% chance of survival",
+        "second_outcome": "each of the five adult patients has a 40% chance of survival",
+        "first_implied_process": "providing respiratory support",
+        "second_implied_process": "providing respiratory support",
+        "first_branch_sentence": "If Dr. Okonkwo gives the ventilator to the two children, each of the two children has a 70% chance of survival",
+        "survival_chance": "70% chance of survival",
+        "nonreceipt": "The patients who do not receive the ventilator will die"
+      },
+      "slots": {
+        "decider": "Dr. Okonkwo",
+        "resource": "the ventilator",
+        "assignment": "give the ventilator to either two children or five adult patients, but not both",
+        "quantity": "one ventilator",
+        "first_recipient": "the two children",
+        "second_recipient": "the five adult patients",
+        "exclusivity": "not both",
+        "first_outcome": "each of the two children has a 70% chance of survival",
+        "second_outcome": "each of the five adult patients has a 40% chance of survival",
+        "first_branch_sentence": "If Dr. Okonkwo gives the ventilator to the two children, each of the two children has a 70% chance of survival",
+        "survival_chance": "70% chance of survival",
+        "nonreceipt": "The patients who do not receive the ventilator will die",
+        "first_implied_process": "providing respiratory support",
+        "second_implied_process": "providing respiratory support"
+      },
+      "items": [
+        {
+          "id": "decider",
+          "core": true,
+          "sentence": "The person who must decide who gets the resource is",
+          "completion": "Dr. Okonkwo",
+          "span": "Dr. Okonkwo",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "resource",
+          "core": true,
+          "sentence": "The resource that can be given is",
+          "completion": "the ventilator",
+          "span": "the ventilator",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "assignment",
+          "core": true,
+          "sentence": "The act that assigns that resource, in the text's own words, is",
+          "completion": "give the ventilator to either two children or five adult patients, but not both",
+          "span": "give the ventilator to either two children or five adult patients, but not both",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "first_transfer",
+          "core": false,
+          "sentence": "The giving, receipt, allocation, delivery, or administration of the resource to the first party is",
+          "completion": "give the ventilator to the two children",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "not_a_copy"
+        },
+        {
+          "id": "second_transfer",
+          "core": false,
+          "sentence": "The giving, receipt, allocation, delivery, or administration of the resource to the second party is",
+          "completion": "give the ventilator to the five adult patients",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "not_a_copy"
+        },
+        {
+          "id": "quantity",
+          "core": false,
+          "sentence": "The exact amount of that resource, stated in the text, is",
+          "completion": "one ventilator",
+          "span": "one ventilator",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "first_recipient",
+          "core": true,
+          "sentence": "The first party mentioned in the text who could receive the resource or benefit is",
+          "completion": "the two children",
+          "span": "the two children",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_recipient",
+          "core": true,
+          "sentence": "The second party mentioned in the text who could receive the resource or benefit is",
+          "completion": "the five adult patients",
+          "span": "the five adult patients",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "exclusivity",
+          "core": false,
+          "sentence": "The words that say both parties cannot receive it are",
+          "completion": "not both",
+          "span": "not both",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "first_outcome",
+          "core": false,
+          "sentence": "The words that license what happens for the first party are",
+          "completion": "each of the two children has a 70% chance of survival",
+          "span": "each of the two children has a 70% chance of survival",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "first_hedge",
+          "core": false,
+          "sentence": "The if, unless, whether, or percent-chance words inside that first outcome are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "second_outcome",
+          "core": false,
+          "sentence": "The words that license what happens for the second party are",
+          "completion": "each of the five adult patients has a 40% chance of survival",
+          "span": "each of the five adult patients has a 40% chance of survival",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_hedge",
+          "core": false,
+          "sentence": "The if, unless, whether, or percent-chance words inside that second outcome are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "first_implied_process",
+          "core": false,
+          "sentence": "The process most aligned with the text might explain how \"the ventilator\" leads to \"each of the two children has a 70% chance of survival\" is",
+          "completion": "providing respiratory support",
+          "span": "providing respiratory support",
+          "verdict": "accepted",
+          "reason": "implied"
+        },
+        {
+          "id": "second_implied_process",
+          "core": false,
+          "sentence": "The process most aligned with the text might explain how \"the ventilator\" leads to \"each of the five adult patients has a 40% chance of survival\" is",
+          "completion": "providing respiratory support",
+          "span": "providing respiratory support",
+          "verdict": "accepted",
+          "reason": "implied"
+        },
+        {
+          "id": "first_branch_sentence",
+          "core": false,
+          "sentence": "The sentence that states the first branch and does not state the second is",
+          "completion": "If Dr. Okonkwo gives the ventilator to the two children, each of the two children has a 70% chance of survival.",
+          "span": "If Dr. Okonkwo gives the ventilator to the two children, each of the two children has a 70% chance of survival",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_branch_sentence",
+          "core": false,
+          "sentence": "The sentence that states the second branch and does not state the first is",
+          "completion": "If Dr. Okonkwo gives the ventilator to the five adult patients, each of the five adult patients has a 40% chance of survival.",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "too_long"
+        },
+        {
+          "id": "survival_chance",
+          "core": false,
+          "sentence": "A stated chance of survival is",
+          "completion": "70% chance of survival",
+          "span": "70% chance of survival",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "nonreceipt",
+          "core": false,
+          "sentence": "The words that say the other party does not receive it are",
+          "completion": "The patients who do not receive the ventilator will die.",
+          "span": "The patients who do not receive the ventilator will die",
+          "verdict": "accepted",
+          "reason": "copied"
+        }
+      ]
+    },
+    {
+      "blueprint_id": "rescue_contrast",
+      "graph_builder": "implemented",
+      "status": "PARTIAL",
+      "rank": 1,
+      "core_filled": 2,
+      "core_count": 8,
+      "optional_filled": 3,
+      "rejected": 6,
+      "coverage_metrics": {
+        "required_filled": 2,
+        "required_total": 8,
+        "optional_filled": 3,
+        "optional_total": 3,
+        "rejected_evidence": 6,
+        "unsupported_atoms": 0,
+        "unresolved_readings": 0
+      },
+      "unfilled": [
+        "first_saved",
+        "second_saved",
+        "first_rescue_action",
+        "second_rescue_action",
+        "first_benefit",
+        "second_benefit"
+      ],
+      "unresolved_slots": [
+        "first_saved",
+        "second_saved",
+        "first_rescue_action",
+        "second_rescue_action",
+        "first_benefit",
+        "second_benefit"
+      ],
+      "accepted_evidence": {
+        "rescuer": "Dr. Okonkwo",
+        "rescue_exclusivity": "not both",
+        "first_harm": "The patients who do not receive the ventilator will die",
+        "second_harm": "The patients who do not receive the ventilator will die",
+        "scene": "The patients who do not receive the ventilator will die"
+      },
+      "slots": {
+        "rescuer": "Dr. Okonkwo",
+        "rescue_exclusivity": "not both",
+        "first_harm": "The patients who do not receive the ventilator will die",
+        "second_harm": "The patients who do not receive the ventilator will die",
+        "scene": "The patients who do not receive the ventilator will die"
+      },
+      "items": [
+        {
+          "id": "rescuer",
+          "core": true,
+          "sentence": "The person who must choose between the rescues is",
+          "completion": "Dr. Okonkwo",
+          "span": "Dr. Okonkwo",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "first_saved",
+          "core": true,
+          "sentence": "The first party who can be rescued is",
+          "completion": "two children",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "second_saved",
+          "core": true,
+          "sentence": "The second, distinct party who can be rescued is",
+          "completion": "five adult patients",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "rescue_exclusivity",
+          "core": true,
+          "sentence": "The exact words that say both rescues cannot happen are",
+          "completion": "not both",
+          "span": "not both",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "first_rescue_action",
+          "core": true,
+          "sentence": "The copied first rescue action is",
+          "completion": "gives the ventilator to the two children",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "second_rescue_action",
+          "core": true,
+          "sentence": "The copied second rescue action is",
+          "completion": "gives the ventilator to the five adult patients",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "first_benefit",
+          "core": true,
+          "sentence": "The beneficial outcome in the first rescue branch is",
+          "completion": "each of the two children has a 70% chance of survival",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "first_harm",
+          "core": false,
+          "sentence": "The harmful outcome in the first rescue branch is",
+          "completion": "The patients who do not receive the ventilator will die",
+          "span": "The patients who do not receive the ventilator will die",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_benefit",
+          "core": true,
+          "sentence": "The beneficial outcome in the second rescue branch is",
+          "completion": "each of the five adult patients has a 40% chance of survival",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "second_harm",
+          "core": false,
+          "sentence": "The harmful outcome in the second rescue branch is",
+          "completion": "The patients who do not receive the ventilator will die",
+          "span": "The patients who do not receive the ventilator will die",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "scene",
+          "core": false,
+          "sentence": "The copied words that describe the parties already in danger are",
+          "completion": "The patients who do not receive the ventilator will die.",
+          "span": "The patients who do not receive the ventilator will die",
+          "verdict": "accepted",
+          "reason": "copied"
+        }
+      ]
+    },
+    {
+      "blueprint_id": "omission_harm",
+      "graph_builder": "implemented",
+      "status": "FILLED",
+      "rank": 2,
+      "core_filled": 5,
+      "core_count": 5,
+      "optional_filled": 0,
+      "rejected": 4,
+      "coverage_metrics": {
+        "required_filled": 5,
+        "required_total": 5,
+        "optional_filled": 0,
+        "optional_total": 4,
+        "rejected_evidence": 4,
+        "unsupported_atoms": 0,
+        "unresolved_readings": 0
+      },
+      "unfilled": [
+        "done_hedge",
+        "omitted_hedge",
+        "group_counts",
+        "instrument"
+      ],
+      "unresolved_slots": [
+        "done_hedge",
+        "omitted_hedge",
+        "group_counts",
+        "instrument"
+      ],
+      "accepted_evidence": {
+        "actor": "Dr. Okonkwo",
+        "done": "give the ventilator to either two children or five adult patients",
+        "omitted": "not both",
+        "harm_done": "The patients who do not receive the ventilator will die",
+        "harm_omitted": "The patients who do not receive the ventilator will die"
+      },
+      "slots": {
+        "actor": "Dr. Okonkwo",
+        "done": "give the ventilator to either two children or five adult patients",
+        "omitted": "not both",
+        "harm_done": "The patients who do not receive the ventilator will die",
+        "harm_omitted": "The patients who do not receive the ventilator will die"
+      },
+      "items": [
+        {
+          "id": "actor",
+          "core": true,
+          "sentence": "The person who may do the action or not do it is",
+          "completion": "Dr. Okonkwo",
+          "span": "Dr. Okonkwo",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "done",
+          "core": true,
+          "sentence": "The action the text says is done is",
+          "completion": "give the ventilator to either two children or five adult patients",
+          "span": "give the ventilator to either two children or five adult patients",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "omitted",
+          "core": true,
+          "sentence": "The copied non-action branch, including the word not, is",
+          "completion": "not both",
+          "span": "not both",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "harm_done",
+          "core": true,
+          "sentence": "The stated harmful outcome if the action is done is",
+          "completion": "the patients who do not receive the ventilator will die",
+          "span": "The patients who do not receive the ventilator will die",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "harm_omitted",
+          "core": true,
+          "sentence": "The stated harmful outcome if the action is not done is",
+          "completion": "the patients who do not receive the ventilator will die",
+          "span": "The patients who do not receive the ventilator will die",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "done_hedge",
+          "core": false,
+          "sentence": "The conditional words attached to the harm from doing the action are",
+          "completion": "each of the two children has a 70% chance of survival",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "omitted_hedge",
+          "core": false,
+          "sentence": "The conditional words attached to the harm from not doing the action are",
+          "completion": "each of the five adult patients has a 40% chance of survival",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "group_counts",
+          "core": false,
+          "sentence": "One copied group count in a harmful outcome is",
+          "completion": "two children",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "instrument",
+          "core": false,
+          "sentence": "The contrasting instrument named after but not is",
+          "completion": "ventilator",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        }
+      ]
+    }
+  ],
+  "proposals": [
+    {
+      "proposal_contract_version": "blueprint-proposal-contract/0.2",
+      "proposal_id": "exclusive_allocation_cloze",
+      "blueprint_id": "exclusive_allocation",
+      "status": "FILLED",
+      "assignment_kind": "intervention_text",
+      "assignment": [
+        "gives the ventilator to the two children",
+        "gives the ventilator to the five adult patients"
+      ],
+      "slot_bindings": {
+        "copied_spans": {
+          "decider": "Dr. Okonkwo",
+          "resource": "the ventilator",
+          "assignment": "give the ventilator to either two children or five adult patients, but not both",
+          "quantity": "one ventilator",
+          "first_recipient": "the two children",
+          "second_recipient": "the five adult patients",
+          "exclusivity": "not both",
+          "first_outcome": "each of the two children has a 70% chance of survival",
+          "second_outcome": "each of the five adult patients has a 40% chance of survival",
+          "first_branch_sentence": "If Dr. Okonkwo gives the ventilator to the two children, each of the two children has a 70% chance of survival",
+          "survival_chance": "70% chance of survival",
+          "nonreceipt": "The patients who do not receive the ventilator will die",
+          "first_implied_process": "providing respiratory support",
+          "second_implied_process": "providing respiratory support"
+        }
+      },
+      "selection": null,
+      "selection_validation": {
+        "contract_valid": null,
+        "status": "not_assessed",
+        "reason": "The cloze path has no Z10 candidate selection."
+      },
+      "candidate": {
+        "actions": {
+          "A0": {
+            "clause_ids": [
+              "C2"
+            ],
+            "reason": "Filled from copied cloze slots."
+          },
+          "A1": {
+            "clause_ids": [
+              "C3"
+            ],
+            "reason": "Filled from copied cloze slots."
+          }
+        },
+        "world_model": {
+          "schema_version": "1.3",
+          "parties": [
+            {
+              "party_id": "P1",
+              "label": "Dr. Okonkwo",
+              "kind": "PERSON",
+              "quantities": [],
+              "clause_ids": [
+                "C1",
+                "C2",
+                "C3"
+              ]
+            },
+            {
+              "party_id": "P2",
+              "label": "the ventilator",
+              "kind": "RESOURCE",
+              "quantities": [
+                "one"
+              ],
+              "clause_ids": [
+                "C1",
+                "C2",
+                "C3",
+                "C4"
+              ]
+            },
+            {
+              "party_id": "P3",
+              "label": "the two children",
+              "kind": "PERSON",
+              "quantities": [],
+              "clause_ids": [
+                "C2"
+              ]
+            },
+            {
+              "party_id": "P4",
+              "label": "the five adult patients",
+              "kind": "HUMAN_GROUP",
+              "quantities": [
+                "five"
+              ],
+              "clause_ids": [
+                "C3"
+              ]
+            },
+            {
+              "party_id": "P5",
+              "label": "five adult patients",
+              "kind": "HUMAN_GROUP",
+              "quantities": [
+                "five"
+              ],
+              "clause_ids": [
+                "C1",
+                "C3"
+              ]
+            }
+          ],
+          "actions": [
+            {
+              "action_id": "A0",
+              "intervention": "gives the ventilator to the two children",
+              "actor_party_id": "P1",
+              "recipient_party_ids": [
+                "P3"
+              ],
+              "effect_ids": [
+                "E1",
+                "E2",
+                "E5",
+                "E7"
+              ],
+              "clause_ids": [
+                "C2"
+              ]
+            },
+            {
+              "action_id": "A1",
+              "intervention": "gives the ventilator to the five adult patients",
+              "actor_party_id": "P1",
+              "recipient_party_ids": [
+                "P4"
+              ],
+              "effect_ids": [
+                "E3",
+                "E4",
+                "E6",
+                "E8"
+              ],
+              "clause_ids": [
+                "C3"
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "effect_id": "E1",
+              "action_id": "A0",
+              "party_id": "P3",
+              "outcome": "gives the ventilator to the two children",
+              "predicate": "gives",
+              "polarity": "NEUTRAL",
+              "directness": "DIRECT",
+              "modality": "CERTAIN",
+              "effect_kind": "RESOURCE_TRANSFER",
+              "condition_ids": [],
+              "quantities": [],
+              "likelihood_qualifiers": [],
+              "overall_likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "source_proposition": "gives the ventilator to the two children",
+              "source_effect_ids": [],
+              "derivation_operation": "DIRECT_COPY",
+              "derivation_explanation": "The blank was filled with this copy of the scenario.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED",
+              "clause_ids": [
+                "C2"
+              ]
+            },
+            {
+              "effect_id": "E2",
+              "action_id": "A0",
+              "party_id": "P3",
+              "outcome": "each of the two children has a 70% chance of survival",
+              "predicate": "survive",
+              "polarity": "BENEFICIAL",
+              "directness": "DOWNSTREAM",
+              "modality": "PROBABILISTIC",
+              "effect_kind": "HEALTH_OUTCOME",
+              "condition_ids": [],
+              "quantities": [],
+              "likelihood_qualifiers": [
+                "70% chance"
+              ],
+              "overall_likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "source_proposition": "each of the two children has a 70% chance of survival",
+              "source_effect_ids": [
+                "E1"
+              ],
+              "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+              "derivation_explanation": "The blank was filled with this copy of the scenario.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED",
+              "clause_ids": [
+                "C2"
+              ]
+            },
+            {
+              "effect_id": "E3",
+              "action_id": "A1",
+              "party_id": "P4",
+              "outcome": "gives the ventilator to the five adult patients",
+              "predicate": "gives",
+              "polarity": "NEUTRAL",
+              "directness": "DIRECT",
+              "modality": "CERTAIN",
+              "effect_kind": "RESOURCE_TRANSFER",
+              "condition_ids": [],
+              "quantities": [
+                "five"
+              ],
+              "likelihood_qualifiers": [],
+              "overall_likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "source_proposition": "gives the ventilator to the five adult patients",
+              "source_effect_ids": [],
+              "derivation_operation": "DIRECT_COPY",
+              "derivation_explanation": "The blank was filled with this copy of the scenario.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED",
+              "clause_ids": [
+                "C3"
+              ]
+            },
+            {
+              "effect_id": "E4",
+              "action_id": "A1",
+              "party_id": "P5",
+              "outcome": "each of the five adult patients has a 40% chance of survival",
+              "predicate": "survive",
+              "polarity": "BENEFICIAL",
+              "directness": "DOWNSTREAM",
+              "modality": "PROBABILISTIC",
+              "effect_kind": "HEALTH_OUTCOME",
+              "condition_ids": [],
+              "quantities": [
+                "five"
+              ],
+              "likelihood_qualifiers": [
+                "40% chance"
+              ],
+              "overall_likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "source_proposition": "each of the five adult patients has a 40% chance of survival",
+              "source_effect_ids": [
+                "E3"
+              ],
+              "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+              "derivation_explanation": "The blank was filled with this copy of the scenario.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED",
+              "clause_ids": [
+                "C3"
+              ]
+            },
+            {
+              "effect_id": "E5",
+              "action_id": "A0",
+              "party_id": "P4",
+              "outcome": "does not receive the ventilator",
+              "predicate": "NOT_RECEIVES",
+              "polarity": "ADVERSE",
+              "directness": "DOWNSTREAM",
+              "modality": "CERTAIN",
+              "effect_kind": "OTHER",
+              "condition_ids": [],
+              "quantities": [
+                "one"
+              ],
+              "likelihood_qualifiers": [],
+              "overall_likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "source_proposition": "A ward has one ventilator.",
+              "source_effect_ids": [
+                "E1"
+              ],
+              "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+              "derivation_explanation": "Only one ventilator exists, and the copied 'not both' evidence precludes simultaneous receipt by the other recipient.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED",
+              "clause_ids": [
+                "C0"
+              ]
+            },
+            {
+              "effect_id": "E6",
+              "action_id": "A1",
+              "party_id": "P3",
+              "outcome": "does not receive the ventilator",
+              "predicate": "NOT_RECEIVES",
+              "polarity": "ADVERSE",
+              "directness": "DOWNSTREAM",
+              "modality": "CERTAIN",
+              "effect_kind": "OTHER",
+              "condition_ids": [],
+              "quantities": [
+                "one"
+              ],
+              "likelihood_qualifiers": [],
+              "overall_likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "source_proposition": "A ward has one ventilator.",
+              "source_effect_ids": [
+                "E3"
+              ],
+              "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+              "derivation_explanation": "Only one ventilator exists, and the copied 'not both' evidence precludes simultaneous receipt by the other recipient.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED",
+              "clause_ids": [
+                "C0"
+              ]
+            },
+            {
+              "effect_id": "E7",
+              "action_id": "A0",
+              "party_id": "P4",
+              "outcome": "will die",
+              "predicate": "die",
+              "polarity": "ADVERSE",
+              "directness": "DOWNSTREAM",
+              "modality": "CERTAIN",
+              "effect_kind": "HEALTH_OUTCOME",
+              "condition_ids": [],
+              "quantities": [],
+              "likelihood_qualifiers": [],
+              "overall_likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "source_proposition": "will die",
+              "source_effect_ids": [
+                "E5"
+              ],
+              "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+              "derivation_explanation": "The blank was filled with this copy of the scenario.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED",
+              "clause_ids": [
+                "C4"
+              ]
+            },
+            {
+              "effect_id": "E8",
+              "action_id": "A1",
+              "party_id": "P3",
+              "outcome": "will die",
+              "predicate": "die",
+              "polarity": "ADVERSE",
+              "directness": "DOWNSTREAM",
+              "modality": "CERTAIN",
+              "effect_kind": "HEALTH_OUTCOME",
+              "condition_ids": [],
+              "quantities": [],
+              "likelihood_qualifiers": [],
+              "overall_likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "source_proposition": "will die",
+              "source_effect_ids": [
+                "E6"
+              ],
+              "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+              "derivation_explanation": "The blank was filled with this copy of the scenario.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED",
+              "clause_ids": [
+                "C4"
+              ]
+            }
+          ],
+          "conditions": [],
+          "temporal_relations": [],
+          "causal_links": [
+            {
+              "action_id": "A0",
+              "source_id": "E1",
+              "link_relation": "CAUSES",
+              "target_id": "E2",
+              "modality": "CERTAIN",
+              "condition_ids": [],
+              "clause_ids": [
+                "C2"
+              ]
+            },
+            {
+              "action_id": "A1",
+              "source_id": "E3",
+              "link_relation": "CAUSES",
+              "target_id": "E4",
+              "modality": "CERTAIN",
+              "condition_ids": [],
+              "clause_ids": [
+                "C3"
+              ]
+            },
+            {
+              "action_id": "A0",
+              "source_id": "E5",
+              "link_relation": "CAUSES",
+              "target_id": "E7",
+              "modality": "CERTAIN",
+              "condition_ids": [],
+              "clause_ids": [
+                "C4"
+              ]
+            },
+            {
+              "action_id": "A1",
+              "source_id": "E6",
+              "link_relation": "CAUSES",
+              "target_id": "E8",
+              "modality": "CERTAIN",
+              "condition_ids": [],
+              "clause_ids": [
+                "C4"
+              ]
+            }
+          ],
+          "counterfactual_links": []
+        },
+        "ellipsis_resolutions": []
+      },
+      "clauses": [
+        {
+          "clause_id": "C0",
+          "text": "A ward has one ventilator."
+        },
+        {
+          "clause_id": "C1",
+          "text": "Dr. Okonkwo must give the ventilator to either two children or five adult patients, but not both."
+        },
+        {
+          "clause_id": "C2",
+          "text": "If Dr. Okonkwo gives the ventilator to the two children, each of the two children has a 70% chance of survival."
+        },
+        {
+          "clause_id": "C3",
+          "text": "If Dr. Okonkwo gives the ventilator to the five adult patients, each of the five adult patients has a 40% chance of survival."
+        },
+        {
+          "clause_id": "C4",
+          "text": "The patients who do not receive the ventilator will die."
+        }
+      ],
+      "unfilled_required_slots": [],
+      "unresolved_readings": [],
+      "construction_problems": [],
+      "admission_authorized": true,
+      "notes": [
+        "Implied process for the first outcome: providing respiratory support. This is a warning, not a cause copied from the text.",
+        "Implied process for the second outcome: providing respiratory support. This is a warning, not a cause copied from the text."
+      ],
+      "pre_world_assessment": {
+        "ethical_question": "gives / gives",
+        "scenario_options": [
+          {
+            "id": "choice12",
+            "selection_rule": "any_subset",
+            "exhaustive": false,
+            "options": [
+              "gives",
+              "gives"
+            ]
+          }
+        ],
+        "exclusivity": "evidenced",
+        "participants": [
+          {
+            "role": "subject",
+            "mention": "A ward",
+            "predicate": "has"
+          },
+          {
+            "role": "object",
+            "mention": "one ventilator",
+            "predicate": "has"
+          },
+          {
+            "role": "subject",
+            "mention": "Dr. Okonkwo",
+            "predicate": "give"
+          },
+          {
+            "role": "object",
+            "mention": "the ventilator",
+            "predicate": "give"
+          },
+          {
+            "role": "destination",
+            "mention": "two children",
+            "predicate": "give"
+          },
+          {
+            "role": "subject",
+            "mention": "Dr. Okonkwo",
+            "predicate": "gives"
+          },
+          {
+            "role": "object",
+            "mention": "the ventilator",
+            "predicate": "gives"
+          },
+          {
+            "role": "destination",
+            "mention": "the two children",
+            "predicate": "gives"
+          },
+          {
+            "role": "subject",
+            "mention": "each",
+            "predicate": "has"
+          },
+          {
+            "role": "object",
+            "mention": "a 70% chance",
+            "predicate": "has"
+          },
+          {
+            "role": "subject",
+            "mention": "Dr. Okonkwo",
+            "predicate": "gives"
+          },
+          {
+            "role": "object",
+            "mention": "the ventilator",
+            "predicate": "gives"
+          },
+          {
+            "role": "destination",
+            "mention": "the five adult patients",
+            "predicate": "gives"
+          },
+          {
+            "role": "subject",
+            "mention": "each",
+            "predicate": "has"
+          },
+          {
+            "role": "object",
+            "mention": "a 40% chance",
+            "predicate": "has"
+          },
+          {
+            "role": "subject",
+            "mention": "who",
+            "predicate": "receive"
+          },
+          {
+            "role": "object",
+            "mention": "the ventilator",
+            "predicate": "receive"
+          },
+          {
+            "role": "subject",
+            "mention": "The patients",
+            "predicate": "die"
+          },
+          {
+            "role": "destination",
+            "mention": "five adult patients",
+            "predicate": "give"
+          }
+        ],
+        "eligible_for_world_state": true,
+        "status": "ASSESSED"
+      },
+      "accepted_evidence": {
+        "decider": "Dr. Okonkwo",
+        "resource": "the ventilator",
+        "assignment": "give the ventilator to either two children or five adult patients, but not both",
+        "quantity": "one ventilator",
+        "first_recipient": "the two children",
+        "second_recipient": "the five adult patients",
+        "exclusivity": "not both",
+        "first_outcome": "each of the two children has a 70% chance of survival",
+        "second_outcome": "each of the five adult patients has a 40% chance of survival",
+        "first_implied_process": "providing respiratory support",
+        "second_implied_process": "providing respiratory support",
+        "first_branch_sentence": "If Dr. Okonkwo gives the ventilator to the two children, each of the two children has a 70% chance of survival",
+        "survival_chance": "70% chance of survival",
+        "nonreceipt": "The patients who do not receive the ventilator will die"
+      },
+      "world_withheld": []
+    }
+  ],
+  "graph": {
+    "proposal_contract_version": "blueprint-proposal-contract/0.2",
+    "proposal_id": "exclusive_allocation_cloze",
+    "blueprint_id": "exclusive_allocation",
+    "status": "FILLED",
+    "assignment_kind": "intervention_text",
+    "assignment": [
+      "gives the ventilator to the two children",
+      "gives the ventilator to the five adult patients"
+    ],
+    "slot_bindings": {
+      "copied_spans": {
+        "decider": "Dr. Okonkwo",
+        "resource": "the ventilator",
+        "assignment": "give the ventilator to either two children or five adult patients, but not both",
+        "quantity": "one ventilator",
+        "first_recipient": "the two children",
+        "second_recipient": "the five adult patients",
+        "exclusivity": "not both",
+        "first_outcome": "each of the two children has a 70% chance of survival",
+        "second_outcome": "each of the five adult patients has a 40% chance of survival",
+        "first_branch_sentence": "If Dr. Okonkwo gives the ventilator to the two children, each of the two children has a 70% chance of survival",
+        "survival_chance": "70% chance of survival",
+        "nonreceipt": "The patients who do not receive the ventilator will die",
+        "first_implied_process": "providing respiratory support",
+        "second_implied_process": "providing respiratory support"
+      }
+    },
+    "selection": null,
+    "selection_validation": {
+      "contract_valid": null,
+      "status": "not_assessed",
+      "reason": "The cloze path has no Z10 candidate selection."
+    },
+    "candidate": {
+      "actions": {
+        "A0": {
+          "clause_ids": [
+            "C2"
+          ],
+          "reason": "Filled from copied cloze slots."
+        },
+        "A1": {
+          "clause_ids": [
+            "C3"
+          ],
+          "reason": "Filled from copied cloze slots."
+        }
+      },
+      "world_model": {
+        "schema_version": "1.3",
+        "parties": [
+          {
+            "party_id": "P1",
+            "label": "Dr. Okonkwo",
+            "kind": "PERSON",
+            "quantities": [],
+            "clause_ids": [
+              "C1",
+              "C2",
+              "C3"
+            ]
+          },
+          {
+            "party_id": "P2",
+            "label": "the ventilator",
+            "kind": "RESOURCE",
+            "quantities": [
+              "one"
+            ],
+            "clause_ids": [
+              "C1",
+              "C2",
+              "C3",
+              "C4"
+            ]
+          },
+          {
+            "party_id": "P3",
+            "label": "the two children",
+            "kind": "PERSON",
+            "quantities": [],
+            "clause_ids": [
+              "C2"
+            ]
+          },
+          {
+            "party_id": "P4",
+            "label": "the five adult patients",
+            "kind": "HUMAN_GROUP",
+            "quantities": [
+              "five"
+            ],
+            "clause_ids": [
+              "C3"
+            ]
+          },
+          {
+            "party_id": "P5",
+            "label": "five adult patients",
+            "kind": "HUMAN_GROUP",
+            "quantities": [
+              "five"
+            ],
+            "clause_ids": [
+              "C1",
+              "C3"
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "action_id": "A0",
+            "intervention": "gives the ventilator to the two children",
+            "actor_party_id": "P1",
+            "recipient_party_ids": [
+              "P3"
+            ],
+            "effect_ids": [
+              "E1",
+              "E2",
+              "E5",
+              "E7"
+            ],
+            "clause_ids": [
+              "C2"
+            ]
+          },
+          {
+            "action_id": "A1",
+            "intervention": "gives the ventilator to the five adult patients",
+            "actor_party_id": "P1",
+            "recipient_party_ids": [
+              "P4"
+            ],
+            "effect_ids": [
+              "E3",
+              "E4",
+              "E6",
+              "E8"
+            ],
+            "clause_ids": [
+              "C3"
+            ]
+          }
+        ],
+        "effects": [
+          {
+            "effect_id": "E1",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "gives the ventilator to the two children",
+            "predicate": "gives",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "RESOURCE_TRANSFER",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "gives the ventilator to the two children",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C2"
+            ]
+          },
+          {
+            "effect_id": "E2",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "each of the two children has a 70% chance of survival",
+            "predicate": "survive",
+            "polarity": "BENEFICIAL",
+            "directness": "DOWNSTREAM",
+            "modality": "PROBABILISTIC",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [
+              "70% chance"
+            ],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "each of the two children has a 70% chance of survival",
+            "source_effect_ids": [
+              "E1"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C2"
+            ]
+          },
+          {
+            "effect_id": "E3",
+            "action_id": "A1",
+            "party_id": "P4",
+            "outcome": "gives the ventilator to the five adult patients",
+            "predicate": "gives",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "RESOURCE_TRANSFER",
+            "condition_ids": [],
+            "quantities": [
+              "five"
+            ],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "gives the ventilator to the five adult patients",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C3"
+            ]
+          },
+          {
+            "effect_id": "E4",
+            "action_id": "A1",
+            "party_id": "P5",
+            "outcome": "each of the five adult patients has a 40% chance of survival",
+            "predicate": "survive",
+            "polarity": "BENEFICIAL",
+            "directness": "DOWNSTREAM",
+            "modality": "PROBABILISTIC",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [
+              "five"
+            ],
+            "likelihood_qualifiers": [
+              "40% chance"
+            ],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "each of the five adult patients has a 40% chance of survival",
+            "source_effect_ids": [
+              "E3"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C3"
+            ]
+          },
+          {
+            "effect_id": "E5",
+            "action_id": "A0",
+            "party_id": "P4",
+            "outcome": "does not receive the ventilator",
+            "predicate": "NOT_RECEIVES",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "OTHER",
+            "condition_ids": [],
+            "quantities": [
+              "one"
+            ],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "A ward has one ventilator.",
+            "source_effect_ids": [
+              "E1"
+            ],
+            "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+            "derivation_explanation": "Only one ventilator exists, and the copied 'not both' evidence precludes simultaneous receipt by the other recipient.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "effect_id": "E6",
+            "action_id": "A1",
+            "party_id": "P3",
+            "outcome": "does not receive the ventilator",
+            "predicate": "NOT_RECEIVES",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "OTHER",
+            "condition_ids": [],
+            "quantities": [
+              "one"
+            ],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "A ward has one ventilator.",
+            "source_effect_ids": [
+              "E3"
+            ],
+            "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+            "derivation_explanation": "Only one ventilator exists, and the copied 'not both' evidence precludes simultaneous receipt by the other recipient.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "effect_id": "E7",
+            "action_id": "A0",
+            "party_id": "P4",
+            "outcome": "will die",
+            "predicate": "die",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "will die",
+            "source_effect_ids": [
+              "E5"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C4"
+            ]
+          },
+          {
+            "effect_id": "E8",
+            "action_id": "A1",
+            "party_id": "P3",
+            "outcome": "will die",
+            "predicate": "die",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "will die",
+            "source_effect_ids": [
+              "E6"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C4"
+            ]
+          }
+        ],
+        "conditions": [],
+        "temporal_relations": [],
+        "causal_links": [
+          {
+            "action_id": "A0",
+            "source_id": "E1",
+            "link_relation": "CAUSES",
+            "target_id": "E2",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C2"
+            ]
+          },
+          {
+            "action_id": "A1",
+            "source_id": "E3",
+            "link_relation": "CAUSES",
+            "target_id": "E4",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C3"
+            ]
+          },
+          {
+            "action_id": "A0",
+            "source_id": "E5",
+            "link_relation": "CAUSES",
+            "target_id": "E7",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C4"
+            ]
+          },
+          {
+            "action_id": "A1",
+            "source_id": "E6",
+            "link_relation": "CAUSES",
+            "target_id": "E8",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C4"
+            ]
+          }
+        ],
+        "counterfactual_links": []
+      },
+      "ellipsis_resolutions": []
+    },
+    "clauses": [
+      {
+        "clause_id": "C0",
+        "text": "A ward has one ventilator."
+      },
+      {
+        "clause_id": "C1",
+        "text": "Dr. Okonkwo must give the ventilator to either two children or five adult patients, but not both."
+      },
+      {
+        "clause_id": "C2",
+        "text": "If Dr. Okonkwo gives the ventilator to the two children, each of the two children has a 70% chance of survival."
+      },
+      {
+        "clause_id": "C3",
+        "text": "If Dr. Okonkwo gives the ventilator to the five adult patients, each of the five adult patients has a 40% chance of survival."
+      },
+      {
+        "clause_id": "C4",
+        "text": "The patients who do not receive the ventilator will die."
+      }
+    ],
+    "unfilled_required_slots": [],
+    "unresolved_readings": [],
+    "construction_problems": [],
+    "admission_authorized": true,
+    "notes": [
+      "Implied process for the first outcome: providing respiratory support. This is a warning, not a cause copied from the text.",
+      "Implied process for the second outcome: providing respiratory support. This is a warning, not a cause copied from the text."
+    ],
+    "pre_world_assessment": {
+      "ethical_question": "gives / gives",
+      "scenario_options": [
+        {
+          "id": "choice12",
+          "selection_rule": "any_subset",
+          "exhaustive": false,
+          "options": [
+            "gives",
+            "gives"
+          ]
+        }
+      ],
+      "exclusivity": "evidenced",
+      "participants": [
+        {
+          "role": "subject",
+          "mention": "A ward",
+          "predicate": "has"
+        },
+        {
+          "role": "object",
+          "mention": "one ventilator",
+          "predicate": "has"
+        },
+        {
+          "role": "subject",
+          "mention": "Dr. Okonkwo",
+          "predicate": "give"
+        },
+        {
+          "role": "object",
+          "mention": "the ventilator",
+          "predicate": "give"
+        },
+        {
+          "role": "destination",
+          "mention": "two children",
+          "predicate": "give"
+        },
+        {
+          "role": "subject",
+          "mention": "Dr. Okonkwo",
+          "predicate": "gives"
+        },
+        {
+          "role": "object",
+          "mention": "the ventilator",
+          "predicate": "gives"
+        },
+        {
+          "role": "destination",
+          "mention": "the two children",
+          "predicate": "gives"
+        },
+        {
+          "role": "subject",
+          "mention": "each",
+          "predicate": "has"
+        },
+        {
+          "role": "object",
+          "mention": "a 70% chance",
+          "predicate": "has"
+        },
+        {
+          "role": "subject",
+          "mention": "Dr. Okonkwo",
+          "predicate": "gives"
+        },
+        {
+          "role": "object",
+          "mention": "the ventilator",
+          "predicate": "gives"
+        },
+        {
+          "role": "destination",
+          "mention": "the five adult patients",
+          "predicate": "gives"
+        },
+        {
+          "role": "subject",
+          "mention": "each",
+          "predicate": "has"
+        },
+        {
+          "role": "object",
+          "mention": "a 40% chance",
+          "predicate": "has"
+        },
+        {
+          "role": "subject",
+          "mention": "who",
+          "predicate": "receive"
+        },
+        {
+          "role": "object",
+          "mention": "the ventilator",
+          "predicate": "receive"
+        },
+        {
+          "role": "subject",
+          "mention": "The patients",
+          "predicate": "die"
+        },
+        {
+          "role": "destination",
+          "mention": "five adult patients",
+          "predicate": "give"
+        }
+      ],
+      "eligible_for_world_state": true,
+      "status": "ASSESSED"
+    },
+    "accepted_evidence": {
+      "decider": "Dr. Okonkwo",
+      "resource": "the ventilator",
+      "assignment": "give the ventilator to either two children or five adult patients, but not both",
+      "quantity": "one ventilator",
+      "first_recipient": "the two children",
+      "second_recipient": "the five adult patients",
+      "exclusivity": "not both",
+      "first_outcome": "each of the two children has a 70% chance of survival",
+      "second_outcome": "each of the five adult patients has a 40% chance of survival",
+      "first_implied_process": "providing respiratory support",
+      "second_implied_process": "providing respiratory support",
+      "first_branch_sentence": "If Dr. Okonkwo gives the ventilator to the two children, each of the two children has a 70% chance of survival",
+      "survival_chance": "70% chance of survival",
+      "nonreceipt": "The patients who do not receive the ventilator will die"
+    },
+    "world_withheld": []
+  }
+}

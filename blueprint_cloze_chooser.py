@@ -32,6 +32,12 @@ from blueprint_discourse import (
     ensure_schema,
 )
 from blueprint_evidence_graph import assemble_evidence_graph, source_copy_validation
+from blueprint_world_beam import (
+    BEAM_CAP,
+    graph_identity,
+    mark_competitors,
+    slot_hypothesis,
+)
 from blueprint_kind_license import (
     apply_kind_license,
     kind_problems,
@@ -50,7 +56,7 @@ from candidate_graph_blueprints import _clause_holding, match_exclusive_allocati
 from z10_world_model_adapter import segment_source_clauses
 
 
-CLOZE_VERSION = "blueprint-cloze-chooser/0.9"
+CLOZE_VERSION = "blueprint-cloze-chooser/0.11"
 DEFAULT_OPENAI_ENV = Path(
     "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/.env"
 )
@@ -192,10 +198,10 @@ TEMPLATES: tuple[dict[str, Any], ...] = (
         "items": (
             {"id": "actor", "core": True, "check": "copy",
              "sentence": "The person who may do the action or not do it is"},
-            {"id": "done", "core": True, "check": "copy",
-             "sentence": "The action the text says is done is"},
+            {"id": "done", "core": True, "check": "branch_action",
+             "sentence": "The positive action considered (not an event asserted to have occurred), without its if marker or outcome, is"},
             {"id": "omitted", "core": True, "check": "negated_action",
-             "sentence": "The copied non-action branch, including the word not, is"},
+             "sentence": "The negative action condition, including not (copy does not if its verb is elided), without its outcome, is"},
             {"id": "harm_done", "core": True, "check": "harm_clause",
              "sentence": "The stated harmful outcome if the action is done is"},
             {"id": "harm_omitted", "core": True, "check": "harm_clause",
@@ -208,6 +214,8 @@ TEMPLATES: tuple[dict[str, Any], ...] = (
              "sentence": "One copied group count in a harmful outcome is"},
             {"id": "instrument", "core": False, "check": "instrument_contrast",
              "sentence": "The contrasting instrument named after but not is"},
+            {"id": "controllable_process", "core": False, "check": "process_words",
+             "sentence": "The moving or controllable process named in the mechanism (not a human victim) is"},
         ),
     },
     {
@@ -218,19 +226,21 @@ TEMPLATES: tuple[dict[str, Any], ...] = (
             {"id": "actor", "core": False, "check": "copy",
              "sentence": "The person whose action an outcome depends on is"},
             {"id": "condition", "core": True, "check": "if_clause",
-             "sentence": "The if-clause the outcome depends on is"},
-            {"id": "bearer", "core": True, "check": "party",
-             "sentence": "The party that outcome happens to is"},
+             "sentence": "Only the condition beginning with if, ending before the comma or consequence, is"},
+            {"id": "bearer", "core": True, "check": "outcome_patient",
+             "sentence": "The affected party: for kills or harms copy its object, not the killer; for dies or lives copy its subject, is"},
             {"id": "outcome", "core": True, "check": "copy",
              "sentence": "The outcome stated for that party is"},
             {"id": "second_condition", "core": False, "check": "distinct_if_clause",
              "sentence": "The second if-clause, distinct from the first, is"},
-            {"id": "second_bearer", "core": False, "check": "party",
-             "sentence": "The party the second outcome happens to is"},
+            {"id": "second_bearer", "core": False, "check": "outcome_patient",
+             "sentence": "The affected party of the second outcome (object of kills/harms, subject of dies/lives) is"},
             {"id": "second_outcome", "core": False, "check": "outcome_clause",
              "sentence": "The outcome stated for that second party is"},
             {"id": "chance", "core": False, "check": "chance",
              "sentence": "A stated chance attached to an outcome is"},
+            {"id": "controllable_process", "core": False, "check": "process_words",
+             "sentence": "The moving or controllable process named in the mechanism (not a human victim) is"},
         ),
     },
     {
@@ -357,6 +367,7 @@ def choose_by_cloze(text: str, complete: Complete,
     proposals = ([graph] if graph else
                  [_withheld_cloze_proposal(text, winner, withheld)] if winner else [])
     candidate_attempts = _candidate_attempts(text, question, considered, winner, graph)
+    world_beam = _chooser_world_beam(text, question, considered, winner, candidate_attempts)
     status = "WITHHELD" if withheld else (winner["status"] if winner else "NO_MATCH")
     return {
         "cloze_version": CLOZE_VERSION,
@@ -368,6 +379,7 @@ def choose_by_cloze(text: str, complete: Complete,
         "world_withheld": withheld,
         "considered": considered,
         "candidate_attempts": candidate_attempts,
+        "world_beam": world_beam,
         "proposals": proposals,
         "graph": graph,
     }
@@ -453,8 +465,117 @@ def _candidate_attempts(text: str, question: dict[str, Any],
             "contract_valid": not contract_errors,
             "contract_errors": contract_errors,
             "proposal": proposal,
+            "slot_hypotheses": dict(row.get("slot_hypotheses") or {}),
+            "rejected": row.get("rejected") or 0,
         })
     return attempts
+
+
+def _chooser_world_beam(text: str, question: dict[str, Any],
+                        considered: list[dict[str, Any]],
+                        winner: dict[str, Any] | None,
+                        attempts: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Cap-3 distinct compiled graphs. Preferred fill stays on chosen_blueprint_id."""
+    members = []
+    seen: set[tuple] = set()
+
+    def add(attempt: dict[str, Any], source: str) -> None:
+        proposal = attempt.get("proposal") or {}
+        if not proposal.get("candidate") or not proposal.get("admission_authorized"):
+            return
+        key = graph_identity(
+            attempt.get("blueprint_id") or "",
+            proposal.get("assignment") or [],
+            bool(proposal.get("world_withheld")),
+        )
+        if key in seen:
+            return
+        seen.add(key)
+        members.append({
+            "blueprint_id": attempt.get("blueprint_id"),
+            "rank": attempt.get("rank"),
+            "variant": attempt.get("variant") or "baseline",
+            "template_status": attempt.get("template_status"),
+            "source": source,
+            "assignment": list(proposal.get("assignment") or []),
+            "slot_hypotheses": dict(attempt.get("slot_hypotheses") or {}),
+            "proposal_id": proposal.get("proposal_id"),
+        })
+
+    filled = [
+        attempt for attempt in attempts
+        if attempt.get("template_status") == "FILLED"
+        and (attempt.get("proposal") or {}).get("admission_authorized")
+        and (attempt.get("proposal") or {}).get("candidate")
+    ]
+    if not filled:
+        preferred = next((attempt for attempt in attempts if attempt.get("selected")), None)
+        if preferred:
+            filled = [preferred]
+    # Preserve all attempts/graphs elsewhere; reserve the admission beam for
+    # applicable macros before fallback compositions consume its small cap.
+    nonfallback = [a for a in filled if a.get("variant") not in {"flexible", "composition"}]
+    filled = nonfallback or filled
+    for attempt in filled:
+        add(attempt, "template")
+        if len(members) >= BEAM_CAP:
+            return members[:BEAM_CAP]
+    by_id = {row["blueprint_id"]: row for row in considered}
+    for attempt in filled:
+        row = by_id.get(attempt["blueprint_id"])
+        if row is None:
+            continue
+        for fork in _identity_forks(text, question, row, attempt):
+            add(fork, "core_slot_fork")
+            if len(members) >= BEAM_CAP:
+                return members[:BEAM_CAP]
+    return members[:BEAM_CAP]
+
+
+def _identity_forks(text: str, question: dict[str, Any], row: dict[str, Any],
+                    attempt: dict[str, Any]) -> list[dict[str, Any]]:
+    """Extra beam members only when a core runner-up changes action identity."""
+    if row.get("status") != "FILLED":
+        return []
+    if row.get("graph_builder") not in {"implemented", "discourse"}:
+        return []
+    if _world_withheld(question, row):
+        return []
+    original = list((attempt.get("proposal") or {}).get("assignment") or [])
+    forks = []
+    for item in row.get("items") or []:
+        if not item.get("core") or item["id"] in {"first_implied_process", "second_implied_process"}:
+            continue
+        hyps = [
+            hyp for hyp in (row.get("slot_hypotheses") or {}).get(item["id"], [])
+            if hyp.get("relent_compatibility") == "copy_ok"
+        ]
+        primary = (row.get("slots") or {}).get(item["id"]) or ""
+        for hyp in hyps:
+            span = hyp.get("source_span") or ""
+            if not span or span.casefold() == primary.casefold():
+                continue
+            alt = deepcopy(row)
+            alt["slots"] = dict(row.get("slots") or {})
+            alt["slots"][item["id"]] = span
+            try:
+                proposal = _graph(text, alt, {**question, "eligible_for_world_state": True})
+            except (KeyError, TypeError, ValueError):
+                continue
+            assignment = list(proposal.get("assignment") or [])
+            if assignment == original:
+                continue
+            forks.append({
+                "blueprint_id": row["blueprint_id"],
+                "rank": row["rank"],
+                "template_status": row["status"],
+                "variant": f"slot_fork:{item['id']}",
+                "core_filled": row.get("core_filled"),
+                "optional_filled": row.get("optional_filled"),
+                "slot_hypotheses": dict(row.get("slot_hypotheses") or {}),
+                "proposal": proposal,
+            })
+    return forks
 
 
 def assess_question(text: str) -> dict[str, Any]:
@@ -656,6 +777,7 @@ def _cloze_prompt(text: str, template: dict[str, Any]) -> str:
         f"Template: {template['blueprint_id']}",
         "Finish each sentence with a short contiguous copy of the scenario.",
         "If the scenario does not state that fact, answer NONE.",
+        "An answer may be one copy, NONE, or a JSON list of up to 3 copies.",
         "Do not paraphrase. Do not decide what anyone should do.",
         "A relative clause that states a consequence may fill an outcome sentence.",
     ]
@@ -668,7 +790,7 @@ def _cloze_prompt(text: str, template: dict[str, Any]) -> str:
         answers.append(f'"{item["id"]}"')
     lines.append("")
     lines.append("Return a JSON object {\"answers\": {" + ", ".join(
-        f"{name}: \"copy or NONE\"" for name in answers) + "}}.")
+        f"{name}: \"copy, NONE, or up to 3 copies\"" for name in answers) + "}}.")
     return "\n".join(lines)
 
 
@@ -692,10 +814,15 @@ def _template_instructions(blueprint_id: str) -> list[str]:
         ],
         "omission_harm": [
             "Copy the complete harmful proposition, including its harm verb.",
+            "The doing and not-doing branches are possible choices, not claims that either occurred.",
+            "For 'If she does not', copy does not as the negative branch; do not discard it for lacking a repeated verb.",
+            "Separate conditions from consequences at the comma. Copy each harm's victim, not the subject of kills.",
             "A brake or other nearby instrument is context unless the text states it as an action branch.",
         ],
         "conditional_outcome": [
             "Keep each if-clause paired only with the outcome in its own sentence.",
+            "A condition ends before its consequence. Never fill condition with an entire if/then sentence.",
+            "When a process kills someone, the affected party is the object, not the process.",
             "Do not infer that two conditional branches are exclusive.",
         ],
         "ability_permission": ["Do not choose between ability, permission, and possibility when the wording leaves them ambiguous."],
@@ -727,10 +854,13 @@ def _ask_implied(text: str, template: dict[str, Any], row: dict[str, Any],
     items = [by_id.get(item["id"], item) for item in row["items"]]
     slots = dict(row["slots"])
     slots.update(follow["slots"])
+    hyps = dict(row.get("slot_hypotheses") or {})
+    hyps.update(follow.get("slot_hypotheses") or {})
     optional = [item for item in items if not item["core"]]
     row = dict(row)
     row["items"] = items
     row["slots"] = slots
+    row["slot_hypotheses"] = hyps
     row["optional_filled"] = sum(item["verdict"] == "accepted" for item in optional)
     row["rejected"] = sum(item["verdict"] == "rejected" for item in items)
     row["unfilled"] = [item["id"] for item in items if item["verdict"] != "accepted"]
@@ -947,55 +1077,217 @@ def _span_names_recipient(span: str, recipient: str) -> bool:
     return bool(recipient) and recipient in span
 
 
-def _score_template(text: str, template: dict[str, Any], answers: dict[str, str],
+def _answer_list(value: Any) -> list[str]:
+    if isinstance(value, list):
+        values = ["" if item is None else str(item) for item in value[:3]]
+        return values or ["NONE"]
+    if value is None:
+        return ["NONE"]
+    return [str(value)]
+
+
+def _score_slot(text: str, item: dict[str, Any], values: Sequence[str],
+                accepted: dict[str, str]) -> tuple[str | None, str, str, list[dict[str, Any]], str]:
+    completion = values[0] if values else "NONE"
+    hyps: list[dict[str, Any]] = []
+    ok: list[tuple[str, str]] = []
+    seen: set[str] = set()
+    last_fail = ("empty", "not_stated")
+    for raw in values:
+        spans, limit_reason = _copy_spans(text, raw)
+        if item["check"] == "implied" and not _abstains(raw) and not limit_reason:
+            phrase = " ".join(str(raw).strip().strip("\"'`").split()).rstrip(".")
+            span = spans[0] if spans else phrase
+            if not span:
+                last_fail = ("empty", "not_stated")
+                continue
+            producer = "cloze_copy" if spans else "llm_note"
+            compatibility = "copy_ok" if spans else "not_a_copy"
+            hyps.append(slot_hypothesis(
+                text=text, slot=item["id"], check=item["check"], span=span,
+                producer=producer, relent_compatibility=compatibility,
+                index=len(hyps),
+            ))
+            if span.casefold() not in seen:
+                seen.add(span.casefold())
+                ok.append((span, "copied" if spans else "implied"))
+            continue
+        if _abstains(raw):
+            last_fail = ("empty", "not_stated")
+            continue
+        if limit_reason:
+            last_fail = ("rejected", limit_reason)
+            hyps.append(slot_hypothesis(
+                text=text, slot=item["id"], check=item["check"], span=str(raw),
+                producer="cloze_copy", relent_compatibility="not_a_copy",
+                index=len(hyps),
+            ))
+            continue
+        if not spans:
+            last_fail = ("rejected", "not_a_copy")
+            hyps.append(slot_hypothesis(
+                text=text, slot=item["id"], check=item["check"], span=str(raw),
+                producer="cloze_copy", relent_compatibility="not_a_copy",
+                index=len(hyps),
+            ))
+            continue
+        matched = False
+        for candidate in spans:
+            head = _normalize_slot_span(text, item, candidate, accepted)
+            key = head.casefold()
+            compatibility = "copy_ok"
+            if not _answers_sentence(text, item, candidate, accepted) and (
+                    head == candidate or not _answers_sentence(text, item, head, accepted)):
+                compatibility = "does_not_answer"
+            elif _duplicates_party(item, head, accepted):
+                last_fail = ("rejected", "same_party")
+                continue
+            hyps.append(slot_hypothesis(
+                text=text, slot=item["id"], check=item["check"], span=head,
+                producer="cloze_copy", relent_compatibility=compatibility,
+                index=len(hyps),
+            ))
+            if compatibility != "copy_ok" or key in seen:
+                last_fail = ("rejected", "does_not_answer")
+                continue
+            seen.add(key)
+            ok.append((head, "copied"))
+            matched = True
+        if not matched:
+            last_fail = ("rejected", last_fail[1] if last_fail[0] == "rejected" else "does_not_answer")
+    if ok:
+        primary, reason = _pick_primary_copy(ok, item, accepted)
+        return primary, "accepted", reason, hyps, completion
+    verdict, reason = last_fail
+    return None, verdict, reason, hyps, completion
+
+
+def _normalize_slot_span(text: str, item: dict[str, Any], candidate: str,
+                         accepted: dict[str, str]) -> str:
+    head = _party_head(text, candidate) if item["id"] in _PARTY_IDS else candidate
+    if item["check"] == "assignment":
+        head = _assigned_act(text, head)
+    elif item["check"] == "commitment_words":
+        head = _commitment_event_head(text, head)
+    if head != candidate and not _answers_sentence(text, item, head, accepted):
+        return candidate
+    return head
+
+
+def _fragment_hedge(item: dict[str, Any], span: str | None) -> bool:
+    return item.get("check") == "branch_hedge" and len((span or "").split()) <= 1
+
+
+def _pick_primary_copy(ok: Sequence[tuple[str, str]], item: dict[str, Any],
+                       accepted: dict[str, str]) -> tuple[str, str]:
+    spans = [span for span, _ in ok]
+
+    def complete(span: str) -> bool:
+        if item.get("check") != "branch_hedge":
+            return True
+        if _fragment_hedge(item, span):
+            return False
+        folded = span.casefold()
+        return not any(
+            other.casefold().startswith(folded) and other.casefold() != folded
+            for other in spans
+        )
+
+    def key(pair: tuple[str, str]) -> tuple:
+        span, reason = pair
+        malformed = item["id"] == "decider" and bool(_TRANSFER_EVENT.search(span))
+        names = _span_names_roles(span, item, accepted)
+        return (
+            not malformed,
+            complete(span),
+            reason == "copied",
+            names,
+            -len(span.split()),
+            -len(span),
+        )
+    span, reason = max(ok, key=key)
+    return span, reason
+
+
+def _span_names_roles(span: str, item: dict[str, Any], accepted: dict[str, str]) -> bool:
+    folded = (span or "").casefold()
+    if item["id"] in _PARTY_IDS:
+        return True
+    for role in ("first_recipient", "second_recipient", "decider", "actor", "resource"):
+        label = (accepted.get(role) or "").casefold()
+        if label and label in folded:
+            return True
+    return False
+
+
+def _compete_recovery(text: str, row: dict[str, Any], item: dict[str, Any],
+                      span: str, *, replace: bool = False,
+                      candidate_ids: Sequence[str] = (),
+                      reason: str, method: str) -> None:
+    """Record a Z10 span as a competing hyp; overwrite only empty or malformed fills."""
+    hyps = list((row.get("slot_hypotheses") or {}).get(item["id"]) or item.get("hypotheses") or [])
+    existing = next(
+        (hyp for hyp in hyps
+         if (hyp.get("source_span") or "").casefold() == span.casefold()),
+        None,
+    )
+    if existing is None:
+        hyps.append(slot_hypothesis(
+            text=text, slot=item["id"], check=item.get("check") or "copy",
+            span=span, producer="z10", relent_compatibility="copy_ok",
+            z10_candidate_ids=candidate_ids, index=len(hyps),
+        ))
+    elif candidate_ids:
+        ids = list(existing.get("z10_candidate_ids") or [])
+        for ident in candidate_ids:
+            if ident not in ids:
+                ids.append(ident)
+        existing["z10_candidate_ids"] = ids
+        existing["parser_support"] = ids
+        hypothesis = dict(existing.get("hypothesis") or {})
+        hypothesis["parser_support"] = ids
+        existing["hypothesis"] = hypothesis
+    hyps = mark_competitors(hyps)
+    row.setdefault("slot_hypotheses", {})[item["id"]] = hyps
+    item["hypotheses"] = hyps
+    recovery = {
+        "producer": "parsing_game_Z10",
+        "method": method,
+        "span": span,
+    }
+    if candidate_ids:
+        recovery["z10_candidate_ids"] = list(candidate_ids)
+    row.setdefault("semantic_recoveries", {})[item["id"]] = recovery
+    current = row["slots"].get(item["id"])
+    malformed = item["id"] == "decider" and bool(current and _TRANSFER_EVENT.search(current))
+    placeholder = bool(re.search(r"\b(?:it|this|that)\b", current or "", re.I))
+    fragment = _fragment_hedge(item, current)
+    wrong_patient = (item.get('check') == 'outcome_patient' and current
+                     and not _answers_sentence(text, item, current, row['slots']))
+    if not current or item.get("verdict") != "accepted" or (
+            replace and (malformed or placeholder or fragment or wrong_patient)):
+        row["slots"][item["id"]] = span
+        item.update({"span": span, "verdict": "accepted", "reason": reason})
+
+
+def _score_template(text: str, template: dict[str, Any], answers: dict[str, Any],
                     rank: int) -> dict[str, Any]:
     accepted: dict[str, str] = {}
     items = []
+    slot_hypotheses: dict[str, list[dict[str, Any]]] = {}
     for item in template["items"]:
-        raw = answers.get(item["id"], "NONE")
-        spans, limit_reason = _copy_spans(text, raw)
-        span = None
-        if item["check"] == "implied" and not _abstains(raw) and not limit_reason:
-            phrase = " ".join(str(raw).strip().strip("\"'`").split()).rstrip(".")
-            if spans:
-                span = spans[0]
-                accepted[item["id"]] = span
-                verdict, reason = "accepted", "copied"
-            elif phrase:
-                span = phrase
-                accepted[item["id"]] = phrase
-                verdict, reason = "accepted", "implied"
-            else:
-                verdict, reason = "empty", "not_stated"
-        elif _abstains(raw):
-            verdict, reason = "empty", "not_stated"
-        elif limit_reason:
-            verdict, reason = "rejected", limit_reason
-        elif not spans:
-            verdict, reason = "rejected", "not_a_copy"
-        else:
-            verdict, reason = "rejected", "does_not_answer"
-            for candidate in spans:
-                if not _answers_sentence(text, item, candidate, accepted):
-                    continue
-                if _duplicates_party(item, candidate, accepted):
-                    reason = "same_party"
-                    continue
-                head = _party_head(text, candidate) if item["id"] in _PARTY_IDS else candidate
-                if item["check"] == "assignment":
-                    head = _assigned_act(text, head)
-                elif item["check"] == "commitment_words":
-                    head = _commitment_event_head(text, head)
-                if head != candidate and not _answers_sentence(text, item, head, accepted):
-                    head = candidate
-                span = head
-                accepted[item["id"]] = head
-                verdict, reason = "accepted", "copied"
-                break
+        values = _answer_list(answers.get(item["id"], "NONE"))
+        span, verdict, reason, hyps, completion = _score_slot(
+            text, item, values, accepted)
+        if verdict == "accepted" and span:
+            accepted[item["id"]] = span
+        slot_hypotheses[item["id"]] = mark_competitors(hyps)
         items.append({
-            "id": item["id"], "core": item["core"], "sentence": item["sentence"],
-            "completion": raw, "span": span if verdict == "accepted" else None,
+            "id": item["id"], "core": item["core"], "check": item.get("check"),
+            "sentence": item["sentence"],
+            "completion": completion, "span": span if verdict == "accepted" else None,
             "verdict": verdict, "reason": reason,
+            "hypotheses": slot_hypotheses[item["id"]],
         })
     if template["blueprint_id"] == "omission_harm":
         recoveries = []
@@ -1010,19 +1302,30 @@ def _score_template(text: str, template: dict[str, Any], answers: dict[str, str]
             match = re.search(r"\b(?:does|do|did)\s+not\s+.+$", omitted_hedge, re.I)
             if match:
                 recoveries.append(("omitted", match.group(0)))
+        by_id = {row["id"]: row for row in items}
         for item_id, recovered in recoveries:
             copied = _copy_spans(text, recovered.strip(" ,."))[0]
             if not copied:
                 continue
             accepted[item_id] = copied[0]
-            for row in items:
-                if row["id"] == item_id:
-                    row.update({
-                        "span": copied[0],
-                        "verdict": "accepted",
-                        "reason": "recovered_from_copied_conditional",
-                    })
-                    break
+            row = by_id.get(item_id)
+            if row is None:
+                continue
+            spec = next(item for item in template["items"] if item["id"] == item_id)
+            hyps = list(row.get("hypotheses") or slot_hypotheses.get(item_id) or [])
+            hyps.append(slot_hypothesis(
+                text=text, slot=item_id, check=spec.get("check") or "copy",
+                span=copied[0], producer="cloze_copy", relent_compatibility="copy_ok",
+                index=len(hyps),
+            ))
+            hyps = mark_competitors(hyps)
+            slot_hypotheses[item_id] = hyps
+            row.update({
+                "span": copied[0],
+                "verdict": "accepted",
+                "reason": "recovered_from_copied_conditional",
+                "hypotheses": hyps,
+            })
     _include_copied_target(text, accepted, items)
     if template["blueprint_id"] == "exclusive_allocation" and "assignment" not in accepted:
         # The assignment is often expressed once as a shared infinitive ("give
@@ -1032,13 +1335,22 @@ def _score_template(text: str, template: dict[str, Any], answers: dict[str, str]
         recovered = accepted.get("first_transfer") or accepted.get("second_transfer")
         if recovered:
             accepted["assignment"] = recovered
-            for row in items:
-                if row["id"] == "assignment":
-                    row.update({
-                        "span": recovered, "verdict": "accepted",
-                        "reason": "recovered_from_copied_transfer",
-                    })
-                    break
+            row = next((item for item in items if item["id"] == "assignment"), None)
+            if row is not None:
+                spec = next(item for item in template["items"] if item["id"] == "assignment")
+                hyps = list(row.get("hypotheses") or slot_hypotheses.get("assignment") or [])
+                hyps.append(slot_hypothesis(
+                    text=text, slot="assignment", check=spec.get("check") or "assignment",
+                    span=recovered, producer="cloze_copy", relent_compatibility="copy_ok",
+                    index=len(hyps),
+                ))
+                hyps = mark_competitors(hyps)
+                slot_hypotheses["assignment"] = hyps
+                row.update({
+                    "span": recovered, "verdict": "accepted",
+                    "reason": "recovered_from_copied_transfer",
+                    "hypotheses": hyps, "check": spec.get("check") or "assignment",
+                })
     core = [row for row in items if row["core"]]
     optional = [row for row in items if not row["core"]]
     core_filled = sum(row["verdict"] == "accepted" for row in core)
@@ -1071,6 +1383,7 @@ def _score_template(text: str, template: dict[str, Any], answers: dict[str, str]
             row["id"]: row["span"] for row in items if row["verdict"] == "accepted"
         },
         "slots": accepted,
+        "slot_hypotheses": slot_hypotheses,
         "items": items,
     }
 
@@ -1122,23 +1435,11 @@ def _enrich_conditional_from_z10(text: str, template: dict[str, Any],
         item = next((entry for entry in row["items"] if entry["id"] == item_id), None)
         if item is None:
             return
-        current = row["slots"].get(item_id)
-        if current and not replace and item["verdict"] == "accepted":
-            return
-        row["slots"][item_id] = value
-        recovery = {
-            "producer": "parsing_game_Z10",
-            "method": "conditional_candidate_source_alignment",
-            "span": value,
-        }
-        if candidate_ids:
-            recovery["z10_candidate_ids"] = list(candidate_ids)
-        row.setdefault("semantic_recoveries", {})[item_id] = recovery
-        item.update({
-            "span": value,
-            "verdict": "accepted",
-            "reason": "recovered_from_z10_conditional_structure",
-        })
+        _compete_recovery(
+            text, row, item, value, replace=replace, candidate_ids=candidate_ids,
+            reason="recovered_from_z10_conditional_structure",
+            method="conditional_candidate_source_alignment",
+        )
 
     def split_conditional(prop_id: str) -> tuple[str, str, str]:
         token = token_for(prop_id)
@@ -1184,7 +1485,9 @@ def _enrich_conditional_from_z10(text: str, template: dict[str, Any],
         actors.extend(mention for role, mention in condition_roles
                       if role == "subject" and mention not in actors)
         bearers = [mention for role, mention in consequence_roles
-                   if role in {"subject", "patient", "object"}]
+                   if role in {"patient", "object"}]
+        if not bearers:
+            bearers = [mention for role, mention in consequence_roles if role == "subject"]
         if not actors or not bearers:
             continue
         polarity = predications.get(condition_prop, {}).get(
@@ -1208,6 +1511,22 @@ def _enrich_conditional_from_z10(text: str, template: dict[str, Any],
     branches.sort(key=lambda branch: branch["order"])
     if not branches:
         return row
+
+    # Reuse an explicit relative mechanism on the branch's instrument:
+    # "pull a lever that switches the trolley ...". This is a process-role
+    # proposal from argument structure, not a noun-based PERSON/PROCESS guess.
+    action_doc = parsing.get_nlp()(branches[0]['action'])
+    instrument_heads = {t.lemma_.casefold() for t in action_doc if t.dep_ in {'dobj','obj'}}
+    controlled = []
+    for token in doc:
+        if (token.dep_ == 'relcl' and token.head.lemma_.casefold() in instrument_heads
+                and token.lemma_.casefold() in {'switch','divert','redirect'}):
+            for obj in token.children:
+                if obj.dep_ in {'dobj','obj'}:
+                    parts = [obj]+[t for t in obj.children if t.dep_ in {'det','amod','compound'}]
+                    controlled.append(exact(text[min(t.idx for t in parts):max(t.idx+len(t.text) for t in parts)]))
+    if len(set(controlled)) == 1:
+        recover('controllable_process',controlled[0])
 
     blueprint_id = template["blueprint_id"]
     if blueprint_id == "conditional_outcome":
@@ -1235,7 +1554,16 @@ def _enrich_conditional_from_z10(text: str, template: dict[str, Any],
         harm_pattern = re.compile(
             r"\b(?:die|dies|died|kill|kills|killed|harm|harms|harmed|"
             r"drown|drowns|drowned|suffer|suffers|suffered)\b", re.I)
-        if not positive or not negative or positive["predicate"] != negative["predicate"]:
+        if not positive or not negative:
+            return row
+        # A bare negative auxiliary is a source-copied VP ellipsis, not an
+        # unrelated action. Accept only a same-subject adjacent branch pair.
+        same_predicate = positive["predicate"] == negative["predicate"]
+        elided = (negative["predicate"] == "do"
+                  and re.fullmatch(r"(?:does|do|did)\s+not", negative["action"], re.I)
+                  and positive["actor"].casefold() == negative["actor"].casefold()
+                  and negative["order"] > positive["order"])
+        if not same_predicate and not elided:
             return row
         if not harm_pattern.search(positive["outcome"]) or not harm_pattern.search(negative["outcome"]):
             return row
@@ -1244,6 +1572,10 @@ def _enrich_conditional_from_z10(text: str, template: dict[str, Any],
         recover("omitted", negative["action"], candidate_ids=[negative["link_id"]])
         recover("harm_done", positive["outcome"], candidate_ids=[positive["link_id"]])
         recover("harm_omitted", negative["outcome"], candidate_ids=[negative["link_id"]])
+        # Retain coordinated consequences as a branch bundle even if the model
+        # copied only its first (harmful) conjunct into the cloze harm slot.
+        row["slots"]["done_outcomes"] = positive["outcome"]
+        row["slots"]["omitted_outcomes"] = negative["outcome"]
         recover("done_hedge", positive["condition"], candidate_ids=[positive["link_id"]])
         recover("omitted_hedge", negative["condition"], candidate_ids=[negative["link_id"]])
         recover("group_counts", positive["bearer"], replace=False)
@@ -1357,25 +1689,15 @@ def _enrich_from_z10(text: str, template: dict[str, Any],
         value = (value or "").strip(" ,.")
         if not value or not _copy_spans(text, value)[0]:
             return
-        current = row["slots"].get(item_id)
         item = next((entry for entry in row["items"] if entry["id"] == item_id), None)
-        if item is None or (current and not replace and item["verdict"] == "accepted"):
+        if item is None:
             return
         exact = _copy_spans(text, value)[0][0]
-        row["slots"][item_id] = exact
-        recovery = {
-            "producer": "parsing_game_Z10",
-            "method": "typed_candidate_source_alignment",
-            "span": exact,
-        }
-        if candidate_ids:
-            recovery["z10_candidate_ids"] = list(candidate_ids)
-        row.setdefault("semantic_recoveries", {})[item_id] = recovery
-        item.update({
-            "span": exact,
-            "verdict": "accepted",
-            "reason": "recovered_from_z10_semantics",
-        })
+        _compete_recovery(
+            text, row, item, exact, replace=replace, candidate_ids=candidate_ids,
+            reason="recovered_from_z10_semantics",
+            method="typed_candidate_source_alignment",
+        )
 
     # Quantity comes from Z10's typed QUANTITY candidate, including forms such
     # as "a single dose" and "one indivisible dose".
@@ -1538,6 +1860,7 @@ def _refresh_scored_row(row: dict[str, Any]) -> dict[str, Any]:
         item["id"]: item["span"] for item in row["items"]
         if item["verdict"] == "accepted"
     }
+    row.setdefault("slot_hypotheses", {})
     row["coverage_metrics"] = coverage_metrics(
         {item["id"]: item["verdict"] == "accepted" for item in core},
         {item["id"]: item["verdict"] == "accepted" for item in optional},
@@ -1549,6 +1872,50 @@ def _refresh_scored_row(row: dict[str, Any]) -> dict[str, Any]:
         row["status"] = "FILLED"
     else:
         row["status"] = "PARTIAL"
+    return _rebind_primary_from_hyps(row)
+
+
+def _rebind_primary_from_hyps(row: dict[str, Any]) -> dict[str, Any]:
+    items = {item["id"]: item for item in row.get("items") or []}
+    slots = dict(row.get("slots") or {})
+    for slot, hyps in (row.get("slot_hypotheses") or {}).items():
+        item = items.get(slot)
+        if item is None:
+            continue
+        ok = []
+        by_span = {}
+        for hyp in hyps:
+            if hyp.get("relent_compatibility") != "copy_ok":
+                continue
+            span = hyp.get("source_span") or ""
+            if not span:
+                continue
+            reason = "copied" if hyp.get("producer") == "cloze_copy" else "recovered"
+            if hyp.get("producer") == "llm_note":
+                reason = "implied"
+            ok.append((span, reason))
+            by_span[span] = hyp
+        if not ok:
+            continue
+        primary, reason = _pick_primary_copy(ok, item, slots)
+        slots[slot] = primary
+        row["slots"][slot] = primary
+        item["span"] = primary
+        item["verdict"] = "accepted"
+        winner = by_span.get(primary) or {}
+        current_reason = str(item.get("reason") or "")
+        if winner.get("producer") == "z10":
+            if not current_reason.startswith("recovered"):
+                item["reason"] = "recovered_from_z10_semantics"
+        elif reason == "copied":
+            if not current_reason.startswith("recovered"):
+                item["reason"] = "copied"
+        elif reason == "implied":
+            item["reason"] = "implied"
+    row["accepted_evidence"] = {
+        item["id"]: item["span"] for item in row.get("items") or []
+        if item.get("verdict") == "accepted"
+    }
     return row
 
 
@@ -1575,6 +1942,7 @@ def _graph(text: str, winner: dict[str, Any],
     }
     import parsing_game_Z10 as z10
     package = z10.export_candidate_graph(text, package_id="cloze_evidence")
+    scene_provenance = []
     if winner["blueprint_id"] in DISCOURSE_BUILDERS:
         world, notes = DISCOURSE_BUILDERS[winner["blueprint_id"]](text, slots, package)
     else:
@@ -1592,6 +1960,8 @@ def _graph(text: str, winner: dict[str, Any],
         else:
             world, notes = builder(text, slots)
         world = ensure_schema(world)
+        from blueprint_physical_scene import attach_physical_scene
+        world = attach_physical_scene(text, world, scene_provenance)
     clauses = [
         {"clause_id": row["clause_id"], "text": row["text"]}
         for row in segment_source_clauses(text)
@@ -1616,6 +1986,7 @@ def _graph(text: str, winner: dict[str, Any],
     slot_bindings = {
         "copied_spans": dict(slots),
         "z10_recovered_slots": dict(winner.get("semantic_recoveries") or {}),
+        "slot_hypotheses": dict(winner.get("slot_hypotheses") or {}),
     }
     if winner["blueprint_id"] == "exclusive_allocation":
         match = match_exclusive_allocation(
@@ -1662,7 +2033,8 @@ def _graph(text: str, winner: dict[str, Any],
             "status": "ASSESSED",
         },
         accepted_evidence=dict(winner["accepted_evidence"]),
-        construction_provenance=_construction_provenance(world, clauses, slots, proof),
+        construction_provenance=[row for row in _construction_provenance(world, clauses, slots, proof)
+                                 if row['atom_id'] not in {p['atom_id'] for p in scene_provenance}] + scene_provenance,
         relation_alternatives=relation_alternatives,
         exclusivity_proof=proof,
         evidence_graph=graph,
@@ -2120,11 +2492,12 @@ def _omission_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str]]:
         text, parties, index, slots["actor"], role="actor",
         construction="omission_harm")
     actions, effects, links, conditions = [], [], [], []
-    pairs = ((slots["done"], slots["harm_done"], slots.get("done_hedge")),
-             (slots["omitted"], slots["harm_omitted"], slots.get("omitted_hedge")))
-    for branch, (action_span, harm_span, hedge) in enumerate(pairs):
+    pairs = ((slots["done"], slots.get("done_outcomes", slots["harm_done"]), slots.get("done_hedge")),
+             (slots["omitted"], slots.get("omitted_outcomes", slots["harm_omitted"]), slots.get("omitted_hedge")))
+    for branch, (action_span, branch_outcome, hedge) in enumerate(pairs):
+        harm_span = _branch_conjuncts(branch_outcome)[0]
         reading = _outcome_reading(harm_span)
-        copied_bearer = _party_head(text, harm_span)
+        copied_bearer = _outcome_patient(harm_span) or _party_head(text, harm_span)
         bearer_label, quantities = _outcome_bearer(harm_span, copied_bearer)
         bearer = _party(
             text, parties, index, bearer_label,
@@ -2152,7 +2525,9 @@ def _omission_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str]]:
             else "POSITIVE",
             "operator": "IF",
         })
-        process_label = _action_object(text, action_span)
+        process_label = slots.get('controllable_process') or _action_object(text, action_span)
+        if not process_label and branch and re.fullmatch(r'(?:does|do|did)\s+not', action_span, re.I):
+            process_label = _action_object(text, slots['done'])
         direct_party = (_party(
             text, parties, index, process_label, role="process",
             construction="omission_harm", action_span=action_span)
@@ -2185,10 +2560,18 @@ def _omission_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str]]:
             outcome_host, [parent_id], qualifiers, source=harm_span)
         death["quantities"] = group_quantity(harm_span) or (
             [_quantity_token(harm_span)] if _quantity_token(harm_span) else [])
+        if modality == 'POSSIBLE':
+            death['condition_ids'] = [condition_id]
+            death['source_proposition'] = outcome_host['text']
         effects.append(death)
         link = _link(action_id, parent_id, outcome_id, modality, outcome_host)
+        if modality == 'POSSIBLE':
+            link['condition_ids'] = [condition_id]
         links.append(link)
         effect_ids.append(outcome_id)
+        _append_coordinated_outcomes(text, branch_outcome, parties, index, effects, links,
+                                     effect_ids, action_id, parent_id, outcome_host,
+                                     condition_id, 'omission_harm')
         clause_ids = list(dict.fromkeys([direct_host["clause_id"], outcome_host["clause_id"]]))
         actions.append({"action_id": action_id, "intervention": action_span,
                         "actor_party_id": actor, "recipient_party_ids": [direct_party],
@@ -2205,6 +2588,60 @@ def _condition_action(condition: str, actor: str) -> str:
     if actor:
         action = re.sub(rf"^{re.escape(actor)}\s+", "", action, flags=re.I)
     return action.strip(" ,.") or condition
+
+
+def _outcome_patient(span: str) -> str:
+    """Return a copied patient of transitive harm, or subject of a state."""
+    import parsing_game_S as parsing
+    doc = parsing.get_nlp()(span)
+    predicate = next((t for t in doc if t.lemma_.casefold() in
+                      {"kill", "harm", "drown", "die", "live", "survive", "recover", "spare"}), None)
+    if predicate is None:
+        return ""
+    objects = [t for t in predicate.children if t.dep_ in {"dobj", "obj", "nsubjpass"}]
+    subjects = [t for t in predicate.children if t.dep_ in {"nsubj", "nsubjpass"}]
+    tokens = objects or subjects
+    if not tokens:
+        return ""
+    head = tokens[0]
+    parts = [head] + [t for t in head.children if t.dep_ in {"det", "nummod", "amod", "compound"}]
+    return span[min(t.idx for t in parts):max(t.idx+len(t.text) for t in parts)]
+
+
+def _branch_conjuncts(span: str) -> list[str]:
+    """Split explicit coordinated outcome predicates, retaining copied text."""
+    return re.split(r"\s+and\s+(?=(?:(?:will|may|might|could|can)\s+)?(?:spare|kill|harm|save|die|live|drown|survive|recover)\b)", span, flags=re.I)
+
+
+def _append_coordinated_outcomes(text, outcome, parties, index, effects, links,
+                                 effect_ids, action_id, parent_id, host, condition_id,
+                                 construction):
+    """Preserve additional explicit consequences without inventing their subjects."""
+    for conjunct in _branch_conjuncts(outcome)[1:]:
+        patient = _outcome_patient(conjunct)
+        if not patient:
+            continue
+        bearer = _party(text, parties, index, patient, group_quantity(patient),
+                        role="bearer", construction=construction)
+        reading = _outcome_reading(conjunct)
+        modality = reading['modality']
+        if modality == 'UNKNOWN' and _stipulated_certain_outcome(_branch_conjuncts(outcome)[0]):
+            modality = 'CERTAIN'
+        if modality == "UNKNOWN":
+            modality = "POSSIBLE"
+        ident = f"E{len(effects)+1}"
+        effect = _effect(ident, action_id, bearer, conjunct, reading['predicate'],
+                         reading['polarity'], "DOWNSTREAM", reading['kind'], modality,
+                         host, [parent_id], reading['qualifiers'], source=conjunct)
+        if modality == 'POSSIBLE':
+            effect['condition_ids'] = [condition_id]
+            effect['source_proposition'] = host['text']
+        effects.append(effect)
+        link = _link(action_id, parent_id, ident, modality, host)
+        if modality == 'POSSIBLE':
+            link['condition_ids'] = [condition_id]
+        links.append(link)
+        effect_ids.append(ident)
 
 
 def _action_object(text: str, action: str) -> str:
@@ -2240,7 +2677,9 @@ def _conditional_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str
         rows.append((slots["second_condition"], slots["second_bearer"], slots["second_outcome"]))
     effects, links, actions, conditions = [], [], [], []
     notes = []
-    for branch, (condition, bearer_label, outcome) in enumerate(rows):
+    for branch, (condition, bearer_label, branch_outcome) in enumerate(rows):
+        outcome = _branch_conjuncts(branch_outcome)[0]
+        bearer_label = _outcome_patient(outcome) or bearer_label
         bearer = _party(
             text, parties, index, bearer_label, group_quantity(bearer_label),
             role="bearer", construction="conditional_outcome")
@@ -2266,7 +2705,9 @@ def _conditional_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str
             "operator": "IF",
         })
         transfer = bool(_TRANSFER_EVENT.search(action_text))
-        process_label = "" if transfer else _action_object(text, action_text)
+        process_label = "" if transfer else (slots.get('controllable_process') or _action_object(text, action_text))
+        if not process_label and branch and re.fullmatch(r'(?:\w+\s+)?(?:does|do|did)\s+not', action_text, re.I):
+            process_label = _action_object(text, _condition_action(slots['condition'],actor_label))
         if process_label:
             direct_party = _party(
                 text, parties, index, process_label, role="process",
@@ -2313,10 +2754,18 @@ def _conditional_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str
             source=outcome)
         result["quantities"] = group_quantity(outcome) or (
             [_quantity_token(outcome)] if _quantity_token(outcome) else [])
+        if modality == 'POSSIBLE':
+            result['condition_ids'] = [condition_id]
+            result['source_proposition'] = host['text']
         effects.append(result)
         link = _link(action_id, parent_id, outcome_id, modality, host)
+        if modality == 'POSSIBLE':
+            link['condition_ids'] = [condition_id]
         links.append(link)
         effect_ids.append(outcome_id)
+        _append_coordinated_outcomes(text, branch_outcome, parties, index, effects, links,
+                                     effect_ids, action_id, parent_id, host,
+                                     condition_id, 'conditional_outcome')
         actions.append({
             "action_id": action_id, "intervention": action_text,
             "actor_party_id": actor, "recipient_party_ids": [direct_party],
@@ -2633,6 +3082,8 @@ def _outcome_reading(span: str) -> dict[str, Any]:
         predicate, polarity, kind = "live", "BENEFICIAL", "HEALTH_OUTCOME"
     elif re.search(r"surviv|recover", folded):
         predicate, polarity, kind = "survive", "BENEFICIAL", "HEALTH_OUTCOME"
+    elif re.search(r"\bspare\b|\bspares\b", folded):
+        predicate, polarity, kind = "spare", "BENEFICIAL", "OTHER"
     else:
         predicate, polarity, kind = "outcome", "NEUTRAL", "OTHER"
     qualifier = _CHANCE.search(span)
@@ -2651,7 +3102,7 @@ def _outcome_reading(span: str) -> dict[str, Any]:
 def _stipulated_certain_outcome(span: str) -> bool:
     """A copied 'will die' / 'will live' is stipulated on its action branch."""
     return bool(re.search(
-        r"\bwill\s+(?:die|live|drown|survive|recover)\b", span or "", re.I))
+        r"\bwill\s+(?:die|live|drown|survive|recover|kill|harm|spare|suffer)\b", span or "", re.I))
 
 
 def _checked_modality(outcome: str, hedge: str | None) -> tuple[str, list[str]]:
@@ -2678,6 +3129,16 @@ def _answers_sentence(text: str, item: dict[str, Any], span: str,
         return True
     if check == "party":
         return True
+    if check == "outcome_patient":
+        condition = accepted.get('second_condition' if item['id']=='second_bearer' else 'condition')
+        host = _span_host(text, condition or span)
+        if not host:
+            return False
+        _, _, consequence = host["text"].partition(',')
+        patient = _outcome_patient(consequence or host["text"])
+        return not patient or span.casefold() == patient.casefold()
+    if check == "branch_action":
+        return not _HEDGE.search(span) and ',' not in span
     if check == "assignment":
         resource = accepted.get("resource", "")
         return bool(resource) and _shares_word(span, resource)
@@ -2710,9 +3171,9 @@ def _answers_sentence(text: str, item: dict[str, Any], span: str,
         second = _clause_for(text, span)
         return first["clause_id"] != second["clause_id"]
     if check == "if_clause":
-        return bool(re.search(r"\bif\b", span, re.I))
+        return bool(re.match(r"if\b", span, re.I)) and ',' not in span
     if check == "distinct_if_clause":
-        if not re.search(r"\bif\b", span, re.I):
+        if not re.match(r"if\b", span, re.I) or ',' in span:
             return False
         earlier = accepted.get("condition", "")
         first = _span_host(text, earlier) if earlier else None
@@ -2905,7 +3366,7 @@ def _parse_ranking(raw: str) -> list[str]:
     return found[:3]
 
 
-def _parse_answers(raw: str) -> dict[str, str]:
+def _parse_answers(raw: str) -> dict[str, Any]:
     try:
         data = _load_json(raw)
     except (json.JSONDecodeError, TypeError):
@@ -2913,7 +3374,13 @@ def _parse_answers(raw: str) -> dict[str, str]:
     answers = data.get("answers", data)
     if not isinstance(answers, dict):
         return {}
-    return {str(key): "" if value is None else str(value) for key, value in answers.items()}
+    parsed: dict[str, Any] = {}
+    for key, value in answers.items():
+        if isinstance(value, list):
+            parsed[str(key)] = ["" if item is None else str(item) for item in value[:3]]
+        else:
+            parsed[str(key)] = "" if value is None else str(value)
+    return parsed
 
 
 def _load_json(raw: str) -> dict[str, Any]:

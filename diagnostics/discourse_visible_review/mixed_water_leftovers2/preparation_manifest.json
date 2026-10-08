@@ -1,0 +1,431 @@
+{
+  "scenario": "An AI bot promised a child the only water tanker. It must decide whether to devote the tanker to the child or five elderly patients, but not both. If the child gets the water, the child will live. If the five elderly patients get the water, the five elderly patients will live. The people who do not get the water will die.",
+  "semantic_coverage": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers2/semantic_coverage.json",
+  "question_assessment": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers2/question_assessment.json",
+  "chooser_model": "gpt-4o-mini",
+  "chosen_blueprint_id": "exclusive_allocation",
+  "blueprint_status": "FILLED",
+  "candidate_graphs_markdown": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers2/candidate_graphs.md",
+  "candidate_attempts_json": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers2/candidate_attempts.json",
+  "z10_blueprint_comparison": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers2/z10_blueprint_comparison.json",
+  "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers2/blueprint_candidate.json",
+  "scenario_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers2/scenario.json",
+  "actions": [
+    "the child gets the water",
+    "the five elderly patients get the water"
+  ],
+  "deliberation": {
+    "status": "NOT_RUN"
+  },
+  "parliament_version": {
+    "root": "/private/tmp/parliament-smoke-614af0c",
+    "commit": null,
+    "branch": null,
+    "modified_files": [],
+    "integration_patch_sha256": "c878f1c6f463219f72bc4f42e5cd11fb177e5f33d62fa39b0334f44deb277d57",
+    "discourse_workspace_patch_sha256": "8741c60141b59062de79102eb0bebcaccadbba8a2111e9dcebebaf92ac4d193e"
+  },
+  "admission_attempts": [
+    {
+      "blueprint_id": "exclusive_allocation",
+      "rank": -0.1,
+      "variant": "amended",
+      "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers2/admission_attempts/00_exclusive_allocation/candidate.json",
+      "overlay_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers2/admission_attempts/00_exclusive_allocation/hypothesis_overlay.json",
+      "status": "REJECTED",
+      "returncode": 1,
+      "error": "Parliament rejected the blueprint candidate: {\"status\": \"REJECTED\", \"actions\": {}, \"world_model\": {}, \"world_model_status\": \"COMMITTED\", \"world_contradictions\": [], \"errors\": [\"A0 has no distinguishing source clause; its grounding ['C2'] is covered entirely by the other actions\", \"A1 has no distinguishing source clause; its grounding ['C3'] is covered entirely by the other actions\", \"A2 has no distinguishing source clause; its grounding ['C2'] is covered entirely by the other actions\", \"A3 has no distinguishing source clause; its grounding ['C3'] is covered entirely by the other actions\"], \"warnings\": [], \"validation_issues\": [{\"code\": \"WORLD_VALIDATION_ERROR\", \"message\": \"A0 has no distinguishing source clause; its grounding ['C2'] is covered entirely by the other actions\", \"entity_kind\": \"action\", \"entity_id\": \"A0\", \"field\": \"\", \"related_ids\": [], \"repair_class\": \"SEMANTIC_PATCH\", \"permits_removal\": false}, {\"code\": \"WORLD_VALIDATION_ERROR\", \"message\": \"A1 has no distinguishing source clause; its grounding ['C3'] is covered entirely by the other actions\", \"entity_kind\": \"action\", \"entity_id\": \"A1\", \"field\": \"\", \"related_ids\": [], \"repair_class\": \"SEMANTIC_PATCH\", \"permits_removal\": false}, {\"code\": \"WORLD_VALIDATION_ERROR\", \"message\": \"A2 has no distinguishing source clause; its grounding ['C2'] is covered entirely by the other actions\", \"entity_kind\": \"action\", \"entity_id\": \"A2\", \"field\": \"\", \"related_ids\": [], \"repair_class\": \"SEMANTIC_PATCH\", \"permits_removal\": false}, {\"code\": \"WORLD_VALIDATION_ERROR\", \"message\": \"A3 has no distinguishing source clause; its grounding ['C3'] is covered entirely by the other actions\", \"entity_kind\": \"action\", \"entity_id\": \"A3\", \"field\": \"\", \"related_ids\": [], \"repair_class\": \"SEMANTIC_PATCH\", \"permits_removal\": false}], \"compiler_loss_telemetry\": {}, \"clauses\": [{\"clause_id\": \"C0\", \"text\": \"An AI bot promised a child the only water tanker.\"}, {\"clause_id\": \"C1\", \"text\": \"It must decide whether to devote the tanker to the child or five elderly patients, but not both.\"}, {\"clause_id\": \"C2\", \"text\": \"If the child gets the water, the child will live.\"}, {\"clause_id\": \"C3\", \"text\": \"If the five elderly patients get the water, the five elderly patients will live.\"}, {\"clause_id\": \"C4\", \"text\": \"The people who do not get the water will die.\"}]}\n"
+    },
+    {
+      "blueprint_id": "exclusive_allocation",
+      "rank": 0,
+      "variant": "baseline",
+      "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers2/admission_attempts/01_exclusive_allocation/candidate.json",
+      "overlay_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers2/admission_attempts/01_exclusive_allocation/hypothesis_overlay.json",
+      "status": "ADMITTED",
+      "admission": {
+        "status": "COMMITTED",
+        "world_model_status": "COMMITTED",
+        "effects": 10,
+        "causal_links": 8,
+        "frozen_trace_valid": true,
+        "discourse_committed": false,
+        "relent_workspace": {
+          "established": [
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E1",
+              "outcome": "the child gets the water",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E2",
+              "outcome": "the child will live",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E3",
+              "outcome": "the five elderly patients get the water",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E4",
+              "outcome": "the five elderly patients will live",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E5",
+              "outcome": "The people who do not get the water",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E6",
+              "outcome": "The people who do not get the water",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E7",
+              "outcome": "will die",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E8",
+              "outcome": "The people who do not get the water",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E9",
+              "outcome": "The people who do not get the water",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E10",
+              "outcome": "will die",
+              "predicate": null,
+              "status": "established"
+            }
+          ],
+          "not_established": [
+            {
+              "kind": "proposition",
+              "proposition_id": "PR1",
+              "predication": "a child the only water tanker",
+              "status": "COMMITTED_CONTENT"
+            },
+            {
+              "kind": "commitment",
+              "commitment_id": "K0",
+              "content_proposition_id": "PR1",
+              "status": "committed"
+            }
+          ],
+          "duty_ledger_citations": [
+            {
+              "kind": "commitment",
+              "commitment_id": "K0"
+            }
+          ],
+          "ev_forbidden_proposition_ids": [
+            "PR1"
+          ],
+          "factual_status_sources": [
+            "occurrence_effects"
+          ]
+        },
+        "fingerprint_sha256": "5ff896c66c3db7a11215020cdcf6d1f4dadfcb80be6f6d187e3a7867a1788051"
+      },
+      "trace_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers2/admission_attempts/01_exclusive_allocation/frozen_world_trace.json"
+    },
+    {
+      "blueprint_id": "rescue_contrast",
+      "status": "NOT_RUN",
+      "reason": "construction_withheld"
+    },
+    {
+      "blueprint_id": "omission_harm",
+      "status": "NOT_RUN",
+      "reason": "construction_withheld"
+    },
+    {
+      "blueprint_id": "flexible_graph",
+      "rank": 3,
+      "variant": "flexible",
+      "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers2/admission_attempts/04_flexible_graph/candidate.json",
+      "overlay_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers2/admission_attempts/04_flexible_graph/hypothesis_overlay.json",
+      "status": "ADMITTED",
+      "admission": {
+        "status": "COMMITTED",
+        "world_model_status": "COMMITTED",
+        "effects": 6,
+        "causal_links": 4,
+        "frozen_trace_valid": true,
+        "discourse_committed": false,
+        "relent_workspace": {
+          "established": [
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E1",
+              "outcome": "gets the water",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E2",
+              "outcome": "gets the water",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E3",
+              "outcome": "the child will live",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E4",
+              "outcome": "get the water",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E5",
+              "outcome": "get the water",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E6",
+              "outcome": "the five elderly patients will live",
+              "predicate": null,
+              "status": "established"
+            }
+          ],
+          "not_established": [],
+          "duty_ledger_citations": [],
+          "ev_forbidden_proposition_ids": [],
+          "factual_status_sources": [
+            "occurrence_effects"
+          ]
+        },
+        "fingerprint_sha256": "42ed609385bea0b39cf11ef6b7d46d89eb0a9b8febe4fb206fe65e3c85b939da"
+      },
+      "trace_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers2/admission_attempts/04_flexible_graph/frozen_world_trace.json"
+    },
+    {
+      "blueprint_id": "primitive_composition",
+      "rank": 4,
+      "variant": "composition",
+      "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers2/admission_attempts/05_primitive_composition/candidate.json",
+      "overlay_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers2/admission_attempts/05_primitive_composition/hypothesis_overlay.json",
+      "status": "ADMITTED",
+      "admission": {
+        "status": "COMMITTED",
+        "world_model_status": "COMMITTED",
+        "effects": 6,
+        "causal_links": 4,
+        "frozen_trace_valid": true,
+        "discourse_committed": false,
+        "relent_workspace": {
+          "established": [
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E1",
+              "outcome": "gets the water",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E2",
+              "outcome": "gets the water",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E3",
+              "outcome": "the child will live",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E4",
+              "outcome": "get the water",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E5",
+              "outcome": "get the water",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E6",
+              "outcome": "the five elderly patients will live",
+              "predicate": null,
+              "status": "established"
+            }
+          ],
+          "not_established": [],
+          "duty_ledger_citations": [],
+          "ev_forbidden_proposition_ids": [],
+          "factual_status_sources": [
+            "occurrence_effects"
+          ]
+        },
+        "fingerprint_sha256": "abf82b55a8f33f863f9615710706b0bd8badee2ddbaeaa3e22b22a11ef26b054"
+      },
+      "trace_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers2/admission_attempts/05_primitive_composition/frozen_world_trace.json"
+    }
+  ],
+  "chooser_preferred_blueprint_id": "exclusive_allocation",
+  "hypothesis_overlay": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers2/admission_attempts/01_exclusive_allocation/hypothesis_overlay.json",
+  "selected_variant": "baseline",
+  "source_construction_advisory": {
+    "path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers2/source_construction_advisory.json",
+    "construction_count": 0,
+    "authority": "NONE"
+  },
+  "pipeline_status": "ADMITTED",
+  "proposal_contract_valid": true,
+  "selection_contract_valid": true,
+  "parliament_admission": {
+    "status": "COMMITTED",
+    "world_model_status": "COMMITTED",
+    "effects": 10,
+    "causal_links": 8,
+    "frozen_trace_valid": true,
+    "discourse_committed": false,
+    "relent_workspace": {
+      "established": [
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E1",
+          "outcome": "the child gets the water",
+          "predicate": null,
+          "status": "established"
+        },
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E2",
+          "outcome": "the child will live",
+          "predicate": null,
+          "status": "established"
+        },
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E3",
+          "outcome": "the five elderly patients get the water",
+          "predicate": null,
+          "status": "established"
+        },
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E4",
+          "outcome": "the five elderly patients will live",
+          "predicate": null,
+          "status": "established"
+        },
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E5",
+          "outcome": "The people who do not get the water",
+          "predicate": null,
+          "status": "established"
+        },
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E6",
+          "outcome": "The people who do not get the water",
+          "predicate": null,
+          "status": "established"
+        },
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E7",
+          "outcome": "will die",
+          "predicate": null,
+          "status": "established"
+        },
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E8",
+          "outcome": "The people who do not get the water",
+          "predicate": null,
+          "status": "established"
+        },
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E9",
+          "outcome": "The people who do not get the water",
+          "predicate": null,
+          "status": "established"
+        },
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E10",
+          "outcome": "will die",
+          "predicate": null,
+          "status": "established"
+        }
+      ],
+      "not_established": [
+        {
+          "kind": "proposition",
+          "proposition_id": "PR1",
+          "predication": "a child the only water tanker",
+          "status": "COMMITTED_CONTENT"
+        },
+        {
+          "kind": "commitment",
+          "commitment_id": "K0",
+          "content_proposition_id": "PR1",
+          "status": "committed"
+        }
+      ],
+      "duty_ledger_citations": [
+        {
+          "kind": "commitment",
+          "commitment_id": "K0"
+        }
+      ],
+      "ev_forbidden_proposition_ids": [
+        "PR1"
+      ],
+      "factual_status_sources": [
+        "occurrence_effects"
+      ]
+    },
+    "fingerprint_sha256": "5ff896c66c3db7a11215020cdcf6d1f4dadfcb80be6f6d187e3a7867a1788051"
+  },
+  "frozen_world_trace": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers2/frozen_world_trace.json",
+  "world_state_topology_markdown": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers2/world_state_topology.md",
+  "world_state_topology_json": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers2/world_state_topology.json"
+}

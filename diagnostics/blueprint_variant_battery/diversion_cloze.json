@@ -1,0 +1,928 @@
+{
+  "cloze_version": "blueprint-cloze-chooser/0.5",
+  "chosen_blueprint_id": "diversion_redirection",
+  "status": "FILLED",
+  "ranking": [
+    "diversion_redirection",
+    "omission_harm",
+    "rescue_contrast"
+  ],
+  "left_out": [
+    "exclusive_allocation",
+    "conditional_outcome",
+    "ability_permission",
+    "deontic_rule",
+    "promise_reliance",
+    "uncertain_risk",
+    "disputed_report"
+  ],
+  "question": {
+    "ethical_question": "",
+    "scenario_options": [],
+    "exclusivity": "unspecified",
+    "participants": [
+      {
+        "role": "subject",
+        "mention": "Maria",
+        "predicate": "divert"
+      },
+      {
+        "role": "object",
+        "mention": "the trolley",
+        "predicate": "divert"
+      },
+      {
+        "role": "subject",
+        "mention": "one worker",
+        "predicate": "die"
+      }
+    ],
+    "eligible_for_world_state": true
+  },
+  "world_withheld": [],
+  "considered": [
+    {
+      "blueprint_id": "diversion_redirection",
+      "graph_builder": "implemented",
+      "status": "FILLED",
+      "rank": 0,
+      "core_filled": 5,
+      "core_count": 5,
+      "optional_filled": 0,
+      "rejected": 0,
+      "coverage_metrics": {
+        "required_filled": 5,
+        "required_total": 5,
+        "optional_filled": 0,
+        "optional_total": 3,
+        "rejected_evidence": 0,
+        "unsupported_atoms": 0,
+        "unresolved_readings": 0
+      },
+      "unfilled": [
+        "alternative_route",
+        "omission_branch",
+        "uncertainty"
+      ],
+      "unresolved_slots": [
+        "alternative_route",
+        "omission_branch",
+        "uncertainty"
+      ],
+      "accepted_evidence": {
+        "actor": "Maria",
+        "controllable_process": "the trolley",
+        "intervention": "divert the trolley toward one worker",
+        "affected_party": "one worker",
+        "outcome": "will die"
+      },
+      "slots": {
+        "actor": "Maria",
+        "controllable_process": "the trolley",
+        "intervention": "divert the trolley toward one worker",
+        "affected_party": "one worker",
+        "outcome": "will die"
+      },
+      "items": [
+        {
+          "id": "actor",
+          "core": true,
+          "sentence": "The actor who can redirect the process is",
+          "completion": "Maria",
+          "span": "Maria",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "controllable_process",
+          "core": true,
+          "sentence": "The process that can be redirected is",
+          "completion": "the trolley",
+          "span": "the trolley",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "intervention",
+          "core": true,
+          "sentence": "The copied diversion or redirection action is",
+          "completion": "divert the trolley toward one worker",
+          "span": "divert the trolley toward one worker",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "affected_party",
+          "core": true,
+          "sentence": "The party reached or affected by that process is",
+          "completion": "one worker",
+          "span": "one worker",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "outcome",
+          "core": true,
+          "sentence": "The stated outcome for that party is",
+          "completion": "will die",
+          "span": "will die",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "alternative_route",
+          "core": false,
+          "sentence": "A different route or destination stated in the text is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "omission_branch",
+          "core": false,
+          "sentence": "The copied non-intervention branch is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "uncertainty",
+          "core": false,
+          "sentence": "The words that make the result uncertain are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        }
+      ]
+    },
+    {
+      "blueprint_id": "omission_harm",
+      "graph_builder": "implemented",
+      "status": "PARTIAL",
+      "rank": 1,
+      "core_filled": 4,
+      "core_count": 5,
+      "optional_filled": 0,
+      "rejected": 1,
+      "coverage_metrics": {
+        "required_filled": 4,
+        "required_total": 5,
+        "optional_filled": 0,
+        "optional_total": 4,
+        "rejected_evidence": 1,
+        "unsupported_atoms": 0,
+        "unresolved_readings": 0
+      },
+      "unfilled": [
+        "omitted",
+        "done_hedge",
+        "omitted_hedge",
+        "group_counts",
+        "instrument"
+      ],
+      "unresolved_slots": [
+        "omitted",
+        "done_hedge",
+        "omitted_hedge",
+        "group_counts",
+        "instrument"
+      ],
+      "accepted_evidence": {
+        "actor": "Maria",
+        "done": "divert the trolley toward one worker",
+        "harm_done": "one worker will die",
+        "harm_omitted": "one worker will die"
+      },
+      "slots": {
+        "actor": "Maria",
+        "done": "divert the trolley toward one worker",
+        "harm_done": "one worker will die",
+        "harm_omitted": "one worker will die"
+      },
+      "items": [
+        {
+          "id": "actor",
+          "core": true,
+          "sentence": "The person who may do the action or not do it is",
+          "completion": "Maria",
+          "span": "Maria",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "done",
+          "core": true,
+          "sentence": "The action the text says is done is",
+          "completion": "divert the trolley toward one worker",
+          "span": "divert the trolley toward one worker",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "omitted",
+          "core": true,
+          "sentence": "The copied non-action branch, including the word not, is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "harm_done",
+          "core": true,
+          "sentence": "The stated harmful outcome if the action is done is",
+          "completion": "one worker will die",
+          "span": "one worker will die",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "harm_omitted",
+          "core": true,
+          "sentence": "The stated harmful outcome if the action is not done is",
+          "completion": "one worker will die",
+          "span": "one worker will die",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "done_hedge",
+          "core": false,
+          "sentence": "The conditional words attached to the harm from doing the action are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "omitted_hedge",
+          "core": false,
+          "sentence": "The conditional words attached to the harm from not doing the action are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "group_counts",
+          "core": false,
+          "sentence": "One copied group count in a harmful outcome is",
+          "completion": "one worker",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "instrument",
+          "core": false,
+          "sentence": "The contrasting instrument named after but not is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        }
+      ]
+    },
+    {
+      "blueprint_id": "rescue_contrast",
+      "graph_builder": "implemented",
+      "status": "PARTIAL",
+      "rank": 2,
+      "core_filled": 1,
+      "core_count": 8,
+      "optional_filled": 1,
+      "rejected": 3,
+      "coverage_metrics": {
+        "required_filled": 1,
+        "required_total": 8,
+        "optional_filled": 1,
+        "optional_total": 3,
+        "rejected_evidence": 3,
+        "unsupported_atoms": 0,
+        "unresolved_readings": 0
+      },
+      "unfilled": [
+        "first_saved",
+        "second_saved",
+        "rescue_exclusivity",
+        "first_rescue_action",
+        "second_rescue_action",
+        "first_benefit",
+        "second_benefit",
+        "second_harm",
+        "scene"
+      ],
+      "unresolved_slots": [
+        "first_saved",
+        "second_saved",
+        "rescue_exclusivity",
+        "first_rescue_action",
+        "second_rescue_action",
+        "first_benefit",
+        "second_benefit",
+        "second_harm",
+        "scene"
+      ],
+      "accepted_evidence": {
+        "rescuer": "Maria",
+        "first_harm": "one worker will die"
+      },
+      "slots": {
+        "rescuer": "Maria",
+        "first_harm": "one worker will die"
+      },
+      "items": [
+        {
+          "id": "rescuer",
+          "core": true,
+          "sentence": "The person who must choose between the rescues is",
+          "completion": "Maria",
+          "span": "Maria",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "first_saved",
+          "core": true,
+          "sentence": "The first party who can be rescued is",
+          "completion": "one worker",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "second_saved",
+          "core": true,
+          "sentence": "The second, distinct party who can be rescued is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "rescue_exclusivity",
+          "core": true,
+          "sentence": "The exact words that say both rescues cannot happen are",
+          "completion": "one worker will die",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "first_rescue_action",
+          "core": true,
+          "sentence": "The copied first rescue action is",
+          "completion": "divert the trolley toward one worker",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "second_rescue_action",
+          "core": true,
+          "sentence": "The copied second rescue action is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "first_benefit",
+          "core": true,
+          "sentence": "The beneficial outcome in the first rescue branch is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "first_harm",
+          "core": false,
+          "sentence": "The harmful outcome in the first rescue branch is",
+          "completion": "one worker will die",
+          "span": "one worker will die",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_benefit",
+          "core": true,
+          "sentence": "The beneficial outcome in the second rescue branch is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "second_harm",
+          "core": false,
+          "sentence": "The harmful outcome in the second rescue branch is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "scene",
+          "core": false,
+          "sentence": "The copied words that describe the parties already in danger are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        }
+      ]
+    }
+  ],
+  "proposals": [
+    {
+      "proposal_contract_version": "blueprint-proposal-contract/0.2",
+      "proposal_id": "diversion_redirection_cloze",
+      "blueprint_id": "diversion_redirection",
+      "status": "FILLED",
+      "assignment_kind": "intervention_text",
+      "assignment": [
+        "divert the trolley toward one worker"
+      ],
+      "slot_bindings": {
+        "copied_spans": {
+          "actor": "Maria",
+          "controllable_process": "the trolley",
+          "intervention": "divert the trolley toward one worker",
+          "affected_party": "one worker",
+          "outcome": "will die"
+        }
+      },
+      "selection": null,
+      "selection_validation": {
+        "contract_valid": null,
+        "status": "not_assessed",
+        "reason": "The cloze path has no Z10 candidate selection."
+      },
+      "candidate": {
+        "actions": {
+          "A0": {
+            "clause_ids": [
+              "C0"
+            ],
+            "reason": "Filled from copied cloze slots."
+          }
+        },
+        "world_model": {
+          "schema_version": "1.3",
+          "parties": [
+            {
+              "party_id": "P1",
+              "label": "Maria",
+              "kind": "PERSON",
+              "quantities": [],
+              "clause_ids": [
+                "C0"
+              ]
+            },
+            {
+              "party_id": "P2",
+              "label": "the trolley",
+              "kind": "PROCESS",
+              "quantities": [],
+              "clause_ids": [
+                "C0"
+              ]
+            },
+            {
+              "party_id": "P3",
+              "label": "one worker",
+              "kind": "PERSON",
+              "quantities": [],
+              "clause_ids": [
+                "C0"
+              ]
+            }
+          ],
+          "actions": [
+            {
+              "action_id": "A0",
+              "intervention": "divert the trolley toward one worker",
+              "actor_party_id": "P1",
+              "recipient_party_ids": [
+                "P2"
+              ],
+              "effect_ids": [
+                "E1",
+                "E2",
+                "E3"
+              ],
+              "clause_ids": [
+                "C0"
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "effect_id": "E1",
+              "action_id": "A0",
+              "party_id": "P2",
+              "outcome": "divert the trolley toward one worker",
+              "predicate": "divert",
+              "polarity": "NEUTRAL",
+              "directness": "DIRECT",
+              "modality": "CERTAIN",
+              "effect_kind": "INTERVENTION",
+              "condition_ids": [],
+              "quantities": [],
+              "likelihood_qualifiers": [],
+              "overall_likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "source_proposition": "divert the trolley toward one worker",
+              "source_effect_ids": [],
+              "derivation_operation": "DIRECT_COPY",
+              "derivation_explanation": "The blank was filled with this copy of the scenario.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED",
+              "clause_ids": [
+                "C0"
+              ]
+            },
+            {
+              "effect_id": "E2",
+              "action_id": "A0",
+              "party_id": "P2",
+              "outcome": "divert the trolley toward one worker",
+              "predicate": "divert",
+              "polarity": "NEUTRAL",
+              "directness": "DOWNSTREAM",
+              "modality": "CERTAIN",
+              "effect_kind": "PHYSICAL_STATE",
+              "condition_ids": [],
+              "quantities": [],
+              "likelihood_qualifiers": [],
+              "overall_likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "source_proposition": "divert the trolley toward one worker",
+              "source_effect_ids": [
+                "E1"
+              ],
+              "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+              "derivation_explanation": "The blank was filled with this copy of the scenario.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED",
+              "clause_ids": [
+                "C0"
+              ]
+            },
+            {
+              "effect_id": "E3",
+              "action_id": "A0",
+              "party_id": "P3",
+              "outcome": "will die",
+              "predicate": "die",
+              "polarity": "ADVERSE",
+              "directness": "DOWNSTREAM",
+              "modality": "CERTAIN",
+              "effect_kind": "HEALTH_OUTCOME",
+              "condition_ids": [],
+              "quantities": [],
+              "likelihood_qualifiers": [],
+              "overall_likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "source_proposition": "will die",
+              "source_effect_ids": [
+                "E2"
+              ],
+              "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+              "derivation_explanation": "The blank was filled with this copy of the scenario.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED",
+              "clause_ids": [
+                "C0"
+              ]
+            }
+          ],
+          "conditions": [],
+          "temporal_relations": [],
+          "causal_links": [
+            {
+              "action_id": "A0",
+              "source_id": "E1",
+              "link_relation": "CAUSES",
+              "target_id": "E2",
+              "modality": "CERTAIN",
+              "condition_ids": [],
+              "clause_ids": [
+                "C0"
+              ]
+            },
+            {
+              "action_id": "A0",
+              "source_id": "E2",
+              "link_relation": "CAUSES",
+              "target_id": "E3",
+              "modality": "CERTAIN",
+              "condition_ids": [],
+              "clause_ids": [
+                "C0"
+              ]
+            }
+          ],
+          "counterfactual_links": []
+        },
+        "ellipsis_resolutions": []
+      },
+      "clauses": [
+        {
+          "clause_id": "C0",
+          "text": "Maria can divert the trolley toward one worker, and one worker will die."
+        }
+      ],
+      "unfilled_required_slots": [],
+      "unresolved_readings": [],
+      "construction_problems": [],
+      "admission_authorized": true,
+      "notes": [],
+      "pre_world_assessment": {
+        "ethical_question": "",
+        "scenario_options": [],
+        "exclusivity": "unspecified",
+        "participants": [
+          {
+            "role": "subject",
+            "mention": "Maria",
+            "predicate": "divert"
+          },
+          {
+            "role": "object",
+            "mention": "the trolley",
+            "predicate": "divert"
+          },
+          {
+            "role": "subject",
+            "mention": "one worker",
+            "predicate": "die"
+          }
+        ],
+        "eligible_for_world_state": true,
+        "status": "ASSESSED"
+      },
+      "accepted_evidence": {
+        "actor": "Maria",
+        "controllable_process": "the trolley",
+        "intervention": "divert the trolley toward one worker",
+        "affected_party": "one worker",
+        "outcome": "will die"
+      },
+      "world_withheld": []
+    }
+  ],
+  "graph": {
+    "proposal_contract_version": "blueprint-proposal-contract/0.2",
+    "proposal_id": "diversion_redirection_cloze",
+    "blueprint_id": "diversion_redirection",
+    "status": "FILLED",
+    "assignment_kind": "intervention_text",
+    "assignment": [
+      "divert the trolley toward one worker"
+    ],
+    "slot_bindings": {
+      "copied_spans": {
+        "actor": "Maria",
+        "controllable_process": "the trolley",
+        "intervention": "divert the trolley toward one worker",
+        "affected_party": "one worker",
+        "outcome": "will die"
+      }
+    },
+    "selection": null,
+    "selection_validation": {
+      "contract_valid": null,
+      "status": "not_assessed",
+      "reason": "The cloze path has no Z10 candidate selection."
+    },
+    "candidate": {
+      "actions": {
+        "A0": {
+          "clause_ids": [
+            "C0"
+          ],
+          "reason": "Filled from copied cloze slots."
+        }
+      },
+      "world_model": {
+        "schema_version": "1.3",
+        "parties": [
+          {
+            "party_id": "P1",
+            "label": "Maria",
+            "kind": "PERSON",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P2",
+            "label": "the trolley",
+            "kind": "PROCESS",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P3",
+            "label": "one worker",
+            "kind": "PERSON",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "action_id": "A0",
+            "intervention": "divert the trolley toward one worker",
+            "actor_party_id": "P1",
+            "recipient_party_ids": [
+              "P2"
+            ],
+            "effect_ids": [
+              "E1",
+              "E2",
+              "E3"
+            ],
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "effects": [
+          {
+            "effect_id": "E1",
+            "action_id": "A0",
+            "party_id": "P2",
+            "outcome": "divert the trolley toward one worker",
+            "predicate": "divert",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "INTERVENTION",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "divert the trolley toward one worker",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "effect_id": "E2",
+            "action_id": "A0",
+            "party_id": "P2",
+            "outcome": "divert the trolley toward one worker",
+            "predicate": "divert",
+            "polarity": "NEUTRAL",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "PHYSICAL_STATE",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "divert the trolley toward one worker",
+            "source_effect_ids": [
+              "E1"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "effect_id": "E3",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "will die",
+            "predicate": "die",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "will die",
+            "source_effect_ids": [
+              "E2"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "conditions": [],
+        "temporal_relations": [],
+        "causal_links": [
+          {
+            "action_id": "A0",
+            "source_id": "E1",
+            "link_relation": "CAUSES",
+            "target_id": "E2",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "action_id": "A0",
+            "source_id": "E2",
+            "link_relation": "CAUSES",
+            "target_id": "E3",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "counterfactual_links": []
+      },
+      "ellipsis_resolutions": []
+    },
+    "clauses": [
+      {
+        "clause_id": "C0",
+        "text": "Maria can divert the trolley toward one worker, and one worker will die."
+      }
+    ],
+    "unfilled_required_slots": [],
+    "unresolved_readings": [],
+    "construction_problems": [],
+    "admission_authorized": true,
+    "notes": [],
+    "pre_world_assessment": {
+      "ethical_question": "",
+      "scenario_options": [],
+      "exclusivity": "unspecified",
+      "participants": [
+        {
+          "role": "subject",
+          "mention": "Maria",
+          "predicate": "divert"
+        },
+        {
+          "role": "object",
+          "mention": "the trolley",
+          "predicate": "divert"
+        },
+        {
+          "role": "subject",
+          "mention": "one worker",
+          "predicate": "die"
+        }
+      ],
+      "eligible_for_world_state": true,
+      "status": "ASSESSED"
+    },
+    "accepted_evidence": {
+      "actor": "Maria",
+      "controllable_process": "the trolley",
+      "intervention": "divert the trolley toward one worker",
+      "affected_party": "one worker",
+      "outcome": "will die"
+    },
+    "world_withheld": []
+  }
+}

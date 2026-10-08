@@ -1,0 +1,284 @@
+{
+  "schema_version": "1.4",
+  "admission": {
+    "status": "COMMITTED",
+    "admitted_effect_ids": [
+      "E1",
+      "E2",
+      "E3",
+      "E4",
+      "E5",
+      "E6",
+      "E7",
+      "E8"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "P1",
+      "kind": "party",
+      "label": "An AI bot"
+    },
+    {
+      "id": "P2",
+      "kind": "party",
+      "label": "the only water tanker"
+    },
+    {
+      "id": "P3",
+      "kind": "party",
+      "label": "the child"
+    },
+    {
+      "id": "P4",
+      "kind": "party",
+      "label": "five elderly patients"
+    },
+    {
+      "id": "P5",
+      "kind": "party",
+      "label": "a child"
+    },
+    {
+      "id": "A0",
+      "kind": "action",
+      "label": "devote the tanker to the child or five elderly patients, but not both to the child"
+    },
+    {
+      "id": "A1",
+      "kind": "action",
+      "label": "devote the tanker to the child or five elderly patients, but not both to five elderly patients"
+    },
+    {
+      "id": "E1",
+      "kind": "effect",
+      "label": "devote the tanker to the child or five elderly patients, but not both",
+      "polarity": "NEUTRAL",
+      "modality": "CERTAIN",
+      "directness": "DIRECT"
+    },
+    {
+      "id": "E2",
+      "kind": "effect",
+      "label": "the child will live",
+      "polarity": "BENEFICIAL",
+      "modality": "CERTAIN",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "E3",
+      "kind": "effect",
+      "label": "devote the tanker to the child or five elderly patients, but not both",
+      "polarity": "NEUTRAL",
+      "modality": "CERTAIN",
+      "directness": "DIRECT"
+    },
+    {
+      "id": "E4",
+      "kind": "effect",
+      "label": "the five elderly patients will live",
+      "polarity": "BENEFICIAL",
+      "modality": "CERTAIN",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "E5",
+      "kind": "effect",
+      "label": "The people who do not get the water",
+      "polarity": "ADVERSE",
+      "modality": "CERTAIN",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "E6",
+      "kind": "effect",
+      "label": "will die",
+      "polarity": "ADVERSE",
+      "modality": "CERTAIN",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "E7",
+      "kind": "effect",
+      "label": "The people who do not get the water",
+      "polarity": "ADVERSE",
+      "modality": "CERTAIN",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "E8",
+      "kind": "effect",
+      "label": "will die",
+      "polarity": "ADVERSE",
+      "modality": "CERTAIN",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "PR1",
+      "kind": "proposition",
+      "label": "",
+      "status": "COMMITTED_CONTENT"
+    },
+    {
+      "id": "K0",
+      "kind": "commitment",
+      "label": "promised"
+    }
+  ],
+  "edges": [
+    {
+      "source": "P1",
+      "relation": "ACTOR",
+      "target": "A0"
+    },
+    {
+      "source": "A0",
+      "relation": "RECIPIENT",
+      "target": "P3"
+    },
+    {
+      "source": "A0",
+      "relation": "HAS_EFFECT",
+      "target": "E1"
+    },
+    {
+      "source": "A0",
+      "relation": "HAS_EFFECT",
+      "target": "E2"
+    },
+    {
+      "source": "A0",
+      "relation": "HAS_EFFECT",
+      "target": "E5"
+    },
+    {
+      "source": "A0",
+      "relation": "HAS_EFFECT",
+      "target": "E6"
+    },
+    {
+      "source": "P1",
+      "relation": "ACTOR",
+      "target": "A1"
+    },
+    {
+      "source": "A1",
+      "relation": "RECIPIENT",
+      "target": "P4"
+    },
+    {
+      "source": "A1",
+      "relation": "HAS_EFFECT",
+      "target": "E3"
+    },
+    {
+      "source": "A1",
+      "relation": "HAS_EFFECT",
+      "target": "E4"
+    },
+    {
+      "source": "A1",
+      "relation": "HAS_EFFECT",
+      "target": "E7"
+    },
+    {
+      "source": "A1",
+      "relation": "HAS_EFFECT",
+      "target": "E8"
+    },
+    {
+      "source": "E1",
+      "relation": "AFFECTS",
+      "target": "P3"
+    },
+    {
+      "source": "E2",
+      "relation": "AFFECTS",
+      "target": "P3"
+    },
+    {
+      "source": "E3",
+      "relation": "AFFECTS",
+      "target": "P4"
+    },
+    {
+      "source": "E4",
+      "relation": "AFFECTS",
+      "target": "P4"
+    },
+    {
+      "source": "E5",
+      "relation": "AFFECTS",
+      "target": "P4"
+    },
+    {
+      "source": "E6",
+      "relation": "AFFECTS",
+      "target": "P4"
+    },
+    {
+      "source": "E7",
+      "relation": "AFFECTS",
+      "target": "P3"
+    },
+    {
+      "source": "E8",
+      "relation": "AFFECTS",
+      "target": "P3"
+    },
+    {
+      "source": "E1",
+      "relation": "ENABLES",
+      "target": "E2",
+      "modality": "CERTAIN"
+    },
+    {
+      "source": "E3",
+      "relation": "ENABLES",
+      "target": "E4",
+      "modality": "CERTAIN"
+    },
+    {
+      "source": "E1",
+      "relation": "ENABLES",
+      "target": "E5",
+      "modality": "CERTAIN"
+    },
+    {
+      "source": "E5",
+      "relation": "ENABLES",
+      "target": "E6",
+      "modality": "CERTAIN"
+    },
+    {
+      "source": "E3",
+      "relation": "ENABLES",
+      "target": "E7",
+      "modality": "CERTAIN"
+    },
+    {
+      "source": "E7",
+      "relation": "ENABLES",
+      "target": "E8",
+      "modality": "CERTAIN"
+    },
+    {
+      "source": "P1",
+      "relation": "PROMISOR",
+      "target": "K0"
+    },
+    {
+      "source": "K0",
+      "relation": "PROMISEE",
+      "target": "P5"
+    },
+    {
+      "source": "K0",
+      "relation": "CONTENT",
+      "target": "PR1"
+    }
+  ],
+  "conditions": [],
+  "temporal_relations": [],
+  "counterfactual_links": []
+}

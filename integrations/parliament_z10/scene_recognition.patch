@@ -1,0 +1,28 @@
+--- a/global_workspace/recognition_bridge.py
++++ b/global_workspace/recognition_bridge.py
+@@ -83,6 +83,25 @@
+         for row in source:
+             if row not in card['source_evidence']:
+                 card['source_evidence'].append(dict(row))
++
++    # Admitted scene propositions carry whole source statements, including
++    # can/cannot and relative-clause wording. Recognize that statement verbatim;
++    # do not promote its embedded modal content into an occurrence effect.
++    for proposition in world.get('propositions', []):
++        claim = proposition.get('predication', '')
++        if proposition.get('status') != 'ASSERTED' or not claim or not proposition.get('clause_ids'):
++            continue
++        start = scenario.find(claim)
++        if start < 0 or (scenario[:start].rstrip() and scenario[:start].rstrip()[-1] not in '.!?'):
++            continue
++        end = start + len(claim)
++        if claim[-1] not in '.!?' or (end < len(scenario) and not scenario[end].isspace()):
++            continue
++        proof = 'SOURCE_SPAN:' + hashlib.sha256(f'{start}:{end}:{claim}'.encode()).hexdigest()[:16]
++        add('SCENE_ASSERTION', claim, [proposition['proposition_id'], proof],
++            [{'clause_id': proof, 'excerpt': claim, 'start': start, 'end': end}])
++        card = next(c for c in cards.values() if c['kind'] == 'SCENE_ASSERTION' and c['claim'] == claim)
++        card.update(scope='SOURCE_SCENE_STATEMENT', embedded_occurrence='NOT_INFERRED')
+ 
+     # Inventory is independent of transfer/choice topology. A resource's own
+     # provenance supports its stock statement even when nobody transfers it.

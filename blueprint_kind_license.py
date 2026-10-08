@@ -88,6 +88,7 @@ EXPLICIT_KIND_PREDICATION = re.compile(
 PROCESS_PREDICATES = {
     "stop", "start", "open", "close", "fail", "activate",
     "pull", "push", "throw", "divert",
+    "switch", "redirect",
 }
 # Human heads that cannot bear a PROCESS atom. Morphology, not a new ontology.
 _PROCESS_VETO_HEAD = re.compile(
@@ -197,6 +198,26 @@ def license_kind(
         return _envelope("RESOURCE", "STRUCTURALLY_DERIVED", label, witness, vetoes, supports)
 
     if role in ACTOR_ROLES or role in PARTICIPANT_ROLES:
+        nominal = re.fullmatch(r'the\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten)', label or '', re.I)
+        if nominal:
+            # Keep this occurrence's label/identity. A uniquely counted prior
+            # human noun phrase can license its kind, not an entity merge.
+            from parsing_game_S import get_nlp
+            before = text[:text.find(label)] if label in text else ''
+            number = nominal.group(1).casefold()
+            heads = {chunk.text for chunk in get_nlp()(before).noun_chunks
+                     if re.search(rf'\b{re.escape(number)}\b',chunk.text,re.I)
+                     and chunk.root.pos_ == 'NOUN'}
+            if len(heads) == 1:
+                antecedent = next(iter(heads))
+                if group_span(antecedent):
+                    supports.append('unique_counted_human_nominal_antecedent')
+                    return _envelope('HUMAN_GROUP','STRUCTURALLY_DERIVED',label,witness,vetoes,supports)
+                if re.search(r'\b(?:worker|patient|person|child)\b',antecedent,re.I):
+                    supports.append('unique_counted_human_nominal_antecedent')
+                    return _envelope('PERSON','STRUCTURALLY_DERIVED',label,witness,vetoes,supports)
+            vetoes.append('numeric_nominal_reference_unresolved')
+            return _envelope('OTHER','UNRESOLVED',label,witness,vetoes,supports)
         if group_span(label) or (quantities and group_span(label or " ".join(quantities))):
             supports.append("quantified_human_head")
             return _envelope(

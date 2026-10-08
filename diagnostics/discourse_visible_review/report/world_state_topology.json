@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.4",
+  "admission": null,
+  "nodes": [
+    {
+      "id": "P1",
+      "kind": "party",
+      "label": "Ada"
+    },
+    {
+      "id": "A0",
+      "kind": "action",
+      "label": "claims"
+    },
+    {
+      "id": "PR1",
+      "kind": "proposition",
+      "label": "the water is safe",
+      "status": "ATTRIBUTED"
+    },
+    {
+      "id": "R0",
+      "kind": "report",
+      "label": "claims"
+    }
+  ],
+  "edges": [
+    {
+      "source": "P1",
+      "relation": "ACTOR",
+      "target": "A0"
+    },
+    {
+      "source": "P1",
+      "relation": "CLAIMS",
+      "target": "R0"
+    },
+    {
+      "source": "R0",
+      "relation": "CONTENT",
+      "target": "PR1"
+    },
+    {
+      "source": "A0",
+      "relation": "SPEECH_ACT",
+      "target": "R0"
+    }
+  ],
+  "conditions": [],
+  "temporal_relations": [],
+  "counterfactual_links": []
+}

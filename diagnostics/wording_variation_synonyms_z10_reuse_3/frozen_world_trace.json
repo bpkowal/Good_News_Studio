@@ -1,0 +1,1305 @@
+{
+  "scenario": "A hospital has one vial of antidote. Dr. Lee must administer the antidote either to Ana or to Bo, but cannot treat both. Ana has an 85% chance of recovering if Dr. Lee administers it to Ana. Bo has a 40% chance of recovering if Dr. Lee administers it to Bo. Whoever is untreated will die.",
+  "presentation_actions": [
+    "administers it to Ana",
+    "administers it to Bo"
+  ],
+  "actions": [
+    "administers it to Ana",
+    "administers it to Bo"
+  ],
+  "action_source_grounding": {
+    "status": "COMMITTED",
+    "actions": {
+      "A0": {
+        "action": "administers it to Ana",
+        "clause_ids": [
+          "C1",
+          "C2"
+        ],
+        "clauses": [
+          {
+            "clause_id": "C1",
+            "text": "Dr. Lee must administer the antidote either to Ana or to Bo, but cannot treat both."
+          },
+          {
+            "clause_id": "C2",
+            "text": "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana."
+          }
+        ],
+        "reason": "Filled from copied cloze slots."
+      },
+      "A1": {
+        "action": "administers it to Bo",
+        "clause_ids": [
+          "C1",
+          "C3"
+        ],
+        "clauses": [
+          {
+            "clause_id": "C1",
+            "text": "Dr. Lee must administer the antidote either to Ana or to Bo, but cannot treat both."
+          },
+          {
+            "clause_id": "C3",
+            "text": "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo."
+          }
+        ],
+        "reason": "Filled from copied cloze slots."
+      }
+    },
+    "world_model": {
+      "parties": [
+        {
+          "party_id": "P1",
+          "label": "Dr. Lee",
+          "kind": "PERSON",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Lee must administer the antidote either to Ana or to Bo, but cannot treat both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P2",
+          "label": "one vial of antidote",
+          "kind": "RESOURCE",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A hospital has one vial of antidote."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P3",
+          "label": "Ana",
+          "kind": "PERSON",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Lee must administer the antidote either to Ana or to Bo, but cannot treat both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P4",
+          "label": "Bo",
+          "kind": "PERSON",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Lee must administer the antidote either to Ana or to Bo, but cannot treat both."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo."
+            }
+          ],
+          "quantities": []
+        }
+      ],
+      "actions": [
+        {
+          "action_id": "A0",
+          "intervention": "administers it to Ana",
+          "actor_party_id": "P1",
+          "recipient_party_ids": [
+            "P3"
+          ],
+          "effect_ids": [
+            "E1",
+            "E2",
+            "E5",
+            "E7"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Lee must administer the antidote either to Ana or to Bo, but cannot treat both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana."
+            }
+          ]
+        },
+        {
+          "action_id": "A1",
+          "intervention": "administers it to Bo",
+          "actor_party_id": "P1",
+          "recipient_party_ids": [
+            "P4"
+          ],
+          "effect_ids": [
+            "E3",
+            "E4",
+            "E6",
+            "E8"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Lee must administer the antidote either to Ana or to Bo, but cannot treat both."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo."
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "effect_id": "E1",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "administer the antidote",
+          "relation": "ADMINISTER",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Lee must administer the antidote either to Ana or to Bo, but cannot treat both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "administer the antidote",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "has an 85% chance of recovering if Dr. Lee administers it to Ana",
+          "relation": "SURVIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "85% chance"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "has an 85% chance of recovering if Dr. Lee administers it to Ana",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E3",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "administer the antidote",
+          "relation": "ADMINISTER",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Lee must administer the antidote either to Ana or to Bo, but cannot treat both."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "administer the antidote",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E4",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "has a 40% chance of recovering if Dr. Lee administers it to Bo",
+          "relation": "SURVIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "40% chance"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "has a 40% chance of recovering if Dr. Lee administers it to Bo",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E5",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "does not receive one vial of antidote",
+          "relation": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "one"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A hospital has one vial of antidote."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Lee must administer the antidote either to Ana or to Bo, but cannot treat both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "A hospital has one vial of antidote.",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+          "derivation_explanation": "Only one vial exists, and the explicit exclusivity proof precludes simultaneous receipt by the other recipient.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E6",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "does not receive one vial of antidote",
+          "relation": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "one"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A hospital has one vial of antidote."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Lee must administer the antidote either to Ana or to Bo, but cannot treat both."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "A hospital has one vial of antidote.",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+          "derivation_explanation": "Only one vial exists, and the explicit exclusivity proof precludes simultaneous receipt by the other recipient.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E7",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "will die",
+          "relation": "DIE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "Whoever is untreated will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will die",
+          "source_effect_ids": [
+            "E5"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E8",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "will die",
+          "relation": "DIE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "Whoever is untreated will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will die",
+          "source_effect_ids": [
+            "E6"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "conditions": [],
+      "causal_links": [
+        {
+          "source_id": "E1",
+          "relation": "ENABLES",
+          "target_id": "E2",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E3",
+          "relation": "ENABLES",
+          "target_id": "E4",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo."
+            }
+          ],
+          "action_id": "A1"
+        },
+        {
+          "source_id": "E5",
+          "relation": "ENABLES",
+          "target_id": "E7",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "Whoever is untreated will die."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E6",
+          "relation": "ENABLES",
+          "target_id": "E8",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "Whoever is untreated will die."
+            }
+          ],
+          "action_id": "A1"
+        },
+        {
+          "source_id": "E1",
+          "relation": "CAUSES",
+          "target_id": "E5",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A hospital has one vial of antidote."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Lee must administer the antidote either to Ana or to Bo, but cannot treat both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E3",
+          "relation": "CAUSES",
+          "target_id": "E6",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A hospital has one vial of antidote."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Lee must administer the antidote either to Ana or to Bo, but cannot treat both."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo."
+            }
+          ],
+          "action_id": "A1"
+        }
+      ],
+      "counterfactual_links": [],
+      "admission": {
+        "status": "COMMITTED",
+        "admitted_effect_ids": [
+          "E1",
+          "E2",
+          "E3",
+          "E4",
+          "E5",
+          "E6",
+          "E7",
+          "E8"
+        ],
+        "quarantined_effects": [],
+        "user_override": false,
+        "override_reason": ""
+      },
+      "schema_version": "1.3",
+      "temporal_relations": []
+    },
+    "world_model_status": "COMMITTED",
+    "world_contradictions": [],
+    "errors": [],
+    "warnings": [],
+    "validation_issues": [],
+    "compiler_loss_telemetry": {},
+    "clauses": [
+      {
+        "clause_id": "C0",
+        "text": "A hospital has one vial of antidote."
+      },
+      {
+        "clause_id": "C1",
+        "text": "Dr. Lee must administer the antidote either to Ana or to Bo, but cannot treat both."
+      },
+      {
+        "clause_id": "C2",
+        "text": "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana."
+      },
+      {
+        "clause_id": "C3",
+        "text": "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo."
+      },
+      {
+        "clause_id": "C4",
+        "text": "Whoever is untreated will die."
+      }
+    ]
+  },
+  "canonical_action_records": [
+    {
+      "action_id": "A0",
+      "short_label": "Administers it to Ana",
+      "canonical_semantic_action": "administers it to Ana",
+      "actor": "Dr. Lee",
+      "intervention": "administers it to Ana",
+      "beneficiaries": [],
+      "harmed": [
+        "Bo"
+      ],
+      "unresolved": [
+        "Ana"
+      ],
+      "at_risk": [],
+      "conditionally_benefited": [
+        "Ana"
+      ],
+      "unresolved_outcomes": [
+        {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "has an 85% chance of recovering if Dr. Lee administers it to Ana",
+          "relation": "SURVIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "85% chance"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "has an 85% chance of recovering if Dr. Lee administers it to Ana",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "grounded_effects": [
+        {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "has an 85% chance of recovering if Dr. Lee administers it to Ana",
+          "relation": "SURVIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "85% chance"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "has an 85% chance of recovering if Dr. Lee administers it to Ana",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E5",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "does not receive one vial of antidote",
+          "relation": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "one"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A hospital has one vial of antidote."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Lee must administer the antidote either to Ana or to Bo, but cannot treat both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "A hospital has one vial of antidote.",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+          "derivation_explanation": "Only one vial exists, and the explicit exclusivity proof precludes simultaneous receipt by the other recipient.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E7",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "will die",
+          "relation": "DIE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "Whoever is untreated will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will die",
+          "source_effect_ids": [
+            "E5"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "world_effects": [
+        {
+          "effect_id": "E1",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "administer the antidote",
+          "relation": "ADMINISTER",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Lee must administer the antidote either to Ana or to Bo, but cannot treat both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "administer the antidote",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "has an 85% chance of recovering if Dr. Lee administers it to Ana",
+          "relation": "SURVIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "85% chance"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "has an 85% chance of recovering if Dr. Lee administers it to Ana",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E5",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "does not receive one vial of antidote",
+          "relation": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "one"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A hospital has one vial of antidote."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Lee must administer the antidote either to Ana or to Bo, but cannot treat both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "A hospital has one vial of antidote.",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+          "derivation_explanation": "Only one vial exists, and the explicit exclusivity proof precludes simultaneous receipt by the other recipient.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E7",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "will die",
+          "relation": "DIE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "Whoever is untreated will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will die",
+          "source_effect_ids": [
+            "E5"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "causal_links": [
+        {
+          "action_id": "A0",
+          "source_id": "E1",
+          "relation": "ENABLES",
+          "target_id": "E2",
+          "modality": "CERTAIN"
+        },
+        {
+          "action_id": "A0",
+          "source_id": "E5",
+          "relation": "ENABLES",
+          "target_id": "E7",
+          "modality": "CERTAIN"
+        },
+        {
+          "action_id": "A0",
+          "source_id": "E1",
+          "relation": "CAUSES",
+          "target_id": "E5",
+          "modality": "CERTAIN"
+        }
+      ],
+      "counterfactual_effects": [],
+      "mechanism": "administer the antidote enables has an 85% chance of recovering if Dr. Lee administers it to Ana; does not receive one vial of antidote enables will die; administer the antidote exclusively entails does not receive one vial of antidote",
+      "institutional_effect": "",
+      "source_clauses": [
+        "Dr. Lee must administer the antidote either to Ana or to Bo, but cannot treat both.",
+        "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana."
+      ],
+      "completeness_status": "COMPLETE",
+      "missing_critical": [],
+      "structure_issues": [],
+      "commitment_status": "COMMITTED",
+      "commitment_reasons": [],
+      "source_label": "",
+      "presentation_action": "administers it to Ana",
+      "action_origin": "FROZEN_REPLAY"
+    },
+    {
+      "action_id": "A1",
+      "short_label": "Administers it to Bo",
+      "canonical_semantic_action": "administers it to Bo",
+      "actor": "Dr. Lee",
+      "intervention": "administers it to Bo",
+      "beneficiaries": [],
+      "harmed": [
+        "Ana"
+      ],
+      "unresolved": [
+        "Bo"
+      ],
+      "at_risk": [],
+      "conditionally_benefited": [
+        "Bo"
+      ],
+      "unresolved_outcomes": [
+        {
+          "effect_id": "E4",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "has a 40% chance of recovering if Dr. Lee administers it to Bo",
+          "relation": "SURVIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "40% chance"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "has a 40% chance of recovering if Dr. Lee administers it to Bo",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "grounded_effects": [
+        {
+          "effect_id": "E4",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "has a 40% chance of recovering if Dr. Lee administers it to Bo",
+          "relation": "SURVIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "40% chance"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "has a 40% chance of recovering if Dr. Lee administers it to Bo",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E6",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "does not receive one vial of antidote",
+          "relation": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "one"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A hospital has one vial of antidote."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Lee must administer the antidote either to Ana or to Bo, but cannot treat both."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "A hospital has one vial of antidote.",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+          "derivation_explanation": "Only one vial exists, and the explicit exclusivity proof precludes simultaneous receipt by the other recipient.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E8",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "will die",
+          "relation": "DIE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "Whoever is untreated will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will die",
+          "source_effect_ids": [
+            "E6"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "world_effects": [
+        {
+          "effect_id": "E3",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "administer the antidote",
+          "relation": "ADMINISTER",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Lee must administer the antidote either to Ana or to Bo, but cannot treat both."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "administer the antidote",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E4",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "has a 40% chance of recovering if Dr. Lee administers it to Bo",
+          "relation": "SURVIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "40% chance"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "has a 40% chance of recovering if Dr. Lee administers it to Bo",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E6",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "does not receive one vial of antidote",
+          "relation": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "one"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A hospital has one vial of antidote."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Lee must administer the antidote either to Ana or to Bo, but cannot treat both."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "A hospital has one vial of antidote.",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+          "derivation_explanation": "Only one vial exists, and the explicit exclusivity proof precludes simultaneous receipt by the other recipient.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E8",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "will die",
+          "relation": "DIE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "Whoever is untreated will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will die",
+          "source_effect_ids": [
+            "E6"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "causal_links": [
+        {
+          "action_id": "A1",
+          "source_id": "E3",
+          "relation": "ENABLES",
+          "target_id": "E4",
+          "modality": "CERTAIN"
+        },
+        {
+          "action_id": "A1",
+          "source_id": "E6",
+          "relation": "ENABLES",
+          "target_id": "E8",
+          "modality": "CERTAIN"
+        },
+        {
+          "action_id": "A1",
+          "source_id": "E3",
+          "relation": "CAUSES",
+          "target_id": "E6",
+          "modality": "CERTAIN"
+        }
+      ],
+      "counterfactual_effects": [],
+      "mechanism": "administer the antidote enables has a 40% chance of recovering if Dr. Lee administers it to Bo; does not receive one vial of antidote enables will die; administer the antidote exclusively entails does not receive one vial of antidote",
+      "institutional_effect": "",
+      "source_clauses": [
+        "Dr. Lee must administer the antidote either to Ana or to Bo, but cannot treat both.",
+        "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo."
+      ],
+      "completeness_status": "COMPLETE",
+      "missing_critical": [],
+      "structure_issues": [],
+      "commitment_status": "COMMITTED",
+      "commitment_reasons": [],
+      "source_label": "",
+      "presentation_action": "administers it to Bo",
+      "action_origin": "FROZEN_REPLAY"
+    }
+  ],
+  "presentation_action_mapping": [],
+  "source_action_legend": {
+    "A0": "administers it to Ana",
+    "A1": "administers it to Bo"
+  }
+}

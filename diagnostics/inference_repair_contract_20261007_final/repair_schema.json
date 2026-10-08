@@ -1,0 +1,234 @@
+{
+  "type": "object",
+  "properties": {
+    "challenged_inference_id": {
+      "type": "string",
+      "maxLength": 1000
+    },
+    "repair_operation": {
+      "type": "string",
+      "enum": [
+        "DEFEND",
+        "CONDITIONALIZE",
+        "WEAKEN",
+        "RETRACT"
+      ]
+    },
+    "supported_conclusion": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "EXPECTED_SURVIVORS",
+            "TOTAL_WELFARE"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "SUPPORTED",
+            "CONDITIONAL",
+            "UNRESOLVED",
+            "WITHDRAWN"
+          ]
+        },
+        "action_id": {
+          "type": "string",
+          "enum": [
+            "A0",
+            "A1",
+            "NONE"
+          ]
+        }
+      },
+      "required": [
+        "text",
+        "scope",
+        "status",
+        "action_id"
+      ],
+      "additionalProperties": false
+    },
+    "conditional_assumptions": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "provenance": {
+            "type": "string",
+            "enum": [
+              "EMPIRICAL_ASSUMPTION",
+              "DEFEASIBLE_NORMATIVE_ASSUMPTION"
+            ]
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "maxItems": 16
+          }
+        },
+        "required": [
+          "id",
+          "text",
+          "provenance",
+          "evidence_ids"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "conditional_preference": {
+      "type": "object",
+      "properties": {
+        "action_id": {
+          "type": "string",
+          "enum": [
+            "A0",
+            "A1",
+            "NONE"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "assumption_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "maxItems": 16
+        }
+      },
+      "required": [
+        "action_id",
+        "text",
+        "assumption_ids"
+      ],
+      "additionalProperties": false
+    },
+    "preserved_restricted_findings": {
+      "type": "array",
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "properties": {
+          "action_id": {
+            "type": "string",
+            "enum": [
+              "A0",
+              "A1",
+              "NONE"
+            ]
+          },
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "PERSON"
+            ]
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "EXPECTED_COUNT"
+            ]
+          },
+          "source_effect_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "maxItems": 16
+          }
+        },
+        "required": [
+          "action_id",
+          "value",
+          "unit",
+          "method",
+          "source_effect_ids"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "unresolved_claims": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 1000
+      },
+      "maxItems": 16
+    },
+    "reversal_condition": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "SOURCE_GROUNDED",
+            "FRAMEWORK_DERIVED",
+            "ILLUSTRATIVE",
+            "UNSUPPORTED"
+          ]
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "maxItems": 16
+        },
+        "derivation_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "text",
+        "status",
+        "evidence_ids",
+        "derivation_id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "challenged_inference_id",
+    "repair_operation",
+    "supported_conclusion",
+    "conditional_assumptions",
+    "conditional_preference",
+    "preserved_restricted_findings",
+    "unresolved_claims",
+    "reversal_condition"
+  ],
+  "additionalProperties": false
+}

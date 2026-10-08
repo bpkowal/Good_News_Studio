@@ -1,0 +1,21 @@
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{xcolor}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds}
+\begin{document}
+% A1 actual-world graph
+\begin{tikzpicture}[>=Latex,
+ event/.style={draw,rounded corners,align=center,text width=3.8cm,minimum height=1.4cm,font=\small},
+ beneficial/.style={event,fill=green!12,draw=green!50!black},
+ adverse/.style={event,fill=red!10,draw=red!55!black},
+ neutral/.style={event,fill=gray!10,draw=gray!65},
+ foregone/.style={event,fill=blue!7,draw=blue!45,densely dotted},
+ quarantined/.style={event,fill=orange!12,draw=orange!70!black,densely dashed},
+ causal/.style={->,thick}, conditional/.style={->,thick,dashed}, quarantineedge/.style={->,thick,densely dashed,draw=orange!70!black}]
+\node[font=\bfseries,anchor=west] at (0,1.3) {A1: give the serum to Cara};
+\node[beneficial] (eE4) at (0.0,0.0) {\textbf{E4}\\receives serum\\\scriptsize Cara · BENEFICIAL · CERTAIN};
+\node[adverse] (eE5) at (5.2,0.0) {\textbf{E5}\\does not receive serum\\\scriptsize Ben · ADVERSE · CERTAIN};
+\node[beneficial] (eE6) at (5.2,-2.3) {\textbf{E6}\\Cara recovers\\\scriptsize Cara · BENEFICIAL · CERTAIN};
+\draw[causal] (eE4) -- node[above,font=\scriptsize] {CAUSES} (eE6);
+\draw[causal] (eE4) -- node[above,font=\scriptsize] {CAUSES} (eE5);
+\end{tikzpicture}
+\end{document}

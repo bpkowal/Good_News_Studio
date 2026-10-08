@@ -1,0 +1,160 @@
+{
+  "framework": "care",
+  "initial_argument": {
+    "scores": {
+      "A0": 0.1,
+      "A1": 0.9
+    },
+    "r": "A1",
+    "c": "CARE",
+    "u": "NONE",
+    "w": "competent care saves Cara",
+    "j": "NONE",
+    "e": "STATED_FACTS",
+    "x": "NONE",
+    "l": {
+      "A0": "Attends Ben but low survival; neglects Cara",
+      "A1": "Attends Cara with high survival; unavoidable harm to Ben"
+    },
+    "da": "competence toward urgent basic need",
+    "t": "choose patient with far higher survival chance",
+    "tf": "NONE",
+    "dr": "Prefer A1 when its survival prospect greatly exceeds A0",
+    "ft": "Ben survival chance exceeds Cara’s",
+    "nt": "Competence not primary care norm",
+    "z": 0.9,
+    "gu": {
+      "operation": "BOUNDARY",
+      "from_action": "A1",
+      "to_action": "A0",
+      "clauses": [
+        {
+          "affected_action": "A0",
+          "metric": "SURVIVAL_PROB",
+          "metric_valence": "BENEFICIAL",
+          "comparator": "GT",
+          "threshold": 95,
+          "unit": "PERCENT",
+          "source_text": "If Ben’s chance of survival were greater than Cara’s"
+        }
+      ]
+    },
+    "ev": {
+      "A0": {
+        "value": 0,
+        "unit": "NONE",
+        "direction": "HARM",
+        "grounded": false,
+        "method": "NOT_COMPUTED",
+        "source_effect_ids": [],
+        "calculation": "not computed",
+        "assumptions": []
+      },
+      "A1": {
+        "value": 0,
+        "unit": "NONE",
+        "direction": "HARM",
+        "grounded": false,
+        "method": "NOT_COMPUTED",
+        "source_effect_ids": [],
+        "calculation": "not computed",
+        "assumptions": []
+      }
+    },
+    "ss": "SELECTED",
+    "am": {
+      "A0": "REJECTED",
+      "A1": "REQUIRED"
+    },
+    "cc": true,
+    "esa": true,
+    "ia": "A1",
+    "wp": "NOT_APPLICABLE",
+    "we": "NONE",
+    "fa": "NONE",
+    "fr": true,
+    "bd": "NONE",
+    "fic": [],
+    "foq": [],
+    "sps": [
+      "PROP:WORLD:E2",
+      "PROP:WORLD:E4"
+    ],
+    "dcp": [
+      "PROP:WORLD:E2",
+      "PROP:WORLD:E4"
+    ],
+    "ep": [
+      {
+        "c": "Ben has a 5% chance of survival; affected subject: Ben; modality: PROBABILISTIC",
+        "p": "PROP:WORLD:E2",
+        "dc": true,
+        "a": "A0",
+        "se": [
+          "E2"
+        ],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      },
+      {
+        "c": "Cara has a 95% chance of survival; affected subject: Cara; modality: PROBABILISTIC",
+        "p": "PROP:WORLD:E4",
+        "dc": true,
+        "a": "A1",
+        "se": [
+          "E4"
+        ],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      }
+    ],
+    "rm": {
+      "A0": "acute dependency addressed poorly",
+      "A1": "acute dependency addressed competently"
+    },
+    "nr": "SECONDARY",
+    "np": "probability magnitudes inform competence",
+    "cl": {
+      "A0": {
+        "v": "NEGLECTFUL",
+        "p": "Cara",
+        "rt": "DEPENDENCY",
+        "ds": "needs medicine Ada controls",
+        "rb": "control creates duty",
+        "nk": "SURVIVAL_HEALTH",
+        "nu": "IMMEDIATE",
+        "te": "BETRAYS",
+        "rr": "WITHHELD",
+        "f": "ESTABLISHED",
+        "cc": "Ben also dependent",
+        "res": "RESOLVED",
+        "g": "ACTION_GRAPH",
+        "rs": "fails to meet more compelling need"
+      },
+      "A1": {
+        "v": "RESPONSIVE",
+        "p": "Cara",
+        "rt": "DEPENDENCY",
+        "ds": "needs medicine Ada controls",
+        "rb": "control creates duty",
+        "nk": "SURVIVAL_HEALTH",
+        "nu": "IMMEDIATE",
+        "te": "PRESERVES",
+        "rr": "DIRECT",
+        "f": "ESTABLISHED",
+        "cc": "Ben also dependent",
+        "res": "RESOLVED",
+        "g": "ACTION_GRAPH",
+        "rs": "meets the most urgent survivable need"
+      }
+    },
+    "cb": "ACUTE_DEPENDENCY"
+  },
+  "objection": "Both patients need care. Explain why the swapped treatment effectiveness should or should not outweigh the competing need without inventing relational priority.",
+  "objection_origin": "EXPERIMENT_ASSIGNED_CHALLENGE_NOT_WORLD_FACT",
+  "shared_input_sha256": "128f36b2e947377be8e5bf5314060913db13ae67f7816259e8f18cfc8e20977a"
+}

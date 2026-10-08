@@ -1,0 +1,168 @@
+{
+  "framework": "utilitarian",
+  "initial_argument": {
+    "scores": {
+      "A0": 0.05,
+      "A1": 0.95
+    },
+    "r": "A1",
+    "c": "IMMINENT_HARM",
+    "u": "NONE",
+    "w": "Maximize expected survival",
+    "j": "NONE",
+    "e": "STATED_FACTS",
+    "x": "NONE",
+    "l": {
+      "A0": "Small chance Ben lives (5%); still better than nothing.",
+      "A1": "Much higher chance Cara lives (95%); maximizes expected lives."
+    },
+    "da": "expected lives saved",
+    "t": "maximize expected utility",
+    "tf": "NONE",
+    "dr": "Prefer A1 when it yields greater expected survivors than A0.",
+    "ft": "Ben’s survival probability exceeds 95%.",
+    "nt": "NONE",
+    "z": 0.95,
+    "gu": {
+      "operation": "BOUNDARY",
+      "from_action": "A1",
+      "to_action": "A0",
+      "clauses": [
+        {
+          "affected_action": "A0",
+          "metric": "SURVIVAL_PROBABILITY",
+          "metric_valence": "BENEFICIAL",
+          "comparator": "GT",
+          "threshold": 95,
+          "unit": "PERCENT",
+          "source_text": "If Ada gives the medicine to Ben, Ben has a 5% chance of survival."
+        }
+      ]
+    },
+    "ev": {
+      "A0": {
+        "value": 0.05,
+        "unit": "EXPECTED_SURVIVORS",
+        "direction": "BENEFIT",
+        "grounded": true,
+        "method": "EXPECTED_COUNT",
+        "source_effect_ids": [
+          "E2"
+        ],
+        "calculation": "1 person * 5% = 0.05 expected survivors",
+        "assumptions": []
+      },
+      "A1": {
+        "value": 0.95,
+        "unit": "EXPECTED_SURVIVORS",
+        "direction": "BENEFIT",
+        "grounded": true,
+        "method": "EXPECTED_COUNT",
+        "source_effect_ids": [
+          "E4"
+        ],
+        "calculation": "1 person * 95% = 0.95 expected survivors",
+        "assumptions": []
+      }
+    },
+    "ss": "SELECTED",
+    "am": {
+      "A0": "REJECTED",
+      "A1": "REQUIRED"
+    },
+    "cc": true,
+    "esa": true,
+    "ia": "A1",
+    "wp": "NOT_APPLICABLE",
+    "we": "NONE",
+    "fa": "NONE",
+    "fr": true,
+    "bd": "NONE",
+    "fic": [],
+    "foq": [],
+    "sps": [
+      "PROP:WORLD:E2",
+      "PROP:WORLD:E4"
+    ],
+    "dcp": [],
+    "ep": [
+      {
+        "c": "Ben has a 5% chance of survival; affected subject: Ben; modality: PROBABILISTIC",
+        "p": "PROP:WORLD:E2",
+        "dc": false,
+        "a": "A0",
+        "se": [
+          "E2"
+        ],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      },
+      {
+        "c": "Cara has a 95% chance of survival; affected subject: Cara; modality: PROBABILISTIC",
+        "p": "PROP:WORLD:E4",
+        "dc": false,
+        "a": "A1",
+        "se": [
+          "E4"
+        ],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      }
+    ],
+    "ct": {
+      "A0": [
+        {
+          "eid": "E2",
+          "wi": "HIGH",
+          "vr": "5% chance Ben survives"
+        },
+        {
+          "eid": "E7",
+          "wi": "CRITICAL",
+          "vr": "Certain death of Cara"
+        },
+        {
+          "eid": "E5",
+          "wi": "LOW",
+          "vr": "Medicine withheld from Cara"
+        },
+        {
+          "eid": "E1",
+          "wi": "NEGLIGIBLE",
+          "vr": "Transfer act itself"
+        }
+      ],
+      "A1": [
+        {
+          "eid": "E4",
+          "wi": "HIGH",
+          "vr": "95% chance Cara survives"
+        },
+        {
+          "eid": "E8",
+          "wi": "CRITICAL",
+          "vr": "Certain death of Ben"
+        },
+        {
+          "eid": "E6",
+          "wi": "LOW",
+          "vr": "Medicine withheld from Ben"
+        },
+        {
+          "eid": "E3",
+          "wi": "NEGLIGIBLE",
+          "vr": "Transfer act itself"
+        }
+      ]
+    },
+    "cd": false,
+    "cm": "NONE"
+  },
+  "objection": "Higher expected survivors is a restricted endpoint, not total welfare. Explain why it supports your current preference, what it cannot settle, and how the swapped probabilities affect your reason.",
+  "objection_origin": "EXPERIMENT_ASSIGNED_CHALLENGE_NOT_WORLD_FACT",
+  "shared_input_sha256": "128f36b2e947377be8e5bf5314060913db13ae67f7816259e8f18cfc8e20977a"
+}

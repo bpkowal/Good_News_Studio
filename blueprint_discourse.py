@@ -504,6 +504,15 @@ def discourse_graph_rows(world: Mapping[str, Any]) -> tuple[list[dict[str, Any]]
             "label": proposition.get("predication") or "",
             "status": proposition.get("status"),
         })
+        if proposition.get('status') == 'ASSERTED':
+            # Display source mentions, not inferred spatial/causal relations.
+            # The complete proposition retains the actual relational wording.
+            text = proposition.get('predication', '')
+            for party in world.get('parties', []):
+                label = party.get('label', '')
+                if label and re.search(r'(?<!\w)'+re.escape(label)+r'(?!\w)', text, re.I):
+                    edges.append({'source':party['party_id'], 'relation':'MENTIONED_IN',
+                                  'target':proposition['proposition_id']})
     for report in world.get("reports") or []:
         nodes.append({
             "id": report["report_id"], "kind": "report",

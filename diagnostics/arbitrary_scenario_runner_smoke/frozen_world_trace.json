@@ -1,0 +1,1279 @@
+{
+  "scenario": "A clinic has one vial of antivenom. Dr. Rivera must give the antivenom to either one child or three adult patients, but not both. If Dr. Rivera gives the antivenom to the child, the child has an 80% chance of survival. If Dr. Rivera gives the antivenom to the three adult patients, each of the three adult patients has a 60% chance of survival. The patients who do not receive the antivenom will die.",
+  "presentation_actions": [
+    "gives the antivenom to the child",
+    "gives the antivenom to the three adult patients"
+  ],
+  "actions": [
+    "gives the antivenom to the child",
+    "gives the antivenom to the three adult patients"
+  ],
+  "action_source_grounding": {
+    "status": "COMMITTED",
+    "actions": {
+      "A0": {
+        "action": "gives the antivenom to the child",
+        "clause_ids": [
+          "C2"
+        ],
+        "clauses": [
+          {
+            "clause_id": "C2",
+            "text": "If Dr. Rivera gives the antivenom to the child, the child has an 80% chance of survival."
+          }
+        ],
+        "reason": "Filled from copied cloze slots."
+      },
+      "A1": {
+        "action": "gives the antivenom to the three adult patients",
+        "clause_ids": [
+          "C3"
+        ],
+        "clauses": [
+          {
+            "clause_id": "C3",
+            "text": "If Dr. Rivera gives the antivenom to the three adult patients, each of the three adult patients has a 60% chance of survival."
+          }
+        ],
+        "reason": "Filled from copied cloze slots."
+      }
+    },
+    "world_model": {
+      "parties": [
+        {
+          "party_id": "P1",
+          "label": "Dr. Rivera",
+          "kind": "PERSON",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Rivera must give the antivenom to either one child or three adult patients, but not both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If Dr. Rivera gives the antivenom to the child, the child has an 80% chance of survival."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If Dr. Rivera gives the antivenom to the three adult patients, each of the three adult patients has a 60% chance of survival."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P2",
+          "label": "one vial of antivenom",
+          "kind": "RESOURCE",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A clinic has one vial of antivenom."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P3",
+          "label": "one child",
+          "kind": "PERSON",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Rivera must give the antivenom to either one child or three adult patients, but not both."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P4",
+          "label": "three adult patients",
+          "kind": "HUMAN_GROUP",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Rivera must give the antivenom to either one child or three adult patients, but not both."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If Dr. Rivera gives the antivenom to the three adult patients, each of the three adult patients has a 60% chance of survival."
+            }
+          ],
+          "quantities": [
+            "three"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "action_id": "A0",
+          "intervention": "gives the antivenom to the child",
+          "actor_party_id": "P1",
+          "recipient_party_ids": [
+            "P3"
+          ],
+          "effect_ids": [
+            "E1",
+            "E2",
+            "E5",
+            "E7"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If Dr. Rivera gives the antivenom to the child, the child has an 80% chance of survival."
+            }
+          ]
+        },
+        {
+          "action_id": "A1",
+          "intervention": "gives the antivenom to the three adult patients",
+          "actor_party_id": "P1",
+          "recipient_party_ids": [
+            "P4"
+          ],
+          "effect_ids": [
+            "E3",
+            "E4",
+            "E6",
+            "E8"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If Dr. Rivera gives the antivenom to the three adult patients, each of the three adult patients has a 60% chance of survival."
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "effect_id": "E1",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "gives the antivenom to the child",
+          "relation": "GIVES",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If Dr. Rivera gives the antivenom to the child, the child has an 80% chance of survival."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "gives the antivenom to the child",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "the child has an 80% chance of survival",
+          "relation": "SURVIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If Dr. Rivera gives the antivenom to the child, the child has an 80% chance of survival."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "80% chance"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "the child has an 80% chance of survival",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E3",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "gives the antivenom to the three adult patients",
+          "relation": "GIVES",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "condition_ids": [],
+          "quantities": [
+            "three"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If Dr. Rivera gives the antivenom to the three adult patients, each of the three adult patients has a 60% chance of survival."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "gives the antivenom to the three adult patients",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E4",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "each of the three adult patients has a 60% chance of survival",
+          "relation": "SURVIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [
+            "three"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If Dr. Rivera gives the antivenom to the three adult patients, each of the three adult patients has a 60% chance of survival."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "60% chance"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "each of the three adult patients has a 60% chance of survival",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E5",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "does not receive one vial of antivenom",
+          "relation": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "one"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A clinic has one vial of antivenom."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Rivera must give the antivenom to either one child or three adult patients, but not both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If Dr. Rivera gives the antivenom to the child, the child has an 80% chance of survival."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "A clinic has one vial of antivenom.",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+          "derivation_explanation": "Only one vial exists, and the copied 'not both' evidence precludes simultaneous receipt by the other recipient.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E6",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "does not receive one vial of antivenom",
+          "relation": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "one"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A clinic has one vial of antivenom."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Rivera must give the antivenom to either one child or three adult patients, but not both."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If Dr. Rivera gives the antivenom to the three adult patients, each of the three adult patients has a 60% chance of survival."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "A clinic has one vial of antivenom.",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+          "derivation_explanation": "Only one vial exists, and the copied 'not both' evidence precludes simultaneous receipt by the other recipient.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E7",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "will die",
+          "relation": "DIE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The patients who do not receive the antivenom will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will die",
+          "source_effect_ids": [
+            "E5"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E8",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "will die",
+          "relation": "DIE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The patients who do not receive the antivenom will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will die",
+          "source_effect_ids": [
+            "E6"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "conditions": [],
+      "causal_links": [
+        {
+          "source_id": "E1",
+          "relation": "CAUSES",
+          "target_id": "E2",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If Dr. Rivera gives the antivenom to the child, the child has an 80% chance of survival."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E3",
+          "relation": "CAUSES",
+          "target_id": "E4",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If Dr. Rivera gives the antivenom to the three adult patients, each of the three adult patients has a 60% chance of survival."
+            }
+          ],
+          "action_id": "A1"
+        },
+        {
+          "source_id": "E5",
+          "relation": "CAUSES",
+          "target_id": "E7",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The patients who do not receive the antivenom will die."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E6",
+          "relation": "CAUSES",
+          "target_id": "E8",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The patients who do not receive the antivenom will die."
+            }
+          ],
+          "action_id": "A1"
+        },
+        {
+          "source_id": "E1",
+          "relation": "CAUSES",
+          "target_id": "E5",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A clinic has one vial of antivenom."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Rivera must give the antivenom to either one child or three adult patients, but not both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If Dr. Rivera gives the antivenom to the child, the child has an 80% chance of survival."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E3",
+          "relation": "CAUSES",
+          "target_id": "E6",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A clinic has one vial of antivenom."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Rivera must give the antivenom to either one child or three adult patients, but not both."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If Dr. Rivera gives the antivenom to the three adult patients, each of the three adult patients has a 60% chance of survival."
+            }
+          ],
+          "action_id": "A1"
+        }
+      ],
+      "counterfactual_links": [],
+      "admission": {
+        "status": "COMMITTED",
+        "admitted_effect_ids": [
+          "E1",
+          "E2",
+          "E3",
+          "E4",
+          "E5",
+          "E6",
+          "E7",
+          "E8"
+        ],
+        "quarantined_effects": [],
+        "user_override": false,
+        "override_reason": ""
+      },
+      "schema_version": "1.3",
+      "temporal_relations": []
+    },
+    "world_model_status": "COMMITTED",
+    "world_contradictions": [],
+    "errors": [],
+    "warnings": [],
+    "validation_issues": [],
+    "compiler_loss_telemetry": {},
+    "clauses": [
+      {
+        "clause_id": "C0",
+        "text": "A clinic has one vial of antivenom."
+      },
+      {
+        "clause_id": "C1",
+        "text": "Dr. Rivera must give the antivenom to either one child or three adult patients, but not both."
+      },
+      {
+        "clause_id": "C2",
+        "text": "If Dr. Rivera gives the antivenom to the child, the child has an 80% chance of survival."
+      },
+      {
+        "clause_id": "C3",
+        "text": "If Dr. Rivera gives the antivenom to the three adult patients, each of the three adult patients has a 60% chance of survival."
+      },
+      {
+        "clause_id": "C4",
+        "text": "The patients who do not receive the antivenom will die."
+      }
+    ]
+  },
+  "canonical_action_records": [
+    {
+      "action_id": "A0",
+      "short_label": "Gives the antivenom to the child",
+      "canonical_semantic_action": "gives the antivenom to the child",
+      "actor": "Dr. Rivera",
+      "intervention": "gives the antivenom to the child",
+      "beneficiaries": [],
+      "harmed": [
+        "three adult patients"
+      ],
+      "unresolved": [
+        "one child"
+      ],
+      "at_risk": [],
+      "conditionally_benefited": [
+        "one child"
+      ],
+      "unresolved_outcomes": [
+        {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "the child has an 80% chance of survival",
+          "relation": "SURVIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If Dr. Rivera gives the antivenom to the child, the child has an 80% chance of survival."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "80% chance"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "the child has an 80% chance of survival",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "grounded_effects": [
+        {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "the child has an 80% chance of survival",
+          "relation": "SURVIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If Dr. Rivera gives the antivenom to the child, the child has an 80% chance of survival."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "80% chance"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "the child has an 80% chance of survival",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E5",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "does not receive one vial of antivenom",
+          "relation": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "one"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A clinic has one vial of antivenom."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Rivera must give the antivenom to either one child or three adult patients, but not both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If Dr. Rivera gives the antivenom to the child, the child has an 80% chance of survival."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "A clinic has one vial of antivenom.",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+          "derivation_explanation": "Only one vial exists, and the copied 'not both' evidence precludes simultaneous receipt by the other recipient.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E7",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "will die",
+          "relation": "DIE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The patients who do not receive the antivenom will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will die",
+          "source_effect_ids": [
+            "E5"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "world_effects": [
+        {
+          "effect_id": "E1",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "gives the antivenom to the child",
+          "relation": "GIVES",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If Dr. Rivera gives the antivenom to the child, the child has an 80% chance of survival."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "gives the antivenom to the child",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "the child has an 80% chance of survival",
+          "relation": "SURVIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If Dr. Rivera gives the antivenom to the child, the child has an 80% chance of survival."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "80% chance"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "the child has an 80% chance of survival",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E5",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "does not receive one vial of antivenom",
+          "relation": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "one"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A clinic has one vial of antivenom."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Rivera must give the antivenom to either one child or three adult patients, but not both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If Dr. Rivera gives the antivenom to the child, the child has an 80% chance of survival."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "A clinic has one vial of antivenom.",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+          "derivation_explanation": "Only one vial exists, and the copied 'not both' evidence precludes simultaneous receipt by the other recipient.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E7",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "will die",
+          "relation": "DIE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The patients who do not receive the antivenom will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will die",
+          "source_effect_ids": [
+            "E5"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "causal_links": [
+        {
+          "action_id": "A0",
+          "source_id": "E1",
+          "relation": "CAUSES",
+          "target_id": "E2",
+          "modality": "CERTAIN"
+        },
+        {
+          "action_id": "A0",
+          "source_id": "E5",
+          "relation": "CAUSES",
+          "target_id": "E7",
+          "modality": "CERTAIN"
+        },
+        {
+          "action_id": "A0",
+          "source_id": "E1",
+          "relation": "CAUSES",
+          "target_id": "E5",
+          "modality": "CERTAIN"
+        }
+      ],
+      "counterfactual_effects": [],
+      "mechanism": "gives the antivenom to the child causes the child has an 80% chance of survival; does not receive one vial of antivenom causes will die; gives the antivenom to the child exclusively entails does not receive one vial of antivenom",
+      "institutional_effect": "",
+      "source_clauses": [
+        "If Dr. Rivera gives the antivenom to the child, the child has an 80% chance of survival."
+      ],
+      "completeness_status": "COMPLETE",
+      "missing_critical": [],
+      "structure_issues": [],
+      "commitment_status": "COMMITTED",
+      "commitment_reasons": [],
+      "source_label": "",
+      "presentation_action": "gives the antivenom to the child",
+      "action_origin": "FROZEN_REPLAY"
+    },
+    {
+      "action_id": "A1",
+      "short_label": "Gives the antivenom to the three adult patients",
+      "canonical_semantic_action": "gives the antivenom to the three adult patients",
+      "actor": "Dr. Rivera",
+      "intervention": "gives the antivenom to the three adult patients",
+      "beneficiaries": [],
+      "harmed": [
+        "one child"
+      ],
+      "unresolved": [
+        "three adult patients"
+      ],
+      "at_risk": [],
+      "conditionally_benefited": [
+        "three adult patients"
+      ],
+      "unresolved_outcomes": [
+        {
+          "effect_id": "E4",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "each of the three adult patients has a 60% chance of survival",
+          "relation": "SURVIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [
+            "three"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If Dr. Rivera gives the antivenom to the three adult patients, each of the three adult patients has a 60% chance of survival."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "60% chance"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "each of the three adult patients has a 60% chance of survival",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "grounded_effects": [
+        {
+          "effect_id": "E4",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "each of the three adult patients has a 60% chance of survival",
+          "relation": "SURVIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [
+            "three"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If Dr. Rivera gives the antivenom to the three adult patients, each of the three adult patients has a 60% chance of survival."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "60% chance"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "each of the three adult patients has a 60% chance of survival",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E6",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "does not receive one vial of antivenom",
+          "relation": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "one"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A clinic has one vial of antivenom."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Rivera must give the antivenom to either one child or three adult patients, but not both."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If Dr. Rivera gives the antivenom to the three adult patients, each of the three adult patients has a 60% chance of survival."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "A clinic has one vial of antivenom.",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+          "derivation_explanation": "Only one vial exists, and the copied 'not both' evidence precludes simultaneous receipt by the other recipient.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E8",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "will die",
+          "relation": "DIE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The patients who do not receive the antivenom will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will die",
+          "source_effect_ids": [
+            "E6"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "world_effects": [
+        {
+          "effect_id": "E3",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "gives the antivenom to the three adult patients",
+          "relation": "GIVES",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "RESOURCE_TRANSFER",
+          "condition_ids": [],
+          "quantities": [
+            "three"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If Dr. Rivera gives the antivenom to the three adult patients, each of the three adult patients has a 60% chance of survival."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "gives the antivenom to the three adult patients",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E4",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "each of the three adult patients has a 60% chance of survival",
+          "relation": "SURVIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "PROBABILISTIC",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [
+            "three"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If Dr. Rivera gives the antivenom to the three adult patients, each of the three adult patients has a 60% chance of survival."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "60% chance"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "each of the three adult patients has a 60% chance of survival",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E6",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "does not receive one vial of antivenom",
+          "relation": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "one"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A clinic has one vial of antivenom."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dr. Rivera must give the antivenom to either one child or three adult patients, but not both."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If Dr. Rivera gives the antivenom to the three adult patients, each of the three adult patients has a 60% chance of survival."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "A clinic has one vial of antivenom.",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+          "derivation_explanation": "Only one vial exists, and the copied 'not both' evidence precludes simultaneous receipt by the other recipient.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E8",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "will die",
+          "relation": "DIE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The patients who do not receive the antivenom will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will die",
+          "source_effect_ids": [
+            "E6"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "causal_links": [
+        {
+          "action_id": "A1",
+          "source_id": "E3",
+          "relation": "CAUSES",
+          "target_id": "E4",
+          "modality": "CERTAIN"
+        },
+        {
+          "action_id": "A1",
+          "source_id": "E6",
+          "relation": "CAUSES",
+          "target_id": "E8",
+          "modality": "CERTAIN"
+        },
+        {
+          "action_id": "A1",
+          "source_id": "E3",
+          "relation": "CAUSES",
+          "target_id": "E6",
+          "modality": "CERTAIN"
+        }
+      ],
+      "counterfactual_effects": [],
+      "mechanism": "gives the antivenom to the three adult patients causes each of the three adult patients has a 60% chance of survival; does not receive one vial of antivenom causes will die; gives the antivenom to the three adult patients exclusively entails does not receive one vial of antivenom",
+      "institutional_effect": "",
+      "source_clauses": [
+        "If Dr. Rivera gives the antivenom to the three adult patients, each of the three adult patients has a 60% chance of survival."
+      ],
+      "completeness_status": "COMPLETE",
+      "missing_critical": [],
+      "structure_issues": [],
+      "commitment_status": "COMMITTED",
+      "commitment_reasons": [],
+      "source_label": "",
+      "presentation_action": "gives the antivenom to the three adult patients",
+      "action_origin": "FROZEN_REPLAY"
+    }
+  ],
+  "presentation_action_mapping": [],
+  "source_action_legend": {
+    "A0": "gives the antivenom to the child",
+    "A1": "gives the antivenom to the three adult patients"
+  }
+}

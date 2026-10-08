@@ -1,0 +1,1691 @@
+{
+  "chosen_blueprint_id": "exclusive_allocation",
+  "status": "FILLED",
+  "question": {
+    "ethical_question": "gives / gives",
+    "scenario_options": [
+      {
+        "id": "choice11",
+        "selection_rule": "any_subset",
+        "exhaustive": false,
+        "options": [
+          "gives",
+          "gives"
+        ]
+      }
+    ],
+    "exclusivity": "evidenced",
+    "exclusivity_proof": {
+      "status": "EXPLICIT",
+      "evidence": [
+        {
+          "text": "but not both",
+          "clause_id": "C1",
+          "start": 77,
+          "end": 89
+        }
+      ],
+      "assumptions": [],
+      "explanation": "The source explicitly says that both alternatives cannot occur."
+    },
+    "participants": [
+      {
+        "role": "subject",
+        "mention": "A clinic",
+        "predicate": "has"
+      },
+      {
+        "role": "object",
+        "mention": "one dose",
+        "predicate": "has"
+      },
+      {
+        "role": "subject",
+        "mention": "Ada",
+        "predicate": "give"
+      },
+      {
+        "role": "object",
+        "mention": "the medicine",
+        "predicate": "give"
+      },
+      {
+        "role": "destination",
+        "mention": "Ben",
+        "predicate": "give"
+      },
+      {
+        "role": "subject",
+        "mention": "Ada",
+        "predicate": "gives"
+      },
+      {
+        "role": "object",
+        "mention": "the medicine",
+        "predicate": "gives"
+      },
+      {
+        "role": "destination",
+        "mention": "Ben",
+        "predicate": "gives"
+      },
+      {
+        "role": "subject",
+        "mention": "Ben",
+        "predicate": "has"
+      },
+      {
+        "role": "object",
+        "mention": "a 95% chance",
+        "predicate": "has"
+      },
+      {
+        "role": "subject",
+        "mention": "Ada",
+        "predicate": "gives"
+      },
+      {
+        "role": "object",
+        "mention": "the medicine",
+        "predicate": "gives"
+      },
+      {
+        "role": "destination",
+        "mention": "Cara",
+        "predicate": "gives"
+      },
+      {
+        "role": "subject",
+        "mention": "Cara",
+        "predicate": "has"
+      },
+      {
+        "role": "object",
+        "mention": "a 5% chance",
+        "predicate": "has"
+      },
+      {
+        "role": "subject",
+        "mention": "who",
+        "predicate": "get"
+      },
+      {
+        "role": "subject",
+        "mention": "The patient",
+        "predicate": "die"
+      },
+      {
+        "role": "subject",
+        "mention": "the medicine",
+        "predicate": "die"
+      },
+      {
+        "role": "destination",
+        "mention": "Cara",
+        "predicate": "give"
+      }
+    ],
+    "eligible_for_world_state": true
+  },
+  "z10_blueprint_comparison": {
+    "comparison_version": "z10-blueprint-comparison/0.1",
+    "policy": "independent_nonbinding_comparison",
+    "selection_changed": false,
+    "z10_package_id": "blueprint_run_6e9d6963b5d3",
+    "z10_open_question_ids": [
+      "q0",
+      "q1",
+      "q2",
+      "q3",
+      "q4",
+      "q5",
+      "q6",
+      "q7",
+      "q8",
+      "q9",
+      "q10",
+      "q11",
+      "q12",
+      "q13",
+      "q14",
+      "q15",
+      "q16",
+      "q17",
+      "q18"
+    ],
+    "candidate_comparisons": [
+      {
+        "blueprint_id": "exclusive_allocation",
+        "rank": 0,
+        "status": "AGREEMENT",
+        "agreement": [
+          "die",
+          "give",
+          "have"
+        ],
+        "z10_only": [
+          "get"
+        ],
+        "blueprint_only": [
+          "ada",
+          "not_receive",
+          "survive"
+        ],
+        "conflicts": [],
+        "z10_relations": [
+          "CONDITIONAL_ON",
+          "MODALITY",
+          "QUANTITY"
+        ],
+        "blueprint_relations": [
+          "CONDITIONAL_ON",
+          "ENABLES"
+        ],
+        "z10_participant_roles": [
+          "destination",
+          "object",
+          "subject"
+        ],
+        "blueprint_party_labels": [
+          "Ada",
+          "Ben",
+          "Cara",
+          "one dose of medicine"
+        ]
+      },
+      {
+        "blueprint_id": "rescue_contrast",
+        "rank": 1,
+        "status": "NO_BLUEPRINT_WORLD",
+        "agreement": [],
+        "z10_only": [
+          "die",
+          "get",
+          "give",
+          "have"
+        ],
+        "blueprint_only": [],
+        "conflicts": []
+      },
+      {
+        "blueprint_id": "omission_harm",
+        "rank": 2,
+        "status": "NO_BLUEPRINT_WORLD",
+        "agreement": [],
+        "z10_only": [
+          "die",
+          "get",
+          "give",
+          "have"
+        ],
+        "blueprint_only": [],
+        "conflicts": []
+      }
+    ]
+  },
+  "attempts": [
+    {
+      "blueprint_id": "exclusive_allocation",
+      "rank": 0,
+      "template_status": "FILLED",
+      "selected": true,
+      "core_filled": 5,
+      "core_count": 5,
+      "optional_filled": 11,
+      "unfilled_slots": [
+        "first_hedge",
+        "second_hedge",
+        "survival_chance"
+      ],
+      "contract_valid": true,
+      "contract_errors": [],
+      "proposal": {
+        "proposal_contract_version": "blueprint-proposal-contract/0.3",
+        "proposal_id": "exclusive_allocation_cloze",
+        "blueprint_id": "exclusive_allocation",
+        "status": "FILLED",
+        "assignment_kind": "intervention_text",
+        "assignment": [
+          "Ada gives the medicine to Ben",
+          "Ada gives the medicine to Cara"
+        ],
+        "slot_bindings": {
+          "copied_spans": {
+            "decider": "Ada",
+            "resource": "one dose of medicine",
+            "assignment": "give the medicine to Ben or Cara, but not both",
+            "first_transfer": "Ada gives the medicine to Ben",
+            "second_transfer": "Ada gives the medicine to Cara",
+            "quantity": "one dose",
+            "first_recipient": "Ben",
+            "second_recipient": "Cara",
+            "exclusivity": "not both",
+            "first_outcome": "Ben has a 95% chance of survival",
+            "second_outcome": "Cara has a 5% chance of survival",
+            "first_branch_sentence": "If Ada gives the medicine to Ben, Ben has a 95% chance of survival",
+            "second_branch_sentence": "If Ada gives the medicine to Cara, Cara has a 5% chance of survival",
+            "nonreceipt": "The patient who does not get the medicine will die",
+            "first_implied_process": "administration",
+            "second_implied_process": "administration"
+          }
+        },
+        "selection": null,
+        "selection_validation": {
+          "contract_valid": null,
+          "status": "not_assessed",
+          "reason": "The cloze path has no Z10 candidate selection."
+        },
+        "candidate": {
+          "actions": {
+            "A0": {
+              "clause_ids": [
+                "C2"
+              ],
+              "reason": "Filled from copied cloze slots."
+            },
+            "A1": {
+              "clause_ids": [
+                "C3"
+              ],
+              "reason": "Filled from copied cloze slots."
+            }
+          },
+          "world_model": {
+            "schema_version": "1.3",
+            "parties": [
+              {
+                "party_id": "P1",
+                "label": "Ada",
+                "kind": "PERSON",
+                "quantities": [],
+                "clause_ids": [
+                  "C1",
+                  "C2",
+                  "C3"
+                ]
+              },
+              {
+                "party_id": "P2",
+                "label": "one dose of medicine",
+                "kind": "RESOURCE",
+                "quantities": [
+                  "one"
+                ],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "party_id": "P3",
+                "label": "Ben",
+                "kind": "PERSON",
+                "quantities": [],
+                "clause_ids": [
+                  "C1",
+                  "C2"
+                ]
+              },
+              {
+                "party_id": "P4",
+                "label": "Cara",
+                "kind": "PERSON",
+                "quantities": [],
+                "clause_ids": [
+                  "C1",
+                  "C3"
+                ]
+              }
+            ],
+            "actions": [
+              {
+                "action_id": "A0",
+                "intervention": "Ada gives the medicine to Ben",
+                "actor_party_id": "P1",
+                "recipient_party_ids": [
+                  "P3"
+                ],
+                "effect_ids": [
+                  "E1",
+                  "E2",
+                  "E5",
+                  "E7"
+                ],
+                "clause_ids": [
+                  "C2"
+                ]
+              },
+              {
+                "action_id": "A1",
+                "intervention": "Ada gives the medicine to Cara",
+                "actor_party_id": "P1",
+                "recipient_party_ids": [
+                  "P4"
+                ],
+                "effect_ids": [
+                  "E3",
+                  "E4",
+                  "E6",
+                  "E8"
+                ],
+                "clause_ids": [
+                  "C3"
+                ]
+              }
+            ],
+            "effects": [
+              {
+                "effect_id": "E1",
+                "action_id": "A0",
+                "party_id": "P3",
+                "outcome": "Ada gives the medicine to Ben",
+                "predicate": "ada",
+                "polarity": "NEUTRAL",
+                "directness": "DIRECT",
+                "modality": "CERTAIN",
+                "effect_kind": "RESOURCE_TRANSFER",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "Ada gives the medicine to Ben",
+                "source_effect_ids": [],
+                "derivation_operation": "DIRECT_COPY",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C2"
+                ]
+              },
+              {
+                "effect_id": "E2",
+                "action_id": "A0",
+                "party_id": "P3",
+                "outcome": "Ben has a 95% chance of survival",
+                "predicate": "survive",
+                "polarity": "BENEFICIAL",
+                "directness": "DOWNSTREAM",
+                "modality": "PROBABILISTIC",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [
+                  "95% chance"
+                ],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "Ben has a 95% chance of survival",
+                "source_effect_ids": [
+                  "E1"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C2"
+                ]
+              },
+              {
+                "effect_id": "E3",
+                "action_id": "A1",
+                "party_id": "P4",
+                "outcome": "Ada gives the medicine to Cara",
+                "predicate": "ada",
+                "polarity": "NEUTRAL",
+                "directness": "DIRECT",
+                "modality": "CERTAIN",
+                "effect_kind": "RESOURCE_TRANSFER",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "Ada gives the medicine to Cara",
+                "source_effect_ids": [],
+                "derivation_operation": "DIRECT_COPY",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C3"
+                ]
+              },
+              {
+                "effect_id": "E4",
+                "action_id": "A1",
+                "party_id": "P4",
+                "outcome": "Cara has a 5% chance of survival",
+                "predicate": "survive",
+                "polarity": "BENEFICIAL",
+                "directness": "DOWNSTREAM",
+                "modality": "PROBABILISTIC",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [
+                  "5% chance"
+                ],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "Cara has a 5% chance of survival",
+                "source_effect_ids": [
+                  "E3"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C3"
+                ]
+              },
+              {
+                "effect_id": "E5",
+                "action_id": "A0",
+                "party_id": "P4",
+                "outcome": "does not receive one dose of medicine",
+                "predicate": "NOT_RECEIVES",
+                "polarity": "ADVERSE",
+                "directness": "DOWNSTREAM",
+                "modality": "CERTAIN",
+                "effect_kind": "OTHER",
+                "condition_ids": [],
+                "quantities": [
+                  "one"
+                ],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "A clinic has one dose of medicine.",
+                "source_effect_ids": [
+                  "E1"
+                ],
+                "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+                "derivation_explanation": "Only one dose exists, and the copied 'not both' evidence precludes simultaneous receipt by the other recipient.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "effect_id": "E6",
+                "action_id": "A1",
+                "party_id": "P3",
+                "outcome": "does not receive one dose of medicine",
+                "predicate": "NOT_RECEIVES",
+                "polarity": "ADVERSE",
+                "directness": "DOWNSTREAM",
+                "modality": "CERTAIN",
+                "effect_kind": "OTHER",
+                "condition_ids": [],
+                "quantities": [
+                  "one"
+                ],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "A clinic has one dose of medicine.",
+                "source_effect_ids": [
+                  "E3"
+                ],
+                "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+                "derivation_explanation": "Only one dose exists, and the copied 'not both' evidence precludes simultaneous receipt by the other recipient.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "effect_id": "E7",
+                "action_id": "A0",
+                "party_id": "P4",
+                "outcome": "will die",
+                "predicate": "die",
+                "polarity": "ADVERSE",
+                "directness": "DOWNSTREAM",
+                "modality": "CERTAIN",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "will die",
+                "source_effect_ids": [
+                  "E5"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C4"
+                ]
+              },
+              {
+                "effect_id": "E8",
+                "action_id": "A1",
+                "party_id": "P3",
+                "outcome": "will die",
+                "predicate": "die",
+                "polarity": "ADVERSE",
+                "directness": "DOWNSTREAM",
+                "modality": "CERTAIN",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "will die",
+                "source_effect_ids": [
+                  "E6"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C4"
+                ]
+              }
+            ],
+            "conditions": [],
+            "temporal_relations": [],
+            "causal_links": [
+              {
+                "action_id": "A0",
+                "source_id": "E1",
+                "link_relation": "ENABLES",
+                "target_id": "E2",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C2"
+                ]
+              },
+              {
+                "action_id": "A1",
+                "source_id": "E3",
+                "link_relation": "ENABLES",
+                "target_id": "E4",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C3"
+                ]
+              },
+              {
+                "action_id": "A0",
+                "source_id": "E5",
+                "link_relation": "ENABLES",
+                "target_id": "E7",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C4"
+                ]
+              },
+              {
+                "action_id": "A1",
+                "source_id": "E6",
+                "link_relation": "ENABLES",
+                "target_id": "E8",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C4"
+                ]
+              }
+            ],
+            "counterfactual_links": []
+          },
+          "ellipsis_resolutions": []
+        },
+        "clauses": [
+          {
+            "clause_id": "C0",
+            "text": "A clinic has one dose of medicine."
+          },
+          {
+            "clause_id": "C1",
+            "text": "Ada can give the medicine to Ben or Cara, but not both."
+          },
+          {
+            "clause_id": "C2",
+            "text": "If Ada gives the medicine to Ben, Ben has a 95% chance of survival."
+          },
+          {
+            "clause_id": "C3",
+            "text": "If Ada gives the medicine to Cara, Cara has a 5% chance of survival."
+          },
+          {
+            "clause_id": "C4",
+            "text": "The patient who does not get the medicine will die."
+          }
+        ],
+        "unfilled_required_slots": [],
+        "unresolved_readings": [],
+        "construction_problems": [],
+        "admission_authorized": true,
+        "notes": [
+          "Implied process for the first outcome: administration. This is a warning, not a cause copied from the text.",
+          "Implied process for the second outcome: administration. This is a warning, not a cause copied from the text."
+        ],
+        "pre_world_assessment": {
+          "ethical_question": "gives / gives",
+          "scenario_options": [
+            {
+              "id": "choice11",
+              "selection_rule": "any_subset",
+              "exhaustive": false,
+              "options": [
+                "gives",
+                "gives"
+              ]
+            }
+          ],
+          "exclusivity": "evidenced",
+          "exclusivity_proof": {
+            "status": "EXPLICIT",
+            "evidence": [
+              {
+                "text": "but not both",
+                "clause_id": "C1",
+                "start": 77,
+                "end": 89
+              }
+            ],
+            "assumptions": [],
+            "explanation": "The source explicitly says that both alternatives cannot occur."
+          },
+          "participants": [
+            {
+              "role": "subject",
+              "mention": "A clinic",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "one dose",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "Ada",
+              "predicate": "give"
+            },
+            {
+              "role": "object",
+              "mention": "the medicine",
+              "predicate": "give"
+            },
+            {
+              "role": "destination",
+              "mention": "Ben",
+              "predicate": "give"
+            },
+            {
+              "role": "subject",
+              "mention": "Ada",
+              "predicate": "gives"
+            },
+            {
+              "role": "object",
+              "mention": "the medicine",
+              "predicate": "gives"
+            },
+            {
+              "role": "destination",
+              "mention": "Ben",
+              "predicate": "gives"
+            },
+            {
+              "role": "subject",
+              "mention": "Ben",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "a 95% chance",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "Ada",
+              "predicate": "gives"
+            },
+            {
+              "role": "object",
+              "mention": "the medicine",
+              "predicate": "gives"
+            },
+            {
+              "role": "destination",
+              "mention": "Cara",
+              "predicate": "gives"
+            },
+            {
+              "role": "subject",
+              "mention": "Cara",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "a 5% chance",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "who",
+              "predicate": "get"
+            },
+            {
+              "role": "subject",
+              "mention": "The patient",
+              "predicate": "die"
+            },
+            {
+              "role": "subject",
+              "mention": "the medicine",
+              "predicate": "die"
+            },
+            {
+              "role": "destination",
+              "mention": "Cara",
+              "predicate": "give"
+            }
+          ],
+          "eligible_for_world_state": true,
+          "status": "ASSESSED"
+        },
+        "accepted_evidence": {
+          "decider": "Ada",
+          "resource": "one dose of medicine",
+          "assignment": "give the medicine to Ben or Cara, but not both",
+          "first_transfer": "Ada gives the medicine to Ben",
+          "second_transfer": "Ada gives the medicine to Cara",
+          "quantity": "one dose",
+          "first_recipient": "Ben",
+          "second_recipient": "Cara",
+          "exclusivity": "not both",
+          "first_outcome": "Ben has a 95% chance of survival",
+          "second_outcome": "Cara has a 5% chance of survival",
+          "first_implied_process": "administration",
+          "second_implied_process": "administration",
+          "first_branch_sentence": "If Ada gives the medicine to Ben, Ben has a 95% chance of survival",
+          "second_branch_sentence": "If Ada gives the medicine to Cara, Cara has a 5% chance of survival",
+          "nonreceipt": "The patient who does not get the medicine will die"
+        },
+        "construction_provenance": [
+          {
+            "atom_id": "party:P1",
+            "atom_kind": "party",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C1",
+              "C2",
+              "C3"
+            ],
+            "evidence": [
+              "Ada"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "party:P2",
+            "atom_kind": "party",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C0"
+            ],
+            "evidence": [
+              "one dose of medicine"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "party:P3",
+            "atom_kind": "party",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C1",
+              "C2"
+            ],
+            "evidence": [
+              "Ben"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "party:P4",
+            "atom_kind": "party",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C1",
+              "C3"
+            ],
+            "evidence": [
+              "Cara"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "action:A0",
+            "atom_kind": "action",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C2"
+            ],
+            "evidence": [
+              "Ada gives the medicine to Ben"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "action:A1",
+            "atom_kind": "action",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C3"
+            ],
+            "evidence": [
+              "Ada gives the medicine to Cara"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "effect:E1",
+            "atom_kind": "effect",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C2"
+            ],
+            "evidence": [
+              "Ada gives the medicine to Ben"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "effect:E2",
+            "atom_kind": "effect",
+            "origin": "STRUCTURALLY_DERIVED",
+            "clause_ids": [
+              "C2"
+            ],
+            "evidence": [
+              "Ben has a 95% chance of survival"
+            ],
+            "explanation": "SOURCE_STIPULATED_CAUSAL"
+          },
+          {
+            "atom_id": "effect:E3",
+            "atom_kind": "effect",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C3"
+            ],
+            "evidence": [
+              "Ada gives the medicine to Cara"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "effect:E4",
+            "atom_kind": "effect",
+            "origin": "STRUCTURALLY_DERIVED",
+            "clause_ids": [
+              "C3"
+            ],
+            "evidence": [
+              "Cara has a 5% chance of survival"
+            ],
+            "explanation": "SOURCE_STIPULATED_CAUSAL"
+          },
+          {
+            "atom_id": "effect:E5",
+            "atom_kind": "effect",
+            "origin": "STRUCTURALLY_DERIVED",
+            "clause_ids": [
+              "C0"
+            ],
+            "evidence": [
+              "A clinic has one dose of medicine."
+            ],
+            "explanation": "EXCLUSIVE_ALLOCATION_COMPLEMENT"
+          },
+          {
+            "atom_id": "effect:E6",
+            "atom_kind": "effect",
+            "origin": "STRUCTURALLY_DERIVED",
+            "clause_ids": [
+              "C0"
+            ],
+            "evidence": [
+              "A clinic has one dose of medicine."
+            ],
+            "explanation": "EXCLUSIVE_ALLOCATION_COMPLEMENT"
+          },
+          {
+            "atom_id": "effect:E7",
+            "atom_kind": "effect",
+            "origin": "STRUCTURALLY_DERIVED",
+            "clause_ids": [
+              "C4"
+            ],
+            "evidence": [
+              "will die"
+            ],
+            "explanation": "SOURCE_STIPULATED_CAUSAL"
+          },
+          {
+            "atom_id": "effect:E8",
+            "atom_kind": "effect",
+            "origin": "STRUCTURALLY_DERIVED",
+            "clause_ids": [
+              "C4"
+            ],
+            "evidence": [
+              "will die"
+            ],
+            "explanation": "SOURCE_STIPULATED_CAUSAL"
+          },
+          {
+            "atom_id": "relation:0",
+            "atom_kind": "relation",
+            "origin": "UNRESOLVED",
+            "clause_ids": [
+              "C2"
+            ],
+            "evidence": [],
+            "explanation": "A conditional association requires a working Parliament relation."
+          },
+          {
+            "atom_id": "relation:1",
+            "atom_kind": "relation",
+            "origin": "UNRESOLVED",
+            "clause_ids": [
+              "C3"
+            ],
+            "evidence": [],
+            "explanation": "A conditional association requires a working Parliament relation."
+          },
+          {
+            "atom_id": "relation:2",
+            "atom_kind": "relation",
+            "origin": "UNRESOLVED",
+            "clause_ids": [
+              "C4"
+            ],
+            "evidence": [],
+            "explanation": "A conditional association requires a working Parliament relation."
+          },
+          {
+            "atom_id": "relation:3",
+            "atom_kind": "relation",
+            "origin": "UNRESOLVED",
+            "clause_ids": [
+              "C4"
+            ],
+            "evidence": [],
+            "explanation": "A conditional association requires a working Parliament relation."
+          },
+          {
+            "atom_id": "hypothesis:first_implied_process",
+            "atom_kind": "hypothesis",
+            "origin": "WORLD_KNOWLEDGE_HYPOTHESIS",
+            "clause_ids": [],
+            "evidence": [
+              "administration"
+            ],
+            "explanation": "Model-suggested process; excluded from the Parliament world."
+          },
+          {
+            "atom_id": "hypothesis:second_implied_process",
+            "atom_kind": "hypothesis",
+            "origin": "WORLD_KNOWLEDGE_HYPOTHESIS",
+            "clause_ids": [],
+            "evidence": [
+              "administration"
+            ],
+            "explanation": "Model-suggested process; excluded from the Parliament world."
+          }
+        ],
+        "relation_alternatives": [
+          {
+            "relation_id": "relation:0",
+            "source_id": "E1",
+            "target_id": "E2",
+            "selected_for_parliament": "ENABLES",
+            "alternatives": [
+              "ENABLES",
+              "CAUSES"
+            ],
+            "status": "UNRESOLVED",
+            "evidence": [],
+            "condition_ids": [],
+            "structural_basis": "conditional_parent"
+          },
+          {
+            "relation_id": "relation:1",
+            "source_id": "E3",
+            "target_id": "E4",
+            "selected_for_parliament": "ENABLES",
+            "alternatives": [
+              "ENABLES",
+              "CAUSES"
+            ],
+            "status": "UNRESOLVED",
+            "evidence": [],
+            "condition_ids": [],
+            "structural_basis": "conditional_parent"
+          },
+          {
+            "relation_id": "relation:2",
+            "source_id": "E5",
+            "target_id": "E7",
+            "selected_for_parliament": "ENABLES",
+            "alternatives": [
+              "ENABLES",
+              "CAUSES"
+            ],
+            "status": "UNRESOLVED",
+            "evidence": [],
+            "condition_ids": [],
+            "structural_basis": "conditional_parent"
+          },
+          {
+            "relation_id": "relation:3",
+            "source_id": "E6",
+            "target_id": "E8",
+            "selected_for_parliament": "ENABLES",
+            "alternatives": [
+              "ENABLES",
+              "CAUSES"
+            ],
+            "status": "UNRESOLVED",
+            "evidence": [],
+            "condition_ids": [],
+            "structural_basis": "conditional_parent"
+          }
+        ],
+        "exclusivity_proof": {
+          "status": "EXPLICIT",
+          "evidence": [
+            {
+              "text": "but not both",
+              "clause_id": "C1",
+              "start": 77,
+              "end": 89
+            }
+          ],
+          "assumptions": [],
+          "explanation": "The source explicitly says that both alternatives cannot occur."
+        },
+        "world_withheld": []
+      }
+    },
+    {
+      "blueprint_id": "rescue_contrast",
+      "rank": 1,
+      "template_status": "PARTIAL",
+      "selected": false,
+      "core_filled": 2,
+      "core_count": 8,
+      "optional_filled": 3,
+      "unfilled_slots": [
+        "first_saved",
+        "second_saved",
+        "first_rescue_action",
+        "second_rescue_action",
+        "first_benefit",
+        "second_benefit"
+      ],
+      "contract_valid": true,
+      "contract_errors": [],
+      "proposal": {
+        "proposal_contract_version": "blueprint-proposal-contract/0.3",
+        "proposal_id": "rescue_contrast_cloze",
+        "blueprint_id": "rescue_contrast",
+        "status": "WITHHELD",
+        "assignment_kind": "none",
+        "assignment": [],
+        "slot_bindings": {
+          "copied_spans": {
+            "rescuer": "Ada",
+            "rescue_exclusivity": "but not both",
+            "first_harm": "The patient who does not get the medicine will die",
+            "second_harm": "The patient who does not get the medicine will die",
+            "scene": "The patient who does not get the medicine will die"
+          }
+        },
+        "selection": null,
+        "selection_validation": {
+          "contract_valid": null,
+          "status": "not_assessed",
+          "reason": "No Z10 candidate selection was constructed."
+        },
+        "candidate": null,
+        "clauses": [
+          {
+            "clause_id": "C0",
+            "text": "A clinic has one dose of medicine."
+          },
+          {
+            "clause_id": "C1",
+            "text": "Ada can give the medicine to Ben or Cara, but not both."
+          },
+          {
+            "clause_id": "C2",
+            "text": "If Ada gives the medicine to Ben, Ben has a 95% chance of survival."
+          },
+          {
+            "clause_id": "C3",
+            "text": "If Ada gives the medicine to Cara, Cara has a 5% chance of survival."
+          },
+          {
+            "clause_id": "C4",
+            "text": "The patient who does not get the medicine will die."
+          }
+        ],
+        "unfilled_required_slots": [
+          "first_saved",
+          "second_saved",
+          "first_rescue_action",
+          "second_rescue_action",
+          "first_benefit",
+          "second_benefit"
+        ],
+        "unresolved_readings": [],
+        "construction_problems": [
+          {
+            "code": "world_withheld",
+            "message": "Required slots remain unfilled: first_saved, second_saved, first_rescue_action, second_rescue_action, first_benefit, second_benefit"
+          }
+        ],
+        "admission_authorized": false,
+        "notes": [],
+        "pre_world_assessment": {
+          "ethical_question": "gives / gives",
+          "scenario_options": [
+            {
+              "id": "choice11",
+              "selection_rule": "any_subset",
+              "exhaustive": false,
+              "options": [
+                "gives",
+                "gives"
+              ]
+            }
+          ],
+          "exclusivity": "evidenced",
+          "exclusivity_proof": {
+            "status": "EXPLICIT",
+            "evidence": [
+              {
+                "text": "but not both",
+                "clause_id": "C1",
+                "start": 77,
+                "end": 89
+              }
+            ],
+            "assumptions": [],
+            "explanation": "The source explicitly says that both alternatives cannot occur."
+          },
+          "participants": [
+            {
+              "role": "subject",
+              "mention": "A clinic",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "one dose",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "Ada",
+              "predicate": "give"
+            },
+            {
+              "role": "object",
+              "mention": "the medicine",
+              "predicate": "give"
+            },
+            {
+              "role": "destination",
+              "mention": "Ben",
+              "predicate": "give"
+            },
+            {
+              "role": "subject",
+              "mention": "Ada",
+              "predicate": "gives"
+            },
+            {
+              "role": "object",
+              "mention": "the medicine",
+              "predicate": "gives"
+            },
+            {
+              "role": "destination",
+              "mention": "Ben",
+              "predicate": "gives"
+            },
+            {
+              "role": "subject",
+              "mention": "Ben",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "a 95% chance",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "Ada",
+              "predicate": "gives"
+            },
+            {
+              "role": "object",
+              "mention": "the medicine",
+              "predicate": "gives"
+            },
+            {
+              "role": "destination",
+              "mention": "Cara",
+              "predicate": "gives"
+            },
+            {
+              "role": "subject",
+              "mention": "Cara",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "a 5% chance",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "who",
+              "predicate": "get"
+            },
+            {
+              "role": "subject",
+              "mention": "The patient",
+              "predicate": "die"
+            },
+            {
+              "role": "subject",
+              "mention": "the medicine",
+              "predicate": "die"
+            },
+            {
+              "role": "destination",
+              "mention": "Cara",
+              "predicate": "give"
+            }
+          ],
+          "status": "WITHHELD",
+          "eligible_for_world_state": false
+        },
+        "accepted_evidence": {
+          "rescuer": "Ada",
+          "rescue_exclusivity": "but not both",
+          "first_harm": "The patient who does not get the medicine will die",
+          "second_harm": "The patient who does not get the medicine will die",
+          "scene": "The patient who does not get the medicine will die"
+        },
+        "construction_provenance": [
+          {
+            "atom_id": "slot:rescuer",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Ada"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:rescue_exclusivity",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "but not both"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:first_harm",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "The patient who does not get the medicine will die"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:second_harm",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "The patient who does not get the medicine will die"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:scene",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "The patient who does not get the medicine will die"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          }
+        ],
+        "relation_alternatives": [],
+        "exclusivity_proof": {
+          "status": "EXPLICIT",
+          "evidence": [
+            {
+              "text": "but not both",
+              "clause_id": "C1",
+              "start": 77,
+              "end": 89
+            }
+          ],
+          "assumptions": [],
+          "explanation": "The source explicitly says that both alternatives cannot occur."
+        },
+        "world_withheld": [
+          "Required slots remain unfilled: first_saved, second_saved, first_rescue_action, second_rescue_action, first_benefit, second_benefit"
+        ]
+      }
+    },
+    {
+      "blueprint_id": "omission_harm",
+      "rank": 2,
+      "template_status": "PARTIAL",
+      "selected": false,
+      "core_filled": 3,
+      "core_count": 5,
+      "optional_filled": 0,
+      "unfilled_slots": [
+        "done",
+        "omitted",
+        "done_hedge",
+        "omitted_hedge",
+        "group_counts",
+        "instrument"
+      ],
+      "contract_valid": true,
+      "contract_errors": [],
+      "proposal": {
+        "proposal_contract_version": "blueprint-proposal-contract/0.3",
+        "proposal_id": "omission_harm_cloze",
+        "blueprint_id": "omission_harm",
+        "status": "WITHHELD",
+        "assignment_kind": "none",
+        "assignment": [],
+        "slot_bindings": {
+          "copied_spans": {
+            "actor": "Ada",
+            "harm_done": "The patient who does not get the medicine will die",
+            "harm_omitted": "The patient who does not get the medicine will die"
+          }
+        },
+        "selection": null,
+        "selection_validation": {
+          "contract_valid": null,
+          "status": "not_assessed",
+          "reason": "No Z10 candidate selection was constructed."
+        },
+        "candidate": null,
+        "clauses": [
+          {
+            "clause_id": "C0",
+            "text": "A clinic has one dose of medicine."
+          },
+          {
+            "clause_id": "C1",
+            "text": "Ada can give the medicine to Ben or Cara, but not both."
+          },
+          {
+            "clause_id": "C2",
+            "text": "If Ada gives the medicine to Ben, Ben has a 95% chance of survival."
+          },
+          {
+            "clause_id": "C3",
+            "text": "If Ada gives the medicine to Cara, Cara has a 5% chance of survival."
+          },
+          {
+            "clause_id": "C4",
+            "text": "The patient who does not get the medicine will die."
+          }
+        ],
+        "unfilled_required_slots": [
+          "done",
+          "omitted"
+        ],
+        "unresolved_readings": [],
+        "construction_problems": [
+          {
+            "code": "world_withheld",
+            "message": "Required slots remain unfilled: done, omitted"
+          }
+        ],
+        "admission_authorized": false,
+        "notes": [],
+        "pre_world_assessment": {
+          "ethical_question": "gives / gives",
+          "scenario_options": [
+            {
+              "id": "choice11",
+              "selection_rule": "any_subset",
+              "exhaustive": false,
+              "options": [
+                "gives",
+                "gives"
+              ]
+            }
+          ],
+          "exclusivity": "evidenced",
+          "exclusivity_proof": {
+            "status": "EXPLICIT",
+            "evidence": [
+              {
+                "text": "but not both",
+                "clause_id": "C1",
+                "start": 77,
+                "end": 89
+              }
+            ],
+            "assumptions": [],
+            "explanation": "The source explicitly says that both alternatives cannot occur."
+          },
+          "participants": [
+            {
+              "role": "subject",
+              "mention": "A clinic",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "one dose",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "Ada",
+              "predicate": "give"
+            },
+            {
+              "role": "object",
+              "mention": "the medicine",
+              "predicate": "give"
+            },
+            {
+              "role": "destination",
+              "mention": "Ben",
+              "predicate": "give"
+            },
+            {
+              "role": "subject",
+              "mention": "Ada",
+              "predicate": "gives"
+            },
+            {
+              "role": "object",
+              "mention": "the medicine",
+              "predicate": "gives"
+            },
+            {
+              "role": "destination",
+              "mention": "Ben",
+              "predicate": "gives"
+            },
+            {
+              "role": "subject",
+              "mention": "Ben",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "a 95% chance",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "Ada",
+              "predicate": "gives"
+            },
+            {
+              "role": "object",
+              "mention": "the medicine",
+              "predicate": "gives"
+            },
+            {
+              "role": "destination",
+              "mention": "Cara",
+              "predicate": "gives"
+            },
+            {
+              "role": "subject",
+              "mention": "Cara",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "a 5% chance",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "who",
+              "predicate": "get"
+            },
+            {
+              "role": "subject",
+              "mention": "The patient",
+              "predicate": "die"
+            },
+            {
+              "role": "subject",
+              "mention": "the medicine",
+              "predicate": "die"
+            },
+            {
+              "role": "destination",
+              "mention": "Cara",
+              "predicate": "give"
+            }
+          ],
+          "status": "WITHHELD",
+          "eligible_for_world_state": false
+        },
+        "accepted_evidence": {
+          "actor": "Ada",
+          "harm_done": "The patient who does not get the medicine will die",
+          "harm_omitted": "The patient who does not get the medicine will die"
+        },
+        "construction_provenance": [
+          {
+            "atom_id": "slot:actor",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Ada"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:harm_done",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "The patient who does not get the medicine will die"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:harm_omitted",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "The patient who does not get the medicine will die"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          }
+        ],
+        "relation_alternatives": [],
+        "exclusivity_proof": {
+          "status": "EXPLICIT",
+          "evidence": [
+            {
+              "text": "but not both",
+              "clause_id": "C1",
+              "start": 77,
+              "end": 89
+            }
+          ],
+          "assumptions": [],
+          "explanation": "The source explicitly says that both alternatives cannot occur."
+        },
+        "world_withheld": [
+          "Required slots remain unfilled: done, omitted"
+        ]
+      }
+    }
+  ]
+}

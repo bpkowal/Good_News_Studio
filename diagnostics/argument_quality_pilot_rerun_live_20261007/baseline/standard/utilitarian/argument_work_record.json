@@ -1,0 +1,71 @@
+{
+  "origin": "MODEL_AUTHORED_ARGUMENT",
+  "authority": "ATTRIBUTED_NOT_WORLD_STATE",
+  "raw_fields": {
+    "ev": {
+      "A0": {
+        "value": 0.95,
+        "unit": "EXPECTED_SURVIVORS",
+        "direction": "BENEFIT",
+        "grounded": true,
+        "method": "EXPECTED_COUNT",
+        "source_effect_ids": [
+          "E2"
+        ],
+        "calculation": "1 person \u00d7 0.95 = 0.95 expected survivors",
+        "assumptions": []
+      },
+      "A1": {
+        "value": 0.05,
+        "unit": "EXPECTED_SURVIVORS",
+        "direction": "BENEFIT",
+        "grounded": true,
+        "method": "EXPECTED_COUNT",
+        "source_effect_ids": [
+          "E4"
+        ],
+        "calculation": "1 person \u00d7 0.05 = 0.05 expected survivors",
+        "assumptions": []
+      }
+    },
+    "dp": null,
+    "cl": null,
+    "ep": [
+      {
+        "c": "Ben has a 95% chance of survival; affected subject: Ben; modality: PROBABILISTIC",
+        "p": "PROP:WORLD:E2",
+        "dc": true,
+        "a": "COMPARISON",
+        "se": [
+          "E2"
+        ],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      },
+      {
+        "c": "Cara has a 5% chance of survival; affected subject: Cara; modality: PROBABILISTIC",
+        "p": "PROP:WORLD:E4",
+        "dc": true,
+        "a": "COMPARISON",
+        "se": [
+          "E4"
+        ],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      }
+    ],
+    "dr": "Prefer A0 when its expected survivors exceed A1",
+    "ft": "Ben\u2019s survival probability falls below Cara\u2019s",
+    "nt": "NONE",
+    "fic": [],
+    "foq": []
+  },
+  "native_submission": "VALID",
+  "native_ledger": "COMMITTED",
+  "native_warnings": [],
+  "semantic_support": "NOT_INDEPENDENTLY_VERIFIED"
+}

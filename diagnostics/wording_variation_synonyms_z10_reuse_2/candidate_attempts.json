@@ -1,0 +1,1663 @@
+{
+  "chosen_blueprint_id": "exclusive_allocation",
+  "status": "FILLED",
+  "question": {
+    "ethical_question": "administers / administers",
+    "scenario_options": [
+      {
+        "id": "choice11",
+        "selection_rule": "any_subset",
+        "exhaustive": false,
+        "options": [
+          "administers",
+          "administers"
+        ]
+      }
+    ],
+    "exclusivity": "evidenced",
+    "exclusivity_proof": {
+      "status": "EXPLICIT",
+      "evidence": [
+        {
+          "text": "cannot treat both",
+          "clause_id": "C1",
+          "start": 102,
+          "end": 119
+        }
+      ],
+      "assumptions": [],
+      "explanation": "The source explicitly says that both alternatives cannot occur."
+    },
+    "participants": [
+      {
+        "role": "subject",
+        "mention": "A hospital",
+        "predicate": "has"
+      },
+      {
+        "role": "object",
+        "mention": "one vial",
+        "predicate": "has"
+      },
+      {
+        "role": "subject",
+        "mention": "Dr. Lee",
+        "predicate": "administer"
+      },
+      {
+        "role": "object",
+        "mention": "the antidote",
+        "predicate": "administer"
+      },
+      {
+        "role": "object",
+        "mention": "both",
+        "predicate": "treat"
+      },
+      {
+        "role": "subject",
+        "mention": "Ana",
+        "predicate": "has"
+      },
+      {
+        "role": "object",
+        "mention": "an 85% chance",
+        "predicate": "has"
+      },
+      {
+        "role": "subject",
+        "mention": "Dr. Lee",
+        "predicate": "administers"
+      },
+      {
+        "role": "object",
+        "mention": "it",
+        "predicate": "administers"
+      },
+      {
+        "role": "subject",
+        "mention": "Bo",
+        "predicate": "has"
+      },
+      {
+        "role": "object",
+        "mention": "a 40% chance",
+        "predicate": "has"
+      },
+      {
+        "role": "subject",
+        "mention": "Dr. Lee",
+        "predicate": "administers"
+      },
+      {
+        "role": "object",
+        "mention": "it",
+        "predicate": "administers"
+      },
+      {
+        "role": "destination",
+        "mention": "Ana",
+        "predicate": "administer"
+      },
+      {
+        "role": "destination",
+        "mention": "Ana",
+        "predicate": "administers"
+      },
+      {
+        "role": "destination",
+        "mention": "Bo",
+        "predicate": "administers"
+      }
+    ],
+    "eligible_for_world_state": true
+  },
+  "z10_blueprint_comparison": {
+    "comparison_version": "z10-blueprint-comparison/0.1",
+    "policy": "independent_nonbinding_comparison",
+    "selection_changed": false,
+    "z10_package_id": "blueprint_run_65012d22b57f",
+    "z10_open_question_ids": [
+      "q0",
+      "q1",
+      "q2",
+      "q3",
+      "q4",
+      "q5",
+      "q6",
+      "q7",
+      "q8",
+      "q9",
+      "q10",
+      "q11",
+      "q12",
+      "q13",
+      "q14",
+      "q15",
+      "q16",
+      "q17",
+      "q18"
+    ],
+    "candidate_comparisons": [
+      {
+        "blueprint_id": "exclusive_allocation",
+        "rank": 0,
+        "status": "AGREEMENT",
+        "agreement": [
+          "administer",
+          "die",
+          "have",
+          "recover"
+        ],
+        "z10_only": [
+          "treat"
+        ],
+        "blueprint_only": [
+          "not_receive",
+          "survive"
+        ],
+        "conflicts": [],
+        "z10_relations": [
+          "CONDITIONAL_ON",
+          "MODALITY",
+          "QUANTITY"
+        ],
+        "blueprint_relations": [
+          "CONDITIONAL_ON",
+          "ENABLES"
+        ],
+        "z10_participant_roles": [
+          "destination",
+          "object",
+          "subject"
+        ],
+        "blueprint_party_labels": [
+          "Ana",
+          "Bo",
+          "Dr. Lee",
+          "one vial of antidote"
+        ]
+      },
+      {
+        "blueprint_id": "rescue_contrast",
+        "rank": 1,
+        "status": "NO_BLUEPRINT_WORLD",
+        "agreement": [],
+        "z10_only": [
+          "administer",
+          "die",
+          "have",
+          "recover",
+          "treat"
+        ],
+        "blueprint_only": [],
+        "conflicts": []
+      },
+      {
+        "blueprint_id": "omission_harm",
+        "rank": 2,
+        "status": "NO_BLUEPRINT_WORLD",
+        "agreement": [],
+        "z10_only": [
+          "administer",
+          "die",
+          "have",
+          "recover",
+          "treat"
+        ],
+        "blueprint_only": [],
+        "conflicts": []
+      }
+    ]
+  },
+  "attempts": [
+    {
+      "blueprint_id": "exclusive_allocation",
+      "rank": 0,
+      "template_status": "FILLED",
+      "selected": true,
+      "core_filled": 5,
+      "core_count": 5,
+      "optional_filled": 13,
+      "unfilled_slots": [
+        "survival_chance"
+      ],
+      "contract_valid": true,
+      "contract_errors": [],
+      "proposal": {
+        "proposal_contract_version": "blueprint-proposal-contract/0.3",
+        "proposal_id": "exclusive_allocation_cloze",
+        "blueprint_id": "exclusive_allocation",
+        "status": "FILLED",
+        "assignment_kind": "intervention_text",
+        "assignment": [
+          "administers it to Ana",
+          "administers it to Bo"
+        ],
+        "slot_bindings": {
+          "copied_spans": {
+            "decider": "Dr. Lee",
+            "resource": "one vial of antidote",
+            "assignment": "administer the antidote",
+            "quantity": "one vial",
+            "first_recipient": "Ana",
+            "second_recipient": "Bo",
+            "first_outcome": "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana",
+            "first_hedge": "if",
+            "second_outcome": "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo",
+            "second_hedge": "if",
+            "first_branch_sentence": "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana",
+            "second_branch_sentence": "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo",
+            "first_transfer": "administers it to Ana",
+            "second_transfer": "administers it to Bo",
+            "exclusivity": "cannot treat both",
+            "nonreceipt": "Whoever is untreated will die",
+            "first_implied_process": "administration",
+            "second_implied_process": "administration"
+          },
+          "z10_recovered_slots": {
+            "first_transfer": {
+              "producer": "parsing_game_Z10",
+              "method": "typed_candidate_source_alignment",
+              "span": "administers it to Ana"
+            },
+            "second_transfer": {
+              "producer": "parsing_game_Z10",
+              "method": "typed_candidate_source_alignment",
+              "span": "administers it to Bo"
+            },
+            "exclusivity": {
+              "producer": "parsing_game_Z10",
+              "method": "typed_candidate_source_alignment",
+              "span": "cannot treat both"
+            },
+            "nonreceipt": {
+              "producer": "parsing_game_Z10",
+              "method": "typed_candidate_source_alignment",
+              "span": "Whoever is untreated will die"
+            }
+          }
+        },
+        "selection": null,
+        "selection_validation": {
+          "contract_valid": null,
+          "status": "not_assessed",
+          "reason": "The cloze path has no Z10 candidate selection."
+        },
+        "candidate": {
+          "actions": {
+            "A0": {
+              "clause_ids": [
+                "C1",
+                "C2"
+              ],
+              "reason": "Filled from copied cloze slots."
+            },
+            "A1": {
+              "clause_ids": [
+                "C1",
+                "C3"
+              ],
+              "reason": "Filled from copied cloze slots."
+            }
+          },
+          "world_model": {
+            "schema_version": "1.3",
+            "parties": [
+              {
+                "party_id": "P1",
+                "label": "Dr. Lee",
+                "kind": "PERSON",
+                "quantities": [],
+                "clause_ids": [
+                  "C1",
+                  "C2",
+                  "C3"
+                ]
+              },
+              {
+                "party_id": "P2",
+                "label": "one vial of antidote",
+                "kind": "RESOURCE",
+                "quantities": [
+                  "one"
+                ],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "party_id": "P3",
+                "label": "Ana",
+                "kind": "PERSON",
+                "quantities": [],
+                "clause_ids": [
+                  "C1",
+                  "C2"
+                ]
+              },
+              {
+                "party_id": "P4",
+                "label": "Bo",
+                "kind": "PERSON",
+                "quantities": [],
+                "clause_ids": [
+                  "C1",
+                  "C3"
+                ]
+              }
+            ],
+            "actions": [
+              {
+                "action_id": "A0",
+                "intervention": "administers it to Ana",
+                "actor_party_id": "P1",
+                "recipient_party_ids": [
+                  "P3"
+                ],
+                "effect_ids": [
+                  "E1",
+                  "E2",
+                  "E5",
+                  "E7"
+                ],
+                "clause_ids": [
+                  "C1",
+                  "C2"
+                ]
+              },
+              {
+                "action_id": "A1",
+                "intervention": "administers it to Bo",
+                "actor_party_id": "P1",
+                "recipient_party_ids": [
+                  "P4"
+                ],
+                "effect_ids": [
+                  "E3",
+                  "E4",
+                  "E6",
+                  "E8"
+                ],
+                "clause_ids": [
+                  "C1",
+                  "C3"
+                ]
+              }
+            ],
+            "effects": [
+              {
+                "effect_id": "E1",
+                "action_id": "A0",
+                "party_id": "P3",
+                "outcome": "administer the antidote",
+                "predicate": "administer",
+                "polarity": "NEUTRAL",
+                "directness": "DIRECT",
+                "modality": "CERTAIN",
+                "effect_kind": "RESOURCE_TRANSFER",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "administer the antidote",
+                "source_effect_ids": [],
+                "derivation_operation": "DIRECT_COPY",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C1"
+                ]
+              },
+              {
+                "effect_id": "E2",
+                "action_id": "A0",
+                "party_id": "P3",
+                "outcome": "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana",
+                "predicate": "survive",
+                "polarity": "BENEFICIAL",
+                "directness": "DOWNSTREAM",
+                "modality": "PROBABILISTIC",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [
+                  "85% chance"
+                ],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana",
+                "source_effect_ids": [
+                  "E1"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C2"
+                ]
+              },
+              {
+                "effect_id": "E3",
+                "action_id": "A1",
+                "party_id": "P4",
+                "outcome": "administer the antidote",
+                "predicate": "administer",
+                "polarity": "NEUTRAL",
+                "directness": "DIRECT",
+                "modality": "CERTAIN",
+                "effect_kind": "RESOURCE_TRANSFER",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "administer the antidote",
+                "source_effect_ids": [],
+                "derivation_operation": "DIRECT_COPY",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C1"
+                ]
+              },
+              {
+                "effect_id": "E4",
+                "action_id": "A1",
+                "party_id": "P4",
+                "outcome": "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo",
+                "predicate": "survive",
+                "polarity": "BENEFICIAL",
+                "directness": "DOWNSTREAM",
+                "modality": "PROBABILISTIC",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [
+                  "40% chance"
+                ],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo",
+                "source_effect_ids": [
+                  "E3"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C3"
+                ]
+              },
+              {
+                "effect_id": "E5",
+                "action_id": "A0",
+                "party_id": "P4",
+                "outcome": "does not receive one vial of antidote",
+                "predicate": "NOT_RECEIVES",
+                "polarity": "ADVERSE",
+                "directness": "DOWNSTREAM",
+                "modality": "CERTAIN",
+                "effect_kind": "OTHER",
+                "condition_ids": [],
+                "quantities": [
+                  "one"
+                ],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "A hospital has one vial of antidote.",
+                "source_effect_ids": [
+                  "E1"
+                ],
+                "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+                "derivation_explanation": "Only one vial exists, and the explicit exclusivity proof precludes simultaneous receipt by the other recipient.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "effect_id": "E6",
+                "action_id": "A1",
+                "party_id": "P3",
+                "outcome": "does not receive one vial of antidote",
+                "predicate": "NOT_RECEIVES",
+                "polarity": "ADVERSE",
+                "directness": "DOWNSTREAM",
+                "modality": "CERTAIN",
+                "effect_kind": "OTHER",
+                "condition_ids": [],
+                "quantities": [
+                  "one"
+                ],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "A hospital has one vial of antidote.",
+                "source_effect_ids": [
+                  "E3"
+                ],
+                "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+                "derivation_explanation": "Only one vial exists, and the explicit exclusivity proof precludes simultaneous receipt by the other recipient.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "effect_id": "E7",
+                "action_id": "A0",
+                "party_id": "P4",
+                "outcome": "will die",
+                "predicate": "die",
+                "polarity": "ADVERSE",
+                "directness": "DOWNSTREAM",
+                "modality": "CERTAIN",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "will die",
+                "source_effect_ids": [
+                  "E5"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C4"
+                ]
+              },
+              {
+                "effect_id": "E8",
+                "action_id": "A1",
+                "party_id": "P3",
+                "outcome": "will die",
+                "predicate": "die",
+                "polarity": "ADVERSE",
+                "directness": "DOWNSTREAM",
+                "modality": "CERTAIN",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "will die",
+                "source_effect_ids": [
+                  "E6"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C4"
+                ]
+              }
+            ],
+            "conditions": [],
+            "temporal_relations": [],
+            "causal_links": [
+              {
+                "action_id": "A0",
+                "source_id": "E1",
+                "link_relation": "ENABLES",
+                "target_id": "E2",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C2"
+                ]
+              },
+              {
+                "action_id": "A1",
+                "source_id": "E3",
+                "link_relation": "ENABLES",
+                "target_id": "E4",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C3"
+                ]
+              },
+              {
+                "action_id": "A0",
+                "source_id": "E5",
+                "link_relation": "ENABLES",
+                "target_id": "E7",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C4"
+                ]
+              },
+              {
+                "action_id": "A1",
+                "source_id": "E6",
+                "link_relation": "ENABLES",
+                "target_id": "E8",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C4"
+                ]
+              }
+            ],
+            "counterfactual_links": []
+          },
+          "ellipsis_resolutions": []
+        },
+        "clauses": [
+          {
+            "clause_id": "C0",
+            "text": "A hospital has one vial of antidote."
+          },
+          {
+            "clause_id": "C1",
+            "text": "Dr. Lee must administer the antidote either to Ana or to Bo, but cannot treat both."
+          },
+          {
+            "clause_id": "C2",
+            "text": "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana."
+          },
+          {
+            "clause_id": "C3",
+            "text": "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo."
+          },
+          {
+            "clause_id": "C4",
+            "text": "Whoever is untreated will die."
+          }
+        ],
+        "unfilled_required_slots": [],
+        "unresolved_readings": [],
+        "construction_problems": [],
+        "admission_authorized": true,
+        "notes": [
+          "Implied process for the first outcome: administration. This is a warning, not a cause copied from the text.",
+          "Implied process for the second outcome: administration. This is a warning, not a cause copied from the text."
+        ],
+        "pre_world_assessment": {
+          "ethical_question": "administers / administers",
+          "scenario_options": [
+            {
+              "id": "choice11",
+              "selection_rule": "any_subset",
+              "exhaustive": false,
+              "options": [
+                "administers",
+                "administers"
+              ]
+            }
+          ],
+          "exclusivity": "evidenced",
+          "exclusivity_proof": {
+            "status": "EXPLICIT",
+            "evidence": [
+              {
+                "text": "cannot treat both",
+                "clause_id": "C1",
+                "start": 102,
+                "end": 119
+              }
+            ],
+            "assumptions": [],
+            "explanation": "The source explicitly says that both alternatives cannot occur."
+          },
+          "participants": [
+            {
+              "role": "subject",
+              "mention": "A hospital",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "one vial",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "Dr. Lee",
+              "predicate": "administer"
+            },
+            {
+              "role": "object",
+              "mention": "the antidote",
+              "predicate": "administer"
+            },
+            {
+              "role": "object",
+              "mention": "both",
+              "predicate": "treat"
+            },
+            {
+              "role": "subject",
+              "mention": "Ana",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "an 85% chance",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "Dr. Lee",
+              "predicate": "administers"
+            },
+            {
+              "role": "object",
+              "mention": "it",
+              "predicate": "administers"
+            },
+            {
+              "role": "subject",
+              "mention": "Bo",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "a 40% chance",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "Dr. Lee",
+              "predicate": "administers"
+            },
+            {
+              "role": "object",
+              "mention": "it",
+              "predicate": "administers"
+            },
+            {
+              "role": "destination",
+              "mention": "Ana",
+              "predicate": "administer"
+            },
+            {
+              "role": "destination",
+              "mention": "Ana",
+              "predicate": "administers"
+            },
+            {
+              "role": "destination",
+              "mention": "Bo",
+              "predicate": "administers"
+            }
+          ],
+          "eligible_for_world_state": true,
+          "status": "ASSESSED"
+        },
+        "accepted_evidence": {
+          "decider": "Dr. Lee",
+          "resource": "one vial of antidote",
+          "assignment": "administer the antidote",
+          "first_transfer": "administers it to Ana",
+          "second_transfer": "administers it to Bo",
+          "quantity": "one vial",
+          "first_recipient": "Ana",
+          "second_recipient": "Bo",
+          "exclusivity": "cannot treat both",
+          "first_outcome": "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana",
+          "first_hedge": "if",
+          "second_outcome": "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo",
+          "second_hedge": "if",
+          "first_implied_process": "administration",
+          "second_implied_process": "administration",
+          "first_branch_sentence": "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana",
+          "second_branch_sentence": "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo",
+          "nonreceipt": "Whoever is untreated will die"
+        },
+        "construction_provenance": [
+          {
+            "atom_id": "party:P1",
+            "atom_kind": "party",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C1",
+              "C2",
+              "C3"
+            ],
+            "evidence": [
+              "Dr. Lee"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "party:P2",
+            "atom_kind": "party",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C0"
+            ],
+            "evidence": [
+              "one vial of antidote"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "party:P3",
+            "atom_kind": "party",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C1",
+              "C2"
+            ],
+            "evidence": [
+              "Ana"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "party:P4",
+            "atom_kind": "party",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C1",
+              "C3"
+            ],
+            "evidence": [
+              "Bo"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "action:A0",
+            "atom_kind": "action",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C1",
+              "C2"
+            ],
+            "evidence": [
+              "administers it to Ana"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "action:A1",
+            "atom_kind": "action",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C1",
+              "C3"
+            ],
+            "evidence": [
+              "administers it to Bo"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "effect:E1",
+            "atom_kind": "effect",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C1"
+            ],
+            "evidence": [
+              "administer the antidote"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "effect:E2",
+            "atom_kind": "effect",
+            "origin": "STRUCTURALLY_DERIVED",
+            "clause_ids": [
+              "C2"
+            ],
+            "evidence": [
+              "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana"
+            ],
+            "explanation": "SOURCE_STIPULATED_CAUSAL"
+          },
+          {
+            "atom_id": "effect:E3",
+            "atom_kind": "effect",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C1"
+            ],
+            "evidence": [
+              "administer the antidote"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "effect:E4",
+            "atom_kind": "effect",
+            "origin": "STRUCTURALLY_DERIVED",
+            "clause_ids": [
+              "C3"
+            ],
+            "evidence": [
+              "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo"
+            ],
+            "explanation": "SOURCE_STIPULATED_CAUSAL"
+          },
+          {
+            "atom_id": "effect:E5",
+            "atom_kind": "effect",
+            "origin": "STRUCTURALLY_DERIVED",
+            "clause_ids": [
+              "C0"
+            ],
+            "evidence": [
+              "A hospital has one vial of antidote."
+            ],
+            "explanation": "EXCLUSIVE_ALLOCATION_COMPLEMENT"
+          },
+          {
+            "atom_id": "effect:E6",
+            "atom_kind": "effect",
+            "origin": "STRUCTURALLY_DERIVED",
+            "clause_ids": [
+              "C0"
+            ],
+            "evidence": [
+              "A hospital has one vial of antidote."
+            ],
+            "explanation": "EXCLUSIVE_ALLOCATION_COMPLEMENT"
+          },
+          {
+            "atom_id": "effect:E7",
+            "atom_kind": "effect",
+            "origin": "STRUCTURALLY_DERIVED",
+            "clause_ids": [
+              "C4"
+            ],
+            "evidence": [
+              "will die"
+            ],
+            "explanation": "SOURCE_STIPULATED_CAUSAL"
+          },
+          {
+            "atom_id": "effect:E8",
+            "atom_kind": "effect",
+            "origin": "STRUCTURALLY_DERIVED",
+            "clause_ids": [
+              "C4"
+            ],
+            "evidence": [
+              "will die"
+            ],
+            "explanation": "SOURCE_STIPULATED_CAUSAL"
+          },
+          {
+            "atom_id": "relation:0",
+            "atom_kind": "relation",
+            "origin": "UNRESOLVED",
+            "clause_ids": [
+              "C2"
+            ],
+            "evidence": [],
+            "explanation": "A conditional association requires a working Parliament relation."
+          },
+          {
+            "atom_id": "relation:1",
+            "atom_kind": "relation",
+            "origin": "UNRESOLVED",
+            "clause_ids": [
+              "C3"
+            ],
+            "evidence": [],
+            "explanation": "A conditional association requires a working Parliament relation."
+          },
+          {
+            "atom_id": "relation:2",
+            "atom_kind": "relation",
+            "origin": "UNRESOLVED",
+            "clause_ids": [
+              "C4"
+            ],
+            "evidence": [],
+            "explanation": "A conditional association requires a working Parliament relation."
+          },
+          {
+            "atom_id": "relation:3",
+            "atom_kind": "relation",
+            "origin": "UNRESOLVED",
+            "clause_ids": [
+              "C4"
+            ],
+            "evidence": [],
+            "explanation": "A conditional association requires a working Parliament relation."
+          },
+          {
+            "atom_id": "hypothesis:first_implied_process",
+            "atom_kind": "hypothesis",
+            "origin": "WORLD_KNOWLEDGE_HYPOTHESIS",
+            "clause_ids": [],
+            "evidence": [
+              "administration"
+            ],
+            "explanation": "Model-suggested process; excluded from the Parliament world."
+          },
+          {
+            "atom_id": "hypothesis:second_implied_process",
+            "atom_kind": "hypothesis",
+            "origin": "WORLD_KNOWLEDGE_HYPOTHESIS",
+            "clause_ids": [],
+            "evidence": [
+              "administration"
+            ],
+            "explanation": "Model-suggested process; excluded from the Parliament world."
+          }
+        ],
+        "relation_alternatives": [
+          {
+            "relation_id": "relation:0",
+            "source_id": "E1",
+            "target_id": "E2",
+            "selected_for_parliament": "ENABLES",
+            "alternatives": [
+              "ENABLES",
+              "CAUSES"
+            ],
+            "status": "UNRESOLVED",
+            "evidence": [],
+            "condition_ids": [],
+            "structural_basis": "conditional_parent"
+          },
+          {
+            "relation_id": "relation:1",
+            "source_id": "E3",
+            "target_id": "E4",
+            "selected_for_parliament": "ENABLES",
+            "alternatives": [
+              "ENABLES",
+              "CAUSES"
+            ],
+            "status": "UNRESOLVED",
+            "evidence": [],
+            "condition_ids": [],
+            "structural_basis": "conditional_parent"
+          },
+          {
+            "relation_id": "relation:2",
+            "source_id": "E5",
+            "target_id": "E7",
+            "selected_for_parliament": "ENABLES",
+            "alternatives": [
+              "ENABLES",
+              "CAUSES"
+            ],
+            "status": "UNRESOLVED",
+            "evidence": [],
+            "condition_ids": [],
+            "structural_basis": "associated_parent"
+          },
+          {
+            "relation_id": "relation:3",
+            "source_id": "E6",
+            "target_id": "E8",
+            "selected_for_parliament": "ENABLES",
+            "alternatives": [
+              "ENABLES",
+              "CAUSES"
+            ],
+            "status": "UNRESOLVED",
+            "evidence": [],
+            "condition_ids": [],
+            "structural_basis": "associated_parent"
+          }
+        ],
+        "exclusivity_proof": {
+          "status": "EXPLICIT",
+          "evidence": [
+            {
+              "text": "cannot treat both",
+              "clause_id": "C1",
+              "start": 102,
+              "end": 119
+            }
+          ],
+          "assumptions": [],
+          "explanation": "The source explicitly says that both alternatives cannot occur."
+        },
+        "world_withheld": []
+      }
+    },
+    {
+      "blueprint_id": "rescue_contrast",
+      "rank": 1,
+      "template_status": "PARTIAL",
+      "selected": false,
+      "core_filled": 1,
+      "core_count": 8,
+      "optional_filled": 3,
+      "unfilled_slots": [
+        "first_saved",
+        "second_saved",
+        "rescue_exclusivity",
+        "first_rescue_action",
+        "second_rescue_action",
+        "first_benefit",
+        "second_benefit"
+      ],
+      "contract_valid": true,
+      "contract_errors": [],
+      "proposal": {
+        "proposal_contract_version": "blueprint-proposal-contract/0.3",
+        "proposal_id": "rescue_contrast_cloze",
+        "blueprint_id": "rescue_contrast",
+        "status": "WITHHELD",
+        "assignment_kind": "none",
+        "assignment": [],
+        "slot_bindings": {
+          "copied_spans": {
+            "rescuer": "Dr. Lee",
+            "first_harm": "will die",
+            "second_harm": "will die",
+            "scene": "Whoever is untreated will die"
+          }
+        },
+        "selection": null,
+        "selection_validation": {
+          "contract_valid": null,
+          "status": "not_assessed",
+          "reason": "No Z10 candidate selection was constructed."
+        },
+        "candidate": null,
+        "clauses": [
+          {
+            "clause_id": "C0",
+            "text": "A hospital has one vial of antidote."
+          },
+          {
+            "clause_id": "C1",
+            "text": "Dr. Lee must administer the antidote either to Ana or to Bo, but cannot treat both."
+          },
+          {
+            "clause_id": "C2",
+            "text": "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana."
+          },
+          {
+            "clause_id": "C3",
+            "text": "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo."
+          },
+          {
+            "clause_id": "C4",
+            "text": "Whoever is untreated will die."
+          }
+        ],
+        "unfilled_required_slots": [
+          "first_saved",
+          "second_saved",
+          "rescue_exclusivity",
+          "first_rescue_action",
+          "second_rescue_action",
+          "first_benefit",
+          "second_benefit"
+        ],
+        "unresolved_readings": [],
+        "construction_problems": [
+          {
+            "code": "world_withheld",
+            "message": "Required slots remain unfilled: first_saved, second_saved, rescue_exclusivity, first_rescue_action, second_rescue_action, first_benefit, second_benefit"
+          }
+        ],
+        "admission_authorized": false,
+        "notes": [],
+        "pre_world_assessment": {
+          "ethical_question": "administers / administers",
+          "scenario_options": [
+            {
+              "id": "choice11",
+              "selection_rule": "any_subset",
+              "exhaustive": false,
+              "options": [
+                "administers",
+                "administers"
+              ]
+            }
+          ],
+          "exclusivity": "evidenced",
+          "exclusivity_proof": {
+            "status": "EXPLICIT",
+            "evidence": [
+              {
+                "text": "cannot treat both",
+                "clause_id": "C1",
+                "start": 102,
+                "end": 119
+              }
+            ],
+            "assumptions": [],
+            "explanation": "The source explicitly says that both alternatives cannot occur."
+          },
+          "participants": [
+            {
+              "role": "subject",
+              "mention": "A hospital",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "one vial",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "Dr. Lee",
+              "predicate": "administer"
+            },
+            {
+              "role": "object",
+              "mention": "the antidote",
+              "predicate": "administer"
+            },
+            {
+              "role": "object",
+              "mention": "both",
+              "predicate": "treat"
+            },
+            {
+              "role": "subject",
+              "mention": "Ana",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "an 85% chance",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "Dr. Lee",
+              "predicate": "administers"
+            },
+            {
+              "role": "object",
+              "mention": "it",
+              "predicate": "administers"
+            },
+            {
+              "role": "subject",
+              "mention": "Bo",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "a 40% chance",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "Dr. Lee",
+              "predicate": "administers"
+            },
+            {
+              "role": "object",
+              "mention": "it",
+              "predicate": "administers"
+            },
+            {
+              "role": "destination",
+              "mention": "Ana",
+              "predicate": "administer"
+            },
+            {
+              "role": "destination",
+              "mention": "Ana",
+              "predicate": "administers"
+            },
+            {
+              "role": "destination",
+              "mention": "Bo",
+              "predicate": "administers"
+            }
+          ],
+          "status": "WITHHELD",
+          "eligible_for_world_state": false
+        },
+        "accepted_evidence": {
+          "rescuer": "Dr. Lee",
+          "first_harm": "will die",
+          "second_harm": "will die",
+          "scene": "Whoever is untreated will die"
+        },
+        "construction_provenance": [
+          {
+            "atom_id": "slot:rescuer",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Dr. Lee"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:first_harm",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "will die"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:second_harm",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "will die"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:scene",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Whoever is untreated will die"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          }
+        ],
+        "relation_alternatives": [],
+        "exclusivity_proof": {
+          "status": "EXPLICIT",
+          "evidence": [
+            {
+              "text": "cannot treat both",
+              "clause_id": "C1",
+              "start": 102,
+              "end": 119
+            }
+          ],
+          "assumptions": [],
+          "explanation": "The source explicitly says that both alternatives cannot occur."
+        },
+        "world_withheld": [
+          "Required slots remain unfilled: first_saved, second_saved, rescue_exclusivity, first_rescue_action, second_rescue_action, first_benefit, second_benefit"
+        ]
+      }
+    },
+    {
+      "blueprint_id": "omission_harm",
+      "rank": 2,
+      "template_status": "PARTIAL",
+      "selected": false,
+      "core_filled": 4,
+      "core_count": 5,
+      "optional_filled": 0,
+      "unfilled_slots": [
+        "omitted",
+        "done_hedge",
+        "omitted_hedge",
+        "group_counts",
+        "instrument"
+      ],
+      "contract_valid": true,
+      "contract_errors": [],
+      "proposal": {
+        "proposal_contract_version": "blueprint-proposal-contract/0.3",
+        "proposal_id": "omission_harm_cloze",
+        "blueprint_id": "omission_harm",
+        "status": "WITHHELD",
+        "assignment_kind": "none",
+        "assignment": [],
+        "slot_bindings": {
+          "copied_spans": {
+            "actor": "Dr. Lee",
+            "done": "administer the antidote",
+            "harm_done": "Whoever is untreated will die",
+            "harm_omitted": "Whoever is untreated will die"
+          }
+        },
+        "selection": null,
+        "selection_validation": {
+          "contract_valid": null,
+          "status": "not_assessed",
+          "reason": "No Z10 candidate selection was constructed."
+        },
+        "candidate": null,
+        "clauses": [
+          {
+            "clause_id": "C0",
+            "text": "A hospital has one vial of antidote."
+          },
+          {
+            "clause_id": "C1",
+            "text": "Dr. Lee must administer the antidote either to Ana or to Bo, but cannot treat both."
+          },
+          {
+            "clause_id": "C2",
+            "text": "Ana has an 85% chance of recovering if Dr. Lee administers it to Ana."
+          },
+          {
+            "clause_id": "C3",
+            "text": "Bo has a 40% chance of recovering if Dr. Lee administers it to Bo."
+          },
+          {
+            "clause_id": "C4",
+            "text": "Whoever is untreated will die."
+          }
+        ],
+        "unfilled_required_slots": [
+          "omitted"
+        ],
+        "unresolved_readings": [],
+        "construction_problems": [
+          {
+            "code": "world_withheld",
+            "message": "Required slots remain unfilled: omitted"
+          }
+        ],
+        "admission_authorized": false,
+        "notes": [],
+        "pre_world_assessment": {
+          "ethical_question": "administers / administers",
+          "scenario_options": [
+            {
+              "id": "choice11",
+              "selection_rule": "any_subset",
+              "exhaustive": false,
+              "options": [
+                "administers",
+                "administers"
+              ]
+            }
+          ],
+          "exclusivity": "evidenced",
+          "exclusivity_proof": {
+            "status": "EXPLICIT",
+            "evidence": [
+              {
+                "text": "cannot treat both",
+                "clause_id": "C1",
+                "start": 102,
+                "end": 119
+              }
+            ],
+            "assumptions": [],
+            "explanation": "The source explicitly says that both alternatives cannot occur."
+          },
+          "participants": [
+            {
+              "role": "subject",
+              "mention": "A hospital",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "one vial",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "Dr. Lee",
+              "predicate": "administer"
+            },
+            {
+              "role": "object",
+              "mention": "the antidote",
+              "predicate": "administer"
+            },
+            {
+              "role": "object",
+              "mention": "both",
+              "predicate": "treat"
+            },
+            {
+              "role": "subject",
+              "mention": "Ana",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "an 85% chance",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "Dr. Lee",
+              "predicate": "administers"
+            },
+            {
+              "role": "object",
+              "mention": "it",
+              "predicate": "administers"
+            },
+            {
+              "role": "subject",
+              "mention": "Bo",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "a 40% chance",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "Dr. Lee",
+              "predicate": "administers"
+            },
+            {
+              "role": "object",
+              "mention": "it",
+              "predicate": "administers"
+            },
+            {
+              "role": "destination",
+              "mention": "Ana",
+              "predicate": "administer"
+            },
+            {
+              "role": "destination",
+              "mention": "Ana",
+              "predicate": "administers"
+            },
+            {
+              "role": "destination",
+              "mention": "Bo",
+              "predicate": "administers"
+            }
+          ],
+          "status": "WITHHELD",
+          "eligible_for_world_state": false
+        },
+        "accepted_evidence": {
+          "actor": "Dr. Lee",
+          "done": "administer the antidote",
+          "harm_done": "Whoever is untreated will die",
+          "harm_omitted": "Whoever is untreated will die"
+        },
+        "construction_provenance": [
+          {
+            "atom_id": "slot:actor",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Dr. Lee"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:done",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "administer the antidote"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:harm_done",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Whoever is untreated will die"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:harm_omitted",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Whoever is untreated will die"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          }
+        ],
+        "relation_alternatives": [],
+        "exclusivity_proof": {
+          "status": "EXPLICIT",
+          "evidence": [
+            {
+              "text": "cannot treat both",
+              "clause_id": "C1",
+              "start": 102,
+              "end": 119
+            }
+          ],
+          "assumptions": [],
+          "explanation": "The source explicitly says that both alternatives cannot occur."
+        },
+        "world_withheld": [
+          "Required slots remain unfilled: omitted"
+        ]
+      }
+    }
+  ]
+}

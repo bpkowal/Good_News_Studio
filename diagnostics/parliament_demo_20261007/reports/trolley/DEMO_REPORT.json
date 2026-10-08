@@ -1,0 +1,1381 @@
+{
+  "version": "parliament-demo/1",
+  "scenario": "Five workers are on the track. One worker is on the side track. Maria can pull the lever, but not the brake. If Maria pulls the lever, one worker will die. If Maria does not pull the lever, five workers will die.",
+  "source_sha256": "f79b6554ba9bbbd7376f4d20e509e694513ee0c330681beadbc6bb6d1b79ccd2",
+  "status": "INTERPRETIVE_BEAM",
+  "stop": {
+    "stage": "construction/admission",
+    "reason": "Competing admitted worlds are not separated or invariant.",
+    "kind": "epistemic_abstention"
+  },
+  "world": {},
+  "grounded_effects": [],
+  "stipulated_claims": [],
+  "unknowns": [],
+  "frameworks": [],
+  "hinges": [],
+  "disagreements": [],
+  "agreement": "No operative preference recorded.",
+  "disagreement_types": "Framework-local normative arguments and empirical dependencies are shown above; no automatic causal classification is claimed.",
+  "missing_slots": [],
+  "not_decided": [
+    "This report does not adjudicate a governing moral verdict.",
+    "Ledger admission does not prove the argument or supply missing welfare units.",
+    "Unresolved objections remain live; reported reversal thresholds are not source facts."
+  ],
+  "judgment_status": "NOT_RUN",
+  "execution": {
+    "mode": "SAVED_REPLAY_NO_API",
+    "commands": [],
+    "replay_origin": "diagnostics/live_pipeline_latest_20261006/trolley"
+  },
+  "artifacts": [
+    "diagnostics/live_pipeline_latest_20261006/trolley/candidate_graphs.md",
+    "diagnostics/live_pipeline_latest_20261006/trolley/candidate_attempts.json",
+    "diagnostics/live_pipeline_latest_20261006/trolley/question_assessment.json",
+    "diagnostics/live_pipeline_latest_20261006/trolley/world_beam.json",
+    "diagnostics/live_pipeline_latest_20261006/trolley/preparation_manifest.json"
+  ],
+  "competing_interpretations": [
+    "omission_harm: pulls the lever, does not pull the lever",
+    "conditional_outcome: pulls the lever, does not pull the lever",
+    "ability_permission: pulls the lever, does not pull the lever"
+  ],
+  "candidate_world_diagrams": [
+    {
+      "label": "omission_harm",
+      "world": {
+        "parties": [
+          {
+            "party_id": "P1",
+            "label": "Maria",
+            "kind": "PERSON",
+            "provenance": [
+              {
+                "clause_id": "C2",
+                "excerpt": "Maria can pull the lever, but not the brake."
+              },
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              },
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "quantities": []
+          },
+          {
+            "party_id": "P2",
+            "label": "One worker",
+            "kind": "PERSON",
+            "provenance": [
+              {
+                "clause_id": "C1",
+                "excerpt": "One worker is on the side track."
+              },
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              }
+            ],
+            "quantities": []
+          },
+          {
+            "party_id": "P3",
+            "label": "the lever",
+            "kind": "PROCESS",
+            "provenance": [
+              {
+                "clause_id": "C2",
+                "excerpt": "Maria can pull the lever, but not the brake."
+              },
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              },
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "quantities": []
+          },
+          {
+            "party_id": "P4",
+            "label": "five workers",
+            "kind": "HUMAN_GROUP",
+            "provenance": [
+              {
+                "clause_id": "C0",
+                "excerpt": "Five workers are on the track."
+              },
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "quantities": [
+              "Five",
+              "five"
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "action_id": "A0",
+            "intervention": "pulls the lever",
+            "actor_party_id": "P1",
+            "recipient_party_ids": [
+              "P3"
+            ],
+            "effect_ids": [
+              "E1",
+              "E2",
+              "E3"
+            ],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              }
+            ]
+          },
+          {
+            "action_id": "A1",
+            "intervention": "does not pull the lever",
+            "actor_party_id": "P1",
+            "recipient_party_ids": [
+              "P3"
+            ],
+            "effect_ids": [
+              "E4",
+              "E5",
+              "E6"
+            ],
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ]
+          }
+        ],
+        "effects": [
+          {
+            "effect_id": "E1",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "pulls the lever",
+            "relation": "PULL",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "INTERVENTION",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "pulls the lever",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E2",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "pulls the lever",
+            "relation": "PULL",
+            "polarity": "NEUTRAL",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "PHYSICAL_STATE",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "pulls the lever",
+            "source_effect_ids": [
+              "E1"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E3",
+            "action_id": "A0",
+            "party_id": "P2",
+            "outcome": "one worker will die",
+            "relation": "DIE",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [
+              "one"
+            ],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "one worker will die",
+            "source_effect_ids": [
+              "E2"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E4",
+            "action_id": "A1",
+            "party_id": "P3",
+            "outcome": "does not pull the lever",
+            "relation": "PULL",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "INTERVENTION",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "does not pull the lever",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E5",
+            "action_id": "A1",
+            "party_id": "P3",
+            "outcome": "does not pull the lever",
+            "relation": "PULL",
+            "polarity": "NEUTRAL",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "PHYSICAL_STATE",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "does not pull the lever",
+            "source_effect_ids": [
+              "E4"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E6",
+            "action_id": "A1",
+            "party_id": "P4",
+            "outcome": "five workers will die",
+            "relation": "DIE",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [
+              "five"
+            ],
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "five workers will die",
+            "source_effect_ids": [
+              "E5"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          }
+        ],
+        "conditions": [
+          {
+            "condition_id": "CND1",
+            "description": "If Maria pulls the lever",
+            "value_status": "UNKNOWN",
+            "decision_relevance": "MATERIAL",
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              }
+            ],
+            "event_effect_id": "",
+            "polarity": "POSITIVE",
+            "operator": "IF"
+          },
+          {
+            "condition_id": "CND2",
+            "description": "If Maria does not pull the lever",
+            "value_status": "UNKNOWN",
+            "decision_relevance": "MATERIAL",
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "event_effect_id": "",
+            "polarity": "NEGATED",
+            "operator": "IF"
+          }
+        ],
+        "causal_links": [
+          {
+            "source_id": "E1",
+            "relation": "ENABLES",
+            "target_id": "E2",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              }
+            ],
+            "action_id": "A0"
+          },
+          {
+            "source_id": "E2",
+            "relation": "ENABLES",
+            "target_id": "E3",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              }
+            ],
+            "action_id": "A0"
+          },
+          {
+            "source_id": "E4",
+            "relation": "ENABLES",
+            "target_id": "E5",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "action_id": "A1"
+          },
+          {
+            "source_id": "E5",
+            "relation": "ENABLES",
+            "target_id": "E6",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "action_id": "A1"
+          }
+        ],
+        "counterfactual_links": [],
+        "admission": {
+          "status": "COMMITTED",
+          "admitted_effect_ids": [
+            "E1",
+            "E2",
+            "E3",
+            "E4",
+            "E5",
+            "E6"
+          ],
+          "quarantined_effects": [],
+          "user_override": false,
+          "override_reason": ""
+        },
+        "schema_version": "1.3",
+        "temporal_relations": [],
+        "propositions": [],
+        "reports": [],
+        "commitments": [],
+        "modal_operators": [],
+        "normative_propositions": []
+      },
+      "trace_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/live_pipeline_latest_20261006/trolley/admission_attempts/00_omission_harm/frozen_world_trace.json",
+      "sent_to_agents": false
+    },
+    {
+      "label": "conditional_outcome",
+      "world": {
+        "parties": [
+          {
+            "party_id": "P1",
+            "label": "Maria",
+            "kind": "PERSON",
+            "provenance": [
+              {
+                "clause_id": "C2",
+                "excerpt": "Maria can pull the lever, but not the brake."
+              },
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              },
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "quantities": []
+          },
+          {
+            "party_id": "P2",
+            "label": "One worker",
+            "kind": "PERSON",
+            "provenance": [
+              {
+                "clause_id": "C1",
+                "excerpt": "One worker is on the side track."
+              },
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              }
+            ],
+            "quantities": []
+          },
+          {
+            "party_id": "P3",
+            "label": "the lever",
+            "kind": "PROCESS",
+            "provenance": [
+              {
+                "clause_id": "C2",
+                "excerpt": "Maria can pull the lever, but not the brake."
+              },
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              },
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "quantities": []
+          },
+          {
+            "party_id": "P4",
+            "label": "Five workers",
+            "kind": "HUMAN_GROUP",
+            "provenance": [
+              {
+                "clause_id": "C0",
+                "excerpt": "Five workers are on the track."
+              },
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "quantities": [
+              "Five",
+              "five"
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "action_id": "A0",
+            "intervention": "pulls the lever",
+            "actor_party_id": "P1",
+            "recipient_party_ids": [
+              "P3"
+            ],
+            "effect_ids": [
+              "E1",
+              "E2",
+              "E3"
+            ],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              }
+            ]
+          },
+          {
+            "action_id": "A1",
+            "intervention": "does not pull the lever",
+            "actor_party_id": "P1",
+            "recipient_party_ids": [
+              "P3"
+            ],
+            "effect_ids": [
+              "E4",
+              "E5",
+              "E6"
+            ],
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ]
+          }
+        ],
+        "effects": [
+          {
+            "effect_id": "E1",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "pulls the lever",
+            "relation": "PULL",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "INTERVENTION",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "pulls the lever",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E2",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "pulls the lever",
+            "relation": "PULL",
+            "polarity": "NEUTRAL",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "PHYSICAL_STATE",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "pulls the lever",
+            "source_effect_ids": [
+              "E1"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E3",
+            "action_id": "A0",
+            "party_id": "P2",
+            "outcome": "one worker will die",
+            "relation": "DIE",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [
+              "one"
+            ],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "one worker will die",
+            "source_effect_ids": [
+              "E2"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E4",
+            "action_id": "A1",
+            "party_id": "P3",
+            "outcome": "does not pull the lever",
+            "relation": "PULL",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "INTERVENTION",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "does not pull the lever",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E5",
+            "action_id": "A1",
+            "party_id": "P3",
+            "outcome": "does not pull the lever",
+            "relation": "PULL",
+            "polarity": "NEUTRAL",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "PHYSICAL_STATE",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "does not pull the lever",
+            "source_effect_ids": [
+              "E4"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E6",
+            "action_id": "A1",
+            "party_id": "P4",
+            "outcome": "five workers will die",
+            "relation": "DIE",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [
+              "five"
+            ],
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "five workers will die",
+            "source_effect_ids": [
+              "E5"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          }
+        ],
+        "conditions": [
+          {
+            "condition_id": "CND1",
+            "description": "If Maria pulls the lever",
+            "value_status": "UNKNOWN",
+            "decision_relevance": "MATERIAL",
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              }
+            ],
+            "event_effect_id": "",
+            "polarity": "POSITIVE",
+            "operator": "IF"
+          },
+          {
+            "condition_id": "CND2",
+            "description": "If Maria does not pull the lever",
+            "value_status": "UNKNOWN",
+            "decision_relevance": "MATERIAL",
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "event_effect_id": "",
+            "polarity": "NEGATED",
+            "operator": "IF"
+          }
+        ],
+        "causal_links": [
+          {
+            "source_id": "E1",
+            "relation": "ENABLES",
+            "target_id": "E2",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              }
+            ],
+            "action_id": "A0"
+          },
+          {
+            "source_id": "E2",
+            "relation": "ENABLES",
+            "target_id": "E3",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              }
+            ],
+            "action_id": "A0"
+          },
+          {
+            "source_id": "E4",
+            "relation": "ENABLES",
+            "target_id": "E5",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "action_id": "A1"
+          },
+          {
+            "source_id": "E5",
+            "relation": "ENABLES",
+            "target_id": "E6",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "action_id": "A1"
+          }
+        ],
+        "counterfactual_links": [],
+        "admission": {
+          "status": "COMMITTED",
+          "admitted_effect_ids": [
+            "E1",
+            "E2",
+            "E3",
+            "E4",
+            "E5",
+            "E6"
+          ],
+          "quarantined_effects": [],
+          "user_override": false,
+          "override_reason": ""
+        },
+        "schema_version": "1.3",
+        "temporal_relations": [],
+        "propositions": [],
+        "reports": [],
+        "commitments": [],
+        "modal_operators": [],
+        "normative_propositions": []
+      },
+      "trace_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/live_pipeline_latest_20261006/trolley/admission_attempts/01_conditional_outcome/frozen_world_trace.json",
+      "sent_to_agents": false
+    },
+    {
+      "label": "ability_permission",
+      "world": {
+        "parties": [
+          {
+            "party_id": "P1",
+            "label": "Maria",
+            "kind": "PERSON",
+            "provenance": [
+              {
+                "clause_id": "C2",
+                "excerpt": "Maria can pull the lever, but not the brake."
+              },
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              },
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "quantities": []
+          },
+          {
+            "party_id": "P2",
+            "label": "the lever",
+            "kind": "PERSON",
+            "provenance": [
+              {
+                "clause_id": "C2",
+                "excerpt": "Maria can pull the lever, but not the brake."
+              },
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              },
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "quantities": []
+          },
+          {
+            "party_id": "P3",
+            "label": "one worker",
+            "kind": "PERSON",
+            "provenance": [
+              {
+                "clause_id": "C1",
+                "excerpt": "One worker is on the side track."
+              },
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              }
+            ],
+            "quantities": []
+          },
+          {
+            "party_id": "P4",
+            "label": "the lever",
+            "kind": "PROCESS",
+            "provenance": [
+              {
+                "clause_id": "C2",
+                "excerpt": "Maria can pull the lever, but not the brake."
+              },
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              },
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "quantities": []
+          },
+          {
+            "party_id": "P5",
+            "label": "five workers",
+            "kind": "HUMAN_GROUP",
+            "provenance": [
+              {
+                "clause_id": "C0",
+                "excerpt": "Five workers are on the track."
+              },
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "quantities": [
+              "Five",
+              "five"
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "action_id": "A0",
+            "intervention": "pulls the lever",
+            "actor_party_id": "P1",
+            "recipient_party_ids": [
+              "P4"
+            ],
+            "effect_ids": [
+              "E1",
+              "E2",
+              "E3"
+            ],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              }
+            ]
+          },
+          {
+            "action_id": "A1",
+            "intervention": "does not pull the lever",
+            "actor_party_id": "P1",
+            "recipient_party_ids": [
+              "P4"
+            ],
+            "effect_ids": [
+              "E4",
+              "E5",
+              "E6"
+            ],
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ]
+          }
+        ],
+        "effects": [
+          {
+            "effect_id": "E1",
+            "action_id": "A0",
+            "party_id": "P4",
+            "outcome": "pulls the lever",
+            "relation": "PULL",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "INTERVENTION",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "pulls the lever",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E2",
+            "action_id": "A0",
+            "party_id": "P4",
+            "outcome": "pulls the lever",
+            "relation": "PULL",
+            "polarity": "NEUTRAL",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "PHYSICAL_STATE",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "pulls the lever",
+            "source_effect_ids": [
+              "E1"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E3",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "one worker will die",
+            "relation": "DIE",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [
+              "one"
+            ],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "one worker will die",
+            "source_effect_ids": [
+              "E2"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E4",
+            "action_id": "A1",
+            "party_id": "P4",
+            "outcome": "does not pull the lever",
+            "relation": "PULL",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "INTERVENTION",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "does not pull the lever",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E5",
+            "action_id": "A1",
+            "party_id": "P4",
+            "outcome": "does not pull the lever",
+            "relation": "PULL",
+            "polarity": "NEUTRAL",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "PHYSICAL_STATE",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "does not pull the lever",
+            "source_effect_ids": [
+              "E4"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E6",
+            "action_id": "A1",
+            "party_id": "P5",
+            "outcome": "five workers will die",
+            "relation": "DIE",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [
+              "five"
+            ],
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "five workers will die",
+            "source_effect_ids": [
+              "E5"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          }
+        ],
+        "conditions": [
+          {
+            "condition_id": "CND1",
+            "description": "If Maria pulls the lever",
+            "value_status": "UNKNOWN",
+            "decision_relevance": "MATERIAL",
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              }
+            ],
+            "event_effect_id": "",
+            "polarity": "POSITIVE",
+            "operator": "IF"
+          },
+          {
+            "condition_id": "CND2",
+            "description": "If Maria does not pull the lever",
+            "value_status": "UNKNOWN",
+            "decision_relevance": "MATERIAL",
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "event_effect_id": "",
+            "polarity": "NEGATED",
+            "operator": "IF"
+          }
+        ],
+        "causal_links": [
+          {
+            "source_id": "E1",
+            "relation": "ENABLES",
+            "target_id": "E2",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              }
+            ],
+            "action_id": "A0"
+          },
+          {
+            "source_id": "E2",
+            "relation": "ENABLES",
+            "target_id": "E3",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Maria pulls the lever, one worker will die."
+              }
+            ],
+            "action_id": "A0"
+          },
+          {
+            "source_id": "E4",
+            "relation": "ENABLES",
+            "target_id": "E5",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "action_id": "A1"
+          },
+          {
+            "source_id": "E5",
+            "relation": "ENABLES",
+            "target_id": "E6",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "If Maria does not pull the lever, five workers will die."
+              }
+            ],
+            "action_id": "A1"
+          }
+        ],
+        "counterfactual_links": [],
+        "admission": {
+          "status": "COMMITTED",
+          "admitted_effect_ids": [
+            "E1",
+            "E2",
+            "E3",
+            "E4",
+            "E5",
+            "E6"
+          ],
+          "quarantined_effects": [],
+          "user_override": false,
+          "override_reason": ""
+        },
+        "schema_version": "1.3",
+        "temporal_relations": [],
+        "propositions": [
+          {
+            "proposition_id": "PR1",
+            "predication": "can pull the lever",
+            "polarity": "positive",
+            "status": "GOVERNED",
+            "clause_ids": [
+              "C2",
+              "C3",
+              "C4"
+            ]
+          }
+        ],
+        "reports": [],
+        "commitments": [],
+        "modal_operators": [
+          {
+            "modal_id": "M0",
+            "force": "ability",
+            "bearer_party_id": "P1",
+            "governed_proposition_id": "PR1",
+            "clause_ids": [
+              "C2",
+              "C3",
+              "C4"
+            ]
+          }
+        ],
+        "normative_propositions": []
+      },
+      "trace_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/live_pipeline_latest_20261006/trolley/admission_attempts/02_ability_permission/frozen_world_trace.json",
+      "sent_to_agents": false
+    }
+  ],
+  "diagram_notices": []
+}

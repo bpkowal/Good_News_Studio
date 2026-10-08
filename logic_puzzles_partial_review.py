@@ -13,6 +13,8 @@ PRIOR_NATIVE_FIELDS = {'v': 'verdict', 'rel': 'relation', 'gv': 'governing_norm'
 
 def isolate_classifications(prior_response, proposed_response, job):
     """Isolate classifications, preserving committed duty conclusions on uncertainty."""
+    if job['framework'] == 'care':
+        return isolate_care(prior_response, proposed_response, job)
     if job['framework'] != 'deontological':
         return None, []
     try:
@@ -85,6 +87,61 @@ def isolate_classifications(prior_response, proposed_response, job):
                   + 'Attributed original framework explanation: ' + explanation,
         'follow_up_question': 'Does the full proposed duty conclusion have an explicit supported derivation?'}
     isolated['j'] = 'Native revalidation of isolated classifications; prior duty conclusions and commitments retained.'
+    result = deepcopy(prior_response)
+    result['choices'][0]['text'] = json.dumps(isolated)
+    return result, patches
+
+
+def isolate_care(prior_response, proposed_response, job):
+    """Retain proposed reasons with scope changes; no status-only resolution."""
+    try:
+        prior = json.loads(prior_response['choices'][0]['text'])
+        proposed = json.loads(proposed_response['choices'][0]['text'])
+    except (KeyError, IndexError, TypeError, json.JSONDecodeError):
+        return None, []
+    isolated, patches = deepcopy(prior), []
+    # Replay the committed classifications rather than reviving raw fields
+    # that native review already qualified or attenuated.
+    care_fields = {'v': 'verdict', 'res': 'resolution_status', 'te': 'trust_effect',
+                   'rt': 'relationship_type', 'cc': 'competing_care_claim', 'rs': 'reason'}
+    for claim in job['claims']:
+        record = claim['record']
+        action = record.get('canonical_action_id')
+        if action in isolated.get('cl', {}):
+            for short, full in care_fields.items():
+                if full in record:
+                    isolated['cl'][action][short] = record[full]
+    if job.get('prior_selection_status'):
+        isolated['ss'] = job['prior_selection_status']
+    answer = str((proposed.get('qa') or {}).get('answer', ''))
+    for issue in job['issues']:
+        if 'counts lack relational comparability' in issue['label']:
+            # Numerical role/justification are authored by the model. Native
+            # replay still decides whether that description is consistent.
+            for field in ('nr', 'np'):
+                if field in proposed and proposed[field] != prior.get(field):
+                    isolated[field] = deepcopy(proposed[field])
+                    patches.append({'field': field, 'before': prior.get(field), 'after': proposed[field], 'issue_id': issue['id']})
+        if 'competing Care claim remains contested' in issue['label']:
+            for claim in job['claims']:
+                action = claim['record'].get('canonical_action_id')
+                old, new = isolated.get('cl', {}).get(action, {}), proposed.get('cl', {}).get(action, {})
+                competing = str(old.get('cc', ''))
+                # An explanation is retained as an attributed argument, never
+                # accepted as a proof. Pure resolution toggles are ineligible.
+                if (claim['id'] in issue['claim_ids'] and new.get('res') == 'RESOLVED'
+                        and old.get('res') != 'RESOLVED' and new.get('rs') != old.get('rs')
+                        and len(answer.split()) >= 12 and competing and competing.casefold() in answer.casefold()):
+                    for field in ('res', 'rs'):
+                        isolated.setdefault('cl', {}).setdefault(action, {})[field] = new[field]
+                        patches.append({'action_id': action, 'field': field, 'before': old.get(field),
+                            'after': new[field], 'issue_id': issue['id'], 'supporting_answer': answer,
+                            'semantic_support': 'NOT_INDEPENDENTLY_VERIFIED'})
+    if not patches:
+        return None, []
+    isolated['qa'] = deepcopy(proposed.get('qa') or {})
+    isolated['qa'].update(issue_id=job['issue_id'], disposition='UNRESOLVED', current_position_effect='NO_CHANGE')
+    isolated['j'] = 'Isolated Care field review; attributed explanation retained, native revalidation required.'
     result = deepcopy(prior_response)
     result['choices'][0]['text'] = json.dumps(isolated)
     return result, patches

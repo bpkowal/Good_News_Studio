@@ -30,12 +30,21 @@ from blueprint_cloze_chooser import (
 )
 from blueprint_proposal_contract import validate_proposal
 from blueprint_admission_core import supported_core
+from blueprint_selection_review import compare_admitted, review_selection, semantic_signature
 from blueprint_discourse import (
     discourse_graph_rows,
     has_discourse,
 )
 from blueprint_graph_amendments import expand_candidates
 from blueprint_primitive_composition import extract_inventory, append_composition
+from blueprint_world_beam import (
+    COLLAPSE_INVARIANT,
+    COLLAPSE_SEPARATED,
+    COLLAPSE_UNRESOLVED,
+    PIPELINE_INTERPRETIVE_BEAM,
+    beam_payload,
+    collapse_admitted,
+)
 
 
 DEFAULT_SCENARIO = (
@@ -172,6 +181,19 @@ def compare_z10_blueprints(package: dict, blueprint_result: dict) -> dict:
     }
 
 
+def _condition_scopes_action(world: dict, condition: dict, action: dict) -> bool:
+    """Keep a copied ellipsis condition attached after expanding its action label."""
+    description = str(condition.get('description') or '').casefold()
+    intervention = str(action.get('intervention') or '').casefold()
+    negative = bool(re.search(r"\bnot\b|n't", intervention))
+    if (condition.get('polarity') == 'NEGATED') != negative:
+        return False
+    spans = [intervention] + [str(e.get('source_proposition') or '').casefold()
+        for e in world.get('effects', []) if e.get('action_id') == action['action_id']
+        and e.get('directness') == 'DIRECT']
+    return any(span and span in description for span in spans)
+
+
 def _mermaid_world(world: dict, heading: str) -> list[str]:
     """Render one candidate or admitted world as an isolated Mermaid graph."""
     parties = {row["party_id"]: row for row in world.get("parties", [])}
@@ -216,10 +238,8 @@ def _mermaid_world(world: dict, heading: str) -> list[str]:
             f'    {row["source_id"]} -->|"{_label(relation)}"| {row["target_id"]}'
         )
     for condition in world.get("conditions", []):
-        description = str(condition.get("description") or "").casefold()
         for action in world.get("actions", []):
-            intervention = str(action.get("intervention") or "").casefold()
-            if intervention and intervention in description:
+            if _condition_scopes_action(world, condition, action):
                 lines.append(
                     f'    {condition["condition_id"]} -.->|"branch scope"| '
                     f'{action["action_id"]}'
@@ -338,8 +358,8 @@ def _write_candidate_attempts(blueprint_result: dict, output_dir: Path) -> tuple
 
 def _admit_candidates(blueprint: dict, scenario: str, package: dict,
                       output_dir: Path, parliament_root: Path,
-                      parliament_python: Path) -> tuple[dict | None, list[dict]]:
-    """Admit every filled core, then choose by the chooser's recorded rank."""
+                      parliament_python: Path, *, selection_reviewer=None) -> tuple[dict | None, list[dict]]:
+    """Admit every filled core, then collapse by relative interpretive support."""
     attempts = blueprint.get("candidate_attempts") or [
         {"rank": 0, "blueprint_id": blueprint.get("chosen_blueprint_id"),
          "proposal": blueprint["proposals"][0], "selected": True}]
@@ -389,7 +409,58 @@ def _admit_candidates(blueprint: dict, scenario: str, package: dict,
                     record.update(status="REJECTED", error="native_admission_timeout")
             attempt["native_admission"] = record
             records.append(record)
-    return (admitted[0] if admitted else None), records
+    collapse = collapse_admitted(admitted)
+    comparison = compare_admitted(admitted)
+    comparison_path = output_dir / "admitted_graph_comparison.json"
+    comparison_path.write_text(json.dumps(comparison, ensure_ascii=False, indent=2) + "\n")
+    lines = ["# Admitted graph differences", "", "Blueprint names do not establish semantic equivalence.", ""]
+    for row in comparison["differences"]:
+        lines += [f'## {row["id"]}: {row["left_id"]} / {row["right_id"]} — {row["field"]}',
+                  "", row["question"], "", "```json",
+                  json.dumps({"left": row["left"], "right": row["right"]}, ensure_ascii=False, indent=2), "```", ""]
+    if not comparison["differences"]:lines.append("No substantive differences among admitted graphs.")
+    (output_dir / "admitted_graph_comparison.md").write_text("\n".join(lines) + "\n")
+    blueprint["admitted_graph_comparison"] = str(comparison_path)
+    if collapse["collapse_status"] == COLLAPSE_UNRESOLVED and selection_reviewer is not None:
+        # One bounded review, at most three distinct admitted interpretations.
+        # Other candidates remain in the full comparison and graph artifacts.
+        options, seen = [], set()
+        for item in sorted(admitted, key=lambda x: x["attempt"].get("rank", 0)):
+            signature = semantic_signature(item["proposal"])
+            if signature not in seen:
+                seen.add(signature)
+                options.append(item)
+            if len(options) == 3:break
+        review, selected = review_selection(scenario, options, selection_reviewer)
+        review["scope"] = "top_three_distinct_admitted_interpretations"
+        review["other_admitted_candidates_preserved"] = len(admitted) - len(options)
+        review_path = output_dir / "selection_review.json"
+        review_path.write_text(json.dumps(review, ensure_ascii=False, indent=2) + "\n")
+        (output_dir / "selection_review.md").write_text(
+            "# Targeted interpretation selection\n\n"
+            "This review selects an existing admitted interpretation; it does not prove semantic correctness.\n\n"
+            + "Status: **" + review["status"] + "**\n\n"
+            + "```json\n" + json.dumps({key: value for key, value in review.items() if key != "request"},
+                                        ensure_ascii=False, indent=2) + "\n```\n")
+        blueprint["selection_review"] = str(review_path)
+        if selected is not None:
+            collapse.update(chosen=selected, collapse_status=COLLAPSE_SEPARATED,
+                            selection_basis="SOURCE_REVIEW", collapse_reason="SOURCE_REVIEW")
+            for member in collapse["members"] + collapse.get('noncompeting_members', []):
+                member["selected_for_relent"] = member.get("trace_path") == selected["record"].get("trace_path")
+    blueprint["world_beam"] = beam_payload(collapse)
+    blueprint["world_beam"]["selection_basis"] = collapse.get("selection_basis", "SUPPORT_OR_EQUIVALENCE")
+    blueprint["collapse_status"] = collapse["collapse_status"]
+    beam_path = output_dir / "world_beam.json"
+    beam_path.write_text(
+        json.dumps(blueprint["world_beam"], ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    blueprint["world_beam_path"] = str(beam_path)
+    chosen = collapse["chosen"] if collapse["collapse_status"] in {
+        COLLAPSE_SEPARATED, COLLAPSE_INVARIANT,
+    } else None
+    return chosen, records
 
 
 def _scenario_identifier(scenario: str, blueprint_id: str | None) -> str:
@@ -444,10 +515,8 @@ def _write_world_topology(trace_path: Path, output_dir: Path) -> tuple[Path, Pat
             "label": condition.get("description", ""),
             "polarity": condition.get("polarity"),
         })
-        description = str(condition.get("description") or "").casefold()
         for action in world.get("actions", []):
-            intervention = str(action.get("intervention") or "").casefold()
-            if intervention and intervention in description:
+            if _condition_scopes_action(world, condition, action):
                 edges.append({
                     "source": condition["condition_id"],
                     "relation": "BRANCH_SCOPE", "target": action["action_id"],
@@ -516,10 +585,8 @@ def _write_world_topology(trace_path: Path, output_dir: Path) -> tuple[Path, Pat
             f'    {row["source_id"]} -->|"{_label(row["relation"])}"| {row["target_id"]}'
         )
     for condition in world.get("conditions", []):
-        description = str(condition.get("description") or "").casefold()
         for action in world.get("actions", []):
-            intervention = str(action.get("intervention") or "").casefold()
-            if intervention and intervention in description:
+            if _condition_scopes_action(world, condition, action):
                 lines.append(
                     f'    {condition["condition_id"]} -.->|"branch scope"| '
                     f'{action["action_id"]}'
@@ -811,6 +878,10 @@ def _parliament_revision(root: Path) -> dict:
     if discourse_patch.exists():
         record["discourse_workspace_patch_sha256"] = hashlib.sha256(
             discourse_patch.read_bytes()).hexdigest()
+    recognition_module = root / "global_workspace/recognition_bridge.py"
+    if recognition_module.exists():
+        record["recognition_bridge_sha256"] = hashlib.sha256(
+            recognition_module.read_bytes()).hexdigest()
     return record
 
 
@@ -1255,15 +1326,34 @@ def main(argv: list[str] | None = None) -> int:
 
     chosen, admission_attempts = _admit_candidates(
         blueprint, scenario, package, args.output_dir, args.parliament_root,
-        args.parliament_python,
+        args.parliament_python, selection_reviewer=openai_complete(args.chooser_model, args.openai_env),
     )
     manifest["admission_attempts"] = admission_attempts
+    manifest["collapse_status"] = blueprint.get("collapse_status")
+    manifest["world_beam"] = blueprint.get("world_beam_path")
+    manifest["admitted_graph_comparison"] = blueprint.get("admitted_graph_comparison")
+    manifest["selection_review"] = blueprint.get("selection_review")
     for attempt in blueprint.get("candidate_attempts", []):
         attempt["selected"] = bool(chosen and attempt is chosen["attempt"])
     if chosen:
         blueprint["chosen_blueprint_id"] = chosen["attempt"]["blueprint_id"]
     _write_candidate_attempts(blueprint, args.output_dir)
     if chosen is None:
+        admitted = any(row.get("status") == "ADMITTED" for row in admission_attempts)
+        if admitted and blueprint.get("collapse_status") == COLLAPSE_UNRESOLVED:
+            manifest.update({
+                "pipeline_status": PIPELINE_INTERPRETIVE_BEAM,
+                "parliament_admission": {
+                    "status": "ADMITTED_BEAM",
+                    "error": "Competing admitted worlds are not separated or invariant.",
+                },
+            })
+            manifest_path.write_text(
+                json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8",
+            )
+            print("Interpretive beam retained; RelEnt was not given a unique frozen world.")
+            print(json.dumps(manifest, ensure_ascii=False, indent=2))
+            return 0
         manifest.update({
             "pipeline_status": "ADMISSION_FAILED",
             "parliament_admission": {
@@ -1318,12 +1408,15 @@ def main(argv: list[str] | None = None) -> int:
         "frozen_world_trace": str(trace_path),
         "world_state_topology_markdown": str(topology_markdown),
         "world_state_topology_json": str(topology_json),
+        "collapse_status": blueprint.get("collapse_status"),
     })
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
                              encoding="utf-8")
     print("Prepared and admitted blueprint world:")
     print(json.dumps(manifest, ensure_ascii=False, indent=2))
     if args.prepare_only:
+        return 0
+    if blueprint.get("collapse_status") not in {COLLAPSE_SEPARATED, COLLAPSE_INVARIANT}:
         return 0
 
     try:

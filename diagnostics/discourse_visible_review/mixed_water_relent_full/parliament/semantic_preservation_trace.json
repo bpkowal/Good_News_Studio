@@ -1,0 +1,408 @@
+{
+  "status": "COMMITTED",
+  "world_model_status": "COMMITTED",
+  "repair_attempts": 0,
+  "repairs": [],
+  "action_propositions": [
+    {
+      "action_id": "A0",
+      "text": "devote the tanker to the child or five elderly patients, but not both to the child",
+      "propositions": [
+        {
+          "kind": "quantity",
+          "text": "five",
+          "supported": true
+        },
+        {
+          "kind": "participant",
+          "text": "five elderly patients",
+          "supported": true
+        },
+        {
+          "kind": "quantity",
+          "text": "five elderly patients",
+          "supported": true
+        }
+      ]
+    },
+    {
+      "action_id": "A1",
+      "text": "devote the tanker to the child or five elderly patients, but not both to five elderly patients",
+      "propositions": [
+        {
+          "kind": "quantity",
+          "text": "five",
+          "supported": true
+        },
+        {
+          "kind": "participant",
+          "text": "five elderly patients",
+          "supported": true
+        },
+        {
+          "kind": "quantity",
+          "text": "five elderly patients",
+          "supported": true
+        }
+      ]
+    }
+  ],
+  "compact_role_assignments": [
+    {
+      "action_id": "A0",
+      "bucket": "beneficiaries",
+      "label": "the child",
+      "effect_id": "E2",
+      "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; compact beneficiaries"
+    },
+    {
+      "action_id": "A0",
+      "bucket": "harmed",
+      "label": "five elderly patients",
+      "effect_id": "E6",
+      "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; compact harmed"
+    },
+    {
+      "action_id": "A1",
+      "bucket": "beneficiaries",
+      "label": "five elderly patients",
+      "effect_id": "E4",
+      "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; affected quantity five; compact beneficiaries"
+    },
+    {
+      "action_id": "A1",
+      "bucket": "harmed",
+      "label": "the child",
+      "effect_id": "E8",
+      "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; compact harmed"
+    }
+  ],
+  "chains": [
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C1",
+          "text": "It must decide whether to devote the tanker to the child or five elderly patients, but not both."
+        },
+        {
+          "clause_id": "C2",
+          "text": "If the child gets the water, the child will live."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "devote the tanker to the child or five elderly patients, but not both to the child"
+      },
+      "world": {
+        "effect_id": "E1",
+        "party_id": "P3",
+        "party_label": "the child",
+        "outcome": "devote the tanker to the child or five elderly patients, but not both",
+        "directness": "DIRECT",
+        "effect_kind": "INTERVENTION",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [
+          "five"
+        ],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C2",
+          "text": "If the child gets the water, the child will live."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "devote the tanker to the child or five elderly patients, but not both to the child"
+      },
+      "world": {
+        "effect_id": "E2",
+        "party_id": "P3",
+        "party_label": "the child",
+        "outcome": "If the child gets the water, the child will live",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "HEALTH_OUTCOME",
+        "polarity": "BENEFICIAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A0",
+        "bucket": "beneficiaries",
+        "label": "the child",
+        "effect_id": "E2",
+        "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; compact beneficiaries"
+      }
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C1",
+          "text": "It must decide whether to devote the tanker to the child or five elderly patients, but not both."
+        },
+        {
+          "clause_id": "C3",
+          "text": "If the five elderly patients get the water, the five elderly patients will live."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "devote the tanker to the child or five elderly patients, but not both to five elderly patients"
+      },
+      "world": {
+        "effect_id": "E3",
+        "party_id": "P4",
+        "party_label": "five elderly patients",
+        "outcome": "devote the tanker to the child or five elderly patients, but not both",
+        "directness": "DIRECT",
+        "effect_kind": "INTERVENTION",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [
+          "five"
+        ],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C3",
+          "text": "If the five elderly patients get the water, the five elderly patients will live."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "devote the tanker to the child or five elderly patients, but not both to five elderly patients"
+      },
+      "world": {
+        "effect_id": "E4",
+        "party_id": "P4",
+        "party_label": "five elderly patients",
+        "outcome": "If the five elderly patients get the water, the five elderly patients will live",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "HEALTH_OUTCOME",
+        "polarity": "BENEFICIAL",
+        "modality": "CERTAIN",
+        "quantities": [
+          "five"
+        ],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A1",
+        "bucket": "beneficiaries",
+        "label": "five elderly patients",
+        "effect_id": "E4",
+        "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; affected quantity five; compact beneficiaries"
+      }
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C4",
+          "text": "The people who do not get the water will die."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "devote the tanker to the child or five elderly patients, but not both to the child"
+      },
+      "world": {
+        "effect_id": "E5",
+        "party_id": "P4",
+        "party_label": "five elderly patients",
+        "outcome": "The people who do not get the water",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "OTHER",
+        "polarity": "ADVERSE",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C4",
+          "text": "The people who do not get the water will die."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "devote the tanker to the child or five elderly patients, but not both to the child"
+      },
+      "world": {
+        "effect_id": "E6",
+        "party_id": "P4",
+        "party_label": "five elderly patients",
+        "outcome": "will die",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "HEALTH_OUTCOME",
+        "polarity": "ADVERSE",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A0",
+        "bucket": "harmed",
+        "label": "five elderly patients",
+        "effect_id": "E6",
+        "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; compact harmed"
+      }
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C4",
+          "text": "The people who do not get the water will die."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "devote the tanker to the child or five elderly patients, but not both to five elderly patients"
+      },
+      "world": {
+        "effect_id": "E7",
+        "party_id": "P3",
+        "party_label": "the child",
+        "outcome": "The people who do not get the water",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "OTHER",
+        "polarity": "ADVERSE",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C4",
+          "text": "The people who do not get the water will die."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "devote the tanker to the child or five elderly patients, but not both to five elderly patients"
+      },
+      "world": {
+        "effect_id": "E8",
+        "party_id": "P3",
+        "party_label": "the child",
+        "outcome": "will die",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "HEALTH_OUTCOME",
+        "polarity": "ADVERSE",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A1",
+        "bucket": "harmed",
+        "label": "the child",
+        "effect_id": "E8",
+        "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; compact harmed"
+      }
+    }
+  ],
+  "topology_edges": [
+    {
+      "layer": "ACTUAL",
+      "action_id": "A0",
+      "source_id": "E1",
+      "target_id": "E2",
+      "relation": "ENABLES",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    },
+    {
+      "layer": "ACTUAL",
+      "action_id": "A1",
+      "source_id": "E3",
+      "target_id": "E4",
+      "relation": "ENABLES",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    },
+    {
+      "layer": "ACTUAL",
+      "action_id": "A0",
+      "source_id": "E1",
+      "target_id": "E5",
+      "relation": "ENABLES",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    },
+    {
+      "layer": "ACTUAL",
+      "action_id": "A0",
+      "source_id": "E5",
+      "target_id": "E6",
+      "relation": "ENABLES",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    },
+    {
+      "layer": "ACTUAL",
+      "action_id": "A1",
+      "source_id": "E3",
+      "target_id": "E7",
+      "relation": "ENABLES",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    },
+    {
+      "layer": "ACTUAL",
+      "action_id": "A1",
+      "source_id": "E7",
+      "target_id": "E8",
+      "relation": "ENABLES",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    }
+  ]
+}

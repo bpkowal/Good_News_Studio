@@ -1,0 +1,492 @@
+{
+  "schema_version": "0.4",
+  "package_id": "demo_bare_or",
+  "document": {
+    "id": "document",
+    "text": "Ada can give medicine to Ben or Cara."
+  },
+  "producer": {
+    "name": "parsing_game_Z10",
+    "version": "Z10",
+    "resources": [
+      {
+        "id": "T_reference_policy",
+        "version": "1",
+        "description": "Curated candidate-generation and ranking policy, not learned probabilities or a complete animacy lexicon."
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "id": "e0",
+      "start": 8,
+      "end": 12,
+      "text": "give"
+    },
+    {
+      "id": "e1",
+      "start": 4,
+      "end": 7,
+      "text": "can"
+    },
+    {
+      "id": "e2",
+      "start": 0,
+      "end": 3,
+      "text": "Ada"
+    },
+    {
+      "id": "e3",
+      "start": 13,
+      "end": 21,
+      "text": "medicine"
+    },
+    {
+      "id": "e4",
+      "start": 25,
+      "end": 28,
+      "text": "Ben"
+    },
+    {
+      "id": "e5",
+      "start": 32,
+      "end": 36,
+      "text": "Cara"
+    },
+    {
+      "id": "e6",
+      "start": 29,
+      "end": 31,
+      "text": "or"
+    },
+    {
+      "id": "e7",
+      "start": 0,
+      "end": 37,
+      "text": "Ada can give medicine to Ben or Cara."
+    }
+  ],
+  "nodes": [
+    {
+      "id": "p2",
+      "kind": "proposition",
+      "label": "give",
+      "predicate": "give",
+      "evidence_ids": [
+        "e0"
+      ],
+      "predicate_evidence_ids": [
+        "e0"
+      ]
+    },
+    {
+      "id": "m0",
+      "kind": "mention",
+      "label": "Ada",
+      "evidence_ids": [
+        "e2"
+      ]
+    },
+    {
+      "id": "m3",
+      "kind": "mention",
+      "label": "medicine",
+      "evidence_ids": [
+        "e3"
+      ]
+    },
+    {
+      "id": "m5",
+      "kind": "mention",
+      "label": "Ben",
+      "evidence_ids": [
+        "e4"
+      ]
+    },
+    {
+      "id": "m7",
+      "kind": "mention",
+      "label": "Cara",
+      "evidence_ids": [
+        "e5"
+      ]
+    }
+  ],
+  "candidates": [
+    {
+      "id": "c0",
+      "type": "PREDICATION",
+      "arguments": {
+        "proposition": "p2"
+      },
+      "value": null,
+      "evidence_ids": [
+        "e0"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "modal_choice",
+            "modality_choice_set_id": "choice0",
+            "evidence_ids": [
+              "e1"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [],
+      "exclusive_with": []
+    },
+    {
+      "id": "c1",
+      "type": "MODALITY",
+      "arguments": {
+        "proposition": "p2"
+      },
+      "value": "ability",
+      "evidence_ids": [
+        "e1"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": []
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "unresolved",
+        "score": null
+      },
+      "requires": [
+        "c0"
+      ],
+      "exclusive_with": [
+        "c2",
+        "c3"
+      ]
+    },
+    {
+      "id": "c2",
+      "type": "MODALITY",
+      "arguments": {
+        "proposition": "p2"
+      },
+      "value": "permission",
+      "evidence_ids": [
+        "e1"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": []
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "unresolved",
+        "score": null
+      },
+      "requires": [
+        "c0"
+      ],
+      "exclusive_with": [
+        "c1",
+        "c3"
+      ]
+    },
+    {
+      "id": "c3",
+      "type": "MODALITY",
+      "arguments": {
+        "proposition": "p2"
+      },
+      "value": "possibility",
+      "evidence_ids": [
+        "e1"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": []
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "unresolved",
+        "score": null
+      },
+      "requires": [
+        "c0"
+      ],
+      "exclusive_with": [
+        "c1",
+        "c2"
+      ]
+    },
+    {
+      "id": "c4",
+      "type": "PARTICIPANT",
+      "arguments": {
+        "proposition": "p2",
+        "mention": "m0"
+      },
+      "value": "subject",
+      "evidence_ids": [
+        "e2"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "modal_choice",
+            "modality_choice_set_id": "choice0",
+            "evidence_ids": [
+              "e1"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c0"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c5",
+      "type": "PARTICIPANT",
+      "arguments": {
+        "proposition": "p2",
+        "mention": "m3"
+      },
+      "value": "object",
+      "evidence_ids": [
+        "e3"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "modal_choice",
+            "modality_choice_set_id": "choice0",
+            "evidence_ids": [
+              "e1"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c0"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c6",
+      "type": "PARTICIPANT",
+      "arguments": {
+        "proposition": "p2",
+        "mention": "m5"
+      },
+      "value": "destination",
+      "evidence_ids": [
+        "e4"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "modal_choice",
+            "modality_choice_set_id": "choice0",
+            "evidence_ids": [
+              "e1"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "dative_or_person_transfer_to",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c0"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c7",
+      "type": "PARTICIPANT",
+      "arguments": {
+        "proposition": "p2",
+        "mention": "m7"
+      },
+      "value": "destination",
+      "evidence_ids": [
+        "e5",
+        "e6"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "modal_choice",
+            "modality_choice_set_id": "choice0",
+            "evidence_ids": [
+              "e1"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "coordinated_nominal_shares_head_role",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c0"
+      ],
+      "exclusive_with": []
+    }
+  ],
+  "choice_sets": [
+    {
+      "id": "choice0",
+      "kind": "interpretation",
+      "candidate_ids": [
+        "c1",
+        "c2",
+        "c3"
+      ],
+      "selection_rule": "at_most_one",
+      "exhaustive": false,
+      "evidence_ids": [
+        "e1"
+      ]
+    }
+  ],
+  "open_questions": [
+    {
+      "id": "q0",
+      "kind": "modality",
+      "evidence_ids": [
+        "e1"
+      ],
+      "candidate_ids": [
+        "c1",
+        "c2",
+        "c3"
+      ],
+      "question": "Select the modal meaning; prediction, ability and obligation are distinct.",
+      "blocking_for": [
+        "c0"
+      ]
+    },
+    {
+      "id": "q1",
+      "kind": "missing_representation",
+      "evidence_ids": [
+        "e7"
+      ],
+      "candidate_ids": [],
+      "question": "Review unrepresented semantics and scope, including attribution, choice and entailment.",
+      "blocking_for": []
+    }
+  ],
+  "coverage": {
+    "status": "partial",
+    "unrepresented_evidence_ids": [
+      "e7"
+    ],
+    "limitations": [
+      "reference_candidates_only_no_identity_merging",
+      "no_world_state_commitment",
+      "bounded_if_and_local_modal_scope",
+      "no_semantic_support_validation",
+      "purpose_and_attachment_readings_are_candidates",
+      "subject_control_is_an_unresolved_candidate",
+      "unambiguous_condition_complements_are_required",
+      "attempt_does_not_entail_the_child",
+      "choice_sets_are_not_exhaustive",
+      "quantity_is_explicit_cardinality_only",
+      "comma_clause_subject_repairs_a_false_conjunct",
+      "same_name_reference_does_not_block_roles",
+      "transfer_recipient_is_destination",
+      "definite_locative_is_location",
+      "definite_reference_does_not_block_roles",
+      "conditional_alternatives_are_not_exhaustive_or_exclusive",
+      "quantity_match_is_not_group_membership",
+      "coordination_shares_the_head_role",
+      "clause_boundary_stops_role_sharing",
+      "clause_boundary_attachment_stays_a_candidate",
+      "stripping_not_nominal_is_an_unresolved_copy"
+    ]
+  },
+  "reconstructions": [],
+  "condition_contents": []
+}

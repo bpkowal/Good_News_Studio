@@ -1,0 +1,178 @@
+{
+  "framework": "utilitarian",
+  "initial_argument": {
+    "scores": {
+      "A0": 0.95,
+      "A1": 0.05
+    },
+    "r": "A0",
+    "c": "IMMINENT_HARM",
+    "u": "NONE",
+    "w": "Max expected survival",
+    "j": "NONE",
+    "e": "STATED_FACTS",
+    "x": "NONE",
+    "l": {
+      "A0": "Gives Ben a 95% survival chance; maximises expected lives saved.",
+      "A1": "Keeps Ada’s promise to Cara; still offers small 5% chance of saving one life."
+    },
+    "da": "expected survival count",
+    "t": "maximize expected survivors",
+    "tf": "NONE",
+    "dr": "prefer A0 when it yields greater expected survivors than A1",
+    "ft": "Ben survival probability falls to ≤5%",
+    "nt": "Promise-keeping given overriding moral weight",
+    "z": 0.9,
+    "gu": {
+      "operation": "BOUNDARY",
+      "from_action": "A0",
+      "to_action": "A1",
+      "clauses": [
+        {
+          "affected_action": "A0",
+          "metric": "SURVIVAL_PROBABILITY",
+          "metric_valence": "BENEFICIAL",
+          "comparator": "LE",
+          "threshold": 5,
+          "unit": "PERCENT",
+          "source_text": "Ben has a 95% chance of survival"
+        }
+      ]
+    },
+    "ev": {
+      "A0": {
+        "value": 0.95,
+        "unit": "PERSON",
+        "direction": "BENEFIT",
+        "grounded": true,
+        "method": "EXPECTED_COUNT",
+        "source_effect_ids": [
+          "E2"
+        ],
+        "calculation": "1 person * 95% = 0.95 expected survivors",
+        "assumptions": []
+      },
+      "A1": {
+        "value": 0.05,
+        "unit": "PERSON",
+        "direction": "BENEFIT",
+        "grounded": true,
+        "method": "EXPECTED_COUNT",
+        "source_effect_ids": [
+          "E4"
+        ],
+        "calculation": "1 person * 5% = 0.05 expected survivors",
+        "assumptions": []
+      }
+    },
+    "ss": "SELECTED",
+    "am": {
+      "A0": "PERMISSIBLE",
+      "A1": "REJECTED"
+    },
+    "cc": true,
+    "esa": true,
+    "ia": "A0",
+    "wp": "NOT_APPLICABLE",
+    "we": "NONE",
+    "fa": "NONE",
+    "fr": true,
+    "bd": "NONE",
+    "fic": [],
+    "foq": [],
+    "sps": [
+      "PROP:WORLD:E2",
+      "PROP:WORLD:E4"
+    ],
+    "dcp": [
+      "PROP:WORLD:E2",
+      "PROP:WORLD:E4"
+    ],
+    "ep": [
+      {
+        "c": "Ben has a 95% chance of survival; affected subject: Ben; modality: PROBABILISTIC",
+        "p": "PROP:WORLD:E2",
+        "dc": true,
+        "a": "GLOBAL",
+        "se": [],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      },
+      {
+        "c": "Cara has a 5% chance of survival; affected subject: Cara; modality: PROBABILISTIC",
+        "p": "PROP:WORLD:E4",
+        "dc": true,
+        "a": "GLOBAL",
+        "se": [],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      },
+      {
+        "c": "The patient who does not get the medicine will die.",
+        "p": "PROP:WORLD:RECOGNITION:5e3120723f49c75f",
+        "dc": false,
+        "a": "GLOBAL",
+        "se": [],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      }
+    ],
+    "ct": {
+      "A0": [
+        {
+          "eid": "E1",
+          "wi": "LOW",
+          "vr": "transfer itself neutral utilitarian value"
+        },
+        {
+          "eid": "E2",
+          "wi": "HIGH",
+          "vr": "95% chance to save Ben's life"
+        },
+        {
+          "eid": "E5",
+          "wi": "HIGH",
+          "vr": "Cara lacks medicine (leads to death)"
+        },
+        {
+          "eid": "E7",
+          "wi": "HIGH",
+          "vr": "Cara certainly dies"
+        }
+      ],
+      "A1": [
+        {
+          "eid": "E3",
+          "wi": "LOW",
+          "vr": "transfer itself neutral utilitarian value"
+        },
+        {
+          "eid": "E4",
+          "wi": "HIGH",
+          "vr": "5% chance to save Cara's life"
+        },
+        {
+          "eid": "E6",
+          "wi": "HIGH",
+          "vr": "Ben lacks medicine (leads to death)"
+        },
+        {
+          "eid": "E8",
+          "wi": "HIGH",
+          "vr": "Ben certainly dies"
+        }
+      ]
+    },
+    "cd": false,
+    "cm": "NONE"
+  },
+  "objection": "The expected-survivor advantage does not establish total welfare. How does your ranking address the explicit promise to Cara without inventing the magnitude of trust or other welfare effects?",
+  "objection_origin": "EXPERIMENT_ASSIGNED_CHALLENGE_NOT_WORLD_FACT",
+  "shared_input_sha256": "a605b3ccde43ce445d5a2190482c2f13c326a9c788153163c50d25294196e006"
+}

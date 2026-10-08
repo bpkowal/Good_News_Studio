@@ -1,0 +1,19 @@
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{xcolor}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds}
+\begin{document}
+% A1 actual-world graph
+\begin{tikzpicture}[>=Latex,
+ event/.style={draw,rounded corners,align=center,text width=3.8cm,minimum height=1.4cm,font=\small},
+ beneficial/.style={event,fill=green!12,draw=green!50!black},
+ adverse/.style={event,fill=red!10,draw=red!55!black},
+ neutral/.style={event,fill=gray!10,draw=gray!65},
+ foregone/.style={event,fill=blue!7,draw=blue!45,densely dotted},
+ quarantined/.style={event,fill=orange!12,draw=orange!70!black,densely dashed},
+ causal/.style={->,thick}, conditional/.style={->,thick,dashed}, quarantineedge/.style={->,thick,densely dashed,draw=orange!70!black}]
+\node[font=\bfseries,anchor=west] at (0,1.3) {A1: devote water to a small town};
+\node[neutral] (eE3) at (0.0,0.0) {\textbf{E3}\\devote water\\\scriptsize a small town · NEUTRAL · CERTAIN};
+\node[adverse] (eE4) at (5.2,0.0) {\textbf{E4}\\a small town that will lose 100 people to drowning\\\scriptsize 100 people · ADVERSE · CERTAIN};
+\draw[causal] (eE3) -- node[above,font=\scriptsize] {CAUSES} (eE4);
+\end{tikzpicture}
+\end{document}

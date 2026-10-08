@@ -1,0 +1,222 @@
+{
+  "medicine": {
+    "pipeline_status": "COMPLETED",
+    "collapse_status": "SEPARATED",
+    "chosen_blueprint_id": "exclusive_allocation",
+    "parliament_admission": {
+      "status": "COMMITTED",
+      "world_model_status": "COMMITTED",
+      "effects": 8,
+      "causal_links": 6,
+      "frozen_trace_valid": true,
+      "discourse_committed": false,
+      "relent_workspace": {
+        "established": [
+          {
+            "kind": "occurrence_effect",
+            "effect_id": "E1",
+            "outcome": "Ada gives the medicine to Ben",
+            "predicate": null,
+            "status": "established"
+          },
+          {
+            "kind": "occurrence_effect",
+            "effect_id": "E2",
+            "outcome": "Ben has a 95% chance of survival",
+            "predicate": null,
+            "status": "established"
+          },
+          {
+            "kind": "occurrence_effect",
+            "effect_id": "E3",
+            "outcome": "Ada gives the medicine to Cara",
+            "predicate": null,
+            "status": "established"
+          },
+          {
+            "kind": "occurrence_effect",
+            "effect_id": "E4",
+            "outcome": "Cara has a 5% chance of survival",
+            "predicate": null,
+            "status": "established"
+          },
+          {
+            "kind": "occurrence_effect",
+            "effect_id": "E5",
+            "outcome": "does not receive one dose of medicine",
+            "predicate": null,
+            "status": "established"
+          },
+          {
+            "kind": "occurrence_effect",
+            "effect_id": "E6",
+            "outcome": "does not receive one dose of medicine",
+            "predicate": null,
+            "status": "established"
+          },
+          {
+            "kind": "occurrence_effect",
+            "effect_id": "E7",
+            "outcome": "will die",
+            "predicate": null,
+            "status": "established"
+          },
+          {
+            "kind": "occurrence_effect",
+            "effect_id": "E8",
+            "outcome": "will die",
+            "predicate": null,
+            "status": "established"
+          }
+        ],
+        "not_established": [],
+        "duty_ledger_citations": [],
+        "ev_forbidden_proposition_ids": [],
+        "factual_status_sources": [
+          "occurrence_effects"
+        ]
+      },
+      "fingerprint_sha256": "530e99beb62b1bee3fc6d6ffa83c71c08b7d27223593e8a5cd17d133089ec0fc"
+    },
+    "deliberation": {
+      "status": "COMPLETED",
+      "mode": "full",
+      "agents": [
+        "utilitarian",
+        "deontological",
+        "virtue",
+        "care",
+        "rawlsian"
+      ],
+      "max_cycles": 3,
+      "use_rag": false,
+      "command": [
+        "/tmp/parliament-smoke-env/bin/python",
+        "global_workspace_pipeline.py",
+        "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/live_pipeline_latest_20261006/medicine/scenario.json",
+        "--frozen-world-trace",
+        "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/live_pipeline_latest_20261006/medicine/frozen_world_trace.json",
+        "--backend",
+        "openai",
+        "--openai-model",
+        "o3",
+        "--agents",
+        "utilitarian",
+        "deontological",
+        "virtue",
+        "care",
+        "rawlsian",
+        "--max-cycles",
+        "3",
+        "--time-budget",
+        "600.0",
+        "--agent-timeout",
+        "600.0",
+        "--openai-concurrency",
+        "2",
+        "--delegate-tokens",
+        "128",
+        "--output-dir",
+        "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/live_pipeline_latest_20261006/medicine/parliament",
+        "--no-rag-context"
+      ],
+      "judgment_status": "UNRESOLVED",
+      "selected_action": "UNRESOLVED",
+      "current_plurality": "Ada gives the medicine to Ben",
+      "world_generation_calls": 0,
+      "trace": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/live_pipeline_latest_20261006/medicine/parliament/workspace_scenario_20261006_082532.json",
+      "deliberation_report": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/live_pipeline_latest_20261006/medicine/parliament/deliberation_report.md",
+      "summary": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/live_pipeline_latest_20261006/medicine/parliament/workspace_scenario_20261006_082532.txt",
+      "answer": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/live_pipeline_latest_20261006/medicine/parliament/workspace_scenario_20261006_082532_answer.txt",
+      "semantic_preservation_trace": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/live_pipeline_latest_20261006/medicine/parliament/semantic_preservation_trace.json"
+    },
+    "admission_attempts": [
+      {
+        "blueprint_id": "exclusive_allocation",
+        "variant": "amended",
+        "status": "REJECTED",
+        "error": "Parliament rejected the blueprint candidate: {\"status\": \"REJECTED\", \"actions\": {}, \"world_model\": {}, \"world_model_status\": \"COMMITTED\", \"world_contradictions\": [], \"errors\": [\"A0 has no distinguishing source clause; its grounding ['C2'] is covered entirely by the other actions\", \"A1 has no distinguishing source clause; its grounding ['C3'] is covered entirely by the other actions\", \"A2 has no distinguishing source clause; its grounding ['C2'] is covered entirely by the other actions\", \"A3 has no distinguishing source clause; its grounding ['C3'] is covered entirely by the other actions\"], \"warnings\": [], \"validation_issues\": [{\"code\": \"WORLD_VALIDATION_ERROR\", \"message\": \"A0 has no distinguishing source clause; its grounding ['C2'] is covered entirely by the other actions\", \"entity_kind\": \"action\", \"entity_id\": \"A0\", \"field\": \"\", \"related_ids\": [], \"repair_class\": \"SEMANTIC_PATCH\", \"permits_removal\": false}, {\"code\": \"WORLD_VALIDATION_ERROR\", \"message\": \"A1 has no distinguishing source clause; its grounding ['C3'] is covered entirely by the other actions\", \"entity_kind\": \"action\", \"entity_id\": \"A1\", \"field\": \"\", \"related_ids\": [], \"repair_class\": \"SEMANTIC_PATCH\", \"permits_removal\": false}, {\"code\": \"WORLD_VALIDATION_ERROR\", \"message\": \"A2 has no distinguishing source clause; its grounding ['C2'] is covered entirely by the other actions\", \"entity_kind\": \"action\", \"entity_id\": \"A2\", \"field\": \"\", \"related_ids\": [], \"repair_class\": \"SEMANTIC_PATCH\", \"permits_removal\": false}, {\"code\": \"WORLD_VALIDATION_ERROR\", \"message\": \"A3 has no distinguishing source clause; its grounding ['C3'] is covered entirely by the other actions\", \"entity_kind\": \"action\", \"entity_id\": \"A3\", \"field\": \"\", \"related_ids\": [], \"repair_class\": \"SEMANTIC_PATCH\", \"permits_removal\": false}], \"compiler_loss_telemetry\": {}, \"clauses\": [{\"clause_id\": \"C0\", \"text\": \"A clinic has one dose of medicine.\"}, {\"clause_id\": \"C1\", \"text\": \"Ada can give the medicine to Ben or Cara, but not both.\"}, {\"clause_id\": \"C2\", \"text\": \"If Ada gives the medicine to Ben, Ben has a 95% chance of survival.\"}, {\"clause_id\": \"C3\", \"text\": \"If Ada gives the medicine to Cara, Cara has a 5% chance of survival.\"}, {\"clause_id\": \"C4\", \"text\": \"The patient who does not get the medicine will die.\"}]}\n"
+      },
+      {
+        "blueprint_id": "exclusive_allocation",
+        "variant": "baseline",
+        "status": "ADMITTED",
+        "error": null
+      },
+      {
+        "blueprint_id": "rescue_contrast",
+        "variant": null,
+        "status": "NOT_RUN",
+        "error": null
+      },
+      {
+        "blueprint_id": "omission_harm",
+        "variant": null,
+        "status": "NOT_RUN",
+        "error": null
+      },
+      {
+        "blueprint_id": "flexible_graph",
+        "variant": "flexible",
+        "status": "ADMITTED",
+        "error": null
+      },
+      {
+        "blueprint_id": "primitive_composition",
+        "variant": "composition",
+        "status": "REJECTED",
+        "error": "Traceback (most recent call last):\n  File \"/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpm87p5zrr/admit_blueprint.py\", line 148, in <module>\n    parse_world_model(\n  File \"/private/tmp/parliament-smoke-614af0c/global_workspace/world_state.py\", line 3123, in parse_world_model\n    raise WorldModelValidationError(\nglobal_workspace.world_validation.WorldModelValidationError: causal_link[0] is conditional but has no condition; causal_link[1] is conditional but has no condition\n"
+      }
+    ]
+  },
+  "trolley": {
+    "pipeline_status": "INTERPRETIVE_BEAM",
+    "collapse_status": "UNRESOLVED_BEAM",
+    "chosen_blueprint_id": "omission_harm",
+    "parliament_admission": {
+      "status": "ADMITTED_BEAM",
+      "error": "Competing admitted worlds are not separated or invariant."
+    },
+    "deliberation": {
+      "status": "NOT_RUN"
+    },
+    "admission_attempts": [
+      {
+        "blueprint_id": "omission_harm",
+        "variant": "baseline",
+        "status": "ADMITTED",
+        "error": null
+      },
+      {
+        "blueprint_id": "conditional_outcome",
+        "variant": "baseline",
+        "status": "ADMITTED",
+        "error": null
+      },
+      {
+        "blueprint_id": "ability_permission",
+        "variant": "amended",
+        "status": "ADMITTED",
+        "error": null
+      },
+      {
+        "blueprint_id": "ability_permission",
+        "variant": "baseline",
+        "status": "ADMITTED",
+        "error": null
+      },
+      {
+        "blueprint_id": "flexible_graph",
+        "variant": "flexible",
+        "status": "ADMITTED",
+        "error": null
+      },
+      {
+        "blueprint_id": "primitive_composition",
+        "variant": "composition",
+        "status": "ADMITTED",
+        "error": null
+      }
+    ]
+  }
+}

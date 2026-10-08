@@ -48,6 +48,8 @@ class TargetedReviewTests(unittest.TestCase):
         proposal = self.proposal(source, job)
         for record in proposal['committed_native_ledger']['records']:
             record['calibration_errors'] = []
+            record['means_relation'] = 'UNRESOLVED'
+            record['harm_relation'] = 'UNRESOLVED'
         result = reconcile(source, [job], {job['framework']: proposal}, source['framework_proposition_ledgers'])
         self.assertEqual(source, before)
         self.assertEqual(result['cycles'][0], source['cycles'][0])
@@ -90,7 +92,7 @@ class Fake:
         assert 'INDEPENDENT FRAMEWORK PASS' not in prompt
         return {'choices':[{'text':'{}'}]}
 path=Path(sys.argv[2]); before=path.read_bytes()
-result=review(path,Path(sys.argv[3]),lambda name:Fake())
+result=review(path,Path(sys.argv[3]),lambda name:Fake(),allow_residual=False)
 assert path.read_bytes()==before
 assert result['targeted_review']['adapter_calls']=={'deontological':2}
 assert len(result['targeted_review']['issues'])==2
@@ -135,7 +137,7 @@ class Saved:
     execution_mode='SAVED_RESPONSE_REPLAY'
     def complete_json(self,prompt,**kwargs):return response
 source=json.loads(Path(sys.argv[2]).read_text())
-result=review(Path(sys.argv[2]),Path(sys.argv[4]),lambda name:Saved(),allow_partial=False)
+result=review(Path(sys.argv[2]),Path(sys.argv[4]),lambda name:Saved(),allow_partial=False,allow_residual=False)
 assert result['targeted_review']['execution_modes']=={'deontological':'SAVED_RESPONSE_REPLAY'}
 assert all(i['review_status']=='RETAINED_AFTER_NATIVE_REJECTION' for i in result['targeted_review']['issues'])
 assert all(i['objection_check']=='OPEN' for i in result['targeted_review']['issues'])
@@ -173,7 +175,7 @@ from logic_puzzles_acceptance import SavedResponses
 source=Path('diagnostics/logic_puzzles_matched_live/independent/framework_generation.json')
 response=json.loads(Path('diagnostics/logic_puzzles_matched_live/targeted/deontological/model_calls.json').read_text())[0]['response']
 before=json.loads(source.read_text())
-result=review(source,Path(sys.argv[2]),lambda name:SavedResponses([response]),max_calls=1)
+result=review(source,Path(sys.argv[2]),lambda name:SavedResponses([response]),max_calls=1,allow_residual=False)
 assert result['targeted_review']['adapter_calls']=={'deontological':1}
 assert result['targeted_review']['prior_replay_calls']=={'deontological':1}
 assert all(i['review_status']=='RECONCILED' for i in result['targeted_review']['issues'])

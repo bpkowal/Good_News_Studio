@@ -1,0 +1,94 @@
+......................................./Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/.venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+.........................................................................................
+======================================================================
+FAIL: test_native_admission_both_paths_baseline_and_state (test_blueprint_primitive_composition.CompositionTests) (effects=7)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/test_blueprint_primitive_composition.py", line 69, in test_native_admission_both_paths_baseline_and_state
+    self.assertIsNotNone(chosen, records)
+AssertionError: unexpectedly None : [{'blueprint_id': 'conditional_outcome', 'rank': -0.1, 'variant': 'amended', 'candidate_path': '/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpgqgsho34/admission_attempts/00_conditional_outcome/candidate.json', 'overlay_path': '/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpgqgsho34/admission_attempts/00_conditional_outcome/hypothesis_overlay.json', 'status': 'ADMITTED', 'admission': {'status': 'COMMITTED', 'world_model_status': 'COMMITTED', 'effects': 7, 'causal_links': 5, 'frozen_trace_valid': True, 'discourse_committed': False, 'relent_workspace': {'established': [{'kind': 'occurrence_effect', 'effect_id': 'E1', 'outcome': 'pulls the lever', 'predicate': None, 'status': 'established'}, {'kind': 'occurrence_effect', 'effect_id': 'E2', 'outcome': 'pulls the lever', 'predicate': None, 'status': 'established'}, {'kind': 'occurrence_effect', 'effect_id': 'E3', 'outcome': 'one worker will die', 'predicate': None, 'status': 'established'}, {'kind': 'occurrence_effect', 'effect_id': 'E4', 'outcome': 'does not pull the lever', 'predicate': None, 'status': 'established'}, {'kind': 'occurrence_effect', 'effect_id': 'E5', 'outcome': 'does not pull the lever', 'predicate': None, 'status': 'established'}, {'kind': 'occurrence_effect', 'effect_id': 'E6', 'outcome': 'five workers will die', 'predicate': None, 'status': 'established'}, {'kind': 'occurrence_effect', 'effect_id': 'E7', 'outcome': 'the warning signal will stop', 'predicate': None, 'status': 'established'}], 'not_established': [], 'duty_ledger_citations': [], 'ev_forbidden_proposition_ids': [], 'factual_status_sources': ['occurrence_effects']}, 'fingerprint_sha256': '8d8aac7e0581084b17300f0c5aad206e4036d114c0b593039ac5151f8d548480'}, 'trace_path': '/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpgqgsho34/admission_attempts/00_conditional_outcome/frozen_world_trace.json'}, {'blueprint_id': 'conditional_outcome', 'rank': 0, 'variant': 'baseline', 'candidate_path': '/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpgqgsho34/admission_attempts/01_conditional_outcome/candidate.json', 'overlay_path': '/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpgqgsho34/admission_attempts/01_conditional_outcome/hypothesis_overlay.json', 'status': 'ADMITTED', 'admission': {'status': 'COMMITTED', 'world_model_status': 'COMMITTED', 'effects': 6, 'causal_links': 4, 'frozen_trace_valid': True, 'discourse_committed': False, 'relent_workspace': {'established': [{'kind': 'occurrence_effect', 'effect_id': 'E1', 'outcome': 'pulls the lever', 'predicate': None, 'status': 'established'}, {'kind': 'occurrence_effect', 'effect_id': 'E2', 'outcome': 'pulls the lever', 'predicate': None, 'status': 'established'}, {'kind': 'occurrence_effect', 'effect_id': 'E3', 'outcome': 'one worker will die', 'predicate': None, 'status': 'established'}, {'kind': 'occurrence_effect', 'effect_id': 'E4', 'outcome': 'does not pull the lever', 'predicate': None, 'status': 'established'}, {'kind': 'occurrence_effect', 'effect_id': 'E5', 'outcome': 'does not pull the lever', 'predicate': None, 'status': 'established'}, {'kind': 'occurrence_effect', 'effect_id': 'E6', 'outcome': 'five workers will die', 'predicate': None, 'status': 'established'}], 'not_established': [], 'duty_ledger_citations': [], 'ev_forbidden_proposition_ids': [], 'factual_status_sources': ['occurrence_effects']}, 'fingerprint_sha256': 'ae2c84261c2ea0eee8de99200fe72b588f950d1ac4477f4af24e21d1144d50c8'}, 'trace_path': '/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpgqgsho34/admission_attempts/01_conditional_outcome/frozen_world_trace.json'}, {'blueprint_id': 'flexible_graph', 'rank': 1, 'variant': 'flexible', 'candidate_path': '/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpgqgsho34/admission_attempts/02_flexible_graph/candidate.json', 'overlay_path': '/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpgqgsho34/admission_attempts/02_flexible_graph/hypothesis_overlay.json', 'status': 'ADMITTED', 'admission': {'status': 'COMMITTED', 'world_model_status': 'COMMITTED', 'effects': 7, 'causal_links': 5, 'frozen_trace_valid': True, 'discourse_committed': False, 'relent_workspace': {'established': [{'kind': 'occurrence_effect', 'effect_id': 'E1', 'outcome': 'pulls the lever', 'predicate': None, 'status': 'established'}, {'kind': 'occurrence_effect', 'effect_id': 'E2', 'outcome': 'pulls the lever', 'predicate': None, 'status': 'established'}, {'kind': 'occurrence_effect', 'effect_id': 'E3', 'outcome': 'one worker will die', 'predicate': None, 'status': 'established'}, {'kind': 'occurrence_effect', 'effect_id': 'E4', 'outcome': 'does not pull the lever', 'predicate': None, 'status': 'established'}, {'kind': 'occurrence_effect', 'effect_id': 'E5', 'outcome': 'does not pull the lever', 'predicate': None, 'status': 'established'}, {'kind': 'occurrence_effect', 'effect_id': 'E6', 'outcome': 'five workers will die', 'predicate': None, 'status': 'established'}, {'kind': 'occurrence_effect', 'effect_id': 'E7', 'outcome': 'the warning signal will stop', 'predicate': None, 'status': 'established'}], 'not_established': [], 'duty_ledger_citations': [], 'ev_forbidden_proposition_ids': [], 'factual_status_sources': ['occurrence_effects']}, 'fingerprint_sha256': 'b4824b9bc33156cd0eb9faf284a7cf58fc9aa94c9f07d8af43a6b008a00825bc'}, 'trace_path': '/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpgqgsho34/admission_attempts/02_flexible_graph/frozen_world_trace.json'}, {'blueprint_id': 'primitive_composition', 'rank': 2, 'variant': 'composition', 'candidate_path': '/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpgqgsho34/admission_attempts/03_primitive_composition/candidate.json', 'overlay_path': '/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpgqgsho34/admission_attempts/03_primitive_composition/hypothesis_overlay.json', 'status': 'ADMITTED', 'admission': {'status': 'COMMITTED', 'world_model_status': 'COMMITTED', 'effects': 7, 'causal_links': 5, 'frozen_trace_valid': True, 'discourse_committed': False, 'relent_workspace': {'established': [{'kind': 'occurrence_effect', 'effect_id': 'E1', 'outcome': 'pulls the lever', 'predicate': None, 'status': 'established'}, {'kind': 'occurrence_effect', 'effect_id': 'E2', 'outcome': 'pulls the lever', 'predicate': None, 'status': 'established'}, {'kind': 'occurrence_effect', 'effect_id': 'E3', 'outcome': 'one worker will die', 'predicate': None, 'status': 'established'}, {'kind': 'occurrence_effect', 'effect_id': 'E4', 'outcome': 'does not pull the lever', 'predicate': None, 'status': 'established'}, {'kind': 'occurrence_effect', 'effect_id': 'E5', 'outcome': 'does not pull the lever', 'predicate': None, 'status': 'established'}, {'kind': 'occurrence_effect', 'effect_id': 'E6', 'outcome': 'five workers will die', 'predicate': None, 'status': 'established'}, {'kind': 'occurrence_effect', 'effect_id': 'E7', 'outcome': 'the warning signal will stop', 'predicate': None, 'status': 'established'}], 'not_established': [], 'duty_ledger_citations': [], 'ev_forbidden_proposition_ids': [], 'factual_status_sources': ['occurrence_effects']}, 'fingerprint_sha256': '55b26e43aef19c442b00924c0825f01754101faf38e055b000fe2e0597340c57'}, 'trace_path': '/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpgqgsho34/admission_attempts/03_primitive_composition/frozen_world_trace.json'}]
+
+----------------------------------------------------------------------
+Ran 129 tests in 57.057s
+
+FAILED (failures=1)
+Candidate blueprint attempts:
+  1. promise_reliance: withheld selected; missing=commitment_content
+  2. primitive_composition: withheld; missing=none
+Candidate graph display: /private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpjz2xaq83/output/candidate_graphs.md
+Blueprint construction was withheld; no world was sent to Parliament.
+{
+  "scenario": "Ada promised.",
+  "semantic_coverage": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpjz2xaq83/output/semantic_coverage.json",
+  "question_assessment": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpjz2xaq83/output/question_assessment.json",
+  "chooser_model": "gpt-4o-mini",
+  "chosen_blueprint_id": "promise_reliance",
+  "blueprint_status": "PARTIAL",
+  "candidate_graphs_markdown": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpjz2xaq83/output/candidate_graphs.md",
+  "candidate_attempts_json": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpjz2xaq83/output/candidate_attempts.json",
+  "z10_blueprint_comparison": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpjz2xaq83/output/z10_blueprint_comparison.json",
+  "candidate_path": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpjz2xaq83/output/blueprint_candidate.json",
+  "scenario_path": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpjz2xaq83/output/scenario.json",
+  "actions": [],
+  "deliberation": {
+    "status": "NOT_RUN"
+  },
+  "pipeline_status": "WITHHELD",
+  "parliament_admission": {
+    "status": "NOT_RUN"
+  },
+  "withholding_reason": "Blueprint proposal is withheld: [\"Required slots remain unfilled.\"]",
+  "missing_slots": [
+    "commitment_content"
+  ],
+  "world_withheld": [
+    "Required slots remain unfilled."
+  ]
+}
+Candidate blueprint attempts:
+  1. b1: graph selected; missing=none
+  2. b2: graph; missing=none
+Candidate graph display: /private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpy76spui9/output/candidate_graphs.md
+Interpretive beam retained; RelEnt was not given a unique frozen world.
+{
+  "scenario": "Ada must decide.",
+  "semantic_coverage": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpy76spui9/output/semantic_coverage.json",
+  "question_assessment": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpy76spui9/output/question_assessment.json",
+  "chooser_model": "gpt-4o-mini",
+  "chosen_blueprint_id": "b1",
+  "blueprint_status": "FILLED",
+  "candidate_graphs_markdown": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpy76spui9/output/candidate_graphs.md",
+  "candidate_attempts_json": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpy76spui9/output/candidate_attempts.json",
+  "z10_blueprint_comparison": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpy76spui9/output/z10_blueprint_comparison.json",
+  "candidate_path": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpy76spui9/output/blueprint_candidate.json",
+  "scenario_path": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpy76spui9/output/scenario.json",
+  "actions": [
+    "act-1"
+  ],
+  "deliberation": {
+    "status": "NOT_RUN"
+  },
+  "parliament_version": {
+    "commit": "test"
+  },
+  "admission_attempts": [
+    {
+      "status": "ADMITTED",
+      "blueprint_id": "b1"
+    },
+    {
+      "status": "ADMITTED",
+      "blueprint_id": "b2"
+    }
+  ],
+  "collapse_status": "UNRESOLVED_BEAM",
+  "world_beam": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpy76spui9/output/world_beam.json",
+  "admitted_graph_comparison": null,
+  "selection_review": null,
+  "pipeline_status": "INTERPRETIVE_BEAM",
+  "parliament_admission": {
+    "status": "ADMITTED_BEAM",
+    "error": "Competing admitted worlds are not separated or invariant."
+  }
+}

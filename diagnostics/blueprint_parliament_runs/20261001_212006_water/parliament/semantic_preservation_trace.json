@@ -1,0 +1,240 @@
+{
+  "status": "COMMITTED",
+  "world_model_status": "COMMITTED_WITH_UNCERTAINTY",
+  "repair_attempts": 0,
+  "repairs": [],
+  "action_propositions": [
+    {
+      "action_id": "A0",
+      "text": "devote water to a farm",
+      "propositions": []
+    },
+    {
+      "action_id": "A1",
+      "text": "devote water to a small town",
+      "propositions": []
+    }
+  ],
+  "compact_role_assignments": [
+    {
+      "action_id": "A0",
+      "bucket": "beneficiaries",
+      "label": "a farm",
+      "effect_id": "E2",
+      "reason": "CERTAIN WELFARE_OUTCOME BENEFICIAL; compact beneficiaries"
+    },
+    {
+      "action_id": "A0",
+      "bucket": "beneficiaries",
+      "label": "100 people",
+      "effect_id": "AV0",
+      "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; affected quantity 100; compact beneficiaries"
+    },
+    {
+      "action_id": "A1",
+      "bucket": "harmed",
+      "label": "100 people",
+      "effect_id": "E4",
+      "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; affected quantity 100; compact harmed"
+    }
+  ],
+  "chains": [
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C0",
+          "text": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "devote water to a farm"
+      },
+      "world": {
+        "effect_id": "E1",
+        "party_id": "P3",
+        "party_label": "a farm",
+        "outcome": "devote water",
+        "directness": "DIRECT",
+        "effect_kind": "INTERVENTION",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C0",
+          "text": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "devote water to a farm"
+      },
+      "world": {
+        "effect_id": "E2",
+        "party_id": "P3",
+        "party_label": "a farm",
+        "outcome": "a farm that can sustain a city's dietary needs",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "WELFARE_OUTCOME",
+        "polarity": "BENEFICIAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A0",
+        "bucket": "beneficiaries",
+        "label": "a farm",
+        "effect_id": "E2",
+        "reason": "CERTAIN WELFARE_OUTCOME BENEFICIAL; compact beneficiaries"
+      }
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C0",
+          "text": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "devote water to a small town"
+      },
+      "world": {
+        "effect_id": "E3",
+        "party_id": "P4",
+        "party_label": "a small town",
+        "outcome": "devote water",
+        "directness": "DIRECT",
+        "effect_kind": "INTERVENTION",
+        "polarity": "NEUTRAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C0",
+          "text": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "devote water to a small town"
+      },
+      "world": {
+        "effect_id": "E4",
+        "party_id": "P5",
+        "party_label": "100 people",
+        "outcome": "a small town that will lose 100 people to drowning",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "HEALTH_OUTCOME",
+        "polarity": "ADVERSE",
+        "modality": "CERTAIN",
+        "quantities": [
+          "100"
+        ],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A1",
+        "bucket": "harmed",
+        "label": "100 people",
+        "effect_id": "E4",
+        "reason": "CERTAIN HEALTH_OUTCOME ADVERSE; affected quantity 100; compact harmed"
+      }
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C0",
+          "text": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "devote water to a farm"
+      },
+      "world": {
+        "effect_id": "AV0",
+        "party_id": "P5",
+        "party_label": "100 people",
+        "outcome": "averts alternative harm to 100 people",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "HEALTH_OUTCOME",
+        "polarity": "BENEFICIAL",
+        "modality": "CERTAIN",
+        "quantities": [
+          "100"
+        ],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A0",
+        "bucket": "beneficiaries",
+        "label": "100 people",
+        "effect_id": "AV0",
+        "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; affected quantity 100; compact beneficiaries"
+      }
+    }
+  ],
+  "topology_edges": [
+    {
+      "layer": "ACTUAL",
+      "action_id": "A0",
+      "source_id": "E1",
+      "target_id": "E2",
+      "relation": "CAUSES",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    },
+    {
+      "layer": "ACTUAL",
+      "action_id": "A1",
+      "source_id": "E3",
+      "target_id": "E4",
+      "relation": "CAUSES",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    },
+    {
+      "layer": "COUNTERFACTUAL",
+      "action_id": "A0",
+      "source_id": "AV0",
+      "target_id": "E4",
+      "alternative_action_id": "A1",
+      "relation": "PRECLUDES_ALTERNATIVE_EFFECT",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    }
+  ]
+}

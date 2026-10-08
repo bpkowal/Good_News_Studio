@@ -1,0 +1,1804 @@
+{
+  "scenario": "An AI bot promised a child the only water tanker. It must decide whether to devote the tanker to the child or five elderly patients, but not both. If the child gets the water, the child will live. If the five elderly patients get the water, the five elderly patients will live. The people who do not get the water will die.",
+  "presentation_actions": [
+    "devote the tanker to the child or five elderly patients, but not both to the child",
+    "devote the tanker to the child or five elderly patients, but not both to five elderly patients"
+  ],
+  "actions": [
+    "devote the tanker to the child or five elderly patients, but not both to the child",
+    "devote the tanker to the child or five elderly patients, but not both to five elderly patients"
+  ],
+  "action_source_grounding": {
+    "status": "COMMITTED",
+    "actions": {
+      "A0": {
+        "action": "devote the tanker to the child or five elderly patients, but not both to the child",
+        "clause_ids": [
+          "C1",
+          "C2"
+        ],
+        "clauses": [
+          {
+            "clause_id": "C1",
+            "text": "It must decide whether to devote the tanker to the child or five elderly patients, but not both."
+          },
+          {
+            "clause_id": "C2",
+            "text": "If the child gets the water, the child will live."
+          }
+        ],
+        "reason": "Filled from copied cloze slots."
+      },
+      "A1": {
+        "action": "devote the tanker to the child or five elderly patients, but not both to five elderly patients",
+        "clause_ids": [
+          "C1",
+          "C3"
+        ],
+        "clauses": [
+          {
+            "clause_id": "C1",
+            "text": "It must decide whether to devote the tanker to the child or five elderly patients, but not both."
+          },
+          {
+            "clause_id": "C3",
+            "text": "If the five elderly patients get the water, the five elderly patients will live."
+          }
+        ],
+        "reason": "Filled from copied cloze slots."
+      }
+    },
+    "world_model": {
+      "parties": [
+        {
+          "party_id": "P1",
+          "label": "An AI bot",
+          "kind": "OTHER",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot promised a child the only water tanker."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P2",
+          "label": "the only water tanker",
+          "kind": "RESOURCE",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot promised a child the only water tanker."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P3",
+          "label": "the child",
+          "kind": "PERSON",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "It must decide whether to devote the tanker to the child or five elderly patients, but not both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If the child gets the water, the child will live."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P4",
+          "label": "five elderly patients",
+          "kind": "HUMAN_GROUP",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "It must decide whether to devote the tanker to the child or five elderly patients, but not both."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If the five elderly patients get the water, the five elderly patients will live."
+            }
+          ],
+          "quantities": [
+            "five"
+          ]
+        },
+        {
+          "party_id": "P5",
+          "label": "a child",
+          "kind": "PERSON",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot promised a child the only water tanker."
+            }
+          ],
+          "quantities": []
+        }
+      ],
+      "actions": [
+        {
+          "action_id": "A0",
+          "intervention": "devote the tanker to the child or five elderly patients, but not both to the child",
+          "actor_party_id": "P1",
+          "recipient_party_ids": [
+            "P3"
+          ],
+          "effect_ids": [
+            "E1",
+            "E2",
+            "E5",
+            "E6"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "It must decide whether to devote the tanker to the child or five elderly patients, but not both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If the child gets the water, the child will live."
+            }
+          ]
+        },
+        {
+          "action_id": "A1",
+          "intervention": "devote the tanker to the child or five elderly patients, but not both to five elderly patients",
+          "actor_party_id": "P1",
+          "recipient_party_ids": [
+            "P4"
+          ],
+          "effect_ids": [
+            "E3",
+            "E4",
+            "E7",
+            "E8"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "It must decide whether to devote the tanker to the child or five elderly patients, but not both."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If the five elderly patients get the water, the five elderly patients will live."
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "effect_id": "E1",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "devote the tanker to the child or five elderly patients, but not both",
+          "relation": "DEVOTE",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "INTERVENTION",
+          "condition_ids": [],
+          "quantities": [
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "It must decide whether to devote the tanker to the child or five elderly patients, but not both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If the child gets the water, the child will live."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "devote the tanker to the child or five elderly patients, but not both",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "the child will live",
+          "relation": "LIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If the child gets the water, the child will live."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "the child will live",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E3",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "devote the tanker to the child or five elderly patients, but not both",
+          "relation": "DEVOTE",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "INTERVENTION",
+          "condition_ids": [],
+          "quantities": [
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "It must decide whether to devote the tanker to the child or five elderly patients, but not both."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If the five elderly patients get the water, the five elderly patients will live."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "devote the tanker to the child or five elderly patients, but not both",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E4",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "the five elderly patients will live",
+          "relation": "LIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If the five elderly patients get the water, the five elderly patients will live."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "the five elderly patients will live",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E5",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "The people who do not get the water",
+          "relation": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The people who do not get the water will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "The people who do not get the water",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E6",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "will die",
+          "relation": "DIE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The people who do not get the water will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will die",
+          "source_effect_ids": [
+            "E5"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E7",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "The people who do not get the water",
+          "relation": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The people who do not get the water will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "The people who do not get the water",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E8",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "will die",
+          "relation": "DIE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The people who do not get the water will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will die",
+          "source_effect_ids": [
+            "E7"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "conditions": [],
+      "causal_links": [
+        {
+          "source_id": "E1",
+          "relation": "ENABLES",
+          "target_id": "E2",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If the child gets the water, the child will live."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E3",
+          "relation": "ENABLES",
+          "target_id": "E4",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If the five elderly patients get the water, the five elderly patients will live."
+            }
+          ],
+          "action_id": "A1"
+        },
+        {
+          "source_id": "E1",
+          "relation": "ENABLES",
+          "target_id": "E5",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The people who do not get the water will die."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E5",
+          "relation": "ENABLES",
+          "target_id": "E6",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The people who do not get the water will die."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E3",
+          "relation": "ENABLES",
+          "target_id": "E7",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The people who do not get the water will die."
+            }
+          ],
+          "action_id": "A1"
+        },
+        {
+          "source_id": "E7",
+          "relation": "ENABLES",
+          "target_id": "E8",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The people who do not get the water will die."
+            }
+          ],
+          "action_id": "A1"
+        }
+      ],
+      "counterfactual_links": [],
+      "admission": {
+        "status": "COMMITTED",
+        "admitted_effect_ids": [
+          "E1",
+          "E2",
+          "E3",
+          "E4",
+          "E5",
+          "E6",
+          "E7",
+          "E8"
+        ],
+        "quarantined_effects": [],
+        "user_override": false,
+        "override_reason": ""
+      },
+      "schema_version": "1.3",
+      "temporal_relations": [],
+      "propositions": [
+        {
+          "proposition_id": "PR1",
+          "predication": "the only water tanker",
+          "polarity": "positive",
+          "status": "COMMITTED_CONTENT",
+          "clause_ids": [
+            "C0"
+          ]
+        }
+      ],
+      "reports": [],
+      "commitments": [
+        {
+          "commitment_id": "K0",
+          "promisor_party_id": "P1",
+          "promisee_party_id": "P5",
+          "commitment_event": "promised",
+          "content_proposition_id": "PR1",
+          "reliance": "",
+          "breach": "",
+          "clause_ids": [
+            "C0"
+          ]
+        }
+      ],
+      "modal_operators": [],
+      "normative_propositions": []
+    },
+    "world_model_status": "COMMITTED",
+    "world_contradictions": [],
+    "errors": [],
+    "warnings": [],
+    "validation_issues": [],
+    "compiler_loss_telemetry": {},
+    "clauses": [
+      {
+        "clause_id": "C0",
+        "text": "An AI bot promised a child the only water tanker."
+      },
+      {
+        "clause_id": "C1",
+        "text": "It must decide whether to devote the tanker to the child or five elderly patients, but not both."
+      },
+      {
+        "clause_id": "C2",
+        "text": "If the child gets the water, the child will live."
+      },
+      {
+        "clause_id": "C3",
+        "text": "If the five elderly patients get the water, the five elderly patients will live."
+      },
+      {
+        "clause_id": "C4",
+        "text": "The people who do not get the water will die."
+      }
+    ],
+    "world_model_1_4": {
+      "parties": [
+        {
+          "party_id": "P1",
+          "label": "An AI bot",
+          "kind": "OTHER",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot promised a child the only water tanker."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P2",
+          "label": "the only water tanker",
+          "kind": "RESOURCE",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot promised a child the only water tanker."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P3",
+          "label": "the child",
+          "kind": "PERSON",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "It must decide whether to devote the tanker to the child or five elderly patients, but not both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If the child gets the water, the child will live."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P4",
+          "label": "five elderly patients",
+          "kind": "HUMAN_GROUP",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "It must decide whether to devote the tanker to the child or five elderly patients, but not both."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If the five elderly patients get the water, the five elderly patients will live."
+            }
+          ],
+          "quantities": [
+            "five"
+          ]
+        },
+        {
+          "party_id": "P5",
+          "label": "a child",
+          "kind": "PERSON",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot promised a child the only water tanker."
+            }
+          ],
+          "quantities": []
+        }
+      ],
+      "actions": [
+        {
+          "action_id": "A0",
+          "intervention": "devote the tanker to the child or five elderly patients, but not both to the child",
+          "actor_party_id": "P1",
+          "recipient_party_ids": [
+            "P3"
+          ],
+          "effect_ids": [
+            "E1",
+            "E2",
+            "E5",
+            "E6"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "It must decide whether to devote the tanker to the child or five elderly patients, but not both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If the child gets the water, the child will live."
+            }
+          ]
+        },
+        {
+          "action_id": "A1",
+          "intervention": "devote the tanker to the child or five elderly patients, but not both to five elderly patients",
+          "actor_party_id": "P1",
+          "recipient_party_ids": [
+            "P4"
+          ],
+          "effect_ids": [
+            "E3",
+            "E4",
+            "E7",
+            "E8"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "It must decide whether to devote the tanker to the child or five elderly patients, but not both."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If the five elderly patients get the water, the five elderly patients will live."
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "effect_id": "E1",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "devote the tanker to the child or five elderly patients, but not both",
+          "relation": "DEVOTE",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "INTERVENTION",
+          "condition_ids": [],
+          "quantities": [
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "It must decide whether to devote the tanker to the child or five elderly patients, but not both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If the child gets the water, the child will live."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "devote the tanker to the child or five elderly patients, but not both",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "the child will live",
+          "relation": "LIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If the child gets the water, the child will live."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "the child will live",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E3",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "devote the tanker to the child or five elderly patients, but not both",
+          "relation": "DEVOTE",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "INTERVENTION",
+          "condition_ids": [],
+          "quantities": [
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "It must decide whether to devote the tanker to the child or five elderly patients, but not both."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If the five elderly patients get the water, the five elderly patients will live."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "devote the tanker to the child or five elderly patients, but not both",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E4",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "the five elderly patients will live",
+          "relation": "LIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If the five elderly patients get the water, the five elderly patients will live."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "the five elderly patients will live",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E5",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "The people who do not get the water",
+          "relation": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The people who do not get the water will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "The people who do not get the water",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E6",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "will die",
+          "relation": "DIE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The people who do not get the water will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will die",
+          "source_effect_ids": [
+            "E5"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E7",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "The people who do not get the water",
+          "relation": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The people who do not get the water will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "The people who do not get the water",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E8",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "will die",
+          "relation": "DIE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The people who do not get the water will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will die",
+          "source_effect_ids": [
+            "E7"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "conditions": [],
+      "causal_links": [
+        {
+          "source_id": "E1",
+          "relation": "ENABLES",
+          "target_id": "E2",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If the child gets the water, the child will live."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E3",
+          "relation": "ENABLES",
+          "target_id": "E4",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If the five elderly patients get the water, the five elderly patients will live."
+            }
+          ],
+          "action_id": "A1"
+        },
+        {
+          "source_id": "E1",
+          "relation": "ENABLES",
+          "target_id": "E5",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The people who do not get the water will die."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E5",
+          "relation": "ENABLES",
+          "target_id": "E6",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The people who do not get the water will die."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E3",
+          "relation": "ENABLES",
+          "target_id": "E7",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The people who do not get the water will die."
+            }
+          ],
+          "action_id": "A1"
+        },
+        {
+          "source_id": "E7",
+          "relation": "ENABLES",
+          "target_id": "E8",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The people who do not get the water will die."
+            }
+          ],
+          "action_id": "A1"
+        }
+      ],
+      "counterfactual_links": [],
+      "admission": {
+        "status": "COMMITTED",
+        "admitted_effect_ids": [
+          "E1",
+          "E2",
+          "E3",
+          "E4",
+          "E5",
+          "E6",
+          "E7",
+          "E8"
+        ],
+        "quarantined_effects": [],
+        "user_override": false,
+        "override_reason": ""
+      },
+      "schema_version": "1.4",
+      "temporal_relations": [],
+      "propositions": [
+        {
+          "proposition_id": "PR1",
+          "predication": "the only water tanker",
+          "polarity": "positive",
+          "status": "COMMITTED_CONTENT",
+          "clause_ids": [
+            "C0"
+          ]
+        }
+      ],
+      "reports": [],
+      "commitments": [
+        {
+          "commitment_id": "K0",
+          "promisor_party_id": "P1",
+          "promisee_party_id": "P5",
+          "commitment_event": "promised",
+          "content_proposition_id": "PR1",
+          "reliance": "",
+          "breach": "",
+          "clause_ids": [
+            "C0"
+          ]
+        }
+      ],
+      "modal_operators": [],
+      "normative_propositions": []
+    }
+  },
+  "canonical_action_records": [
+    {
+      "action_id": "A0",
+      "short_label": "Devote the tanker to the child or five elderly patients",
+      "canonical_semantic_action": "devote the tanker to the child or five elderly patients, but not both to the child",
+      "actor": "An AI bot",
+      "intervention": "devote the tanker to the child or five elderly patients, but not both to the child",
+      "beneficiaries": [
+        "the child"
+      ],
+      "harmed": [
+        "five elderly patients"
+      ],
+      "unresolved": [],
+      "at_risk": [],
+      "conditionally_benefited": [],
+      "unresolved_outcomes": [],
+      "grounded_effects": [
+        {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "the child will live",
+          "relation": "LIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If the child gets the water, the child will live."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "the child will live",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E5",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "The people who do not get the water",
+          "relation": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The people who do not get the water will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "The people who do not get the water",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E6",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "will die",
+          "relation": "DIE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The people who do not get the water will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will die",
+          "source_effect_ids": [
+            "E5"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "world_effects": [
+        {
+          "effect_id": "E1",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "devote the tanker to the child or five elderly patients, but not both",
+          "relation": "DEVOTE",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "INTERVENTION",
+          "condition_ids": [],
+          "quantities": [
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "It must decide whether to devote the tanker to the child or five elderly patients, but not both."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If the child gets the water, the child will live."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "devote the tanker to the child or five elderly patients, but not both",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "the child will live",
+          "relation": "LIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If the child gets the water, the child will live."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "the child will live",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E5",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "The people who do not get the water",
+          "relation": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The people who do not get the water will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "The people who do not get the water",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E6",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "will die",
+          "relation": "DIE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The people who do not get the water will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will die",
+          "source_effect_ids": [
+            "E5"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "causal_links": [
+        {
+          "action_id": "A0",
+          "source_id": "E1",
+          "relation": "ENABLES",
+          "target_id": "E2",
+          "modality": "CERTAIN"
+        },
+        {
+          "action_id": "A0",
+          "source_id": "E1",
+          "relation": "ENABLES",
+          "target_id": "E5",
+          "modality": "CERTAIN"
+        },
+        {
+          "action_id": "A0",
+          "source_id": "E5",
+          "relation": "ENABLES",
+          "target_id": "E6",
+          "modality": "CERTAIN"
+        }
+      ],
+      "counterfactual_effects": [],
+      "mechanism": "devote the tanker to the child or five elderly patients, but not both enables the child will live; devote the tanker to the child or five elderly patients, but not both enables The people who do not get the water; The people who do not get the water enables will die",
+      "institutional_effect": "",
+      "source_clauses": [
+        "It must decide whether to devote the tanker to the child or five elderly patients, but not both.",
+        "If the child gets the water, the child will live."
+      ],
+      "completeness_status": "COMPLETE",
+      "missing_critical": [],
+      "structure_issues": [],
+      "commitment_status": "COMMITTED",
+      "commitment_reasons": [],
+      "source_label": "",
+      "presentation_action": "devote the tanker to the child or five elderly patients, but not both to the child",
+      "action_origin": "FROZEN_REPLAY"
+    },
+    {
+      "action_id": "A1",
+      "short_label": "Devote the tanker to the child or five elderly patients",
+      "canonical_semantic_action": "devote the tanker to the child or five elderly patients, but not both to five elderly patients",
+      "actor": "An AI bot",
+      "intervention": "devote the tanker to the child or five elderly patients, but not both to five elderly patients",
+      "beneficiaries": [
+        "five elderly patients"
+      ],
+      "harmed": [
+        "the child"
+      ],
+      "unresolved": [],
+      "at_risk": [],
+      "conditionally_benefited": [],
+      "unresolved_outcomes": [],
+      "grounded_effects": [
+        {
+          "effect_id": "E4",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "the five elderly patients will live",
+          "relation": "LIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If the five elderly patients get the water, the five elderly patients will live."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "the five elderly patients will live",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E7",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "The people who do not get the water",
+          "relation": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The people who do not get the water will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "The people who do not get the water",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E8",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "will die",
+          "relation": "DIE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The people who do not get the water will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will die",
+          "source_effect_ids": [
+            "E7"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "world_effects": [
+        {
+          "effect_id": "E3",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "devote the tanker to the child or five elderly patients, but not both",
+          "relation": "DEVOTE",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "INTERVENTION",
+          "condition_ids": [],
+          "quantities": [
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "It must decide whether to devote the tanker to the child or five elderly patients, but not both."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If the five elderly patients get the water, the five elderly patients will live."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "devote the tanker to the child or five elderly patients, but not both",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E4",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "the five elderly patients will live",
+          "relation": "LIVE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If the five elderly patients get the water, the five elderly patients will live."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "the five elderly patients will live",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E7",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "The people who do not get the water",
+          "relation": "NOT_RECEIVES",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The people who do not get the water will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "The people who do not get the water",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E8",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "will die",
+          "relation": "DIE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C4",
+              "excerpt": "The people who do not get the water will die."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "will die",
+          "source_effect_ids": [
+            "E7"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "causal_links": [
+        {
+          "action_id": "A1",
+          "source_id": "E3",
+          "relation": "ENABLES",
+          "target_id": "E4",
+          "modality": "CERTAIN"
+        },
+        {
+          "action_id": "A1",
+          "source_id": "E3",
+          "relation": "ENABLES",
+          "target_id": "E7",
+          "modality": "CERTAIN"
+        },
+        {
+          "action_id": "A1",
+          "source_id": "E7",
+          "relation": "ENABLES",
+          "target_id": "E8",
+          "modality": "CERTAIN"
+        }
+      ],
+      "counterfactual_effects": [],
+      "mechanism": "devote the tanker to the child or five elderly patients, but not both enables the five elderly patients will live; devote the tanker to the child or five elderly patients, but not both enables The people who do not get the water; The people who do not get the water enables will die",
+      "institutional_effect": "",
+      "source_clauses": [
+        "It must decide whether to devote the tanker to the child or five elderly patients, but not both.",
+        "If the five elderly patients get the water, the five elderly patients will live."
+      ],
+      "completeness_status": "COMPLETE",
+      "missing_critical": [],
+      "structure_issues": [],
+      "commitment_status": "COMMITTED",
+      "commitment_reasons": [],
+      "source_label": "",
+      "presentation_action": "devote the tanker to the child or five elderly patients, but not both to five elderly patients",
+      "action_origin": "FROZEN_REPLAY"
+    }
+  ],
+  "presentation_action_mapping": [],
+  "source_action_legend": {
+    "A0": "devote the tanker to the child or five elderly patients, but not both to the child",
+    "A1": "devote the tanker to the child or five elderly patients, but not both to five elderly patients"
+  },
+  "relent_workspace": {
+    "established": [
+      {
+        "kind": "occurrence_effect",
+        "effect_id": "E1",
+        "outcome": "devote the tanker to the child or five elderly patients, but not both",
+        "predicate": null,
+        "status": "established"
+      },
+      {
+        "kind": "occurrence_effect",
+        "effect_id": "E2",
+        "outcome": "the child will live",
+        "predicate": null,
+        "status": "established"
+      },
+      {
+        "kind": "occurrence_effect",
+        "effect_id": "E3",
+        "outcome": "devote the tanker to the child or five elderly patients, but not both",
+        "predicate": null,
+        "status": "established"
+      },
+      {
+        "kind": "occurrence_effect",
+        "effect_id": "E4",
+        "outcome": "the five elderly patients will live",
+        "predicate": null,
+        "status": "established"
+      },
+      {
+        "kind": "occurrence_effect",
+        "effect_id": "E5",
+        "outcome": "The people who do not get the water",
+        "predicate": null,
+        "status": "established"
+      },
+      {
+        "kind": "occurrence_effect",
+        "effect_id": "E6",
+        "outcome": "will die",
+        "predicate": null,
+        "status": "established"
+      },
+      {
+        "kind": "occurrence_effect",
+        "effect_id": "E7",
+        "outcome": "The people who do not get the water",
+        "predicate": null,
+        "status": "established"
+      },
+      {
+        "kind": "occurrence_effect",
+        "effect_id": "E8",
+        "outcome": "will die",
+        "predicate": null,
+        "status": "established"
+      }
+    ],
+    "not_established": [
+      {
+        "kind": "proposition",
+        "proposition_id": "PR1",
+        "predication": "the only water tanker",
+        "status": "COMMITTED_CONTENT"
+      },
+      {
+        "kind": "commitment",
+        "commitment_id": "K0",
+        "content_proposition_id": "PR1",
+        "status": "committed"
+      }
+    ],
+    "duty_ledger_citations": [
+      {
+        "kind": "commitment",
+        "commitment_id": "K0"
+      }
+    ],
+    "ev_forbidden_proposition_ids": [
+      "PR1"
+    ],
+    "factual_status_sources": [
+      "occurrence_effects"
+    ]
+  },
+  "discourse_committed": false
+}

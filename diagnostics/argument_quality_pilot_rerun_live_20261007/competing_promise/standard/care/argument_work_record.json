@@ -1,0 +1,120 @@
+{
+  "origin": "MODEL_AUTHORED_ARGUMENT",
+  "authority": "ATTRIBUTED_NOT_WORLD_STATE",
+  "raw_fields": {
+    "ev": {
+      "A0": {
+        "value": 0.95,
+        "unit": "PERSON",
+        "direction": "BENEFIT",
+        "grounded": true,
+        "method": "EXPECTED_COUNT",
+        "source_effect_ids": [
+          "E2"
+        ],
+        "calculation": "0.95 expected survivor (Ben)",
+        "assumptions": []
+      },
+      "A1": {
+        "value": 0.05,
+        "unit": "PERSON",
+        "direction": "BENEFIT",
+        "grounded": true,
+        "method": "EXPECTED_COUNT",
+        "source_effect_ids": [
+          "E4"
+        ],
+        "calculation": "0.05 expected survivor (Cara)",
+        "assumptions": []
+      }
+    },
+    "dp": null,
+    "cl": {
+      "A0": {
+        "v": "MIXED",
+        "p": "Ben (acute patient)",
+        "rt": "CARE_ROLE",
+        "ds": "Ben\u2019s survival depends on Ada\u2019s competent action",
+        "rb": "Ada\u2019s professional role creates responsibility to give effective care",
+        "nk": "SURVIVAL_HEALTH",
+        "nu": "IMMEDIATE",
+        "te": "STRAINS",
+        "rr": "DIRECT",
+        "f": "ESTABLISHED",
+        "cc": "Cara\u2019s promised trust claim",
+        "res": "CONTESTED",
+        "g": "ACTION_GRAPH",
+        "rs": "Responds competently to Ben but betrays Cara\u2019s promise"
+      },
+      "A1": {
+        "v": "MIXED",
+        "p": "Cara (promised recipient)",
+        "rt": "CARE_ROLE",
+        "ds": "Cara relies on Ada honoring her word",
+        "rb": "Promise creates relational obligation",
+        "nk": "SURVIVAL_HEALTH",
+        "nu": "IMMEDIATE",
+        "te": "PRESERVES",
+        "rr": "DIRECT",
+        "f": "ESTABLISHED",
+        "cc": "Ben\u2019s stronger survival need",
+        "res": "CONTESTED",
+        "g": "ACTION_GRAPH",
+        "rs": "Honors promise but gives low-competence care, neglecting Ben"
+      }
+    },
+    "ep": [
+      {
+        "c": "Ben has a 95% chance of survival; affected subject: Ben; modality: PROBABILISTIC",
+        "p": "PROP:WORLD:E2",
+        "dc": false,
+        "a": "A0",
+        "se": [
+          "E2"
+        ],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      },
+      {
+        "c": "Cara has a 5% chance of survival; affected subject: Cara; modality: PROBABILISTIC",
+        "p": "PROP:WORLD:E4",
+        "dc": false,
+        "a": "A1",
+        "se": [
+          "E4"
+        ],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      },
+      {
+        "c": "Ada promised Cara that she would give Cara the medicine.",
+        "p": "PROP:WORLD:RECOGNITION:4697fd89cd506cc4",
+        "dc": true,
+        "a": "GLOBAL",
+        "se": [],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      }
+    ],
+    "dr": "Prefer A0 when saving a dependent life with high likelihood outweighs promise-keeping that offers minimal help",
+    "ft": "Cara survival probability rises near Ben\u2019s",
+    "nt": "promise-keeping judged absolute",
+    "fic": [],
+    "foq": []
+  },
+  "native_submission": "VALID",
+  "native_ledger": "COMMITTED_WITH_UNCERTAINTY",
+  "native_warnings": [
+    "A0 Care relation claims scenario grounding without a matching action effect",
+    "A0 competing Care claim remains contested",
+    "A1 Care relation claims scenario grounding without a matching action effect",
+    "A1 competing Care claim remains contested"
+  ],
+  "semantic_support": "NOT_INDEPENDENTLY_VERIFIED"
+}

@@ -1,0 +1,477 @@
+{
+  "cloze_version": "blueprint-cloze-chooser/0.5",
+  "chosen_blueprint_id": "promise_reliance",
+  "status": "WITHHELD",
+  "ranking": [
+    "promise_reliance",
+    "conditional_outcome",
+    "omission_harm"
+  ],
+  "left_out": [
+    "exclusive_allocation",
+    "rescue_contrast",
+    "ability_permission",
+    "diversion_redirection",
+    "deontic_rule",
+    "uncertain_risk",
+    "disputed_report"
+  ],
+  "question": {
+    "ethical_question": "",
+    "scenario_options": [],
+    "exclusivity": "unspecified",
+    "participants": [
+      {
+        "role": "subject",
+        "mention": "Ada",
+        "predicate": "promised"
+      },
+      {
+        "role": "object",
+        "mention": "Ben",
+        "predicate": "promised"
+      },
+      {
+        "role": "subject",
+        "mention": "Ada",
+        "predicate": "deliver"
+      },
+      {
+        "role": "object",
+        "mention": "the medicine",
+        "predicate": "deliver"
+      }
+    ],
+    "eligible_for_world_state": false
+  },
+  "world_withheld": [
+    "promise_reliance has an evidence plan but no Parliament 1.3 graph builder yet."
+  ],
+  "considered": [
+    {
+      "blueprint_id": "promise_reliance",
+      "graph_builder": "plan_only",
+      "status": "FILLED",
+      "rank": 0,
+      "core_filled": 4,
+      "core_count": 4,
+      "optional_filled": 0,
+      "rejected": 0,
+      "coverage_metrics": {
+        "required_filled": 4,
+        "required_total": 4,
+        "optional_filled": 0,
+        "optional_total": 2,
+        "rejected_evidence": 0,
+        "unsupported_atoms": 0,
+        "unresolved_readings": 1
+      },
+      "unfilled": [
+        "reliance",
+        "breach"
+      ],
+      "unresolved_slots": [
+        "reliance",
+        "breach"
+      ],
+      "accepted_evidence": {
+        "promisor": "Ada",
+        "commitment_event": "Ada promised Ben that Ada would deliver the medicine",
+        "commitment_content": "that Ada would deliver the medicine",
+        "promisee": "Ben"
+      },
+      "slots": {
+        "promisor": "Ada",
+        "commitment_event": "Ada promised Ben that Ada would deliver the medicine",
+        "commitment_content": "that Ada would deliver the medicine",
+        "promisee": "Ben"
+      },
+      "items": [
+        {
+          "id": "promisor",
+          "core": true,
+          "sentence": "The person who makes the promise or commitment is",
+          "completion": "Ada",
+          "span": "Ada",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "commitment_event",
+          "core": true,
+          "sentence": "The copied promise or commitment event is",
+          "completion": "Ada promised Ben that Ada would deliver the medicine.",
+          "span": "Ada promised Ben that Ada would deliver the medicine",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "commitment_content",
+          "core": true,
+          "sentence": "What the promisor commits to do is",
+          "completion": "that Ada would deliver the medicine",
+          "span": "that Ada would deliver the medicine",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "promisee",
+          "core": true,
+          "sentence": "The party to whom the commitment is made is",
+          "completion": "Ben",
+          "span": "Ben",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "reliance",
+          "core": false,
+          "sentence": "What the text says someone relies on is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "breach",
+          "core": false,
+          "sentence": "The copied breach or failure to perform is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        }
+      ]
+    },
+    {
+      "blueprint_id": "conditional_outcome",
+      "graph_builder": "implemented",
+      "status": "PARTIAL",
+      "rank": 1,
+      "core_filled": 2,
+      "core_count": 3,
+      "optional_filled": 1,
+      "rejected": 1,
+      "coverage_metrics": {
+        "required_filled": 2,
+        "required_total": 3,
+        "optional_filled": 1,
+        "optional_total": 5,
+        "rejected_evidence": 1,
+        "unsupported_atoms": 0,
+        "unresolved_readings": 0
+      },
+      "unfilled": [
+        "condition",
+        "second_condition",
+        "second_bearer",
+        "second_outcome",
+        "chance"
+      ],
+      "unresolved_slots": [
+        "condition",
+        "second_condition",
+        "second_bearer",
+        "second_outcome",
+        "chance"
+      ],
+      "accepted_evidence": {
+        "actor": "Ada",
+        "bearer": "Ben",
+        "outcome": "the medicine"
+      },
+      "slots": {
+        "actor": "Ada",
+        "bearer": "Ben",
+        "outcome": "the medicine"
+      },
+      "items": [
+        {
+          "id": "actor",
+          "core": false,
+          "sentence": "The person whose action an outcome depends on is",
+          "completion": "Ada",
+          "span": "Ada",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "condition",
+          "core": true,
+          "sentence": "The if-clause the outcome depends on is",
+          "completion": "Ada would deliver the medicine",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "bearer",
+          "core": true,
+          "sentence": "The party that outcome happens to is",
+          "completion": "Ben",
+          "span": "Ben",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "outcome",
+          "core": true,
+          "sentence": "The outcome stated for that party is",
+          "completion": "the medicine",
+          "span": "the medicine",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_condition",
+          "core": false,
+          "sentence": "The second if-clause, distinct from the first, is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "second_bearer",
+          "core": false,
+          "sentence": "The party the second outcome happens to is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "second_outcome",
+          "core": false,
+          "sentence": "The outcome stated for that second party is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "chance",
+          "core": false,
+          "sentence": "A stated chance attached to an outcome is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        }
+      ]
+    },
+    {
+      "blueprint_id": "omission_harm",
+      "graph_builder": "implemented",
+      "status": "PARTIAL",
+      "rank": 2,
+      "core_filled": 2,
+      "core_count": 5,
+      "optional_filled": 0,
+      "rejected": 0,
+      "coverage_metrics": {
+        "required_filled": 2,
+        "required_total": 5,
+        "optional_filled": 0,
+        "optional_total": 4,
+        "rejected_evidence": 0,
+        "unsupported_atoms": 0,
+        "unresolved_readings": 0
+      },
+      "unfilled": [
+        "omitted",
+        "harm_done",
+        "harm_omitted",
+        "done_hedge",
+        "omitted_hedge",
+        "group_counts",
+        "instrument"
+      ],
+      "unresolved_slots": [
+        "omitted",
+        "harm_done",
+        "harm_omitted",
+        "done_hedge",
+        "omitted_hedge",
+        "group_counts",
+        "instrument"
+      ],
+      "accepted_evidence": {
+        "actor": "Ada",
+        "done": "deliver the medicine"
+      },
+      "slots": {
+        "actor": "Ada",
+        "done": "deliver the medicine"
+      },
+      "items": [
+        {
+          "id": "actor",
+          "core": true,
+          "sentence": "The person who may do the action or not do it is",
+          "completion": "Ada",
+          "span": "Ada",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "done",
+          "core": true,
+          "sentence": "The action the text says is done is",
+          "completion": "deliver the medicine",
+          "span": "deliver the medicine",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "omitted",
+          "core": true,
+          "sentence": "The copied non-action branch, including the word not, is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "harm_done",
+          "core": true,
+          "sentence": "The stated harmful outcome if the action is done is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "harm_omitted",
+          "core": true,
+          "sentence": "The stated harmful outcome if the action is not done is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "done_hedge",
+          "core": false,
+          "sentence": "The conditional words attached to the harm from doing the action are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "omitted_hedge",
+          "core": false,
+          "sentence": "The conditional words attached to the harm from not doing the action are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "group_counts",
+          "core": false,
+          "sentence": "One copied group count in a harmful outcome is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "instrument",
+          "core": false,
+          "sentence": "The contrasting instrument named after but not is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        }
+      ]
+    }
+  ],
+  "proposals": [
+    {
+      "proposal_contract_version": "blueprint-proposal-contract/0.2",
+      "proposal_id": "promise_reliance_cloze",
+      "blueprint_id": "promise_reliance",
+      "status": "WITHHELD",
+      "assignment_kind": "none",
+      "assignment": [],
+      "slot_bindings": {
+        "copied_spans": {
+          "promisor": "Ada",
+          "commitment_event": "Ada promised Ben that Ada would deliver the medicine",
+          "commitment_content": "that Ada would deliver the medicine",
+          "promisee": "Ben"
+        }
+      },
+      "selection": null,
+      "selection_validation": {
+        "contract_valid": null,
+        "status": "not_assessed",
+        "reason": "No Z10 candidate selection was constructed."
+      },
+      "candidate": null,
+      "clauses": [
+        {
+          "clause_id": "C0",
+          "text": "Ada promised Ben that Ada would deliver the medicine."
+        }
+      ],
+      "unfilled_required_slots": [],
+      "unresolved_readings": [
+        {
+          "kind": "commitment_status",
+          "status": "not_world_occurrence"
+        }
+      ],
+      "construction_problems": [
+        {
+          "code": "world_withheld",
+          "message": "promise_reliance has an evidence plan but no Parliament 1.3 graph builder yet."
+        }
+      ],
+      "admission_authorized": false,
+      "notes": [],
+      "pre_world_assessment": {
+        "ethical_question": "",
+        "scenario_options": [],
+        "exclusivity": "unspecified",
+        "participants": [
+          {
+            "role": "subject",
+            "mention": "Ada",
+            "predicate": "promised"
+          },
+          {
+            "role": "object",
+            "mention": "Ben",
+            "predicate": "promised"
+          },
+          {
+            "role": "subject",
+            "mention": "Ada",
+            "predicate": "deliver"
+          },
+          {
+            "role": "object",
+            "mention": "the medicine",
+            "predicate": "deliver"
+          }
+        ],
+        "status": "WITHHELD",
+        "eligible_for_world_state": false
+      },
+      "accepted_evidence": {
+        "promisor": "Ada",
+        "commitment_event": "Ada promised Ben that Ada would deliver the medicine",
+        "commitment_content": "that Ada would deliver the medicine",
+        "promisee": "Ben"
+      },
+      "world_withheld": [
+        "promise_reliance has an evidence plan but no Parliament 1.3 graph builder yet."
+      ]
+    }
+  ],
+  "graph": null
+}

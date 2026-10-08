@@ -1,0 +1,418 @@
+{
+  "analysis_date": "2026-10-01",
+  "parser_version": "Z10 + narrow bare-both guard",
+  "choice_quantifier_modified": true,
+  "existing_regression_suite": {
+    "tests": 66,
+    "passed": 66
+  },
+  "summary": {
+    "choice_quantifier": {
+      "cases": 7,
+      "passed": 7,
+      "failed": 0
+    },
+    "gapping": {
+      "cases": 1,
+      "passed": 1,
+      "failed": 0
+    },
+    "negative_control": {
+      "cases": 2,
+      "passed": 2,
+      "failed": 0
+    },
+    "sluicing": {
+      "cases": 1,
+      "passed": 1,
+      "failed": 0
+    },
+    "stripping": {
+      "cases": 5,
+      "passed": 5,
+      "failed": 0
+    },
+    "verb_phrase_ellipsis": {
+      "cases": 2,
+      "passed": 2,
+      "failed": 0
+    }
+  },
+  "cases": [
+    {
+      "id": "exclusive_choice_simple",
+      "category": "choice_quantifier",
+      "text": "Lila can give the medicine to either Omar or Nora, but not both.",
+      "expected": {
+        "stripping_reconstruction": false,
+        "gate": null
+      },
+      "observed": {
+        "gate": "not_a_verb_phrase_remnant",
+        "proposal_count": 0,
+        "stripping_reconstruction_count": 0,
+        "remnants": [],
+        "missing_representation_questions": [
+          "Stripping: identify the missing predicate, contrast role, unchanged participants and negation scope."
+        ]
+      },
+      "passes_expected_behavior": true
+    },
+    {
+      "id": "exclusive_choice_doctor",
+      "category": "choice_quantifier",
+      "text": "Dr. Reed must give the injector to either Sora or Malik, but not both.",
+      "expected": {
+        "stripping_reconstruction": false,
+        "gate": null
+      },
+      "observed": {
+        "gate": "not_a_verb_phrase_remnant",
+        "proposal_count": 0,
+        "stripping_reconstruction_count": 0,
+        "remnants": [],
+        "missing_representation_questions": [
+          "Stripping: identify the missing predicate, contrast role, unchanged participants and negation scope."
+        ]
+      },
+      "passes_expected_behavior": true
+    },
+    {
+      "id": "exclusive_choice_conjoined_np",
+      "category": "choice_quantifier",
+      "text": "Maria may save either the child or the dog, but not both.",
+      "expected": {
+        "stripping_reconstruction": false,
+        "gate": null
+      },
+      "observed": {
+        "gate": "not_a_verb_phrase_remnant",
+        "proposal_count": 0,
+        "stripping_reconstruction_count": 0,
+        "remnants": [],
+        "missing_representation_questions": [
+          "Stripping: identify the missing predicate, contrast role, unchanged participants and negation scope."
+        ]
+      },
+      "passes_expected_behavior": true
+    },
+    {
+      "id": "exclusive_choice_no_modal",
+      "category": "choice_quantifier",
+      "text": "The team selected either plan A or plan B, but not both.",
+      "expected": {
+        "stripping_reconstruction": false,
+        "gate": null
+      },
+      "observed": {
+        "gate": "not_a_verb_phrase_remnant",
+        "proposal_count": 0,
+        "stripping_reconstruction_count": 0,
+        "remnants": [],
+        "missing_representation_questions": [
+          "Stripping: identify the missing predicate, contrast role, unchanged participants and negation scope."
+        ]
+      },
+      "passes_expected_behavior": true
+    },
+    {
+      "id": "exclusive_choice_semicolon",
+      "category": "choice_quantifier",
+      "text": "Lila can give the medicine to Omar or Nora; but not both.",
+      "expected": {
+        "stripping_reconstruction": false,
+        "gate": null
+      },
+      "observed": {
+        "gate": "not_a_verb_phrase_remnant",
+        "proposal_count": 0,
+        "stripping_reconstruction_count": 0,
+        "remnants": [],
+        "missing_representation_questions": [
+          "Stripping: identify the missing predicate, contrast role, unchanged participants and negation scope."
+        ]
+      },
+      "passes_expected_behavior": true
+    },
+    {
+      "id": "exclusive_choice_extra_space",
+      "category": "choice_quantifier",
+      "text": "Lila can give the medicine to either Omar or Nora,  but not both.",
+      "expected": {
+        "stripping_reconstruction": false,
+        "gate": null
+      },
+      "observed": {
+        "gate": "not_a_verb_phrase_remnant",
+        "proposal_count": 0,
+        "stripping_reconstruction_count": 0,
+        "remnants": [],
+        "missing_representation_questions": [
+          "Stripping: identify the missing predicate, contrast role, unchanged participants and negation scope."
+        ]
+      },
+      "passes_expected_behavior": true
+    },
+    {
+      "id": "exclusive_choice_newline",
+      "category": "choice_quantifier",
+      "text": "Lila can give the medicine to either Omar or Nora,\nbut not both.",
+      "expected": {
+        "stripping_reconstruction": false,
+        "gate": null
+      },
+      "observed": {
+        "gate": "not_a_verb_phrase_remnant",
+        "proposal_count": 0,
+        "stripping_reconstruction_count": 0,
+        "remnants": [],
+        "missing_representation_questions": [
+          "Stripping: identify the missing predicate, contrast role, unchanged participants and negation scope."
+        ]
+      },
+      "passes_expected_behavior": true
+    },
+    {
+      "id": "genuine_object_stripping",
+      "category": "stripping",
+      "text": "Maria can save the child, but not the dog.",
+      "expected": {
+        "stripping_reconstruction": true,
+        "gate": "stripping_not_nominal"
+      },
+      "observed": {
+        "gate": "stripping_not_nominal",
+        "proposal_count": 1,
+        "stripping_reconstruction_count": 1,
+        "remnants": [
+          {
+            "text": "the dog",
+            "role": "object"
+          }
+        ],
+        "missing_representation_questions": [
+          "Stripping: identify the missing predicate, contrast role, unchanged participants and negation scope.",
+          "This nominal after not is an unresolved negative copy of the earlier verb."
+        ]
+      },
+      "passes_expected_behavior": true
+    },
+    {
+      "id": "genuine_destination_stripping",
+      "category": "stripping",
+      "text": "John went to the theater, but not to the park.",
+      "expected": {
+        "stripping_reconstruction": true,
+        "gate": "stripping_not_nominal"
+      },
+      "observed": {
+        "gate": "stripping_not_nominal",
+        "proposal_count": 1,
+        "stripping_reconstruction_count": 1,
+        "remnants": [
+          {
+            "text": "to the park",
+            "role": "destination"
+          }
+        ],
+        "missing_representation_questions": [
+          "Stripping: identify the missing predicate, contrast role, unchanged participants and negation scope.",
+          "This nominal after not is an unresolved negative copy of the earlier verb."
+        ]
+      },
+      "passes_expected_behavior": true
+    },
+    {
+      "id": "genuine_recipient_ambiguous",
+      "category": "stripping",
+      "text": "Lila gives Omar the medicine, but not Nora.",
+      "expected": {
+        "stripping_reconstruction": true,
+        "gate": "stripping_not_nominal"
+      },
+      "observed": {
+        "gate": "stripping_not_nominal",
+        "proposal_count": 2,
+        "stripping_reconstruction_count": 3,
+        "remnants": [
+          {
+            "text": "Nora",
+            "role": "destination"
+          },
+          {
+            "text": "Nora",
+            "role": "object"
+          }
+        ],
+        "missing_representation_questions": [
+          "Stripping: identify the missing predicate, contrast role, unchanged participants and negation scope."
+        ]
+      },
+      "passes_expected_behavior": true
+    },
+    {
+      "id": "both_in_antecedent_then_stripping",
+      "category": "stripping",
+      "text": "Maria saved both children, but not the dog.",
+      "expected": {
+        "stripping_reconstruction": true,
+        "gate": "stripping_not_nominal"
+      },
+      "observed": {
+        "gate": "stripping_not_nominal",
+        "proposal_count": 1,
+        "stripping_reconstruction_count": 1,
+        "remnants": [
+          {
+            "text": "the dog",
+            "role": "object"
+          }
+        ],
+        "missing_representation_questions": [
+          "Stripping: identify the missing predicate, contrast role, unchanged participants and negation scope.",
+          "This nominal after not is an unresolved negative copy of the earlier verb."
+        ]
+      },
+      "passes_expected_behavior": true
+    },
+    {
+      "id": "both_inside_remnant_np",
+      "category": "stripping",
+      "text": "Maria invited Ana and Ben, but not both parents.",
+      "expected": {
+        "stripping_reconstruction": true,
+        "gate": "stripping_not_nominal"
+      },
+      "observed": {
+        "gate": "stripping_not_nominal",
+        "proposal_count": 1,
+        "stripping_reconstruction_count": 1,
+        "remnants": [
+          {
+            "text": "both parents",
+            "role": "object"
+          }
+        ],
+        "missing_representation_questions": [
+          "Stripping: identify the missing predicate, contrast role, unchanged participants and negation scope.",
+          "This nominal after not is an unresolved negative copy of the earlier verb."
+        ]
+      },
+      "passes_expected_behavior": true
+    },
+    {
+      "id": "vp_ellipsis_positive",
+      "category": "verb_phrase_ellipsis",
+      "text": "Maria saved the child, and Anna did too.",
+      "expected": {
+        "stripping_reconstruction": false,
+        "gate": "verb_phrase"
+      },
+      "observed": {
+        "gate": "verb_phrase",
+        "proposal_count": 1,
+        "stripping_reconstruction_count": 0,
+        "remnants": [],
+        "missing_representation_questions": [
+          "Verb-phrase ellipsis: the auxiliary/remnant lacks an exported predicate and participant reconstruction; resolve its antecedent and local scope."
+        ]
+      },
+      "passes_expected_behavior": true
+    },
+    {
+      "id": "vp_ellipsis_negative",
+      "category": "verb_phrase_ellipsis",
+      "text": "Maria saved the child, but Anna did not.",
+      "expected": {
+        "stripping_reconstruction": false,
+        "gate": "verb_phrase"
+      },
+      "observed": {
+        "gate": "verb_phrase",
+        "proposal_count": 1,
+        "stripping_reconstruction_count": 0,
+        "remnants": [],
+        "missing_representation_questions": [
+          "Verb-phrase ellipsis: the auxiliary/remnant lacks an exported predicate and participant reconstruction; resolve its antecedent and local scope."
+        ]
+      },
+      "passes_expected_behavior": true
+    },
+    {
+      "id": "gapping",
+      "category": "gapping",
+      "text": "Maria ate rice, and Anna beans.",
+      "expected": {
+        "stripping_reconstruction": false,
+        "gate": "not_a_verb_phrase_remnant"
+      },
+      "observed": {
+        "gate": "not_a_verb_phrase_remnant",
+        "proposal_count": 0,
+        "stripping_reconstruction_count": 0,
+        "remnants": [],
+        "missing_representation_questions": [
+          "Possible gapping: identify the omitted predicate and align both remaining participants with their antecedent roles."
+        ]
+      },
+      "passes_expected_behavior": true
+    },
+    {
+      "id": "sluicing",
+      "category": "sluicing",
+      "text": "Someone left, but I do not know who.",
+      "expected": {
+        "stripping_reconstruction": false,
+        "gate": "not_a_verb_phrase_remnant"
+      },
+      "observed": {
+        "gate": "not_a_verb_phrase_remnant",
+        "proposal_count": 0,
+        "stripping_reconstruction_count": 0,
+        "remnants": [],
+        "missing_representation_questions": [
+          "Possible sluicing: recover the question content and antecedent of the wh-remnant; do not treat it as a complete ordinary object."
+        ]
+      },
+      "passes_expected_behavior": true
+    },
+    {
+      "id": "not_both_without_tail_remnant",
+      "category": "negative_control",
+      "text": "Maria did not save both the child and the dog.",
+      "expected": {
+        "stripping_reconstruction": false,
+        "gate": null
+      },
+      "observed": {
+        "gate": null,
+        "proposal_count": 0,
+        "stripping_reconstruction_count": 0,
+        "remnants": [],
+        "missing_representation_questions": [
+          "Review unrepresented semantics and scope, including attribution, choice and entailment."
+        ]
+      },
+      "passes_expected_behavior": true
+    },
+    {
+      "id": "full_clause_not_both",
+      "category": "negative_control",
+      "text": "Maria can save either child or dog, but she cannot save both.",
+      "expected": {
+        "stripping_reconstruction": false,
+        "gate": null
+      },
+      "observed": {
+        "gate": null,
+        "proposal_count": 0,
+        "stripping_reconstruction_count": 0,
+        "remnants": [],
+        "missing_representation_questions": [
+          "Review unrepresented semantics and scope, including attribution, choice and entailment."
+        ]
+      },
+      "passes_expected_behavior": true
+    }
+  ]
+}

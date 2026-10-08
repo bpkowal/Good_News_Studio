@@ -1,0 +1,1337 @@
+{
+  "version": "primitive-composition/0.1",
+  "package_id": "blueprint_run_8f3f9adcf704",
+  "constructions": [
+    {
+      "type": "choice",
+      "choice_set_id": "choice7",
+      "selection_rule": "any_subset",
+      "exhaustive": false,
+      "evidence_ids": [
+        "e9",
+        "e10",
+        "e11"
+      ],
+      "options": [
+        {
+          "candidate_id": "c43",
+          "arguments": {
+            "proposition": "p12",
+            "choice_point": "kif12"
+          },
+          "scope": {
+            "polarity": "positive",
+            "contexts": [
+              {
+                "kind": "hypothetical",
+                "evidence_ids": [
+                  "e9"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "candidate_id": "c44",
+          "arguments": {
+            "proposition": "p25",
+            "choice_point": "kif12"
+          },
+          "scope": {
+            "polarity": "negative",
+            "contexts": [
+              {
+                "kind": "hypothetical",
+                "evidence_ids": [
+                  "e10"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "candidate_id": "c45",
+          "arguments": {
+            "proposition": "p36",
+            "choice_point": "kif12"
+          },
+          "scope": {
+            "polarity": "positive",
+            "contexts": [
+              {
+                "kind": "hypothetical",
+                "evidence_ids": [
+                  "e11"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "type": "conditional_outcome",
+      "branch": {
+        "actor": "Maria",
+        "condition": "If Maria pulls the lever",
+        "bearer": "one worker",
+        "outcome": "one worker will die",
+        "candidate_id": "c8"
+      },
+      "candidate_ids": [
+        "c8"
+      ],
+      "requires": [
+        "c3",
+        "c2",
+        "c20",
+        "c21"
+      ],
+      "evidence_ids": [
+        "e9"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": []
+      }
+    },
+    {
+      "type": "conditional_outcome",
+      "branch": {
+        "actor": "Maria",
+        "condition": "If Maria does not pull the lever",
+        "bearer": "five workers",
+        "outcome": "five workers will die",
+        "candidate_id": "c9"
+      },
+      "candidate_ids": [
+        "c9"
+      ],
+      "requires": [
+        "c5",
+        "c4",
+        "c23",
+        "c24"
+      ],
+      "evidence_ids": [
+        "e10"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": []
+      }
+    },
+    {
+      "type": "conditional_outcome",
+      "branch": {
+        "actor": "Maria",
+        "condition": "If Maria pulls the lever",
+        "bearer": "the warning signal",
+        "outcome": "the warning signal will stop",
+        "candidate_id": "c10",
+        "construction": "physical_state",
+        "predicate": "stop"
+      },
+      "candidate_ids": [
+        "c10"
+      ],
+      "requires": [
+        "c7",
+        "c6",
+        "c26",
+        "c27"
+      ],
+      "evidence_ids": [
+        "e11"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": []
+      }
+    }
+  ],
+  "branches": [
+    {
+      "actor": "Maria",
+      "condition": "If Maria pulls the lever",
+      "bearer": "one worker",
+      "outcome": "one worker will die",
+      "candidate_id": "c8"
+    },
+    {
+      "actor": "Maria",
+      "condition": "If Maria does not pull the lever",
+      "bearer": "five workers",
+      "outcome": "five workers will die",
+      "candidate_id": "c9"
+    },
+    {
+      "actor": "Maria",
+      "condition": "If Maria pulls the lever",
+      "bearer": "the warning signal",
+      "outcome": "the warning signal will stop",
+      "candidate_id": "c10",
+      "construction": "physical_state",
+      "predicate": "stop"
+    }
+  ],
+  "supporting_candidates": [
+    {
+      "id": "c2",
+      "type": "PREDICATION",
+      "arguments": {
+        "proposition": "p12"
+      },
+      "value": null,
+      "evidence_ids": [
+        "e2"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "hypothetical",
+            "evidence_ids": [
+              "e9"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [],
+      "exclusive_with": []
+    },
+    {
+      "id": "c3",
+      "type": "PREDICATION",
+      "arguments": {
+        "proposition": "p19"
+      },
+      "value": null,
+      "evidence_ids": [
+        "e3"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "conditional",
+            "condition_proposition_id": "p12",
+            "evidence_ids": [
+              "e9"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c2",
+        "c20",
+        "c21"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c4",
+      "type": "PREDICATION",
+      "arguments": {
+        "proposition": "p25"
+      },
+      "value": null,
+      "evidence_ids": [
+        "e4",
+        "e8"
+      ],
+      "scope": {
+        "polarity": "negative",
+        "contexts": [
+          {
+            "kind": "hypothetical",
+            "evidence_ids": [
+              "e10"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [],
+      "exclusive_with": []
+    },
+    {
+      "id": "c5",
+      "type": "PREDICATION",
+      "arguments": {
+        "proposition": "p32"
+      },
+      "value": null,
+      "evidence_ids": [
+        "e5"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "conditional",
+            "condition_proposition_id": "p25",
+            "evidence_ids": [
+              "e10"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c4",
+        "c23",
+        "c24"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c6",
+      "type": "PREDICATION",
+      "arguments": {
+        "proposition": "p36"
+      },
+      "value": null,
+      "evidence_ids": [
+        "e6"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "hypothetical",
+            "evidence_ids": [
+              "e11"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [],
+      "exclusive_with": []
+    },
+    {
+      "id": "c7",
+      "type": "PREDICATION",
+      "arguments": {
+        "proposition": "p44"
+      },
+      "value": null,
+      "evidence_ids": [
+        "e7"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "conditional",
+            "condition_proposition_id": "p36",
+            "evidence_ids": [
+              "e11"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c6",
+        "c26",
+        "c27"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c8",
+      "type": "CONDITIONAL_ON",
+      "arguments": {
+        "consequence": "p19",
+        "condition": "p12"
+      },
+      "value": null,
+      "evidence_ids": [
+        "e9"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": []
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c3",
+        "c2",
+        "c20",
+        "c21"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c9",
+      "type": "CONDITIONAL_ON",
+      "arguments": {
+        "consequence": "p32",
+        "condition": "p25"
+      },
+      "value": null,
+      "evidence_ids": [
+        "e10"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": []
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c5",
+        "c4",
+        "c23",
+        "c24"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c10",
+      "type": "CONDITIONAL_ON",
+      "arguments": {
+        "consequence": "p44",
+        "condition": "p36"
+      },
+      "value": null,
+      "evidence_ids": [
+        "e11"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": []
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c7",
+        "c6",
+        "c26",
+        "c27"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c20",
+      "type": "PARTICIPANT",
+      "arguments": {
+        "proposition": "p12",
+        "mention": "m11"
+      },
+      "value": "subject",
+      "evidence_ids": [
+        "e21"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "hypothetical",
+            "evidence_ids": [
+              "e9"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c2"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c21",
+      "type": "PARTICIPANT",
+      "arguments": {
+        "proposition": "p12",
+        "mention": "m14"
+      },
+      "value": "object",
+      "evidence_ids": [
+        "e23"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "hypothetical",
+            "evidence_ids": [
+              "e9"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c2"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c23",
+      "type": "PARTICIPANT",
+      "arguments": {
+        "proposition": "p25",
+        "mention": "m22"
+      },
+      "value": "subject",
+      "evidence_ids": [
+        "e26"
+      ],
+      "scope": {
+        "polarity": "negative",
+        "contexts": [
+          {
+            "kind": "hypothetical",
+            "evidence_ids": [
+              "e10"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c4"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c24",
+      "type": "PARTICIPANT",
+      "arguments": {
+        "proposition": "p25",
+        "mention": "m27"
+      },
+      "value": "object",
+      "evidence_ids": [
+        "e28"
+      ],
+      "scope": {
+        "polarity": "negative",
+        "contexts": [
+          {
+            "kind": "hypothetical",
+            "evidence_ids": [
+              "e10"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c4"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c26",
+      "type": "PARTICIPANT",
+      "arguments": {
+        "proposition": "p36",
+        "mention": "m35"
+      },
+      "value": "subject",
+      "evidence_ids": [
+        "e31"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "hypothetical",
+            "evidence_ids": [
+              "e11"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c6"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c27",
+      "type": "PARTICIPANT",
+      "arguments": {
+        "proposition": "p36",
+        "mention": "m38"
+      },
+      "value": "object",
+      "evidence_ids": [
+        "e33"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "hypothetical",
+            "evidence_ids": [
+              "e11"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c6"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c43",
+      "type": "OPTION_OF",
+      "arguments": {
+        "proposition": "p12",
+        "choice_point": "kif12"
+      },
+      "value": null,
+      "evidence_ids": [
+        "e9",
+        "e10",
+        "e11"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "hypothetical",
+            "evidence_ids": [
+              "e9"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "attested_conditional_alternatives",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c2",
+        "c8"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c44",
+      "type": "OPTION_OF",
+      "arguments": {
+        "proposition": "p25",
+        "choice_point": "kif12"
+      },
+      "value": null,
+      "evidence_ids": [
+        "e9",
+        "e10",
+        "e11"
+      ],
+      "scope": {
+        "polarity": "negative",
+        "contexts": [
+          {
+            "kind": "hypothetical",
+            "evidence_ids": [
+              "e10"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "attested_conditional_alternatives",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c4",
+        "c9"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c45",
+      "type": "OPTION_OF",
+      "arguments": {
+        "proposition": "p36",
+        "choice_point": "kif12"
+      },
+      "value": null,
+      "evidence_ids": [
+        "e9",
+        "e10",
+        "e11"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "hypothetical",
+            "evidence_ids": [
+              "e11"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "attested_conditional_alternatives",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c6",
+        "c10"
+      ],
+      "exclusive_with": []
+    }
+  ],
+  "nodes": [
+    {
+      "id": "p2",
+      "kind": "proposition",
+      "label": "pull",
+      "predicate": "pull",
+      "evidence_ids": [
+        "e0"
+      ],
+      "predicate_evidence_ids": [
+        "e0"
+      ]
+    },
+    {
+      "id": "p6",
+      "kind": "proposition",
+      "label": "press",
+      "predicate": "press",
+      "evidence_ids": [
+        "e1"
+      ],
+      "predicate_evidence_ids": [
+        "e1"
+      ]
+    },
+    {
+      "id": "p12",
+      "kind": "proposition",
+      "label": "pulls",
+      "predicate": "pull",
+      "evidence_ids": [
+        "e2"
+      ],
+      "predicate_evidence_ids": [
+        "e2"
+      ]
+    },
+    {
+      "id": "p19",
+      "kind": "proposition",
+      "label": "die",
+      "predicate": "die",
+      "evidence_ids": [
+        "e3"
+      ],
+      "predicate_evidence_ids": [
+        "e3"
+      ]
+    },
+    {
+      "id": "p25",
+      "kind": "proposition",
+      "label": "pull",
+      "predicate": "pull",
+      "evidence_ids": [
+        "e4"
+      ],
+      "predicate_evidence_ids": [
+        "e4"
+      ]
+    },
+    {
+      "id": "p32",
+      "kind": "proposition",
+      "label": "die",
+      "predicate": "die",
+      "evidence_ids": [
+        "e5"
+      ],
+      "predicate_evidence_ids": [
+        "e5"
+      ]
+    },
+    {
+      "id": "p36",
+      "kind": "proposition",
+      "label": "pulls",
+      "predicate": "pull",
+      "evidence_ids": [
+        "e6"
+      ],
+      "predicate_evidence_ids": [
+        "e6"
+      ]
+    },
+    {
+      "id": "p44",
+      "kind": "proposition",
+      "label": "stop",
+      "predicate": "stop",
+      "evidence_ids": [
+        "e7"
+      ],
+      "predicate_evidence_ids": [
+        "e7"
+      ]
+    },
+    {
+      "id": "m0",
+      "kind": "mention",
+      "label": "Maria",
+      "evidence_ids": [
+        "e16"
+      ]
+    },
+    {
+      "id": "m4",
+      "kind": "mention",
+      "label": "the lever",
+      "evidence_ids": [
+        "e17"
+      ]
+    },
+    {
+      "id": "m8",
+      "kind": "mention",
+      "label": "the button",
+      "evidence_ids": [
+        "e19"
+      ]
+    },
+    {
+      "id": "m11",
+      "kind": "mention",
+      "label": "Maria",
+      "evidence_ids": [
+        "e21"
+      ]
+    },
+    {
+      "id": "m14",
+      "kind": "mention",
+      "label": "the lever",
+      "evidence_ids": [
+        "e22"
+      ]
+    },
+    {
+      "id": "m17",
+      "kind": "mention",
+      "label": "one worker",
+      "evidence_ids": [
+        "e24"
+      ]
+    },
+    {
+      "id": "m22",
+      "kind": "mention",
+      "label": "Maria",
+      "evidence_ids": [
+        "e26"
+      ]
+    },
+    {
+      "id": "m27",
+      "kind": "mention",
+      "label": "the lever",
+      "evidence_ids": [
+        "e27"
+      ]
+    },
+    {
+      "id": "m30",
+      "kind": "mention",
+      "label": "five workers",
+      "evidence_ids": [
+        "e29"
+      ]
+    },
+    {
+      "id": "m35",
+      "kind": "mention",
+      "label": "Maria",
+      "evidence_ids": [
+        "e31"
+      ]
+    },
+    {
+      "id": "m38",
+      "kind": "mention",
+      "label": "the lever",
+      "evidence_ids": [
+        "e32"
+      ]
+    },
+    {
+      "id": "m42",
+      "kind": "mention",
+      "label": "the warning signal",
+      "evidence_ids": [
+        "e34"
+      ]
+    },
+    {
+      "id": "kif12",
+      "kind": "choice_point",
+      "label": "pulls / not pull / pulls",
+      "evidence_ids": [
+        "e9",
+        "e10",
+        "e11"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "e0",
+      "start": 10,
+      "end": 14,
+      "text": "pull"
+    },
+    {
+      "id": "e1",
+      "start": 28,
+      "end": 33,
+      "text": "press"
+    },
+    {
+      "id": "e2",
+      "start": 55,
+      "end": 60,
+      "text": "pulls"
+    },
+    {
+      "id": "e3",
+      "start": 88,
+      "end": 91,
+      "text": "die"
+    },
+    {
+      "id": "e4",
+      "start": 111,
+      "end": 115,
+      "text": "pull"
+    },
+    {
+      "id": "e5",
+      "start": 145,
+      "end": 148,
+      "text": "die"
+    },
+    {
+      "id": "e6",
+      "start": 159,
+      "end": 164,
+      "text": "pulls"
+    },
+    {
+      "id": "e7",
+      "start": 200,
+      "end": 204,
+      "text": "stop"
+    },
+    {
+      "id": "e8",
+      "start": 107,
+      "end": 110,
+      "text": "not"
+    },
+    {
+      "id": "e9",
+      "start": 46,
+      "end": 48,
+      "text": "If"
+    },
+    {
+      "id": "e10",
+      "start": 93,
+      "end": 95,
+      "text": "If"
+    },
+    {
+      "id": "e11",
+      "start": 150,
+      "end": 152,
+      "text": "If"
+    },
+    {
+      "id": "e12",
+      "start": 6,
+      "end": 9,
+      "text": "can"
+    },
+    {
+      "id": "e13",
+      "start": 83,
+      "end": 87,
+      "text": "will"
+    },
+    {
+      "id": "e14",
+      "start": 140,
+      "end": 144,
+      "text": "will"
+    },
+    {
+      "id": "e15",
+      "start": 195,
+      "end": 199,
+      "text": "will"
+    },
+    {
+      "id": "e16",
+      "start": 0,
+      "end": 5,
+      "text": "Maria"
+    },
+    {
+      "id": "e17",
+      "start": 15,
+      "end": 24,
+      "text": "the lever"
+    },
+    {
+      "id": "e18",
+      "start": 19,
+      "end": 24,
+      "text": "lever"
+    },
+    {
+      "id": "e19",
+      "start": 34,
+      "end": 44,
+      "text": "the button"
+    },
+    {
+      "id": "e20",
+      "start": 38,
+      "end": 44,
+      "text": "button"
+    },
+    {
+      "id": "e21",
+      "start": 49,
+      "end": 54,
+      "text": "Maria"
+    },
+    {
+      "id": "e22",
+      "start": 61,
+      "end": 70,
+      "text": "the lever"
+    },
+    {
+      "id": "e23",
+      "start": 65,
+      "end": 70,
+      "text": "lever"
+    },
+    {
+      "id": "e24",
+      "start": 72,
+      "end": 82,
+      "text": "one worker"
+    },
+    {
+      "id": "e25",
+      "start": 76,
+      "end": 82,
+      "text": "worker"
+    },
+    {
+      "id": "e26",
+      "start": 96,
+      "end": 101,
+      "text": "Maria"
+    },
+    {
+      "id": "e27",
+      "start": 116,
+      "end": 125,
+      "text": "the lever"
+    },
+    {
+      "id": "e28",
+      "start": 120,
+      "end": 125,
+      "text": "lever"
+    },
+    {
+      "id": "e29",
+      "start": 127,
+      "end": 139,
+      "text": "five workers"
+    },
+    {
+      "id": "e30",
+      "start": 132,
+      "end": 139,
+      "text": "workers"
+    },
+    {
+      "id": "e31",
+      "start": 153,
+      "end": 158,
+      "text": "Maria"
+    },
+    {
+      "id": "e32",
+      "start": 165,
+      "end": 174,
+      "text": "the lever"
+    },
+    {
+      "id": "e33",
+      "start": 169,
+      "end": 174,
+      "text": "lever"
+    },
+    {
+      "id": "e34",
+      "start": 176,
+      "end": 194,
+      "text": "the warning signal"
+    },
+    {
+      "id": "e35",
+      "start": 188,
+      "end": 194,
+      "text": "signal"
+    },
+    {
+      "id": "e36",
+      "start": 72,
+      "end": 75,
+      "text": "one"
+    },
+    {
+      "id": "e37",
+      "start": 127,
+      "end": 131,
+      "text": "five"
+    },
+    {
+      "id": "e38",
+      "start": 0,
+      "end": 45,
+      "text": "Maria can pull the lever or press the button."
+    },
+    {
+      "id": "e39",
+      "start": 46,
+      "end": 92,
+      "text": "If Maria pulls the lever, one worker will die."
+    },
+    {
+      "id": "e40",
+      "start": 93,
+      "end": 149,
+      "text": "If Maria does not pull the lever, five workers will die."
+    },
+    {
+      "id": "e41",
+      "start": 150,
+      "end": 205,
+      "text": "If Maria pulls the lever, the warning signal will stop."
+    }
+  ],
+  "unresolved": [],
+  "limits": "Choice and conditional outcomes; at most two constructed actions. Other Z10 semantics remain in the original package."
+}

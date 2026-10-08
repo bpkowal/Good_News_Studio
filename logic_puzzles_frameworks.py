@@ -93,7 +93,7 @@ def write_outputs(aggregate, output_dir):
     (output_dir/'framework_generation.md').write_text('\n'.join(lines))
 
 
-def generate(trace_path, output_dir, frameworks, backend_factory, *, tokens=3072, core_root=None, core_quotes=None, response_normalizers=None):
+def generate(trace_path, output_dir, frameworks, backend_factory, *, tokens=3072, core_root=None, core_quotes=None, response_normalizers=None, call_budget=2):
     from global_workspace.core_quote_pack import core_pack_for_specialists
     from global_workspace.engine import WorkspaceEngine, WorkspaceConfig
     from global_workspace.epistemic_ledger import seed_proposition_ledger, ledger_projection
@@ -101,6 +101,8 @@ def generate(trace_path, output_dir, frameworks, backend_factory, *, tokens=3072
     from global_workspace.local_specialists import CompactLocalSpecialist, extract_scenario_facts
     from global_workspace.scenario_semantics import compile_scenario_graph
 
+    if call_budget not in (1, 2):
+        raise ValueError('Framework call budget must be one or two')
     frameworks = list(frameworks)
     if not frameworks or len(set(frameworks)) != len(frameworks) or any(f not in FRAMEWORKS for f in frameworks):
         raise ValueError('Choose distinct known frameworks')
@@ -130,7 +132,7 @@ def generate(trace_path, output_dir, frameworks, backend_factory, *, tokens=3072
                  'world_mutation': False, 'shared_input_sha256': fingerprint(shared),
                  'limits': ['Independent generation only; no peer review or collective judgment.',
                             'Native ledger admission does not establish every generated premise.',
-                            'At most two adapter calls per framework; provider retry behavior is unchanged.']}
+                            f'At most {call_budget} adapter calls per framework; provider retry behavior is unchanged.']}
     quotes = (deepcopy(core_quotes) if core_quotes is not None else
               core_pack_for_specialists(frameworks, root=Path(core_root))
               if core_root else core_pack_for_specialists(frameworks))
@@ -140,6 +142,7 @@ def generate(trace_path, output_dir, frameworks, backend_factory, *, tokens=3072
         folder = output_dir/name
         folder.mkdir(parents=True, exist_ok=True)
         recorded = RecordedModel(backend_factory(name), replay.scenario, folder/'model_calls.json',
+                                 max_calls=call_budget,
                                  response_normalizer=(response_normalizers or {}).get(name))
         specialist = CompactLocalSpecialist(
             name, recorded, max_tokens=tokens,

@@ -1,0 +1,4387 @@
+{
+  "scenario": "A clinic has one indivisible dose of medicine. Ada may give the dose to Ben or Cara. If Ben receives it, Ben will recover. If Cara receives it, Cara will recover.",
+  "actions": [],
+  "package": {
+    "schema_version": "0.4",
+    "package_id": "blueprint_run_6d572a87f4ee",
+    "document": {
+      "id": "document",
+      "text": "A clinic has one indivisible dose of medicine. Ada may give the dose to Ben or Cara. If Ben receives it, Ben will recover. If Cara receives it, Cara will recover."
+    },
+    "producer": {
+      "name": "parsing_game_Z10",
+      "version": "Z10",
+      "resources": [
+        {
+          "id": "T_reference_policy",
+          "version": "1",
+          "description": "Curated candidate-generation and ranking policy, not learned probabilities or a complete animacy lexicon."
+        }
+      ]
+    },
+    "evidence": [
+      {
+        "id": "e0",
+        "start": 9,
+        "end": 12,
+        "text": "has"
+      },
+      {
+        "id": "e1",
+        "start": 55,
+        "end": 59,
+        "text": "give"
+      },
+      {
+        "id": "e2",
+        "start": 92,
+        "end": 100,
+        "text": "receives"
+      },
+      {
+        "id": "e3",
+        "start": 114,
+        "end": 121,
+        "text": "recover"
+      },
+      {
+        "id": "e4",
+        "start": 131,
+        "end": 139,
+        "text": "receives"
+      },
+      {
+        "id": "e5",
+        "start": 154,
+        "end": 161,
+        "text": "recover"
+      },
+      {
+        "id": "e6",
+        "start": 85,
+        "end": 87,
+        "text": "If"
+      },
+      {
+        "id": "e7",
+        "start": 123,
+        "end": 125,
+        "text": "If"
+      },
+      {
+        "id": "e8",
+        "start": 51,
+        "end": 54,
+        "text": "may"
+      },
+      {
+        "id": "e9",
+        "start": 109,
+        "end": 113,
+        "text": "will"
+      },
+      {
+        "id": "e10",
+        "start": 149,
+        "end": 153,
+        "text": "will"
+      },
+      {
+        "id": "e11",
+        "start": 0,
+        "end": 8,
+        "text": "A clinic"
+      },
+      {
+        "id": "e12",
+        "start": 2,
+        "end": 8,
+        "text": "clinic"
+      },
+      {
+        "id": "e13",
+        "start": 13,
+        "end": 33,
+        "text": "one indivisible dose"
+      },
+      {
+        "id": "e14",
+        "start": 29,
+        "end": 33,
+        "text": "dose"
+      },
+      {
+        "id": "e15",
+        "start": 47,
+        "end": 50,
+        "text": "Ada"
+      },
+      {
+        "id": "e16",
+        "start": 60,
+        "end": 68,
+        "text": "the dose"
+      },
+      {
+        "id": "e17",
+        "start": 64,
+        "end": 68,
+        "text": "dose"
+      },
+      {
+        "id": "e18",
+        "start": 72,
+        "end": 75,
+        "text": "Ben"
+      },
+      {
+        "id": "e19",
+        "start": 88,
+        "end": 91,
+        "text": "Ben"
+      },
+      {
+        "id": "e20",
+        "start": 101,
+        "end": 103,
+        "text": "it"
+      },
+      {
+        "id": "e21",
+        "start": 105,
+        "end": 108,
+        "text": "Ben"
+      },
+      {
+        "id": "e22",
+        "start": 126,
+        "end": 130,
+        "text": "Cara"
+      },
+      {
+        "id": "e23",
+        "start": 140,
+        "end": 142,
+        "text": "it"
+      },
+      {
+        "id": "e24",
+        "start": 144,
+        "end": 148,
+        "text": "Cara"
+      },
+      {
+        "id": "e25",
+        "start": 79,
+        "end": 83,
+        "text": "Cara"
+      },
+      {
+        "id": "e26",
+        "start": 76,
+        "end": 78,
+        "text": "or"
+      },
+      {
+        "id": "e27",
+        "start": 37,
+        "end": 45,
+        "text": "medicine"
+      },
+      {
+        "id": "e28",
+        "start": 13,
+        "end": 16,
+        "text": "one"
+      },
+      {
+        "id": "e29",
+        "start": 0,
+        "end": 46,
+        "text": "A clinic has one indivisible dose of medicine."
+      },
+      {
+        "id": "e30",
+        "start": 47,
+        "end": 84,
+        "text": "Ada may give the dose to Ben or Cara."
+      },
+      {
+        "id": "e31",
+        "start": 85,
+        "end": 122,
+        "text": "If Ben receives it, Ben will recover."
+      },
+      {
+        "id": "e32",
+        "start": 123,
+        "end": 162,
+        "text": "If Cara receives it, Cara will recover."
+      }
+    ],
+    "nodes": [
+      {
+        "id": "p2",
+        "kind": "proposition",
+        "label": "has",
+        "predicate": "have",
+        "evidence_ids": [
+          "e0"
+        ],
+        "predicate_evidence_ids": [
+          "e0"
+        ]
+      },
+      {
+        "id": "p11",
+        "kind": "proposition",
+        "label": "give",
+        "predicate": "give",
+        "evidence_ids": [
+          "e1"
+        ],
+        "predicate_evidence_ids": [
+          "e1"
+        ]
+      },
+      {
+        "id": "p21",
+        "kind": "proposition",
+        "label": "receives",
+        "predicate": "receive",
+        "evidence_ids": [
+          "e2"
+        ],
+        "predicate_evidence_ids": [
+          "e2"
+        ]
+      },
+      {
+        "id": "p26",
+        "kind": "proposition",
+        "label": "recover",
+        "predicate": "recover",
+        "evidence_ids": [
+          "e3"
+        ],
+        "predicate_evidence_ids": [
+          "e3"
+        ]
+      },
+      {
+        "id": "p30",
+        "kind": "proposition",
+        "label": "receives",
+        "predicate": "receive",
+        "evidence_ids": [
+          "e4"
+        ],
+        "predicate_evidence_ids": [
+          "e4"
+        ]
+      },
+      {
+        "id": "p35",
+        "kind": "proposition",
+        "label": "recover",
+        "predicate": "recover",
+        "evidence_ids": [
+          "e5"
+        ],
+        "predicate_evidence_ids": [
+          "e5"
+        ]
+      },
+      {
+        "id": "m1",
+        "kind": "mention",
+        "label": "A clinic",
+        "evidence_ids": [
+          "e11"
+        ]
+      },
+      {
+        "id": "m5",
+        "kind": "mention",
+        "label": "one indivisible dose",
+        "evidence_ids": [
+          "e13"
+        ]
+      },
+      {
+        "id": "m9",
+        "kind": "mention",
+        "label": "Ada",
+        "evidence_ids": [
+          "e15"
+        ]
+      },
+      {
+        "id": "m13",
+        "kind": "mention",
+        "label": "the dose",
+        "evidence_ids": [
+          "e16"
+        ]
+      },
+      {
+        "id": "m15",
+        "kind": "mention",
+        "label": "Ben",
+        "evidence_ids": [
+          "e18"
+        ]
+      },
+      {
+        "id": "m20",
+        "kind": "mention",
+        "label": "Ben",
+        "evidence_ids": [
+          "e19"
+        ]
+      },
+      {
+        "id": "m22",
+        "kind": "mention",
+        "label": "it",
+        "evidence_ids": [
+          "e20"
+        ]
+      },
+      {
+        "id": "m24",
+        "kind": "mention",
+        "label": "Ben",
+        "evidence_ids": [
+          "e21"
+        ]
+      },
+      {
+        "id": "m29",
+        "kind": "mention",
+        "label": "Cara",
+        "evidence_ids": [
+          "e22"
+        ]
+      },
+      {
+        "id": "m31",
+        "kind": "mention",
+        "label": "it",
+        "evidence_ids": [
+          "e23"
+        ]
+      },
+      {
+        "id": "m33",
+        "kind": "mention",
+        "label": "Cara",
+        "evidence_ids": [
+          "e24"
+        ]
+      },
+      {
+        "id": "m17",
+        "kind": "mention",
+        "label": "Cara",
+        "evidence_ids": [
+          "e25"
+        ]
+      },
+      {
+        "id": "m7",
+        "kind": "mention",
+        "label": "medicine",
+        "evidence_ids": [
+          "e27"
+        ]
+      }
+    ],
+    "candidates": [
+      {
+        "id": "c0",
+        "type": "PREDICATION",
+        "arguments": {
+          "proposition": "p2"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e0"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c1",
+        "type": "PREDICATION",
+        "arguments": {
+          "proposition": "p11"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e1"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "modal_choice",
+              "modality_choice_set_id": "choice0",
+              "evidence_ids": [
+                "e8"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c2",
+        "type": "PREDICATION",
+        "arguments": {
+          "proposition": "p21"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e2"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "hypothetical",
+              "evidence_ids": [
+                "e6"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c3",
+        "type": "PREDICATION",
+        "arguments": {
+          "proposition": "p26"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e3"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "conditional",
+              "condition_proposition_id": "p21",
+              "evidence_ids": [
+                "e6"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c2",
+          "c17",
+          "c18"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c4",
+        "type": "PREDICATION",
+        "arguments": {
+          "proposition": "p30"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e4"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "hypothetical",
+              "evidence_ids": [
+                "e7"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c5",
+        "type": "PREDICATION",
+        "arguments": {
+          "proposition": "p35"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e5"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "conditional",
+              "condition_proposition_id": "p30",
+              "evidence_ids": [
+                "e7"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c4",
+          "c20",
+          "c21"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c6",
+        "type": "CONDITIONAL_ON",
+        "arguments": {
+          "consequence": "p26",
+          "condition": "p21"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e6"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c3",
+          "c2",
+          "c17",
+          "c18"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c7",
+        "type": "CONDITIONAL_ON",
+        "arguments": {
+          "consequence": "p35",
+          "condition": "p30"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e7"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c5",
+          "c4",
+          "c20",
+          "c21"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c8",
+        "type": "MODALITY",
+        "arguments": {
+          "proposition": "p11"
+        },
+        "value": "permission",
+        "evidence_ids": [
+          "e8"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": null
+        },
+        "requires": [
+          "c1"
+        ],
+        "exclusive_with": [
+          "c9"
+        ]
+      },
+      {
+        "id": "c9",
+        "type": "MODALITY",
+        "arguments": {
+          "proposition": "p11"
+        },
+        "value": "possibility",
+        "evidence_ids": [
+          "e8"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": null
+        },
+        "requires": [
+          "c1"
+        ],
+        "exclusive_with": [
+          "c8"
+        ]
+      },
+      {
+        "id": "c10",
+        "type": "MODALITY",
+        "arguments": {
+          "proposition": "p26"
+        },
+        "value": "prediction",
+        "evidence_ids": [
+          "e9"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "conditional",
+              "condition_proposition_id": "p21",
+              "evidence_ids": [
+                "e6"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c3",
+          "c17",
+          "c18",
+          "c2"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c11",
+        "type": "MODALITY",
+        "arguments": {
+          "proposition": "p35"
+        },
+        "value": "prediction",
+        "evidence_ids": [
+          "e10"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "conditional",
+              "condition_proposition_id": "p30",
+              "evidence_ids": [
+                "e7"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c5",
+          "c20",
+          "c21",
+          "c4"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c12",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p2",
+          "mention": "m1"
+        },
+        "value": "subject",
+        "evidence_ids": [
+          "e12"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c0"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c13",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p2",
+          "mention": "m5"
+        },
+        "value": "object",
+        "evidence_ids": [
+          "e14"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c0"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c14",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p11",
+          "mention": "m9"
+        },
+        "value": "subject",
+        "evidence_ids": [
+          "e15"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "modal_choice",
+              "modality_choice_set_id": "choice0",
+              "evidence_ids": [
+                "e8"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c1"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c15",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p11",
+          "mention": "m13"
+        },
+        "value": "object",
+        "evidence_ids": [
+          "e17"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "modal_choice",
+              "modality_choice_set_id": "choice0",
+              "evidence_ids": [
+                "e8"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c1"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c16",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p11",
+          "mention": "m15"
+        },
+        "value": "destination",
+        "evidence_ids": [
+          "e18"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "modal_choice",
+              "modality_choice_set_id": "choice0",
+              "evidence_ids": [
+                "e8"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "dative_or_person_transfer_to",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c1"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c17",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p21",
+          "mention": "m20"
+        },
+        "value": "subject",
+        "evidence_ids": [
+          "e19"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "hypothetical",
+              "evidence_ids": [
+                "e6"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c2"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c18",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p21",
+          "mention": "m22"
+        },
+        "value": "object",
+        "evidence_ids": [
+          "e20"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "hypothetical",
+              "evidence_ids": [
+                "e6"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c2"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c19",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p26",
+          "mention": "m24"
+        },
+        "value": "subject",
+        "evidence_ids": [
+          "e21"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "conditional",
+              "condition_proposition_id": "p21",
+              "evidence_ids": [
+                "e6"
+              ]
+            },
+            {
+              "kind": "modal",
+              "modality_candidate_id": "c10",
+              "evidence_ids": [
+                "e9"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c3",
+          "c10",
+          "c17",
+          "c18",
+          "c2"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c20",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p30",
+          "mention": "m29"
+        },
+        "value": "subject",
+        "evidence_ids": [
+          "e22"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "hypothetical",
+              "evidence_ids": [
+                "e7"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c4"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c21",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p30",
+          "mention": "m31"
+        },
+        "value": "object",
+        "evidence_ids": [
+          "e23"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "hypothetical",
+              "evidence_ids": [
+                "e7"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c4"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c22",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p35",
+          "mention": "m33"
+        },
+        "value": "subject",
+        "evidence_ids": [
+          "e24"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "conditional",
+              "condition_proposition_id": "p30",
+              "evidence_ids": [
+                "e7"
+              ]
+            },
+            {
+              "kind": "modal",
+              "modality_candidate_id": "c11",
+              "evidence_ids": [
+                "e10"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c5",
+          "c11",
+          "c20",
+          "c21",
+          "c4"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c23",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p11",
+          "mention": "m17"
+        },
+        "value": "destination",
+        "evidence_ids": [
+          "e25",
+          "e26"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "modal_choice",
+              "modality_choice_set_id": "choice0",
+              "evidence_ids": [
+                "e8"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "coordinated_nominal_shares_head_role",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c1"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c24",
+        "type": "QUANTITY",
+        "arguments": {
+          "mention": "m5"
+        },
+        "value": {
+          "operator": "exact",
+          "amount": 1,
+          "unit": "dose"
+        },
+        "evidence_ids": [
+          "e28"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c25",
+        "type": "SAME_REFERENT",
+        "arguments": {
+          "mention_a": "m13",
+          "mention_b": "m5"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e16",
+          "e13"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "reference_candidates",
+            "version": "T1",
+            "method": "bounded_number_animacy_recency_role_ranking",
+            "resource_ids": [
+              "T_reference_policy"
+            ]
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": {
+            "value": 0.6499999999999999,
+            "kind": "uncalibrated_score",
+            "source": "T_reference_policy",
+            "calibration_id": null
+          }
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c26",
+        "type": "SAME_REFERENT",
+        "arguments": {
+          "mention_a": "m20",
+          "mention_b": "m15"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e19",
+          "e18"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "reference_candidates",
+            "version": "T1",
+            "method": "bounded_number_animacy_recency_role_ranking",
+            "resource_ids": [
+              "T_reference_policy"
+            ]
+          }
+        ],
+        "assessment": {
+          "status": "preferred",
+          "score": {
+            "value": 0.8,
+            "kind": "uncalibrated_score",
+            "source": "T_reference_policy",
+            "calibration_id": null
+          }
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c27",
+        "type": "SAME_REFERENT",
+        "arguments": {
+          "mention_a": "m22",
+          "mention_b": "m1"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e20",
+          "e11"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "reference_candidates",
+            "version": "T1",
+            "method": "bounded_number_animacy_recency_role_ranking",
+            "resource_ids": [
+              "T_reference_policy"
+            ]
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": {
+            "value": 0.5166666666666666,
+            "kind": "uncalibrated_score",
+            "source": "T_reference_policy",
+            "calibration_id": null
+          }
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c28",
+        "type": "SAME_REFERENT",
+        "arguments": {
+          "mention_a": "m22",
+          "mention_b": "m5"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e20",
+          "e13"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "reference_candidates",
+            "version": "T1",
+            "method": "bounded_number_animacy_recency_role_ranking",
+            "resource_ids": [
+              "T_reference_policy"
+            ]
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": {
+            "value": 0.41666666666666663,
+            "kind": "uncalibrated_score",
+            "source": "T_reference_policy",
+            "calibration_id": null
+          }
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c29",
+        "type": "SAME_REFERENT",
+        "arguments": {
+          "mention_a": "m22",
+          "mention_b": "m7"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e20",
+          "e27"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "reference_candidates",
+            "version": "T1",
+            "method": "bounded_number_animacy_recency_role_ranking",
+            "resource_ids": [
+              "T_reference_policy"
+            ]
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": {
+            "value": 0.41666666666666663,
+            "kind": "uncalibrated_score",
+            "source": "T_reference_policy",
+            "calibration_id": null
+          }
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c30",
+        "type": "SAME_REFERENT",
+        "arguments": {
+          "mention_a": "m22",
+          "mention_b": "m13"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e20",
+          "e16"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "reference_candidates",
+            "version": "T1",
+            "method": "bounded_number_animacy_recency_role_ranking",
+            "resource_ids": [
+              "T_reference_policy"
+            ]
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": {
+            "value": 0.44999999999999996,
+            "kind": "uncalibrated_score",
+            "source": "T_reference_policy",
+            "calibration_id": null
+          }
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c31",
+        "type": "SAME_REFERENT",
+        "arguments": {
+          "mention_a": "m24",
+          "mention_b": "m15"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e21",
+          "e18"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "reference_candidates",
+            "version": "T1",
+            "method": "bounded_number_animacy_recency_role_ranking",
+            "resource_ids": [
+              "T_reference_policy"
+            ]
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": {
+            "value": 0.8,
+            "kind": "uncalibrated_score",
+            "source": "T_reference_policy",
+            "calibration_id": null
+          }
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c32",
+        "type": "SAME_REFERENT",
+        "arguments": {
+          "mention_a": "m24",
+          "mention_b": "m20"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e21",
+          "e19"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "reference_candidates",
+            "version": "T1",
+            "method": "bounded_number_animacy_recency_role_ranking",
+            "resource_ids": [
+              "T_reference_policy"
+            ]
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": {
+            "value": 1.0,
+            "kind": "uncalibrated_score",
+            "source": "T_reference_policy",
+            "calibration_id": null
+          }
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c33",
+        "type": "SAME_REFERENT",
+        "arguments": {
+          "mention_a": "m29",
+          "mention_b": "m17"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e22",
+          "e25"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "reference_candidates",
+            "version": "T1",
+            "method": "bounded_number_animacy_recency_role_ranking",
+            "resource_ids": [
+              "T_reference_policy"
+            ]
+          }
+        ],
+        "assessment": {
+          "status": "preferred",
+          "score": {
+            "value": 0.7666666666666666,
+            "kind": "uncalibrated_score",
+            "source": "T_reference_policy",
+            "calibration_id": null
+          }
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c34",
+        "type": "SAME_REFERENT",
+        "arguments": {
+          "mention_a": "m31",
+          "mention_b": "m1"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e23",
+          "e11"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "reference_candidates",
+            "version": "T1",
+            "method": "bounded_number_animacy_recency_role_ranking",
+            "resource_ids": [
+              "T_reference_policy"
+            ]
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": {
+            "value": 0.5,
+            "kind": "uncalibrated_score",
+            "source": "T_reference_policy",
+            "calibration_id": null
+          }
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c35",
+        "type": "SAME_REFERENT",
+        "arguments": {
+          "mention_a": "m31",
+          "mention_b": "m5"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e23",
+          "e13"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "reference_candidates",
+            "version": "T1",
+            "method": "bounded_number_animacy_recency_role_ranking",
+            "resource_ids": [
+              "T_reference_policy"
+            ]
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": {
+            "value": 0.39999999999999997,
+            "kind": "uncalibrated_score",
+            "source": "T_reference_policy",
+            "calibration_id": null
+          }
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c36",
+        "type": "SAME_REFERENT",
+        "arguments": {
+          "mention_a": "m31",
+          "mention_b": "m7"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e23",
+          "e27"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "reference_candidates",
+            "version": "T1",
+            "method": "bounded_number_animacy_recency_role_ranking",
+            "resource_ids": [
+              "T_reference_policy"
+            ]
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": {
+            "value": 0.39999999999999997,
+            "kind": "uncalibrated_score",
+            "source": "T_reference_policy",
+            "calibration_id": null
+          }
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c37",
+        "type": "SAME_REFERENT",
+        "arguments": {
+          "mention_a": "m31",
+          "mention_b": "m13"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e23",
+          "e16"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "reference_candidates",
+            "version": "T1",
+            "method": "bounded_number_animacy_recency_role_ranking",
+            "resource_ids": [
+              "T_reference_policy"
+            ]
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": {
+            "value": 0.41666666666666663,
+            "kind": "uncalibrated_score",
+            "source": "T_reference_policy",
+            "calibration_id": null
+          }
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c38",
+        "type": "SAME_REFERENT",
+        "arguments": {
+          "mention_a": "m33",
+          "mention_b": "m17"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e24",
+          "e25"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "reference_candidates",
+            "version": "T1",
+            "method": "bounded_number_animacy_recency_role_ranking",
+            "resource_ids": [
+              "T_reference_policy"
+            ]
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": {
+            "value": 0.7666666666666666,
+            "kind": "uncalibrated_score",
+            "source": "T_reference_policy",
+            "calibration_id": null
+          }
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c39",
+        "type": "SAME_REFERENT",
+        "arguments": {
+          "mention_a": "m33",
+          "mention_b": "m29"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e24",
+          "e22"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "reference_candidates",
+            "version": "T1",
+            "method": "bounded_number_animacy_recency_role_ranking",
+            "resource_ids": [
+              "T_reference_policy"
+            ]
+          }
+        ],
+        "assessment": {
+          "status": "unresolved",
+          "score": {
+            "value": 1.0,
+            "kind": "uncalibrated_score",
+            "source": "T_reference_policy",
+            "calibration_id": null
+          }
+        },
+        "requires": [],
+        "exclusive_with": []
+      }
+    ],
+    "choice_sets": [
+      {
+        "id": "choice0",
+        "kind": "interpretation",
+        "candidate_ids": [
+          "c8",
+          "c9"
+        ],
+        "selection_rule": "at_most_one",
+        "exhaustive": false,
+        "evidence_ids": [
+          "e8"
+        ]
+      },
+      {
+        "id": "choice1",
+        "kind": "interpretation",
+        "candidate_ids": [
+          "c25"
+        ],
+        "selection_rule": "any_subset",
+        "exhaustive": false,
+        "evidence_ids": [
+          "e16"
+        ]
+      },
+      {
+        "id": "choice2",
+        "kind": "interpretation",
+        "candidate_ids": [
+          "c26"
+        ],
+        "selection_rule": "any_subset",
+        "exhaustive": false,
+        "evidence_ids": [
+          "e19"
+        ]
+      },
+      {
+        "id": "choice3",
+        "kind": "interpretation",
+        "candidate_ids": [
+          "c27",
+          "c30",
+          "c28",
+          "c29"
+        ],
+        "selection_rule": "any_subset",
+        "exhaustive": false,
+        "evidence_ids": [
+          "e20"
+        ]
+      },
+      {
+        "id": "choice4",
+        "kind": "interpretation",
+        "candidate_ids": [
+          "c32",
+          "c31"
+        ],
+        "selection_rule": "any_subset",
+        "exhaustive": false,
+        "evidence_ids": [
+          "e21"
+        ]
+      },
+      {
+        "id": "choice5",
+        "kind": "interpretation",
+        "candidate_ids": [
+          "c33"
+        ],
+        "selection_rule": "any_subset",
+        "exhaustive": false,
+        "evidence_ids": [
+          "e22"
+        ]
+      },
+      {
+        "id": "choice6",
+        "kind": "interpretation",
+        "candidate_ids": [
+          "c34",
+          "c37",
+          "c35",
+          "c36"
+        ],
+        "selection_rule": "any_subset",
+        "exhaustive": false,
+        "evidence_ids": [
+          "e23"
+        ]
+      },
+      {
+        "id": "choice7",
+        "kind": "interpretation",
+        "candidate_ids": [
+          "c39",
+          "c38"
+        ],
+        "selection_rule": "any_subset",
+        "exhaustive": false,
+        "evidence_ids": [
+          "e24"
+        ]
+      }
+    ],
+    "open_questions": [
+      {
+        "id": "q0",
+        "kind": "modality",
+        "evidence_ids": [
+          "e8"
+        ],
+        "candidate_ids": [
+          "c8",
+          "c9"
+        ],
+        "question": "Select the modal meaning; prediction, ability and obligation are distinct.",
+        "blocking_for": [
+          "c1"
+        ]
+      },
+      {
+        "id": "q1",
+        "kind": "reference",
+        "evidence_ids": [
+          "e16"
+        ],
+        "candidate_ids": [
+          "c25"
+        ],
+        "question": "Which earlier mention, if any, has the same referent? Ranked candidates are not identity decisions.",
+        "blocking_for": []
+      },
+      {
+        "id": "q2",
+        "kind": "reference",
+        "evidence_ids": [
+          "e19"
+        ],
+        "candidate_ids": [
+          "c26"
+        ],
+        "question": "Which earlier mention, if any, has the same referent? Ranked candidates are not identity decisions.",
+        "blocking_for": []
+      },
+      {
+        "id": "q3",
+        "kind": "reference",
+        "evidence_ids": [
+          "e20"
+        ],
+        "candidate_ids": [
+          "c27",
+          "c30",
+          "c28",
+          "c29"
+        ],
+        "question": "Which earlier mention, if any, has the same referent? Ranked candidates are not identity decisions.",
+        "blocking_for": [
+          "c18"
+        ]
+      },
+      {
+        "id": "q4",
+        "kind": "reference",
+        "evidence_ids": [
+          "e21"
+        ],
+        "candidate_ids": [
+          "c32",
+          "c31"
+        ],
+        "question": "Which earlier mention, if any, has the same referent? Ranked candidates are not identity decisions.",
+        "blocking_for": []
+      },
+      {
+        "id": "q5",
+        "kind": "reference",
+        "evidence_ids": [
+          "e22"
+        ],
+        "candidate_ids": [
+          "c33"
+        ],
+        "question": "Which earlier mention, if any, has the same referent? Ranked candidates are not identity decisions.",
+        "blocking_for": []
+      },
+      {
+        "id": "q6",
+        "kind": "reference",
+        "evidence_ids": [
+          "e23"
+        ],
+        "candidate_ids": [
+          "c34",
+          "c37",
+          "c35",
+          "c36"
+        ],
+        "question": "Which earlier mention, if any, has the same referent? Ranked candidates are not identity decisions.",
+        "blocking_for": [
+          "c21"
+        ]
+      },
+      {
+        "id": "q7",
+        "kind": "reference",
+        "evidence_ids": [
+          "e24"
+        ],
+        "candidate_ids": [
+          "c39",
+          "c38"
+        ],
+        "question": "Which earlier mention, if any, has the same referent? Ranked candidates are not identity decisions.",
+        "blocking_for": []
+      },
+      {
+        "id": "q8",
+        "kind": "missing_representation",
+        "evidence_ids": [
+          "e29"
+        ],
+        "candidate_ids": [],
+        "question": "Review unrepresented semantics and scope, including attribution, choice and entailment.",
+        "blocking_for": []
+      },
+      {
+        "id": "q9",
+        "kind": "missing_representation",
+        "evidence_ids": [
+          "e30"
+        ],
+        "candidate_ids": [],
+        "question": "Review unrepresented semantics and scope, including attribution, choice and entailment.",
+        "blocking_for": []
+      },
+      {
+        "id": "q10",
+        "kind": "missing_representation",
+        "evidence_ids": [
+          "e31"
+        ],
+        "candidate_ids": [],
+        "question": "Review unrepresented semantics and scope, including attribution, choice and entailment.",
+        "blocking_for": []
+      },
+      {
+        "id": "q11",
+        "kind": "missing_representation",
+        "evidence_ids": [
+          "e32"
+        ],
+        "candidate_ids": [],
+        "question": "Review unrepresented semantics and scope, including attribution, choice and entailment.",
+        "blocking_for": []
+      }
+    ],
+    "coverage": {
+      "status": "partial",
+      "unrepresented_evidence_ids": [
+        "e29",
+        "e30",
+        "e31",
+        "e32"
+      ],
+      "limitations": [
+        "reference_candidates_only_no_identity_merging",
+        "no_world_state_commitment",
+        "bounded_if_and_local_modal_scope",
+        "no_semantic_support_validation",
+        "purpose_and_attachment_readings_are_candidates",
+        "subject_control_is_an_unresolved_candidate",
+        "unambiguous_condition_complements_are_required",
+        "attempt_does_not_entail_the_child",
+        "choice_sets_are_not_exhaustive",
+        "quantity_is_explicit_cardinality_only",
+        "comma_clause_subject_repairs_a_false_conjunct",
+        "same_name_reference_does_not_block_roles",
+        "transfer_recipient_is_destination",
+        "definite_locative_is_location",
+        "definite_reference_does_not_block_roles",
+        "conditional_alternatives_are_not_exhaustive_or_exclusive",
+        "quantity_match_is_not_group_membership",
+        "coordination_shares_the_head_role",
+        "clause_boundary_stops_role_sharing",
+        "clause_boundary_attachment_stays_a_candidate",
+        "stripping_not_nominal_is_an_unresolved_copy"
+      ]
+    },
+    "reconstructions": [],
+    "condition_contents": [
+      {
+        "id": "condition_content_0",
+        "condition_proposition_id": "p21",
+        "required_candidate_ids": [
+          "c17",
+          "c18",
+          "c2"
+        ],
+        "question_ids": [
+          "q3"
+        ],
+        "evidence_ids": [
+          "e2"
+        ]
+      },
+      {
+        "id": "condition_content_1",
+        "condition_proposition_id": "p30",
+        "required_candidate_ids": [
+          "c20",
+          "c21",
+          "c4"
+        ],
+        "question_ids": [
+          "q6"
+        ],
+        "evidence_ids": [
+          "e4"
+        ]
+      }
+    ]
+  },
+  "blueprint_result": {
+    "cloze_version": "blueprint-cloze-chooser/0.7",
+    "chosen_blueprint_id": "exclusive_allocation",
+    "status": "WITHHELD",
+    "ranking": [
+      "exclusive_allocation",
+      "rescue_contrast",
+      "conditional_outcome"
+    ],
+    "left_out": [
+      "omission_harm",
+      "ability_permission",
+      "diversion_redirection",
+      "deontic_rule",
+      "promise_reliance",
+      "uncertain_risk",
+      "disputed_report"
+    ],
+    "question": {
+      "ethical_question": "",
+      "scenario_options": [],
+      "exclusivity": "unspecified",
+      "exclusivity_proof": {
+        "status": "HYPOTHESIZED",
+        "evidence": [
+          {
+            "text": "one"
+          }
+        ],
+        "assumptions": [
+          "the resource is indivisible",
+          "allocation consumes it"
+        ],
+        "explanation": "A single item is mentioned, but indivisibility is not established."
+      },
+      "participants": [
+        {
+          "role": "subject",
+          "mention": "A clinic",
+          "predicate": "has"
+        },
+        {
+          "role": "object",
+          "mention": "one indivisible dose",
+          "predicate": "has"
+        },
+        {
+          "role": "subject",
+          "mention": "Ada",
+          "predicate": "give"
+        },
+        {
+          "role": "object",
+          "mention": "the dose",
+          "predicate": "give"
+        },
+        {
+          "role": "destination",
+          "mention": "Ben",
+          "predicate": "give"
+        },
+        {
+          "role": "subject",
+          "mention": "Ben",
+          "predicate": "receives"
+        },
+        {
+          "role": "object",
+          "mention": "it",
+          "predicate": "receives"
+        },
+        {
+          "role": "subject",
+          "mention": "Ben",
+          "predicate": "recover"
+        },
+        {
+          "role": "subject",
+          "mention": "Cara",
+          "predicate": "receives"
+        },
+        {
+          "role": "object",
+          "mention": "it",
+          "predicate": "receives"
+        },
+        {
+          "role": "subject",
+          "mention": "Cara",
+          "predicate": "recover"
+        },
+        {
+          "role": "destination",
+          "mention": "Cara",
+          "predicate": "give"
+        }
+      ],
+      "eligible_for_world_state": false
+    },
+    "world_withheld": [
+      "Exclusivity is unspecified. The alternatives are not an exclusive set, so an averted-alternative effect is not licensed."
+    ],
+    "considered": [
+      {
+        "blueprint_id": "exclusive_allocation",
+        "graph_builder": "implemented",
+        "status": "FILLED",
+        "rank": 0,
+        "core_filled": 5,
+        "core_count": 5,
+        "optional_filled": 9,
+        "rejected": 1,
+        "coverage_metrics": {
+          "required_filled": 5,
+          "required_total": 5,
+          "optional_filled": 9,
+          "optional_total": 14,
+          "rejected_evidence": 1,
+          "unsupported_atoms": 0,
+          "unresolved_readings": 0
+        },
+        "unfilled": [
+          "exclusivity",
+          "first_hedge",
+          "second_hedge",
+          "survival_chance",
+          "nonreceipt"
+        ],
+        "unresolved_slots": [
+          "exclusivity",
+          "first_hedge",
+          "second_hedge",
+          "survival_chance",
+          "nonreceipt"
+        ],
+        "accepted_evidence": {
+          "decider": "Ada may give the dose to Ben or Cara",
+          "resource": "one indivisible dose of medicine",
+          "assignment": "Ben receives it",
+          "first_transfer": "Ben receives it",
+          "second_transfer": "Cara receives it",
+          "quantity": "one indivisible dose",
+          "first_recipient": "Ben",
+          "second_recipient": "Cara",
+          "first_outcome": "Ben will recover",
+          "second_outcome": "Cara will recover",
+          "first_implied_process": "administration",
+          "second_implied_process": "administration",
+          "first_branch_sentence": "If Ben receives it, Ben will recover",
+          "second_branch_sentence": "If Cara receives it, Cara will recover"
+        },
+        "slots": {
+          "decider": "Ada may give the dose to Ben or Cara",
+          "resource": "one indivisible dose of medicine",
+          "first_transfer": "Ben receives it",
+          "second_transfer": "Cara receives it",
+          "quantity": "one indivisible dose",
+          "first_recipient": "Ben",
+          "second_recipient": "Cara",
+          "first_outcome": "Ben will recover",
+          "second_outcome": "Cara will recover",
+          "first_branch_sentence": "If Ben receives it, Ben will recover",
+          "second_branch_sentence": "If Cara receives it, Cara will recover",
+          "assignment": "Ben receives it",
+          "first_implied_process": "administration",
+          "second_implied_process": "administration"
+        },
+        "items": [
+          {
+            "id": "decider",
+            "core": true,
+            "sentence": "The person who must decide who gets the resource is",
+            "completion": "Ada may give the dose to Ben or Cara.",
+            "span": "Ada may give the dose to Ben or Cara",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "resource",
+            "core": true,
+            "sentence": "The resource that can be given is",
+            "completion": "one indivisible dose of medicine.",
+            "span": "one indivisible dose of medicine",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "assignment",
+            "core": true,
+            "sentence": "The act that assigns that resource, in the text's own words, is",
+            "completion": "give.",
+            "span": "Ben receives it",
+            "verdict": "accepted",
+            "reason": "recovered_from_copied_transfer"
+          },
+          {
+            "id": "first_transfer",
+            "core": false,
+            "sentence": "The giving, receipt, allocation, delivery, or administration of the resource to the first party is",
+            "completion": "Ben receives it.",
+            "span": "Ben receives it",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "second_transfer",
+            "core": false,
+            "sentence": "The giving, receipt, allocation, delivery, or administration of the resource to the second party is",
+            "completion": "Cara receives it.",
+            "span": "Cara receives it",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "quantity",
+            "core": false,
+            "sentence": "The exact amount of that resource, stated in the text, is",
+            "completion": "one indivisible dose.",
+            "span": "one indivisible dose",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "first_recipient",
+            "core": true,
+            "sentence": "The first party mentioned in the text who could receive the resource or benefit is",
+            "completion": "Ben.",
+            "span": "Ben",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "second_recipient",
+            "core": true,
+            "sentence": "The second party mentioned in the text who could receive the resource or benefit is",
+            "completion": "Cara.",
+            "span": "Cara",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "exclusivity",
+            "core": false,
+            "sentence": "The words that say both parties cannot receive it are",
+            "completion": "whether ... or ...",
+            "span": null,
+            "verdict": "rejected",
+            "reason": "not_a_copy"
+          },
+          {
+            "id": "first_outcome",
+            "core": false,
+            "sentence": "The words that license what happens for the first party are",
+            "completion": "Ben will recover.",
+            "span": "Ben will recover",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "first_hedge",
+            "core": false,
+            "sentence": "The if, unless, whether, or percent-chance words inside that first outcome are",
+            "completion": "NONE",
+            "span": null,
+            "verdict": "empty",
+            "reason": "not_stated"
+          },
+          {
+            "id": "second_outcome",
+            "core": false,
+            "sentence": "The words that license what happens for the second party are",
+            "completion": "Cara will recover.",
+            "span": "Cara will recover",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "second_hedge",
+            "core": false,
+            "sentence": "The if, unless, whether, or percent-chance words inside that second outcome are",
+            "completion": "NONE",
+            "span": null,
+            "verdict": "empty",
+            "reason": "not_stated"
+          },
+          {
+            "id": "first_implied_process",
+            "core": false,
+            "sentence": "The process most aligned with the text might explain how \"one indivisible dose of medicine\" leads to \"Ben will recover\" is",
+            "completion": "administration",
+            "span": "administration",
+            "verdict": "accepted",
+            "reason": "implied"
+          },
+          {
+            "id": "second_implied_process",
+            "core": false,
+            "sentence": "The process most aligned with the text might explain how \"one indivisible dose of medicine\" leads to \"Cara will recover\" is",
+            "completion": "administration",
+            "span": "administration",
+            "verdict": "accepted",
+            "reason": "implied"
+          },
+          {
+            "id": "first_branch_sentence",
+            "core": false,
+            "sentence": "The sentence that states the first branch and does not state the second is",
+            "completion": "If Ben receives it, Ben will recover.",
+            "span": "If Ben receives it, Ben will recover",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "second_branch_sentence",
+            "core": false,
+            "sentence": "The sentence that states the second branch and does not state the first is",
+            "completion": "If Cara receives it, Cara will recover.",
+            "span": "If Cara receives it, Cara will recover",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "survival_chance",
+            "core": false,
+            "sentence": "A stated chance of survival is",
+            "completion": "NONE",
+            "span": null,
+            "verdict": "empty",
+            "reason": "not_stated"
+          },
+          {
+            "id": "nonreceipt",
+            "core": false,
+            "sentence": "The words that say the other party does not receive it are",
+            "completion": "NONE",
+            "span": null,
+            "verdict": "empty",
+            "reason": "not_stated"
+          }
+        ]
+      },
+      {
+        "blueprint_id": "rescue_contrast",
+        "graph_builder": "implemented",
+        "status": "PARTIAL",
+        "rank": 1,
+        "core_filled": 3,
+        "core_count": 8,
+        "optional_filled": 0,
+        "rejected": 5,
+        "coverage_metrics": {
+          "required_filled": 3,
+          "required_total": 8,
+          "optional_filled": 0,
+          "optional_total": 3,
+          "rejected_evidence": 5,
+          "unsupported_atoms": 0,
+          "unresolved_readings": 0
+        },
+        "unfilled": [
+          "first_saved",
+          "second_saved",
+          "rescue_exclusivity",
+          "first_rescue_action",
+          "second_rescue_action",
+          "first_harm",
+          "second_harm",
+          "scene"
+        ],
+        "unresolved_slots": [
+          "first_saved",
+          "second_saved",
+          "rescue_exclusivity",
+          "first_rescue_action",
+          "second_rescue_action",
+          "first_harm",
+          "second_harm",
+          "scene"
+        ],
+        "accepted_evidence": {
+          "rescuer": "Ada",
+          "first_benefit": "Ben will recover",
+          "second_benefit": "Cara will recover"
+        },
+        "slots": {
+          "rescuer": "Ada",
+          "first_benefit": "Ben will recover",
+          "second_benefit": "Cara will recover"
+        },
+        "items": [
+          {
+            "id": "rescuer",
+            "core": true,
+            "sentence": "The person who must choose between the rescues is",
+            "completion": "Ada",
+            "span": "Ada",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "first_saved",
+            "core": true,
+            "sentence": "The first party who can be rescued is",
+            "completion": "Ben",
+            "span": null,
+            "verdict": "rejected",
+            "reason": "does_not_answer"
+          },
+          {
+            "id": "second_saved",
+            "core": true,
+            "sentence": "The second, distinct party who can be rescued is",
+            "completion": "Cara",
+            "span": null,
+            "verdict": "rejected",
+            "reason": "does_not_answer"
+          },
+          {
+            "id": "rescue_exclusivity",
+            "core": true,
+            "sentence": "The exact words that say both rescues cannot happen are",
+            "completion": "not both",
+            "span": null,
+            "verdict": "rejected",
+            "reason": "not_a_copy"
+          },
+          {
+            "id": "first_rescue_action",
+            "core": true,
+            "sentence": "The copied first rescue action is",
+            "completion": "give the dose to Ben",
+            "span": null,
+            "verdict": "rejected",
+            "reason": "does_not_answer"
+          },
+          {
+            "id": "second_rescue_action",
+            "core": true,
+            "sentence": "The copied second rescue action is",
+            "completion": "give the dose to Cara",
+            "span": null,
+            "verdict": "rejected",
+            "reason": "not_a_copy"
+          },
+          {
+            "id": "first_benefit",
+            "core": true,
+            "sentence": "The beneficial outcome in the first rescue branch is",
+            "completion": "Ben will recover",
+            "span": "Ben will recover",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "first_harm",
+            "core": false,
+            "sentence": "The harmful outcome in the first rescue branch is",
+            "completion": "NONE",
+            "span": null,
+            "verdict": "empty",
+            "reason": "not_stated"
+          },
+          {
+            "id": "second_benefit",
+            "core": true,
+            "sentence": "The beneficial outcome in the second rescue branch is",
+            "completion": "Cara will recover",
+            "span": "Cara will recover",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "second_harm",
+            "core": false,
+            "sentence": "The harmful outcome in the second rescue branch is",
+            "completion": "NONE",
+            "span": null,
+            "verdict": "empty",
+            "reason": "not_stated"
+          },
+          {
+            "id": "scene",
+            "core": false,
+            "sentence": "The copied words that describe the parties already in danger are",
+            "completion": "NONE",
+            "span": null,
+            "verdict": "empty",
+            "reason": "not_stated"
+          }
+        ]
+      },
+      {
+        "blueprint_id": "conditional_outcome",
+        "graph_builder": "implemented",
+        "status": "FILLED",
+        "rank": 2,
+        "core_filled": 3,
+        "core_count": 3,
+        "optional_filled": 4,
+        "rejected": 0,
+        "coverage_metrics": {
+          "required_filled": 3,
+          "required_total": 3,
+          "optional_filled": 4,
+          "optional_total": 5,
+          "rejected_evidence": 0,
+          "unsupported_atoms": 0,
+          "unresolved_readings": 0
+        },
+        "unfilled": [
+          "chance"
+        ],
+        "unresolved_slots": [
+          "chance"
+        ],
+        "accepted_evidence": {
+          "actor": "Ada",
+          "condition": "If Ben receives it",
+          "bearer": "Ben",
+          "outcome": "Ben will recover",
+          "second_condition": "If Cara receives it",
+          "second_bearer": "Cara",
+          "second_outcome": "Cara will recover"
+        },
+        "slots": {
+          "actor": "Ada",
+          "condition": "If Ben receives it",
+          "bearer": "Ben",
+          "outcome": "Ben will recover",
+          "second_condition": "If Cara receives it",
+          "second_bearer": "Cara",
+          "second_outcome": "Cara will recover"
+        },
+        "items": [
+          {
+            "id": "actor",
+            "core": false,
+            "sentence": "The person whose action an outcome depends on is",
+            "completion": "Ada",
+            "span": "Ada",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "condition",
+            "core": true,
+            "sentence": "The if-clause the outcome depends on is",
+            "completion": "If Ben receives it",
+            "span": "If Ben receives it",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "bearer",
+            "core": true,
+            "sentence": "The party that outcome happens to is",
+            "completion": "Ben",
+            "span": "Ben",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "outcome",
+            "core": true,
+            "sentence": "The outcome stated for that party is",
+            "completion": "Ben will recover",
+            "span": "Ben will recover",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "second_condition",
+            "core": false,
+            "sentence": "The second if-clause, distinct from the first, is",
+            "completion": "If Cara receives it",
+            "span": "If Cara receives it",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "second_bearer",
+            "core": false,
+            "sentence": "The party the second outcome happens to is",
+            "completion": "Cara",
+            "span": "Cara",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "second_outcome",
+            "core": false,
+            "sentence": "The outcome stated for that second party is",
+            "completion": "Cara will recover",
+            "span": "Cara will recover",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "chance",
+            "core": false,
+            "sentence": "A stated chance attached to an outcome is",
+            "completion": "NONE",
+            "span": null,
+            "verdict": "empty",
+            "reason": "not_stated"
+          }
+        ]
+      }
+    ],
+    "candidate_attempts": [
+      {
+        "blueprint_id": "exclusive_allocation",
+        "rank": 0,
+        "template_status": "FILLED",
+        "selected": true,
+        "core_filled": 5,
+        "core_count": 5,
+        "optional_filled": 9,
+        "unfilled_slots": [
+          "exclusivity",
+          "first_hedge",
+          "second_hedge",
+          "survival_chance",
+          "nonreceipt"
+        ],
+        "contract_valid": true,
+        "contract_errors": [],
+        "proposal": {
+          "proposal_contract_version": "blueprint-proposal-contract/0.3",
+          "proposal_id": "exclusive_allocation_cloze",
+          "blueprint_id": "exclusive_allocation",
+          "status": "WITHHELD",
+          "assignment_kind": "none",
+          "assignment": [],
+          "slot_bindings": {
+            "copied_spans": {
+              "decider": "Ada may give the dose to Ben or Cara",
+              "resource": "one indivisible dose of medicine",
+              "first_transfer": "Ben receives it",
+              "second_transfer": "Cara receives it",
+              "quantity": "one indivisible dose",
+              "first_recipient": "Ben",
+              "second_recipient": "Cara",
+              "first_outcome": "Ben will recover",
+              "second_outcome": "Cara will recover",
+              "first_branch_sentence": "If Ben receives it, Ben will recover",
+              "second_branch_sentence": "If Cara receives it, Cara will recover",
+              "assignment": "Ben receives it",
+              "first_implied_process": "administration",
+              "second_implied_process": "administration"
+            }
+          },
+          "selection": null,
+          "selection_validation": {
+            "contract_valid": null,
+            "status": "not_assessed",
+            "reason": "No Z10 candidate selection was constructed."
+          },
+          "candidate": null,
+          "clauses": [
+            {
+              "clause_id": "C0",
+              "text": "A clinic has one indivisible dose of medicine."
+            },
+            {
+              "clause_id": "C1",
+              "text": "Ada may give the dose to Ben or Cara."
+            },
+            {
+              "clause_id": "C2",
+              "text": "If Ben receives it, Ben will recover."
+            },
+            {
+              "clause_id": "C3",
+              "text": "If Cara receives it, Cara will recover."
+            }
+          ],
+          "unfilled_required_slots": [],
+          "unresolved_readings": [],
+          "construction_problems": [
+            {
+              "code": "world_withheld",
+              "message": "Exclusivity is unspecified. The alternatives are not an exclusive set, so an averted-alternative effect is not licensed."
+            }
+          ],
+          "admission_authorized": false,
+          "notes": [],
+          "pre_world_assessment": {
+            "ethical_question": "",
+            "scenario_options": [],
+            "exclusivity": "unspecified",
+            "exclusivity_proof": {
+              "status": "HYPOTHESIZED",
+              "evidence": [
+                {
+                  "text": "one"
+                }
+              ],
+              "assumptions": [
+                "the resource is indivisible",
+                "allocation consumes it"
+              ],
+              "explanation": "A single item is mentioned, but indivisibility is not established."
+            },
+            "participants": [
+              {
+                "role": "subject",
+                "mention": "A clinic",
+                "predicate": "has"
+              },
+              {
+                "role": "object",
+                "mention": "one indivisible dose",
+                "predicate": "has"
+              },
+              {
+                "role": "subject",
+                "mention": "Ada",
+                "predicate": "give"
+              },
+              {
+                "role": "object",
+                "mention": "the dose",
+                "predicate": "give"
+              },
+              {
+                "role": "destination",
+                "mention": "Ben",
+                "predicate": "give"
+              },
+              {
+                "role": "subject",
+                "mention": "Ben",
+                "predicate": "receives"
+              },
+              {
+                "role": "object",
+                "mention": "it",
+                "predicate": "receives"
+              },
+              {
+                "role": "subject",
+                "mention": "Ben",
+                "predicate": "recover"
+              },
+              {
+                "role": "subject",
+                "mention": "Cara",
+                "predicate": "receives"
+              },
+              {
+                "role": "object",
+                "mention": "it",
+                "predicate": "receives"
+              },
+              {
+                "role": "subject",
+                "mention": "Cara",
+                "predicate": "recover"
+              },
+              {
+                "role": "destination",
+                "mention": "Cara",
+                "predicate": "give"
+              }
+            ],
+            "status": "WITHHELD",
+            "eligible_for_world_state": false
+          },
+          "accepted_evidence": {
+            "decider": "Ada may give the dose to Ben or Cara",
+            "resource": "one indivisible dose of medicine",
+            "assignment": "Ben receives it",
+            "first_transfer": "Ben receives it",
+            "second_transfer": "Cara receives it",
+            "quantity": "one indivisible dose",
+            "first_recipient": "Ben",
+            "second_recipient": "Cara",
+            "first_outcome": "Ben will recover",
+            "second_outcome": "Cara will recover",
+            "first_implied_process": "administration",
+            "second_implied_process": "administration",
+            "first_branch_sentence": "If Ben receives it, Ben will recover",
+            "second_branch_sentence": "If Cara receives it, Cara will recover"
+          },
+          "construction_provenance": [
+            {
+              "atom_id": "slot:decider",
+              "atom_kind": "slot",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [],
+              "evidence": [
+                "Ada may give the dose to Ben or Cara"
+              ],
+              "explanation": "Copied cloze evidence; no world atom was authorized."
+            },
+            {
+              "atom_id": "slot:resource",
+              "atom_kind": "slot",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [],
+              "evidence": [
+                "one indivisible dose of medicine"
+              ],
+              "explanation": "Copied cloze evidence; no world atom was authorized."
+            },
+            {
+              "atom_id": "slot:assignment",
+              "atom_kind": "slot",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [],
+              "evidence": [
+                "Ben receives it"
+              ],
+              "explanation": "Copied cloze evidence; no world atom was authorized."
+            },
+            {
+              "atom_id": "slot:first_transfer",
+              "atom_kind": "slot",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [],
+              "evidence": [
+                "Ben receives it"
+              ],
+              "explanation": "Copied cloze evidence; no world atom was authorized."
+            },
+            {
+              "atom_id": "slot:second_transfer",
+              "atom_kind": "slot",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [],
+              "evidence": [
+                "Cara receives it"
+              ],
+              "explanation": "Copied cloze evidence; no world atom was authorized."
+            },
+            {
+              "atom_id": "slot:quantity",
+              "atom_kind": "slot",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [],
+              "evidence": [
+                "one indivisible dose"
+              ],
+              "explanation": "Copied cloze evidence; no world atom was authorized."
+            },
+            {
+              "atom_id": "slot:first_recipient",
+              "atom_kind": "slot",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [],
+              "evidence": [
+                "Ben"
+              ],
+              "explanation": "Copied cloze evidence; no world atom was authorized."
+            },
+            {
+              "atom_id": "slot:second_recipient",
+              "atom_kind": "slot",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [],
+              "evidence": [
+                "Cara"
+              ],
+              "explanation": "Copied cloze evidence; no world atom was authorized."
+            },
+            {
+              "atom_id": "slot:first_outcome",
+              "atom_kind": "slot",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [],
+              "evidence": [
+                "Ben will recover"
+              ],
+              "explanation": "Copied cloze evidence; no world atom was authorized."
+            },
+            {
+              "atom_id": "slot:second_outcome",
+              "atom_kind": "slot",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [],
+              "evidence": [
+                "Cara will recover"
+              ],
+              "explanation": "Copied cloze evidence; no world atom was authorized."
+            },
+            {
+              "atom_id": "slot:first_implied_process",
+              "atom_kind": "slot",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [],
+              "evidence": [
+                "administration"
+              ],
+              "explanation": "Copied cloze evidence; no world atom was authorized."
+            },
+            {
+              "atom_id": "slot:second_implied_process",
+              "atom_kind": "slot",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [],
+              "evidence": [
+                "administration"
+              ],
+              "explanation": "Copied cloze evidence; no world atom was authorized."
+            },
+            {
+              "atom_id": "slot:first_branch_sentence",
+              "atom_kind": "slot",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [],
+              "evidence": [
+                "If Ben receives it, Ben will recover"
+              ],
+              "explanation": "Copied cloze evidence; no world atom was authorized."
+            },
+            {
+              "atom_id": "slot:second_branch_sentence",
+              "atom_kind": "slot",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [],
+              "evidence": [
+                "If Cara receives it, Cara will recover"
+              ],
+              "explanation": "Copied cloze evidence; no world atom was authorized."
+            }
+          ],
+          "relation_alternatives": [],
+          "exclusivity_proof": {
+            "status": "HYPOTHESIZED",
+            "evidence": [
+              {
+                "text": "one"
+              }
+            ],
+            "assumptions": [
+              "the resource is indivisible",
+              "allocation consumes it"
+            ],
+            "explanation": "A single item is mentioned, but indivisibility is not established."
+          },
+          "world_withheld": [
+            "Exclusivity is unspecified. The alternatives are not an exclusive set, so an averted-alternative effect is not licensed."
+          ]
+        }
+      },
+      {
+        "blueprint_id": "rescue_contrast",
+        "rank": 1,
+        "template_status": "PARTIAL",
+        "selected": false,
+        "core_filled": 3,
+        "core_count": 8,
+        "optional_filled": 0,
+        "unfilled_slots": [
+          "first_saved",
+          "second_saved",
+          "rescue_exclusivity",
+          "first_rescue_action",
+          "second_rescue_action",
+          "first_harm",
+          "second_harm",
+          "scene"
+        ],
+        "contract_valid": true,
+        "contract_errors": [],
+        "proposal": {
+          "proposal_contract_version": "blueprint-proposal-contract/0.3",
+          "proposal_id": "rescue_contrast_cloze",
+          "blueprint_id": "rescue_contrast",
+          "status": "WITHHELD",
+          "assignment_kind": "none",
+          "assignment": [],
+          "slot_bindings": {
+            "copied_spans": {
+              "rescuer": "Ada",
+              "first_benefit": "Ben will recover",
+              "second_benefit": "Cara will recover"
+            }
+          },
+          "selection": null,
+          "selection_validation": {
+            "contract_valid": null,
+            "status": "not_assessed",
+            "reason": "No Z10 candidate selection was constructed."
+          },
+          "candidate": null,
+          "clauses": [
+            {
+              "clause_id": "C0",
+              "text": "A clinic has one indivisible dose of medicine."
+            },
+            {
+              "clause_id": "C1",
+              "text": "Ada may give the dose to Ben or Cara."
+            },
+            {
+              "clause_id": "C2",
+              "text": "If Ben receives it, Ben will recover."
+            },
+            {
+              "clause_id": "C3",
+              "text": "If Cara receives it, Cara will recover."
+            }
+          ],
+          "unfilled_required_slots": [
+            "first_saved",
+            "second_saved",
+            "rescue_exclusivity",
+            "first_rescue_action",
+            "second_rescue_action"
+          ],
+          "unresolved_readings": [],
+          "construction_problems": [
+            {
+              "code": "world_withheld",
+              "message": "Required slots remain unfilled: first_saved, second_saved, rescue_exclusivity, first_rescue_action, second_rescue_action"
+            }
+          ],
+          "admission_authorized": false,
+          "notes": [],
+          "pre_world_assessment": {
+            "ethical_question": "",
+            "scenario_options": [],
+            "exclusivity": "unspecified",
+            "exclusivity_proof": {
+              "status": "HYPOTHESIZED",
+              "evidence": [
+                {
+                  "text": "one"
+                }
+              ],
+              "assumptions": [
+                "the resource is indivisible",
+                "allocation consumes it"
+              ],
+              "explanation": "A single item is mentioned, but indivisibility is not established."
+            },
+            "participants": [
+              {
+                "role": "subject",
+                "mention": "A clinic",
+                "predicate": "has"
+              },
+              {
+                "role": "object",
+                "mention": "one indivisible dose",
+                "predicate": "has"
+              },
+              {
+                "role": "subject",
+                "mention": "Ada",
+                "predicate": "give"
+              },
+              {
+                "role": "object",
+                "mention": "the dose",
+                "predicate": "give"
+              },
+              {
+                "role": "destination",
+                "mention": "Ben",
+                "predicate": "give"
+              },
+              {
+                "role": "subject",
+                "mention": "Ben",
+                "predicate": "receives"
+              },
+              {
+                "role": "object",
+                "mention": "it",
+                "predicate": "receives"
+              },
+              {
+                "role": "subject",
+                "mention": "Ben",
+                "predicate": "recover"
+              },
+              {
+                "role": "subject",
+                "mention": "Cara",
+                "predicate": "receives"
+              },
+              {
+                "role": "object",
+                "mention": "it",
+                "predicate": "receives"
+              },
+              {
+                "role": "subject",
+                "mention": "Cara",
+                "predicate": "recover"
+              },
+              {
+                "role": "destination",
+                "mention": "Cara",
+                "predicate": "give"
+              }
+            ],
+            "status": "WITHHELD",
+            "eligible_for_world_state": false
+          },
+          "accepted_evidence": {
+            "rescuer": "Ada",
+            "first_benefit": "Ben will recover",
+            "second_benefit": "Cara will recover"
+          },
+          "construction_provenance": [
+            {
+              "atom_id": "slot:rescuer",
+              "atom_kind": "slot",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [],
+              "evidence": [
+                "Ada"
+              ],
+              "explanation": "Copied cloze evidence; no world atom was authorized."
+            },
+            {
+              "atom_id": "slot:first_benefit",
+              "atom_kind": "slot",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [],
+              "evidence": [
+                "Ben will recover"
+              ],
+              "explanation": "Copied cloze evidence; no world atom was authorized."
+            },
+            {
+              "atom_id": "slot:second_benefit",
+              "atom_kind": "slot",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [],
+              "evidence": [
+                "Cara will recover"
+              ],
+              "explanation": "Copied cloze evidence; no world atom was authorized."
+            }
+          ],
+          "relation_alternatives": [],
+          "exclusivity_proof": {
+            "status": "HYPOTHESIZED",
+            "evidence": [
+              {
+                "text": "one"
+              }
+            ],
+            "assumptions": [
+              "the resource is indivisible",
+              "allocation consumes it"
+            ],
+            "explanation": "A single item is mentioned, but indivisibility is not established."
+          },
+          "world_withheld": [
+            "Required slots remain unfilled: first_saved, second_saved, rescue_exclusivity, first_rescue_action, second_rescue_action"
+          ]
+        }
+      },
+      {
+        "blueprint_id": "conditional_outcome",
+        "rank": 2,
+        "template_status": "FILLED",
+        "selected": false,
+        "core_filled": 3,
+        "core_count": 3,
+        "optional_filled": 4,
+        "unfilled_slots": [
+          "chance"
+        ],
+        "contract_valid": true,
+        "contract_errors": [],
+        "proposal": {
+          "proposal_contract_version": "blueprint-proposal-contract/0.3",
+          "proposal_id": "conditional_outcome_cloze",
+          "blueprint_id": "conditional_outcome",
+          "status": "FILLED",
+          "assignment_kind": "intervention_text",
+          "assignment": [
+            "If Ben receives it",
+            "If Cara receives it"
+          ],
+          "slot_bindings": {
+            "copied_spans": {
+              "actor": "Ada",
+              "condition": "If Ben receives it",
+              "bearer": "Ben",
+              "outcome": "Ben will recover",
+              "second_condition": "If Cara receives it",
+              "second_bearer": "Cara",
+              "second_outcome": "Cara will recover"
+            }
+          },
+          "selection": null,
+          "selection_validation": {
+            "contract_valid": null,
+            "status": "not_assessed",
+            "reason": "The cloze path has no Z10 candidate selection."
+          },
+          "candidate": {
+            "actions": {
+              "A0": {
+                "clause_ids": [
+                  "C2"
+                ],
+                "reason": "Filled from copied cloze slots."
+              },
+              "A1": {
+                "clause_ids": [
+                  "C3"
+                ],
+                "reason": "Filled from copied cloze slots."
+              }
+            },
+            "world_model": {
+              "schema_version": "1.3",
+              "parties": [
+                {
+                  "party_id": "P1",
+                  "label": "Ada",
+                  "kind": "PERSON",
+                  "quantities": [],
+                  "clause_ids": [
+                    "C1"
+                  ]
+                },
+                {
+                  "party_id": "P2",
+                  "label": "Ben",
+                  "kind": "PERSON",
+                  "quantities": [],
+                  "clause_ids": [
+                    "C1",
+                    "C2"
+                  ]
+                },
+                {
+                  "party_id": "P3",
+                  "label": "Cara",
+                  "kind": "PERSON",
+                  "quantities": [],
+                  "clause_ids": [
+                    "C1",
+                    "C3"
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "action_id": "A0",
+                  "intervention": "If Ben receives it",
+                  "actor_party_id": "P1",
+                  "recipient_party_ids": [
+                    "P2"
+                  ],
+                  "effect_ids": [
+                    "E1",
+                    "E2"
+                  ],
+                  "clause_ids": [
+                    "C2"
+                  ]
+                },
+                {
+                  "action_id": "A1",
+                  "intervention": "If Cara receives it",
+                  "actor_party_id": "P1",
+                  "recipient_party_ids": [
+                    "P3"
+                  ],
+                  "effect_ids": [
+                    "E3",
+                    "E4"
+                  ],
+                  "clause_ids": [
+                    "C3"
+                  ]
+                }
+              ],
+              "effects": [
+                {
+                  "effect_id": "E1",
+                  "action_id": "A0",
+                  "party_id": "P2",
+                  "outcome": "If Ben receives it",
+                  "predicate": "if",
+                  "polarity": "NEUTRAL",
+                  "directness": "DIRECT",
+                  "modality": "CERTAIN",
+                  "effect_kind": "INTERVENTION",
+                  "condition_ids": [],
+                  "quantities": [],
+                  "likelihood_qualifiers": [],
+                  "overall_likelihood_qualifiers": [],
+                  "scope_qualifiers": [],
+                  "temporal_qualifiers": [],
+                  "condition_join": "AND",
+                  "source_proposition": "If Ben receives it",
+                  "source_effect_ids": [],
+                  "derivation_operation": "DIRECT_COPY",
+                  "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                  "derivation_assumptions": [],
+                  "outcome_type_transformation": "PRESERVED",
+                  "clause_ids": [
+                    "C2"
+                  ]
+                },
+                {
+                  "effect_id": "E2",
+                  "action_id": "A0",
+                  "party_id": "P2",
+                  "outcome": "Ben will recover",
+                  "predicate": "survive",
+                  "polarity": "BENEFICIAL",
+                  "directness": "DOWNSTREAM",
+                  "modality": "POSSIBLE",
+                  "effect_kind": "HEALTH_OUTCOME",
+                  "condition_ids": [],
+                  "quantities": [],
+                  "likelihood_qualifiers": [],
+                  "overall_likelihood_qualifiers": [],
+                  "scope_qualifiers": [],
+                  "temporal_qualifiers": [],
+                  "condition_join": "AND",
+                  "source_proposition": "Ben will recover",
+                  "source_effect_ids": [
+                    "E1"
+                  ],
+                  "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                  "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                  "derivation_assumptions": [],
+                  "outcome_type_transformation": "PRESERVED",
+                  "clause_ids": [
+                    "C2"
+                  ]
+                },
+                {
+                  "effect_id": "E3",
+                  "action_id": "A1",
+                  "party_id": "P3",
+                  "outcome": "If Cara receives it",
+                  "predicate": "if",
+                  "polarity": "NEUTRAL",
+                  "directness": "DIRECT",
+                  "modality": "CERTAIN",
+                  "effect_kind": "INTERVENTION",
+                  "condition_ids": [],
+                  "quantities": [],
+                  "likelihood_qualifiers": [],
+                  "overall_likelihood_qualifiers": [],
+                  "scope_qualifiers": [],
+                  "temporal_qualifiers": [],
+                  "condition_join": "AND",
+                  "source_proposition": "If Cara receives it",
+                  "source_effect_ids": [],
+                  "derivation_operation": "DIRECT_COPY",
+                  "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                  "derivation_assumptions": [],
+                  "outcome_type_transformation": "PRESERVED",
+                  "clause_ids": [
+                    "C3"
+                  ]
+                },
+                {
+                  "effect_id": "E4",
+                  "action_id": "A1",
+                  "party_id": "P3",
+                  "outcome": "Cara will recover",
+                  "predicate": "survive",
+                  "polarity": "BENEFICIAL",
+                  "directness": "DOWNSTREAM",
+                  "modality": "POSSIBLE",
+                  "effect_kind": "HEALTH_OUTCOME",
+                  "condition_ids": [],
+                  "quantities": [],
+                  "likelihood_qualifiers": [],
+                  "overall_likelihood_qualifiers": [],
+                  "scope_qualifiers": [],
+                  "temporal_qualifiers": [],
+                  "condition_join": "AND",
+                  "source_proposition": "Cara will recover",
+                  "source_effect_ids": [
+                    "E3"
+                  ],
+                  "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                  "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                  "derivation_assumptions": [],
+                  "outcome_type_transformation": "PRESERVED",
+                  "clause_ids": [
+                    "C3"
+                  ]
+                }
+              ],
+              "conditions": [],
+              "temporal_relations": [],
+              "causal_links": [
+                {
+                  "action_id": "A0",
+                  "source_id": "E1",
+                  "link_relation": "ENABLES",
+                  "target_id": "E2",
+                  "modality": "POSSIBLE",
+                  "condition_ids": [],
+                  "clause_ids": [
+                    "C2"
+                  ]
+                },
+                {
+                  "action_id": "A1",
+                  "source_id": "E3",
+                  "link_relation": "ENABLES",
+                  "target_id": "E4",
+                  "modality": "POSSIBLE",
+                  "condition_ids": [],
+                  "clause_ids": [
+                    "C3"
+                  ]
+                }
+              ],
+              "counterfactual_links": []
+            },
+            "ellipsis_resolutions": []
+          },
+          "clauses": [
+            {
+              "clause_id": "C0",
+              "text": "A clinic has one indivisible dose of medicine."
+            },
+            {
+              "clause_id": "C1",
+              "text": "Ada may give the dose to Ben or Cara."
+            },
+            {
+              "clause_id": "C2",
+              "text": "If Ben receives it, Ben will recover."
+            },
+            {
+              "clause_id": "C3",
+              "text": "If Cara receives it, Cara will recover."
+            }
+          ],
+          "unfilled_required_slots": [],
+          "unresolved_readings": [
+            {
+              "kind": "conditional_relation",
+              "alternatives": [
+                "CAUSES",
+                "ENABLES"
+              ]
+            }
+          ],
+          "construction_problems": [],
+          "admission_authorized": true,
+          "notes": [],
+          "pre_world_assessment": {
+            "ethical_question": "",
+            "scenario_options": [],
+            "exclusivity": "unspecified",
+            "exclusivity_proof": {
+              "status": "HYPOTHESIZED",
+              "evidence": [
+                {
+                  "text": "one"
+                }
+              ],
+              "assumptions": [
+                "the resource is indivisible",
+                "allocation consumes it"
+              ],
+              "explanation": "A single item is mentioned, but indivisibility is not established."
+            },
+            "participants": [
+              {
+                "role": "subject",
+                "mention": "A clinic",
+                "predicate": "has"
+              },
+              {
+                "role": "object",
+                "mention": "one indivisible dose",
+                "predicate": "has"
+              },
+              {
+                "role": "subject",
+                "mention": "Ada",
+                "predicate": "give"
+              },
+              {
+                "role": "object",
+                "mention": "the dose",
+                "predicate": "give"
+              },
+              {
+                "role": "destination",
+                "mention": "Ben",
+                "predicate": "give"
+              },
+              {
+                "role": "subject",
+                "mention": "Ben",
+                "predicate": "receives"
+              },
+              {
+                "role": "object",
+                "mention": "it",
+                "predicate": "receives"
+              },
+              {
+                "role": "subject",
+                "mention": "Ben",
+                "predicate": "recover"
+              },
+              {
+                "role": "subject",
+                "mention": "Cara",
+                "predicate": "receives"
+              },
+              {
+                "role": "object",
+                "mention": "it",
+                "predicate": "receives"
+              },
+              {
+                "role": "subject",
+                "mention": "Cara",
+                "predicate": "recover"
+              },
+              {
+                "role": "destination",
+                "mention": "Cara",
+                "predicate": "give"
+              }
+            ],
+            "eligible_for_world_state": true,
+            "status": "ASSESSED"
+          },
+          "accepted_evidence": {
+            "actor": "Ada",
+            "condition": "If Ben receives it",
+            "bearer": "Ben",
+            "outcome": "Ben will recover",
+            "second_condition": "If Cara receives it",
+            "second_bearer": "Cara",
+            "second_outcome": "Cara will recover"
+          },
+          "construction_provenance": [
+            {
+              "atom_id": "party:P1",
+              "atom_kind": "party",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [
+                "C1"
+              ],
+              "evidence": [
+                "Ada"
+              ],
+              "explanation": "DIRECT_COPY"
+            },
+            {
+              "atom_id": "party:P2",
+              "atom_kind": "party",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [
+                "C1",
+                "C2"
+              ],
+              "evidence": [
+                "Ben"
+              ],
+              "explanation": "DIRECT_COPY"
+            },
+            {
+              "atom_id": "party:P3",
+              "atom_kind": "party",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [
+                "C1",
+                "C3"
+              ],
+              "evidence": [
+                "Cara"
+              ],
+              "explanation": "DIRECT_COPY"
+            },
+            {
+              "atom_id": "action:A0",
+              "atom_kind": "action",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [
+                "C2"
+              ],
+              "evidence": [
+                "If Ben receives it"
+              ],
+              "explanation": "DIRECT_COPY"
+            },
+            {
+              "atom_id": "action:A1",
+              "atom_kind": "action",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [
+                "C3"
+              ],
+              "evidence": [
+                "If Cara receives it"
+              ],
+              "explanation": "DIRECT_COPY"
+            },
+            {
+              "atom_id": "effect:E1",
+              "atom_kind": "effect",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [
+                "C2"
+              ],
+              "evidence": [
+                "If Ben receives it"
+              ],
+              "explanation": "DIRECT_COPY"
+            },
+            {
+              "atom_id": "effect:E2",
+              "atom_kind": "effect",
+              "origin": "STRUCTURALLY_DERIVED",
+              "clause_ids": [
+                "C2"
+              ],
+              "evidence": [
+                "Ben will recover"
+              ],
+              "explanation": "SOURCE_STIPULATED_CAUSAL"
+            },
+            {
+              "atom_id": "effect:E3",
+              "atom_kind": "effect",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [
+                "C3"
+              ],
+              "evidence": [
+                "If Cara receives it"
+              ],
+              "explanation": "DIRECT_COPY"
+            },
+            {
+              "atom_id": "effect:E4",
+              "atom_kind": "effect",
+              "origin": "STRUCTURALLY_DERIVED",
+              "clause_ids": [
+                "C3"
+              ],
+              "evidence": [
+                "Cara will recover"
+              ],
+              "explanation": "SOURCE_STIPULATED_CAUSAL"
+            },
+            {
+              "atom_id": "relation:0",
+              "atom_kind": "relation",
+              "origin": "UNRESOLVED",
+              "clause_ids": [
+                "C2"
+              ],
+              "evidence": [],
+              "explanation": "A conditional association requires a working Parliament relation."
+            },
+            {
+              "atom_id": "relation:1",
+              "atom_kind": "relation",
+              "origin": "UNRESOLVED",
+              "clause_ids": [
+                "C3"
+              ],
+              "evidence": [],
+              "explanation": "A conditional association requires a working Parliament relation."
+            }
+          ],
+          "relation_alternatives": [
+            {
+              "relation_id": "relation:0",
+              "source_id": "E1",
+              "target_id": "E2",
+              "selected_for_parliament": "ENABLES",
+              "alternatives": [
+                "ENABLES",
+                "CAUSES"
+              ],
+              "status": "UNRESOLVED",
+              "evidence": [],
+              "condition_ids": [],
+              "structural_basis": "conditional_parent"
+            },
+            {
+              "relation_id": "relation:1",
+              "source_id": "E3",
+              "target_id": "E4",
+              "selected_for_parliament": "ENABLES",
+              "alternatives": [
+                "ENABLES",
+                "CAUSES"
+              ],
+              "status": "UNRESOLVED",
+              "evidence": [],
+              "condition_ids": [],
+              "structural_basis": "conditional_parent"
+            }
+          ],
+          "exclusivity_proof": {
+            "status": "HYPOTHESIZED",
+            "evidence": [
+              {
+                "text": "one"
+              }
+            ],
+            "assumptions": [
+              "the resource is indivisible",
+              "allocation consumes it"
+            ],
+            "explanation": "A single item is mentioned, but indivisibility is not established."
+          },
+          "world_withheld": []
+        }
+      }
+    ],
+    "proposals": [
+      {
+        "proposal_contract_version": "blueprint-proposal-contract/0.3",
+        "proposal_id": "exclusive_allocation_cloze",
+        "blueprint_id": "exclusive_allocation",
+        "status": "WITHHELD",
+        "assignment_kind": "none",
+        "assignment": [],
+        "slot_bindings": {
+          "copied_spans": {
+            "decider": "Ada may give the dose to Ben or Cara",
+            "resource": "one indivisible dose of medicine",
+            "first_transfer": "Ben receives it",
+            "second_transfer": "Cara receives it",
+            "quantity": "one indivisible dose",
+            "first_recipient": "Ben",
+            "second_recipient": "Cara",
+            "first_outcome": "Ben will recover",
+            "second_outcome": "Cara will recover",
+            "first_branch_sentence": "If Ben receives it, Ben will recover",
+            "second_branch_sentence": "If Cara receives it, Cara will recover",
+            "assignment": "Ben receives it",
+            "first_implied_process": "administration",
+            "second_implied_process": "administration"
+          }
+        },
+        "selection": null,
+        "selection_validation": {
+          "contract_valid": null,
+          "status": "not_assessed",
+          "reason": "No Z10 candidate selection was constructed."
+        },
+        "candidate": null,
+        "clauses": [
+          {
+            "clause_id": "C0",
+            "text": "A clinic has one indivisible dose of medicine."
+          },
+          {
+            "clause_id": "C1",
+            "text": "Ada may give the dose to Ben or Cara."
+          },
+          {
+            "clause_id": "C2",
+            "text": "If Ben receives it, Ben will recover."
+          },
+          {
+            "clause_id": "C3",
+            "text": "If Cara receives it, Cara will recover."
+          }
+        ],
+        "unfilled_required_slots": [],
+        "unresolved_readings": [],
+        "construction_problems": [
+          {
+            "code": "world_withheld",
+            "message": "Exclusivity is unspecified. The alternatives are not an exclusive set, so an averted-alternative effect is not licensed."
+          }
+        ],
+        "admission_authorized": false,
+        "notes": [],
+        "pre_world_assessment": {
+          "ethical_question": "",
+          "scenario_options": [],
+          "exclusivity": "unspecified",
+          "exclusivity_proof": {
+            "status": "HYPOTHESIZED",
+            "evidence": [
+              {
+                "text": "one"
+              }
+            ],
+            "assumptions": [
+              "the resource is indivisible",
+              "allocation consumes it"
+            ],
+            "explanation": "A single item is mentioned, but indivisibility is not established."
+          },
+          "participants": [
+            {
+              "role": "subject",
+              "mention": "A clinic",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "one indivisible dose",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "Ada",
+              "predicate": "give"
+            },
+            {
+              "role": "object",
+              "mention": "the dose",
+              "predicate": "give"
+            },
+            {
+              "role": "destination",
+              "mention": "Ben",
+              "predicate": "give"
+            },
+            {
+              "role": "subject",
+              "mention": "Ben",
+              "predicate": "receives"
+            },
+            {
+              "role": "object",
+              "mention": "it",
+              "predicate": "receives"
+            },
+            {
+              "role": "subject",
+              "mention": "Ben",
+              "predicate": "recover"
+            },
+            {
+              "role": "subject",
+              "mention": "Cara",
+              "predicate": "receives"
+            },
+            {
+              "role": "object",
+              "mention": "it",
+              "predicate": "receives"
+            },
+            {
+              "role": "subject",
+              "mention": "Cara",
+              "predicate": "recover"
+            },
+            {
+              "role": "destination",
+              "mention": "Cara",
+              "predicate": "give"
+            }
+          ],
+          "status": "WITHHELD",
+          "eligible_for_world_state": false
+        },
+        "accepted_evidence": {
+          "decider": "Ada may give the dose to Ben or Cara",
+          "resource": "one indivisible dose of medicine",
+          "assignment": "Ben receives it",
+          "first_transfer": "Ben receives it",
+          "second_transfer": "Cara receives it",
+          "quantity": "one indivisible dose",
+          "first_recipient": "Ben",
+          "second_recipient": "Cara",
+          "first_outcome": "Ben will recover",
+          "second_outcome": "Cara will recover",
+          "first_implied_process": "administration",
+          "second_implied_process": "administration",
+          "first_branch_sentence": "If Ben receives it, Ben will recover",
+          "second_branch_sentence": "If Cara receives it, Cara will recover"
+        },
+        "construction_provenance": [
+          {
+            "atom_id": "slot:decider",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Ada may give the dose to Ben or Cara"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:resource",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "one indivisible dose of medicine"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:assignment",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Ben receives it"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:first_transfer",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Ben receives it"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:second_transfer",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Cara receives it"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:quantity",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "one indivisible dose"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:first_recipient",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Ben"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:second_recipient",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Cara"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:first_outcome",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Ben will recover"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:second_outcome",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Cara will recover"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:first_implied_process",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "administration"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:second_implied_process",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "administration"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:first_branch_sentence",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "If Ben receives it, Ben will recover"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:second_branch_sentence",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "If Cara receives it, Cara will recover"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          }
+        ],
+        "relation_alternatives": [],
+        "exclusivity_proof": {
+          "status": "HYPOTHESIZED",
+          "evidence": [
+            {
+              "text": "one"
+            }
+          ],
+          "assumptions": [
+            "the resource is indivisible",
+            "allocation consumes it"
+          ],
+          "explanation": "A single item is mentioned, but indivisibility is not established."
+        },
+        "world_withheld": [
+          "Exclusivity is unspecified. The alternatives are not an exclusive set, so an averted-alternative effect is not licensed."
+        ]
+      }
+    ],
+    "graph": null,
+    "z10_blueprint_comparison": {
+      "comparison_version": "z10-blueprint-comparison/0.1",
+      "policy": "independent_nonbinding_comparison",
+      "selection_changed": false,
+      "z10_package_id": "blueprint_run_6d572a87f4ee",
+      "z10_open_question_ids": [
+        "q0",
+        "q1",
+        "q2",
+        "q3",
+        "q4",
+        "q5",
+        "q6",
+        "q7",
+        "q8",
+        "q9",
+        "q10",
+        "q11"
+      ],
+      "candidate_comparisons": [
+        {
+          "blueprint_id": "exclusive_allocation",
+          "rank": 0,
+          "status": "NO_BLUEPRINT_WORLD",
+          "agreement": [],
+          "z10_only": [
+            "give",
+            "have",
+            "receive",
+            "recover"
+          ],
+          "blueprint_only": [],
+          "conflicts": []
+        },
+        {
+          "blueprint_id": "rescue_contrast",
+          "rank": 1,
+          "status": "NO_BLUEPRINT_WORLD",
+          "agreement": [],
+          "z10_only": [
+            "give",
+            "have",
+            "receive",
+            "recover"
+          ],
+          "blueprint_only": [],
+          "conflicts": []
+        },
+        {
+          "blueprint_id": "conditional_outcome",
+          "rank": 2,
+          "status": "AGREEMENT",
+          "agreement": [
+            "receive",
+            "recover"
+          ],
+          "z10_only": [
+            "give",
+            "have"
+          ],
+          "blueprint_only": [
+            "if",
+            "survive"
+          ],
+          "conflicts": [],
+          "z10_relations": [
+            "CONDITIONAL_ON",
+            "MODALITY",
+            "QUANTITY"
+          ],
+          "blueprint_relations": [
+            "CONDITIONAL_ON",
+            "ENABLES"
+          ],
+          "z10_participant_roles": [
+            "destination",
+            "object",
+            "subject"
+          ],
+          "blueprint_party_labels": [
+            "Ada",
+            "Ben",
+            "Cara"
+          ]
+        }
+      ]
+    }
+  }
+}

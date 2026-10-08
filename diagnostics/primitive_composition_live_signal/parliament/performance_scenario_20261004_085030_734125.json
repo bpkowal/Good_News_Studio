@@ -1,0 +1,2915 @@
+{
+  "schema_version": 2,
+  "run_id": "scenario_20261004_085030_734125",
+  "started_at": "2026-10-04T12:50:30.734148+00:00",
+  "elapsed_seconds": 219.562387,
+  "counts": {
+    "events": 215,
+    "by_category": {
+      "cycle_input": 3,
+      "evaluation_barrier": 3,
+      "ledger_commit": 15,
+      "model_call": 32,
+      "original_agent": 5,
+      "original_agent_phase": 20,
+      "projection": 64,
+      "provider_attempt": 38,
+      "side_premise_audit": 3,
+      "stage": 32
+    },
+    "by_status": {
+      "CACHE_HIT": 45,
+      "COMMITTED_WITH_UNCERTAINTY": 9,
+      "COMPLETE": 3,
+      "FINDINGS": 3,
+      "FROZEN": 3,
+      "MATERIALIZED": 19,
+      "OK": 133
+    },
+    "logical_model_calls": 32,
+    "model_call_count": 37,
+    "original_agent_model_calls": 5,
+    "compact_primary_calls": 15,
+    "compact_repair_calls": 0,
+    "repair_count": 0,
+    "timeout_count": 0,
+    "abstention_count": 4,
+    "budget_blocked_calls": 0,
+    "model_cache_hits": 0,
+    "grounded_projection_materializations": 19,
+    "grounded_projection_cache_hits": 45,
+    "provider_attempts": 38,
+    "provider_failures": 0
+  },
+  "timings_by_name_seconds": {
+    "auxiliary": 25.540256,
+    "checkpoint_serialization": 0.235951,
+    "compact_primary": 211.124009,
+    "cycle_execution": 172.111953,
+    "epistemic_audit": 41.422893,
+    "final_report_serialization": 0.134197,
+    "frozen_world_validation": 0.017473,
+    "grounded_effect_projection": 0.009641,
+    "openai.chat.completions": 302.369279,
+    "original_agent_consultation": 22.136825,
+    "original_agent_model": 32.758568,
+    "original_agent_overhead": 0.182616,
+    "original_agent_process": 39.729567,
+    "original_agent_retrieval": 0.0,
+    "original_agent_startup": 6.788383,
+    "pipeline_total": 219.562149,
+    "prepare_cycle_input": 0.013879,
+    "primary": 24.309481,
+    "sequential_ledger_commit": 0.062163,
+    "side_premise_audit": 41.470305,
+    "specialist_evaluation": 236.814802,
+    "specialist_evaluation_barrier": 6.6e-05,
+    "testimony_baseline": 14.970635,
+    "trace_serialization": 0.101766,
+    "workspace_deliberation": 181.791523
+  },
+  "original_agents": {
+    "care": {
+      "process_seconds": 10.835336,
+      "startup_seconds": 1.770047,
+      "retrieval_seconds": 0.0,
+      "retrieval_calls": 0,
+      "model_seconds": 9.063039,
+      "model_calls": 1,
+      "overhead_seconds": 0.00225
+    },
+    "deontological": {
+      "process_seconds": 6.761938,
+      "startup_seconds": 1.086032,
+      "retrieval_seconds": 0.0,
+      "retrieval_calls": 0,
+      "model_seconds": 5.67232,
+      "model_calls": 1,
+      "overhead_seconds": 0.003586
+    },
+    "rawlsian": {
+      "process_seconds": 8.167321,
+      "startup_seconds": 0.969537,
+      "retrieval_seconds": 0.0,
+      "retrieval_calls": 0,
+      "model_seconds": 7.195662,
+      "model_calls": 1,
+      "overhead_seconds": 0.002122
+    },
+    "utilitarian": {
+      "process_seconds": 5.325213,
+      "startup_seconds": 1.07709,
+      "retrieval_seconds": 0.0,
+      "retrieval_calls": 0,
+      "model_seconds": 4.169772,
+      "model_calls": 1,
+      "overhead_seconds": 0.078351
+    },
+    "virtue": {
+      "process_seconds": 8.639759,
+      "startup_seconds": 1.885677,
+      "retrieval_seconds": 0.0,
+      "retrieval_calls": 0,
+      "model_seconds": 6.657775,
+      "model_calls": 1,
+      "overhead_seconds": 0.096307
+    }
+  },
+  "compact_specialists": {
+    "care": {
+      "primary_calls": 3,
+      "primary_seconds": 27.148786,
+      "repair_calls": 0,
+      "repair_seconds": 0.0
+    },
+    "deontological": {
+      "primary_calls": 3,
+      "primary_seconds": 71.996552,
+      "repair_calls": 0,
+      "repair_seconds": 0.0
+    },
+    "rawlsian": {
+      "primary_calls": 3,
+      "primary_seconds": 39.770941,
+      "repair_calls": 0,
+      "repair_seconds": 0.0
+    },
+    "utilitarian": {
+      "primary_calls": 3,
+      "primary_seconds": 39.756095,
+      "repair_calls": 0,
+      "repair_seconds": 0.0
+    },
+    "virtue": {
+      "primary_calls": 3,
+      "primary_seconds": 32.451635,
+      "repair_calls": 0,
+      "repair_seconds": 0.0
+    }
+  },
+  "ledger_commits": {
+    "care": {
+      "commit_batches": 3,
+      "commit_seconds": 0.003771
+    },
+    "deontological": {
+      "commit_batches": 3,
+      "commit_seconds": 0.008562
+    },
+    "rawlsian": {
+      "commit_batches": 3,
+      "commit_seconds": 0.010105
+    },
+    "utilitarian": {
+      "commit_batches": 3,
+      "commit_seconds": 0.034922
+    },
+    "virtue": {
+      "commit_batches": 3,
+      "commit_seconds": 0.004803
+    }
+  },
+  "events": [
+    {
+      "category": "stage",
+      "name": "frozen_world_validation",
+      "status": "OK",
+      "duration_seconds": 0.017473,
+      "finished_at": "2026-10-04T12:50:30.752061+00:00",
+      "metadata": {}
+    },
+    {
+      "category": "original_agent",
+      "name": "original_agent_process",
+      "status": "OK",
+      "duration_seconds": 5.325213,
+      "finished_at": "2026-10-04T12:50:36.474535+00:00",
+      "metadata": {
+        "agent": "utilitarian",
+        "timeout_count": 0,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_startup",
+      "status": "OK",
+      "duration_seconds": 1.07709,
+      "finished_at": "2026-10-04T12:50:36.474591+00:00",
+      "metadata": {
+        "agent": "utilitarian",
+        "process_startup_seconds": 0.676807,
+        "module_startup_seconds": 0.001916,
+        "model_startup_seconds": 0.398367,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_retrieval",
+      "status": "OK",
+      "duration_seconds": 0.0,
+      "finished_at": "2026-10-04T12:50:36.474595+00:00",
+      "metadata": {
+        "agent": "utilitarian",
+        "retrieval_call_count": 0,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_model",
+      "status": "OK",
+      "duration_seconds": 4.169772,
+      "finished_at": "2026-10-04T12:50:36.474603+00:00",
+      "metadata": {
+        "agent": "utilitarian",
+        "model_call_count": 1,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_overhead",
+      "status": "OK",
+      "duration_seconds": 0.078351,
+      "finished_at": "2026-10-04T12:50:36.474606+00:00",
+      "metadata": {
+        "agent": "utilitarian",
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent",
+      "name": "original_agent_process",
+      "status": "OK",
+      "duration_seconds": 6.761938,
+      "finished_at": "2026-10-04T12:50:37.911243+00:00",
+      "metadata": {
+        "agent": "deontological",
+        "timeout_count": 0,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_startup",
+      "status": "OK",
+      "duration_seconds": 1.086032,
+      "finished_at": "2026-10-04T12:50:37.911313+00:00",
+      "metadata": {
+        "agent": "deontological",
+        "process_startup_seconds": 0.695602,
+        "module_startup_seconds": 0.001051,
+        "model_startup_seconds": 0.389379,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_retrieval",
+      "status": "OK",
+      "duration_seconds": 0.0,
+      "finished_at": "2026-10-04T12:50:37.911319+00:00",
+      "metadata": {
+        "agent": "deontological",
+        "retrieval_call_count": 0,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_model",
+      "status": "OK",
+      "duration_seconds": 5.67232,
+      "finished_at": "2026-10-04T12:50:37.911325+00:00",
+      "metadata": {
+        "agent": "deontological",
+        "model_call_count": 1,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_overhead",
+      "status": "OK",
+      "duration_seconds": 0.003586,
+      "finished_at": "2026-10-04T12:50:37.911331+00:00",
+      "metadata": {
+        "agent": "deontological",
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent",
+      "name": "original_agent_process",
+      "status": "OK",
+      "duration_seconds": 8.639759,
+      "finished_at": "2026-10-04T12:50:45.114903+00:00",
+      "metadata": {
+        "agent": "virtue",
+        "timeout_count": 0,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_startup",
+      "status": "OK",
+      "duration_seconds": 1.885677,
+      "finished_at": "2026-10-04T12:50:45.114969+00:00",
+      "metadata": {
+        "agent": "virtue",
+        "process_startup_seconds": 1.252544,
+        "module_startup_seconds": 0.001686,
+        "model_startup_seconds": 0.631447,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_retrieval",
+      "status": "OK",
+      "duration_seconds": 0.0,
+      "finished_at": "2026-10-04T12:50:45.114975+00:00",
+      "metadata": {
+        "agent": "virtue",
+        "retrieval_call_count": 0,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_model",
+      "status": "OK",
+      "duration_seconds": 6.657775,
+      "finished_at": "2026-10-04T12:50:45.114977+00:00",
+      "metadata": {
+        "agent": "virtue",
+        "model_call_count": 1,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_overhead",
+      "status": "OK",
+      "duration_seconds": 0.096307,
+      "finished_at": "2026-10-04T12:50:45.114983+00:00",
+      "metadata": {
+        "agent": "virtue",
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent",
+      "name": "original_agent_process",
+      "status": "OK",
+      "duration_seconds": 10.835336,
+      "finished_at": "2026-10-04T12:50:48.746957+00:00",
+      "metadata": {
+        "agent": "care",
+        "timeout_count": 0,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_startup",
+      "status": "OK",
+      "duration_seconds": 1.770047,
+      "finished_at": "2026-10-04T12:50:48.747016+00:00",
+      "metadata": {
+        "agent": "care",
+        "process_startup_seconds": 1.473121,
+        "module_startup_seconds": 0.000501,
+        "model_startup_seconds": 0.296425,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_retrieval",
+      "status": "OK",
+      "duration_seconds": 0.0,
+      "finished_at": "2026-10-04T12:50:48.747021+00:00",
+      "metadata": {
+        "agent": "care",
+        "retrieval_call_count": 0,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_model",
+      "status": "OK",
+      "duration_seconds": 9.063039,
+      "finished_at": "2026-10-04T12:50:48.747024+00:00",
+      "metadata": {
+        "agent": "care",
+        "model_call_count": 1,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_overhead",
+      "status": "OK",
+      "duration_seconds": 0.00225,
+      "finished_at": "2026-10-04T12:50:48.747032+00:00",
+      "metadata": {
+        "agent": "care",
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent",
+      "name": "original_agent_process",
+      "status": "OK",
+      "duration_seconds": 8.167321,
+      "finished_at": "2026-10-04T12:50:53.282929+00:00",
+      "metadata": {
+        "agent": "rawlsian",
+        "timeout_count": 0,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_startup",
+      "status": "OK",
+      "duration_seconds": 0.969537,
+      "finished_at": "2026-10-04T12:50:53.282955+00:00",
+      "metadata": {
+        "agent": "rawlsian",
+        "process_startup_seconds": 0.688713,
+        "module_startup_seconds": 0.000408,
+        "model_startup_seconds": 0.280416,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_retrieval",
+      "status": "OK",
+      "duration_seconds": 0.0,
+      "finished_at": "2026-10-04T12:50:53.282959+00:00",
+      "metadata": {
+        "agent": "rawlsian",
+        "retrieval_call_count": 0,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_model",
+      "status": "OK",
+      "duration_seconds": 7.195662,
+      "finished_at": "2026-10-04T12:50:53.282961+00:00",
+      "metadata": {
+        "agent": "rawlsian",
+        "model_call_count": 1,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_overhead",
+      "status": "OK",
+      "duration_seconds": 0.002122,
+      "finished_at": "2026-10-04T12:50:53.282963+00:00",
+      "metadata": {
+        "agent": "rawlsian",
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "original_agent_consultation",
+      "status": "OK",
+      "duration_seconds": 22.136825,
+      "finished_at": "2026-10-04T12:50:53.284362+00:00",
+      "metadata": {}
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 2.954528,
+      "finished_at": "2026-10-04T12:50:56.244174+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "testimony_baseline"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "primary",
+      "status": "OK",
+      "duration_seconds": 2.955086,
+      "finished_at": "2026-10-04T12:50:56.244247+00:00",
+      "metadata": {
+        "call_kind": "primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 96,
+        "structured": true,
+        "cycle": 0,
+        "parent_stage": "testimony_baseline"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "testimony_baseline",
+      "status": "OK",
+      "duration_seconds": 2.958493,
+      "finished_at": "2026-10-04T12:50:56.244737+00:00",
+      "metadata": {
+        "specialist": "utilitarian"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 2.48481,
+      "finished_at": "2026-10-04T12:50:58.730720+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "testimony_baseline"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "primary",
+      "status": "OK",
+      "duration_seconds": 2.485108,
+      "finished_at": "2026-10-04T12:50:58.730886+00:00",
+      "metadata": {
+        "call_kind": "primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 96,
+        "structured": true,
+        "cycle": 0,
+        "parent_stage": "testimony_baseline"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "testimony_baseline",
+      "status": "OK",
+      "duration_seconds": 2.488809,
+      "finished_at": "2026-10-04T12:50:58.733585+00:00",
+      "metadata": {
+        "specialist": "deontological"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 3.777558,
+      "finished_at": "2026-10-04T12:51:02.512882+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "testimony_baseline"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "primary",
+      "status": "OK",
+      "duration_seconds": 3.77788,
+      "finished_at": "2026-10-04T12:51:02.513049+00:00",
+      "metadata": {
+        "call_kind": "primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 96,
+        "structured": true,
+        "cycle": 0,
+        "parent_stage": "testimony_baseline"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "testimony_baseline",
+      "status": "OK",
+      "duration_seconds": 3.780868,
+      "finished_at": "2026-10-04T12:51:02.514686+00:00",
+      "metadata": {
+        "specialist": "virtue"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 2.809471,
+      "finished_at": "2026-10-04T12:51:05.328378+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "testimony_baseline"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "primary",
+      "status": "OK",
+      "duration_seconds": 2.809728,
+      "finished_at": "2026-10-04T12:51:05.328451+00:00",
+      "metadata": {
+        "call_kind": "primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 96,
+        "structured": true,
+        "cycle": 0,
+        "parent_stage": "testimony_baseline"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "testimony_baseline",
+      "status": "OK",
+      "duration_seconds": 2.814511,
+      "finished_at": "2026-10-04T12:51:05.329365+00:00",
+      "metadata": {
+        "specialist": "care"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 2.926286,
+      "finished_at": "2026-10-04T12:51:08.257192+00:00",
+      "metadata": {
+        "model": "o3",
+        "parent_stage": "testimony_baseline"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "primary",
+      "status": "OK",
+      "duration_seconds": 2.926484,
+      "finished_at": "2026-10-04T12:51:08.257253+00:00",
+      "metadata": {
+        "call_kind": "primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 96,
+        "structured": true,
+        "cycle": 0,
+        "parent_stage": "testimony_baseline"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "testimony_baseline",
+      "status": "OK",
+      "duration_seconds": 2.927954,
+      "finished_at": "2026-10-04T12:51:08.257355+00:00",
+      "metadata": {
+        "specialist": "rawlsian"
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "MATERIALIZED",
+      "duration_seconds": 0.001,
+      "finished_at": "2026-10-04T12:51:08.289627+00:00",
+      "metadata": {
+        "graph_revision": 60,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 1.455406,
+      "finished_at": "2026-10-04T12:51:09.760075+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "primary",
+      "status": "OK",
+      "duration_seconds": 1.456947,
+      "finished_at": "2026-10-04T12:51:09.761468+00:00",
+      "metadata": {
+        "call_kind": "primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 160,
+        "structured": true,
+        "cycle": 0
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 4.472463,
+      "finished_at": "2026-10-04T12:51:14.235116+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "primary",
+      "status": "OK",
+      "duration_seconds": 4.473266,
+      "finished_at": "2026-10-04T12:51:14.235552+00:00",
+      "metadata": {
+        "call_kind": "primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 180,
+        "structured": true,
+        "cycle": 0
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 0.000118,
+      "finished_at": "2026-10-04T12:51:14.239465+00:00",
+      "metadata": {
+        "graph_revision": 60,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "cycle_input",
+      "name": "prepare_cycle_input",
+      "status": "FROZEN",
+      "duration_seconds": 0.004997,
+      "finished_at": "2026-10-04T12:51:14.244267+00:00",
+      "metadata": {
+        "cycle": 1,
+        "specialist_count": 5,
+        "action_count": 2,
+        "proposition_count": 10,
+        "challenge_count": 0,
+        "evaluation_workers": 2
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 7e-06,
+      "finished_at": "2026-10-04T12:51:14.249906+00:00",
+      "metadata": {
+        "graph_revision": 60,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 1.6e-05,
+      "finished_at": "2026-10-04T12:51:14.256920+00:00",
+      "metadata": {
+        "graph_revision": 60,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 8.143067,
+      "finished_at": "2026-10-04T12:51:22.395257+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "compact_primary",
+      "status": "OK",
+      "duration_seconds": 8.144279,
+      "finished_at": "2026-10-04T12:51:22.395679+00:00",
+      "metadata": {
+        "call_kind": "compact_primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 128,
+        "structured": true,
+        "cycle": 1,
+        "specialist": "utilitarian",
+        "constraint": "OPEN_DELIBERATION",
+        "response_kind": "deliberation"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 10.105301,
+      "finished_at": "2026-10-04T12:51:24.363931+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 6.199324,
+      "finished_at": "2026-10-04T12:51:28.610943+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "auxiliary",
+      "status": "OK",
+      "duration_seconds": 6.199464,
+      "finished_at": "2026-10-04T12:51:28.610994+00:00",
+      "metadata": {
+        "call_kind": "auxiliary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 128,
+        "structured": true,
+        "cycle": 1
+      }
+    },
+    {
+      "category": "stage",
+      "name": "specialist_evaluation",
+      "status": "OK",
+      "duration_seconds": 14.363967,
+      "finished_at": "2026-10-04T12:51:28.612528+00:00",
+      "metadata": {
+        "cycle": 1,
+        "specialist": "utilitarian",
+        "counterfactual": false,
+        "commit_started": false
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 2.7e-05,
+      "finished_at": "2026-10-04T12:51:28.616066+00:00",
+      "metadata": {
+        "graph_revision": 60,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 7.323648,
+      "finished_at": "2026-10-04T12:51:31.687449+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "compact_primary",
+      "status": "OK",
+      "duration_seconds": 17.430064,
+      "finished_at": "2026-10-04T12:51:31.687614+00:00",
+      "metadata": {
+        "call_kind": "compact_primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 128,
+        "structured": true,
+        "cycle": 1,
+        "specialist": "deontological",
+        "constraint": "OPEN_DELIBERATION",
+        "response_kind": "deliberation"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "specialist_evaluation",
+      "status": "OK",
+      "duration_seconds": 17.43721,
+      "finished_at": "2026-10-04T12:51:31.693025+00:00",
+      "metadata": {
+        "cycle": 1,
+        "specialist": "deontological",
+        "counterfactual": false,
+        "commit_started": false
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 7e-06,
+      "finished_at": "2026-10-04T12:51:31.696674+00:00",
+      "metadata": {
+        "graph_revision": 60,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 10.233307,
+      "finished_at": "2026-10-04T12:51:38.850284+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "compact_primary",
+      "status": "OK",
+      "duration_seconds": 10.233875,
+      "finished_at": "2026-10-04T12:51:38.850383+00:00",
+      "metadata": {
+        "call_kind": "compact_primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 128,
+        "structured": true,
+        "cycle": 1,
+        "specialist": "virtue",
+        "constraint": "OPEN_DELIBERATION",
+        "response_kind": "deliberation"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "specialist_evaluation",
+      "status": "OK",
+      "duration_seconds": 10.239981,
+      "finished_at": "2026-10-04T12:51:38.855238+00:00",
+      "metadata": {
+        "cycle": 1,
+        "specialist": "virtue",
+        "counterfactual": false,
+        "commit_started": false
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 4.2e-05,
+      "finished_at": "2026-10-04T12:51:38.859677+00:00",
+      "metadata": {
+        "graph_revision": 60,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 8.028053,
+      "finished_at": "2026-10-04T12:51:39.726753+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "compact_primary",
+      "status": "OK",
+      "duration_seconds": 8.028963,
+      "finished_at": "2026-10-04T12:51:39.726827+00:00",
+      "metadata": {
+        "call_kind": "compact_primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 128,
+        "structured": true,
+        "cycle": 1,
+        "specialist": "care",
+        "constraint": "OPEN_DELIBERATION",
+        "response_kind": "deliberation"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 4.700483,
+      "finished_at": "2026-10-04T12:51:44.431374+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "auxiliary",
+      "status": "OK",
+      "duration_seconds": 4.701065,
+      "finished_at": "2026-10-04T12:51:44.431710+00:00",
+      "metadata": {
+        "call_kind": "auxiliary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 128,
+        "structured": true,
+        "cycle": 1
+      }
+    },
+    {
+      "category": "stage",
+      "name": "specialist_evaluation",
+      "status": "OK",
+      "duration_seconds": 12.738154,
+      "finished_at": "2026-10-04T12:51:44.433688+00:00",
+      "metadata": {
+        "cycle": 1,
+        "specialist": "care",
+        "counterfactual": false,
+        "commit_started": false
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 8.793314,
+      "finished_at": "2026-10-04T12:51:47.655151+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "compact_primary",
+      "status": "OK",
+      "duration_seconds": 8.794571,
+      "finished_at": "2026-10-04T12:51:47.655254+00:00",
+      "metadata": {
+        "call_kind": "compact_primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 128,
+        "structured": true,
+        "cycle": 1,
+        "specialist": "rawlsian",
+        "constraint": "OPEN_DELIBERATION",
+        "response_kind": "deliberation"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "specialist_evaluation",
+      "status": "OK",
+      "duration_seconds": 8.804197,
+      "finished_at": "2026-10-04T12:51:47.662818+00:00",
+      "metadata": {
+        "cycle": 1,
+        "specialist": "rawlsian",
+        "counterfactual": false,
+        "commit_started": false
+      }
+    },
+    {
+      "category": "evaluation_barrier",
+      "name": "specialist_evaluation_barrier",
+      "status": "COMPLETE",
+      "duration_seconds": 3.8e-05,
+      "finished_at": "2026-10-04T12:51:47.663469+00:00",
+      "metadata": {
+        "cycle": 1,
+        "expected_specialists": [
+          "utilitarian",
+          "deontological",
+          "virtue",
+          "care",
+          "rawlsian"
+        ],
+        "observed_specialists": [
+          "utilitarian",
+          "deontological",
+          "virtue",
+          "care",
+          "rawlsian"
+        ],
+        "candidate_count": 5
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "MATERIALIZED",
+      "duration_seconds": 0.00082,
+      "finished_at": "2026-10-04T12:51:47.677594+00:00",
+      "metadata": {
+        "graph_revision": 69,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "ledger_commit",
+      "name": "sequential_ledger_commit",
+      "status": "OK",
+      "duration_seconds": 0.015131,
+      "finished_at": "2026-10-04T12:51:47.678727+00:00",
+      "metadata": {
+        "cycle": 1,
+        "specialist": "utilitarian",
+        "operations": [
+          {
+            "ledger": "SEMANTIC_GRAPH",
+            "status": "COMMITTED"
+          },
+          {
+            "ledger": "UTILITARIAN_CONSEQUENCE_LEDGER",
+            "status": "COMMITTED"
+          }
+        ]
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "MATERIALIZED",
+      "duration_seconds": 0.000408,
+      "finished_at": "2026-10-04T12:51:47.680586+00:00",
+      "metadata": {
+        "graph_revision": 99,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 3e-06,
+      "finished_at": "2026-10-04T12:51:47.680722+00:00",
+      "metadata": {
+        "graph_revision": 99,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 2e-06,
+      "finished_at": "2026-10-04T12:51:47.681027+00:00",
+      "metadata": {
+        "graph_revision": 99,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 2e-06,
+      "finished_at": "2026-10-04T12:51:47.681111+00:00",
+      "metadata": {
+        "graph_revision": 99,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "ledger_commit",
+      "name": "sequential_ledger_commit",
+      "status": "COMMITTED_WITH_UNCERTAINTY",
+      "duration_seconds": 0.003176,
+      "finished_at": "2026-10-04T12:51:47.681957+00:00",
+      "metadata": {
+        "cycle": 1,
+        "specialist": "deontological",
+        "operations": [
+          {
+            "ledger": "SEMANTIC_GRAPH",
+            "status": "NO_OP"
+          },
+          {
+            "ledger": "DEONTOLOGICAL_DUTY_LEDGER",
+            "status": "COMMITTED_WITH_UNCERTAINTY"
+          }
+        ]
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "MATERIALIZED",
+      "duration_seconds": 0.000462,
+      "finished_at": "2026-10-04T12:51:47.683193+00:00",
+      "metadata": {
+        "graph_revision": 142,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 2e-06,
+      "finished_at": "2026-10-04T12:51:47.683318+00:00",
+      "metadata": {
+        "graph_revision": 142,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "ledger_commit",
+      "name": "sequential_ledger_commit",
+      "status": "OK",
+      "duration_seconds": 0.001774,
+      "finished_at": "2026-10-04T12:51:47.683752+00:00",
+      "metadata": {
+        "cycle": 1,
+        "specialist": "virtue",
+        "operations": [
+          {
+            "ledger": "SEMANTIC_GRAPH",
+            "status": "NO_OP"
+          },
+          {
+            "ledger": "VIRTUE_CHARACTER_LEDGER",
+            "status": "COMMITTED"
+          }
+        ]
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "MATERIALIZED",
+      "duration_seconds": 0.000433,
+      "finished_at": "2026-10-04T12:51:47.684907+00:00",
+      "metadata": {
+        "graph_revision": 146,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 2e-06,
+      "finished_at": "2026-10-04T12:51:47.685040+00:00",
+      "metadata": {
+        "graph_revision": 146,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "ledger_commit",
+      "name": "sequential_ledger_commit",
+      "status": "COMMITTED_WITH_UNCERTAINTY",
+      "duration_seconds": 0.001796,
+      "finished_at": "2026-10-04T12:51:47.685576+00:00",
+      "metadata": {
+        "cycle": 1,
+        "specialist": "care",
+        "operations": [
+          {
+            "ledger": "SEMANTIC_GRAPH",
+            "status": "NO_OP"
+          },
+          {
+            "ledger": "CARE_RELATIONSHIP_LEDGER",
+            "status": "COMMITTED_WITH_UNCERTAINTY"
+          }
+        ]
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "MATERIALIZED",
+      "duration_seconds": 0.000435,
+      "finished_at": "2026-10-04T12:51:47.687726+00:00",
+      "metadata": {
+        "graph_revision": 161,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 3e-06,
+      "finished_at": "2026-10-04T12:51:47.687798+00:00",
+      "metadata": {
+        "graph_revision": 161,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 2e-06,
+      "finished_at": "2026-10-04T12:51:47.688140+00:00",
+      "metadata": {
+        "graph_revision": 161,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 1e-06,
+      "finished_at": "2026-10-04T12:51:47.688188+00:00",
+      "metadata": {
+        "graph_revision": 161,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "ledger_commit",
+      "name": "sequential_ledger_commit",
+      "status": "COMMITTED_WITH_UNCERTAINTY",
+      "duration_seconds": 0.003364,
+      "finished_at": "2026-10-04T12:51:47.688963+00:00",
+      "metadata": {
+        "cycle": 1,
+        "specialist": "rawlsian",
+        "operations": [
+          {
+            "ledger": "SEMANTIC_GRAPH",
+            "status": "COMMITTED"
+          },
+          {
+            "ledger": "RAWLSIAN_POSITION_LEDGER",
+            "status": "COMMITTED_WITH_UNCERTAINTY"
+          }
+        ]
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 12.211839,
+      "finished_at": "2026-10-04T12:51:59.908432+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 12.157703,
+      "finished_at": "2026-10-04T12:52:12.066098+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "epistemic_audit",
+      "status": "OK",
+      "duration_seconds": 24.371186,
+      "finished_at": "2026-10-04T12:52:12.066733+00:00",
+      "metadata": {
+        "call_kind": "epistemic_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 600,
+        "structured": true,
+        "cycle": 1
+      }
+    },
+    {
+      "category": "side_premise_audit",
+      "name": "side_premise_audit",
+      "status": "FINDINGS",
+      "duration_seconds": 24.398839,
+      "finished_at": "2026-10-04T12:52:12.092512+00:00",
+      "metadata": {
+        "cycle": 1,
+        "counterfactual": false,
+        "finding_count": 9
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "MATERIALIZED",
+      "duration_seconds": 0.000827,
+      "finished_at": "2026-10-04T12:52:12.108381+00:00",
+      "metadata": {
+        "graph_revision": 178,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "stage",
+      "name": "cycle_execution",
+      "status": "OK",
+      "duration_seconds": 57.882991,
+      "finished_at": "2026-10-04T12:52:12.117613+00:00",
+      "metadata": {
+        "cycle": 1,
+        "counterfactual": false,
+        "candidate_count": 5,
+        "abstention_count": 2
+      }
+    },
+    {
+      "category": "stage",
+      "name": "checkpoint_serialization",
+      "status": "OK",
+      "duration_seconds": 0.036288,
+      "finished_at": "2026-10-04T12:52:12.153944+00:00",
+      "metadata": {
+        "cycle_count": 1,
+        "format": "compact",
+        "atomic": true,
+        "bytes_written": 420861
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 4e-06,
+      "finished_at": "2026-10-04T12:52:12.154255+00:00",
+      "metadata": {
+        "graph_revision": 178,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 3.424606,
+      "finished_at": "2026-10-04T12:52:15.583334+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "primary",
+      "status": "OK",
+      "duration_seconds": 3.424982,
+      "finished_at": "2026-10-04T12:52:15.583514+00:00",
+      "metadata": {
+        "call_kind": "primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 128,
+        "structured": true,
+        "cycle": 1
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "MATERIALIZED",
+      "duration_seconds": 0.000596,
+      "finished_at": "2026-10-04T12:52:15.600440+00:00",
+      "metadata": {
+        "graph_revision": 179,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "cycle_input",
+      "name": "prepare_cycle_input",
+      "status": "FROZEN",
+      "duration_seconds": 0.005083,
+      "finished_at": "2026-10-04T12:52:15.604825+00:00",
+      "metadata": {
+        "cycle": 2,
+        "specialist_count": 5,
+        "action_count": 2,
+        "proposition_count": 10,
+        "challenge_count": 5,
+        "evaluation_workers": 2
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 3e-06,
+      "finished_at": "2026-10-04T12:52:15.609375+00:00",
+      "metadata": {
+        "graph_revision": 179,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 4e-06,
+      "finished_at": "2026-10-04T12:52:15.687882+00:00",
+      "metadata": {
+        "graph_revision": 179,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 10.673389,
+      "finished_at": "2026-10-04T12:52:26.284195+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "compact_primary",
+      "status": "OK",
+      "duration_seconds": 10.674079,
+      "finished_at": "2026-10-04T12:52:26.284428+00:00",
+      "metadata": {
+        "call_kind": "compact_primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 128,
+        "structured": true,
+        "cycle": 2,
+        "specialist": "utilitarian",
+        "constraint": "DUTY",
+        "response_kind": "deliberation"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 12.989043,
+      "finished_at": "2026-10-04T12:52:28.677898+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 3.5888,
+      "finished_at": "2026-10-04T12:52:29.878709+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "auxiliary",
+      "status": "OK",
+      "duration_seconds": 3.589039,
+      "finished_at": "2026-10-04T12:52:29.878783+00:00",
+      "metadata": {
+        "call_kind": "auxiliary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 128,
+        "structured": true,
+        "cycle": 2
+      }
+    },
+    {
+      "category": "stage",
+      "name": "specialist_evaluation",
+      "status": "OK",
+      "duration_seconds": 14.272527,
+      "finished_at": "2026-10-04T12:52:29.880017+00:00",
+      "metadata": {
+        "cycle": 2,
+        "specialist": "utilitarian",
+        "counterfactual": false,
+        "commit_started": false
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 4.8e-05,
+      "finished_at": "2026-10-04T12:52:29.891185+00:00",
+      "metadata": {
+        "graph_revision": 179,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 10.770629,
+      "finished_at": "2026-10-04T12:52:40.665284+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "compact_primary",
+      "status": "OK",
+      "duration_seconds": 10.771846,
+      "finished_at": "2026-10-04T12:52:40.665464+00:00",
+      "metadata": {
+        "call_kind": "compact_primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 128,
+        "structured": true,
+        "cycle": 2,
+        "specialist": "virtue",
+        "constraint": "DUTY",
+        "response_kind": "deliberation"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "specialist_evaluation",
+      "status": "OK",
+      "duration_seconds": 10.78103,
+      "finished_at": "2026-10-04T12:52:40.668168+00:00",
+      "metadata": {
+        "cycle": 2,
+        "specialist": "virtue",
+        "counterfactual": false,
+        "commit_started": false
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 2.5e-05,
+      "finished_at": "2026-10-04T12:52:40.675001+00:00",
+      "metadata": {
+        "graph_revision": 179,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 17.75058,
+      "finished_at": "2026-10-04T12:52:46.428023+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "compact_primary",
+      "status": "OK",
+      "duration_seconds": 30.741004,
+      "finished_at": "2026-10-04T12:52:46.428781+00:00",
+      "metadata": {
+        "call_kind": "compact_primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 128,
+        "structured": true,
+        "cycle": 2,
+        "specialist": "deontological",
+        "constraint": "DUTY",
+        "response_kind": "deliberation"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "specialist_evaluation",
+      "status": "OK",
+      "duration_seconds": 30.746952,
+      "finished_at": "2026-10-04T12:52:46.432587+00:00",
+      "metadata": {
+        "cycle": 2,
+        "specialist": "deontological",
+        "counterfactual": false,
+        "commit_started": false
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 1.8e-05,
+      "finished_at": "2026-10-04T12:52:46.437043+00:00",
+      "metadata": {
+        "graph_revision": 179,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 10.577971,
+      "finished_at": "2026-10-04T12:52:51.254389+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "compact_primary",
+      "status": "OK",
+      "duration_seconds": 10.578813,
+      "finished_at": "2026-10-04T12:52:51.254690+00:00",
+      "metadata": {
+        "call_kind": "compact_primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 128,
+        "structured": true,
+        "cycle": 2,
+        "specialist": "care",
+        "constraint": "DUTY",
+        "response_kind": "deliberation"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 4.695811,
+      "finished_at": "2026-10-04T12:52:55.956946+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "auxiliary",
+      "status": "OK",
+      "duration_seconds": 4.697373,
+      "finished_at": "2026-10-04T12:52:55.957237+00:00",
+      "metadata": {
+        "call_kind": "auxiliary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 128,
+        "structured": true,
+        "cycle": 2
+      }
+    },
+    {
+      "category": "stage",
+      "name": "specialist_evaluation",
+      "status": "OK",
+      "duration_seconds": 15.289565,
+      "finished_at": "2026-10-04T12:52:55.962707+00:00",
+      "metadata": {
+        "cycle": 2,
+        "specialist": "care",
+        "counterfactual": false,
+        "commit_started": false
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 10.925494,
+      "finished_at": "2026-10-04T12:52:57.363947+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 10.817605,
+      "finished_at": "2026-10-04T12:53:08.181425+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "compact_primary",
+      "status": "OK",
+      "duration_seconds": 21.744084,
+      "finished_at": "2026-10-04T12:53:08.181583+00:00",
+      "metadata": {
+        "call_kind": "compact_primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 128,
+        "structured": true,
+        "cycle": 2,
+        "specialist": "rawlsian",
+        "constraint": "DUTY",
+        "response_kind": "deliberation"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "specialist_evaluation",
+      "status": "OK",
+      "duration_seconds": 21.750406,
+      "finished_at": "2026-10-04T12:53:08.185345+00:00",
+      "metadata": {
+        "cycle": 2,
+        "specialist": "rawlsian",
+        "counterfactual": false,
+        "commit_started": false
+      }
+    },
+    {
+      "category": "evaluation_barrier",
+      "name": "specialist_evaluation_barrier",
+      "status": "COMPLETE",
+      "duration_seconds": 1e-05,
+      "finished_at": "2026-10-04T12:53:08.186521+00:00",
+      "metadata": {
+        "cycle": 2,
+        "expected_specialists": [
+          "utilitarian",
+          "deontological",
+          "virtue",
+          "care",
+          "rawlsian"
+        ],
+        "observed_specialists": [
+          "utilitarian",
+          "deontological",
+          "virtue",
+          "care",
+          "rawlsian"
+        ],
+        "candidate_count": 5
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 6.8e-05,
+      "finished_at": "2026-10-04T12:53:08.194530+00:00",
+      "metadata": {
+        "graph_revision": 179,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "ledger_commit",
+      "name": "sequential_ledger_commit",
+      "status": "OK",
+      "duration_seconds": 0.010587,
+      "finished_at": "2026-10-04T12:53:08.197542+00:00",
+      "metadata": {
+        "cycle": 2,
+        "specialist": "utilitarian",
+        "operations": [
+          {
+            "ledger": "SEMANTIC_GRAPH",
+            "status": "NO_OP"
+          },
+          {
+            "ledger": "UTILITARIAN_CONSEQUENCE_LEDGER",
+            "status": "COMMITTED"
+          }
+        ]
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "MATERIALIZED",
+      "duration_seconds": 0.00059,
+      "finished_at": "2026-10-04T12:53:08.200235+00:00",
+      "metadata": {
+        "graph_revision": 183,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 1e-06,
+      "finished_at": "2026-10-04T12:53:08.200295+00:00",
+      "metadata": {
+        "graph_revision": 183,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 1e-06,
+      "finished_at": "2026-10-04T12:53:08.200425+00:00",
+      "metadata": {
+        "graph_revision": 183,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 1e-06,
+      "finished_at": "2026-10-04T12:53:08.200465+00:00",
+      "metadata": {
+        "graph_revision": 183,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "ledger_commit",
+      "name": "sequential_ledger_commit",
+      "status": "COMMITTED_WITH_UNCERTAINTY",
+      "duration_seconds": 0.003429,
+      "finished_at": "2026-10-04T12:53:08.200998+00:00",
+      "metadata": {
+        "cycle": 2,
+        "specialist": "deontological",
+        "operations": [
+          {
+            "ledger": "SEMANTIC_GRAPH",
+            "status": "NO_OP"
+          },
+          {
+            "ledger": "DEONTOLOGICAL_DUTY_LEDGER",
+            "status": "COMMITTED_WITH_UNCERTAINTY"
+          }
+        ]
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "MATERIALIZED",
+      "duration_seconds": 0.000208,
+      "finished_at": "2026-10-04T12:53:08.202340+00:00",
+      "metadata": {
+        "graph_revision": 185,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 1e-06,
+      "finished_at": "2026-10-04T12:53:08.202392+00:00",
+      "metadata": {
+        "graph_revision": 185,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "ledger_commit",
+      "name": "sequential_ledger_commit",
+      "status": "OK",
+      "duration_seconds": 0.00161,
+      "finished_at": "2026-10-04T12:53:08.202619+00:00",
+      "metadata": {
+        "cycle": 2,
+        "specialist": "virtue",
+        "operations": [
+          {
+            "ledger": "SEMANTIC_GRAPH",
+            "status": "NO_OP"
+          },
+          {
+            "ledger": "VIRTUE_CHARACTER_LEDGER",
+            "status": "COMMITTED"
+          }
+        ]
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "MATERIALIZED",
+      "duration_seconds": 0.000222,
+      "finished_at": "2026-10-04T12:53:08.203140+00:00",
+      "metadata": {
+        "graph_revision": 181,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 1e-06,
+      "finished_at": "2026-10-04T12:53:08.203210+00:00",
+      "metadata": {
+        "graph_revision": 181,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "ledger_commit",
+      "name": "sequential_ledger_commit",
+      "status": "COMMITTED_WITH_UNCERTAINTY",
+      "duration_seconds": 0.000855,
+      "finished_at": "2026-10-04T12:53:08.203486+00:00",
+      "metadata": {
+        "cycle": 2,
+        "specialist": "care",
+        "operations": [
+          {
+            "ledger": "SEMANTIC_GRAPH",
+            "status": "NO_OP"
+          },
+          {
+            "ledger": "CARE_RELATIONSHIP_LEDGER",
+            "status": "COMMITTED_WITH_UNCERTAINTY"
+          }
+        ]
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "MATERIALIZED",
+      "duration_seconds": 0.000193,
+      "finished_at": "2026-10-04T12:53:08.207880+00:00",
+      "metadata": {
+        "graph_revision": 190,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 1e-06,
+      "finished_at": "2026-10-04T12:53:08.207912+00:00",
+      "metadata": {
+        "graph_revision": 190,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 1e-06,
+      "finished_at": "2026-10-04T12:53:08.208068+00:00",
+      "metadata": {
+        "graph_revision": 190,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 1e-06,
+      "finished_at": "2026-10-04T12:53:08.208096+00:00",
+      "metadata": {
+        "graph_revision": 190,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "ledger_commit",
+      "name": "sequential_ledger_commit",
+      "status": "COMMITTED_WITH_UNCERTAINTY",
+      "duration_seconds": 0.005022,
+      "finished_at": "2026-10-04T12:53:08.208518+00:00",
+      "metadata": {
+        "cycle": 2,
+        "specialist": "rawlsian",
+        "operations": [
+          {
+            "ledger": "SEMANTIC_GRAPH",
+            "status": "COMMITTED"
+          },
+          {
+            "ledger": "RAWLSIAN_POSITION_LEDGER",
+            "status": "COMMITTED_WITH_UNCERTAINTY"
+          }
+        ]
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 8.349724,
+      "finished_at": "2026-10-04T12:53:16.563011+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "epistemic_audit",
+      "status": "OK",
+      "duration_seconds": 8.350393,
+      "finished_at": "2026-10-04T12:53:16.563426+00:00",
+      "metadata": {
+        "call_kind": "epistemic_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 600,
+        "structured": true,
+        "cycle": 2
+      }
+    },
+    {
+      "category": "side_premise_audit",
+      "name": "side_premise_audit",
+      "status": "FINDINGS",
+      "duration_seconds": 8.356203,
+      "finished_at": "2026-10-04T12:53:16.567835+00:00",
+      "metadata": {
+        "cycle": 2,
+        "counterfactual": false,
+        "finding_count": 2
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "MATERIALIZED",
+      "duration_seconds": 0.00067,
+      "finished_at": "2026-10-04T12:53:16.590020+00:00",
+      "metadata": {
+        "graph_revision": 189,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "stage",
+      "name": "cycle_execution",
+      "status": "OK",
+      "duration_seconds": 61.014582,
+      "finished_at": "2026-10-04T12:53:16.611070+00:00",
+      "metadata": {
+        "cycle": 2,
+        "counterfactual": false,
+        "candidate_count": 5,
+        "abstention_count": 1
+      }
+    },
+    {
+      "category": "stage",
+      "name": "checkpoint_serialization",
+      "status": "OK",
+      "duration_seconds": 0.101398,
+      "finished_at": "2026-10-04T12:53:16.712507+00:00",
+      "metadata": {
+        "cycle_count": 2,
+        "format": "compact",
+        "atomic": true,
+        "bytes_written": 916620
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 2e-06,
+      "finished_at": "2026-10-04T12:53:16.713018+00:00",
+      "metadata": {
+        "graph_revision": 189,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 3e-06,
+      "finished_at": "2026-10-04T12:53:16.719083+00:00",
+      "metadata": {
+        "graph_revision": 189,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "cycle_input",
+      "name": "prepare_cycle_input",
+      "status": "FROZEN",
+      "duration_seconds": 0.003799,
+      "finished_at": "2026-10-04T12:53:16.722876+00:00",
+      "metadata": {
+        "cycle": 3,
+        "specialist_count": 5,
+        "action_count": 2,
+        "proposition_count": 11,
+        "challenge_count": 5,
+        "evaluation_workers": 2
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 3e-06,
+      "finished_at": "2026-10-04T12:53:16.727423+00:00",
+      "metadata": {
+        "graph_revision": 189,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 2e-06,
+      "finished_at": "2026-10-04T12:53:16.736081+00:00",
+      "metadata": {
+        "graph_revision": 189,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 12.174598,
+      "finished_at": "2026-10-04T12:53:28.911646+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 12.372482,
+      "finished_at": "2026-10-04T12:53:29.102087+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 8.563595,
+      "finished_at": "2026-10-04T12:53:37.665606+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "compact_primary",
+      "status": "OK",
+      "duration_seconds": 20.937737,
+      "finished_at": "2026-10-04T12:53:37.666098+00:00",
+      "metadata": {
+        "call_kind": "compact_primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 128,
+        "structured": true,
+        "cycle": 3,
+        "specialist": "utilitarian",
+        "constraint": "DUTY",
+        "response_kind": "deliberation"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 2.751009,
+      "finished_at": "2026-10-04T12:53:40.425907+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "auxiliary",
+      "status": "OK",
+      "duration_seconds": 2.751411,
+      "finished_at": "2026-10-04T12:53:40.426046+00:00",
+      "metadata": {
+        "call_kind": "auxiliary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 128,
+        "structured": true,
+        "cycle": 3
+      }
+    },
+    {
+      "category": "stage",
+      "name": "specialist_evaluation",
+      "status": "OK",
+      "duration_seconds": 23.702595,
+      "finished_at": "2026-10-04T12:53:40.427626+00:00",
+      "metadata": {
+        "cycle": 3,
+        "specialist": "utilitarian",
+        "counterfactual": false,
+        "commit_started": false
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 3.7e-05,
+      "finished_at": "2026-10-04T12:53:40.443015+00:00",
+      "metadata": {
+        "graph_revision": 189,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 11.649889,
+      "finished_at": "2026-10-04T12:53:40.561496+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "compact_primary",
+      "status": "OK",
+      "duration_seconds": 23.825484,
+      "finished_at": "2026-10-04T12:53:40.561644+00:00",
+      "metadata": {
+        "call_kind": "compact_primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 128,
+        "structured": true,
+        "cycle": 3,
+        "specialist": "deontological",
+        "constraint": "DUTY",
+        "response_kind": "deliberation"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "specialist_evaluation",
+      "status": "OK",
+      "duration_seconds": 23.832703,
+      "finished_at": "2026-10-04T12:53:40.566434+00:00",
+      "metadata": {
+        "cycle": 3,
+        "specialist": "deontological",
+        "counterfactual": false,
+        "commit_started": false
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 9e-06,
+      "finished_at": "2026-10-04T12:53:40.578346+00:00",
+      "metadata": {
+        "graph_revision": 189,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 8.539626,
+      "finished_at": "2026-10-04T12:53:49.120966+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "compact_primary",
+      "status": "OK",
+      "duration_seconds": 8.54101,
+      "finished_at": "2026-10-04T12:53:49.121300+00:00",
+      "metadata": {
+        "call_kind": "compact_primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 128,
+        "structured": true,
+        "cycle": 3,
+        "specialist": "care",
+        "constraint": "DUTY",
+        "response_kind": "deliberation"
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 11.444934,
+      "finished_at": "2026-10-04T12:53:51.890529+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "compact_primary",
+      "status": "OK",
+      "duration_seconds": 11.445914,
+      "finished_at": "2026-10-04T12:53:51.890624+00:00",
+      "metadata": {
+        "call_kind": "compact_primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 128,
+        "structured": true,
+        "cycle": 3,
+        "specialist": "virtue",
+        "constraint": "DUTY",
+        "response_kind": "deliberation"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "specialist_evaluation",
+      "status": "OK",
+      "duration_seconds": 11.457366,
+      "finished_at": "2026-10-04T12:53:51.895236+00:00",
+      "metadata": {
+        "cycle": 3,
+        "specialist": "virtue",
+        "counterfactual": false,
+        "commit_started": false
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 3.6e-05,
+      "finished_at": "2026-10-04T12:53:51.907286+00:00",
+      "metadata": {
+        "graph_revision": 189,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 3.601592,
+      "finished_at": "2026-10-04T12:53:52.727691+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "auxiliary",
+      "status": "OK",
+      "duration_seconds": 3.601904,
+      "finished_at": "2026-10-04T12:53:52.727745+00:00",
+      "metadata": {
+        "call_kind": "auxiliary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 128,
+        "structured": true,
+        "cycle": 3
+      }
+    },
+    {
+      "category": "stage",
+      "name": "specialist_evaluation",
+      "status": "OK",
+      "duration_seconds": 12.155419,
+      "finished_at": "2026-10-04T12:53:52.728560+00:00",
+      "metadata": {
+        "cycle": 3,
+        "specialist": "care",
+        "counterfactual": false,
+        "commit_started": false
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 9.230981,
+      "finished_at": "2026-10-04T12:54:01.141268+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "compact_primary",
+      "status": "OK",
+      "duration_seconds": 9.232286,
+      "finished_at": "2026-10-04T12:54:01.141532+00:00",
+      "metadata": {
+        "call_kind": "compact_primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 128,
+        "structured": true,
+        "cycle": 3,
+        "specialist": "rawlsian",
+        "constraint": "DUTY",
+        "response_kind": "deliberation"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "specialist_evaluation",
+      "status": "OK",
+      "duration_seconds": 9.24273,
+      "finished_at": "2026-10-04T12:54:01.145167+00:00",
+      "metadata": {
+        "cycle": 3,
+        "specialist": "rawlsian",
+        "counterfactual": false,
+        "commit_started": false
+      }
+    },
+    {
+      "category": "evaluation_barrier",
+      "name": "specialist_evaluation_barrier",
+      "status": "COMPLETE",
+      "duration_seconds": 1.8e-05,
+      "finished_at": "2026-10-04T12:54:01.145657+00:00",
+      "metadata": {
+        "cycle": 3,
+        "expected_specialists": [
+          "utilitarian",
+          "deontological",
+          "virtue",
+          "care",
+          "rawlsian"
+        ],
+        "observed_specialists": [
+          "utilitarian",
+          "deontological",
+          "virtue",
+          "care",
+          "rawlsian"
+        ],
+        "candidate_count": 5
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "MATERIALIZED",
+      "duration_seconds": 0.000597,
+      "finished_at": "2026-10-04T12:54:01.154117+00:00",
+      "metadata": {
+        "graph_revision": 196,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "ledger_commit",
+      "name": "sequential_ledger_commit",
+      "status": "OK",
+      "duration_seconds": 0.009204,
+      "finished_at": "2026-10-04T12:54:01.154926+00:00",
+      "metadata": {
+        "cycle": 3,
+        "specialist": "utilitarian",
+        "operations": [
+          {
+            "ledger": "SEMANTIC_GRAPH",
+            "status": "COMMITTED"
+          },
+          {
+            "ledger": "UTILITARIAN_CONSEQUENCE_LEDGER",
+            "status": "COMMITTED"
+          }
+        ]
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "MATERIALIZED",
+      "duration_seconds": 0.000253,
+      "finished_at": "2026-10-04T12:54:01.156098+00:00",
+      "metadata": {
+        "graph_revision": 197,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 1e-06,
+      "finished_at": "2026-10-04T12:54:01.156173+00:00",
+      "metadata": {
+        "graph_revision": 197,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 1e-06,
+      "finished_at": "2026-10-04T12:54:01.156330+00:00",
+      "metadata": {
+        "graph_revision": 197,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 1e-06,
+      "finished_at": "2026-10-04T12:54:01.156378+00:00",
+      "metadata": {
+        "graph_revision": 197,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "ledger_commit",
+      "name": "sequential_ledger_commit",
+      "status": "COMMITTED_WITH_UNCERTAINTY",
+      "duration_seconds": 0.001957,
+      "finished_at": "2026-10-04T12:54:01.156914+00:00",
+      "metadata": {
+        "cycle": 3,
+        "specialist": "deontological",
+        "operations": [
+          {
+            "ledger": "SEMANTIC_GRAPH",
+            "status": "NO_OP"
+          },
+          {
+            "ledger": "DEONTOLOGICAL_DUTY_LEDGER",
+            "status": "COMMITTED_WITH_UNCERTAINTY"
+          }
+        ]
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "MATERIALIZED",
+      "duration_seconds": 0.000246,
+      "finished_at": "2026-10-04T12:54:01.157981+00:00",
+      "metadata": {
+        "graph_revision": 199,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 1e-06,
+      "finished_at": "2026-10-04T12:54:01.158039+00:00",
+      "metadata": {
+        "graph_revision": 199,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "ledger_commit",
+      "name": "sequential_ledger_commit",
+      "status": "OK",
+      "duration_seconds": 0.001419,
+      "finished_at": "2026-10-04T12:54:01.158348+00:00",
+      "metadata": {
+        "cycle": 3,
+        "specialist": "virtue",
+        "operations": [
+          {
+            "ledger": "SEMANTIC_GRAPH",
+            "status": "NO_OP"
+          },
+          {
+            "ledger": "VIRTUE_CHARACTER_LEDGER",
+            "status": "COMMITTED"
+          }
+        ]
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "MATERIALIZED",
+      "duration_seconds": 0.000351,
+      "finished_at": "2026-10-04T12:54:01.159091+00:00",
+      "metadata": {
+        "graph_revision": 193,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 1e-06,
+      "finished_at": "2026-10-04T12:54:01.159162+00:00",
+      "metadata": {
+        "graph_revision": 193,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "ledger_commit",
+      "name": "sequential_ledger_commit",
+      "status": "COMMITTED_WITH_UNCERTAINTY",
+      "duration_seconds": 0.00112,
+      "finished_at": "2026-10-04T12:54:01.159492+00:00",
+      "metadata": {
+        "cycle": 3,
+        "specialist": "care",
+        "operations": [
+          {
+            "ledger": "SEMANTIC_GRAPH",
+            "status": "NO_OP"
+          },
+          {
+            "ledger": "CARE_RELATIONSHIP_LEDGER",
+            "status": "COMMITTED_WITH_UNCERTAINTY"
+          }
+        ]
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "MATERIALIZED",
+      "duration_seconds": 0.000221,
+      "finished_at": "2026-10-04T12:54:01.160466+00:00",
+      "metadata": {
+        "graph_revision": 193,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 1e-06,
+      "finished_at": "2026-10-04T12:54:01.160504+00:00",
+      "metadata": {
+        "graph_revision": 193,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 1e-06,
+      "finished_at": "2026-10-04T12:54:01.160700+00:00",
+      "metadata": {
+        "graph_revision": 193,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 1e-06,
+      "finished_at": "2026-10-04T12:54:01.160723+00:00",
+      "metadata": {
+        "graph_revision": 193,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "ledger_commit",
+      "name": "sequential_ledger_commit",
+      "status": "COMMITTED_WITH_UNCERTAINTY",
+      "duration_seconds": 0.001719,
+      "finished_at": "2026-10-04T12:54:01.161225+00:00",
+      "metadata": {
+        "cycle": 3,
+        "specialist": "rawlsian",
+        "operations": [
+          {
+            "ledger": "SEMANTIC_GRAPH",
+            "status": "NO_OP"
+          },
+          {
+            "ledger": "RAWLSIAN_POSITION_LEDGER",
+            "status": "COMMITTED_WITH_UNCERTAINTY"
+          }
+        ]
+      }
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "OK",
+      "duration_seconds": 8.70036,
+      "finished_at": "2026-10-04T12:54:09.872273+00:00",
+      "metadata": {
+        "model": "o3"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "epistemic_audit",
+      "status": "OK",
+      "duration_seconds": 8.701314,
+      "finished_at": "2026-10-04T12:54:09.872696+00:00",
+      "metadata": {
+        "call_kind": "epistemic_audit",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 600,
+        "structured": true,
+        "cycle": 3
+      }
+    },
+    {
+      "category": "side_premise_audit",
+      "name": "side_premise_audit",
+      "status": "FINDINGS",
+      "duration_seconds": 8.715263,
+      "finished_at": "2026-10-04T12:54:09.883908+00:00",
+      "metadata": {
+        "cycle": 3,
+        "counterfactual": false,
+        "finding_count": 1
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "MATERIALIZED",
+      "duration_seconds": 0.000593,
+      "finished_at": "2026-10-04T12:54:09.909209+00:00",
+      "metadata": {
+        "graph_revision": 195,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "stage",
+      "name": "cycle_execution",
+      "status": "OK",
+      "duration_seconds": 53.21438,
+      "finished_at": "2026-10-04T12:54:09.930313+00:00",
+      "metadata": {
+        "cycle": 3,
+        "counterfactual": false,
+        "candidate_count": 5,
+        "abstention_count": 1
+      }
+    },
+    {
+      "category": "stage",
+      "name": "checkpoint_serialization",
+      "status": "OK",
+      "duration_seconds": 0.098265,
+      "finished_at": "2026-10-04T12:54:10.028624+00:00",
+      "metadata": {
+        "cycle_count": 3,
+        "format": "compact",
+        "atomic": true,
+        "bytes_written": 1473846
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 4e-06,
+      "finished_at": "2026-10-04T12:54:10.044156+00:00",
+      "metadata": {
+        "graph_revision": 195,
+        "effect_count": 7
+      }
+    },
+    {
+      "category": "stage",
+      "name": "workspace_deliberation",
+      "status": "OK",
+      "duration_seconds": 181.791523,
+      "finished_at": "2026-10-04T12:54:10.045001+00:00",
+      "metadata": {
+        "specialist_count": 5
+      }
+    },
+    {
+      "category": "stage",
+      "name": "final_report_serialization",
+      "status": "OK",
+      "duration_seconds": 0.134197,
+      "finished_at": "2026-10-04T12:54:10.179336+00:00",
+      "metadata": {}
+    },
+    {
+      "category": "stage",
+      "name": "trace_serialization",
+      "status": "OK",
+      "duration_seconds": 0.101766,
+      "finished_at": "2026-10-04T12:54:10.281130+00:00",
+      "metadata": {
+        "format": "pretty",
+        "atomic": true,
+        "bytes_written": 2457930
+      }
+    },
+    {
+      "category": "stage",
+      "name": "pipeline_total",
+      "status": "OK",
+      "duration_seconds": 219.562149,
+      "finished_at": "2026-10-04T12:54:10.289870+00:00",
+      "metadata": {}
+    }
+  ],
+  "content_recording": "DISABLED"
+}

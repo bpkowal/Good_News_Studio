@@ -1,0 +1,256 @@
+{
+  "schema_version": "1.3",
+  "admission": {
+    "status": "COMMITTED",
+    "admitted_effect_ids": [
+      "E1",
+      "E2",
+      "E3",
+      "E4",
+      "E5",
+      "E6",
+      "E7",
+      "E8"
+    ],
+    "quarantined_effects": [],
+    "user_override": false,
+    "override_reason": ""
+  },
+  "nodes": [
+    {
+      "id": "P1",
+      "kind": "party",
+      "label": "Dr. Rivera"
+    },
+    {
+      "id": "P2",
+      "kind": "party",
+      "label": "one dose of antiviral"
+    },
+    {
+      "id": "P3",
+      "kind": "party",
+      "label": "one child"
+    },
+    {
+      "id": "P4",
+      "kind": "party",
+      "label": "three adult patients"
+    },
+    {
+      "id": "A0",
+      "kind": "action",
+      "label": "gives the antiviral to the child"
+    },
+    {
+      "id": "A1",
+      "kind": "action",
+      "label": "gives the antiviral to the three adult patients"
+    },
+    {
+      "id": "E1",
+      "kind": "effect",
+      "label": "gives the antiviral to the child",
+      "polarity": "NEUTRAL",
+      "modality": "CERTAIN",
+      "directness": "DIRECT"
+    },
+    {
+      "id": "E2",
+      "kind": "effect",
+      "label": "the child has an 80% chance of survival",
+      "polarity": "BENEFICIAL",
+      "modality": "PROBABILISTIC",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "E3",
+      "kind": "effect",
+      "label": "gives the antiviral to the three adult patients",
+      "polarity": "NEUTRAL",
+      "modality": "CERTAIN",
+      "directness": "DIRECT"
+    },
+    {
+      "id": "E4",
+      "kind": "effect",
+      "label": "each of the three adult patients has a 60% chance of survival",
+      "polarity": "BENEFICIAL",
+      "modality": "PROBABILISTIC",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "E5",
+      "kind": "effect",
+      "label": "does not receive one dose of antiviral",
+      "polarity": "ADVERSE",
+      "modality": "CERTAIN",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "E6",
+      "kind": "effect",
+      "label": "does not receive one dose of antiviral",
+      "polarity": "ADVERSE",
+      "modality": "CERTAIN",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "E7",
+      "kind": "effect",
+      "label": "will die",
+      "polarity": "ADVERSE",
+      "modality": "CERTAIN",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "E8",
+      "kind": "effect",
+      "label": "will die",
+      "polarity": "ADVERSE",
+      "modality": "CERTAIN",
+      "directness": "DOWNSTREAM"
+    }
+  ],
+  "edges": [
+    {
+      "source": "P1",
+      "relation": "ACTOR",
+      "target": "A0"
+    },
+    {
+      "source": "A0",
+      "relation": "RECIPIENT",
+      "target": "P3"
+    },
+    {
+      "source": "A0",
+      "relation": "HAS_EFFECT",
+      "target": "E1"
+    },
+    {
+      "source": "A0",
+      "relation": "HAS_EFFECT",
+      "target": "E2"
+    },
+    {
+      "source": "A0",
+      "relation": "HAS_EFFECT",
+      "target": "E5"
+    },
+    {
+      "source": "A0",
+      "relation": "HAS_EFFECT",
+      "target": "E7"
+    },
+    {
+      "source": "P1",
+      "relation": "ACTOR",
+      "target": "A1"
+    },
+    {
+      "source": "A1",
+      "relation": "RECIPIENT",
+      "target": "P4"
+    },
+    {
+      "source": "A1",
+      "relation": "HAS_EFFECT",
+      "target": "E3"
+    },
+    {
+      "source": "A1",
+      "relation": "HAS_EFFECT",
+      "target": "E4"
+    },
+    {
+      "source": "A1",
+      "relation": "HAS_EFFECT",
+      "target": "E6"
+    },
+    {
+      "source": "A1",
+      "relation": "HAS_EFFECT",
+      "target": "E8"
+    },
+    {
+      "source": "E1",
+      "relation": "AFFECTS",
+      "target": "P3"
+    },
+    {
+      "source": "E2",
+      "relation": "AFFECTS",
+      "target": "P3"
+    },
+    {
+      "source": "E3",
+      "relation": "AFFECTS",
+      "target": "P4"
+    },
+    {
+      "source": "E4",
+      "relation": "AFFECTS",
+      "target": "P4"
+    },
+    {
+      "source": "E5",
+      "relation": "AFFECTS",
+      "target": "P4"
+    },
+    {
+      "source": "E6",
+      "relation": "AFFECTS",
+      "target": "P3"
+    },
+    {
+      "source": "E7",
+      "relation": "AFFECTS",
+      "target": "P4"
+    },
+    {
+      "source": "E8",
+      "relation": "AFFECTS",
+      "target": "P3"
+    },
+    {
+      "source": "E1",
+      "relation": "ENABLES",
+      "target": "E2",
+      "modality": "CERTAIN"
+    },
+    {
+      "source": "E3",
+      "relation": "ENABLES",
+      "target": "E4",
+      "modality": "CERTAIN"
+    },
+    {
+      "source": "E5",
+      "relation": "ENABLES",
+      "target": "E7",
+      "modality": "CERTAIN"
+    },
+    {
+      "source": "E6",
+      "relation": "ENABLES",
+      "target": "E8",
+      "modality": "CERTAIN"
+    },
+    {
+      "source": "E1",
+      "relation": "CAUSES",
+      "target": "E5",
+      "modality": "CERTAIN"
+    },
+    {
+      "source": "E3",
+      "relation": "CAUSES",
+      "target": "E6",
+      "modality": "CERTAIN"
+    }
+  ],
+  "conditions": [],
+  "temporal_relations": [],
+  "counterfactual_links": []
+}

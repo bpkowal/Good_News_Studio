@@ -1,0 +1,822 @@
+{
+  "adapter_version": "z10-world-candidates/0.1",
+  "source_package_id": "candidate_world_stripping",
+  "world_state_schema_version": "1.3",
+  "actions": [
+    "give the medicine to Omar",
+    "give the medicine to Nora"
+  ],
+  "drafts": [
+    {
+      "draft_id": "draft_0",
+      "status": "PROVISIONAL",
+      "proposition_ids": [
+        "p1",
+        "p_reconstructed_5"
+      ],
+      "selection": {
+        "schema_version": "0.4",
+        "package_id": "candidate_world_stripping",
+        "selected_node_ids": [
+          "m0",
+          "m2",
+          "m4",
+          "m8",
+          "p1",
+          "p_reconstructed_5"
+        ],
+        "selected_candidate_ids": [
+          "c0",
+          "c1",
+          "c13",
+          "c2",
+          "c4",
+          "c5",
+          "c6",
+          "c7"
+        ],
+        "extensions": [],
+        "question_resolutions": [
+          {
+            "question_id": "q0",
+            "status": "unresolved",
+            "selected_candidate_ids": [],
+            "rationale": ""
+          },
+          {
+            "question_id": "q1",
+            "status": "unresolved",
+            "selected_candidate_ids": [],
+            "rationale": ""
+          },
+          {
+            "question_id": "q2",
+            "status": "unresolved",
+            "selected_candidate_ids": [],
+            "rationale": ""
+          }
+        ]
+      },
+      "selection_validation": {
+        "contract_valid": true,
+        "errors": [],
+        "unresolved_question_ids": [
+          "q0",
+          "q1",
+          "q2"
+        ],
+        "provisional_candidate_ids": [
+          "c13",
+          "c5",
+          "c6",
+          "c7"
+        ],
+        "unverified_extension_ids": [],
+        "identity_components": [
+          [
+            "m0"
+          ],
+          [
+            "m2"
+          ],
+          [
+            "m4"
+          ],
+          [
+            "m8"
+          ]
+        ],
+        "semantic_support": "not_assessed",
+        "world_state_commitment": "not_authorized"
+      },
+      "evidence_binding": {
+        "clauses": [
+          {
+            "clause_id": "C0",
+            "text": "Lila gives Omar the medicine, but not Nora."
+          }
+        ],
+        "actions": {
+          "A0": {
+            "clause_ids": [
+              "C0"
+            ],
+            "reason": "Compiled from selected Z10 proposition p1"
+          },
+          "A1": {
+            "clause_ids": [
+              "C0"
+            ],
+            "reason": "Compiled from selected Z10 proposition p_reconstructed_5"
+          }
+        }
+      },
+      "world_model": {
+        "schema_version": "1.3",
+        "parties": [
+          {
+            "party_id": "P1",
+            "label": "Lila",
+            "kind": "OTHER",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P2",
+            "label": "Nora",
+            "kind": "OTHER",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P3",
+            "label": "Omar",
+            "kind": "OTHER",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P4",
+            "label": "the medicine",
+            "kind": "OTHER",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "action_id": "A0",
+            "intervention": "give the medicine to Omar",
+            "actor_party_id": "P1",
+            "recipient_party_ids": [
+              "P3"
+            ],
+            "effect_ids": [
+              "E1"
+            ],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "action_id": "A1",
+            "intervention": "give the medicine to Nora",
+            "actor_party_id": "P1",
+            "recipient_party_ids": [
+              "P2"
+            ],
+            "effect_ids": [
+              "E2"
+            ],
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "effects": [
+          {
+            "effect_id": "E1",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "Lila gives Omar the medicine",
+            "predicate": "GIVE",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "INTERVENTION",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [
+              "positive"
+            ],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "Lila gives Omar the medicine",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "effect_id": "E2",
+            "action_id": "A1",
+            "party_id": "P2",
+            "outcome": "Lila gives Omar the medicine, but not Nora",
+            "predicate": "GIVE",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "INTERVENTION",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [
+              "negative"
+            ],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "Lila gives Omar the medicine, but not Nora",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "conditions": [],
+        "temporal_relations": [],
+        "causal_links": [],
+        "counterfactual_links": []
+      },
+      "construction_problems": [
+        {
+          "code": "party_kinds_unresolved",
+          "message": "Z10 mentions do not classify Parliament party kinds.",
+          "candidate_ids": []
+        },
+        {
+          "code": "operator_scope_unresolved",
+          "message": "Negative or unresolved proposition scope cannot be converted into a positive occurrence.",
+          "candidate_ids": [
+            "c5"
+          ]
+        },
+        {
+          "code": "open_z10_questions",
+          "message": "Selected candidates remain subject to unresolved Z10 questions.",
+          "candidate_ids": [
+            "c13",
+            "c5",
+            "c6",
+            "c7"
+          ]
+        }
+      ],
+      "admission_authorized": false
+    },
+    {
+      "draft_id": "draft_1",
+      "status": "PROVISIONAL",
+      "proposition_ids": [
+        "p1",
+        "p_reconstructed_6"
+      ],
+      "selection": {
+        "schema_version": "0.4",
+        "package_id": "candidate_world_stripping",
+        "selected_node_ids": [
+          "m0",
+          "m2",
+          "m4",
+          "m8",
+          "p1",
+          "p_reconstructed_6"
+        ],
+        "selected_candidate_ids": [
+          "c0",
+          "c1",
+          "c10",
+          "c11",
+          "c14",
+          "c2",
+          "c4",
+          "c8"
+        ],
+        "extensions": [],
+        "question_resolutions": [
+          {
+            "question_id": "q0",
+            "status": "unresolved",
+            "selected_candidate_ids": [],
+            "rationale": ""
+          },
+          {
+            "question_id": "q1",
+            "status": "unresolved",
+            "selected_candidate_ids": [],
+            "rationale": ""
+          },
+          {
+            "question_id": "q2",
+            "status": "unresolved",
+            "selected_candidate_ids": [],
+            "rationale": ""
+          }
+        ]
+      },
+      "selection_validation": {
+        "contract_valid": true,
+        "errors": [],
+        "unresolved_question_ids": [
+          "q0",
+          "q1",
+          "q2"
+        ],
+        "provisional_candidate_ids": [
+          "c10",
+          "c11",
+          "c14",
+          "c8"
+        ],
+        "unverified_extension_ids": [],
+        "identity_components": [
+          [
+            "m0"
+          ],
+          [
+            "m2"
+          ],
+          [
+            "m4"
+          ],
+          [
+            "m8"
+          ]
+        ],
+        "semantic_support": "not_assessed",
+        "world_state_commitment": "not_authorized"
+      },
+      "evidence_binding": {
+        "clauses": [
+          {
+            "clause_id": "C0",
+            "text": "Lila gives Omar the medicine, but not Nora."
+          }
+        ],
+        "actions": {
+          "A0": {
+            "clause_ids": [
+              "C0"
+            ],
+            "reason": "Compiled from selected Z10 proposition p1"
+          },
+          "A1": {
+            "clause_ids": [
+              "C0"
+            ],
+            "reason": "Compiled from selected Z10 proposition p_reconstructed_6"
+          }
+        }
+      },
+      "world_model": {
+        "schema_version": "1.3",
+        "parties": [
+          {
+            "party_id": "P1",
+            "label": "Lila",
+            "kind": "OTHER",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P2",
+            "label": "Nora",
+            "kind": "OTHER",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P3",
+            "label": "Omar",
+            "kind": "OTHER",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P4",
+            "label": "the medicine",
+            "kind": "OTHER",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "action_id": "A0",
+            "intervention": "give the medicine to Omar",
+            "actor_party_id": "P1",
+            "recipient_party_ids": [
+              "P3"
+            ],
+            "effect_ids": [
+              "E1"
+            ],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "action_id": "A1",
+            "intervention": "give the medicine to Nora",
+            "actor_party_id": "P1",
+            "recipient_party_ids": [
+              "P3"
+            ],
+            "effect_ids": [
+              "E2"
+            ],
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "effects": [
+          {
+            "effect_id": "E1",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "Lila gives Omar the medicine",
+            "predicate": "GIVE",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "INTERVENTION",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [
+              "positive"
+            ],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "Lila gives Omar the medicine",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "effect_id": "E2",
+            "action_id": "A1",
+            "party_id": "P3",
+            "outcome": "Lila gives Omar the medicine, but not Nora",
+            "predicate": "GIVE",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "INTERVENTION",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [
+              "negative"
+            ],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "Lila gives Omar the medicine, but not Nora",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "conditions": [],
+        "temporal_relations": [],
+        "causal_links": [],
+        "counterfactual_links": []
+      },
+      "construction_problems": [
+        {
+          "code": "party_kinds_unresolved",
+          "message": "Z10 mentions do not classify Parliament party kinds.",
+          "candidate_ids": []
+        },
+        {
+          "code": "action_role_alignment_unresolved",
+          "message": "The action text treats 'Nora' as a destination, but this Z10 reading assigns role 'object'.",
+          "candidate_ids": [
+            "c8"
+          ]
+        },
+        {
+          "code": "operator_scope_unresolved",
+          "message": "Negative or unresolved proposition scope cannot be converted into a positive occurrence.",
+          "candidate_ids": [
+            "c10"
+          ]
+        },
+        {
+          "code": "open_z10_questions",
+          "message": "Selected candidates remain subject to unresolved Z10 questions.",
+          "candidate_ids": [
+            "c10",
+            "c11",
+            "c14",
+            "c8"
+          ]
+        }
+      ],
+      "admission_authorized": false
+    },
+    {
+      "draft_id": "draft_2",
+      "status": "PROVISIONAL",
+      "proposition_ids": [
+        "p1",
+        "p_reconstructed_7"
+      ],
+      "selection": {
+        "schema_version": "0.4",
+        "package_id": "candidate_world_stripping",
+        "selected_node_ids": [
+          "m0",
+          "m2",
+          "m4",
+          "m8",
+          "p1",
+          "p_reconstructed_7"
+        ],
+        "selected_candidate_ids": [
+          "c0",
+          "c1",
+          "c12",
+          "c15",
+          "c16",
+          "c2",
+          "c4",
+          "c9"
+        ],
+        "extensions": [],
+        "question_resolutions": [
+          {
+            "question_id": "q0",
+            "status": "unresolved",
+            "selected_candidate_ids": [],
+            "rationale": ""
+          },
+          {
+            "question_id": "q1",
+            "status": "unresolved",
+            "selected_candidate_ids": [],
+            "rationale": ""
+          },
+          {
+            "question_id": "q2",
+            "status": "unresolved",
+            "selected_candidate_ids": [],
+            "rationale": ""
+          }
+        ]
+      },
+      "selection_validation": {
+        "contract_valid": true,
+        "errors": [],
+        "unresolved_question_ids": [
+          "q0",
+          "q1",
+          "q2"
+        ],
+        "provisional_candidate_ids": [
+          "c12",
+          "c15",
+          "c16",
+          "c9"
+        ],
+        "unverified_extension_ids": [],
+        "identity_components": [
+          [
+            "m0"
+          ],
+          [
+            "m2"
+          ],
+          [
+            "m4"
+          ],
+          [
+            "m8"
+          ]
+        ],
+        "semantic_support": "not_assessed",
+        "world_state_commitment": "not_authorized"
+      },
+      "evidence_binding": {
+        "clauses": [
+          {
+            "clause_id": "C0",
+            "text": "Lila gives Omar the medicine, but not Nora."
+          }
+        ],
+        "actions": {
+          "A0": {
+            "clause_ids": [
+              "C0"
+            ],
+            "reason": "Compiled from selected Z10 proposition p1"
+          },
+          "A1": {
+            "clause_ids": [
+              "C0"
+            ],
+            "reason": "Compiled from selected Z10 proposition p_reconstructed_7"
+          }
+        }
+      },
+      "world_model": {
+        "schema_version": "1.3",
+        "parties": [
+          {
+            "party_id": "P1",
+            "label": "Lila",
+            "kind": "OTHER",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P2",
+            "label": "Nora",
+            "kind": "OTHER",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P3",
+            "label": "Omar",
+            "kind": "OTHER",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P4",
+            "label": "the medicine",
+            "kind": "OTHER",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "action_id": "A0",
+            "intervention": "give the medicine to Omar",
+            "actor_party_id": "P1",
+            "recipient_party_ids": [
+              "P3"
+            ],
+            "effect_ids": [
+              "E1"
+            ],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "action_id": "A1",
+            "intervention": "give the medicine to Nora",
+            "actor_party_id": "P2",
+            "recipient_party_ids": [
+              "P3"
+            ],
+            "effect_ids": [
+              "E2"
+            ],
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "effects": [
+          {
+            "effect_id": "E1",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "Lila gives Omar the medicine",
+            "predicate": "GIVE",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "INTERVENTION",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [
+              "positive"
+            ],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "Lila gives Omar the medicine",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "effect_id": "E2",
+            "action_id": "A1",
+            "party_id": "P3",
+            "outcome": "gives Omar the medicine, but not Nora",
+            "predicate": "GIVE",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "INTERVENTION",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [
+              "negative"
+            ],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "gives Omar the medicine, but not Nora",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "conditions": [],
+        "temporal_relations": [],
+        "causal_links": [],
+        "counterfactual_links": []
+      },
+      "construction_problems": [
+        {
+          "code": "party_kinds_unresolved",
+          "message": "Z10 mentions do not classify Parliament party kinds.",
+          "candidate_ids": []
+        },
+        {
+          "code": "action_role_alignment_unresolved",
+          "message": "The action text treats 'Nora' as a destination, but this Z10 reading assigns role 'subject'.",
+          "candidate_ids": [
+            "c9"
+          ]
+        },
+        {
+          "code": "operator_scope_unresolved",
+          "message": "Negative or unresolved proposition scope cannot be converted into a positive occurrence.",
+          "candidate_ids": [
+            "c12"
+          ]
+        },
+        {
+          "code": "open_z10_questions",
+          "message": "Selected candidates remain subject to unresolved Z10 questions.",
+          "candidate_ids": [
+            "c12",
+            "c15",
+            "c16",
+            "c9"
+          ]
+        }
+      ],
+      "admission_authorized": false
+    }
+  ],
+  "enumeration_rejections": [],
+  "construction_problems": []
+}

@@ -1,0 +1,262 @@
+--- a/global_workspace/scenario_semantics.py
++++ b/global_workspace/scenario_semantics.py
+@@ -1929,7 +1929,9 @@
+                     "typed world projection mismatch: semantic graph effects differ "
+                     "from the admitted world model"
+                 )
++        from .recognition_bridge import supported_records
+         graph.discourse_collections = {
++            "recognition_records": supported_records(world_model, scenario) if typed is not None else [],
+             "propositions": list(world_model.get("propositions") or []),
+             "reports": list(world_model.get("reports") or []),
+             "commitments": list(world_model.get("commitments") or []),
+--- a/global_workspace/epistemic_ledger.py
++++ b/global_workspace/epistemic_ledger.py
+@@ -349,6 +349,14 @@
+     _annotate_binding_context(ledger, graph)
+     _seed_unknown_parameters(ledger, graph)
+     _seed_discourse_collections(ledger, graph)
++    for card in (getattr(graph, "discourse_collections", {}) or {}).get("recognition_records", []):
++        ledger[card["proposition_id"]] = PropositionRecord(
++            proposition_id=card["proposition_id"], claim=card["claim"],
++            proposition_type="DESCRIPTIVE", epistemic_status="STIPULATED",
++            epistemic_type="WORLD_ESTABLISHED", introduced_by="WORLD_MODEL",
++            support_ids=card["support_ids"], aliases=card["aliases"],
++            modality="SOURCE_RULE" if card["kind"] == "RULE" else "SOURCE_CONSTRAINT",
++        )
+     return ledger
+ 
+ 
+@@ -882,6 +890,9 @@
+     Quantity atoms have no predicate or branch entailment. Keep their binding
+     to canonical copies rather than borrowing the originating effect context.
+     """
++    if record.proposition_id.startswith("PROP:WORLD:RECOGNITION:"):
++        return _normalized_claim(claim) in {
++            _normalized_claim(record.claim), *(_normalized_claim(a) for a in record.aliases)}
+     if ":PARTY:" not in record.proposition_id or ":QUANTITY:" not in record.proposition_id:
+         return True
+     return _normalized_claim(claim) == _normalized_claim(record.claim)
+@@ -2218,6 +2229,16 @@
+             premise["canonical_proposition"] = proposition_id
+             registered_claims[_normalized_claim(claim)] = proposition_id
+             continue
++        # Report exact supported components without accepting a compound's
++        # extra inference. All unresolved parts keep the original hypothetical.
++        from .recognition_bridge import component_support
++        cards = [{"proposition_id": r.proposition_id, "claim": r.claim, "aliases": r.aliases, "kind": "QUANTITY" if r.modality == "SOURCE_CONSTRAINT" and r.aliases else "RULE"}
++                 for r in ledger.values() if r.proposition_id.startswith("PROP:WORLD:RECOGNITION:")]
++        components = component_support(claim, cards)
++        component_ids = list(dict.fromkeys(i for row in components for i in [*row["support_ids"], *(j for fragment in row.get("supported_fragments", []) for j in fragment["support_ids"]) ]))
++        if component_ids and any(row["status"] != "SUPPORTED_COMPONENT" for row in components):
++            premise["recognized_components"] = components
++            binding_notes.append("Supported components retained; compound inference remains unestablished: " + claim)
+         authoritative = ledger.get(basis)
+         bound = resolve_proposition(
+             ledger, claim, preferred=basis if authoritative is not None else "",
+@@ -2248,7 +2269,7 @@
+             continue
+         derived_from = (
+             [] if premise.get("origin") == "STRUCTURED_CARE_RELATIONSHIP"
+-            else [basis] if authoritative is not None else cited
++            else [basis] if authoritative is not None else list(dict.fromkeys([*cited, *component_ids]))
+         )
+         existing_ids = set(ledger)
+         hypothesis_id = register_hypothesis(
+--- a/global_workspace/utilitarian_ledger.py
++++ b/global_workspace/utilitarian_ledger.py
+@@ -222,7 +222,8 @@
+     polarity = str(evidence.attributes.get("polarity", "UNRESOLVED")).upper()
+     direction = _accounting_role(polarity)
+     modality = str(evidence.attributes.get("modality", "UNKNOWN")).upper()
+-    probability = "CERTAIN" if modality == "CERTAIN" else "UNKNOWN"
++    from .recognition_bridge import explicit_probability
++    probability = explicit_probability(evidence.attributes)
+     # An admitted, unhedged source consequence is already the factual result
+     # whose direction the framework must value.  Do not reinterpret it as
+     # merely averting the alternative action's uncertain harm.  That would
+--- a/global_workspace/local_specialists.py
++++ b/global_workspace/local_specialists.py
+@@ -14,6 +14,7 @@
+ )
+ from .candidate_obligations import build_candidate_generation_contract
+ from .allocation_completion import complete_exclusive_allocations
++from .recognition_bridge import explicit_probability
+ from .conditional_rule_instantiation import instantiate_conditional_rules
+ from .ellipsis_integrity import validate_ellipsis_resolution_records
+ from .evidence_repair_guidance import build_evidence_repair_delta
+@@ -1640,7 +1641,7 @@
+                             "scope": str(effect.get("subject", "")),
+                             "direction": accounting_direction,
+                             "polarity": str(effect.get("polarity", "UNRESOLVED")).upper(),
+-                            "probability": "CERTAIN" if modality == "CERTAIN" else "UNKNOWN",
++                            "probability": explicit_probability(effect),
+                             "magnitude": _closed_world_magnitude(effect),
+                             "duration": "UNKNOWN", "reversibility": "UNKNOWN",
+                             "support": "STATED",
+@@ -5490,7 +5491,12 @@
+ action/scenario grounding from framework interpretation; rs gives the shortest justification. A REQUIRED
+ verdict normally SATISFIES, PERMISSIBLE is CONSISTENT, PROHIBITED VIOLATES, and
+ CONFLICTED leaves priority unresolved. gv says whether the PRIMARY or COMPETING
+-norm governs the separate overall verdict; pb gives the deontological priority basis;
++norm governs the separate overall verdict; pb gives the deontological priority basis.
++Consistency check before returning dp: pb=PERFECT_DUTY is valid only when dt is
++PERFECT_NEGATIVE or PERFECT_POSITIVE. An IMPERFECT rescue duty does not become a
++perfect duty because one option is more effective. Keep its classification and
++supply a separately justified priority basis, or leave priority UNRESOLVED with
++v=CONFLICTED, gv=UNRESOLVED, res=CONTESTED. Do not change dt merely to pass validation.
+ pr states the non-consequential priority rule. The overall verdict is derived from
+ the governing norm, not necessarily the primary row: an action may be PROHIBITED
+ while CONSISTENT with its primary norm when a competing violated duty governs.
+diff --git a/global_workspace/recognition_bridge.py b/global_workspace/recognition_bridge.py
+new file mode 100644
+--- /dev/null
++++ b/global_workspace/recognition_bridge.py
+@@ -0,0 +1,147 @@
++"""Lossless recognition cards from an already admitted world, never new events.
++
++The native integration calls supported_records only after restoring admission.
++Binding these cards is exact: source rules cannot license an unconditional event
++or arbitrary paraphrases merely because they share participants or vocabulary.
++"""
++from decimal import Decimal, InvalidOperation, localcontext
++import hashlib
++import re
++
++
++def explicit_probability(attributes):
++    """Known probability is distinct from certain occurrence; return a unit mass."""
++    if attributes.get('modality') == 'CERTAIN':
++        return 'CERTAIN'
++    if attributes.get('modality') != 'PROBABILISTIC':
++        return 'UNKNOWN'
++    # Overall and local probabilities must not be conflated or multiplied.
++    if attributes.get('overall_likelihood_qualifiers'):
++        return 'UNKNOWN'
++    masses = set()
++    for qualifier in attributes.get('likelihood_qualifiers') or []:
++        match = re.fullmatch(r'\s*(\d+(?:\.\d+)?)\s*(?:%|percent)\s*(?:chance|probability)?\s*', str(qualifier), re.I)
++        if not match:
++            return 'UNKNOWN'
++        try:
++            percentage = Decimal(match[1])
++        except InvalidOperation:
++            return 'UNKNOWN'
++        if not 0 <= percentage <= 100:
++            return 'UNKNOWN'
++        with localcontext() as context:
++            context.prec = max(28, len(match[1]) + 3)
++            masses.add(percentage / 100)
++    if len(masses) != 1:
++        return 'UNKNOWN'
++    # Decimal masses also avoid the native parser's ambiguous <=1 percent case.
++    mass = format(next(iter(masses)), 'f')
++    return mass if len(mass) <= 24 else 'UNKNOWN'
++
++
++def normalized(text):
++    return ' '.join(str(text).casefold().split()).rstrip('. ')
++
++
++def supported_records(world, scenario):
++    """Project quantity, constraint and relation evidence, keeping its full scope.
++
++    Only admission-backed endpoints and verbatim source excerpts are eligible.
++    Resource cards use admitted RESOURCE identities and their own source evidence;
++    source quantity alone never establishes exclusivity. Source rules must be
++    backed by a same-action link and a SOURCE_STIPULATED_CAUSAL target.
++    """
++    effects = {e['effect_id']: e for e in world.get('effects', [])}
++    cards = {}
++
++    def evidence(rows):
++        return [p for p in rows if isinstance(p, dict) and p.get('excerpt')
++                and p['excerpt'] in scenario and p.get('clause_id')]
++
++    def add(kind, claim, proof, source, aliases=()):
++        identity = kind + '|' + normalized(claim)
++        ident = 'PROP:WORLD:RECOGNITION:' + hashlib.sha256(identity.encode()).hexdigest()[:16]
++        card = cards.setdefault(ident, {'proposition_id': ident, 'kind': kind,
++            'claim': claim, 'aliases': list(aliases), 'support_ids': [],
++            'source_evidence': [], 'scope': 'SOURCE_RULE' if kind == 'RULE' else 'SOURCE_CONSTRAINT'})
++        card['support_ids'] = sorted(set(card['support_ids']) | set(proof))
++        for row in source:
++            if row not in card['source_evidence']:
++                card['source_evidence'].append(dict(row))
++
++    # Inventory is independent of transfer/choice topology. A resource's own
++    # provenance supports its stock statement even when nobody transfers it.
++    for party in world.get('parties', []):
++        if party.get('kind') != 'RESOURCE':
++            continue
++        for row in evidence(party.get('provenance', [])):
++            text = row['excerpt']
++            quantity = re.fullmatch(r'(.+?)\s+(?:has|have)\s+((?:\d+|one|two|three|four|five)\s+.+?)\.?', text, re.I)
++            if not quantity or re.search(r'\b(if|might|may|not|reports?|said|says?|claims?|believes?|perhaps)\b|[\"“”]', text, re.I):
++                continue
++            resource = quantity[2].rstrip('.')
++            if normalized(party.get('label')) == normalized(resource):
++                add('QUANTITY', text, [party['party_id']], [row], [resource])
++
++    for effect in effects.values():
++        if effect.get('derivation_operation') != 'EXCLUSIVE_ALLOCATION_COMPLEMENT':
++            continue
++        parents = [effects.get(i) for i in effect.get('source_effect_ids', [])]
++        if len(parents) != 1 or not parents[0] or parents[0].get('effect_kind') != 'RESOURCE_TRANSFER':
++            continue
++        if parents[0].get('action_id') != effect.get('action_id'):
++            continue
++        proof = [effect['effect_id'], parents[0]['effect_id']]
++        sources = evidence(effect.get('provenance', []))
++        for row in sources:
++            text = row['excerpt']
++            if re.search(r'\bbut not both\b', text, re.I):
++                add('EXCLUSIVITY', text, proof, [row])
++
++    for link in world.get('causal_links', []):
++        source = effects.get(link.get('source_id'))
++        target = effects.get(link.get('target_id'))
++        if not source or not target or source.get('action_id') != target.get('action_id'):
++            continue
++        if target.get('derivation_operation') != 'SOURCE_STIPULATED_CAUSAL':
++            continue
++        if source['effect_id'] not in target.get('source_effect_ids', []):
++            continue
++        for row in evidence(link.get('provenance', [])):
++            # Only explicit rule wording; preserve modal/negative wording intact.
++            if re.search(r'\bif\b|\bwho\b.+\b(?:will|may|might)\b', row['excerpt'], re.I):
++                add('RULE', row['excerpt'], [source['effect_id'], target['effect_id']], [row])
++    return list(cards.values())
++
++
++def component_support(claim, cards):
++    """Expose supported parts without licensing a compound conclusion.
++
++    This is bookkeeping, not a derivation engine. Even when all components are
++    recognized, a 'so' assertion still needs its own supported relation.
++    """
++    parts = [p.strip(' ()') for p in re.split(r';|\s*\(so\s+|\s+so\s+', claim, flags=re.I) if p.strip(' ()')]
++    result = []
++    for part in parts:
++        matches = [c['proposition_id'] for c in cards
++                   if normalized(part) in {normalized(c['claim']), *(normalized(a) for a in c.get('aliases', []))}]
++        fragments = []
++        if not matches and not re.search(r'\b(?:not|no|never|may|might|if|denies?)\b', part, re.I):
++            for card in cards:
++                if card.get('kind') != 'QUANTITY':
++                    continue
++                for alias in card.get('aliases', []):
++                    quantity = re.fullmatch(r'(.+?) of (.+)', alias)
++                    if not quantity:
++                        continue
++                    # Recover a referenced quantity inside a strengthened stock
++                    # claim, without licensing 'only', ownership, or modifiers
++                    # such as 'life-saving'. Unknown wording stays explicit.
++                    pattern = r'\b' + re.escape(quantity[1]) + r'\s+of\s+(?:the\s+)?(?:[\w-]+\s+){0,2}' + re.escape(quantity[2]) + r'\b'
++                    if re.search(pattern, part, re.I):
++                        fragments.append({'claim': alias, 'support_ids': [card['proposition_id']]})
++        result.append({'claim': part, 'support_ids': matches,
++                       'status': 'SUPPORTED_COMPONENT' if matches else
++                                 'PARTIALLY_SUPPORTED_COMPONENT' if fragments else 'UNRESOLVED_COMPONENT',
++                       'supported_fragments': fragments})
++    return result

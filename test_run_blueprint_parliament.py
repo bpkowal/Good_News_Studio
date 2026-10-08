@@ -1,4 +1,5 @@
 import argparse
+import copy
 import json
 from pathlib import Path
 import tempfile
@@ -346,6 +347,127 @@ class RelEntHandoffTests(unittest.TestCase):
         self.assertEqual(options["agents"], ["care", "rawlsian"])
         self.assertEqual(options["max_cycles"], 4)
         self.assertTrue(options["use_rag"])
+
+    def test_unresolved_beam_is_interpretive_and_skips_relent(self):
+        world = {
+            "schema_version": "1.3",
+            "parties": [{"party_id": "P1", "label": "Ada", "kind": "PERSON"}],
+            "actions": [{
+                "action_id": "A0", "intervention": "act-1",
+                "actor_party_id": "P1", "recipient_party_ids": [],
+                "effect_ids": ["E1"], "clause_ids": ["C0"],
+            }],
+            "effects": [{
+                "effect_id": "E1", "action_id": "A0", "party_id": "P1",
+                "outcome": "Ada acts", "directness": "DIRECT",
+                "polarity": "NEUTRAL", "modality": "CERTAIN",
+            }],
+            "causal_links": [], "conditions": [],
+            "temporal_relations": [], "counterfactual_links": [],
+        }
+        first = {
+            "proposal_id": "b1", "status": "FILLED", "assignment": ["act-1"],
+            "admission_authorized": True,
+            "candidate": {"world_model": world}, "world_withheld": [],
+        }
+        second_world = copy.deepcopy(world)
+        second_world["actions"][0]["intervention"] = "act-2"
+        second = {
+            "proposal_id": "b2", "status": "FILLED", "assignment": ["act-2"],
+            "admission_authorized": True,
+            "candidate": {"world_model": second_world}, "world_withheld": [],
+        }
+        result = {
+            "chosen_blueprint_id": "b1",
+            "status": "FILLED",
+            "ranking": ["b1", "b2"],
+            "left_out": [],
+            "question": {"ethical_question": "x"},
+            "proposals": [first],
+            "candidate_attempts": [
+                {"blueprint_id": "b1", "rank": 0, "selected": True,
+                 "template_status": "FILLED", "unfilled_slots": [],
+                 "contract_valid": True, "proposal": first},
+                {"blueprint_id": "b2", "rank": 1, "selected": False,
+                 "template_status": "FILLED", "unfilled_slots": [],
+                 "contract_valid": True, "proposal": second},
+            ],
+            "semantic_coverage": {},
+            "primitive_comparison": [],
+            "amendment_inventory": {},
+        }
+
+        def fake_admit(blueprint, scenario, package, output_dir, *args, **kwargs):
+            path = output_dir / "world_beam.json"
+            payload = {
+                "schema": "world_beam/0.1",
+                "collapse_status": "UNRESOLVED_BEAM",
+                "label": "relative_interpretive_support",
+                "members": [],
+            }
+            path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
+            blueprint["collapse_status"] = "UNRESOLVED_BEAM"
+            blueprint["world_beam"] = payload
+            blueprint["world_beam_path"] = str(path)
+            return None, [
+                {"status": "ADMITTED", "blueprint_id": "b1"},
+                {"status": "ADMITTED", "blueprint_id": "b2"},
+            ]
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            env = root / "api.env"
+            env.write_text("OPENAI_API_KEY=test-only\n", encoding="utf-8")
+            output = root / "output"
+            parliament = root / "parliament"
+            parliament.mkdir()
+            (parliament / "global_workspace_pipeline.py").write_text("# stub\n")
+            python = root / "python"
+            python.write_text("#!/bin/sh\n")
+            with mock.patch("run_blueprint_parliament.z10.export_candidate_graph",
+                            return_value={"package_id": "test"}), \
+                 mock.patch("run_blueprint_parliament.extract_inventory",
+                            return_value={"constructions": [], "candidate_accounting": [],
+                                          "branches": [], "unresolved": [],
+                                          "source_candidates": [], "source_fields_missing": []}), \
+                 mock.patch("run_blueprint_parliament.assess_question",
+                            return_value={"ethical_question": "x"}), \
+                 mock.patch("run_blueprint_parliament.openai_complete",
+                            return_value=lambda messages: "{}"), \
+                 mock.patch("run_blueprint_parliament.choose_by_cloze",
+                            return_value=result), \
+                 mock.patch("run_blueprint_parliament.expand_candidates",
+                            side_effect=lambda *args, **kwargs: result), \
+                 mock.patch("run_blueprint_parliament.append_composition",
+                            side_effect=lambda *args, **kwargs: result), \
+                 mock.patch("blueprint_semantic_coverage.attach_coverage",
+                            side_effect=lambda *args, **kwargs: result), \
+                 mock.patch("run_blueprint_parliament.compare_z10_blueprints",
+                            return_value={}), \
+                 mock.patch("run_blueprint_parliament._authorized_proposal",
+                            return_value=first), \
+                 mock.patch("run_blueprint_parliament.validate_proposal",
+                            return_value=[]), \
+                 mock.patch("run_blueprint_parliament._parliament_revision",
+                            return_value={"commit": "test"}), \
+                 mock.patch("run_blueprint_parliament._admit_candidates",
+                            side_effect=fake_admit), \
+                 mock.patch("run_blueprint_parliament.subprocess.run") as run:
+                status = main([
+                    "--text", "Ada must decide.",
+                    "--openai-env", str(env),
+                    "--output-dir", str(output),
+                    "--parliament-root", str(parliament),
+                    "--parliament-python", str(python),
+                ])
+            manifest = json.loads(
+                (output / "preparation_manifest.json").read_text(encoding="utf-8")
+            )
+        self.assertEqual(status, 0)
+        self.assertEqual(manifest["pipeline_status"], "INTERPRETIVE_BEAM")
+        self.assertEqual(manifest["collapse_status"], "UNRESOLVED_BEAM")
+        self.assertFalse((output / "frozen_world_trace.json").exists())
+        run.assert_not_called()
 
     def test_agent_aliases_keep_canonical_relent_order(self):
         self.assertEqual(

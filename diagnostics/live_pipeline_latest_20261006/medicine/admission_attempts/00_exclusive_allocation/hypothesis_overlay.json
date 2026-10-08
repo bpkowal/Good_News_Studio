@@ -1,0 +1,318 @@
+{
+  "effects": [
+    {
+      "effect_id": "E10",
+      "action_id": "A2",
+      "party_id": "P3",
+      "outcome": "Ben has a 95% chance of survival",
+      "predicate": "survive",
+      "polarity": "BENEFICIAL",
+      "directness": "DOWNSTREAM",
+      "modality": "PROBABILISTIC",
+      "effect_kind": "HEALTH_OUTCOME",
+      "condition_ids": [],
+      "quantities": [
+        "95"
+      ],
+      "likelihood_qualifiers": [
+        "95% chance"
+      ],
+      "overall_likelihood_qualifiers": [],
+      "scope_qualifiers": [],
+      "temporal_qualifiers": [],
+      "condition_join": "AND",
+      "source_proposition": "Ben has a 95% chance of survival",
+      "source_effect_ids": [
+        "E9"
+      ],
+      "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+      "derivation_explanation": "The blank was filled with this copy of the scenario.",
+      "derivation_assumptions": [],
+      "outcome_type_transformation": "PRESERVED",
+      "clause_ids": [
+        "C2"
+      ]
+    },
+    {
+      "effect_id": "E12",
+      "action_id": "A3",
+      "party_id": "P4",
+      "outcome": "Cara has a 5% chance of survival",
+      "predicate": "survive",
+      "polarity": "BENEFICIAL",
+      "directness": "DOWNSTREAM",
+      "modality": "PROBABILISTIC",
+      "effect_kind": "HEALTH_OUTCOME",
+      "condition_ids": [],
+      "quantities": [
+        "5"
+      ],
+      "likelihood_qualifiers": [
+        "5% chance"
+      ],
+      "overall_likelihood_qualifiers": [],
+      "scope_qualifiers": [],
+      "temporal_qualifiers": [],
+      "condition_join": "AND",
+      "source_proposition": "Cara has a 5% chance of survival",
+      "source_effect_ids": [
+        "E11"
+      ],
+      "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+      "derivation_explanation": "The blank was filled with this copy of the scenario.",
+      "derivation_assumptions": [],
+      "outcome_type_transformation": "PRESERVED",
+      "clause_ids": [
+        "C3"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "collection": "causal_links",
+      "record": {
+        "action_id": "A2",
+        "source_id": "E9",
+        "link_relation": "ENABLES",
+        "target_id": "E10",
+        "modality": "PROBABILISTIC",
+        "condition_ids": [],
+        "clause_ids": [
+          "C2"
+        ]
+      },
+      "reason": "excluded_endpoint"
+    },
+    {
+      "collection": "causal_links",
+      "record": {
+        "action_id": "A3",
+        "source_id": "E11",
+        "link_relation": "ENABLES",
+        "target_id": "E12",
+        "modality": "PROBABILISTIC",
+        "condition_ids": [],
+        "clause_ids": [
+          "C3"
+        ]
+      },
+      "reason": "excluded_endpoint"
+    }
+  ],
+  "reasons": {
+    "E10": [
+      "unlicensed_welfare_effect"
+    ],
+    "E12": [
+      "unlicensed_welfare_effect"
+    ]
+  },
+  "status": "NOT_SUBMITTED_AS_WORLD",
+  "unknown_branch_outcomes": [
+    {
+      "action_id": "A2",
+      "party_id": "P3",
+      "excluded_effect_id": "E10",
+      "status": "UNKNOWN"
+    },
+    {
+      "action_id": "A3",
+      "party_id": "P4",
+      "excluded_effect_id": "E12",
+      "status": "UNKNOWN"
+    }
+  ],
+  "hypotheses": [
+    {
+      "hypothesis_id": "z10:c10",
+      "producer": "z10",
+      "span": "can",
+      "clause_ids": [
+        "C1"
+      ],
+      "z10_candidate_ids": [
+        "c10"
+      ],
+      "hypothesis": {
+        "kind": "MODALITY",
+        "value": "ability",
+        "arguments": {
+          "proposition": "p10"
+        }
+      },
+      "scope": {
+        "contexts": [
+          {
+            "kind": "UNRESOLVED"
+          }
+        ]
+      },
+      "provenance": "SOURCE_ASSERTED",
+      "atom_ids": []
+    },
+    {
+      "hypothesis_id": "z10:c11",
+      "producer": "z10",
+      "span": "can",
+      "clause_ids": [
+        "C1"
+      ],
+      "z10_candidate_ids": [
+        "c11"
+      ],
+      "hypothesis": {
+        "kind": "MODALITY",
+        "value": "permission",
+        "arguments": {
+          "proposition": "p10"
+        }
+      },
+      "scope": {
+        "contexts": [
+          {
+            "kind": "UNRESOLVED"
+          }
+        ]
+      },
+      "provenance": "SOURCE_ASSERTED",
+      "atom_ids": []
+    },
+    {
+      "hypothesis_id": "z10:c12",
+      "producer": "z10",
+      "span": "can",
+      "clause_ids": [
+        "C1"
+      ],
+      "z10_candidate_ids": [
+        "c12"
+      ],
+      "hypothesis": {
+        "kind": "MODALITY",
+        "value": "possibility",
+        "arguments": {
+          "proposition": "p10"
+        }
+      },
+      "scope": {
+        "contexts": [
+          {
+            "kind": "UNRESOLVED"
+          }
+        ]
+      },
+      "provenance": "SOURCE_ASSERTED",
+      "atom_ids": []
+    },
+    {
+      "hypothesis_id": "z10-excl:C1",
+      "producer": "z10",
+      "span": "Ada can give the medicine to Ben or Cara, but not both.",
+      "clause_ids": [
+        "C1"
+      ],
+      "z10_candidate_ids": [],
+      "hypothesis": {
+        "kind": "exclusivity",
+        "value": "not_both"
+      },
+      "scope": {
+        "contexts": [
+          {
+            "kind": "UNRESOLVED"
+          }
+        ]
+      },
+      "provenance": "SOURCE_ASSERTED",
+      "atom_ids": []
+    },
+    {
+      "hypothesis_id": "cloze:assignment",
+      "producer": "cloze_copy",
+      "span": "give the medicine to Ben or Cara",
+      "clause_ids": [
+        "C1"
+      ],
+      "z10_candidate_ids": [],
+      "hypothesis": {
+        "kind": "copied_span",
+        "slot": "assignment",
+        "value": "give the medicine to Ben or Cara"
+      },
+      "scope": {
+        "contexts": [
+          {
+            "kind": "UNRESOLVED"
+          }
+        ]
+      },
+      "provenance": "SOURCE_ASSERTED",
+      "atom_ids": []
+    },
+    {
+      "hypothesis_id": "cloze:exclusivity",
+      "producer": "cloze_copy",
+      "span": "but not both",
+      "clause_ids": [
+        "C1"
+      ],
+      "z10_candidate_ids": [],
+      "hypothesis": {
+        "kind": "exclusivity",
+        "slot": "exclusivity",
+        "value": "but not both"
+      },
+      "scope": {
+        "contexts": [
+          {
+            "kind": "UNRESOLVED"
+          }
+        ]
+      },
+      "provenance": "SOURCE_ASSERTED",
+      "atom_ids": []
+    },
+    {
+      "hypothesis_id": "llm:first_implied_process",
+      "producer": "llm_note",
+      "span": "administration",
+      "clause_ids": [],
+      "z10_candidate_ids": [],
+      "hypothesis": {
+        "kind": "implied_process",
+        "slot": "first_implied_process",
+        "value": "administration"
+      },
+      "scope": {
+        "contexts": [
+          {
+            "kind": "UNRESOLVED"
+          }
+        ]
+      },
+      "provenance": "WORLD_KNOWLEDGE_HYPOTHESIS",
+      "atom_ids": []
+    },
+    {
+      "hypothesis_id": "llm:second_implied_process",
+      "producer": "llm_note",
+      "span": "administration",
+      "clause_ids": [],
+      "z10_candidate_ids": [],
+      "hypothesis": {
+        "kind": "implied_process",
+        "slot": "second_implied_process",
+        "value": "administration"
+      },
+      "scope": {
+        "contexts": [
+          {
+            "kind": "UNRESOLVED"
+          }
+        ]
+      },
+      "provenance": "WORLD_KNOWLEDGE_HYPOTHESIS",
+      "atom_ids": []
+    }
+  ]
+}

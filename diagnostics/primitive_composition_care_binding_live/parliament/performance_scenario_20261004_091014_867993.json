@@ -1,0 +1,258 @@
+{
+  "schema_version": 2,
+  "run_id": "scenario_20261004_091014_867993",
+  "started_at": "2026-10-04T13:10:14.868288+00:00",
+  "elapsed_seconds": 2.595779,
+  "counts": {
+    "events": 16,
+    "by_category": {
+      "model_call": 1,
+      "original_agent": 2,
+      "original_agent_phase": 8,
+      "provider_attempt": 1,
+      "stage": 4
+    },
+    "by_status": {
+      "ERROR": 4,
+      "OK": 12
+    },
+    "logical_model_calls": 1,
+    "model_call_count": 1,
+    "original_agent_model_calls": 0,
+    "compact_primary_calls": 0,
+    "compact_repair_calls": 0,
+    "repair_count": 0,
+    "timeout_count": 0,
+    "abstention_count": 0,
+    "budget_blocked_calls": 0,
+    "model_cache_hits": 0,
+    "grounded_projection_materializations": 0,
+    "grounded_projection_cache_hits": 0,
+    "provider_attempts": 1,
+    "provider_failures": 1
+  },
+  "timings_by_name_seconds": {
+    "frozen_world_validation": 0.009518,
+    "openai.chat.completions": 1.435268,
+    "original_agent_consultation": 0.815976,
+    "original_agent_model": 0.0,
+    "original_agent_overhead": 0.00283,
+    "original_agent_process": 1.62866,
+    "original_agent_retrieval": 0.0,
+    "original_agent_startup": 1.62583,
+    "pipeline_total": 2.594919,
+    "primary": 1.435454,
+    "testimony_baseline": 1.437657
+  },
+  "original_agents": {
+    "care": {
+      "process_seconds": 0.813992,
+      "startup_seconds": 0.812582,
+      "retrieval_seconds": 0.0,
+      "retrieval_calls": 0,
+      "model_seconds": 0.0,
+      "model_calls": 0,
+      "overhead_seconds": 0.00141
+    },
+    "deontological": {
+      "process_seconds": 0.814668,
+      "startup_seconds": 0.813248,
+      "retrieval_seconds": 0.0,
+      "retrieval_calls": 0,
+      "model_seconds": 0.0,
+      "model_calls": 0,
+      "overhead_seconds": 0.00142
+    }
+  },
+  "compact_specialists": {},
+  "ledger_commits": {},
+  "events": [
+    {
+      "category": "stage",
+      "name": "frozen_world_validation",
+      "status": "OK",
+      "duration_seconds": 0.009518,
+      "finished_at": "2026-10-04T13:10:14.878759+00:00",
+      "metadata": {}
+    },
+    {
+      "category": "original_agent",
+      "name": "original_agent_process",
+      "status": "OK",
+      "duration_seconds": 0.813992,
+      "finished_at": "2026-10-04T13:10:16.024095+00:00",
+      "metadata": {
+        "agent": "care",
+        "timeout_count": 0,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_startup",
+      "status": "OK",
+      "duration_seconds": 0.812582,
+      "finished_at": "2026-10-04T13:10:16.024125+00:00",
+      "metadata": {
+        "agent": "care",
+        "process_startup_seconds": 0.606884,
+        "module_startup_seconds": 0.00056,
+        "model_startup_seconds": 0.205139,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_retrieval",
+      "status": "OK",
+      "duration_seconds": 0.0,
+      "finished_at": "2026-10-04T13:10:16.024128+00:00",
+      "metadata": {
+        "agent": "care",
+        "retrieval_call_count": 0,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_model",
+      "status": "OK",
+      "duration_seconds": 0.0,
+      "finished_at": "2026-10-04T13:10:16.024131+00:00",
+      "metadata": {
+        "agent": "care",
+        "model_call_count": 0,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_overhead",
+      "status": "OK",
+      "duration_seconds": 0.00141,
+      "finished_at": "2026-10-04T13:10:16.024134+00:00",
+      "metadata": {
+        "agent": "care",
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent",
+      "name": "original_agent_process",
+      "status": "OK",
+      "duration_seconds": 0.814668,
+      "finished_at": "2026-10-04T13:10:16.024433+00:00",
+      "metadata": {
+        "agent": "deontological",
+        "timeout_count": 0,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_startup",
+      "status": "OK",
+      "duration_seconds": 0.813248,
+      "finished_at": "2026-10-04T13:10:16.024442+00:00",
+      "metadata": {
+        "agent": "deontological",
+        "process_startup_seconds": 0.607444,
+        "module_startup_seconds": 0.001042,
+        "model_startup_seconds": 0.204762,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_retrieval",
+      "status": "OK",
+      "duration_seconds": 0.0,
+      "finished_at": "2026-10-04T13:10:16.024446+00:00",
+      "metadata": {
+        "agent": "deontological",
+        "retrieval_call_count": 0,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_model",
+      "status": "OK",
+      "duration_seconds": 0.0,
+      "finished_at": "2026-10-04T13:10:16.024449+00:00",
+      "metadata": {
+        "agent": "deontological",
+        "model_call_count": 0,
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "original_agent_phase",
+      "name": "original_agent_overhead",
+      "status": "OK",
+      "duration_seconds": 0.00142,
+      "finished_at": "2026-10-04T13:10:16.024454+00:00",
+      "metadata": {
+        "agent": "deontological",
+        "parent_stage": "original_agent_consultation"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "original_agent_consultation",
+      "status": "OK",
+      "duration_seconds": 0.815976,
+      "finished_at": "2026-10-04T13:10:16.025031+00:00",
+      "metadata": {}
+    },
+    {
+      "category": "provider_attempt",
+      "name": "openai.chat.completions",
+      "status": "ERROR",
+      "duration_seconds": 1.435268,
+      "finished_at": "2026-10-04T13:10:17.463271+00:00",
+      "metadata": {
+        "model": "o3",
+        "exception_type": "APIConnectionError",
+        "error_category": "connection",
+        "parent_stage": "testimony_baseline"
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "primary",
+      "status": "ERROR",
+      "duration_seconds": 1.435454,
+      "finished_at": "2026-10-04T13:10:17.463364+00:00",
+      "metadata": {
+        "call_kind": "primary",
+        "backend": "OpenAIWorkspaceLLM",
+        "max_tokens": 96,
+        "structured": true,
+        "cycle": 0,
+        "exception_type": "ModelCallUnavailable",
+        "error_category": "connection",
+        "parent_stage": "testimony_baseline"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "testimony_baseline",
+      "status": "ERROR",
+      "duration_seconds": 1.437657,
+      "finished_at": "2026-10-04T13:10:17.463398+00:00",
+      "metadata": {
+        "specialist": "deontological"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "pipeline_total",
+      "status": "ERROR",
+      "duration_seconds": 2.594919,
+      "finished_at": "2026-10-04T13:10:17.463475+00:00",
+      "metadata": {}
+    }
+  ],
+  "content_recording": "DISABLED"
+}

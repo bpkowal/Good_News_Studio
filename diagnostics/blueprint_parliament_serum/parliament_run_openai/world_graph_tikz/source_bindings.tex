@@ -1,0 +1,16 @@
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{xcolor}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds}
+\begin{document}
+% Source-to-world bindings
+\begin{tikzpicture}[>=Latex,source/.style={draw,rounded corners,align=left,text width=5.3cm,fill=yellow!8,font=\small},event/.style={draw,rounded corners,align=left,text width=5.3cm,fill=gray!7,font=\small},binding/.style={->,thin,draw=blue!55}]
+\node[font=\bfseries] at (0,1.2) {Source facts};
+\node[font=\bfseries] at (8,1.2) {World graph nodes};
+\node[event] (eE1) at (8,0.0) {\textbf{E1} receives serum};
+\node[event] (eE2) at (8,-1.8) {\textbf{E2} does not receive serum};
+\node[event] (eE3) at (8,-3.6) {\textbf{E3} Ben recovers};
+\node[event] (eE4) at (8,-5.4) {\textbf{E4} receives serum};
+\node[event] (eE5) at (8,-7.2) {\textbf{E5} does not receive serum};
+\node[event] (eE6) at (8,-9.0) {\textbf{E6} Cara recovers};
+\end{tikzpicture}
+\end{document}

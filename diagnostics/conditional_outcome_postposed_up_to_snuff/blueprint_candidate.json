@@ -1,0 +1,4551 @@
+{
+  "scenario": "One worker will live if Maria pulls the lever. Five workers will live if Maria does not pull the lever.",
+  "actions": [
+    "pulls the lever",
+    "does not pull the lever"
+  ],
+  "package": {
+    "schema_version": "0.4",
+    "package_id": "blueprint_run_2efd50058676",
+    "document": {
+      "id": "document",
+      "text": "One worker will live if Maria pulls the lever. Five workers will live if Maria does not pull the lever."
+    },
+    "producer": {
+      "name": "parsing_game_Z10",
+      "version": "Z10",
+      "resources": [
+        {
+          "id": "T_reference_policy",
+          "version": "1",
+          "description": "Curated candidate-generation and ranking policy, not learned probabilities or a complete animacy lexicon."
+        }
+      ]
+    },
+    "evidence": [
+      {
+        "id": "e0",
+        "start": 16,
+        "end": 20,
+        "text": "live"
+      },
+      {
+        "id": "e1",
+        "start": 30,
+        "end": 35,
+        "text": "pulls"
+      },
+      {
+        "id": "e2",
+        "start": 65,
+        "end": 69,
+        "text": "live"
+      },
+      {
+        "id": "e3",
+        "start": 88,
+        "end": 92,
+        "text": "pull"
+      },
+      {
+        "id": "e4",
+        "start": 84,
+        "end": 87,
+        "text": "not"
+      },
+      {
+        "id": "e5",
+        "start": 21,
+        "end": 23,
+        "text": "if"
+      },
+      {
+        "id": "e6",
+        "start": 70,
+        "end": 72,
+        "text": "if"
+      },
+      {
+        "id": "e7",
+        "start": 11,
+        "end": 15,
+        "text": "will"
+      },
+      {
+        "id": "e8",
+        "start": 60,
+        "end": 64,
+        "text": "will"
+      },
+      {
+        "id": "e9",
+        "start": 0,
+        "end": 10,
+        "text": "One worker"
+      },
+      {
+        "id": "e10",
+        "start": 4,
+        "end": 10,
+        "text": "worker"
+      },
+      {
+        "id": "e11",
+        "start": 24,
+        "end": 29,
+        "text": "Maria"
+      },
+      {
+        "id": "e12",
+        "start": 36,
+        "end": 45,
+        "text": "the lever"
+      },
+      {
+        "id": "e13",
+        "start": 40,
+        "end": 45,
+        "text": "lever"
+      },
+      {
+        "id": "e14",
+        "start": 47,
+        "end": 59,
+        "text": "Five workers"
+      },
+      {
+        "id": "e15",
+        "start": 52,
+        "end": 59,
+        "text": "workers"
+      },
+      {
+        "id": "e16",
+        "start": 73,
+        "end": 78,
+        "text": "Maria"
+      },
+      {
+        "id": "e17",
+        "start": 93,
+        "end": 102,
+        "text": "the lever"
+      },
+      {
+        "id": "e18",
+        "start": 97,
+        "end": 102,
+        "text": "lever"
+      },
+      {
+        "id": "e19",
+        "start": 0,
+        "end": 3,
+        "text": "One"
+      },
+      {
+        "id": "e20",
+        "start": 47,
+        "end": 51,
+        "text": "Five"
+      },
+      {
+        "id": "e21",
+        "start": 0,
+        "end": 46,
+        "text": "One worker will live if Maria pulls the lever."
+      },
+      {
+        "id": "e22",
+        "start": 47,
+        "end": 103,
+        "text": "Five workers will live if Maria does not pull the lever."
+      }
+    ],
+    "nodes": [
+      {
+        "id": "p3",
+        "kind": "proposition",
+        "label": "live",
+        "predicate": "live",
+        "evidence_ids": [
+          "e0"
+        ],
+        "predicate_evidence_ids": [
+          "e0"
+        ]
+      },
+      {
+        "id": "p6",
+        "kind": "proposition",
+        "label": "pulls",
+        "predicate": "pull",
+        "evidence_ids": [
+          "e1"
+        ],
+        "predicate_evidence_ids": [
+          "e1"
+        ]
+      },
+      {
+        "id": "p13",
+        "kind": "proposition",
+        "label": "live",
+        "predicate": "live",
+        "evidence_ids": [
+          "e2"
+        ],
+        "predicate_evidence_ids": [
+          "e2"
+        ]
+      },
+      {
+        "id": "p18",
+        "kind": "proposition",
+        "label": "pull",
+        "predicate": "pull",
+        "evidence_ids": [
+          "e3"
+        ],
+        "predicate_evidence_ids": [
+          "e3"
+        ]
+      },
+      {
+        "id": "m1",
+        "kind": "mention",
+        "label": "One worker",
+        "evidence_ids": [
+          "e9"
+        ]
+      },
+      {
+        "id": "m5",
+        "kind": "mention",
+        "label": "Maria",
+        "evidence_ids": [
+          "e11"
+        ]
+      },
+      {
+        "id": "m8",
+        "kind": "mention",
+        "label": "the lever",
+        "evidence_ids": [
+          "e12"
+        ]
+      },
+      {
+        "id": "m11",
+        "kind": "mention",
+        "label": "Five workers",
+        "evidence_ids": [
+          "e14"
+        ]
+      },
+      {
+        "id": "m15",
+        "kind": "mention",
+        "label": "Maria",
+        "evidence_ids": [
+          "e16"
+        ]
+      },
+      {
+        "id": "m20",
+        "kind": "mention",
+        "label": "the lever",
+        "evidence_ids": [
+          "e17"
+        ]
+      },
+      {
+        "id": "kif6",
+        "kind": "choice_point",
+        "label": "pulls / not pull",
+        "evidence_ids": [
+          "e5",
+          "e6"
+        ]
+      }
+    ],
+    "candidates": [
+      {
+        "id": "c0",
+        "type": "PREDICATION",
+        "arguments": {
+          "proposition": "p3"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e0"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "conditional",
+              "condition_proposition_id": "p6",
+              "evidence_ids": [
+                "e5"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c1",
+          "c10",
+          "c9"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c1",
+        "type": "PREDICATION",
+        "arguments": {
+          "proposition": "p6"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e1"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "hypothetical",
+              "evidence_ids": [
+                "e5"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c2",
+        "type": "PREDICATION",
+        "arguments": {
+          "proposition": "p13"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e2"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "conditional",
+              "condition_proposition_id": "p18",
+              "evidence_ids": [
+                "e6"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c3",
+          "c12",
+          "c13"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c3",
+        "type": "PREDICATION",
+        "arguments": {
+          "proposition": "p18"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e3",
+          "e4"
+        ],
+        "scope": {
+          "polarity": "negative",
+          "contexts": [
+            {
+              "kind": "hypothetical",
+              "evidence_ids": [
+                "e6"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c4",
+        "type": "CONDITIONAL_ON",
+        "arguments": {
+          "consequence": "p3",
+          "condition": "p6"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e5"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c0",
+          "c1",
+          "c10",
+          "c9"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c5",
+        "type": "CONDITIONAL_ON",
+        "arguments": {
+          "consequence": "p13",
+          "condition": "p18"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e6"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c2",
+          "c3",
+          "c12",
+          "c13"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c6",
+        "type": "MODALITY",
+        "arguments": {
+          "proposition": "p3"
+        },
+        "value": "prediction",
+        "evidence_ids": [
+          "e7"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "conditional",
+              "condition_proposition_id": "p6",
+              "evidence_ids": [
+                "e5"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c0",
+          "c1",
+          "c10",
+          "c9"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c7",
+        "type": "MODALITY",
+        "arguments": {
+          "proposition": "p13"
+        },
+        "value": "prediction",
+        "evidence_ids": [
+          "e8"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "conditional",
+              "condition_proposition_id": "p18",
+              "evidence_ids": [
+                "e6"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c2",
+          "c12",
+          "c13",
+          "c3"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c8",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p3",
+          "mention": "m1"
+        },
+        "value": "subject",
+        "evidence_ids": [
+          "e10"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "conditional",
+              "condition_proposition_id": "p6",
+              "evidence_ids": [
+                "e5"
+              ]
+            },
+            {
+              "kind": "modal",
+              "modality_candidate_id": "c6",
+              "evidence_ids": [
+                "e7"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c0",
+          "c6",
+          "c1",
+          "c10",
+          "c9"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c9",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p6",
+          "mention": "m5"
+        },
+        "value": "subject",
+        "evidence_ids": [
+          "e11"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "hypothetical",
+              "evidence_ids": [
+                "e5"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c1"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c10",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p6",
+          "mention": "m8"
+        },
+        "value": "object",
+        "evidence_ids": [
+          "e13"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "hypothetical",
+              "evidence_ids": [
+                "e5"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c1"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c11",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p13",
+          "mention": "m11"
+        },
+        "value": "subject",
+        "evidence_ids": [
+          "e15"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "conditional",
+              "condition_proposition_id": "p18",
+              "evidence_ids": [
+                "e6"
+              ]
+            },
+            {
+              "kind": "modal",
+              "modality_candidate_id": "c7",
+              "evidence_ids": [
+                "e8"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c2",
+          "c7",
+          "c12",
+          "c13",
+          "c3"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c12",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p18",
+          "mention": "m15"
+        },
+        "value": "subject",
+        "evidence_ids": [
+          "e16"
+        ],
+        "scope": {
+          "polarity": "negative",
+          "contexts": [
+            {
+              "kind": "hypothetical",
+              "evidence_ids": [
+                "e6"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c3"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c13",
+        "type": "PARTICIPANT",
+        "arguments": {
+          "proposition": "p18",
+          "mention": "m20"
+        },
+        "value": "object",
+        "evidence_ids": [
+          "e18"
+        ],
+        "scope": {
+          "polarity": "negative",
+          "contexts": [
+            {
+              "kind": "hypothetical",
+              "evidence_ids": [
+                "e6"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c3"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c14",
+        "type": "QUANTITY",
+        "arguments": {
+          "mention": "m1"
+        },
+        "value": {
+          "operator": "exact",
+          "amount": 1,
+          "unit": "worker"
+        },
+        "evidence_ids": [
+          "e19"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c15",
+        "type": "QUANTITY",
+        "arguments": {
+          "mention": "m11"
+        },
+        "value": {
+          "operator": "exact",
+          "amount": 5,
+          "unit": "worker"
+        },
+        "evidence_ids": [
+          "e20"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "bounded_dependency_rules",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c16",
+        "type": "SAME_REFERENT",
+        "arguments": {
+          "mention_a": "m15",
+          "mention_b": "m5"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e16",
+          "e11"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "reference_candidates",
+            "version": "T1",
+            "method": "bounded_number_animacy_recency_role_ranking",
+            "resource_ids": [
+              "T_reference_policy"
+            ]
+          }
+        ],
+        "assessment": {
+          "status": "preferred",
+          "score": {
+            "value": 0.8999999999999999,
+            "kind": "uncalibrated_score",
+            "source": "T_reference_policy",
+            "calibration_id": null
+          }
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c17",
+        "type": "SAME_REFERENT",
+        "arguments": {
+          "mention_a": "m20",
+          "mention_b": "m8"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e17",
+          "e12"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": []
+        },
+        "provenance": [
+          {
+            "producer": "reference_candidates",
+            "version": "T1",
+            "method": "bounded_number_animacy_recency_role_ranking",
+            "resource_ids": [
+              "T_reference_policy"
+            ]
+          }
+        ],
+        "assessment": {
+          "status": "preferred",
+          "score": {
+            "value": 0.8,
+            "kind": "uncalibrated_score",
+            "source": "T_reference_policy",
+            "calibration_id": null
+          }
+        },
+        "requires": [],
+        "exclusive_with": []
+      },
+      {
+        "id": "c18",
+        "type": "OPTION_OF",
+        "arguments": {
+          "proposition": "p6",
+          "choice_point": "kif6"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e5",
+          "e6"
+        ],
+        "scope": {
+          "polarity": "positive",
+          "contexts": [
+            {
+              "kind": "hypothetical",
+              "evidence_ids": [
+                "e5"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "attested_conditional_alternatives",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c1",
+          "c4"
+        ],
+        "exclusive_with": []
+      },
+      {
+        "id": "c19",
+        "type": "OPTION_OF",
+        "arguments": {
+          "proposition": "p18",
+          "choice_point": "kif6"
+        },
+        "value": null,
+        "evidence_ids": [
+          "e5",
+          "e6"
+        ],
+        "scope": {
+          "polarity": "negative",
+          "contexts": [
+            {
+              "kind": "hypothetical",
+              "evidence_ids": [
+                "e6"
+              ]
+            }
+          ]
+        },
+        "provenance": [
+          {
+            "producer": "parsing_game_Z4",
+            "version": "Z4",
+            "method": "attested_conditional_alternatives",
+            "resource_ids": []
+          }
+        ],
+        "assessment": {
+          "status": "proposed",
+          "score": null
+        },
+        "requires": [
+          "c3",
+          "c5"
+        ],
+        "exclusive_with": []
+      }
+    ],
+    "choice_sets": [
+      {
+        "id": "choice0",
+        "kind": "interpretation",
+        "candidate_ids": [
+          "c16"
+        ],
+        "selection_rule": "any_subset",
+        "exhaustive": false,
+        "evidence_ids": [
+          "e16"
+        ]
+      },
+      {
+        "id": "choice1",
+        "kind": "interpretation",
+        "candidate_ids": [
+          "c17"
+        ],
+        "selection_rule": "any_subset",
+        "exhaustive": false,
+        "evidence_ids": [
+          "e17"
+        ]
+      },
+      {
+        "id": "choice2",
+        "kind": "scenario_option",
+        "candidate_ids": [
+          "c18",
+          "c19"
+        ],
+        "selection_rule": "any_subset",
+        "exhaustive": false,
+        "evidence_ids": [
+          "e5",
+          "e6"
+        ]
+      }
+    ],
+    "open_questions": [
+      {
+        "id": "q0",
+        "kind": "reference",
+        "evidence_ids": [
+          "e12"
+        ],
+        "candidate_ids": [],
+        "question": "Which earlier mention, if any, has the same referent? Ranked candidates are not identity decisions.",
+        "blocking_for": []
+      },
+      {
+        "id": "q1",
+        "kind": "reference",
+        "evidence_ids": [
+          "e16"
+        ],
+        "candidate_ids": [
+          "c16"
+        ],
+        "question": "Which earlier mention, if any, has the same referent? Ranked candidates are not identity decisions.",
+        "blocking_for": []
+      },
+      {
+        "id": "q2",
+        "kind": "reference",
+        "evidence_ids": [
+          "e17"
+        ],
+        "candidate_ids": [
+          "c17"
+        ],
+        "question": "Which earlier mention, if any, has the same referent? Ranked candidates are not identity decisions.",
+        "blocking_for": []
+      },
+      {
+        "id": "q3",
+        "kind": "missing_representation",
+        "evidence_ids": [
+          "e21"
+        ],
+        "candidate_ids": [],
+        "question": "Review unrepresented semantics and scope, including attribution, choice and entailment.",
+        "blocking_for": []
+      },
+      {
+        "id": "q4",
+        "kind": "missing_representation",
+        "evidence_ids": [
+          "e22"
+        ],
+        "candidate_ids": [],
+        "question": "Review unrepresented semantics and scope, including attribution, choice and entailment.",
+        "blocking_for": []
+      }
+    ],
+    "coverage": {
+      "status": "partial",
+      "unrepresented_evidence_ids": [
+        "e21",
+        "e22"
+      ],
+      "limitations": [
+        "reference_candidates_only_no_identity_merging",
+        "no_world_state_commitment",
+        "bounded_if_and_local_modal_scope",
+        "no_semantic_support_validation",
+        "purpose_and_attachment_readings_are_candidates",
+        "subject_control_is_an_unresolved_candidate",
+        "unambiguous_condition_complements_are_required",
+        "attempt_does_not_entail_the_child",
+        "choice_sets_are_not_exhaustive",
+        "quantity_is_explicit_cardinality_only",
+        "comma_clause_subject_repairs_a_false_conjunct",
+        "same_name_reference_does_not_block_roles",
+        "transfer_recipient_is_destination",
+        "definite_locative_is_location",
+        "definite_reference_does_not_block_roles",
+        "conditional_alternatives_are_not_exhaustive_or_exclusive",
+        "quantity_match_is_not_group_membership",
+        "coordination_shares_the_head_role",
+        "clause_boundary_stops_role_sharing",
+        "clause_boundary_attachment_stays_a_candidate",
+        "stripping_not_nominal_is_an_unresolved_copy"
+      ]
+    },
+    "reconstructions": [],
+    "condition_contents": [
+      {
+        "id": "condition_content_0",
+        "condition_proposition_id": "p18",
+        "required_candidate_ids": [
+          "c12",
+          "c13",
+          "c3"
+        ],
+        "question_ids": [],
+        "evidence_ids": [
+          "e3"
+        ]
+      },
+      {
+        "id": "condition_content_1",
+        "condition_proposition_id": "p6",
+        "required_candidate_ids": [
+          "c1",
+          "c10",
+          "c9"
+        ],
+        "question_ids": [],
+        "evidence_ids": [
+          "e1"
+        ]
+      }
+    ]
+  },
+  "blueprint_result": {
+    "cloze_version": "blueprint-cloze-chooser/0.9",
+    "chosen_blueprint_id": "conditional_outcome",
+    "status": "FILLED",
+    "ranking": [
+      "rescue_contrast",
+      "omission_harm",
+      "conditional_outcome"
+    ],
+    "left_out": [
+      "exclusive_allocation",
+      "ability_permission",
+      "diversion_redirection",
+      "deontic_rule",
+      "promise_reliance",
+      "uncertain_risk",
+      "disputed_report"
+    ],
+    "question": {
+      "ethical_question": "pulls / not pull",
+      "scenario_options": [
+        {
+          "id": "choice2",
+          "selection_rule": "any_subset",
+          "exhaustive": false,
+          "options": [
+            "pulls",
+            "pull"
+          ]
+        }
+      ],
+      "exclusivity": "unspecified",
+      "exclusivity_proof": {
+        "status": "HYPOTHESIZED",
+        "evidence": [
+          {
+            "text": "One"
+          }
+        ],
+        "assumptions": [
+          "the resource is indivisible",
+          "allocation consumes it"
+        ],
+        "explanation": "A single item is mentioned, but indivisibility is not established."
+      },
+      "participants": [
+        {
+          "role": "subject",
+          "mention": "One worker",
+          "predicate": "live"
+        },
+        {
+          "role": "subject",
+          "mention": "Maria",
+          "predicate": "pulls"
+        },
+        {
+          "role": "object",
+          "mention": "the lever",
+          "predicate": "pulls"
+        },
+        {
+          "role": "subject",
+          "mention": "Five workers",
+          "predicate": "live"
+        },
+        {
+          "role": "subject",
+          "mention": "Maria",
+          "predicate": "pull"
+        },
+        {
+          "role": "object",
+          "mention": "the lever",
+          "predicate": "pull"
+        }
+      ],
+      "eligible_for_world_state": true
+    },
+    "world_withheld": [],
+    "considered": [
+      {
+        "blueprint_id": "rescue_contrast",
+        "graph_builder": "implemented",
+        "status": "PARTIAL",
+        "rank": 0,
+        "core_filled": 3,
+        "core_count": 8,
+        "optional_filled": 0,
+        "rejected": 5,
+        "coverage_metrics": {
+          "required_filled": 3,
+          "required_total": 8,
+          "optional_filled": 0,
+          "optional_total": 3,
+          "rejected_evidence": 5,
+          "unsupported_atoms": 0,
+          "unresolved_readings": 0
+        },
+        "unfilled": [
+          "first_saved",
+          "second_saved",
+          "rescue_exclusivity",
+          "first_rescue_action",
+          "second_rescue_action",
+          "first_harm",
+          "second_harm",
+          "scene"
+        ],
+        "unresolved_slots": [
+          "first_saved",
+          "second_saved",
+          "rescue_exclusivity",
+          "first_rescue_action",
+          "second_rescue_action",
+          "first_harm",
+          "second_harm",
+          "scene"
+        ],
+        "accepted_evidence": {
+          "rescuer": "Maria",
+          "first_benefit": "One worker will live",
+          "second_benefit": "Five workers will live"
+        },
+        "slots": {
+          "rescuer": "Maria",
+          "first_benefit": "One worker will live",
+          "second_benefit": "Five workers will live"
+        },
+        "items": [
+          {
+            "id": "rescuer",
+            "core": true,
+            "sentence": "The person who must choose between the rescues is",
+            "completion": "Maria",
+            "span": "Maria",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "first_saved",
+            "core": true,
+            "sentence": "The first party who can be rescued is",
+            "completion": "one worker",
+            "span": null,
+            "verdict": "rejected",
+            "reason": "does_not_answer"
+          },
+          {
+            "id": "second_saved",
+            "core": true,
+            "sentence": "The second, distinct party who can be rescued is",
+            "completion": "five workers",
+            "span": null,
+            "verdict": "rejected",
+            "reason": "does_not_answer"
+          },
+          {
+            "id": "rescue_exclusivity",
+            "core": true,
+            "sentence": "The exact words that say both rescues cannot happen are",
+            "completion": "not both",
+            "span": null,
+            "verdict": "rejected",
+            "reason": "not_a_copy"
+          },
+          {
+            "id": "first_rescue_action",
+            "core": true,
+            "sentence": "The copied first rescue action is",
+            "completion": "pulls the lever",
+            "span": null,
+            "verdict": "rejected",
+            "reason": "does_not_answer"
+          },
+          {
+            "id": "second_rescue_action",
+            "core": true,
+            "sentence": "The copied second rescue action is",
+            "completion": "does not pull the lever",
+            "span": null,
+            "verdict": "rejected",
+            "reason": "does_not_answer"
+          },
+          {
+            "id": "first_benefit",
+            "core": true,
+            "sentence": "The beneficial outcome in the first rescue branch is",
+            "completion": "one worker will live",
+            "span": "One worker will live",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "first_harm",
+            "core": false,
+            "sentence": "The harmful outcome in the first rescue branch is",
+            "completion": "NONE",
+            "span": null,
+            "verdict": "empty",
+            "reason": "not_stated"
+          },
+          {
+            "id": "second_benefit",
+            "core": true,
+            "sentence": "The beneficial outcome in the second rescue branch is",
+            "completion": "five workers will live",
+            "span": "Five workers will live",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "second_harm",
+            "core": false,
+            "sentence": "The harmful outcome in the second rescue branch is",
+            "completion": "NONE",
+            "span": null,
+            "verdict": "empty",
+            "reason": "not_stated"
+          },
+          {
+            "id": "scene",
+            "core": false,
+            "sentence": "The copied words that describe the parties already in danger are",
+            "completion": "NONE",
+            "span": null,
+            "verdict": "empty",
+            "reason": "not_stated"
+          }
+        ]
+      },
+      {
+        "blueprint_id": "omission_harm",
+        "graph_builder": "implemented",
+        "status": "PARTIAL",
+        "rank": 1,
+        "core_filled": 2,
+        "core_count": 5,
+        "optional_filled": 1,
+        "rejected": 2,
+        "coverage_metrics": {
+          "required_filled": 2,
+          "required_total": 5,
+          "optional_filled": 1,
+          "optional_total": 4,
+          "rejected_evidence": 2,
+          "unsupported_atoms": 0,
+          "unresolved_readings": 0
+        },
+        "unfilled": [
+          "done",
+          "harm_done",
+          "harm_omitted",
+          "done_hedge",
+          "omitted_hedge",
+          "instrument"
+        ],
+        "unresolved_slots": [
+          "done",
+          "harm_done",
+          "harm_omitted",
+          "done_hedge",
+          "omitted_hedge",
+          "instrument"
+        ],
+        "accepted_evidence": {
+          "actor": "Maria",
+          "omitted": "does not pull the lever",
+          "group_counts": "Five workers"
+        },
+        "slots": {
+          "actor": "Maria",
+          "omitted": "does not pull the lever",
+          "group_counts": "Five workers"
+        },
+        "items": [
+          {
+            "id": "actor",
+            "core": true,
+            "sentence": "The person who may do the action or not do it is",
+            "completion": "Maria",
+            "span": "Maria",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "done",
+            "core": true,
+            "sentence": "The action the text says is done is",
+            "completion": "NONE",
+            "span": null,
+            "verdict": "empty",
+            "reason": "not_stated"
+          },
+          {
+            "id": "omitted",
+            "core": true,
+            "sentence": "The copied non-action branch, including the word not, is",
+            "completion": "does not pull the lever",
+            "span": "does not pull the lever",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "harm_done",
+            "core": true,
+            "sentence": "The stated harmful outcome if the action is done is",
+            "completion": "NONE",
+            "span": null,
+            "verdict": "empty",
+            "reason": "not_stated"
+          },
+          {
+            "id": "harm_omitted",
+            "core": true,
+            "sentence": "The stated harmful outcome if the action is not done is",
+            "completion": "Five workers will live if Maria does not pull the lever",
+            "span": null,
+            "verdict": "rejected",
+            "reason": "does_not_answer"
+          },
+          {
+            "id": "done_hedge",
+            "core": false,
+            "sentence": "The conditional words attached to the harm from doing the action are",
+            "completion": "NONE",
+            "span": null,
+            "verdict": "empty",
+            "reason": "not_stated"
+          },
+          {
+            "id": "omitted_hedge",
+            "core": false,
+            "sentence": "The conditional words attached to the harm from not doing the action are",
+            "completion": "NONE",
+            "span": null,
+            "verdict": "empty",
+            "reason": "not_stated"
+          },
+          {
+            "id": "group_counts",
+            "core": false,
+            "sentence": "One copied group count in a harmful outcome is",
+            "completion": "Five workers",
+            "span": "Five workers",
+            "verdict": "accepted",
+            "reason": "copied"
+          },
+          {
+            "id": "instrument",
+            "core": false,
+            "sentence": "The contrasting instrument named after but not is",
+            "completion": "the lever",
+            "span": null,
+            "verdict": "rejected",
+            "reason": "does_not_answer"
+          }
+        ]
+      },
+      {
+        "blueprint_id": "conditional_outcome",
+        "graph_builder": "implemented",
+        "status": "FILLED",
+        "rank": 2,
+        "core_filled": 3,
+        "core_count": 3,
+        "optional_filled": 4,
+        "rejected": 0,
+        "coverage_metrics": {
+          "required_filled": 3,
+          "required_total": 3,
+          "optional_filled": 4,
+          "optional_total": 5,
+          "rejected_evidence": 0,
+          "unsupported_atoms": 0,
+          "unresolved_readings": 0
+        },
+        "unfilled": [
+          "chance"
+        ],
+        "unresolved_slots": [
+          "chance"
+        ],
+        "accepted_evidence": {
+          "actor": "Maria",
+          "condition": "if Maria pulls the lever",
+          "bearer": "One worker",
+          "outcome": "One worker will live",
+          "second_condition": "if Maria does not pull the lever",
+          "second_bearer": "Five workers",
+          "second_outcome": "Five workers will live"
+        },
+        "slots": {
+          "actor": "Maria",
+          "condition": "if Maria pulls the lever",
+          "bearer": "One worker",
+          "outcome": "One worker will live",
+          "second_condition": "if Maria does not pull the lever",
+          "second_bearer": "Five workers",
+          "second_outcome": "Five workers will live"
+        },
+        "items": [
+          {
+            "id": "actor",
+            "core": false,
+            "sentence": "The person whose action an outcome depends on is",
+            "completion": "Maria",
+            "span": "Maria",
+            "verdict": "accepted",
+            "reason": "recovered_from_z10_conditional_structure"
+          },
+          {
+            "id": "condition",
+            "core": true,
+            "sentence": "The if-clause the outcome depends on is",
+            "completion": "if Maria pulls the lever",
+            "span": "if Maria pulls the lever",
+            "verdict": "accepted",
+            "reason": "recovered_from_z10_conditional_structure"
+          },
+          {
+            "id": "bearer",
+            "core": true,
+            "sentence": "The party that outcome happens to is",
+            "completion": "one worker",
+            "span": "One worker",
+            "verdict": "accepted",
+            "reason": "recovered_from_z10_conditional_structure"
+          },
+          {
+            "id": "outcome",
+            "core": true,
+            "sentence": "The outcome stated for that party is",
+            "completion": "will live",
+            "span": "One worker will live",
+            "verdict": "accepted",
+            "reason": "recovered_from_z10_conditional_structure"
+          },
+          {
+            "id": "second_condition",
+            "core": false,
+            "sentence": "The second if-clause, distinct from the first, is",
+            "completion": "if Maria does not pull the lever",
+            "span": "if Maria does not pull the lever",
+            "verdict": "accepted",
+            "reason": "recovered_from_z10_conditional_structure"
+          },
+          {
+            "id": "second_bearer",
+            "core": false,
+            "sentence": "The party the second outcome happens to is",
+            "completion": "five workers",
+            "span": "Five workers",
+            "verdict": "accepted",
+            "reason": "recovered_from_z10_conditional_structure"
+          },
+          {
+            "id": "second_outcome",
+            "core": false,
+            "sentence": "The outcome stated for that second party is",
+            "completion": "will live",
+            "span": "Five workers will live",
+            "verdict": "accepted",
+            "reason": "recovered_from_z10_conditional_structure"
+          },
+          {
+            "id": "chance",
+            "core": false,
+            "sentence": "A stated chance attached to an outcome is",
+            "completion": "NONE",
+            "span": null,
+            "verdict": "empty",
+            "reason": "not_stated"
+          }
+        ],
+        "semantic_recoveries": {
+          "actor": {
+            "producer": "parsing_game_Z10",
+            "method": "conditional_candidate_source_alignment",
+            "span": "Maria"
+          },
+          "condition": {
+            "producer": "parsing_game_Z10",
+            "method": "conditional_candidate_source_alignment",
+            "span": "if Maria pulls the lever"
+          },
+          "bearer": {
+            "producer": "parsing_game_Z10",
+            "method": "conditional_candidate_source_alignment",
+            "span": "One worker"
+          },
+          "outcome": {
+            "producer": "parsing_game_Z10",
+            "method": "conditional_candidate_source_alignment",
+            "span": "One worker will live"
+          },
+          "second_condition": {
+            "producer": "parsing_game_Z10",
+            "method": "conditional_candidate_source_alignment",
+            "span": "if Maria does not pull the lever"
+          },
+          "second_bearer": {
+            "producer": "parsing_game_Z10",
+            "method": "conditional_candidate_source_alignment",
+            "span": "Five workers"
+          },
+          "second_outcome": {
+            "producer": "parsing_game_Z10",
+            "method": "conditional_candidate_source_alignment",
+            "span": "Five workers will live"
+          }
+        }
+      }
+    ],
+    "candidate_attempts": [
+      {
+        "blueprint_id": "rescue_contrast",
+        "rank": 0,
+        "template_status": "PARTIAL",
+        "selected": false,
+        "core_filled": 3,
+        "core_count": 8,
+        "optional_filled": 0,
+        "unfilled_slots": [
+          "first_saved",
+          "second_saved",
+          "rescue_exclusivity",
+          "first_rescue_action",
+          "second_rescue_action",
+          "first_harm",
+          "second_harm",
+          "scene"
+        ],
+        "contract_valid": true,
+        "contract_errors": [],
+        "proposal": {
+          "proposal_contract_version": "blueprint-proposal-contract/0.3",
+          "proposal_id": "rescue_contrast_cloze",
+          "blueprint_id": "rescue_contrast",
+          "status": "WITHHELD",
+          "assignment_kind": "none",
+          "assignment": [],
+          "slot_bindings": {
+            "copied_spans": {
+              "rescuer": "Maria",
+              "first_benefit": "One worker will live",
+              "second_benefit": "Five workers will live"
+            }
+          },
+          "selection": null,
+          "selection_validation": {
+            "contract_valid": null,
+            "status": "not_assessed",
+            "reason": "No Z10 candidate selection was constructed."
+          },
+          "candidate": null,
+          "clauses": [
+            {
+              "clause_id": "C0",
+              "text": "One worker will live if Maria pulls the lever."
+            },
+            {
+              "clause_id": "C1",
+              "text": "Five workers will live if Maria does not pull the lever."
+            }
+          ],
+          "unfilled_required_slots": [
+            "first_saved",
+            "second_saved",
+            "rescue_exclusivity",
+            "first_rescue_action",
+            "second_rescue_action"
+          ],
+          "unresolved_readings": [],
+          "construction_problems": [
+            {
+              "code": "world_withheld",
+              "message": "Required slots remain unfilled: first_saved, second_saved, rescue_exclusivity, first_rescue_action, second_rescue_action"
+            }
+          ],
+          "admission_authorized": false,
+          "notes": [],
+          "pre_world_assessment": {
+            "ethical_question": "pulls / not pull",
+            "scenario_options": [
+              {
+                "id": "choice2",
+                "selection_rule": "any_subset",
+                "exhaustive": false,
+                "options": [
+                  "pulls",
+                  "pull"
+                ]
+              }
+            ],
+            "exclusivity": "unspecified",
+            "exclusivity_proof": {
+              "status": "HYPOTHESIZED",
+              "evidence": [
+                {
+                  "text": "One"
+                }
+              ],
+              "assumptions": [
+                "the resource is indivisible",
+                "allocation consumes it"
+              ],
+              "explanation": "A single item is mentioned, but indivisibility is not established."
+            },
+            "participants": [
+              {
+                "role": "subject",
+                "mention": "One worker",
+                "predicate": "live"
+              },
+              {
+                "role": "subject",
+                "mention": "Maria",
+                "predicate": "pulls"
+              },
+              {
+                "role": "object",
+                "mention": "the lever",
+                "predicate": "pulls"
+              },
+              {
+                "role": "subject",
+                "mention": "Five workers",
+                "predicate": "live"
+              },
+              {
+                "role": "subject",
+                "mention": "Maria",
+                "predicate": "pull"
+              },
+              {
+                "role": "object",
+                "mention": "the lever",
+                "predicate": "pull"
+              }
+            ],
+            "status": "WITHHELD",
+            "eligible_for_world_state": false
+          },
+          "accepted_evidence": {
+            "rescuer": "Maria",
+            "first_benefit": "One worker will live",
+            "second_benefit": "Five workers will live"
+          },
+          "construction_provenance": [
+            {
+              "atom_id": "slot:rescuer",
+              "atom_kind": "slot",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [],
+              "evidence": [
+                "Maria"
+              ],
+              "explanation": "Copied cloze evidence; no world atom was authorized."
+            },
+            {
+              "atom_id": "slot:first_benefit",
+              "atom_kind": "slot",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [],
+              "evidence": [
+                "One worker will live"
+              ],
+              "explanation": "Copied cloze evidence; no world atom was authorized."
+            },
+            {
+              "atom_id": "slot:second_benefit",
+              "atom_kind": "slot",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [],
+              "evidence": [
+                "Five workers will live"
+              ],
+              "explanation": "Copied cloze evidence; no world atom was authorized."
+            }
+          ],
+          "relation_alternatives": [],
+          "exclusivity_proof": {
+            "status": "HYPOTHESIZED",
+            "evidence": [
+              {
+                "text": "One"
+              }
+            ],
+            "assumptions": [
+              "the resource is indivisible",
+              "allocation consumes it"
+            ],
+            "explanation": "A single item is mentioned, but indivisibility is not established."
+          },
+          "world_withheld": [
+            "Required slots remain unfilled: first_saved, second_saved, rescue_exclusivity, first_rescue_action, second_rescue_action"
+          ]
+        }
+      },
+      {
+        "blueprint_id": "omission_harm",
+        "rank": 1,
+        "template_status": "PARTIAL",
+        "selected": false,
+        "core_filled": 2,
+        "core_count": 5,
+        "optional_filled": 1,
+        "unfilled_slots": [
+          "done",
+          "harm_done",
+          "harm_omitted",
+          "done_hedge",
+          "omitted_hedge",
+          "instrument"
+        ],
+        "contract_valid": true,
+        "contract_errors": [],
+        "proposal": {
+          "proposal_contract_version": "blueprint-proposal-contract/0.3",
+          "proposal_id": "omission_harm_cloze",
+          "blueprint_id": "omission_harm",
+          "status": "WITHHELD",
+          "assignment_kind": "none",
+          "assignment": [],
+          "slot_bindings": {
+            "copied_spans": {
+              "actor": "Maria",
+              "omitted": "does not pull the lever",
+              "group_counts": "Five workers"
+            }
+          },
+          "selection": null,
+          "selection_validation": {
+            "contract_valid": null,
+            "status": "not_assessed",
+            "reason": "No Z10 candidate selection was constructed."
+          },
+          "candidate": null,
+          "clauses": [
+            {
+              "clause_id": "C0",
+              "text": "One worker will live if Maria pulls the lever."
+            },
+            {
+              "clause_id": "C1",
+              "text": "Five workers will live if Maria does not pull the lever."
+            }
+          ],
+          "unfilled_required_slots": [
+            "done",
+            "harm_done",
+            "harm_omitted"
+          ],
+          "unresolved_readings": [],
+          "construction_problems": [
+            {
+              "code": "world_withheld",
+              "message": "Required slots remain unfilled: done, harm_done, harm_omitted"
+            }
+          ],
+          "admission_authorized": false,
+          "notes": [],
+          "pre_world_assessment": {
+            "ethical_question": "pulls / not pull",
+            "scenario_options": [
+              {
+                "id": "choice2",
+                "selection_rule": "any_subset",
+                "exhaustive": false,
+                "options": [
+                  "pulls",
+                  "pull"
+                ]
+              }
+            ],
+            "exclusivity": "unspecified",
+            "exclusivity_proof": {
+              "status": "HYPOTHESIZED",
+              "evidence": [
+                {
+                  "text": "One"
+                }
+              ],
+              "assumptions": [
+                "the resource is indivisible",
+                "allocation consumes it"
+              ],
+              "explanation": "A single item is mentioned, but indivisibility is not established."
+            },
+            "participants": [
+              {
+                "role": "subject",
+                "mention": "One worker",
+                "predicate": "live"
+              },
+              {
+                "role": "subject",
+                "mention": "Maria",
+                "predicate": "pulls"
+              },
+              {
+                "role": "object",
+                "mention": "the lever",
+                "predicate": "pulls"
+              },
+              {
+                "role": "subject",
+                "mention": "Five workers",
+                "predicate": "live"
+              },
+              {
+                "role": "subject",
+                "mention": "Maria",
+                "predicate": "pull"
+              },
+              {
+                "role": "object",
+                "mention": "the lever",
+                "predicate": "pull"
+              }
+            ],
+            "status": "WITHHELD",
+            "eligible_for_world_state": false
+          },
+          "accepted_evidence": {
+            "actor": "Maria",
+            "omitted": "does not pull the lever",
+            "group_counts": "Five workers"
+          },
+          "construction_provenance": [
+            {
+              "atom_id": "slot:actor",
+              "atom_kind": "slot",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [],
+              "evidence": [
+                "Maria"
+              ],
+              "explanation": "Copied cloze evidence; no world atom was authorized."
+            },
+            {
+              "atom_id": "slot:omitted",
+              "atom_kind": "slot",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [],
+              "evidence": [
+                "does not pull the lever"
+              ],
+              "explanation": "Copied cloze evidence; no world atom was authorized."
+            },
+            {
+              "atom_id": "slot:group_counts",
+              "atom_kind": "slot",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [],
+              "evidence": [
+                "Five workers"
+              ],
+              "explanation": "Copied cloze evidence; no world atom was authorized."
+            }
+          ],
+          "relation_alternatives": [],
+          "exclusivity_proof": {
+            "status": "HYPOTHESIZED",
+            "evidence": [
+              {
+                "text": "One"
+              }
+            ],
+            "assumptions": [
+              "the resource is indivisible",
+              "allocation consumes it"
+            ],
+            "explanation": "A single item is mentioned, but indivisibility is not established."
+          },
+          "world_withheld": [
+            "Required slots remain unfilled: done, harm_done, harm_omitted"
+          ]
+        }
+      },
+      {
+        "blueprint_id": "conditional_outcome",
+        "rank": 2,
+        "template_status": "FILLED",
+        "selected": true,
+        "core_filled": 3,
+        "core_count": 3,
+        "optional_filled": 4,
+        "unfilled_slots": [
+          "chance"
+        ],
+        "contract_valid": true,
+        "contract_errors": [],
+        "proposal": {
+          "proposal_contract_version": "blueprint-proposal-contract/0.3",
+          "proposal_id": "conditional_outcome_cloze",
+          "blueprint_id": "conditional_outcome",
+          "status": "FILLED",
+          "assignment_kind": "intervention_text",
+          "assignment": [
+            "pulls the lever",
+            "does not pull the lever"
+          ],
+          "slot_bindings": {
+            "copied_spans": {
+              "actor": "Maria",
+              "condition": "if Maria pulls the lever",
+              "bearer": "One worker",
+              "outcome": "One worker will live",
+              "second_condition": "if Maria does not pull the lever",
+              "second_bearer": "Five workers",
+              "second_outcome": "Five workers will live"
+            },
+            "z10_recovered_slots": {
+              "actor": {
+                "producer": "parsing_game_Z10",
+                "method": "conditional_candidate_source_alignment",
+                "span": "Maria"
+              },
+              "condition": {
+                "producer": "parsing_game_Z10",
+                "method": "conditional_candidate_source_alignment",
+                "span": "if Maria pulls the lever"
+              },
+              "bearer": {
+                "producer": "parsing_game_Z10",
+                "method": "conditional_candidate_source_alignment",
+                "span": "One worker"
+              },
+              "outcome": {
+                "producer": "parsing_game_Z10",
+                "method": "conditional_candidate_source_alignment",
+                "span": "One worker will live"
+              },
+              "second_condition": {
+                "producer": "parsing_game_Z10",
+                "method": "conditional_candidate_source_alignment",
+                "span": "if Maria does not pull the lever"
+              },
+              "second_bearer": {
+                "producer": "parsing_game_Z10",
+                "method": "conditional_candidate_source_alignment",
+                "span": "Five workers"
+              },
+              "second_outcome": {
+                "producer": "parsing_game_Z10",
+                "method": "conditional_candidate_source_alignment",
+                "span": "Five workers will live"
+              }
+            }
+          },
+          "selection": null,
+          "selection_validation": {
+            "contract_valid": null,
+            "status": "not_assessed",
+            "reason": "The cloze path has no Z10 candidate selection."
+          },
+          "candidate": {
+            "actions": {
+              "A0": {
+                "clause_ids": [
+                  "C0"
+                ],
+                "reason": "Filled from copied cloze slots."
+              },
+              "A1": {
+                "clause_ids": [
+                  "C1"
+                ],
+                "reason": "Filled from copied cloze slots."
+              }
+            },
+            "world_model": {
+              "schema_version": "1.3",
+              "parties": [
+                {
+                  "party_id": "P1",
+                  "label": "Maria",
+                  "kind": "PERSON",
+                  "quantities": [],
+                  "clause_ids": [
+                    "C0",
+                    "C1"
+                  ]
+                },
+                {
+                  "party_id": "P2",
+                  "label": "One worker",
+                  "kind": "PERSON",
+                  "quantities": [],
+                  "clause_ids": [
+                    "C0"
+                  ]
+                },
+                {
+                  "party_id": "P3",
+                  "label": "the lever",
+                  "kind": "PROCESS",
+                  "quantities": [],
+                  "clause_ids": [
+                    "C0",
+                    "C1"
+                  ]
+                },
+                {
+                  "party_id": "P4",
+                  "label": "Five workers",
+                  "kind": "HUMAN_GROUP",
+                  "quantities": [
+                    "Five"
+                  ],
+                  "clause_ids": [
+                    "C1"
+                  ]
+                }
+              ],
+              "actions": [
+                {
+                  "action_id": "A0",
+                  "intervention": "pulls the lever",
+                  "actor_party_id": "P1",
+                  "recipient_party_ids": [
+                    "P3"
+                  ],
+                  "effect_ids": [
+                    "E1",
+                    "E2",
+                    "E3"
+                  ],
+                  "clause_ids": [
+                    "C0"
+                  ]
+                },
+                {
+                  "action_id": "A1",
+                  "intervention": "does not pull the lever",
+                  "actor_party_id": "P1",
+                  "recipient_party_ids": [
+                    "P3"
+                  ],
+                  "effect_ids": [
+                    "E4",
+                    "E5",
+                    "E6"
+                  ],
+                  "clause_ids": [
+                    "C1"
+                  ]
+                }
+              ],
+              "effects": [
+                {
+                  "effect_id": "E1",
+                  "action_id": "A0",
+                  "party_id": "P3",
+                  "outcome": "pulls the lever",
+                  "predicate": "pull",
+                  "polarity": "NEUTRAL",
+                  "directness": "DIRECT",
+                  "modality": "CERTAIN",
+                  "effect_kind": "INTERVENTION",
+                  "condition_ids": [],
+                  "quantities": [],
+                  "likelihood_qualifiers": [],
+                  "overall_likelihood_qualifiers": [],
+                  "scope_qualifiers": [],
+                  "temporal_qualifiers": [],
+                  "condition_join": "AND",
+                  "source_proposition": "pulls the lever",
+                  "source_effect_ids": [],
+                  "derivation_operation": "DIRECT_COPY",
+                  "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                  "derivation_assumptions": [],
+                  "outcome_type_transformation": "PRESERVED",
+                  "clause_ids": [
+                    "C0"
+                  ]
+                },
+                {
+                  "effect_id": "E2",
+                  "action_id": "A0",
+                  "party_id": "P3",
+                  "outcome": "pulls the lever",
+                  "predicate": "pull",
+                  "polarity": "NEUTRAL",
+                  "directness": "DOWNSTREAM",
+                  "modality": "CERTAIN",
+                  "effect_kind": "PHYSICAL_STATE",
+                  "condition_ids": [],
+                  "quantities": [],
+                  "likelihood_qualifiers": [],
+                  "overall_likelihood_qualifiers": [],
+                  "scope_qualifiers": [],
+                  "temporal_qualifiers": [],
+                  "condition_join": "AND",
+                  "source_proposition": "pulls the lever",
+                  "source_effect_ids": [
+                    "E1"
+                  ],
+                  "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                  "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                  "derivation_assumptions": [],
+                  "outcome_type_transformation": "PRESERVED",
+                  "clause_ids": [
+                    "C0"
+                  ]
+                },
+                {
+                  "effect_id": "E3",
+                  "action_id": "A0",
+                  "party_id": "P2",
+                  "outcome": "One worker will live",
+                  "predicate": "live",
+                  "polarity": "BENEFICIAL",
+                  "directness": "DOWNSTREAM",
+                  "modality": "CERTAIN",
+                  "effect_kind": "HEALTH_OUTCOME",
+                  "condition_ids": [],
+                  "quantities": [
+                    "One"
+                  ],
+                  "likelihood_qualifiers": [],
+                  "overall_likelihood_qualifiers": [],
+                  "scope_qualifiers": [],
+                  "temporal_qualifiers": [],
+                  "condition_join": "AND",
+                  "source_proposition": "One worker will live",
+                  "source_effect_ids": [
+                    "E2"
+                  ],
+                  "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                  "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                  "derivation_assumptions": [],
+                  "outcome_type_transformation": "PRESERVED",
+                  "clause_ids": [
+                    "C0"
+                  ]
+                },
+                {
+                  "effect_id": "E4",
+                  "action_id": "A1",
+                  "party_id": "P3",
+                  "outcome": "does not pull the lever",
+                  "predicate": "pull",
+                  "polarity": "NEUTRAL",
+                  "directness": "DIRECT",
+                  "modality": "CERTAIN",
+                  "effect_kind": "INTERVENTION",
+                  "condition_ids": [],
+                  "quantities": [],
+                  "likelihood_qualifiers": [],
+                  "overall_likelihood_qualifiers": [],
+                  "scope_qualifiers": [],
+                  "temporal_qualifiers": [],
+                  "condition_join": "AND",
+                  "source_proposition": "does not pull the lever",
+                  "source_effect_ids": [],
+                  "derivation_operation": "DIRECT_COPY",
+                  "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                  "derivation_assumptions": [],
+                  "outcome_type_transformation": "PRESERVED",
+                  "clause_ids": [
+                    "C1"
+                  ]
+                },
+                {
+                  "effect_id": "E5",
+                  "action_id": "A1",
+                  "party_id": "P3",
+                  "outcome": "does not pull the lever",
+                  "predicate": "pull",
+                  "polarity": "NEUTRAL",
+                  "directness": "DOWNSTREAM",
+                  "modality": "CERTAIN",
+                  "effect_kind": "PHYSICAL_STATE",
+                  "condition_ids": [],
+                  "quantities": [],
+                  "likelihood_qualifiers": [],
+                  "overall_likelihood_qualifiers": [],
+                  "scope_qualifiers": [],
+                  "temporal_qualifiers": [],
+                  "condition_join": "AND",
+                  "source_proposition": "does not pull the lever",
+                  "source_effect_ids": [
+                    "E4"
+                  ],
+                  "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                  "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                  "derivation_assumptions": [],
+                  "outcome_type_transformation": "PRESERVED",
+                  "clause_ids": [
+                    "C1"
+                  ]
+                },
+                {
+                  "effect_id": "E6",
+                  "action_id": "A1",
+                  "party_id": "P4",
+                  "outcome": "Five workers will live",
+                  "predicate": "live",
+                  "polarity": "BENEFICIAL",
+                  "directness": "DOWNSTREAM",
+                  "modality": "CERTAIN",
+                  "effect_kind": "HEALTH_OUTCOME",
+                  "condition_ids": [],
+                  "quantities": [
+                    "Five"
+                  ],
+                  "likelihood_qualifiers": [],
+                  "overall_likelihood_qualifiers": [],
+                  "scope_qualifiers": [],
+                  "temporal_qualifiers": [],
+                  "condition_join": "AND",
+                  "source_proposition": "Five workers will live",
+                  "source_effect_ids": [
+                    "E5"
+                  ],
+                  "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                  "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                  "derivation_assumptions": [],
+                  "outcome_type_transformation": "PRESERVED",
+                  "clause_ids": [
+                    "C1"
+                  ]
+                }
+              ],
+              "conditions": [
+                {
+                  "condition_id": "CND1",
+                  "description": "if Maria pulls the lever",
+                  "value_status": "UNKNOWN",
+                  "decision_relevance": "MATERIAL",
+                  "clause_ids": [
+                    "C0"
+                  ],
+                  "polarity": "POSITIVE",
+                  "operator": "IF"
+                },
+                {
+                  "condition_id": "CND2",
+                  "description": "if Maria does not pull the lever",
+                  "value_status": "UNKNOWN",
+                  "decision_relevance": "MATERIAL",
+                  "clause_ids": [
+                    "C1"
+                  ],
+                  "polarity": "NEGATED",
+                  "operator": "IF"
+                }
+              ],
+              "temporal_relations": [],
+              "causal_links": [
+                {
+                  "action_id": "A0",
+                  "source_id": "E1",
+                  "link_relation": "ENABLES",
+                  "target_id": "E2",
+                  "modality": "CERTAIN",
+                  "condition_ids": [],
+                  "clause_ids": [
+                    "C0"
+                  ]
+                },
+                {
+                  "action_id": "A0",
+                  "source_id": "E2",
+                  "link_relation": "ENABLES",
+                  "target_id": "E3",
+                  "modality": "CERTAIN",
+                  "condition_ids": [],
+                  "clause_ids": [
+                    "C0"
+                  ]
+                },
+                {
+                  "action_id": "A1",
+                  "source_id": "E4",
+                  "link_relation": "ENABLES",
+                  "target_id": "E5",
+                  "modality": "CERTAIN",
+                  "condition_ids": [],
+                  "clause_ids": [
+                    "C1"
+                  ]
+                },
+                {
+                  "action_id": "A1",
+                  "source_id": "E5",
+                  "link_relation": "ENABLES",
+                  "target_id": "E6",
+                  "modality": "CERTAIN",
+                  "condition_ids": [],
+                  "clause_ids": [
+                    "C1"
+                  ]
+                }
+              ],
+              "counterfactual_links": []
+            },
+            "ellipsis_resolutions": []
+          },
+          "clauses": [
+            {
+              "clause_id": "C0",
+              "text": "One worker will live if Maria pulls the lever."
+            },
+            {
+              "clause_id": "C1",
+              "text": "Five workers will live if Maria does not pull the lever."
+            }
+          ],
+          "unfilled_required_slots": [],
+          "unresolved_readings": [
+            {
+              "kind": "conditional_relation",
+              "alternatives": [
+                "CAUSES",
+                "ENABLES"
+              ]
+            }
+          ],
+          "construction_problems": [],
+          "admission_authorized": true,
+          "notes": [],
+          "pre_world_assessment": {
+            "ethical_question": "pulls / not pull",
+            "scenario_options": [
+              {
+                "id": "choice2",
+                "selection_rule": "any_subset",
+                "exhaustive": false,
+                "options": [
+                  "pulls",
+                  "pull"
+                ]
+              }
+            ],
+            "exclusivity": "unspecified",
+            "exclusivity_proof": {
+              "status": "HYPOTHESIZED",
+              "evidence": [
+                {
+                  "text": "One"
+                }
+              ],
+              "assumptions": [
+                "the resource is indivisible",
+                "allocation consumes it"
+              ],
+              "explanation": "A single item is mentioned, but indivisibility is not established."
+            },
+            "participants": [
+              {
+                "role": "subject",
+                "mention": "One worker",
+                "predicate": "live"
+              },
+              {
+                "role": "subject",
+                "mention": "Maria",
+                "predicate": "pulls"
+              },
+              {
+                "role": "object",
+                "mention": "the lever",
+                "predicate": "pulls"
+              },
+              {
+                "role": "subject",
+                "mention": "Five workers",
+                "predicate": "live"
+              },
+              {
+                "role": "subject",
+                "mention": "Maria",
+                "predicate": "pull"
+              },
+              {
+                "role": "object",
+                "mention": "the lever",
+                "predicate": "pull"
+              }
+            ],
+            "eligible_for_world_state": true,
+            "status": "ASSESSED"
+          },
+          "accepted_evidence": {
+            "actor": "Maria",
+            "condition": "if Maria pulls the lever",
+            "bearer": "One worker",
+            "outcome": "One worker will live",
+            "second_condition": "if Maria does not pull the lever",
+            "second_bearer": "Five workers",
+            "second_outcome": "Five workers will live"
+          },
+          "construction_provenance": [
+            {
+              "atom_id": "party:P1",
+              "atom_kind": "party",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [
+                "C0",
+                "C1"
+              ],
+              "evidence": [
+                "Maria"
+              ],
+              "explanation": "DIRECT_COPY"
+            },
+            {
+              "atom_id": "party:P2",
+              "atom_kind": "party",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [
+                "C0"
+              ],
+              "evidence": [
+                "One worker"
+              ],
+              "explanation": "DIRECT_COPY"
+            },
+            {
+              "atom_id": "party:P3",
+              "atom_kind": "party",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [
+                "C0",
+                "C1"
+              ],
+              "evidence": [
+                "the lever"
+              ],
+              "explanation": "DIRECT_COPY"
+            },
+            {
+              "atom_id": "party:P4",
+              "atom_kind": "party",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [
+                "C1"
+              ],
+              "evidence": [
+                "Five workers"
+              ],
+              "explanation": "DIRECT_COPY"
+            },
+            {
+              "atom_id": "action:A0",
+              "atom_kind": "action",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [
+                "C0"
+              ],
+              "evidence": [
+                "pulls the lever"
+              ],
+              "explanation": "DIRECT_COPY"
+            },
+            {
+              "atom_id": "action:A1",
+              "atom_kind": "action",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [
+                "C1"
+              ],
+              "evidence": [
+                "does not pull the lever"
+              ],
+              "explanation": "DIRECT_COPY"
+            },
+            {
+              "atom_id": "effect:E1",
+              "atom_kind": "effect",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [
+                "C0"
+              ],
+              "evidence": [
+                "pulls the lever"
+              ],
+              "explanation": "DIRECT_COPY"
+            },
+            {
+              "atom_id": "effect:E2",
+              "atom_kind": "effect",
+              "origin": "STRUCTURALLY_DERIVED",
+              "clause_ids": [
+                "C0"
+              ],
+              "evidence": [
+                "pulls the lever"
+              ],
+              "explanation": "SOURCE_STIPULATED_CAUSAL"
+            },
+            {
+              "atom_id": "effect:E3",
+              "atom_kind": "effect",
+              "origin": "STRUCTURALLY_DERIVED",
+              "clause_ids": [
+                "C0"
+              ],
+              "evidence": [
+                "One worker will live"
+              ],
+              "explanation": "SOURCE_STIPULATED_CAUSAL"
+            },
+            {
+              "atom_id": "effect:E4",
+              "atom_kind": "effect",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [
+                "C1"
+              ],
+              "evidence": [
+                "does not pull the lever"
+              ],
+              "explanation": "DIRECT_COPY"
+            },
+            {
+              "atom_id": "effect:E5",
+              "atom_kind": "effect",
+              "origin": "STRUCTURALLY_DERIVED",
+              "clause_ids": [
+                "C1"
+              ],
+              "evidence": [
+                "does not pull the lever"
+              ],
+              "explanation": "SOURCE_STIPULATED_CAUSAL"
+            },
+            {
+              "atom_id": "effect:E6",
+              "atom_kind": "effect",
+              "origin": "STRUCTURALLY_DERIVED",
+              "clause_ids": [
+                "C1"
+              ],
+              "evidence": [
+                "Five workers will live"
+              ],
+              "explanation": "SOURCE_STIPULATED_CAUSAL"
+            },
+            {
+              "atom_id": "condition:CND1",
+              "atom_kind": "condition",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [
+                "C0"
+              ],
+              "evidence": [
+                "if Maria pulls the lever"
+              ],
+              "explanation": "DIRECT_COPY"
+            },
+            {
+              "atom_id": "condition:CND2",
+              "atom_kind": "condition",
+              "origin": "SOURCE_ASSERTED",
+              "clause_ids": [
+                "C1"
+              ],
+              "evidence": [
+                "if Maria does not pull the lever"
+              ],
+              "explanation": "DIRECT_COPY"
+            },
+            {
+              "atom_id": "relation:0",
+              "atom_kind": "relation",
+              "origin": "UNRESOLVED",
+              "clause_ids": [
+                "C0"
+              ],
+              "evidence": [],
+              "explanation": "A conditional association requires a working Parliament relation."
+            },
+            {
+              "atom_id": "relation:1",
+              "atom_kind": "relation",
+              "origin": "UNRESOLVED",
+              "clause_ids": [
+                "C0"
+              ],
+              "evidence": [],
+              "explanation": "A conditional association requires a working Parliament relation."
+            },
+            {
+              "atom_id": "relation:2",
+              "atom_kind": "relation",
+              "origin": "UNRESOLVED",
+              "clause_ids": [
+                "C1"
+              ],
+              "evidence": [],
+              "explanation": "A conditional association requires a working Parliament relation."
+            },
+            {
+              "atom_id": "relation:3",
+              "atom_kind": "relation",
+              "origin": "UNRESOLVED",
+              "clause_ids": [
+                "C1"
+              ],
+              "evidence": [],
+              "explanation": "A conditional association requires a working Parliament relation."
+            }
+          ],
+          "relation_alternatives": [
+            {
+              "relation_id": "relation:0",
+              "source_id": "E1",
+              "target_id": "E2",
+              "selected_for_parliament": "ENABLES",
+              "alternatives": [
+                "ENABLES",
+                "CAUSES"
+              ],
+              "status": "UNRESOLVED",
+              "evidence": [],
+              "condition_ids": [],
+              "structural_basis": "conditional_parent"
+            },
+            {
+              "relation_id": "relation:1",
+              "source_id": "E2",
+              "target_id": "E3",
+              "selected_for_parliament": "ENABLES",
+              "alternatives": [
+                "ENABLES",
+                "CAUSES"
+              ],
+              "status": "UNRESOLVED",
+              "evidence": [],
+              "condition_ids": [],
+              "structural_basis": "conditional_parent"
+            },
+            {
+              "relation_id": "relation:2",
+              "source_id": "E4",
+              "target_id": "E5",
+              "selected_for_parliament": "ENABLES",
+              "alternatives": [
+                "ENABLES",
+                "CAUSES"
+              ],
+              "status": "UNRESOLVED",
+              "evidence": [],
+              "condition_ids": [],
+              "structural_basis": "conditional_parent"
+            },
+            {
+              "relation_id": "relation:3",
+              "source_id": "E5",
+              "target_id": "E6",
+              "selected_for_parliament": "ENABLES",
+              "alternatives": [
+                "ENABLES",
+                "CAUSES"
+              ],
+              "status": "UNRESOLVED",
+              "evidence": [],
+              "condition_ids": [],
+              "structural_basis": "conditional_parent"
+            }
+          ],
+          "exclusivity_proof": {
+            "status": "HYPOTHESIZED",
+            "evidence": [
+              {
+                "text": "One"
+              }
+            ],
+            "assumptions": [
+              "the resource is indivisible",
+              "allocation consumes it"
+            ],
+            "explanation": "A single item is mentioned, but indivisibility is not established."
+          },
+          "world_withheld": []
+        }
+      }
+    ],
+    "proposals": [
+      {
+        "proposal_contract_version": "blueprint-proposal-contract/0.3",
+        "proposal_id": "conditional_outcome_cloze",
+        "blueprint_id": "conditional_outcome",
+        "status": "FILLED",
+        "assignment_kind": "intervention_text",
+        "assignment": [
+          "pulls the lever",
+          "does not pull the lever"
+        ],
+        "slot_bindings": {
+          "copied_spans": {
+            "actor": "Maria",
+            "condition": "if Maria pulls the lever",
+            "bearer": "One worker",
+            "outcome": "One worker will live",
+            "second_condition": "if Maria does not pull the lever",
+            "second_bearer": "Five workers",
+            "second_outcome": "Five workers will live"
+          },
+          "z10_recovered_slots": {
+            "actor": {
+              "producer": "parsing_game_Z10",
+              "method": "conditional_candidate_source_alignment",
+              "span": "Maria"
+            },
+            "condition": {
+              "producer": "parsing_game_Z10",
+              "method": "conditional_candidate_source_alignment",
+              "span": "if Maria pulls the lever"
+            },
+            "bearer": {
+              "producer": "parsing_game_Z10",
+              "method": "conditional_candidate_source_alignment",
+              "span": "One worker"
+            },
+            "outcome": {
+              "producer": "parsing_game_Z10",
+              "method": "conditional_candidate_source_alignment",
+              "span": "One worker will live"
+            },
+            "second_condition": {
+              "producer": "parsing_game_Z10",
+              "method": "conditional_candidate_source_alignment",
+              "span": "if Maria does not pull the lever"
+            },
+            "second_bearer": {
+              "producer": "parsing_game_Z10",
+              "method": "conditional_candidate_source_alignment",
+              "span": "Five workers"
+            },
+            "second_outcome": {
+              "producer": "parsing_game_Z10",
+              "method": "conditional_candidate_source_alignment",
+              "span": "Five workers will live"
+            }
+          }
+        },
+        "selection": null,
+        "selection_validation": {
+          "contract_valid": null,
+          "status": "not_assessed",
+          "reason": "The cloze path has no Z10 candidate selection."
+        },
+        "candidate": {
+          "actions": {
+            "A0": {
+              "clause_ids": [
+                "C0"
+              ],
+              "reason": "Filled from copied cloze slots."
+            },
+            "A1": {
+              "clause_ids": [
+                "C1"
+              ],
+              "reason": "Filled from copied cloze slots."
+            }
+          },
+          "world_model": {
+            "schema_version": "1.3",
+            "parties": [
+              {
+                "party_id": "P1",
+                "label": "Maria",
+                "kind": "PERSON",
+                "quantities": [],
+                "clause_ids": [
+                  "C0",
+                  "C1"
+                ]
+              },
+              {
+                "party_id": "P2",
+                "label": "One worker",
+                "kind": "PERSON",
+                "quantities": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "party_id": "P3",
+                "label": "the lever",
+                "kind": "PROCESS",
+                "quantities": [],
+                "clause_ids": [
+                  "C0",
+                  "C1"
+                ]
+              },
+              {
+                "party_id": "P4",
+                "label": "Five workers",
+                "kind": "HUMAN_GROUP",
+                "quantities": [
+                  "Five"
+                ],
+                "clause_ids": [
+                  "C1"
+                ]
+              }
+            ],
+            "actions": [
+              {
+                "action_id": "A0",
+                "intervention": "pulls the lever",
+                "actor_party_id": "P1",
+                "recipient_party_ids": [
+                  "P3"
+                ],
+                "effect_ids": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "action_id": "A1",
+                "intervention": "does not pull the lever",
+                "actor_party_id": "P1",
+                "recipient_party_ids": [
+                  "P3"
+                ],
+                "effect_ids": [
+                  "E4",
+                  "E5",
+                  "E6"
+                ],
+                "clause_ids": [
+                  "C1"
+                ]
+              }
+            ],
+            "effects": [
+              {
+                "effect_id": "E1",
+                "action_id": "A0",
+                "party_id": "P3",
+                "outcome": "pulls the lever",
+                "predicate": "pull",
+                "polarity": "NEUTRAL",
+                "directness": "DIRECT",
+                "modality": "CERTAIN",
+                "effect_kind": "INTERVENTION",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "pulls the lever",
+                "source_effect_ids": [],
+                "derivation_operation": "DIRECT_COPY",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "effect_id": "E2",
+                "action_id": "A0",
+                "party_id": "P3",
+                "outcome": "pulls the lever",
+                "predicate": "pull",
+                "polarity": "NEUTRAL",
+                "directness": "DOWNSTREAM",
+                "modality": "CERTAIN",
+                "effect_kind": "PHYSICAL_STATE",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "pulls the lever",
+                "source_effect_ids": [
+                  "E1"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "effect_id": "E3",
+                "action_id": "A0",
+                "party_id": "P2",
+                "outcome": "One worker will live",
+                "predicate": "live",
+                "polarity": "BENEFICIAL",
+                "directness": "DOWNSTREAM",
+                "modality": "CERTAIN",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [
+                  "One"
+                ],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "One worker will live",
+                "source_effect_ids": [
+                  "E2"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "effect_id": "E4",
+                "action_id": "A1",
+                "party_id": "P3",
+                "outcome": "does not pull the lever",
+                "predicate": "pull",
+                "polarity": "NEUTRAL",
+                "directness": "DIRECT",
+                "modality": "CERTAIN",
+                "effect_kind": "INTERVENTION",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "does not pull the lever",
+                "source_effect_ids": [],
+                "derivation_operation": "DIRECT_COPY",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C1"
+                ]
+              },
+              {
+                "effect_id": "E5",
+                "action_id": "A1",
+                "party_id": "P3",
+                "outcome": "does not pull the lever",
+                "predicate": "pull",
+                "polarity": "NEUTRAL",
+                "directness": "DOWNSTREAM",
+                "modality": "CERTAIN",
+                "effect_kind": "PHYSICAL_STATE",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "does not pull the lever",
+                "source_effect_ids": [
+                  "E4"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C1"
+                ]
+              },
+              {
+                "effect_id": "E6",
+                "action_id": "A1",
+                "party_id": "P4",
+                "outcome": "Five workers will live",
+                "predicate": "live",
+                "polarity": "BENEFICIAL",
+                "directness": "DOWNSTREAM",
+                "modality": "CERTAIN",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [
+                  "Five"
+                ],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "Five workers will live",
+                "source_effect_ids": [
+                  "E5"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C1"
+                ]
+              }
+            ],
+            "conditions": [
+              {
+                "condition_id": "CND1",
+                "description": "if Maria pulls the lever",
+                "value_status": "UNKNOWN",
+                "decision_relevance": "MATERIAL",
+                "clause_ids": [
+                  "C0"
+                ],
+                "polarity": "POSITIVE",
+                "operator": "IF"
+              },
+              {
+                "condition_id": "CND2",
+                "description": "if Maria does not pull the lever",
+                "value_status": "UNKNOWN",
+                "decision_relevance": "MATERIAL",
+                "clause_ids": [
+                  "C1"
+                ],
+                "polarity": "NEGATED",
+                "operator": "IF"
+              }
+            ],
+            "temporal_relations": [],
+            "causal_links": [
+              {
+                "action_id": "A0",
+                "source_id": "E1",
+                "link_relation": "ENABLES",
+                "target_id": "E2",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "action_id": "A0",
+                "source_id": "E2",
+                "link_relation": "ENABLES",
+                "target_id": "E3",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "action_id": "A1",
+                "source_id": "E4",
+                "link_relation": "ENABLES",
+                "target_id": "E5",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C1"
+                ]
+              },
+              {
+                "action_id": "A1",
+                "source_id": "E5",
+                "link_relation": "ENABLES",
+                "target_id": "E6",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C1"
+                ]
+              }
+            ],
+            "counterfactual_links": []
+          },
+          "ellipsis_resolutions": []
+        },
+        "clauses": [
+          {
+            "clause_id": "C0",
+            "text": "One worker will live if Maria pulls the lever."
+          },
+          {
+            "clause_id": "C1",
+            "text": "Five workers will live if Maria does not pull the lever."
+          }
+        ],
+        "unfilled_required_slots": [],
+        "unresolved_readings": [
+          {
+            "kind": "conditional_relation",
+            "alternatives": [
+              "CAUSES",
+              "ENABLES"
+            ]
+          }
+        ],
+        "construction_problems": [],
+        "admission_authorized": true,
+        "notes": [],
+        "pre_world_assessment": {
+          "ethical_question": "pulls / not pull",
+          "scenario_options": [
+            {
+              "id": "choice2",
+              "selection_rule": "any_subset",
+              "exhaustive": false,
+              "options": [
+                "pulls",
+                "pull"
+              ]
+            }
+          ],
+          "exclusivity": "unspecified",
+          "exclusivity_proof": {
+            "status": "HYPOTHESIZED",
+            "evidence": [
+              {
+                "text": "One"
+              }
+            ],
+            "assumptions": [
+              "the resource is indivisible",
+              "allocation consumes it"
+            ],
+            "explanation": "A single item is mentioned, but indivisibility is not established."
+          },
+          "participants": [
+            {
+              "role": "subject",
+              "mention": "One worker",
+              "predicate": "live"
+            },
+            {
+              "role": "subject",
+              "mention": "Maria",
+              "predicate": "pulls"
+            },
+            {
+              "role": "object",
+              "mention": "the lever",
+              "predicate": "pulls"
+            },
+            {
+              "role": "subject",
+              "mention": "Five workers",
+              "predicate": "live"
+            },
+            {
+              "role": "subject",
+              "mention": "Maria",
+              "predicate": "pull"
+            },
+            {
+              "role": "object",
+              "mention": "the lever",
+              "predicate": "pull"
+            }
+          ],
+          "eligible_for_world_state": true,
+          "status": "ASSESSED"
+        },
+        "accepted_evidence": {
+          "actor": "Maria",
+          "condition": "if Maria pulls the lever",
+          "bearer": "One worker",
+          "outcome": "One worker will live",
+          "second_condition": "if Maria does not pull the lever",
+          "second_bearer": "Five workers",
+          "second_outcome": "Five workers will live"
+        },
+        "construction_provenance": [
+          {
+            "atom_id": "party:P1",
+            "atom_kind": "party",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C0",
+              "C1"
+            ],
+            "evidence": [
+              "Maria"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "party:P2",
+            "atom_kind": "party",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C0"
+            ],
+            "evidence": [
+              "One worker"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "party:P3",
+            "atom_kind": "party",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C0",
+              "C1"
+            ],
+            "evidence": [
+              "the lever"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "party:P4",
+            "atom_kind": "party",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C1"
+            ],
+            "evidence": [
+              "Five workers"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "action:A0",
+            "atom_kind": "action",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C0"
+            ],
+            "evidence": [
+              "pulls the lever"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "action:A1",
+            "atom_kind": "action",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C1"
+            ],
+            "evidence": [
+              "does not pull the lever"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "effect:E1",
+            "atom_kind": "effect",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C0"
+            ],
+            "evidence": [
+              "pulls the lever"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "effect:E2",
+            "atom_kind": "effect",
+            "origin": "STRUCTURALLY_DERIVED",
+            "clause_ids": [
+              "C0"
+            ],
+            "evidence": [
+              "pulls the lever"
+            ],
+            "explanation": "SOURCE_STIPULATED_CAUSAL"
+          },
+          {
+            "atom_id": "effect:E3",
+            "atom_kind": "effect",
+            "origin": "STRUCTURALLY_DERIVED",
+            "clause_ids": [
+              "C0"
+            ],
+            "evidence": [
+              "One worker will live"
+            ],
+            "explanation": "SOURCE_STIPULATED_CAUSAL"
+          },
+          {
+            "atom_id": "effect:E4",
+            "atom_kind": "effect",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C1"
+            ],
+            "evidence": [
+              "does not pull the lever"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "effect:E5",
+            "atom_kind": "effect",
+            "origin": "STRUCTURALLY_DERIVED",
+            "clause_ids": [
+              "C1"
+            ],
+            "evidence": [
+              "does not pull the lever"
+            ],
+            "explanation": "SOURCE_STIPULATED_CAUSAL"
+          },
+          {
+            "atom_id": "effect:E6",
+            "atom_kind": "effect",
+            "origin": "STRUCTURALLY_DERIVED",
+            "clause_ids": [
+              "C1"
+            ],
+            "evidence": [
+              "Five workers will live"
+            ],
+            "explanation": "SOURCE_STIPULATED_CAUSAL"
+          },
+          {
+            "atom_id": "condition:CND1",
+            "atom_kind": "condition",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C0"
+            ],
+            "evidence": [
+              "if Maria pulls the lever"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "condition:CND2",
+            "atom_kind": "condition",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C1"
+            ],
+            "evidence": [
+              "if Maria does not pull the lever"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "relation:0",
+            "atom_kind": "relation",
+            "origin": "UNRESOLVED",
+            "clause_ids": [
+              "C0"
+            ],
+            "evidence": [],
+            "explanation": "A conditional association requires a working Parliament relation."
+          },
+          {
+            "atom_id": "relation:1",
+            "atom_kind": "relation",
+            "origin": "UNRESOLVED",
+            "clause_ids": [
+              "C0"
+            ],
+            "evidence": [],
+            "explanation": "A conditional association requires a working Parliament relation."
+          },
+          {
+            "atom_id": "relation:2",
+            "atom_kind": "relation",
+            "origin": "UNRESOLVED",
+            "clause_ids": [
+              "C1"
+            ],
+            "evidence": [],
+            "explanation": "A conditional association requires a working Parliament relation."
+          },
+          {
+            "atom_id": "relation:3",
+            "atom_kind": "relation",
+            "origin": "UNRESOLVED",
+            "clause_ids": [
+              "C1"
+            ],
+            "evidence": [],
+            "explanation": "A conditional association requires a working Parliament relation."
+          }
+        ],
+        "relation_alternatives": [
+          {
+            "relation_id": "relation:0",
+            "source_id": "E1",
+            "target_id": "E2",
+            "selected_for_parliament": "ENABLES",
+            "alternatives": [
+              "ENABLES",
+              "CAUSES"
+            ],
+            "status": "UNRESOLVED",
+            "evidence": [],
+            "condition_ids": [],
+            "structural_basis": "conditional_parent"
+          },
+          {
+            "relation_id": "relation:1",
+            "source_id": "E2",
+            "target_id": "E3",
+            "selected_for_parliament": "ENABLES",
+            "alternatives": [
+              "ENABLES",
+              "CAUSES"
+            ],
+            "status": "UNRESOLVED",
+            "evidence": [],
+            "condition_ids": [],
+            "structural_basis": "conditional_parent"
+          },
+          {
+            "relation_id": "relation:2",
+            "source_id": "E4",
+            "target_id": "E5",
+            "selected_for_parliament": "ENABLES",
+            "alternatives": [
+              "ENABLES",
+              "CAUSES"
+            ],
+            "status": "UNRESOLVED",
+            "evidence": [],
+            "condition_ids": [],
+            "structural_basis": "conditional_parent"
+          },
+          {
+            "relation_id": "relation:3",
+            "source_id": "E5",
+            "target_id": "E6",
+            "selected_for_parliament": "ENABLES",
+            "alternatives": [
+              "ENABLES",
+              "CAUSES"
+            ],
+            "status": "UNRESOLVED",
+            "evidence": [],
+            "condition_ids": [],
+            "structural_basis": "conditional_parent"
+          }
+        ],
+        "exclusivity_proof": {
+          "status": "HYPOTHESIZED",
+          "evidence": [
+            {
+              "text": "One"
+            }
+          ],
+          "assumptions": [
+            "the resource is indivisible",
+            "allocation consumes it"
+          ],
+          "explanation": "A single item is mentioned, but indivisibility is not established."
+        },
+        "world_withheld": []
+      }
+    ],
+    "graph": {
+      "proposal_contract_version": "blueprint-proposal-contract/0.3",
+      "proposal_id": "conditional_outcome_cloze",
+      "blueprint_id": "conditional_outcome",
+      "status": "FILLED",
+      "assignment_kind": "intervention_text",
+      "assignment": [
+        "pulls the lever",
+        "does not pull the lever"
+      ],
+      "slot_bindings": {
+        "copied_spans": {
+          "actor": "Maria",
+          "condition": "if Maria pulls the lever",
+          "bearer": "One worker",
+          "outcome": "One worker will live",
+          "second_condition": "if Maria does not pull the lever",
+          "second_bearer": "Five workers",
+          "second_outcome": "Five workers will live"
+        },
+        "z10_recovered_slots": {
+          "actor": {
+            "producer": "parsing_game_Z10",
+            "method": "conditional_candidate_source_alignment",
+            "span": "Maria"
+          },
+          "condition": {
+            "producer": "parsing_game_Z10",
+            "method": "conditional_candidate_source_alignment",
+            "span": "if Maria pulls the lever"
+          },
+          "bearer": {
+            "producer": "parsing_game_Z10",
+            "method": "conditional_candidate_source_alignment",
+            "span": "One worker"
+          },
+          "outcome": {
+            "producer": "parsing_game_Z10",
+            "method": "conditional_candidate_source_alignment",
+            "span": "One worker will live"
+          },
+          "second_condition": {
+            "producer": "parsing_game_Z10",
+            "method": "conditional_candidate_source_alignment",
+            "span": "if Maria does not pull the lever"
+          },
+          "second_bearer": {
+            "producer": "parsing_game_Z10",
+            "method": "conditional_candidate_source_alignment",
+            "span": "Five workers"
+          },
+          "second_outcome": {
+            "producer": "parsing_game_Z10",
+            "method": "conditional_candidate_source_alignment",
+            "span": "Five workers will live"
+          }
+        }
+      },
+      "selection": null,
+      "selection_validation": {
+        "contract_valid": null,
+        "status": "not_assessed",
+        "reason": "The cloze path has no Z10 candidate selection."
+      },
+      "candidate": {
+        "actions": {
+          "A0": {
+            "clause_ids": [
+              "C0"
+            ],
+            "reason": "Filled from copied cloze slots."
+          },
+          "A1": {
+            "clause_ids": [
+              "C1"
+            ],
+            "reason": "Filled from copied cloze slots."
+          }
+        },
+        "world_model": {
+          "schema_version": "1.3",
+          "parties": [
+            {
+              "party_id": "P1",
+              "label": "Maria",
+              "kind": "PERSON",
+              "quantities": [],
+              "clause_ids": [
+                "C0",
+                "C1"
+              ]
+            },
+            {
+              "party_id": "P2",
+              "label": "One worker",
+              "kind": "PERSON",
+              "quantities": [],
+              "clause_ids": [
+                "C0"
+              ]
+            },
+            {
+              "party_id": "P3",
+              "label": "the lever",
+              "kind": "PROCESS",
+              "quantities": [],
+              "clause_ids": [
+                "C0",
+                "C1"
+              ]
+            },
+            {
+              "party_id": "P4",
+              "label": "Five workers",
+              "kind": "HUMAN_GROUP",
+              "quantities": [
+                "Five"
+              ],
+              "clause_ids": [
+                "C1"
+              ]
+            }
+          ],
+          "actions": [
+            {
+              "action_id": "A0",
+              "intervention": "pulls the lever",
+              "actor_party_id": "P1",
+              "recipient_party_ids": [
+                "P3"
+              ],
+              "effect_ids": [
+                "E1",
+                "E2",
+                "E3"
+              ],
+              "clause_ids": [
+                "C0"
+              ]
+            },
+            {
+              "action_id": "A1",
+              "intervention": "does not pull the lever",
+              "actor_party_id": "P1",
+              "recipient_party_ids": [
+                "P3"
+              ],
+              "effect_ids": [
+                "E4",
+                "E5",
+                "E6"
+              ],
+              "clause_ids": [
+                "C1"
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "effect_id": "E1",
+              "action_id": "A0",
+              "party_id": "P3",
+              "outcome": "pulls the lever",
+              "predicate": "pull",
+              "polarity": "NEUTRAL",
+              "directness": "DIRECT",
+              "modality": "CERTAIN",
+              "effect_kind": "INTERVENTION",
+              "condition_ids": [],
+              "quantities": [],
+              "likelihood_qualifiers": [],
+              "overall_likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "source_proposition": "pulls the lever",
+              "source_effect_ids": [],
+              "derivation_operation": "DIRECT_COPY",
+              "derivation_explanation": "The blank was filled with this copy of the scenario.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED",
+              "clause_ids": [
+                "C0"
+              ]
+            },
+            {
+              "effect_id": "E2",
+              "action_id": "A0",
+              "party_id": "P3",
+              "outcome": "pulls the lever",
+              "predicate": "pull",
+              "polarity": "NEUTRAL",
+              "directness": "DOWNSTREAM",
+              "modality": "CERTAIN",
+              "effect_kind": "PHYSICAL_STATE",
+              "condition_ids": [],
+              "quantities": [],
+              "likelihood_qualifiers": [],
+              "overall_likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "source_proposition": "pulls the lever",
+              "source_effect_ids": [
+                "E1"
+              ],
+              "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+              "derivation_explanation": "The blank was filled with this copy of the scenario.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED",
+              "clause_ids": [
+                "C0"
+              ]
+            },
+            {
+              "effect_id": "E3",
+              "action_id": "A0",
+              "party_id": "P2",
+              "outcome": "One worker will live",
+              "predicate": "live",
+              "polarity": "BENEFICIAL",
+              "directness": "DOWNSTREAM",
+              "modality": "CERTAIN",
+              "effect_kind": "HEALTH_OUTCOME",
+              "condition_ids": [],
+              "quantities": [
+                "One"
+              ],
+              "likelihood_qualifiers": [],
+              "overall_likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "source_proposition": "One worker will live",
+              "source_effect_ids": [
+                "E2"
+              ],
+              "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+              "derivation_explanation": "The blank was filled with this copy of the scenario.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED",
+              "clause_ids": [
+                "C0"
+              ]
+            },
+            {
+              "effect_id": "E4",
+              "action_id": "A1",
+              "party_id": "P3",
+              "outcome": "does not pull the lever",
+              "predicate": "pull",
+              "polarity": "NEUTRAL",
+              "directness": "DIRECT",
+              "modality": "CERTAIN",
+              "effect_kind": "INTERVENTION",
+              "condition_ids": [],
+              "quantities": [],
+              "likelihood_qualifiers": [],
+              "overall_likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "source_proposition": "does not pull the lever",
+              "source_effect_ids": [],
+              "derivation_operation": "DIRECT_COPY",
+              "derivation_explanation": "The blank was filled with this copy of the scenario.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED",
+              "clause_ids": [
+                "C1"
+              ]
+            },
+            {
+              "effect_id": "E5",
+              "action_id": "A1",
+              "party_id": "P3",
+              "outcome": "does not pull the lever",
+              "predicate": "pull",
+              "polarity": "NEUTRAL",
+              "directness": "DOWNSTREAM",
+              "modality": "CERTAIN",
+              "effect_kind": "PHYSICAL_STATE",
+              "condition_ids": [],
+              "quantities": [],
+              "likelihood_qualifiers": [],
+              "overall_likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "source_proposition": "does not pull the lever",
+              "source_effect_ids": [
+                "E4"
+              ],
+              "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+              "derivation_explanation": "The blank was filled with this copy of the scenario.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED",
+              "clause_ids": [
+                "C1"
+              ]
+            },
+            {
+              "effect_id": "E6",
+              "action_id": "A1",
+              "party_id": "P4",
+              "outcome": "Five workers will live",
+              "predicate": "live",
+              "polarity": "BENEFICIAL",
+              "directness": "DOWNSTREAM",
+              "modality": "CERTAIN",
+              "effect_kind": "HEALTH_OUTCOME",
+              "condition_ids": [],
+              "quantities": [
+                "Five"
+              ],
+              "likelihood_qualifiers": [],
+              "overall_likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "source_proposition": "Five workers will live",
+              "source_effect_ids": [
+                "E5"
+              ],
+              "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+              "derivation_explanation": "The blank was filled with this copy of the scenario.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED",
+              "clause_ids": [
+                "C1"
+              ]
+            }
+          ],
+          "conditions": [
+            {
+              "condition_id": "CND1",
+              "description": "if Maria pulls the lever",
+              "value_status": "UNKNOWN",
+              "decision_relevance": "MATERIAL",
+              "clause_ids": [
+                "C0"
+              ],
+              "polarity": "POSITIVE",
+              "operator": "IF"
+            },
+            {
+              "condition_id": "CND2",
+              "description": "if Maria does not pull the lever",
+              "value_status": "UNKNOWN",
+              "decision_relevance": "MATERIAL",
+              "clause_ids": [
+                "C1"
+              ],
+              "polarity": "NEGATED",
+              "operator": "IF"
+            }
+          ],
+          "temporal_relations": [],
+          "causal_links": [
+            {
+              "action_id": "A0",
+              "source_id": "E1",
+              "link_relation": "ENABLES",
+              "target_id": "E2",
+              "modality": "CERTAIN",
+              "condition_ids": [],
+              "clause_ids": [
+                "C0"
+              ]
+            },
+            {
+              "action_id": "A0",
+              "source_id": "E2",
+              "link_relation": "ENABLES",
+              "target_id": "E3",
+              "modality": "CERTAIN",
+              "condition_ids": [],
+              "clause_ids": [
+                "C0"
+              ]
+            },
+            {
+              "action_id": "A1",
+              "source_id": "E4",
+              "link_relation": "ENABLES",
+              "target_id": "E5",
+              "modality": "CERTAIN",
+              "condition_ids": [],
+              "clause_ids": [
+                "C1"
+              ]
+            },
+            {
+              "action_id": "A1",
+              "source_id": "E5",
+              "link_relation": "ENABLES",
+              "target_id": "E6",
+              "modality": "CERTAIN",
+              "condition_ids": [],
+              "clause_ids": [
+                "C1"
+              ]
+            }
+          ],
+          "counterfactual_links": []
+        },
+        "ellipsis_resolutions": []
+      },
+      "clauses": [
+        {
+          "clause_id": "C0",
+          "text": "One worker will live if Maria pulls the lever."
+        },
+        {
+          "clause_id": "C1",
+          "text": "Five workers will live if Maria does not pull the lever."
+        }
+      ],
+      "unfilled_required_slots": [],
+      "unresolved_readings": [
+        {
+          "kind": "conditional_relation",
+          "alternatives": [
+            "CAUSES",
+            "ENABLES"
+          ]
+        }
+      ],
+      "construction_problems": [],
+      "admission_authorized": true,
+      "notes": [],
+      "pre_world_assessment": {
+        "ethical_question": "pulls / not pull",
+        "scenario_options": [
+          {
+            "id": "choice2",
+            "selection_rule": "any_subset",
+            "exhaustive": false,
+            "options": [
+              "pulls",
+              "pull"
+            ]
+          }
+        ],
+        "exclusivity": "unspecified",
+        "exclusivity_proof": {
+          "status": "HYPOTHESIZED",
+          "evidence": [
+            {
+              "text": "One"
+            }
+          ],
+          "assumptions": [
+            "the resource is indivisible",
+            "allocation consumes it"
+          ],
+          "explanation": "A single item is mentioned, but indivisibility is not established."
+        },
+        "participants": [
+          {
+            "role": "subject",
+            "mention": "One worker",
+            "predicate": "live"
+          },
+          {
+            "role": "subject",
+            "mention": "Maria",
+            "predicate": "pulls"
+          },
+          {
+            "role": "object",
+            "mention": "the lever",
+            "predicate": "pulls"
+          },
+          {
+            "role": "subject",
+            "mention": "Five workers",
+            "predicate": "live"
+          },
+          {
+            "role": "subject",
+            "mention": "Maria",
+            "predicate": "pull"
+          },
+          {
+            "role": "object",
+            "mention": "the lever",
+            "predicate": "pull"
+          }
+        ],
+        "eligible_for_world_state": true,
+        "status": "ASSESSED"
+      },
+      "accepted_evidence": {
+        "actor": "Maria",
+        "condition": "if Maria pulls the lever",
+        "bearer": "One worker",
+        "outcome": "One worker will live",
+        "second_condition": "if Maria does not pull the lever",
+        "second_bearer": "Five workers",
+        "second_outcome": "Five workers will live"
+      },
+      "construction_provenance": [
+        {
+          "atom_id": "party:P1",
+          "atom_kind": "party",
+          "origin": "SOURCE_ASSERTED",
+          "clause_ids": [
+            "C0",
+            "C1"
+          ],
+          "evidence": [
+            "Maria"
+          ],
+          "explanation": "DIRECT_COPY"
+        },
+        {
+          "atom_id": "party:P2",
+          "atom_kind": "party",
+          "origin": "SOURCE_ASSERTED",
+          "clause_ids": [
+            "C0"
+          ],
+          "evidence": [
+            "One worker"
+          ],
+          "explanation": "DIRECT_COPY"
+        },
+        {
+          "atom_id": "party:P3",
+          "atom_kind": "party",
+          "origin": "SOURCE_ASSERTED",
+          "clause_ids": [
+            "C0",
+            "C1"
+          ],
+          "evidence": [
+            "the lever"
+          ],
+          "explanation": "DIRECT_COPY"
+        },
+        {
+          "atom_id": "party:P4",
+          "atom_kind": "party",
+          "origin": "SOURCE_ASSERTED",
+          "clause_ids": [
+            "C1"
+          ],
+          "evidence": [
+            "Five workers"
+          ],
+          "explanation": "DIRECT_COPY"
+        },
+        {
+          "atom_id": "action:A0",
+          "atom_kind": "action",
+          "origin": "SOURCE_ASSERTED",
+          "clause_ids": [
+            "C0"
+          ],
+          "evidence": [
+            "pulls the lever"
+          ],
+          "explanation": "DIRECT_COPY"
+        },
+        {
+          "atom_id": "action:A1",
+          "atom_kind": "action",
+          "origin": "SOURCE_ASSERTED",
+          "clause_ids": [
+            "C1"
+          ],
+          "evidence": [
+            "does not pull the lever"
+          ],
+          "explanation": "DIRECT_COPY"
+        },
+        {
+          "atom_id": "effect:E1",
+          "atom_kind": "effect",
+          "origin": "SOURCE_ASSERTED",
+          "clause_ids": [
+            "C0"
+          ],
+          "evidence": [
+            "pulls the lever"
+          ],
+          "explanation": "DIRECT_COPY"
+        },
+        {
+          "atom_id": "effect:E2",
+          "atom_kind": "effect",
+          "origin": "STRUCTURALLY_DERIVED",
+          "clause_ids": [
+            "C0"
+          ],
+          "evidence": [
+            "pulls the lever"
+          ],
+          "explanation": "SOURCE_STIPULATED_CAUSAL"
+        },
+        {
+          "atom_id": "effect:E3",
+          "atom_kind": "effect",
+          "origin": "STRUCTURALLY_DERIVED",
+          "clause_ids": [
+            "C0"
+          ],
+          "evidence": [
+            "One worker will live"
+          ],
+          "explanation": "SOURCE_STIPULATED_CAUSAL"
+        },
+        {
+          "atom_id": "effect:E4",
+          "atom_kind": "effect",
+          "origin": "SOURCE_ASSERTED",
+          "clause_ids": [
+            "C1"
+          ],
+          "evidence": [
+            "does not pull the lever"
+          ],
+          "explanation": "DIRECT_COPY"
+        },
+        {
+          "atom_id": "effect:E5",
+          "atom_kind": "effect",
+          "origin": "STRUCTURALLY_DERIVED",
+          "clause_ids": [
+            "C1"
+          ],
+          "evidence": [
+            "does not pull the lever"
+          ],
+          "explanation": "SOURCE_STIPULATED_CAUSAL"
+        },
+        {
+          "atom_id": "effect:E6",
+          "atom_kind": "effect",
+          "origin": "STRUCTURALLY_DERIVED",
+          "clause_ids": [
+            "C1"
+          ],
+          "evidence": [
+            "Five workers will live"
+          ],
+          "explanation": "SOURCE_STIPULATED_CAUSAL"
+        },
+        {
+          "atom_id": "condition:CND1",
+          "atom_kind": "condition",
+          "origin": "SOURCE_ASSERTED",
+          "clause_ids": [
+            "C0"
+          ],
+          "evidence": [
+            "if Maria pulls the lever"
+          ],
+          "explanation": "DIRECT_COPY"
+        },
+        {
+          "atom_id": "condition:CND2",
+          "atom_kind": "condition",
+          "origin": "SOURCE_ASSERTED",
+          "clause_ids": [
+            "C1"
+          ],
+          "evidence": [
+            "if Maria does not pull the lever"
+          ],
+          "explanation": "DIRECT_COPY"
+        },
+        {
+          "atom_id": "relation:0",
+          "atom_kind": "relation",
+          "origin": "UNRESOLVED",
+          "clause_ids": [
+            "C0"
+          ],
+          "evidence": [],
+          "explanation": "A conditional association requires a working Parliament relation."
+        },
+        {
+          "atom_id": "relation:1",
+          "atom_kind": "relation",
+          "origin": "UNRESOLVED",
+          "clause_ids": [
+            "C0"
+          ],
+          "evidence": [],
+          "explanation": "A conditional association requires a working Parliament relation."
+        },
+        {
+          "atom_id": "relation:2",
+          "atom_kind": "relation",
+          "origin": "UNRESOLVED",
+          "clause_ids": [
+            "C1"
+          ],
+          "evidence": [],
+          "explanation": "A conditional association requires a working Parliament relation."
+        },
+        {
+          "atom_id": "relation:3",
+          "atom_kind": "relation",
+          "origin": "UNRESOLVED",
+          "clause_ids": [
+            "C1"
+          ],
+          "evidence": [],
+          "explanation": "A conditional association requires a working Parliament relation."
+        }
+      ],
+      "relation_alternatives": [
+        {
+          "relation_id": "relation:0",
+          "source_id": "E1",
+          "target_id": "E2",
+          "selected_for_parliament": "ENABLES",
+          "alternatives": [
+            "ENABLES",
+            "CAUSES"
+          ],
+          "status": "UNRESOLVED",
+          "evidence": [],
+          "condition_ids": [],
+          "structural_basis": "conditional_parent"
+        },
+        {
+          "relation_id": "relation:1",
+          "source_id": "E2",
+          "target_id": "E3",
+          "selected_for_parliament": "ENABLES",
+          "alternatives": [
+            "ENABLES",
+            "CAUSES"
+          ],
+          "status": "UNRESOLVED",
+          "evidence": [],
+          "condition_ids": [],
+          "structural_basis": "conditional_parent"
+        },
+        {
+          "relation_id": "relation:2",
+          "source_id": "E4",
+          "target_id": "E5",
+          "selected_for_parliament": "ENABLES",
+          "alternatives": [
+            "ENABLES",
+            "CAUSES"
+          ],
+          "status": "UNRESOLVED",
+          "evidence": [],
+          "condition_ids": [],
+          "structural_basis": "conditional_parent"
+        },
+        {
+          "relation_id": "relation:3",
+          "source_id": "E5",
+          "target_id": "E6",
+          "selected_for_parliament": "ENABLES",
+          "alternatives": [
+            "ENABLES",
+            "CAUSES"
+          ],
+          "status": "UNRESOLVED",
+          "evidence": [],
+          "condition_ids": [],
+          "structural_basis": "conditional_parent"
+        }
+      ],
+      "exclusivity_proof": {
+        "status": "HYPOTHESIZED",
+        "evidence": [
+          {
+            "text": "One"
+          }
+        ],
+        "assumptions": [
+          "the resource is indivisible",
+          "allocation consumes it"
+        ],
+        "explanation": "A single item is mentioned, but indivisibility is not established."
+      },
+      "world_withheld": []
+    },
+    "z10_blueprint_comparison": {
+      "comparison_version": "z10-blueprint-comparison/0.1",
+      "policy": "independent_nonbinding_comparison",
+      "selection_changed": false,
+      "z10_package_id": "blueprint_run_2efd50058676",
+      "z10_open_question_ids": [
+        "q0",
+        "q1",
+        "q2",
+        "q3",
+        "q4"
+      ],
+      "candidate_comparisons": [
+        {
+          "blueprint_id": "rescue_contrast",
+          "rank": 0,
+          "status": "NO_BLUEPRINT_WORLD",
+          "agreement": [],
+          "z10_only": [
+            "live",
+            "pull"
+          ],
+          "blueprint_only": [],
+          "conflicts": []
+        },
+        {
+          "blueprint_id": "omission_harm",
+          "rank": 1,
+          "status": "NO_BLUEPRINT_WORLD",
+          "agreement": [],
+          "z10_only": [
+            "live",
+            "pull"
+          ],
+          "blueprint_only": [],
+          "conflicts": []
+        },
+        {
+          "blueprint_id": "conditional_outcome",
+          "rank": 2,
+          "status": "AGREEMENT",
+          "agreement": [
+            "live",
+            "pull"
+          ],
+          "z10_only": [],
+          "blueprint_only": [],
+          "conflicts": [],
+          "z10_relations": [
+            "CONDITIONAL_ON",
+            "MODALITY",
+            "QUANTITY"
+          ],
+          "blueprint_relations": [
+            "CONDITIONAL_ON",
+            "ENABLES"
+          ],
+          "z10_participant_roles": [
+            "object",
+            "subject"
+          ],
+          "blueprint_party_labels": [
+            "Five workers",
+            "Maria",
+            "One worker",
+            "the lever"
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,251 @@
+{
+  "schema_version": "1.4",
+  "admission": {
+    "status": "COMMITTED",
+    "admitted_effect_ids": [
+      "E1",
+      "E2",
+      "E3",
+      "E4",
+      "E5",
+      "E6"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "P1",
+      "kind": "party",
+      "label": "the child"
+    },
+    {
+      "id": "P2",
+      "kind": "party",
+      "label": "the water"
+    },
+    {
+      "id": "P3",
+      "kind": "party",
+      "label": "the five elderly patients"
+    },
+    {
+      "id": "A0",
+      "kind": "action",
+      "label": "gets the water"
+    },
+    {
+      "id": "A1",
+      "kind": "action",
+      "label": "get the water"
+    },
+    {
+      "id": "E1",
+      "kind": "effect",
+      "label": "gets the water",
+      "polarity": "NEUTRAL",
+      "modality": "CERTAIN",
+      "directness": "DIRECT"
+    },
+    {
+      "id": "E2",
+      "kind": "effect",
+      "label": "gets the water",
+      "polarity": "NEUTRAL",
+      "modality": "CERTAIN",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "E3",
+      "kind": "effect",
+      "label": "the child will live",
+      "polarity": "BENEFICIAL",
+      "modality": "CERTAIN",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "E4",
+      "kind": "effect",
+      "label": "get the water",
+      "polarity": "NEUTRAL",
+      "modality": "CERTAIN",
+      "directness": "DIRECT"
+    },
+    {
+      "id": "E5",
+      "kind": "effect",
+      "label": "get the water",
+      "polarity": "NEUTRAL",
+      "modality": "CERTAIN",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "E6",
+      "kind": "effect",
+      "label": "the five elderly patients will live",
+      "polarity": "BENEFICIAL",
+      "modality": "CERTAIN",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "CND1",
+      "kind": "condition",
+      "label": "If the child gets the water",
+      "polarity": "POSITIVE"
+    },
+    {
+      "id": "CND2",
+      "kind": "condition",
+      "label": "If the five elderly patients get the water",
+      "polarity": "POSITIVE"
+    }
+  ],
+  "edges": [
+    {
+      "source": "P1",
+      "relation": "ACTOR",
+      "target": "A0"
+    },
+    {
+      "source": "A0",
+      "relation": "RECIPIENT",
+      "target": "P2"
+    },
+    {
+      "source": "A0",
+      "relation": "HAS_EFFECT",
+      "target": "E1"
+    },
+    {
+      "source": "A0",
+      "relation": "HAS_EFFECT",
+      "target": "E2"
+    },
+    {
+      "source": "A0",
+      "relation": "HAS_EFFECT",
+      "target": "E3"
+    },
+    {
+      "source": "P3",
+      "relation": "ACTOR",
+      "target": "A1"
+    },
+    {
+      "source": "A1",
+      "relation": "RECIPIENT",
+      "target": "P2"
+    },
+    {
+      "source": "A1",
+      "relation": "HAS_EFFECT",
+      "target": "E4"
+    },
+    {
+      "source": "A1",
+      "relation": "HAS_EFFECT",
+      "target": "E5"
+    },
+    {
+      "source": "A1",
+      "relation": "HAS_EFFECT",
+      "target": "E6"
+    },
+    {
+      "source": "E1",
+      "relation": "AFFECTS",
+      "target": "P2"
+    },
+    {
+      "source": "E2",
+      "relation": "AFFECTS",
+      "target": "P2"
+    },
+    {
+      "source": "E3",
+      "relation": "AFFECTS",
+      "target": "P1"
+    },
+    {
+      "source": "E4",
+      "relation": "AFFECTS",
+      "target": "P2"
+    },
+    {
+      "source": "E5",
+      "relation": "AFFECTS",
+      "target": "P2"
+    },
+    {
+      "source": "E6",
+      "relation": "AFFECTS",
+      "target": "P3"
+    },
+    {
+      "source": "E1",
+      "relation": "ENABLES",
+      "target": "E2",
+      "modality": "CERTAIN"
+    },
+    {
+      "source": "E2",
+      "relation": "ENABLES",
+      "target": "E3",
+      "modality": "CERTAIN"
+    },
+    {
+      "source": "E4",
+      "relation": "ENABLES",
+      "target": "E5",
+      "modality": "CERTAIN"
+    },
+    {
+      "source": "E5",
+      "relation": "ENABLES",
+      "target": "E6",
+      "modality": "CERTAIN"
+    },
+    {
+      "source": "CND1",
+      "relation": "BRANCH_SCOPE",
+      "target": "A0"
+    },
+    {
+      "source": "CND2",
+      "relation": "BRANCH_SCOPE",
+      "target": "A1"
+    }
+  ],
+  "conditions": [
+    {
+      "condition_id": "CND1",
+      "description": "If the child gets the water",
+      "value_status": "UNKNOWN",
+      "decision_relevance": "MATERIAL",
+      "provenance": [
+        {
+          "clause_id": "C2",
+          "excerpt": "If the child gets the water, the child will live."
+        }
+      ],
+      "event_effect_id": "",
+      "polarity": "POSITIVE",
+      "operator": "IF"
+    },
+    {
+      "condition_id": "CND2",
+      "description": "If the five elderly patients get the water",
+      "value_status": "UNKNOWN",
+      "decision_relevance": "MATERIAL",
+      "provenance": [
+        {
+          "clause_id": "C3",
+          "excerpt": "If the five elderly patients get the water, the five elderly patients will live."
+        }
+      ],
+      "event_effect_id": "",
+      "polarity": "POSITIVE",
+      "operator": "IF"
+    }
+  ],
+  "temporal_relations": [],
+  "counterfactual_links": []
+}

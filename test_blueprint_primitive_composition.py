@@ -65,8 +65,22 @@ class CompositionTests(unittest.TestCase):
                 package = z10.export_candidate_graph(text)
                 inventory = extract_inventory(text, package)
                 result = append_composition(text, inventory, expand_candidates(text, package, blueprint(text), inventory))
-                chosen, records = _admit_candidates(result, text, package, Path(tmp), DEFAULT_PARLIAMENT_ROOT, DEFAULT_PARLIAMENT_PYTHON)
+                def source_review(messages):
+                    request = json.loads(messages[0]['content'].split('INPUT:\n', 1)[1])
+                    comparison = request['comparison']
+                    candidate = next(c for c in comparison['candidates']
+                                     if len(c['view']['effects']) == count)
+                    evidence = next(c for c in request['source_clauses'] if 'warning signal' in c['text'])
+                    return json.dumps({'status': 'SELECTED', 'selected_candidate_id': candidate['id'],
+                        'resolutions': [{'difference_id': d['id'],
+                                         'rationale': 'The additional conditional state is explicitly stated.',
+                                         'evidence': [{'clause_id': evidence['clause_id'], 'excerpt': evidence['text']}]}
+                                        for d in comparison['differences']
+                                        if candidate['id'] in (d['left_id'], d['right_id'])]})
+                chosen, records = _admit_candidates(result, text, package, Path(tmp), DEFAULT_PARLIAMENT_ROOT,
+                    DEFAULT_PARLIAMENT_PYTHON, selection_reviewer=source_review if count == 7 else None)
                 self.assertIsNotNone(chosen, records)
+                self.assertEqual(len(chosen['proposal']['candidate']['world_model']['effects']), count)
                 composed = next(r for r in records if r.get("variant") == "composition")
                 self.assertEqual(composed["status"], "ADMITTED", composed)
                 self.assertEqual(composed["admission"]["effects"], count)

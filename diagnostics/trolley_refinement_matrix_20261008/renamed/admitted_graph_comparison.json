@@ -1,0 +1,736 @@
+{
+  "candidates": [
+    {
+      "id": "candidate_0",
+      "blueprint_id": "omission_harm",
+      "variant": "baseline",
+      "view": {
+        "parties": [
+          {
+            "kind": "human_group",
+            "label": "five workers",
+            "quantities": [
+              "five"
+            ]
+          },
+          {
+            "kind": "other",
+            "label": "a side track",
+            "quantities": []
+          },
+          {
+            "kind": "other",
+            "label": "the main track",
+            "quantities": []
+          },
+          {
+            "kind": "person",
+            "label": "dana",
+            "quantities": []
+          },
+          {
+            "kind": "person",
+            "label": "one worker",
+            "quantities": [
+              "one"
+            ]
+          },
+          {
+            "kind": "process",
+            "label": "a lever",
+            "quantities": []
+          },
+          {
+            "kind": "process",
+            "label": "the tram",
+            "quantities": []
+          }
+        ],
+        "actions": [
+          {
+            "actor_party_id": "parties:dana",
+            "effect_ids": [
+              "effect:16835a3ef9bf1de86498b054d838965fce453fc28ef1c7afed453a6757fb54fc",
+              "effect:5ef5325ec57d5d2bb095a9d977ab76017410bee7b114fa7224c133dc9c109730",
+              "effect:a5733547c9b9a6a075efaf9e671f00d1cd5d33112d65b5fc3c8ef3e10b6ea0b2",
+              "effect:b5139f55909d4c5db74d57795f3829729493d57e44db692c6362c5650588cf10"
+            ],
+            "intervention": "does not pull the lever",
+            "recipient_party_ids": [
+              "parties:a lever"
+            ]
+          },
+          {
+            "actor_party_id": "parties:dana",
+            "effect_ids": [
+              "effect:179e8d16711605418767b073b77bd68a39354ad84c9415eea051ded1c8e0a563",
+              "effect:248b01fd0b7c688e83ddc43a4bab29ffd018e33a8ffb8044c813fde03be8e91f",
+              "effect:84be078ffdf6fbca6cd9be801993728b04e19b5ee31eec5a580705de4b045687",
+              "effect:f94c823aee2fc461b9018a88b668be4595a71bdf2d1bcec3677972f4a815c29a"
+            ],
+            "intervention": "pulls the lever",
+            "recipient_party_ids": [
+              "parties:a lever"
+            ]
+          }
+        ],
+        "conditions": [
+          {
+            "decision_relevance": "material",
+            "description": "if she does not",
+            "operator": "if",
+            "polarity": "negated",
+            "value_status": "unknown"
+          },
+          {
+            "decision_relevance": "material",
+            "description": "if she pulls the lever",
+            "operator": "if",
+            "polarity": "positive",
+            "value_status": "unknown"
+          }
+        ],
+        "propositions": [
+          {
+            "polarity": "positive",
+            "predication": "a runaway tram is heading toward five workers on the main track",
+            "status": "asserted"
+          },
+          {
+            "polarity": "positive",
+            "predication": "dana can pull a lever that switches the tram onto a side track, where one worker stands",
+            "status": "asserted"
+          },
+          {
+            "polarity": "positive",
+            "predication": "dana cannot stop the tram",
+            "status": "asserted"
+          }
+        ],
+        "modal_operators": [],
+        "effects": [
+          {
+            "action_id": "actions:does not pull the lever",
+            "condition_ids": [],
+            "condition_join": "and",
+            "derivation_assumptions": [],
+            "derivation_operation": "direct_copy",
+            "directness": "direct",
+            "effect_kind": "intervention",
+            "likelihood_qualifiers": [],
+            "modality": "certain",
+            "outcome": "does not",
+            "outcome_type_transformation": "preserved",
+            "overall_likelihood_qualifiers": [],
+            "party_id": "parties:a lever",
+            "polarity": "neutral",
+            "predicate": "do",
+            "quantities": [],
+            "scope_qualifiers": [],
+            "source_effect_ids": [],
+            "source_proposition": "does not",
+            "temporal_qualifiers": []
+          },
+          {
+            "action_id": "actions:does not pull the lever",
+            "condition_ids": [],
+            "condition_join": "and",
+            "derivation_assumptions": [],
+            "derivation_operation": "source_stipulated_causal",
+            "directness": "downstream",
+            "effect_kind": "health_outcome",
+            "likelihood_qualifiers": [],
+            "modality": "certain",
+            "outcome": "it will kill the five",
+            "outcome_type_transformation": "preserved",
+            "overall_likelihood_qualifiers": [],
+            "party_id": "parties:five workers",
+            "polarity": "adverse",
+            "predicate": "kill",
+            "quantities": [
+              "five"
+            ],
+            "scope_qualifiers": [],
+            "source_effect_ids": [
+              "effect:b5139f55909d4c5db74d57795f3829729493d57e44db692c6362c5650588cf10"
+            ],
+            "source_proposition": "it will kill the five",
+            "temporal_qualifiers": []
+          },
+          {
+            "action_id": "actions:does not pull the lever",
+            "condition_ids": [],
+            "condition_join": "and",
+            "derivation_assumptions": [],
+            "derivation_operation": "source_stipulated_causal",
+            "directness": "downstream",
+            "effect_kind": "other",
+            "likelihood_qualifiers": [],
+            "modality": "certain",
+            "outcome": "it will kill the five",
+            "outcome_type_transformation": "preserved",
+            "overall_likelihood_qualifiers": [],
+            "party_id": "parties:the tram",
+            "polarity": "neutral",
+            "predicate": "kill",
+            "quantities": [
+              "five"
+            ],
+            "scope_qualifiers": [],
+            "source_effect_ids": [
+              "effect:a5733547c9b9a6a075efaf9e671f00d1cd5d33112d65b5fc3c8ef3e10b6ea0b2"
+            ],
+            "source_proposition": "it will kill the five",
+            "temporal_qualifiers": []
+          },
+          {
+            "action_id": "actions:does not pull the lever",
+            "condition_ids": [],
+            "condition_join": "and",
+            "derivation_assumptions": [],
+            "derivation_operation": "source_stipulated_causal",
+            "directness": "downstream",
+            "effect_kind": "other",
+            "likelihood_qualifiers": [],
+            "modality": "certain",
+            "outcome": "spare the one",
+            "outcome_type_transformation": "preserved",
+            "overall_likelihood_qualifiers": [],
+            "party_id": "parties:one worker",
+            "polarity": "beneficial",
+            "predicate": "spare",
+            "quantities": [
+              "one"
+            ],
+            "scope_qualifiers": [],
+            "source_effect_ids": [
+              "effect:b5139f55909d4c5db74d57795f3829729493d57e44db692c6362c5650588cf10"
+            ],
+            "source_proposition": "spare the one",
+            "temporal_qualifiers": []
+          },
+          {
+            "action_id": "actions:pulls the lever",
+            "condition_ids": [],
+            "condition_join": "and",
+            "derivation_assumptions": [],
+            "derivation_operation": "direct_copy",
+            "directness": "direct",
+            "effect_kind": "intervention",
+            "likelihood_qualifiers": [],
+            "modality": "certain",
+            "outcome": "pulls the lever",
+            "outcome_type_transformation": "preserved",
+            "overall_likelihood_qualifiers": [],
+            "party_id": "parties:a lever",
+            "polarity": "neutral",
+            "predicate": "pull",
+            "quantities": [],
+            "scope_qualifiers": [],
+            "source_effect_ids": [],
+            "source_proposition": "pulls the lever",
+            "temporal_qualifiers": []
+          },
+          {
+            "action_id": "actions:pulls the lever",
+            "condition_ids": [],
+            "condition_join": "and",
+            "derivation_assumptions": [],
+            "derivation_operation": "source_stipulated_causal",
+            "directness": "downstream",
+            "effect_kind": "health_outcome",
+            "likelihood_qualifiers": [],
+            "modality": "certain",
+            "outcome": "the tram will kill that worker",
+            "outcome_type_transformation": "preserved",
+            "overall_likelihood_qualifiers": [],
+            "party_id": "parties:one worker",
+            "polarity": "adverse",
+            "predicate": "kill",
+            "quantities": [
+              "one"
+            ],
+            "scope_qualifiers": [],
+            "source_effect_ids": [
+              "effect:f94c823aee2fc461b9018a88b668be4595a71bdf2d1bcec3677972f4a815c29a"
+            ],
+            "source_proposition": "the tram will kill that worker",
+            "temporal_qualifiers": []
+          },
+          {
+            "action_id": "actions:pulls the lever",
+            "condition_ids": [],
+            "condition_join": "and",
+            "derivation_assumptions": [],
+            "derivation_operation": "source_stipulated_causal",
+            "directness": "downstream",
+            "effect_kind": "other",
+            "likelihood_qualifiers": [],
+            "modality": "certain",
+            "outcome": "spare the five",
+            "outcome_type_transformation": "preserved",
+            "overall_likelihood_qualifiers": [],
+            "party_id": "parties:five workers",
+            "polarity": "beneficial",
+            "predicate": "spare",
+            "quantities": [
+              "five"
+            ],
+            "scope_qualifiers": [],
+            "source_effect_ids": [
+              "effect:f94c823aee2fc461b9018a88b668be4595a71bdf2d1bcec3677972f4a815c29a"
+            ],
+            "source_proposition": "spare the five",
+            "temporal_qualifiers": []
+          },
+          {
+            "action_id": "actions:pulls the lever",
+            "condition_ids": [],
+            "condition_join": "and",
+            "derivation_assumptions": [],
+            "derivation_operation": "source_stipulated_causal",
+            "directness": "downstream",
+            "effect_kind": "physical_state",
+            "likelihood_qualifiers": [],
+            "modality": "certain",
+            "outcome": "switches the tram onto a side track",
+            "outcome_type_transformation": "preserved",
+            "overall_likelihood_qualifiers": [],
+            "party_id": "parties:the tram",
+            "polarity": "neutral",
+            "predicate": "switch",
+            "quantities": [],
+            "scope_qualifiers": [],
+            "source_effect_ids": [
+              "effect:179e8d16711605418767b073b77bd68a39354ad84c9415eea051ded1c8e0a563"
+            ],
+            "source_proposition": "switches the tram onto a side track",
+            "temporal_qualifiers": []
+          }
+        ],
+        "causal_links": [
+          {
+            "action_id": "actions:does not pull the lever",
+            "condition_ids": [],
+            "link_relation": "enables",
+            "modality": "certain",
+            "source_id": "effect:a5733547c9b9a6a075efaf9e671f00d1cd5d33112d65b5fc3c8ef3e10b6ea0b2",
+            "target_id": "effect:b5139f55909d4c5db74d57795f3829729493d57e44db692c6362c5650588cf10"
+          },
+          {
+            "action_id": "actions:does not pull the lever",
+            "condition_ids": [],
+            "link_relation": "enables",
+            "modality": "certain",
+            "source_id": "effect:b5139f55909d4c5db74d57795f3829729493d57e44db692c6362c5650588cf10",
+            "target_id": "effect:16835a3ef9bf1de86498b054d838965fce453fc28ef1c7afed453a6757fb54fc"
+          },
+          {
+            "action_id": "actions:does not pull the lever",
+            "condition_ids": [],
+            "link_relation": "enables",
+            "modality": "certain",
+            "source_id": "effect:b5139f55909d4c5db74d57795f3829729493d57e44db692c6362c5650588cf10",
+            "target_id": "effect:5ef5325ec57d5d2bb095a9d977ab76017410bee7b114fa7224c133dc9c109730"
+          },
+          {
+            "action_id": "actions:pulls the lever",
+            "condition_ids": [],
+            "link_relation": "enables",
+            "modality": "certain",
+            "source_id": "effect:179e8d16711605418767b073b77bd68a39354ad84c9415eea051ded1c8e0a563",
+            "target_id": "effect:f94c823aee2fc461b9018a88b668be4595a71bdf2d1bcec3677972f4a815c29a"
+          },
+          {
+            "action_id": "actions:pulls the lever",
+            "condition_ids": [],
+            "link_relation": "enables",
+            "modality": "certain",
+            "source_id": "effect:f94c823aee2fc461b9018a88b668be4595a71bdf2d1bcec3677972f4a815c29a",
+            "target_id": "effect:248b01fd0b7c688e83ddc43a4bab29ffd018e33a8ffb8044c813fde03be8e91f"
+          },
+          {
+            "action_id": "actions:pulls the lever",
+            "condition_ids": [],
+            "link_relation": "enables",
+            "modality": "certain",
+            "source_id": "effect:f94c823aee2fc461b9018a88b668be4595a71bdf2d1bcec3677972f4a815c29a",
+            "target_id": "effect:84be078ffdf6fbca6cd9be801993728b04e19b5ee31eec5a580705de4b045687"
+          }
+        ],
+        "temporal_relations": [],
+        "counterfactual_links": [],
+        "reports": [],
+        "commitments": [],
+        "normative_propositions": []
+      }
+    },
+    {
+      "id": "candidate_1",
+      "blueprint_id": "conditional_outcome",
+      "variant": "baseline",
+      "view": {
+        "parties": [
+          {
+            "kind": "human_group",
+            "label": "five workers",
+            "quantities": [
+              "five"
+            ]
+          },
+          {
+            "kind": "other",
+            "label": "a side track",
+            "quantities": []
+          },
+          {
+            "kind": "other",
+            "label": "the main track",
+            "quantities": []
+          },
+          {
+            "kind": "person",
+            "label": "dana",
+            "quantities": []
+          },
+          {
+            "kind": "person",
+            "label": "one worker",
+            "quantities": [
+              "one"
+            ]
+          },
+          {
+            "kind": "process",
+            "label": "a lever",
+            "quantities": []
+          },
+          {
+            "kind": "process",
+            "label": "the tram",
+            "quantities": []
+          }
+        ],
+        "actions": [
+          {
+            "actor_party_id": "parties:dana",
+            "effect_ids": [
+              "effect:16835a3ef9bf1de86498b054d838965fce453fc28ef1c7afed453a6757fb54fc",
+              "effect:5ef5325ec57d5d2bb095a9d977ab76017410bee7b114fa7224c133dc9c109730",
+              "effect:a5733547c9b9a6a075efaf9e671f00d1cd5d33112d65b5fc3c8ef3e10b6ea0b2",
+              "effect:b5139f55909d4c5db74d57795f3829729493d57e44db692c6362c5650588cf10"
+            ],
+            "intervention": "does not pull the lever",
+            "recipient_party_ids": [
+              "parties:a lever"
+            ]
+          },
+          {
+            "actor_party_id": "parties:dana",
+            "effect_ids": [
+              "effect:179e8d16711605418767b073b77bd68a39354ad84c9415eea051ded1c8e0a563",
+              "effect:248b01fd0b7c688e83ddc43a4bab29ffd018e33a8ffb8044c813fde03be8e91f",
+              "effect:84be078ffdf6fbca6cd9be801993728b04e19b5ee31eec5a580705de4b045687",
+              "effect:f94c823aee2fc461b9018a88b668be4595a71bdf2d1bcec3677972f4a815c29a"
+            ],
+            "intervention": "pulls the lever",
+            "recipient_party_ids": [
+              "parties:a lever"
+            ]
+          }
+        ],
+        "conditions": [
+          {
+            "decision_relevance": "material",
+            "description": "if she does not",
+            "operator": "if",
+            "polarity": "negated",
+            "value_status": "unknown"
+          },
+          {
+            "decision_relevance": "material",
+            "description": "if she pulls the lever",
+            "operator": "if",
+            "polarity": "positive",
+            "value_status": "unknown"
+          }
+        ],
+        "propositions": [
+          {
+            "polarity": "positive",
+            "predication": "a runaway tram is heading toward five workers on the main track",
+            "status": "asserted"
+          },
+          {
+            "polarity": "positive",
+            "predication": "dana can pull a lever that switches the tram onto a side track, where one worker stands",
+            "status": "asserted"
+          },
+          {
+            "polarity": "positive",
+            "predication": "dana cannot stop the tram",
+            "status": "asserted"
+          }
+        ],
+        "modal_operators": [],
+        "effects": [
+          {
+            "action_id": "actions:does not pull the lever",
+            "condition_ids": [],
+            "condition_join": "and",
+            "derivation_assumptions": [],
+            "derivation_operation": "direct_copy",
+            "directness": "direct",
+            "effect_kind": "intervention",
+            "likelihood_qualifiers": [],
+            "modality": "certain",
+            "outcome": "does not",
+            "outcome_type_transformation": "preserved",
+            "overall_likelihood_qualifiers": [],
+            "party_id": "parties:a lever",
+            "polarity": "neutral",
+            "predicate": "do",
+            "quantities": [],
+            "scope_qualifiers": [],
+            "source_effect_ids": [],
+            "source_proposition": "does not",
+            "temporal_qualifiers": []
+          },
+          {
+            "action_id": "actions:does not pull the lever",
+            "condition_ids": [],
+            "condition_join": "and",
+            "derivation_assumptions": [],
+            "derivation_operation": "source_stipulated_causal",
+            "directness": "downstream",
+            "effect_kind": "health_outcome",
+            "likelihood_qualifiers": [],
+            "modality": "certain",
+            "outcome": "it will kill the five",
+            "outcome_type_transformation": "preserved",
+            "overall_likelihood_qualifiers": [],
+            "party_id": "parties:five workers",
+            "polarity": "adverse",
+            "predicate": "kill",
+            "quantities": [
+              "five"
+            ],
+            "scope_qualifiers": [],
+            "source_effect_ids": [
+              "effect:b5139f55909d4c5db74d57795f3829729493d57e44db692c6362c5650588cf10"
+            ],
+            "source_proposition": "it will kill the five",
+            "temporal_qualifiers": []
+          },
+          {
+            "action_id": "actions:does not pull the lever",
+            "condition_ids": [],
+            "condition_join": "and",
+            "derivation_assumptions": [],
+            "derivation_operation": "source_stipulated_causal",
+            "directness": "downstream",
+            "effect_kind": "other",
+            "likelihood_qualifiers": [],
+            "modality": "certain",
+            "outcome": "it will kill the five",
+            "outcome_type_transformation": "preserved",
+            "overall_likelihood_qualifiers": [],
+            "party_id": "parties:the tram",
+            "polarity": "neutral",
+            "predicate": "kill",
+            "quantities": [
+              "five"
+            ],
+            "scope_qualifiers": [],
+            "source_effect_ids": [
+              "effect:a5733547c9b9a6a075efaf9e671f00d1cd5d33112d65b5fc3c8ef3e10b6ea0b2"
+            ],
+            "source_proposition": "it will kill the five",
+            "temporal_qualifiers": []
+          },
+          {
+            "action_id": "actions:does not pull the lever",
+            "condition_ids": [],
+            "condition_join": "and",
+            "derivation_assumptions": [],
+            "derivation_operation": "source_stipulated_causal",
+            "directness": "downstream",
+            "effect_kind": "other",
+            "likelihood_qualifiers": [],
+            "modality": "certain",
+            "outcome": "spare the one",
+            "outcome_type_transformation": "preserved",
+            "overall_likelihood_qualifiers": [],
+            "party_id": "parties:one worker",
+            "polarity": "beneficial",
+            "predicate": "spare",
+            "quantities": [
+              "one"
+            ],
+            "scope_qualifiers": [],
+            "source_effect_ids": [
+              "effect:b5139f55909d4c5db74d57795f3829729493d57e44db692c6362c5650588cf10"
+            ],
+            "source_proposition": "spare the one",
+            "temporal_qualifiers": []
+          },
+          {
+            "action_id": "actions:pulls the lever",
+            "condition_ids": [],
+            "condition_join": "and",
+            "derivation_assumptions": [],
+            "derivation_operation": "direct_copy",
+            "directness": "direct",
+            "effect_kind": "intervention",
+            "likelihood_qualifiers": [],
+            "modality": "certain",
+            "outcome": "pulls the lever",
+            "outcome_type_transformation": "preserved",
+            "overall_likelihood_qualifiers": [],
+            "party_id": "parties:a lever",
+            "polarity": "neutral",
+            "predicate": "pull",
+            "quantities": [],
+            "scope_qualifiers": [],
+            "source_effect_ids": [],
+            "source_proposition": "pulls the lever",
+            "temporal_qualifiers": []
+          },
+          {
+            "action_id": "actions:pulls the lever",
+            "condition_ids": [],
+            "condition_join": "and",
+            "derivation_assumptions": [],
+            "derivation_operation": "source_stipulated_causal",
+            "directness": "downstream",
+            "effect_kind": "health_outcome",
+            "likelihood_qualifiers": [],
+            "modality": "certain",
+            "outcome": "the tram will kill that worker",
+            "outcome_type_transformation": "preserved",
+            "overall_likelihood_qualifiers": [],
+            "party_id": "parties:one worker",
+            "polarity": "adverse",
+            "predicate": "kill",
+            "quantities": [
+              "one"
+            ],
+            "scope_qualifiers": [],
+            "source_effect_ids": [
+              "effect:f94c823aee2fc461b9018a88b668be4595a71bdf2d1bcec3677972f4a815c29a"
+            ],
+            "source_proposition": "the tram will kill that worker",
+            "temporal_qualifiers": []
+          },
+          {
+            "action_id": "actions:pulls the lever",
+            "condition_ids": [],
+            "condition_join": "and",
+            "derivation_assumptions": [],
+            "derivation_operation": "source_stipulated_causal",
+            "directness": "downstream",
+            "effect_kind": "other",
+            "likelihood_qualifiers": [],
+            "modality": "certain",
+            "outcome": "spare the five",
+            "outcome_type_transformation": "preserved",
+            "overall_likelihood_qualifiers": [],
+            "party_id": "parties:five workers",
+            "polarity": "beneficial",
+            "predicate": "spare",
+            "quantities": [
+              "five"
+            ],
+            "scope_qualifiers": [],
+            "source_effect_ids": [
+              "effect:f94c823aee2fc461b9018a88b668be4595a71bdf2d1bcec3677972f4a815c29a"
+            ],
+            "source_proposition": "spare the five",
+            "temporal_qualifiers": []
+          },
+          {
+            "action_id": "actions:pulls the lever",
+            "condition_ids": [],
+            "condition_join": "and",
+            "derivation_assumptions": [],
+            "derivation_operation": "source_stipulated_causal",
+            "directness": "downstream",
+            "effect_kind": "physical_state",
+            "likelihood_qualifiers": [],
+            "modality": "certain",
+            "outcome": "switches the tram onto a side track",
+            "outcome_type_transformation": "preserved",
+            "overall_likelihood_qualifiers": [],
+            "party_id": "parties:the tram",
+            "polarity": "neutral",
+            "predicate": "switch",
+            "quantities": [],
+            "scope_qualifiers": [],
+            "source_effect_ids": [
+              "effect:179e8d16711605418767b073b77bd68a39354ad84c9415eea051ded1c8e0a563"
+            ],
+            "source_proposition": "switches the tram onto a side track",
+            "temporal_qualifiers": []
+          }
+        ],
+        "causal_links": [
+          {
+            "action_id": "actions:does not pull the lever",
+            "condition_ids": [],
+            "link_relation": "enables",
+            "modality": "certain",
+            "source_id": "effect:a5733547c9b9a6a075efaf9e671f00d1cd5d33112d65b5fc3c8ef3e10b6ea0b2",
+            "target_id": "effect:b5139f55909d4c5db74d57795f3829729493d57e44db692c6362c5650588cf10"
+          },
+          {
+            "action_id": "actions:does not pull the lever",
+            "condition_ids": [],
+            "link_relation": "enables",
+            "modality": "certain",
+            "source_id": "effect:b5139f55909d4c5db74d57795f3829729493d57e44db692c6362c5650588cf10",
+            "target_id": "effect:16835a3ef9bf1de86498b054d838965fce453fc28ef1c7afed453a6757fb54fc"
+          },
+          {
+            "action_id": "actions:does not pull the lever",
+            "condition_ids": [],
+            "link_relation": "enables",
+            "modality": "certain",
+            "source_id": "effect:b5139f55909d4c5db74d57795f3829729493d57e44db692c6362c5650588cf10",
+            "target_id": "effect:5ef5325ec57d5d2bb095a9d977ab76017410bee7b114fa7224c133dc9c109730"
+          },
+          {
+            "action_id": "actions:pulls the lever",
+            "condition_ids": [],
+            "link_relation": "enables",
+            "modality": "certain",
+            "source_id": "effect:179e8d16711605418767b073b77bd68a39354ad84c9415eea051ded1c8e0a563",
+            "target_id": "effect:f94c823aee2fc461b9018a88b668be4595a71bdf2d1bcec3677972f4a815c29a"
+          },
+          {
+            "action_id": "actions:pulls the lever",
+            "condition_ids": [],
+            "link_relation": "enables",
+            "modality": "certain",
+            "source_id": "effect:f94c823aee2fc461b9018a88b668be4595a71bdf2d1bcec3677972f4a815c29a",
+            "target_id": "effect:248b01fd0b7c688e83ddc43a4bab29ffd018e33a8ffb8044c813fde03be8e91f"
+          },
+          {
+            "action_id": "actions:pulls the lever",
+            "condition_ids": [],
+            "link_relation": "enables",
+            "modality": "certain",
+            "source_id": "effect:f94c823aee2fc461b9018a88b668be4595a71bdf2d1bcec3677972f4a815c29a",
+            "target_id": "effect:84be078ffdf6fbca6cd9be801993728b04e19b5ee31eec5a580705de4b045687"
+          }
+        ],
+        "temporal_relations": [],
+        "counterfactual_links": [],
+        "reports": [],
+        "commitments": [],
+        "normative_propositions": []
+      }
+    }
+  ],
+  "differences": [],
+  "status": "EQUIVALENT"
+}

@@ -1,0 +1,115 @@
+{
+  "origin": "MODEL_AUTHORED_ARGUMENT",
+  "authority": "ATTRIBUTED_NOT_WORLD_STATE",
+  "raw_fields": {
+    "ev": {
+      "A0": {
+        "value": 0,
+        "unit": "NONE",
+        "direction": "HARM",
+        "grounded": false,
+        "method": "NOT_COMPUTED",
+        "source_effect_ids": [],
+        "calculation": "not computed",
+        "assumptions": []
+      },
+      "A1": {
+        "value": 0,
+        "unit": "NONE",
+        "direction": "HARM",
+        "grounded": false,
+        "method": "NOT_COMPUTED",
+        "source_effect_ids": [],
+        "calculation": "not computed",
+        "assumptions": []
+      }
+    },
+    "dp": null,
+    "cl": {
+      "A0": {
+        "v": "RESPONSIVE",
+        "p": "Ben",
+        "rt": "DEPENDENCY",
+        "ds": "Ben needs medicine controlled by Ada",
+        "rb": "controller owes competent response to life-threatening need",
+        "nk": "SURVIVAL_HEALTH",
+        "nu": "IMMEDIATE",
+        "te": "PRESERVES",
+        "rr": "DIRECT",
+        "f": "ESTABLISHED",
+        "cc": "Cara\u2019s entrusted claim via promise",
+        "res": "CONTESTED",
+        "g": "ACTION_GRAPH",
+        "rs": "High-probability rescue shows competent responsiveness"
+      },
+      "A1": {
+        "v": "MIXED",
+        "p": "Cara",
+        "rt": "ENTRUSTED",
+        "ds": "Ada\u2019s promise created expectation",
+        "rb": "promise builds relational responsibility",
+        "nk": "SURVIVAL_HEALTH",
+        "nu": "IMMEDIATE",
+        "te": "STRAINS",
+        "rr": "DIRECT",
+        "f": "ESTABLISHED",
+        "cc": "Ben\u2019s higher-probability need",
+        "res": "CONTESTED",
+        "g": "ACTION_GRAPH",
+        "rs": "Keeps promise but offers weak help, risking competence failure"
+      }
+    },
+    "ep": [
+      {
+        "c": "If Ada gives the medicine to Ben, Ben has a 95% chance of survival.",
+        "p": "PROP:WORLD:RECOGNITION:7c1a5f0bdda1f358",
+        "dc": false,
+        "a": "A0",
+        "se": [
+          "E1",
+          "E2"
+        ],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      },
+      {
+        "c": "If Ada gives the medicine to Cara, Cara has a 5% chance of survival.",
+        "p": "PROP:WORLD:RECOGNITION:f53c4f895b68c7b4",
+        "dc": false,
+        "a": "A1",
+        "se": [
+          "E3",
+          "E4"
+        ],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      },
+      {
+        "c": "Ada promised Cara that she would give Cara the medicine.",
+        "p": "PROP:WORLD:RECOGNITION:4697fd89cd506cc4",
+        "dc": false,
+        "a": "GLOBAL",
+        "se": [],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      }
+    ],
+    "dr": "prefer A0 when its competent life-preserving response overrides less effective promise-keeping",
+    "ft": "Cara survival probability rises near Ben\u2019s",
+    "nt": "promise priority over competence",
+    "fic": [],
+    "foq": []
+  },
+  "native_submission": "VALID",
+  "native_ledger": "NONE",
+  "native_warnings": [
+    "unresolved Care ranking must remain provisional"
+  ],
+  "semantic_support": "NOT_INDEPENDENTLY_VERIFIED"
+}

@@ -1,0 +1,916 @@
+{
+  "schema_version": "parliament-view/1",
+  "id": "medicine",
+  "title": "One dose · unequal survival",
+  "source": "A clinic has one dose of medicine. Ada can give the medicine to Ben or Cara, but not both. If Ada gives the medicine to Ben, Ben has a 95% chance of survival. If Ada gives the medicine to Cara, Cara has a 5% chance of survival. The patient who does not get the medicine will die.",
+  "source_sha256": "6e9d6963b5d3703c3f5c96eb9080776af64a59a6b1b59dc07f777f9cc8231ab1",
+  "status": "FRAMEWORK_PARTIAL",
+  "stop": {
+    "stage": "framework assessment",
+    "reason": "FRAMEWORK_PARTIAL",
+    "kind": "recorded_pipeline_outcome"
+  },
+  "judgment_status": "UNRESOLVED",
+  "mode": "SAVED_REPLAY_NO_API",
+  "diagrams": [
+    {
+      "id": "frozen",
+      "label": "Frozen world",
+      "authority": "FROZEN",
+      "sent_to_agents": true,
+      "world": {
+        "parties": [
+          {
+            "party_id": "P1",
+            "label": "Ada",
+            "kind": "PERSON",
+            "provenance": [
+              {
+                "clause_id": "C1",
+                "excerpt": "Ada can give the medicine to Ben or Cara, but not both."
+              },
+              {
+                "clause_id": "C2",
+                "excerpt": "If Ada gives the medicine to Ben, Ben has a 95% chance of survival."
+              },
+              {
+                "clause_id": "C3",
+                "excerpt": "If Ada gives the medicine to Cara, Cara has a 5% chance of survival."
+              }
+            ],
+            "quantities": []
+          },
+          {
+            "party_id": "P2",
+            "label": "one dose of medicine",
+            "kind": "RESOURCE",
+            "provenance": [
+              {
+                "clause_id": "C0",
+                "excerpt": "A clinic has one dose of medicine."
+              }
+            ],
+            "quantities": []
+          },
+          {
+            "party_id": "P3",
+            "label": "Ben",
+            "kind": "PERSON",
+            "provenance": [
+              {
+                "clause_id": "C1",
+                "excerpt": "Ada can give the medicine to Ben or Cara, but not both."
+              },
+              {
+                "clause_id": "C2",
+                "excerpt": "If Ada gives the medicine to Ben, Ben has a 95% chance of survival."
+              }
+            ],
+            "quantities": []
+          },
+          {
+            "party_id": "P4",
+            "label": "Cara",
+            "kind": "PERSON",
+            "provenance": [
+              {
+                "clause_id": "C1",
+                "excerpt": "Ada can give the medicine to Ben or Cara, but not both."
+              },
+              {
+                "clause_id": "C3",
+                "excerpt": "If Ada gives the medicine to Cara, Cara has a 5% chance of survival."
+              }
+            ],
+            "quantities": []
+          }
+        ],
+        "actions": [
+          {
+            "action_id": "A0",
+            "intervention": "Ada gives the medicine to Ben",
+            "actor_party_id": "P1",
+            "recipient_party_ids": [
+              "P3"
+            ],
+            "effect_ids": [
+              "E1",
+              "E2",
+              "E5",
+              "E7"
+            ],
+            "provenance": [
+              {
+                "clause_id": "C2",
+                "excerpt": "If Ada gives the medicine to Ben, Ben has a 95% chance of survival."
+              }
+            ]
+          },
+          {
+            "action_id": "A1",
+            "intervention": "Ada gives the medicine to Cara",
+            "actor_party_id": "P1",
+            "recipient_party_ids": [
+              "P4"
+            ],
+            "effect_ids": [
+              "E3",
+              "E4",
+              "E6",
+              "E8"
+            ],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Ada gives the medicine to Cara, Cara has a 5% chance of survival."
+              }
+            ]
+          }
+        ],
+        "effects": [
+          {
+            "effect_id": "E1",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "Ada gives the medicine to Ben",
+            "relation": "GIVE",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "RESOURCE_TRANSFER",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C2",
+                "excerpt": "If Ada gives the medicine to Ben, Ben has a 95% chance of survival."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "Ada gives the medicine to Ben",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E2",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "Ben has a 95% chance of survival",
+            "relation": "SURVIVE",
+            "polarity": "BENEFICIAL",
+            "directness": "DOWNSTREAM",
+            "modality": "PROBABILISTIC",
+            "effect_kind": "OTHER",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C2",
+                "excerpt": "If Ada gives the medicine to Ben, Ben has a 95% chance of survival."
+              }
+            ],
+            "likelihood_qualifiers": [
+              "95% chance"
+            ],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "Ben has a 95% chance of survival",
+            "source_effect_ids": [
+              "E1"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E3",
+            "action_id": "A1",
+            "party_id": "P4",
+            "outcome": "Ada gives the medicine to Cara",
+            "relation": "GIVE",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "RESOURCE_TRANSFER",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Ada gives the medicine to Cara, Cara has a 5% chance of survival."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "Ada gives the medicine to Cara",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E4",
+            "action_id": "A1",
+            "party_id": "P4",
+            "outcome": "Cara has a 5% chance of survival",
+            "relation": "SURVIVE",
+            "polarity": "BENEFICIAL",
+            "directness": "DOWNSTREAM",
+            "modality": "PROBABILISTIC",
+            "effect_kind": "OTHER",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Ada gives the medicine to Cara, Cara has a 5% chance of survival."
+              }
+            ],
+            "likelihood_qualifiers": [
+              "5% chance"
+            ],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "Cara has a 5% chance of survival",
+            "source_effect_ids": [
+              "E3"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E5",
+            "action_id": "A0",
+            "party_id": "P4",
+            "outcome": "does not receive one dose of medicine",
+            "relation": "NOT_RECEIVES",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "OTHER",
+            "condition_ids": [],
+            "quantities": [
+              "one"
+            ],
+            "provenance": [
+              {
+                "clause_id": "C0",
+                "excerpt": "A clinic has one dose of medicine."
+              },
+              {
+                "clause_id": "C1",
+                "excerpt": "Ada can give the medicine to Ben or Cara, but not both."
+              },
+              {
+                "clause_id": "C2",
+                "excerpt": "If Ada gives the medicine to Ben, Ben has a 95% chance of survival."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "A clinic has one dose of medicine.",
+            "source_effect_ids": [
+              "E1"
+            ],
+            "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+            "derivation_explanation": "Only one dose of medicine exists, and the explicit exclusivity proof precludes simultaneous receipt by the other recipient.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E6",
+            "action_id": "A1",
+            "party_id": "P3",
+            "outcome": "does not receive one dose of medicine",
+            "relation": "NOT_RECEIVES",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "OTHER",
+            "condition_ids": [],
+            "quantities": [
+              "one"
+            ],
+            "provenance": [
+              {
+                "clause_id": "C0",
+                "excerpt": "A clinic has one dose of medicine."
+              },
+              {
+                "clause_id": "C1",
+                "excerpt": "Ada can give the medicine to Ben or Cara, but not both."
+              },
+              {
+                "clause_id": "C3",
+                "excerpt": "If Ada gives the medicine to Cara, Cara has a 5% chance of survival."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "A clinic has one dose of medicine.",
+            "source_effect_ids": [
+              "E3"
+            ],
+            "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+            "derivation_explanation": "Only one dose of medicine exists, and the explicit exclusivity proof precludes simultaneous receipt by the other recipient.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E7",
+            "action_id": "A0",
+            "party_id": "P4",
+            "outcome": "will die",
+            "relation": "DIE",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "The patient who does not get the medicine will die."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "will die",
+            "source_effect_ids": [
+              "E5"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E8",
+            "action_id": "A1",
+            "party_id": "P3",
+            "outcome": "will die",
+            "relation": "DIE",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "The patient who does not get the medicine will die."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "will die",
+            "source_effect_ids": [
+              "E6"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          }
+        ],
+        "conditions": [],
+        "causal_links": [
+          {
+            "source_id": "E1",
+            "relation": "ENABLES",
+            "target_id": "E2",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C2",
+                "excerpt": "If Ada gives the medicine to Ben, Ben has a 95% chance of survival."
+              }
+            ],
+            "action_id": "A0"
+          },
+          {
+            "source_id": "E3",
+            "relation": "ENABLES",
+            "target_id": "E4",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Ada gives the medicine to Cara, Cara has a 5% chance of survival."
+              }
+            ],
+            "action_id": "A1"
+          },
+          {
+            "source_id": "E5",
+            "relation": "ENABLES",
+            "target_id": "E7",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "The patient who does not get the medicine will die."
+              }
+            ],
+            "action_id": "A0"
+          },
+          {
+            "source_id": "E6",
+            "relation": "ENABLES",
+            "target_id": "E8",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "The patient who does not get the medicine will die."
+              }
+            ],
+            "action_id": "A1"
+          },
+          {
+            "source_id": "E1",
+            "relation": "CAUSES",
+            "target_id": "E5",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C0",
+                "excerpt": "A clinic has one dose of medicine."
+              },
+              {
+                "clause_id": "C1",
+                "excerpt": "Ada can give the medicine to Ben or Cara, but not both."
+              },
+              {
+                "clause_id": "C2",
+                "excerpt": "If Ada gives the medicine to Ben, Ben has a 95% chance of survival."
+              }
+            ],
+            "action_id": "A0"
+          },
+          {
+            "source_id": "E3",
+            "relation": "CAUSES",
+            "target_id": "E6",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C0",
+                "excerpt": "A clinic has one dose of medicine."
+              },
+              {
+                "clause_id": "C1",
+                "excerpt": "Ada can give the medicine to Ben or Cara, but not both."
+              },
+              {
+                "clause_id": "C3",
+                "excerpt": "If Ada gives the medicine to Cara, Cara has a 5% chance of survival."
+              }
+            ],
+            "action_id": "A1"
+          }
+        ],
+        "counterfactual_links": [],
+        "admission": {
+          "status": "COMMITTED",
+          "admitted_effect_ids": [
+            "E1",
+            "E2",
+            "E3",
+            "E4",
+            "E5",
+            "E6",
+            "E7",
+            "E8"
+          ],
+          "quarantined_effects": [],
+          "user_override": false,
+          "override_reason": ""
+        },
+        "schema_version": "1.3",
+        "temporal_relations": [],
+        "propositions": [],
+        "reports": [],
+        "commitments": [],
+        "modal_operators": [],
+        "normative_propositions": []
+      },
+      "mermaid": "flowchart LR\n    P1[\"P1 — Ada<br/>PERSON\"]\n    P2[\"P2 — one dose of medicine<br/>RESOURCE\"]\n    P3[\"P3 — Ben<br/>PERSON\"]\n    P4[\"P4 — Cara<br/>PERSON\"]\n    A0[\"A0 — Ada gives the medicine to Ben\"]\n    A1[\"A1 — Ada gives the medicine to Cara\"]\n    E1[\"E1 — Ada gives the medicine to Ben<br/>DIRECT · NEUTRAL · CERTAIN\"]\n    E2[\"E2 — Ben has a 95% chance of survival<br/>DOWNSTREAM · BENEFICIAL · PROBABILISTIC\"]\n    E3[\"E3 — Ada gives the medicine to Cara<br/>DIRECT · NEUTRAL · CERTAIN\"]\n    E4[\"E4 — Cara has a 5% chance of survival<br/>DOWNSTREAM · BENEFICIAL · PROBABILISTIC\"]\n    E5[\"E5 — does not receive one dose of medicine<br/>DOWNSTREAM · ADVERSE · CERTAIN\"]\n    E6[\"E6 — does not receive one dose of medicine<br/>DOWNSTREAM · ADVERSE · CERTAIN\"]\n    E7[\"E7 — will die<br/>DOWNSTREAM · ADVERSE · CERTAIN\"]\n    E8[\"E8 — will die<br/>DOWNSTREAM · ADVERSE · CERTAIN\"]\n    P1 -->|\"actor\"| A0\n    A0 -->|\"recipient\"| P3\n    A0 -.->|\"effect\"| E1\n    A0 -.->|\"effect\"| E2\n    A0 -.->|\"effect\"| E5\n    A0 -.->|\"effect\"| E7\n    P1 -->|\"actor\"| A1\n    A1 -->|\"recipient\"| P4\n    A1 -.->|\"effect\"| E3\n    A1 -.->|\"effect\"| E4\n    A1 -.->|\"effect\"| E6\n    A1 -.->|\"effect\"| E8\n    E1 -.->|\"affects\"| P3\n    E2 -.->|\"affects\"| P3\n    E3 -.->|\"affects\"| P4\n    E4 -.->|\"affects\"| P4\n    E5 -.->|\"affects\"| P4\n    E6 -.->|\"affects\"| P3\n    E7 -.->|\"affects\"| P4\n    E8 -.->|\"affects\"| P3\n    E1 -->|\"ENABLES\"| E2\n    E3 -->|\"ENABLES\"| E4\n    E5 -->|\"ENABLES\"| E7\n    E6 -->|\"ENABLES\"| E8\n    E1 -->|\"CAUSES\"| E5\n    E3 -->|\"CAUSES\"| E6",
+      "compact_mermaid": "flowchart LR\n    P1[\"P1 — Ada<br/>PERSON\"]\n    P2[\"P2 — one dose of medicine<br/>RESOURCE\"]\n    P3[\"P3 — Ben<br/>PERSON\"]\n    P4[\"P4 — Cara<br/>PERSON\"]\n    A0[\"A0 — Ada gives the medicine to Ben\"]\n    A1[\"A1 — Ada gives the medicine to Cara\"]\n    E1[\"E1 — Ada gives the medicine to Ben<br/>DIRECT · NEUTRAL · CERTAIN\"]\n    E2[\"E2 — Ben has a 95% chance of survival<br/>DOWNSTREAM · BENEFICIAL · PROBABILISTIC\"]\n    E3[\"E3 — Ada gives the medicine to Cara<br/>DIRECT · NEUTRAL · CERTAIN\"]\n    E4[\"E4 — Cara has a 5% chance of survival<br/>DOWNSTREAM · BENEFICIAL · PROBABILISTIC\"]\n    E5[\"E5 — does not receive one dose of medicine<br/>DOWNSTREAM · ADVERSE · CERTAIN\"]\n    E6[\"E6 — does not receive one dose of medicine<br/>DOWNSTREAM · ADVERSE · CERTAIN\"]\n    E7[\"E7 — will die<br/>DOWNSTREAM · ADVERSE · CERTAIN\"]\n    E8[\"E8 — will die<br/>DOWNSTREAM · ADVERSE · CERTAIN\"]\n    P1 -->|\"actor\"| A0\n    A0 -->|\"recipient\"| P3\n    A0 -.->|\"effect\"| E1\n    P1 -->|\"actor\"| A1\n    A1 -->|\"recipient\"| P4\n    A1 -.->|\"effect\"| E3\n    E1 -.->|\"affects\"| P3\n    E2 -.->|\"affects\"| P3\n    E3 -.->|\"affects\"| P4\n    E4 -.->|\"affects\"| P4\n    E5 -.->|\"affects\"| P4\n    E6 -.->|\"affects\"| P3\n    E7 -.->|\"affects\"| P4\n    E8 -.->|\"affects\"| P3\n    E1 -->|\"ENABLES\"| E2\n    E3 -->|\"ENABLES\"| E4\n    E5 -->|\"ENABLES\"| E7\n    E6 -->|\"ENABLES\"| E8\n    E1 -->|\"CAUSES\"| E5\n    E3 -->|\"CAUSES\"| E6",
+      "hidden_membership_edges": [
+        {
+          "action_id": "A0",
+          "effect_id": "E2"
+        },
+        {
+          "action_id": "A0",
+          "effect_id": "E5"
+        },
+        {
+          "action_id": "A0",
+          "effect_id": "E7"
+        },
+        {
+          "action_id": "A1",
+          "effect_id": "E4"
+        },
+        {
+          "action_id": "A1",
+          "effect_id": "E6"
+        },
+        {
+          "action_id": "A1",
+          "effect_id": "E8"
+        }
+      ],
+      "source_ledger_nodes": [],
+      "source_ledger_mermaid": "",
+      "world_sha256": "39418b9ac34a4864389260d631e16d96c0a44bba9657d66005a154e0762020aa"
+    }
+  ],
+  "frameworks": [
+    {
+      "framework": "utilitarian",
+      "position": "ABSTAIN",
+      "preference": "Ada gives the medicine to Ben",
+      "reason": "95% beats 5% survival",
+      "assumptions": [
+        "Survival probabilities decisive for utilitarian calculus."
+      ],
+      "live_objections": [
+        "dependency continuity preserved unresolved proposition IDs: PROP:HYPOTHESIS:b11eb479a9d1aeb0",
+        "Would verifying this unestablished consequence reverse the admitted ranking: Only one dose of the life-saving medicine is available (so only one patient can receive it)?"
+      ],
+      "dependencies": [
+        "95% chance — Ben has a 95% chance of survival",
+        "5% chance — Cara has a 5% chance of survival",
+        "Only one dose of the life-saving medicine is available (so only one patient can receive it)"
+      ],
+      "reversal_conditions": [
+        "Survival probabilities decisive for utilitarian calculus.",
+        "Cara’s survival chance exceeds Ben’s"
+      ],
+      "ledger_status": "COMMITTED"
+    },
+    {
+      "framework": "deontological",
+      "position": "ABSTAIN",
+      "preference": "Ada gives the medicine to Ben",
+      "reason": "stronger rescue duty",
+      "assumptions": [
+        "Probability difference grounds rescue duty"
+      ],
+      "live_objections": [
+        "perfect-duty priority for A0 lacks a perfect-duty classification",
+        "perfect-duty priority for A1 lacks a perfect-duty classification",
+        "rejected update: perfect-duty priority for A0 lacks a perfect-duty classification",
+        "rejected update: perfect-duty priority for A1 lacks a perfect-duty classification",
+        "Would verifying this unestablished consequence reverse the admitted ranking: Only one dose of the life-saving medicine is available (so only one patient can be aided)?"
+      ],
+      "dependencies": [
+        "Only one dose of the life-saving medicine is available (so only one patient can be aided)",
+        "Ben has a 95% chance of survival; affected subject: Ben; modality: PROBABILISTIC",
+        "Cara has a 5% chance of survival; affected subject: Cara; modality: PROBABILISTIC"
+      ],
+      "reversal_conditions": [
+        "rescue duty no longer decisive",
+        "Cara survival > Ben survival"
+      ],
+      "ledger_status": "NONE"
+    },
+    {
+      "framework": "virtue",
+      "position": "ATTENUATED",
+      "preference": "Ada gives the medicine to Ben",
+      "reason": "Prudence saves life",
+      "assumptions": [
+        "Higher efficacy is decisive for prudent stewardship"
+      ],
+      "live_objections": [
+        "dependency continuity preserved unresolved proposition IDs: PROP:HYPOTHESIS:3481f0238231ad3a",
+        "Would verifying this unestablished consequence reverse the admitted ranking: The medicine is a scarce resource that can be given to only one patient?"
+      ],
+      "dependencies": [
+        "Ben has a 95% chance of survival; affected subject: Ben; modality: PROBABILISTIC",
+        "Cara has a 5% chance of survival; affected subject: Cara; modality: PROBABILISTIC",
+        "The medicine is a scarce resource that can be given to only one patient"
+      ],
+      "reversal_conditions": [
+        "Higher efficacy is decisive for prudent stewardship",
+        "Impartial equality overrides outcome maximisation",
+        "Cara survival probability exceeds Ben’s"
+      ],
+      "ledger_status": "COMMITTED"
+    },
+    {
+      "framework": "care",
+      "position": "ATTENUATED",
+      "preference": "Ada gives the medicine to Ben",
+      "reason": "Higher survival for entrusted",
+      "assumptions": [
+        "Probability values already stated"
+      ],
+      "live_objections": [
+        "dependency continuity preserved unresolved proposition IDs: PROP:HYPOTHESIS:ba3744fde6124acf",
+        "Would verifying this unestablished consequence reverse the admitted ranking: Ben are entrusted to the decision maker?"
+      ],
+      "dependencies": [
+        "Ben has a 95% chance of survival; affected subject: Ben; modality: PROBABILISTIC",
+        "Cara has a 5% chance of survival; affected subject: Cara; modality: PROBABILISTIC",
+        "Ben are entrusted to the decision maker",
+        "Ada controls the sole dose of medicine, so only one dependent patient can receive it"
+      ],
+      "reversal_conditions": [
+        "The audited variable does not govern this framework's primary rule",
+        "priority for strict equality over competent care",
+        "Cara survival probability ≥ Ben’s"
+      ],
+      "ledger_status": "COMMITTED"
+    },
+    {
+      "framework": "rawlsian",
+      "position": "ABSTAIN",
+      "preference": "Ada gives the medicine to Ben",
+      "reason": "NONE」「fr\":true,",
+      "assumptions": [
+        "utility-uncertainty audit not Rawls-decisive"
+      ],
+      "live_objections": [
+        "decisive numbers are not tied to the affected subject or Rawlsian position",
+        "Rawlsian preference lacks a stated difference in position or principle priority",
+        "Rawlsian position for A0 conflicts with its framework map",
+        "Rawlsian position for A1 conflicts with its framework map",
+        "A0 IMPROVES lacked directional support; committed as UNCERTAIN",
+        "A1 WORSENS lacked directional support; committed as UNCERTAIN",
+        "rejected update: Rawlsian position for A0 conflicts with its framework map",
+        "rejected update: Rawlsian position for A1 conflicts with its framework map",
+        "rejected update: A0 IMPROVES lacked directional support; committed as UNCERTAIN",
+        "rejected update: A1 WORSENS lacked directional support; committed as UNCERTAIN",
+        "rejected update: decisive numbers are not tied to the affected subject or Rawlsian position",
+        "rejected update: Rawlsian preference lacks a stated difference in position or principle priority",
+        "Would verifying this unestablished consequence reverse the admitted ranking: There is only one dose of medicine, so only one patient can benefit?"
+      ],
+      "dependencies": [
+        "will die; affected subject: Cara",
+        "will die; affected subject: Ben",
+        "There is only one dose of medicine, so only one patient can benefit",
+        "Ben has a 95% chance of survival; affected subject: Ben; modality: PROBABILISTIC"
+      ],
+      "reversal_conditions": [
+        "lexical liberty priority introduced",
+        "Cara survival probability rises above Ben’s"
+      ],
+      "ledger_status": "COMMITTED_WITH_UNCERTAINTY"
+    }
+  ],
+  "hinges": [
+    {
+      "framework": "utilitarian",
+      "text": "Survival probabilities decisive for utilitarian calculus.",
+      "record": "cycles/2/candidates/0/reversal_condition",
+      "authority": "MODEL_REPORTED_NOT_INDEPENDENTLY_VERIFIED"
+    },
+    {
+      "framework": "deontological",
+      "text": "rescue duty no longer decisive",
+      "record": "cycles/2/candidates/1/normative_reversal_threshold",
+      "authority": "MODEL_REPORTED_NOT_INDEPENDENTLY_VERIFIED"
+    },
+    {
+      "framework": "virtue",
+      "text": "Higher efficacy is decisive for prudent stewardship",
+      "record": "cycles/2/candidates/2/reversal_condition",
+      "authority": "MODEL_REPORTED_NOT_INDEPENDENTLY_VERIFIED"
+    }
+  ],
+  "unknowns": [
+    "dependency continuity preserved unresolved proposition IDs: PROP:HYPOTHESIS:b11eb479a9d1aeb0",
+    "Would verifying this unestablished consequence reverse the admitted ranking: Only one dose of the life-saving medicine is available (so only one patient can receive it)?",
+    "The utilitarian ledger contains unknown welfare magnitude or duration; survivor arithmetic does not settle total welfare.",
+    "perfect-duty priority for A0 lacks a perfect-duty classification",
+    "perfect-duty priority for A1 lacks a perfect-duty classification",
+    "rejected update: perfect-duty priority for A0 lacks a perfect-duty classification",
+    "rejected update: perfect-duty priority for A1 lacks a perfect-duty classification",
+    "Would verifying this unestablished consequence reverse the admitted ranking: Only one dose of the life-saving medicine is available (so only one patient can be aided)?",
+    "dependency continuity preserved unresolved proposition IDs: PROP:HYPOTHESIS:3481f0238231ad3a",
+    "Would verifying this unestablished consequence reverse the admitted ranking: The medicine is a scarce resource that can be given to only one patient?",
+    "dependency continuity preserved unresolved proposition IDs: PROP:HYPOTHESIS:ba3744fde6124acf",
+    "Would verifying this unestablished consequence reverse the admitted ranking: Ben are entrusted to the decision maker?",
+    "decisive numbers are not tied to the affected subject or Rawlsian position",
+    "Rawlsian preference lacks a stated difference in position or principle priority",
+    "Rawlsian position for A0 conflicts with its framework map",
+    "Rawlsian position for A1 conflicts with its framework map",
+    "A0 IMPROVES lacked directional support; committed as UNCERTAIN",
+    "A1 WORSENS lacked directional support; committed as UNCERTAIN",
+    "rejected update: Rawlsian position for A0 conflicts with its framework map",
+    "rejected update: Rawlsian position for A1 conflicts with its framework map",
+    "rejected update: A0 IMPROVES lacked directional support; committed as UNCERTAIN",
+    "rejected update: A1 WORSENS lacked directional support; committed as UNCERTAIN",
+    "rejected update: decisive numbers are not tied to the affected subject or Rawlsian position",
+    "rejected update: Rawlsian preference lacks a stated difference in position or principle priority",
+    "Would verifying this unestablished consequence reverse the admitted ranking: There is only one dose of medicine, so only one patient can benefit?"
+  ],
+  "disagreements": [
+    {
+      "framework": "utilitarian",
+      "kind": "unclassified",
+      "dependency": "Survival probabilities decisive for utilitarian calculus.",
+      "record": "cycles/2/candidates/0/reversal_condition"
+    },
+    {
+      "framework": "deontological",
+      "kind": "normative",
+      "dependency": "rescue duty no longer decisive",
+      "record": "cycles/2/candidates/1/normative_reversal_threshold"
+    },
+    {
+      "framework": "virtue",
+      "kind": "unclassified",
+      "dependency": "Higher efficacy is decisive for prudent stewardship",
+      "record": "cycles/2/candidates/2/reversal_condition"
+    }
+  ],
+  "agreement": "Recorded preferences agree; this is not a collective verdict.",
+  "not_decided": [
+    "This report does not adjudicate a governing moral verdict.",
+    "Ledger admission does not prove the argument or supply missing welfare units.",
+    "Unresolved objections remain live; reported reversal thresholds are not source facts."
+  ],
+  "stipulated_claims": [
+    {
+      "proposition_id": "PROP:WORLD:E2",
+      "claim": "Ben has a 95% chance of survival; affected subject: Ben; modality: PROBABILISTIC",
+      "proposition_type": "DESCRIPTIVE",
+      "epistemic_status": "STIPULATED",
+      "support_ids": [
+        "E2"
+      ],
+      "derived_from": [],
+      "introduced_by": "WORLD_MODEL",
+      "mention_count": 16,
+      "decision_critical_mentions": 2,
+      "epistemic_type": "WORLD_ESTABLISHED",
+      "aliases": [
+        "Ben has a 95% chance of survival"
+      ],
+      "action_id": "A0",
+      "outcome": "Ben has a 95% chance of survival",
+      "polarity": "BENEFICIAL",
+      "party_labels": [
+        "Ben"
+      ],
+      "quantities": [],
+      "effect_kind": "OTHER",
+      "context_terms": [
+        "Ben has a 95% chance of survival",
+        "95% chance — Ben has a 95% chance of survival",
+        "Ada gives the medicine to Ben"
+      ],
+      "modality": "PROBABILISTIC",
+      "directness": "DOWNSTREAM",
+      "obtained_welfare": true
+    },
+    {
+      "proposition_id": "PROP:WORLD:E2:LIKELIHOOD:0",
+      "claim": "95% chance — Ben has a 95% chance of survival",
+      "proposition_type": "DESCRIPTIVE",
+      "epistemic_status": "STIPULATED",
+      "support_ids": [
+        "E2",
+        "95% chance"
+      ],
+      "derived_from": [],
+      "introduced_by": "WORLD_MODEL",
+      "mention_count": 6,
+      "decision_critical_mentions": 4,
+      "epistemic_type": "WORLD_ESTABLISHED",
+      "aliases": [],
+      "action_id": "A0",
+      "outcome": "Ben has a 95% chance of survival",
+      "polarity": "",
+      "party_labels": [
+        "Ben"
+      ],
+      "quantities": [],
+      "effect_kind": "",
+      "context_terms": [
+        "Ben has a 95% chance of survival",
+        "95% chance — Ben has a 95% chance of survival",
+        "Ada gives the medicine to Ben"
+      ],
+      "modality": "PROBABILISTIC",
+      "directness": "",
+      "obtained_welfare": true
+    },
+    {
+      "proposition_id": "PROP:WORLD:E4",
+      "claim": "Cara has a 5% chance of survival; affected subject: Cara; modality: PROBABILISTIC",
+      "proposition_type": "DESCRIPTIVE",
+      "epistemic_status": "STIPULATED",
+      "support_ids": [
+        "E4"
+      ],
+      "derived_from": [],
+      "introduced_by": "WORLD_MODEL",
+      "mention_count": 16,
+      "decision_critical_mentions": 2,
+      "epistemic_type": "WORLD_ESTABLISHED",
+      "aliases": [
+        "Cara has a 5% chance of survival"
+      ],
+      "action_id": "A1",
+      "outcome": "Cara has a 5% chance of survival",
+      "polarity": "BENEFICIAL",
+      "party_labels": [
+        "Cara"
+      ],
+      "quantities": [],
+      "effect_kind": "OTHER",
+      "context_terms": [
+        "Cara has a 5% chance of survival",
+        "5% chance — Cara has a 5% chance of survival",
+        "Ada gives the medicine to Cara"
+      ],
+      "modality": "PROBABILISTIC",
+      "directness": "DOWNSTREAM",
+      "obtained_welfare": true
+    },
+    {
+      "proposition_id": "PROP:WORLD:E4:LIKELIHOOD:0",
+      "claim": "5% chance — Cara has a 5% chance of survival",
+      "proposition_type": "DESCRIPTIVE",
+      "epistemic_status": "STIPULATED",
+      "support_ids": [
+        "E4",
+        "5% chance"
+      ],
+      "derived_from": [],
+      "introduced_by": "WORLD_MODEL",
+      "mention_count": 6,
+      "decision_critical_mentions": 4,
+      "epistemic_type": "WORLD_ESTABLISHED",
+      "aliases": [],
+      "action_id": "A1",
+      "outcome": "Cara has a 5% chance of survival",
+      "polarity": "",
+      "party_labels": [
+        "Cara"
+      ],
+      "quantities": [],
+      "effect_kind": "",
+      "context_terms": [
+        "Cara has a 5% chance of survival",
+        "5% chance — Cara has a 5% chance of survival",
+        "Ada gives the medicine to Cara"
+      ],
+      "modality": "PROBABILISTIC",
+      "directness": "",
+      "obtained_welfare": true
+    }
+  ],
+  "missing_slots": [],
+  "diagram_notices": [],
+  "provenance": {
+    "origin": "SAVED_DEMO_REPORT",
+    "new_model_calls": 0,
+    "report_sha256": "d097f7b15486d1c6dc1ae5e8b9dcbece10f2e3e3cd2c683cd4426c609d71f627"
+  }
+}

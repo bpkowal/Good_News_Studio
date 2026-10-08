@@ -1,0 +1,1496 @@
+{
+  "chosen_blueprint_id": "exclusive_allocation",
+  "status": "FILLED",
+  "question": {
+    "ethical_question": "",
+    "scenario_options": [],
+    "exclusivity": "evidenced",
+    "exclusivity_proof": {
+      "status": "EXPLICIT",
+      "evidence": [
+        {
+          "text": "but not both",
+          "clause_id": "C1",
+          "start": 83,
+          "end": 95
+        }
+      ],
+      "assumptions": [],
+      "explanation": "The source explicitly says that both alternatives cannot occur."
+    },
+    "participants": [
+      {
+        "role": "subject",
+        "mention": "It",
+        "predicate": "given"
+      },
+      {
+        "role": "subject",
+        "mention": "Malik",
+        "predicate": "receives"
+      },
+      {
+        "role": "object",
+        "mention": "the serum",
+        "predicate": "receives"
+      },
+      {
+        "role": "subject",
+        "mention": "he",
+        "predicate": "has"
+      },
+      {
+        "role": "object",
+        "mention": "a 70% chance",
+        "predicate": "has"
+      },
+      {
+        "role": "subject",
+        "mention": "Rosa",
+        "predicate": "receives"
+      },
+      {
+        "role": "object",
+        "mention": "the serum",
+        "predicate": "receives"
+      },
+      {
+        "role": "subject",
+        "mention": "she",
+        "predicate": "has"
+      },
+      {
+        "role": "object",
+        "mention": "a 60% chance",
+        "predicate": "has"
+      },
+      {
+        "role": "subject",
+        "mention": "The person",
+        "predicate": "die"
+      },
+      {
+        "role": "destination",
+        "mention": "Malik",
+        "predicate": "given"
+      },
+      {
+        "role": "destination",
+        "mention": "Rosa",
+        "predicate": "given"
+      },
+      {
+        "role": "destination",
+        "mention": "both",
+        "predicate": "given"
+      }
+    ],
+    "eligible_for_world_state": true
+  },
+  "z10_blueprint_comparison": {
+    "comparison_version": "z10-blueprint-comparison/0.1",
+    "policy": "independent_nonbinding_comparison",
+    "selection_changed": false,
+    "z10_package_id": "blueprint_run_47134245ba59",
+    "z10_open_question_ids": [
+      "q0",
+      "q1",
+      "q2",
+      "q3",
+      "q4",
+      "q5",
+      "q6",
+      "q7",
+      "q8",
+      "q9",
+      "q10",
+      "q11",
+      "q12",
+      "q13",
+      "q14"
+    ],
+    "candidate_comparisons": [
+      {
+        "blueprint_id": "exclusive_allocation",
+        "rank": 0,
+        "status": "AGREEMENT",
+        "agreement": [
+          "have",
+          "receive",
+          "survive"
+        ],
+        "z10_only": [
+          "be",
+          "die",
+          "give",
+          "leave"
+        ],
+        "blueprint_only": [
+          "malik",
+          "rosa"
+        ],
+        "conflicts": [],
+        "z10_relations": [
+          "CONDITIONAL_ON",
+          "MODALITY"
+        ],
+        "blueprint_relations": [
+          "CONDITIONAL_ON",
+          "ENABLES"
+        ],
+        "z10_participant_roles": [
+          "destination",
+          "object",
+          "subject"
+        ],
+        "blueprint_party_labels": [
+          "Malik",
+          "Priya",
+          "Rosa",
+          "serum"
+        ]
+      },
+      {
+        "blueprint_id": "rescue_contrast",
+        "rank": 1,
+        "status": "NO_BLUEPRINT_WORLD",
+        "agreement": [],
+        "z10_only": [
+          "be",
+          "die",
+          "give",
+          "have",
+          "leave",
+          "receive",
+          "survive"
+        ],
+        "blueprint_only": [],
+        "conflicts": []
+      },
+      {
+        "blueprint_id": "conditional_outcome",
+        "rank": 2,
+        "status": "AGREEMENT",
+        "agreement": [
+          "have",
+          "receive",
+          "survive"
+        ],
+        "z10_only": [
+          "be",
+          "die",
+          "give",
+          "leave"
+        ],
+        "blueprint_only": [
+          "if"
+        ],
+        "conflicts": [],
+        "z10_relations": [
+          "CONDITIONAL_ON",
+          "MODALITY"
+        ],
+        "blueprint_relations": [
+          "CONDITIONAL_ON",
+          "ENABLES"
+        ],
+        "z10_participant_roles": [
+          "destination",
+          "object",
+          "subject"
+        ],
+        "blueprint_party_labels": [
+          "Malik",
+          "Priya"
+        ]
+      }
+    ]
+  },
+  "attempts": [
+    {
+      "blueprint_id": "exclusive_allocation",
+      "rank": 0,
+      "template_status": "FILLED",
+      "selected": true,
+      "core_filled": 5,
+      "core_count": 5,
+      "optional_filled": 10,
+      "unfilled_slots": [
+        "quantity",
+        "first_hedge",
+        "second_hedge",
+        "nonreceipt"
+      ],
+      "contract_valid": true,
+      "contract_errors": [],
+      "proposal": {
+        "proposal_contract_version": "blueprint-proposal-contract/0.3",
+        "proposal_id": "exclusive_allocation_cloze",
+        "blueprint_id": "exclusive_allocation",
+        "status": "FILLED",
+        "assignment_kind": "intervention_text",
+        "assignment": [
+          "Malik receives the serum",
+          "Rosa receives the serum"
+        ],
+        "slot_bindings": {
+          "copied_spans": {
+            "decider": "Priya",
+            "resource": "serum",
+            "first_transfer": "Malik receives the serum",
+            "second_transfer": "Rosa receives the serum",
+            "first_recipient": "Malik",
+            "second_recipient": "Rosa",
+            "exclusivity": "not both",
+            "first_outcome": "he has a 70% chance of surviving",
+            "second_outcome": "she has a 60% chance of surviving",
+            "first_branch_sentence": "If Malik receives the serum, he has a 70% chance of surviving",
+            "second_branch_sentence": "If Rosa receives the serum, she has a 60% chance of surviving",
+            "survival_chance": "70% chance of surviving",
+            "assignment": "Malik receives the serum",
+            "first_implied_process": "administering",
+            "second_implied_process": "administering"
+          }
+        },
+        "selection": null,
+        "selection_validation": {
+          "contract_valid": null,
+          "status": "not_assessed",
+          "reason": "The cloze path has no Z10 candidate selection."
+        },
+        "candidate": {
+          "actions": {
+            "A0": {
+              "clause_ids": [
+                "C2"
+              ],
+              "reason": "Filled from copied cloze slots."
+            },
+            "A1": {
+              "clause_ids": [
+                "C3"
+              ],
+              "reason": "Filled from copied cloze slots."
+            }
+          },
+          "world_model": {
+            "schema_version": "1.3",
+            "parties": [
+              {
+                "party_id": "P1",
+                "label": "Priya",
+                "kind": "PERSON",
+                "quantities": [],
+                "clause_ids": [
+                  "C1"
+                ]
+              },
+              {
+                "party_id": "P2",
+                "label": "serum",
+                "kind": "RESOURCE",
+                "quantities": [],
+                "clause_ids": [
+                  "C0",
+                  "C2",
+                  "C3",
+                  "C4"
+                ]
+              },
+              {
+                "party_id": "P3",
+                "label": "Malik",
+                "kind": "PERSON",
+                "quantities": [],
+                "clause_ids": [
+                  "C1",
+                  "C2"
+                ]
+              },
+              {
+                "party_id": "P4",
+                "label": "Rosa",
+                "kind": "PERSON",
+                "quantities": [],
+                "clause_ids": [
+                  "C1",
+                  "C3"
+                ]
+              }
+            ],
+            "actions": [
+              {
+                "action_id": "A0",
+                "intervention": "Malik receives the serum",
+                "actor_party_id": "P1",
+                "recipient_party_ids": [
+                  "P3"
+                ],
+                "effect_ids": [
+                  "E1",
+                  "E2"
+                ],
+                "clause_ids": [
+                  "C2"
+                ]
+              },
+              {
+                "action_id": "A1",
+                "intervention": "Rosa receives the serum",
+                "actor_party_id": "P1",
+                "recipient_party_ids": [
+                  "P4"
+                ],
+                "effect_ids": [
+                  "E3",
+                  "E4"
+                ],
+                "clause_ids": [
+                  "C3"
+                ]
+              }
+            ],
+            "effects": [
+              {
+                "effect_id": "E1",
+                "action_id": "A0",
+                "party_id": "P3",
+                "outcome": "Malik receives the serum",
+                "predicate": "malik",
+                "polarity": "NEUTRAL",
+                "directness": "DIRECT",
+                "modality": "CERTAIN",
+                "effect_kind": "RESOURCE_TRANSFER",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "Malik receives the serum",
+                "source_effect_ids": [],
+                "derivation_operation": "DIRECT_COPY",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C2"
+                ]
+              },
+              {
+                "effect_id": "E2",
+                "action_id": "A0",
+                "party_id": "P3",
+                "outcome": "he has a 70% chance of surviving",
+                "predicate": "survive",
+                "polarity": "BENEFICIAL",
+                "directness": "DOWNSTREAM",
+                "modality": "PROBABILISTIC",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [
+                  "70% chance"
+                ],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "he has a 70% chance of surviving",
+                "source_effect_ids": [
+                  "E1"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C2"
+                ]
+              },
+              {
+                "effect_id": "E3",
+                "action_id": "A1",
+                "party_id": "P4",
+                "outcome": "Rosa receives the serum",
+                "predicate": "rosa",
+                "polarity": "NEUTRAL",
+                "directness": "DIRECT",
+                "modality": "CERTAIN",
+                "effect_kind": "RESOURCE_TRANSFER",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "Rosa receives the serum",
+                "source_effect_ids": [],
+                "derivation_operation": "DIRECT_COPY",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C3"
+                ]
+              },
+              {
+                "effect_id": "E4",
+                "action_id": "A1",
+                "party_id": "P4",
+                "outcome": "she has a 60% chance of surviving",
+                "predicate": "survive",
+                "polarity": "BENEFICIAL",
+                "directness": "DOWNSTREAM",
+                "modality": "PROBABILISTIC",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [
+                  "60% chance"
+                ],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "she has a 60% chance of surviving",
+                "source_effect_ids": [
+                  "E3"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C3"
+                ]
+              }
+            ],
+            "conditions": [],
+            "temporal_relations": [],
+            "causal_links": [
+              {
+                "action_id": "A0",
+                "source_id": "E1",
+                "link_relation": "ENABLES",
+                "target_id": "E2",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C2"
+                ]
+              },
+              {
+                "action_id": "A1",
+                "source_id": "E3",
+                "link_relation": "ENABLES",
+                "target_id": "E4",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C3"
+                ]
+              }
+            ],
+            "counterfactual_links": []
+          },
+          "ellipsis_resolutions": []
+        },
+        "clauses": [
+          {
+            "clause_id": "C0",
+            "text": "There is a single dose of serum."
+          },
+          {
+            "clause_id": "C1",
+            "text": "It can be given by Priya to either Malik or Rosa, but not both."
+          },
+          {
+            "clause_id": "C2",
+            "text": "If Malik receives the serum, he has a 70% chance of surviving."
+          },
+          {
+            "clause_id": "C3",
+            "text": "If Rosa receives the serum, she has a 60% chance of surviving."
+          },
+          {
+            "clause_id": "C4",
+            "text": "The person left without serum will die."
+          }
+        ],
+        "unfilled_required_slots": [],
+        "unresolved_readings": [],
+        "construction_problems": [],
+        "admission_authorized": true,
+        "notes": [
+          "Implied process for the first outcome: administering. This is a warning, not a cause copied from the text.",
+          "Implied process for the second outcome: administering. This is a warning, not a cause copied from the text."
+        ],
+        "pre_world_assessment": {
+          "ethical_question": "",
+          "scenario_options": [],
+          "exclusivity": "evidenced",
+          "exclusivity_proof": {
+            "status": "EXPLICIT",
+            "evidence": [
+              {
+                "text": "but not both",
+                "clause_id": "C1",
+                "start": 83,
+                "end": 95
+              }
+            ],
+            "assumptions": [],
+            "explanation": "The source explicitly says that both alternatives cannot occur."
+          },
+          "participants": [
+            {
+              "role": "subject",
+              "mention": "It",
+              "predicate": "given"
+            },
+            {
+              "role": "subject",
+              "mention": "Malik",
+              "predicate": "receives"
+            },
+            {
+              "role": "object",
+              "mention": "the serum",
+              "predicate": "receives"
+            },
+            {
+              "role": "subject",
+              "mention": "he",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "a 70% chance",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "Rosa",
+              "predicate": "receives"
+            },
+            {
+              "role": "object",
+              "mention": "the serum",
+              "predicate": "receives"
+            },
+            {
+              "role": "subject",
+              "mention": "she",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "a 60% chance",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "The person",
+              "predicate": "die"
+            },
+            {
+              "role": "destination",
+              "mention": "Malik",
+              "predicate": "given"
+            },
+            {
+              "role": "destination",
+              "mention": "Rosa",
+              "predicate": "given"
+            },
+            {
+              "role": "destination",
+              "mention": "both",
+              "predicate": "given"
+            }
+          ],
+          "eligible_for_world_state": true,
+          "status": "ASSESSED"
+        },
+        "accepted_evidence": {
+          "decider": "Priya",
+          "resource": "serum",
+          "assignment": "Malik receives the serum",
+          "first_transfer": "Malik receives the serum",
+          "second_transfer": "Rosa receives the serum",
+          "first_recipient": "Malik",
+          "second_recipient": "Rosa",
+          "exclusivity": "not both",
+          "first_outcome": "he has a 70% chance of surviving",
+          "second_outcome": "she has a 60% chance of surviving",
+          "first_implied_process": "administering",
+          "second_implied_process": "administering",
+          "first_branch_sentence": "If Malik receives the serum, he has a 70% chance of surviving",
+          "second_branch_sentence": "If Rosa receives the serum, she has a 60% chance of surviving",
+          "survival_chance": "70% chance of surviving"
+        },
+        "construction_provenance": [
+          {
+            "atom_id": "party:P1",
+            "atom_kind": "party",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C1"
+            ],
+            "evidence": [
+              "Priya"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "party:P2",
+            "atom_kind": "party",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C0",
+              "C2",
+              "C3",
+              "C4"
+            ],
+            "evidence": [
+              "serum"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "party:P3",
+            "atom_kind": "party",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C1",
+              "C2"
+            ],
+            "evidence": [
+              "Malik"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "party:P4",
+            "atom_kind": "party",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C1",
+              "C3"
+            ],
+            "evidence": [
+              "Rosa"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "action:A0",
+            "atom_kind": "action",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C2"
+            ],
+            "evidence": [
+              "Malik receives the serum"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "action:A1",
+            "atom_kind": "action",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C3"
+            ],
+            "evidence": [
+              "Rosa receives the serum"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "effect:E1",
+            "atom_kind": "effect",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C2"
+            ],
+            "evidence": [
+              "Malik receives the serum"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "effect:E2",
+            "atom_kind": "effect",
+            "origin": "STRUCTURALLY_DERIVED",
+            "clause_ids": [
+              "C2"
+            ],
+            "evidence": [
+              "he has a 70% chance of surviving"
+            ],
+            "explanation": "SOURCE_STIPULATED_CAUSAL"
+          },
+          {
+            "atom_id": "effect:E3",
+            "atom_kind": "effect",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C3"
+            ],
+            "evidence": [
+              "Rosa receives the serum"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "effect:E4",
+            "atom_kind": "effect",
+            "origin": "STRUCTURALLY_DERIVED",
+            "clause_ids": [
+              "C3"
+            ],
+            "evidence": [
+              "she has a 60% chance of surviving"
+            ],
+            "explanation": "SOURCE_STIPULATED_CAUSAL"
+          },
+          {
+            "atom_id": "relation:0",
+            "atom_kind": "relation",
+            "origin": "UNRESOLVED",
+            "clause_ids": [
+              "C2"
+            ],
+            "evidence": [],
+            "explanation": "A conditional association requires a working Parliament relation."
+          },
+          {
+            "atom_id": "relation:1",
+            "atom_kind": "relation",
+            "origin": "UNRESOLVED",
+            "clause_ids": [
+              "C3"
+            ],
+            "evidence": [],
+            "explanation": "A conditional association requires a working Parliament relation."
+          },
+          {
+            "atom_id": "hypothesis:first_implied_process",
+            "atom_kind": "hypothesis",
+            "origin": "WORLD_KNOWLEDGE_HYPOTHESIS",
+            "clause_ids": [],
+            "evidence": [
+              "administering"
+            ],
+            "explanation": "Model-suggested process; excluded from the Parliament world."
+          },
+          {
+            "atom_id": "hypothesis:second_implied_process",
+            "atom_kind": "hypothesis",
+            "origin": "WORLD_KNOWLEDGE_HYPOTHESIS",
+            "clause_ids": [],
+            "evidence": [
+              "administering"
+            ],
+            "explanation": "Model-suggested process; excluded from the Parliament world."
+          }
+        ],
+        "relation_alternatives": [
+          {
+            "relation_id": "relation:0",
+            "source_id": "E1",
+            "target_id": "E2",
+            "selected_for_parliament": "ENABLES",
+            "alternatives": [
+              "ENABLES",
+              "CAUSES"
+            ],
+            "status": "UNRESOLVED",
+            "evidence": [],
+            "condition_ids": [],
+            "structural_basis": "conditional_parent"
+          },
+          {
+            "relation_id": "relation:1",
+            "source_id": "E3",
+            "target_id": "E4",
+            "selected_for_parliament": "ENABLES",
+            "alternatives": [
+              "ENABLES",
+              "CAUSES"
+            ],
+            "status": "UNRESOLVED",
+            "evidence": [],
+            "condition_ids": [],
+            "structural_basis": "conditional_parent"
+          }
+        ],
+        "exclusivity_proof": {
+          "status": "EXPLICIT",
+          "evidence": [
+            {
+              "text": "but not both",
+              "clause_id": "C1",
+              "start": 83,
+              "end": 95
+            }
+          ],
+          "assumptions": [],
+          "explanation": "The source explicitly says that both alternatives cannot occur."
+        },
+        "world_withheld": []
+      }
+    },
+    {
+      "blueprint_id": "rescue_contrast",
+      "rank": 1,
+      "template_status": "PARTIAL",
+      "selected": false,
+      "core_filled": 2,
+      "core_count": 8,
+      "optional_filled": 3,
+      "unfilled_slots": [
+        "first_saved",
+        "second_saved",
+        "first_rescue_action",
+        "second_rescue_action",
+        "first_benefit",
+        "second_benefit"
+      ],
+      "contract_valid": true,
+      "contract_errors": [],
+      "proposal": {
+        "proposal_contract_version": "blueprint-proposal-contract/0.3",
+        "proposal_id": "rescue_contrast_cloze",
+        "blueprint_id": "rescue_contrast",
+        "status": "WITHHELD",
+        "assignment_kind": "none",
+        "assignment": [],
+        "slot_bindings": {
+          "copied_spans": {
+            "rescuer": "Priya",
+            "rescue_exclusivity": "but not both",
+            "first_harm": "The person left without serum will die",
+            "second_harm": "The person left without serum will die",
+            "scene": "The person left without serum will die"
+          }
+        },
+        "selection": null,
+        "selection_validation": {
+          "contract_valid": null,
+          "status": "not_assessed",
+          "reason": "No Z10 candidate selection was constructed."
+        },
+        "candidate": null,
+        "clauses": [
+          {
+            "clause_id": "C0",
+            "text": "There is a single dose of serum."
+          },
+          {
+            "clause_id": "C1",
+            "text": "It can be given by Priya to either Malik or Rosa, but not both."
+          },
+          {
+            "clause_id": "C2",
+            "text": "If Malik receives the serum, he has a 70% chance of surviving."
+          },
+          {
+            "clause_id": "C3",
+            "text": "If Rosa receives the serum, she has a 60% chance of surviving."
+          },
+          {
+            "clause_id": "C4",
+            "text": "The person left without serum will die."
+          }
+        ],
+        "unfilled_required_slots": [
+          "first_saved",
+          "second_saved",
+          "first_rescue_action",
+          "second_rescue_action",
+          "first_benefit",
+          "second_benefit"
+        ],
+        "unresolved_readings": [],
+        "construction_problems": [
+          {
+            "code": "world_withheld",
+            "message": "Required slots remain unfilled: first_saved, second_saved, first_rescue_action, second_rescue_action, first_benefit, second_benefit"
+          }
+        ],
+        "admission_authorized": false,
+        "notes": [],
+        "pre_world_assessment": {
+          "ethical_question": "",
+          "scenario_options": [],
+          "exclusivity": "evidenced",
+          "exclusivity_proof": {
+            "status": "EXPLICIT",
+            "evidence": [
+              {
+                "text": "but not both",
+                "clause_id": "C1",
+                "start": 83,
+                "end": 95
+              }
+            ],
+            "assumptions": [],
+            "explanation": "The source explicitly says that both alternatives cannot occur."
+          },
+          "participants": [
+            {
+              "role": "subject",
+              "mention": "It",
+              "predicate": "given"
+            },
+            {
+              "role": "subject",
+              "mention": "Malik",
+              "predicate": "receives"
+            },
+            {
+              "role": "object",
+              "mention": "the serum",
+              "predicate": "receives"
+            },
+            {
+              "role": "subject",
+              "mention": "he",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "a 70% chance",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "Rosa",
+              "predicate": "receives"
+            },
+            {
+              "role": "object",
+              "mention": "the serum",
+              "predicate": "receives"
+            },
+            {
+              "role": "subject",
+              "mention": "she",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "a 60% chance",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "The person",
+              "predicate": "die"
+            },
+            {
+              "role": "destination",
+              "mention": "Malik",
+              "predicate": "given"
+            },
+            {
+              "role": "destination",
+              "mention": "Rosa",
+              "predicate": "given"
+            },
+            {
+              "role": "destination",
+              "mention": "both",
+              "predicate": "given"
+            }
+          ],
+          "status": "WITHHELD",
+          "eligible_for_world_state": false
+        },
+        "accepted_evidence": {
+          "rescuer": "Priya",
+          "rescue_exclusivity": "but not both",
+          "first_harm": "The person left without serum will die",
+          "second_harm": "The person left without serum will die",
+          "scene": "The person left without serum will die"
+        },
+        "construction_provenance": [
+          {
+            "atom_id": "slot:rescuer",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Priya"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:rescue_exclusivity",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "but not both"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:first_harm",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "The person left without serum will die"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:second_harm",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "The person left without serum will die"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:scene",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "The person left without serum will die"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          }
+        ],
+        "relation_alternatives": [],
+        "exclusivity_proof": {
+          "status": "EXPLICIT",
+          "evidence": [
+            {
+              "text": "but not both",
+              "clause_id": "C1",
+              "start": 83,
+              "end": 95
+            }
+          ],
+          "assumptions": [],
+          "explanation": "The source explicitly says that both alternatives cannot occur."
+        },
+        "world_withheld": [
+          "Required slots remain unfilled: first_saved, second_saved, first_rescue_action, second_rescue_action, first_benefit, second_benefit"
+        ]
+      }
+    },
+    {
+      "blueprint_id": "conditional_outcome",
+      "rank": 2,
+      "template_status": "FILLED",
+      "selected": false,
+      "core_filled": 3,
+      "core_count": 3,
+      "optional_filled": 3,
+      "unfilled_slots": [
+        "second_outcome",
+        "chance"
+      ],
+      "contract_valid": true,
+      "contract_errors": [],
+      "proposal": {
+        "proposal_contract_version": "blueprint-proposal-contract/0.3",
+        "proposal_id": "conditional_outcome_cloze",
+        "blueprint_id": "conditional_outcome",
+        "status": "FILLED",
+        "assignment_kind": "intervention_text",
+        "assignment": [
+          "If Malik receives the serum"
+        ],
+        "slot_bindings": {
+          "copied_spans": {
+            "actor": "Priya",
+            "condition": "If Malik receives the serum",
+            "bearer": "Malik",
+            "outcome": "he has a 70% chance of surviving",
+            "second_condition": "If Rosa receives the serum",
+            "second_bearer": "Rosa"
+          }
+        },
+        "selection": null,
+        "selection_validation": {
+          "contract_valid": null,
+          "status": "not_assessed",
+          "reason": "The cloze path has no Z10 candidate selection."
+        },
+        "candidate": {
+          "actions": {
+            "A0": {
+              "clause_ids": [
+                "C2"
+              ],
+              "reason": "Filled from copied cloze slots."
+            }
+          },
+          "world_model": {
+            "schema_version": "1.3",
+            "parties": [
+              {
+                "party_id": "P1",
+                "label": "Priya",
+                "kind": "PERSON",
+                "quantities": [],
+                "clause_ids": [
+                  "C1"
+                ]
+              },
+              {
+                "party_id": "P2",
+                "label": "Malik",
+                "kind": "PERSON",
+                "quantities": [],
+                "clause_ids": [
+                  "C1",
+                  "C2"
+                ]
+              }
+            ],
+            "actions": [
+              {
+                "action_id": "A0",
+                "intervention": "If Malik receives the serum",
+                "actor_party_id": "P1",
+                "recipient_party_ids": [
+                  "P2"
+                ],
+                "effect_ids": [
+                  "E1",
+                  "E2"
+                ],
+                "clause_ids": [
+                  "C2"
+                ]
+              }
+            ],
+            "effects": [
+              {
+                "effect_id": "E1",
+                "action_id": "A0",
+                "party_id": "P2",
+                "outcome": "If Malik receives the serum",
+                "predicate": "if",
+                "polarity": "NEUTRAL",
+                "directness": "DIRECT",
+                "modality": "CERTAIN",
+                "effect_kind": "INTERVENTION",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "If Malik receives the serum",
+                "source_effect_ids": [],
+                "derivation_operation": "DIRECT_COPY",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C2"
+                ]
+              },
+              {
+                "effect_id": "E2",
+                "action_id": "A0",
+                "party_id": "P2",
+                "outcome": "he has a 70% chance of surviving",
+                "predicate": "survive",
+                "polarity": "BENEFICIAL",
+                "directness": "DOWNSTREAM",
+                "modality": "POSSIBLE",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "he has a 70% chance of surviving",
+                "source_effect_ids": [
+                  "E1"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C2"
+                ]
+              }
+            ],
+            "conditions": [],
+            "temporal_relations": [],
+            "causal_links": [
+              {
+                "action_id": "A0",
+                "source_id": "E1",
+                "link_relation": "ENABLES",
+                "target_id": "E2",
+                "modality": "POSSIBLE",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C2"
+                ]
+              }
+            ],
+            "counterfactual_links": []
+          },
+          "ellipsis_resolutions": []
+        },
+        "clauses": [
+          {
+            "clause_id": "C0",
+            "text": "There is a single dose of serum."
+          },
+          {
+            "clause_id": "C1",
+            "text": "It can be given by Priya to either Malik or Rosa, but not both."
+          },
+          {
+            "clause_id": "C2",
+            "text": "If Malik receives the serum, he has a 70% chance of surviving."
+          },
+          {
+            "clause_id": "C3",
+            "text": "If Rosa receives the serum, she has a 60% chance of surviving."
+          },
+          {
+            "clause_id": "C4",
+            "text": "The person left without serum will die."
+          }
+        ],
+        "unfilled_required_slots": [],
+        "unresolved_readings": [
+          {
+            "kind": "conditional_relation",
+            "alternatives": [
+              "CAUSES",
+              "ENABLES"
+            ]
+          }
+        ],
+        "construction_problems": [],
+        "admission_authorized": true,
+        "notes": [
+          "A partial second conditional remains unresolved: second_condition, second_bearer."
+        ],
+        "pre_world_assessment": {
+          "ethical_question": "",
+          "scenario_options": [],
+          "exclusivity": "evidenced",
+          "exclusivity_proof": {
+            "status": "EXPLICIT",
+            "evidence": [
+              {
+                "text": "but not both",
+                "clause_id": "C1",
+                "start": 83,
+                "end": 95
+              }
+            ],
+            "assumptions": [],
+            "explanation": "The source explicitly says that both alternatives cannot occur."
+          },
+          "participants": [
+            {
+              "role": "subject",
+              "mention": "It",
+              "predicate": "given"
+            },
+            {
+              "role": "subject",
+              "mention": "Malik",
+              "predicate": "receives"
+            },
+            {
+              "role": "object",
+              "mention": "the serum",
+              "predicate": "receives"
+            },
+            {
+              "role": "subject",
+              "mention": "he",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "a 70% chance",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "Rosa",
+              "predicate": "receives"
+            },
+            {
+              "role": "object",
+              "mention": "the serum",
+              "predicate": "receives"
+            },
+            {
+              "role": "subject",
+              "mention": "she",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "a 60% chance",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "The person",
+              "predicate": "die"
+            },
+            {
+              "role": "destination",
+              "mention": "Malik",
+              "predicate": "given"
+            },
+            {
+              "role": "destination",
+              "mention": "Rosa",
+              "predicate": "given"
+            },
+            {
+              "role": "destination",
+              "mention": "both",
+              "predicate": "given"
+            }
+          ],
+          "eligible_for_world_state": true,
+          "status": "ASSESSED"
+        },
+        "accepted_evidence": {
+          "actor": "Priya",
+          "condition": "If Malik receives the serum",
+          "bearer": "Malik",
+          "outcome": "he has a 70% chance of surviving",
+          "second_condition": "If Rosa receives the serum",
+          "second_bearer": "Rosa"
+        },
+        "construction_provenance": [
+          {
+            "atom_id": "party:P1",
+            "atom_kind": "party",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C1"
+            ],
+            "evidence": [
+              "Priya"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "party:P2",
+            "atom_kind": "party",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C1",
+              "C2"
+            ],
+            "evidence": [
+              "Malik"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "action:A0",
+            "atom_kind": "action",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C2"
+            ],
+            "evidence": [
+              "If Malik receives the serum"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "effect:E1",
+            "atom_kind": "effect",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C2"
+            ],
+            "evidence": [
+              "If Malik receives the serum"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "effect:E2",
+            "atom_kind": "effect",
+            "origin": "STRUCTURALLY_DERIVED",
+            "clause_ids": [
+              "C2"
+            ],
+            "evidence": [
+              "he has a 70% chance of surviving"
+            ],
+            "explanation": "SOURCE_STIPULATED_CAUSAL"
+          },
+          {
+            "atom_id": "relation:0",
+            "atom_kind": "relation",
+            "origin": "UNRESOLVED",
+            "clause_ids": [
+              "C2"
+            ],
+            "evidence": [],
+            "explanation": "A conditional association requires a working Parliament relation."
+          }
+        ],
+        "relation_alternatives": [
+          {
+            "relation_id": "relation:0",
+            "source_id": "E1",
+            "target_id": "E2",
+            "selected_for_parliament": "ENABLES",
+            "alternatives": [
+              "ENABLES",
+              "CAUSES"
+            ],
+            "status": "UNRESOLVED",
+            "evidence": [],
+            "condition_ids": [],
+            "structural_basis": "conditional_parent"
+          }
+        ],
+        "exclusivity_proof": {
+          "status": "EXPLICIT",
+          "evidence": [
+            {
+              "text": "but not both",
+              "clause_id": "C1",
+              "start": 83,
+              "end": 95
+            }
+          ],
+          "assumptions": [],
+          "explanation": "The source explicitly says that both alternatives cannot occur."
+        },
+        "world_withheld": []
+      }
+    }
+  ]
+}

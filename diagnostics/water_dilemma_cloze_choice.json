@@ -1,0 +1,689 @@
+{
+  "cloze_version": "blueprint-cloze-chooser/0.2",
+  "chosen_blueprint_id": "exclusive_allocation",
+  "status": "FILLED",
+  "ranking": [
+    "exclusive_allocation",
+    "rescue_contrast",
+    "omission_harm"
+  ],
+  "left_out": [
+    "conditional_outcome"
+  ],
+  "considered": [
+    {
+      "blueprint_id": "exclusive_allocation",
+      "status": "FILLED",
+      "rank": 0,
+      "core_filled": 5,
+      "core_count": 5,
+      "optional_filled": 8,
+      "rejected": 2,
+      "unfilled": [
+        "first_transfer",
+        "second_transfer",
+        "quantity",
+        "first_hedge",
+        "second_hedge",
+        "survival_chance"
+      ],
+      "slots": {
+        "decider": "An AI bot",
+        "resource": "the only water tanker",
+        "assignment": "devote the only water tanker",
+        "first_recipient": "a child",
+        "second_recipient": "five elderly patients",
+        "exclusivity": "but not both",
+        "first_outcome": "the child will live",
+        "second_outcome": "the five elderly patients will live",
+        "first_implied_process": "distribution",
+        "second_implied_process": "distribution",
+        "first_branch_sentence": "If the child gets the water, the child will live",
+        "second_branch_sentence": "If the five elderly patients get the water, the five elderly patients will live",
+        "nonreceipt": "The people who do not get the water will die"
+      },
+      "items": [
+        {
+          "id": "decider",
+          "core": true,
+          "sentence": "The person who must decide who gets the resource is",
+          "completion": "An AI bot must decide",
+          "span": "An AI bot",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "resource",
+          "core": true,
+          "sentence": "The resource that can be given is",
+          "completion": "the only water tanker",
+          "span": "the only water tanker",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "assignment",
+          "core": true,
+          "sentence": "The act that assigns that resource, in the text's own words, is",
+          "completion": "devote the only water tanker",
+          "span": "devote the only water tanker",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "first_transfer",
+          "core": false,
+          "sentence": "The giving, receipt, allocation, delivery, or administration of the resource to the first party is",
+          "completion": "If the child gets the water",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "second_transfer",
+          "core": false,
+          "sentence": "The giving, receipt, allocation, delivery, or administration of the resource to the second party is",
+          "completion": "If the five elderly patients get the water",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "quantity",
+          "core": false,
+          "sentence": "The exact amount of that resource, stated in the text, is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "first_recipient",
+          "core": true,
+          "sentence": "The first party mentioned in the text who could receive the resource or benefit is",
+          "completion": "a child",
+          "span": "a child",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_recipient",
+          "core": true,
+          "sentence": "The second party mentioned in the text who could receive the resource or benefit is",
+          "completion": "five elderly patients",
+          "span": "five elderly patients",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "exclusivity",
+          "core": false,
+          "sentence": "The words that say both parties cannot receive it are",
+          "completion": "but not both",
+          "span": "but not both",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "first_outcome",
+          "core": false,
+          "sentence": "The words that license what happens for the first party are",
+          "completion": "the child will live",
+          "span": "the child will live",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "first_hedge",
+          "core": false,
+          "sentence": "The if, unless, whether, or percent-chance words inside that first outcome are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "second_outcome",
+          "core": false,
+          "sentence": "The words that license what happens for the second party are",
+          "completion": "the five elderly patients will live",
+          "span": "the five elderly patients will live",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_hedge",
+          "core": false,
+          "sentence": "The if, unless, whether, or percent-chance words inside that second outcome are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "first_implied_process",
+          "core": false,
+          "sentence": "The process most aligned with the text might explain how \"the only water tanker\" leads to \"the child will live\" is",
+          "completion": "distribution",
+          "span": "distribution",
+          "verdict": "accepted",
+          "reason": "implied"
+        },
+        {
+          "id": "second_implied_process",
+          "core": false,
+          "sentence": "The process most aligned with the text might explain how \"the only water tanker\" leads to \"the five elderly patients will live\" is",
+          "completion": "distribution",
+          "span": "distribution",
+          "verdict": "accepted",
+          "reason": "implied"
+        },
+        {
+          "id": "first_branch_sentence",
+          "core": false,
+          "sentence": "The sentence that states the first branch and does not state the second is",
+          "completion": "If the child gets the water, the child will live.",
+          "span": "If the child gets the water, the child will live",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_branch_sentence",
+          "core": false,
+          "sentence": "The sentence that states the second branch and does not state the first is",
+          "completion": "If the five elderly patients get the water, the five elderly patients will live.",
+          "span": "If the five elderly patients get the water, the five elderly patients will live",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "survival_chance",
+          "core": false,
+          "sentence": "A stated chance of survival is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "nonreceipt",
+          "core": false,
+          "sentence": "The words that say the other party does not receive it are",
+          "completion": "The people who do not get the water will die.",
+          "span": "The people who do not get the water will die",
+          "verdict": "accepted",
+          "reason": "copied"
+        }
+      ]
+    },
+    {
+      "blueprint_id": "rescue_contrast",
+      "status": "PARTIAL",
+      "rank": 1,
+      "core_filled": 2,
+      "core_count": 3,
+      "optional_filled": 2,
+      "rejected": 2,
+      "unfilled": [
+        "saved",
+        "scene"
+      ],
+      "slots": {
+        "rescuer": "An AI bot",
+        "not_saved": "five elderly patients",
+        "survival": "the child will live",
+        "foregone": "The people who do not get the water will die"
+      },
+      "items": [
+        {
+          "id": "rescuer",
+          "core": true,
+          "sentence": "The person who can rescue someone is",
+          "completion": "An AI bot",
+          "span": "An AI bot",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "saved",
+          "core": true,
+          "sentence": "The party that person can save is",
+          "completion": "a child",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "not_saved",
+          "core": true,
+          "sentence": "The party that person cannot save is",
+          "completion": "five elderly patients",
+          "span": "five elderly patients",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "survival",
+          "core": false,
+          "sentence": "What the text says happens when the rescue succeeds is",
+          "completion": "the child will live",
+          "span": "the child will live",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "scene",
+          "core": false,
+          "sentence": "The parties named as already in danger are",
+          "completion": "the child or five elderly patients",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "not_a_copy"
+        },
+        {
+          "id": "foregone",
+          "core": false,
+          "sentence": "What the text says happens to the party who is not saved is",
+          "completion": "the people who do not get the water will die",
+          "span": "The people who do not get the water will die",
+          "verdict": "accepted",
+          "reason": "copied"
+        }
+      ]
+    },
+    {
+      "blueprint_id": "omission_harm",
+      "status": "PARTIAL",
+      "rank": 2,
+      "core_filled": 4,
+      "core_count": 5,
+      "optional_filled": 1,
+      "rejected": 0,
+      "unfilled": [
+        "omitted"
+      ],
+      "slots": {
+        "actor": "An AI bot",
+        "done": "devote the only water tanker to a child or five elderly patients",
+        "harm_done": "The people",
+        "harm_omitted": "The people",
+        "instrument": "water tanker"
+      },
+      "items": [
+        {
+          "id": "actor",
+          "core": true,
+          "sentence": "The person who may do the action or not do it is",
+          "completion": "An AI bot",
+          "span": "An AI bot",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "done",
+          "core": true,
+          "sentence": "The action the text says is done is",
+          "completion": "devote the only water tanker to a child or five elderly patients",
+          "span": "devote the only water tanker to a child or five elderly patients",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "omitted",
+          "core": true,
+          "sentence": "The action the text says is not done is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "harm_done",
+          "core": true,
+          "sentence": "Who is harmed if the action is done is",
+          "completion": "the people who do not get the water will die",
+          "span": "The people",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "harm_omitted",
+          "core": true,
+          "sentence": "Who is harmed if the action is not done is",
+          "completion": "the people who do not get the water will die",
+          "span": "The people",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "instrument",
+          "core": false,
+          "sentence": "Another instrument named beside the action is",
+          "completion": "water tanker",
+          "span": "water tanker",
+          "verdict": "accepted",
+          "reason": "copied"
+        }
+      ]
+    }
+  ],
+  "graph": {
+    "proposal_id": "exclusive_allocation_cloze",
+    "status": "FILLED",
+    "notes": [
+      "A0 has no source giving or receipt event, so the act stays an intervention.",
+      "A1 has no source giving or receipt event, so the act stays an intervention.",
+      "A1 joins two copied spans that are not adjacent.",
+      "Implied process for the first outcome: distribution. This is a warning, not a cause copied from the text.",
+      "Implied process for the second outcome: distribution. This is a warning, not a cause copied from the text."
+    ],
+    "candidate": {
+      "world_model": {
+        "schema_version": "1.3",
+        "parties": [
+          {
+            "party_id": "P1",
+            "label": "An AI bot",
+            "kind": "OTHER",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P2",
+            "label": "the only water tanker",
+            "kind": "RESOURCE",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P3",
+            "label": "a child",
+            "kind": "PERSON",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P4",
+            "label": "five elderly patients",
+            "kind": "HUMAN_GROUP",
+            "quantities": [
+              "five"
+            ],
+            "clause_ids": [
+              "C0",
+              "C2"
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "action_id": "A0",
+            "intervention": "devote the only water tanker to a child",
+            "actor_party_id": "P1",
+            "resource_party_id": "P2",
+            "recipient_party_ids": [
+              "P3"
+            ],
+            "effect_ids": [
+              "E1",
+              "E2",
+              "E5"
+            ],
+            "clause_ids": [
+              "C0",
+              "C1"
+            ]
+          },
+          {
+            "action_id": "A1",
+            "intervention": "devote the only water tanker to five elderly patients",
+            "actor_party_id": "P1",
+            "resource_party_id": "P2",
+            "recipient_party_ids": [
+              "P4"
+            ],
+            "effect_ids": [
+              "E3",
+              "E4",
+              "E6"
+            ],
+            "clause_ids": [
+              "C0",
+              "C2"
+            ]
+          }
+        ],
+        "effects": [
+          {
+            "effect_id": "E1",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "devote the only water tanker",
+            "predicate": "devote",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "INTERVENTION",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "devote the only water tanker",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "effect_id": "E2",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "the child will live",
+            "predicate": "live",
+            "polarity": "BENEFICIAL",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "the child will live",
+            "source_effect_ids": [
+              "E1"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C1"
+            ]
+          },
+          {
+            "effect_id": "E3",
+            "action_id": "A1",
+            "party_id": "P4",
+            "outcome": "devote the only water tanker",
+            "predicate": "devote",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "INTERVENTION",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "devote the only water tanker",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "effect_id": "E4",
+            "action_id": "A1",
+            "party_id": "P4",
+            "outcome": "the five elderly patients will live",
+            "predicate": "live",
+            "polarity": "BENEFICIAL",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [
+              "five"
+            ],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "the five elderly patients will live",
+            "source_effect_ids": [
+              "E3"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C2"
+            ]
+          },
+          {
+            "effect_id": "E5",
+            "action_id": "A0",
+            "party_id": "P4",
+            "outcome": "will die",
+            "predicate": "die",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "will die",
+            "source_effect_ids": [
+              "E1"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C3"
+            ]
+          },
+          {
+            "effect_id": "E6",
+            "action_id": "A1",
+            "party_id": "P3",
+            "outcome": "will die",
+            "predicate": "die",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "will die",
+            "source_effect_ids": [
+              "E3"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C3"
+            ]
+          }
+        ],
+        "conditions": [],
+        "temporal_relations": [],
+        "causal_links": [
+          {
+            "action_id": "A0",
+            "source_id": "E1",
+            "link_relation": "CAUSES",
+            "target_id": "E2",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C1"
+            ]
+          },
+          {
+            "action_id": "A1",
+            "source_id": "E3",
+            "link_relation": "CAUSES",
+            "target_id": "E4",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C2"
+            ]
+          },
+          {
+            "action_id": "A0",
+            "source_id": "E1",
+            "link_relation": "CAUSES",
+            "target_id": "E5",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C3"
+            ]
+          },
+          {
+            "action_id": "A1",
+            "source_id": "E3",
+            "link_relation": "CAUSES",
+            "target_id": "E6",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C3"
+            ]
+          }
+        ],
+        "counterfactual_links": []
+      },
+      "ellipsis_resolutions": []
+    }
+  }
+}

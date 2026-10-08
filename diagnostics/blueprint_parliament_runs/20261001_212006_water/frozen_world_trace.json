@@ -1,0 +1,755 @@
+{
+  "scenario": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning.",
+  "presentation_actions": [
+    "devote water to a farm",
+    "devote water to a small town"
+  ],
+  "actions": [
+    "devote water to a farm",
+    "devote water to a small town"
+  ],
+  "action_source_grounding": {
+    "status": "COMMITTED",
+    "actions": {
+      "A0": {
+        "action": "devote water to a farm",
+        "clause_ids": [
+          "C0"
+        ],
+        "clauses": [
+          {
+            "clause_id": "C0",
+            "text": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+          }
+        ],
+        "reason": "Filled from the cloze blanks."
+      },
+      "A1": {
+        "action": "devote water to a small town",
+        "clause_ids": [
+          "C0"
+        ],
+        "clauses": [
+          {
+            "clause_id": "C0",
+            "text": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+          }
+        ],
+        "reason": "Filled from the cloze blanks."
+      }
+    },
+    "world_model": {
+      "parties": [
+        {
+          "party_id": "P1",
+          "label": "An AI bot",
+          "kind": "OTHER",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P2",
+          "label": "water",
+          "kind": "RESOURCE",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P3",
+          "label": "a farm",
+          "kind": "COMMUNITY",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P4",
+          "label": "a small town",
+          "kind": "COMMUNITY",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P5",
+          "label": "100 people",
+          "kind": "HUMAN_GROUP",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+            }
+          ],
+          "quantities": [
+            "100"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "action_id": "A0",
+          "intervention": "devote water to a farm",
+          "actor_party_id": "P1",
+          "recipient_party_ids": [
+            "P3"
+          ],
+          "effect_ids": [
+            "E1",
+            "E2",
+            "AV0"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+            }
+          ]
+        },
+        {
+          "action_id": "A1",
+          "intervention": "devote water to a small town",
+          "actor_party_id": "P1",
+          "recipient_party_ids": [
+            "P4"
+          ],
+          "effect_ids": [
+            "E3",
+            "E4"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "effect_id": "E1",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "devote water",
+          "relation": "DEVOTE",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "INTERVENTION",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "devote water",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "a farm that can sustain a city's dietary needs",
+          "relation": "SUSTAIN",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "WELFARE_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "a farm that can sustain a city's dietary needs",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E3",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "devote water",
+          "relation": "DEVOTE",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "INTERVENTION",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "devote water",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E4",
+          "action_id": "A1",
+          "party_id": "P5",
+          "outcome": "a small town that will lose 100 people to drowning",
+          "relation": "DROWN",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [
+            "100"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "a small town that will lose 100 people to drowning",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "AV0",
+          "action_id": "A0",
+          "party_id": "P5",
+          "outcome": "averts alternative harm to 100 people",
+          "relation": "STATE_CHANGE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [
+            "100"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "a small town that will lose 100 people to drowning",
+          "source_effect_ids": [
+            "E4"
+          ],
+          "derivation_operation": "AVERTED_ALTERNATIVE_HARM",
+          "derivation_explanation": "A0 precludes CERTAIN alternative harm E4; quantity inherited from the opposed adverse effect",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "conditions": [],
+      "causal_links": [
+        {
+          "source_id": "E1",
+          "relation": "CAUSES",
+          "target_id": "E2",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E3",
+          "relation": "CAUSES",
+          "target_id": "E4",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+            }
+          ],
+          "action_id": "A1"
+        }
+      ],
+      "counterfactual_links": [
+        {
+          "action_id": "A0",
+          "source_effect_id": "AV0",
+          "relation": "PRECLUDES_ALTERNATIVE_EFFECT",
+          "alternative_action_id": "A1",
+          "alternative_effect_id": "E4",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+            }
+          ]
+        }
+      ],
+      "admission": {
+        "status": "COMMITTED_WITH_UNCERTAINTY",
+        "admitted_effect_ids": [
+          "E1",
+          "E2",
+          "E3",
+          "E4",
+          "AV0"
+        ],
+        "quarantined_effects": [],
+        "user_override": false,
+        "override_reason": "E2 is caused directly by act E1 while its source names P2 (RESOURCE water) as the intervening process; insert a PHYSICAL_STATE or OTHER effect on that named process as the immediate parent, replace the direct E1 -> E2 link with E1 -> process -> E2, and preserve the child effect E4 is caused directly by act E3 while its source names P2 (RESOURCE water) as the intervening process; insert a PHYSICAL_STATE or OTHER effect on that named process as the immediate parent, replace the direct E3 -> E4 link with E3 -> process -> E4, and preserve the child effect E4 is caused directly by another party's act or bodily outcome (E3); insert a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as the immediate parent. A person's framing, execution, or death is not that intermediate. Do not delete E4 or drop its causal_link without a replacement parent; the source also names P2 (RESOURCE water), a plausible missing process-state parent for E4 — confirm that reading from the source; an unused facility or resource is not automatically the correct intermediary"
+      },
+      "schema_version": "1.3",
+      "temporal_relations": []
+    },
+    "world_model_status": "COMMITTED_WITH_UNCERTAINTY",
+    "world_contradictions": [],
+    "errors": [],
+    "warnings": [
+      "A0, A1 cite the same sentence C0. Each action has its own words in that sentence (farm; small, town). This shared sentence is a warning, not a missing clause.",
+      "E2 is caused directly by act E1 while its source names P2 (RESOURCE water) as the intervening process; insert a PHYSICAL_STATE or OTHER effect on that named process as the immediate parent, replace the direct E1 -> E2 link with E1 -> process -> E2, and preserve the child effect E4 is caused directly by act E3 while its source names P2 (RESOURCE water) as the intervening process; insert a PHYSICAL_STATE or OTHER effect on that named process as the immediate parent, replace the direct E3 -> E4 link with E3 -> process -> E4, and preserve the child effect E4 is caused directly by another party's act or bodily outcome (E3); insert a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as the immediate parent. A person's framing, execution, or death is not that intermediate. Do not delete E4 or drop its causal_link without a replacement parent; the source also names P2 (RESOURCE water), a plausible missing process-state parent for E4 — confirm that reading from the source; an unused facility or resource is not automatically the correct intermediary"
+    ],
+    "validation_issues": [],
+    "compiler_loss_telemetry": {},
+    "clauses": [
+      {
+        "clause_id": "C0",
+        "text": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+      }
+    ]
+  },
+  "canonical_action_records": [
+    {
+      "action_id": "A0",
+      "short_label": "Devote water to a farm",
+      "canonical_semantic_action": "devote water to a farm",
+      "actor": "An AI bot",
+      "intervention": "devote water to a farm",
+      "beneficiaries": [
+        "a farm",
+        "100 people"
+      ],
+      "harmed": [],
+      "unresolved": [],
+      "at_risk": [],
+      "conditionally_benefited": [],
+      "unresolved_outcomes": [],
+      "grounded_effects": [
+        {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "a farm that can sustain a city's dietary needs",
+          "relation": "SUSTAIN",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "WELFARE_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "a farm that can sustain a city's dietary needs",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "AV0",
+          "action_id": "A0",
+          "party_id": "P5",
+          "outcome": "averts alternative harm to 100 people",
+          "relation": "STATE_CHANGE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [
+            "100"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "a small town that will lose 100 people to drowning",
+          "source_effect_ids": [
+            "E4"
+          ],
+          "derivation_operation": "AVERTED_ALTERNATIVE_HARM",
+          "derivation_explanation": "A0 precludes CERTAIN alternative harm E4; quantity inherited from the opposed adverse effect",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "world_effects": [
+        {
+          "effect_id": "E1",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "devote water",
+          "relation": "DEVOTE",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "INTERVENTION",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "devote water",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "a farm that can sustain a city's dietary needs",
+          "relation": "SUSTAIN",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "WELFARE_OUTCOME",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "a farm that can sustain a city's dietary needs",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "AV0",
+          "action_id": "A0",
+          "party_id": "P5",
+          "outcome": "averts alternative harm to 100 people",
+          "relation": "STATE_CHANGE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [
+            "100"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "a small town that will lose 100 people to drowning",
+          "source_effect_ids": [
+            "E4"
+          ],
+          "derivation_operation": "AVERTED_ALTERNATIVE_HARM",
+          "derivation_explanation": "A0 precludes CERTAIN alternative harm E4; quantity inherited from the opposed adverse effect",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "causal_links": [
+        {
+          "action_id": "A0",
+          "source_id": "E1",
+          "relation": "CAUSES",
+          "target_id": "E2",
+          "modality": "CERTAIN"
+        }
+      ],
+      "counterfactual_effects": [
+        {
+          "action_id": "A0",
+          "source_effect_id": "AV0",
+          "relation": "PRECLUDES_ALTERNATIVE_EFFECT",
+          "alternative_action_id": "A1",
+          "alternative_effect_id": "E4",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+            }
+          ]
+        }
+      ],
+      "mechanism": "devote water causes a farm that can sustain a city's dietary needs",
+      "institutional_effect": "",
+      "source_clauses": [
+        "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+      ],
+      "completeness_status": "COMPLETE",
+      "missing_critical": [],
+      "structure_issues": [],
+      "commitment_status": "COMMITTED",
+      "commitment_reasons": [],
+      "source_label": "",
+      "presentation_action": "devote water to a farm",
+      "action_origin": "FROZEN_REPLAY"
+    },
+    {
+      "action_id": "A1",
+      "short_label": "Devote water to a small town",
+      "canonical_semantic_action": "devote water to a small town",
+      "actor": "An AI bot",
+      "intervention": "devote water to a small town",
+      "beneficiaries": [],
+      "harmed": [
+        "100 people"
+      ],
+      "unresolved": [],
+      "at_risk": [],
+      "conditionally_benefited": [],
+      "unresolved_outcomes": [],
+      "grounded_effects": [
+        {
+          "effect_id": "E4",
+          "action_id": "A1",
+          "party_id": "P5",
+          "outcome": "a small town that will lose 100 people to drowning",
+          "relation": "DROWN",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [
+            "100"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "a small town that will lose 100 people to drowning",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "world_effects": [
+        {
+          "effect_id": "E3",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "devote water",
+          "relation": "DEVOTE",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "INTERVENTION",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "devote water",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E4",
+          "action_id": "A1",
+          "party_id": "P5",
+          "outcome": "a small town that will lose 100 people to drowning",
+          "relation": "DROWN",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [
+            "100"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "a small town that will lose 100 people to drowning",
+          "source_effect_ids": [
+            "E3"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "causal_links": [
+        {
+          "action_id": "A1",
+          "source_id": "E3",
+          "relation": "CAUSES",
+          "target_id": "E4",
+          "modality": "CERTAIN"
+        }
+      ],
+      "counterfactual_effects": [],
+      "mechanism": "devote water causes a small town that will lose 100 people to drowning",
+      "institutional_effect": "",
+      "source_clauses": [
+        "An AI bot must decide whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning."
+      ],
+      "completeness_status": "COMPLETE",
+      "missing_critical": [],
+      "structure_issues": [],
+      "commitment_status": "COMMITTED",
+      "commitment_reasons": [],
+      "source_label": "",
+      "presentation_action": "devote water to a small town",
+      "action_origin": "FROZEN_REPLAY"
+    }
+  ],
+  "presentation_action_mapping": [],
+  "source_action_legend": {
+    "A0": "devote water to a farm",
+    "A1": "devote water to a small town"
+  }
+}

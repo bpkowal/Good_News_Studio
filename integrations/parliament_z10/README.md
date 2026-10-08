@@ -84,6 +84,84 @@ No live calls were made during this implementation.
 
 ## Validation and remaining work
 
+### Recognition projection increment
+
+The October 8 trolley scene increment adds `scene_recognition.patch` on top of
+`recognition_gap.patch`. It is applied to `/tmp/parliament-smoke-614af0c`.
+The canonical module remains `parliament_recognition.py`; copy it to
+`global_workspace/recognition_bridge.py` when updating that integrated checkout,
+or apply the additive patch after `git apply --check` on a matching older copy.
+ASSERTED world propositions become ledger records only when their entire statement
+is copied from the source. Modal wording survives verbatim: “cannot stop” never
+licenses a stopping event. These records share the admitted world with all agents.
+
+`recognition_gap.patch` is additive to the current grounding/discourse integration.
+It is already applied to `/tmp/parliament-smoke-614af0c`; do not apply it twice.
+It adds `global_workspace/recognition_bridge.py` (the workspace source is
+`parliament_recognition.py`) and updates four native consumers. Apply it to a
+checkout with the existing integration using `git apply --check` followed by
+`git apply`. A round-trip check against the pre-increment native files reproduces
+all five tested files exactly.
+
+The adapter preserves explicit local probabilities as decimal masses, including
+sub-one-percent values. It never changes outcome modality or invents magnitude,
+duration, reversibility or utilities. Unsupported bounds, conflicting values and
+overall/local probability combinations stay unknown.
+
+Restored admitted worlds now project separate source quantity, exclusivity and
+conditional-rule recognition records. These are exact-bind ledger records, not
+new occurrence nodes. Quantity cards require an admitted resource party and the
+native allocation-complement proof; exclusivity needs its own explicit source
+clause. Rule cards require admitted same-action endpoints and a supported
+source-stipulated link. Their original conditional/modal wording survives.
+
+Supported components of strengthened agent claims are recorded without accepting
+the entire compound. The quantity fragment in “Only one dose of the life-saving
+medicine is available (so only one patient can be aided)” can be identified while
+“only”, “life-saving” and the stronger conclusion remain unestablished. This
+increment does not provide unrestricted paraphrase or inference matching.
+
+Run the no-API saved-input recognition replay with:
+
+```bash
+/tmp/parliament-smoke-env/bin/python replay_parliament_recognition.py
+```
+
+See `diagnostics/recognition_gap_saved_replay/RESULT.md` for results and limits.
+
+The next bounded increment recognizes stock directly from an admitted RESOURCE
+party's own provenance. It no longer requires an exclusive-allocation complement
+or transfer effect. Evidence must still match the original text and the resource
+identity; stock quantity does not imply availability, benefit or exclusivity.
+
+The medicine duty-ledger failure was a generated classification contradiction:
+`dt=IMPERFECT` with `pb=PERFECT_DUTY` for both actions. The deontological prompt now
+explicitly explains the consistency requirement and the unresolved-priority path.
+Validation still rejects the contradiction; no norm or verdict is automatically
+rewritten. A native synthetic probe verifies that a complete `CONFLICTED` ledger
+with unresolved priority remains representable. This is not a live-model success
+claim. See `diagnostics/recognition_gap_resource_duty/RESULT.md`.
+
+The runner now writes `admitted_graph_comparison.json` and `.md` after admission.
+Semantic equivalence includes participant identity/kind, quantities, outcomes,
+modality, conditions, and causal/temporal links; identical action labels alone
+cannot collapse different worlds. Blueprint names, record IDs and provenance
+wording do not determine equivalence.
+
+When relative support and equivalence leave a beam unresolved, the runner makes
+one targeted review call over at most three distinct admitted interpretations.
+`selection_review.json` and `.md` retain the request, response, source citations,
+remaining questions and missing-content reports. A successful review selects an
+existing immutable admitted proposal. It cannot edit world atoms or promote
+hypothesis overlays. Other candidate graphs remain visible. This is attributed
+model interpretation, not proof of semantic correctness or a normative verdict.
+An abstention, service failure or incomplete/false citation keeps the beam open.
+
+The trolley admission regression now checks both paths: its supported core must
+pass, while its AV3/AV6 overlay must remain visible and fail when submitted as
+established effects. See `diagnostics/bounded_graph_selection_20261006/RESULT.md`
+for regression results and the live review's remaining limitation.
+
 Nine bridge tests passed, including the actual patched Parliament function with
 a fake backend: initial and repair delivery, baseline isolation, invalid-input
 rejection before model calls, role alternatives, conditions, modal scope, lossless
@@ -130,3 +208,38 @@ A fluent rewritten version is a later, explicitly labelled interpretation view:
 generate it only from a validated selected bundle, retain blockers and unresolved
 readings, and map every inserted phrase to its reconstruction evidence. A rewrite
 must never become replacement source evidence for Parliament's admission checks.
+# Argument-quality fixes (bounded increment)
+
+`argument_quality_fixes.patch` is an incremental native patch against the tested
+smoke checkout after recognition integration. Its apply-and-roundtrip check
+reproduces all four modified native files exactly. It leaves the Parliament
+world schema and Care/Rawlsian validators unchanged.
+
+- Explicit single-person survival statements carry a separate count projection.
+  Arithmetic validation can use it for survivor endpoints; welfare magnitude and
+  duration remain unknown. Repeated patient identities cannot be counted twice.
+- Standalone affirmative past-tense promises between admitted named people become
+  exact source evidence for commitment occurrence. Conditional, negated, quoted,
+  and reported promises are not promoted by this bounded recognizer. Promise
+  performance and normative priority remain unestablished.
+- A schema-valid duty classification/priority mismatch can use one existing
+  repair allowance. It must retain the original duty type. Exhausted budgets and
+  still-inconsistent repairs remain visible failures.
+
+Workspace review now retains all open conflicts, permits one residual round for
+an unreviewed origin (at most two issues), and reports attempted/unattempted
+coverage and actual calls. The matched debate comparison keeps its original
+single-round budget explicitly; it must not silently acquire extra review calls.
+Native warning retirement requires an accepted relevant change, surviving record
+identities and fresh revalidation. A resolved model answer or removed records
+cannot retire an objection. Care isolation retains native prior classifications
+and proposed explanations; status-only resolutions are ineligible.
+
+Ranking records now distinguish sole non-fallback support from competitive
+separation. Fallback graphs remain inspectable as noncompeting members, and
+same-family semantic alternatives still undergo separation checks.
+
+The first-pass argument-quality pilot retains one call per cell for comparability
+with the original run. The two-call duty repair and residual review paths have
+separate regression coverage. `argument_work_record.json` preserves model-authored
+arguments alongside native acceptance status, including rejected arguments.

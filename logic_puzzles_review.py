@@ -35,11 +35,11 @@ def close_deontological_map(response):
                     'semantic_fields_changed': False}
 
 
-def review_jobs(assessment):
+def review_jobs(assessment, issue_ids=None):
     graph = project_conflicts(assessment)
     nodes = {n['id']: n for n in graph['nodes']}
     groups = {}
-    for issue_id in graph['review_queue'][:2]:
+    for issue_id in (graph['review_queue'] if issue_ids is None else issue_ids)[:2]:
         issue = nodes[issue_id]
         groups.setdefault(issue['origin'], []).append(issue)
     jobs = []
@@ -52,6 +52,7 @@ def review_jobs(assessment):
         # Group questions about one framework to avoid competing rewrites of
         # the same native record. Native qa supplies one answer to this bundle.
         jobs.append({'framework': origin, 'issue_id': 'CHALLENGE:' + fingerprint([i['id'] for i in issues])[:16],
+                     'prior_selection_status': next(c.get('selection_status') for c in assessment['cycles'][-1]['candidates'] if c['specialist'] == origin),
                      'issues': deepcopy(issues), 'claims': [deepcopy(nodes[i]) for i in sorted(claim_ids)],
                      'support_and_dependencies': [deepcopy(nodes[i]) for i in sorted(related - claim_ids)],
                      'question': 'Review each of these objections separately in your answer: ' +
@@ -59,6 +60,20 @@ def review_jobs(assessment):
                      '. Identify any native classification you revise, retain, or leave unresolved. '
                      'A missing factual link remains missing; a framework commitment cannot supply it.'})
     return jobs
+
+
+def residual_issue_ids(graph, attempted_origins):
+    groups = {}
+    for node in graph['nodes']:
+        if (node.get('status') == 'OPEN' and node.get('kind') == 'UNRESOLVED_CONFLICT'
+                and node.get('origin') not in attempted_origins):
+            groups.setdefault(node['origin'], []).append(node['id'])
+    # A bounded second round serves the most neglected remaining bundle,
+    # rather than letting insertion order repeatedly select the first origin.
+    if not groups:
+        return []
+    owner = sorted(groups, key=lambda origin: (-len(groups[origin]), origin))[0]
+    return groups[owner][:2]
 
 
 def reconcile(assessment, jobs, review_candidates, local_ledgers):
@@ -75,22 +90,40 @@ def reconcile(assessment, jobs, review_candidates, local_ledgers):
         prior = next(c for c in original if c['specialist'] == origin)
         native_rejected = bool(proposed and ledger == prior.get('committed_native_ledger') and
             any(str(w).startswith('rejected update:') for w in proposed.get('framework_validation_errors', [])))
-        accepted = bool(proposed and proposed.get('specialist') == origin and proposed.get('schema_valid') and
+        old_ids = {r.get('assessment_node_id') for r in (prior.get('committed_native_ledger') or {}).get('records', []) if r.get('assessment_node_id')}
+        new_ids = {r.get('assessment_node_id') for r in ledger.get('records', []) if r.get('assessment_node_id')}
+        accepted = bool(proposed and old_ids <= new_ids and proposed.get('specialist') == origin and proposed.get('schema_valid') and
                         ledger.get('transaction_status') in {'COMMITTED', 'COMMITTED_WITH_UNCERTAINTY'} and
                         response.get('issue_id') == job['issue_id'] and not native_rejected)
         if accepted:
             candidates = [deepcopy(proposed) if c['specialist'] == origin else c for c in candidates]
             result['framework_proposition_ledgers'][origin] = deepcopy(local_ledgers[origin])
         for issue in job['issues']:
-            claim = next(c for c in job['claims'] if c['id'] in issue['claim_ids'])
+            related_claims = [c for c in job['claims'] if c['id'] in issue['claim_ids']]
+            claim = next((c for c in related_claims if issue['label'].startswith(
+                str(c['record'].get('canonical_action_id'))+' ')), related_claims[0])
             old = claim['record']
             replacements = [r for r in ledger.get('records', [])
                             if r.get('assessment_node_id') == old.get('assessment_node_id')]
             retained_error = any(issue['label'] in r.get('calibration_errors', []) for r in replacements)
-            removed = bool(accepted and replacements and issue['conflict_type'] == 'UNSUPPORTED_INFERENCE' and not retained_error)
             changes = [{field: {'before': old.get(field), 'after': row.get(field)}
                         for field in sorted(set(old) | set(row))
                         if old.get(field) != row.get(field)} for row in replacements]
+            substantive = any(set(change) - {'calibration_errors', 'calibration_issues', 'provenance', 'cycle', 'epistemic_status'} for change in changes)
+            if 'counts' in issue['label'] or 'numbers' in issue['label']:
+                substantive = substantive or any(prior.get(key) != (proposed or {}).get(key)
+                    for key in ('care_numerical_role', 'care_numerical_justification',
+                                'framework_numerical_role', 'framework_numerical_justification'))
+            if 'competing Care claim remains contested' in issue['label']:
+                answer = str(response.get('answer', ''))
+                competing_claim = str(old.get('competing_care_claim', ''))
+                substantive = bool(substantive and competing_claim and len(answer.split()) >= 12
+                    and competing_claim.casefold() in answer.casefold()
+                    and any(row.get('reason') != old.get('reason') for row in replacements))
+            warning_present = any(issue['label'] in str(w) for w in (proposed or {}).get('framework_validation_errors', []))
+            removed = bool(accepted and replacements and substantive and (
+                issue['conflict_type'] == 'UNSUPPORTED_INFERENCE' and not retained_error
+                or issue['conflict_type'] == 'NATIVE_FRAMEWORK_WARNING' and not warning_present))
             unresolved_fields = [{field: value for field, value in row.items()
                                   if isinstance(value, str) and value in {'UNRESOLVED', 'CONTESTED', 'UNCERTAIN', 'UNKNOWN'}}
                                  for row in replacements]
@@ -126,10 +159,11 @@ def write_review(result, output_dir):
     output_dir = Path(output_dir)
     (output_dir/'targeted_review.json').write_text(json.dumps(result, indent=2)+'\n')
     graph = project_conflicts(result)
-    graph['limits'][0] = 'One targeted native review round completed; no collective judgment.'
+    rounds = result['targeted_review'].get('rounds', 1)
+    graph['limits'][0] = f'{rounds} bounded targeted review round(s) completed; no collective judgment.'
     write_graph(graph, output_dir)
     lines = ['# Targeted framework review', '',
-             'One round, at most two objections. Native revisions remain attributed; the shared world is unchanged.', '',
+             f'{rounds} round(s), at most two objections per round. Native revisions remain attributed; the shared world is unchanged.', '',
              'Execution modes: ' + json.dumps(result['targeted_review'].get('execution_modes', {})) + '.', '',
              'Acceptance path: ' + result['targeted_review'].get('acceptance_path', 'see native trace') + '.', '',
              'Removing a validator objection is not independent proof of semantic correctness.', '']
@@ -160,7 +194,7 @@ def write_review(result, output_dir):
     (output_dir/'targeted_review.md').write_text('\n'.join(lines))
 
 
-def review(assessment_path, output_dir, backend_factory, *, tokens=3072, max_calls=2, allow_partial=True):
+def review(assessment_path, output_dir, backend_factory, *, tokens=3072, max_calls=2, allow_partial=True, allow_residual=True, issue_ids=None):
     from global_workspace.engine import WorkspaceEngine, WorkspaceConfig
     from global_workspace.frozen_world_replay import load_frozen_world_trace
     from global_workspace.local_specialists import CompactLocalSpecialist, extract_scenario_facts
@@ -180,7 +214,7 @@ def review(assessment_path, output_dir, backend_factory, *, tokens=3072, max_cal
     replay = load_frozen_world_trace(replay_path, expected_scenario=assessment['scenario'])
     if len(replay.canonical_actions) != 2:
         raise ValueError('Targeted review pilot requires exactly two actions')
-    jobs = review_jobs(assessment)
+    jobs = review_jobs(assessment, issue_ids)
     output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir/'review_jobs.json').write_text(json.dumps(jobs, indent=2)+'\n')
     source_graph = project_conflicts(assessment)
@@ -273,7 +307,7 @@ def review(assessment_path, output_dir, backend_factory, *, tokens=3072, max_cal
                     partial_folder = folder/'isolated_classifications'
                     partial = review(assessment_path, partial_folder,
                         lambda owner: IsolatedReplay(isolated), tokens=tokens, max_calls=1,
-                        allow_partial=False)
+                        allow_partial=False, allow_residual=False, issue_ids=[i['id'] for i in job['issues']])
                     accepted_partial = all(i['review_status'] == 'RECONCILED'
                         for i in partial['targeted_review']['issues'] if i['framework'] == name)
                     partial_reviews.append({'framework': name, 'patches': patches,
@@ -304,6 +338,34 @@ def review(assessment_path, output_dir, backend_factory, *, tokens=3072, max_cal
                         if issue['original_issue_id'] in patch_issue_ids else 'ORIGINAL_CLASSIFICATION_RETAINED')
     if assessment_path.read_bytes() != source_bytes:
         raise RuntimeError('Original assessment changed during review')
+    attempted = {j['framework'] for j in jobs}
+    remaining = residual_issue_ids(source_graph, attempted)
+    if allow_residual and remaining:
+        residual = review(assessment_path, output_dir/'residual_round', backend_factory,
+            tokens=tokens, max_calls=max_calls, allow_partial=allow_partial,
+            allow_residual=False, issue_ids=remaining[:2])
+        owners = set(residual['targeted_review']['adapter_calls'])
+        result['cycles'][-1]['candidates'] = [
+            next(c for c in residual['cycles'][-1]['candidates'] if c['specialist'] == old['specialist'])
+            if old['specialist'] in owners else old for old in result['cycles'][-1]['candidates']]
+        for owner in owners:
+            result['framework_proposition_ledgers'][owner] = residual['framework_proposition_ledgers'][owner]
+        result['targeted_review']['issues'].extend(residual['targeted_review']['issues'])
+        for key in ('adapter_calls', 'prior_replay_calls', 'execution_modes', 'framework_changes', 'proposal_attempts'):
+            result['targeted_review'][key].update(residual['targeted_review'].get(key, {}))
+        for key in ('retained_proposals', 'isolated_classification_reviews'):
+            result['targeted_review'][key].extend(residual['targeted_review'].get(key, []))
+        result['targeted_review']['rounds'] = 2
+    scheduled = {i['original_issue_id'] for i in result['targeted_review']['issues']}
+    processed = {i['original_issue_id'] for i in result['targeted_review']['issues']
+                 if result['targeted_review']['adapter_calls'].get(i['framework'], 0) > 0}
+    result['targeted_review']['coverage'] = {'attempted_issue_ids': sorted(processed),
+        'scheduled_issue_ids': sorted(scheduled),
+        'scheduled_but_unattempted_issue_ids': sorted(scheduled - processed),
+        'unattempted_issue_ids': [i for i in source_graph['open_conflicts'] if i not in processed],
+        'maximum_issues_per_round': 2, 'maximum_rounds': 2 if allow_residual else 1,
+        'maximum_calls_per_framework': max_calls,
+        'total_adapter_calls': sum(result['targeted_review']['adapter_calls'].values())}
     write_review(result, output_dir)
     return result
 

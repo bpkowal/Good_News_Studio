@@ -1,0 +1,479 @@
+{
+  "cloze_version": "blueprint-cloze-chooser/0.5",
+  "chosen_blueprint_id": "disputed_report",
+  "status": "WITHHELD",
+  "ranking": [
+    "disputed_report",
+    "conditional_outcome",
+    "omission_harm"
+  ],
+  "left_out": [
+    "exclusive_allocation",
+    "rescue_contrast",
+    "ability_permission",
+    "diversion_redirection",
+    "deontic_rule",
+    "promise_reliance",
+    "uncertain_risk"
+  ],
+  "question": {
+    "ethical_question": "",
+    "scenario_options": [],
+    "exclusivity": "unspecified",
+    "participants": [
+      {
+        "role": "subject",
+        "mention": "Ada",
+        "predicate": "claims"
+      },
+      {
+        "role": "subject",
+        "mention": "the medicine",
+        "predicate": "is"
+      },
+      {
+        "role": "subject",
+        "mention": "Ben",
+        "predicate": "says"
+      },
+      {
+        "role": "subject",
+        "mention": "the medicine",
+        "predicate": "is"
+      }
+    ],
+    "eligible_for_world_state": false
+  },
+  "world_withheld": [
+    "disputed_report has an evidence plan but no Parliament 1.3 graph builder yet."
+  ],
+  "considered": [
+    {
+      "blueprint_id": "disputed_report",
+      "graph_builder": "plan_only",
+      "status": "FILLED",
+      "rank": 0,
+      "core_filled": 3,
+      "core_count": 3,
+      "optional_filled": 1,
+      "rejected": 0,
+      "coverage_metrics": {
+        "required_filled": 3,
+        "required_total": 3,
+        "optional_filled": 1,
+        "optional_total": 3,
+        "rejected_evidence": 0,
+        "unsupported_atoms": 0,
+        "unresolved_readings": 1
+      },
+      "unfilled": [
+        "reliability",
+        "confirmation"
+      ],
+      "unresolved_slots": [
+        "reliability",
+        "confirmation"
+      ],
+      "accepted_evidence": {
+        "source": "Ada",
+        "report_words": "claims",
+        "reported_content": "the medicine is safe",
+        "competing_report": "Ben says the medicine is deadly"
+      },
+      "slots": {
+        "source": "Ada",
+        "report_words": "claims",
+        "reported_content": "the medicine is safe",
+        "competing_report": "Ben says the medicine is deadly"
+      },
+      "items": [
+        {
+          "id": "source",
+          "core": true,
+          "sentence": "The source or speaker of the report is",
+          "completion": "Ada",
+          "span": "Ada",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "report_words",
+          "core": true,
+          "sentence": "The copied reporting, claiming, or belief words are",
+          "completion": "claims",
+          "span": "claims",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "reported_content",
+          "core": true,
+          "sentence": "The proposition attributed to that source is",
+          "completion": "the medicine is safe",
+          "span": "the medicine is safe",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "competing_report",
+          "core": false,
+          "sentence": "A copied conflicting report is",
+          "completion": "Ben says the medicine is deadly",
+          "span": "Ben says the medicine is deadly",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "reliability",
+          "core": false,
+          "sentence": "What the text says about source reliability is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "confirmation",
+          "core": false,
+          "sentence": "A later confirmation or refutation is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        }
+      ]
+    },
+    {
+      "blueprint_id": "conditional_outcome",
+      "graph_builder": "implemented",
+      "status": "PARTIAL",
+      "rank": 1,
+      "core_filled": 2,
+      "core_count": 3,
+      "optional_filled": 1,
+      "rejected": 1,
+      "coverage_metrics": {
+        "required_filled": 2,
+        "required_total": 3,
+        "optional_filled": 1,
+        "optional_total": 5,
+        "rejected_evidence": 1,
+        "unsupported_atoms": 0,
+        "unresolved_readings": 0
+      },
+      "unfilled": [
+        "condition",
+        "second_condition",
+        "second_bearer",
+        "second_outcome",
+        "chance"
+      ],
+      "unresolved_slots": [
+        "condition",
+        "second_condition",
+        "second_bearer",
+        "second_outcome",
+        "chance"
+      ],
+      "accepted_evidence": {
+        "actor": "Ada",
+        "bearer": "Ben",
+        "outcome": "the medicine is deadly"
+      },
+      "slots": {
+        "actor": "Ada",
+        "bearer": "Ben",
+        "outcome": "the medicine is deadly"
+      },
+      "items": [
+        {
+          "id": "actor",
+          "core": false,
+          "sentence": "The person whose action an outcome depends on is",
+          "completion": "Ada",
+          "span": "Ada",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "condition",
+          "core": true,
+          "sentence": "The if-clause the outcome depends on is",
+          "completion": "If the scenario states that the medicine is safe",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "not_a_copy"
+        },
+        {
+          "id": "bearer",
+          "core": true,
+          "sentence": "The party that outcome happens to is",
+          "completion": "Ben",
+          "span": "Ben",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "outcome",
+          "core": true,
+          "sentence": "The outcome stated for that party is",
+          "completion": "the medicine is deadly",
+          "span": "the medicine is deadly",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_condition",
+          "core": false,
+          "sentence": "The second if-clause, distinct from the first, is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "second_bearer",
+          "core": false,
+          "sentence": "The party the second outcome happens to is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "second_outcome",
+          "core": false,
+          "sentence": "The outcome stated for that second party is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "chance",
+          "core": false,
+          "sentence": "A stated chance attached to an outcome is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        }
+      ]
+    },
+    {
+      "blueprint_id": "omission_harm",
+      "graph_builder": "implemented",
+      "status": "NO_MATCH",
+      "rank": 2,
+      "core_filled": 0,
+      "core_count": 5,
+      "optional_filled": 0,
+      "rejected": 2,
+      "coverage_metrics": {
+        "required_filled": 0,
+        "required_total": 5,
+        "optional_filled": 0,
+        "optional_total": 4,
+        "rejected_evidence": 2,
+        "unsupported_atoms": 0,
+        "unresolved_readings": 0
+      },
+      "unfilled": [
+        "actor",
+        "done",
+        "omitted",
+        "harm_done",
+        "harm_omitted",
+        "done_hedge",
+        "omitted_hedge",
+        "group_counts",
+        "instrument"
+      ],
+      "unresolved_slots": [
+        "actor",
+        "done",
+        "omitted",
+        "harm_done",
+        "harm_omitted",
+        "done_hedge",
+        "omitted_hedge",
+        "group_counts",
+        "instrument"
+      ],
+      "accepted_evidence": {},
+      "slots": {},
+      "items": [
+        {
+          "id": "actor",
+          "core": true,
+          "sentence": "The person who may do the action or not do it is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "done",
+          "core": true,
+          "sentence": "The action the text says is done is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "omitted",
+          "core": true,
+          "sentence": "The copied non-action branch, including the word not, is",
+          "completion": "the medicine is safe",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "harm_done",
+          "core": true,
+          "sentence": "The stated harmful outcome if the action is done is",
+          "completion": "the medicine is deadly",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "harm_omitted",
+          "core": true,
+          "sentence": "The stated harmful outcome if the action is not done is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "done_hedge",
+          "core": false,
+          "sentence": "The conditional words attached to the harm from doing the action are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "omitted_hedge",
+          "core": false,
+          "sentence": "The conditional words attached to the harm from not doing the action are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "group_counts",
+          "core": false,
+          "sentence": "One copied group count in a harmful outcome is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "instrument",
+          "core": false,
+          "sentence": "The contrasting instrument named after but not is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        }
+      ]
+    }
+  ],
+  "proposals": [
+    {
+      "proposal_contract_version": "blueprint-proposal-contract/0.2",
+      "proposal_id": "disputed_report_cloze",
+      "blueprint_id": "disputed_report",
+      "status": "WITHHELD",
+      "assignment_kind": "none",
+      "assignment": [],
+      "slot_bindings": {
+        "copied_spans": {
+          "source": "Ada",
+          "report_words": "claims",
+          "reported_content": "the medicine is safe",
+          "competing_report": "Ben says the medicine is deadly"
+        }
+      },
+      "selection": null,
+      "selection_validation": {
+        "contract_valid": null,
+        "status": "not_assessed",
+        "reason": "No Z10 candidate selection was constructed."
+      },
+      "candidate": null,
+      "clauses": [
+        {
+          "clause_id": "C0",
+          "text": "Ada claims the medicine is safe."
+        },
+        {
+          "clause_id": "C1",
+          "text": "Ben says the medicine is deadly."
+        }
+      ],
+      "unfilled_required_slots": [],
+      "unresolved_readings": [
+        {
+          "kind": "reported_truth",
+          "status": "unresolved"
+        }
+      ],
+      "construction_problems": [
+        {
+          "code": "world_withheld",
+          "message": "disputed_report has an evidence plan but no Parliament 1.3 graph builder yet."
+        }
+      ],
+      "admission_authorized": false,
+      "notes": [],
+      "pre_world_assessment": {
+        "ethical_question": "",
+        "scenario_options": [],
+        "exclusivity": "unspecified",
+        "participants": [
+          {
+            "role": "subject",
+            "mention": "Ada",
+            "predicate": "claims"
+          },
+          {
+            "role": "subject",
+            "mention": "the medicine",
+            "predicate": "is"
+          },
+          {
+            "role": "subject",
+            "mention": "Ben",
+            "predicate": "says"
+          },
+          {
+            "role": "subject",
+            "mention": "the medicine",
+            "predicate": "is"
+          }
+        ],
+        "status": "WITHHELD",
+        "eligible_for_world_state": false
+      },
+      "accepted_evidence": {
+        "source": "Ada",
+        "report_words": "claims",
+        "reported_content": "the medicine is safe",
+        "competing_report": "Ben says the medicine is deadly"
+      },
+      "world_withheld": [
+        "disputed_report has an evidence plan but no Parliament 1.3 graph builder yet."
+      ]
+    }
+  ],
+  "graph": null
+}

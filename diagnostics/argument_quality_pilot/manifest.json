@@ -1,0 +1,69 @@
+{
+  "version": "argument-quality-pilot/1",
+  "frameworks": [
+    "utilitarian",
+    "deontological",
+    "care"
+  ],
+  "arms": [
+    "standard",
+    "argument_checklist"
+  ],
+  "calls_per_framework_arm_case": 1,
+  "cases": {
+    "baseline": {
+      "trace": "diagnostics/argument_quality_pilot/baseline/frozen_world_trace.json",
+      "fingerprint": "530e99beb62b1bee3fc6d6ffa83c71c08b7d27223593e8a5cd17d133089ec0fc",
+      "world_sha256": "39418b9ac34a4864389260d631e16d96c0a44bba9657d66005a154e0762020aa",
+      "admission": "COMMITTED",
+      "action_labels": [
+        "Ada gives the medicine to Ben",
+        "Ada gives the medicine to Cara"
+      ],
+      "source": "A clinic has one dose of medicine. Ada can give the medicine to Ben or Cara, but not both. If Ada gives the medicine to Ben, Ben has a 95% chance of survival. If Ada gives the medicine to Cara, Cara has a 5% chance of survival. The patient who does not get the medicine will die.",
+      "expected_survivor_endpoint": {
+        "A0": 0.95,
+        "A1": 0.05
+      },
+      "promise_graph_coverage": "NOT_APPLICABLE"
+    },
+    "probability_swap": {
+      "trace": "diagnostics/argument_quality_pilot/probability_swap/frozen_world_trace.json",
+      "fingerprint": "54220d60842071540d9c993cb0d197e04fd308fa3f074b67a2e40e7cced93386",
+      "world_sha256": "6eacd98c793ca26a117a34b563032a1864e21db35fb44fd236e2a7108911f0d3",
+      "admission": "COMMITTED",
+      "action_labels": [
+        "Ada gives the medicine to Ben",
+        "Ada gives the medicine to Cara"
+      ],
+      "source": "A clinic has one dose of medicine. Ada can give the medicine to Ben or Cara, but not both. If Ada gives the medicine to Ben, Ben has a 5% chance of survival. If Ada gives the medicine to Cara, Cara has a 95% chance of survival. The patient who does not get the medicine will die.",
+      "expected_survivor_endpoint": {
+        "A0": 0.05,
+        "A1": 0.95
+      },
+      "promise_graph_coverage": "NOT_APPLICABLE"
+    },
+    "competing_promise": {
+      "trace": "diagnostics/argument_quality_pilot/competing_promise/frozen_world_trace.json",
+      "fingerprint": "3133f607ac2813b0491217d15bbf792fd94f6f91be9b3fbb5d834b14a3f251d6",
+      "world_sha256": "39418b9ac34a4864389260d631e16d96c0a44bba9657d66005a154e0762020aa",
+      "admission": "COMMITTED",
+      "action_labels": [
+        "Ada gives the medicine to Ben",
+        "Ada gives the medicine to Cara"
+      ],
+      "source": "A clinic has one dose of medicine. Ada can give the medicine to Ben or Cara, but not both. If Ada gives the medicine to Ben, Ben has a 95% chance of survival. If Ada gives the medicine to Cara, Cara has a 5% chance of survival. The patient who does not get the medicine will die. Ada promised Cara that she would give Cara the medicine.",
+      "expected_survivor_endpoint": {
+        "A0": 0.95,
+        "A1": 0.05
+      },
+      "promise_graph_coverage": "SOURCE_ONLY_NOT_PROJECTED"
+    }
+  },
+  "limits": [
+    "One sample per cell; exploratory, not a causal estimate.",
+    "No response normalization, forced verdict, or altered native validator.",
+    "Promise is an explicit source stipulation, not an added world effect.",
+    "Native ledger admission and argument quality are reported separately."
+  ]
+}

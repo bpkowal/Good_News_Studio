@@ -1,0 +1,824 @@
+{
+  "cloze_version": "blueprint-cloze-chooser/0.3",
+  "chosen_blueprint_id": "rescue_contrast",
+  "status": "FILLED",
+  "ranking": [
+    "rescue_contrast",
+    "omission_harm",
+    "conditional_outcome"
+  ],
+  "left_out": [
+    "exclusive_allocation",
+    "ability_permission",
+    "diversion_redirection",
+    "deontic_rule",
+    "promise_reliance",
+    "uncertain_risk",
+    "disputed_report"
+  ],
+  "question": {
+    "ethical_question": "saves / saves",
+    "scenario_options": [
+      {
+        "id": "choice9",
+        "selection_rule": "any_subset",
+        "exhaustive": false,
+        "options": [
+          "saves",
+          "saves"
+        ]
+      }
+    ],
+    "exclusivity": "evidenced",
+    "participants": [
+      {
+        "role": "subject",
+        "mention": "Maria",
+        "predicate": "save"
+      },
+      {
+        "role": "object",
+        "mention": "the child",
+        "predicate": "save"
+      },
+      {
+        "role": "subject",
+        "mention": "Maria",
+        "predicate": "saves"
+      },
+      {
+        "role": "object",
+        "mention": "the child",
+        "predicate": "saves"
+      },
+      {
+        "role": "subject",
+        "mention": "the child",
+        "predicate": "live"
+      },
+      {
+        "role": "subject",
+        "mention": "the dog",
+        "predicate": "drown"
+      },
+      {
+        "role": "subject",
+        "mention": "Maria",
+        "predicate": "saves"
+      },
+      {
+        "role": "object",
+        "mention": "the dog",
+        "predicate": "saves"
+      },
+      {
+        "role": "subject",
+        "mention": "the dog",
+        "predicate": "live"
+      },
+      {
+        "role": "subject",
+        "mention": "the child",
+        "predicate": "drown"
+      },
+      {
+        "role": "object",
+        "mention": "the dog",
+        "predicate": "save"
+      },
+      {
+        "role": "object",
+        "mention": "both",
+        "predicate": "save"
+      }
+    ],
+    "eligible_for_world_state": true
+  },
+  "world_withheld": [],
+  "considered": [
+    {
+      "blueprint_id": "rescue_contrast",
+      "graph_builder": "implemented",
+      "status": "FILLED",
+      "rank": 0,
+      "core_filled": 8,
+      "core_count": 8,
+      "optional_filled": 2,
+      "rejected": 0,
+      "unfilled": [
+        "scene"
+      ],
+      "unresolved_slots": [
+        "scene"
+      ],
+      "accepted_evidence": {
+        "rescuer": "Maria",
+        "first_saved": "the child",
+        "second_saved": "the dog",
+        "rescue_exclusivity": "but not both",
+        "first_rescue_action": "saves the child",
+        "second_rescue_action": "saves the dog",
+        "first_benefit": "the child will live",
+        "first_harm": "the dog will drown",
+        "second_benefit": "the dog will live",
+        "second_harm": "the child will drown"
+      },
+      "slots": {
+        "rescuer": "Maria",
+        "first_saved": "the child",
+        "second_saved": "the dog",
+        "rescue_exclusivity": "but not both",
+        "first_rescue_action": "saves the child",
+        "second_rescue_action": "saves the dog",
+        "first_benefit": "the child will live",
+        "first_harm": "the dog will drown",
+        "second_benefit": "the dog will live",
+        "second_harm": "the child will drown"
+      },
+      "items": [
+        {
+          "id": "rescuer",
+          "core": true,
+          "sentence": "The person who must choose between the rescues is",
+          "completion": "Maria",
+          "span": "Maria",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "first_saved",
+          "core": true,
+          "sentence": "The first party who can be rescued is",
+          "completion": "the child",
+          "span": "the child",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_saved",
+          "core": true,
+          "sentence": "The second, distinct party who can be rescued is",
+          "completion": "the dog",
+          "span": "the dog",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "rescue_exclusivity",
+          "core": true,
+          "sentence": "The exact words that say both rescues cannot happen are",
+          "completion": "but not both",
+          "span": "but not both",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "first_rescue_action",
+          "core": true,
+          "sentence": "The copied first rescue action is",
+          "completion": "saves the child",
+          "span": "saves the child",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_rescue_action",
+          "core": true,
+          "sentence": "The copied second rescue action is",
+          "completion": "saves the dog",
+          "span": "saves the dog",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "first_benefit",
+          "core": true,
+          "sentence": "The beneficial outcome in the first rescue branch is",
+          "completion": "the child will live",
+          "span": "the child will live",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "first_harm",
+          "core": false,
+          "sentence": "The harmful outcome in the first rescue branch is",
+          "completion": "the dog will drown",
+          "span": "the dog will drown",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_benefit",
+          "core": true,
+          "sentence": "The beneficial outcome in the second rescue branch is",
+          "completion": "the dog will live",
+          "span": "the dog will live",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_harm",
+          "core": false,
+          "sentence": "The harmful outcome in the second rescue branch is",
+          "completion": "the child will drown",
+          "span": "the child will drown",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "scene",
+          "core": false,
+          "sentence": "The copied words that describe the parties already in danger are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        }
+      ]
+    },
+    {
+      "blueprint_id": "omission_harm",
+      "graph_builder": "implemented",
+      "status": "PARTIAL",
+      "rank": 1,
+      "core_filled": 4,
+      "core_count": 5,
+      "optional_filled": 3,
+      "rejected": 1,
+      "unfilled": [
+        "omitted",
+        "group_counts"
+      ],
+      "unresolved_slots": [
+        "omitted",
+        "group_counts"
+      ],
+      "accepted_evidence": {
+        "actor": "Maria",
+        "done": "saves the child",
+        "harm_done": "the dog will drown",
+        "harm_omitted": "the child will drown",
+        "done_hedge": "If Maria saves the child",
+        "omitted_hedge": "If Maria saves the dog",
+        "instrument": "the dog"
+      },
+      "slots": {
+        "actor": "Maria",
+        "harm_done": "the dog will drown",
+        "harm_omitted": "the child will drown",
+        "done_hedge": "If Maria saves the child",
+        "omitted_hedge": "If Maria saves the dog",
+        "instrument": "the dog",
+        "done": "saves the child"
+      },
+      "items": [
+        {
+          "id": "actor",
+          "core": true,
+          "sentence": "The person who may do the action or not do it is",
+          "completion": "Maria",
+          "span": "Maria",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "done",
+          "core": true,
+          "sentence": "The action the text says is done is",
+          "completion": "NONE",
+          "span": "saves the child",
+          "verdict": "accepted",
+          "reason": "recovered_from_copied_conditional"
+        },
+        {
+          "id": "omitted",
+          "core": true,
+          "sentence": "The copied non-action branch, including the word not, is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "harm_done",
+          "core": true,
+          "sentence": "The stated harmful outcome if the action is done is",
+          "completion": "the dog will drown",
+          "span": "the dog will drown",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "harm_omitted",
+          "core": true,
+          "sentence": "The stated harmful outcome if the action is not done is",
+          "completion": "the child will drown",
+          "span": "the child will drown",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "done_hedge",
+          "core": false,
+          "sentence": "The conditional words attached to the harm from doing the action are",
+          "completion": "If Maria saves the child",
+          "span": "If Maria saves the child",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "omitted_hedge",
+          "core": false,
+          "sentence": "The conditional words attached to the harm from not doing the action are",
+          "completion": "If Maria saves the dog",
+          "span": "If Maria saves the dog",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "group_counts",
+          "core": false,
+          "sentence": "One copied group count in a harmful outcome is",
+          "completion": "the child",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "instrument",
+          "core": false,
+          "sentence": "The contrasting instrument named after but not is",
+          "completion": "the dog",
+          "span": "the dog",
+          "verdict": "accepted",
+          "reason": "copied"
+        }
+      ]
+    },
+    {
+      "blueprint_id": "conditional_outcome",
+      "graph_builder": "implemented",
+      "status": "FILLED",
+      "rank": 2,
+      "core_filled": 3,
+      "core_count": 3,
+      "optional_filled": 4,
+      "rejected": 0,
+      "unfilled": [
+        "chance"
+      ],
+      "unresolved_slots": [
+        "chance"
+      ],
+      "accepted_evidence": {
+        "actor": "Maria",
+        "condition": "If Maria saves the child",
+        "bearer": "the child",
+        "outcome": "the child will live",
+        "second_condition": "If Maria saves the dog",
+        "second_bearer": "the dog",
+        "second_outcome": "the dog will live"
+      },
+      "slots": {
+        "actor": "Maria",
+        "condition": "If Maria saves the child",
+        "bearer": "the child",
+        "outcome": "the child will live",
+        "second_condition": "If Maria saves the dog",
+        "second_bearer": "the dog",
+        "second_outcome": "the dog will live"
+      },
+      "items": [
+        {
+          "id": "actor",
+          "core": false,
+          "sentence": "The person whose action an outcome depends on is",
+          "completion": "Maria",
+          "span": "Maria",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "condition",
+          "core": true,
+          "sentence": "The if-clause the outcome depends on is",
+          "completion": "If Maria saves the child",
+          "span": "If Maria saves the child",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "bearer",
+          "core": true,
+          "sentence": "The party that outcome happens to is",
+          "completion": "the child",
+          "span": "the child",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "outcome",
+          "core": true,
+          "sentence": "The outcome stated for that party is",
+          "completion": "the child will live",
+          "span": "the child will live",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_condition",
+          "core": false,
+          "sentence": "The second if-clause, distinct from the first, is",
+          "completion": "If Maria saves the dog",
+          "span": "If Maria saves the dog",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_bearer",
+          "core": false,
+          "sentence": "The party the second outcome happens to is",
+          "completion": "the dog",
+          "span": "the dog",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_outcome",
+          "core": false,
+          "sentence": "The outcome stated for that second party is",
+          "completion": "the dog will live",
+          "span": "the dog will live",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "chance",
+          "core": false,
+          "sentence": "A stated chance attached to an outcome is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        }
+      ]
+    }
+  ],
+  "graph": {
+    "proposal_id": "rescue_contrast_cloze",
+    "status": "FILLED",
+    "assignment": [
+      "saves the child",
+      "saves the dog"
+    ],
+    "slot_bindings": {
+      "rescuer": "Maria",
+      "first_saved": "the child",
+      "second_saved": "the dog",
+      "rescue_exclusivity": "but not both",
+      "first_rescue_action": "saves the child",
+      "second_rescue_action": "saves the dog",
+      "first_benefit": "the child will live",
+      "first_harm": "the dog will drown",
+      "second_benefit": "the dog will live",
+      "second_harm": "the child will drown"
+    },
+    "selection": null,
+    "selection_validation": {
+      "contract_valid": null,
+      "status": "not_assessed",
+      "reason": "The cloze path has no Z10 candidate selection."
+    },
+    "notes": [],
+    "candidate": {
+      "actions": {
+        "A0": {
+          "clause_ids": [
+            "C0",
+            "C1"
+          ],
+          "reason": "Filled from copied cloze slots."
+        },
+        "A1": {
+          "clause_ids": [
+            "C0",
+            "C2"
+          ],
+          "reason": "Filled from copied cloze slots."
+        }
+      },
+      "world_model": {
+        "schema_version": "1.3",
+        "parties": [
+          {
+            "party_id": "P1",
+            "label": "Maria",
+            "kind": "PERSON",
+            "quantities": [],
+            "clause_ids": [
+              "C0",
+              "C1",
+              "C2"
+            ]
+          },
+          {
+            "party_id": "P2",
+            "label": "the child",
+            "kind": "PERSON",
+            "quantities": [],
+            "clause_ids": [
+              "C0",
+              "C1",
+              "C2"
+            ]
+          },
+          {
+            "party_id": "P3",
+            "label": "the dog",
+            "kind": "ANIMAL",
+            "quantities": [],
+            "clause_ids": [
+              "C0",
+              "C1",
+              "C2"
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "action_id": "A0",
+            "intervention": "saves the child",
+            "actor_party_id": "P1",
+            "recipient_party_ids": [
+              "P2"
+            ],
+            "effect_ids": [
+              "E1",
+              "E2",
+              "E3"
+            ],
+            "clause_ids": [
+              "C0",
+              "C1"
+            ]
+          },
+          {
+            "action_id": "A1",
+            "intervention": "saves the dog",
+            "actor_party_id": "P1",
+            "recipient_party_ids": [
+              "P3"
+            ],
+            "effect_ids": [
+              "E4",
+              "E5",
+              "E6"
+            ],
+            "clause_ids": [
+              "C0",
+              "C2"
+            ]
+          }
+        ],
+        "effects": [
+          {
+            "effect_id": "E1",
+            "action_id": "A0",
+            "party_id": "P2",
+            "outcome": "saves the child",
+            "predicate": "save",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "INTERVENTION",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "saves the child",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C1"
+            ]
+          },
+          {
+            "effect_id": "E2",
+            "action_id": "A0",
+            "party_id": "P2",
+            "outcome": "the child will live",
+            "predicate": "live",
+            "polarity": "BENEFICIAL",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "the child will live",
+            "source_effect_ids": [
+              "E1"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C1"
+            ]
+          },
+          {
+            "effect_id": "E3",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "the dog will drown",
+            "predicate": "drown",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "the dog will drown",
+            "source_effect_ids": [
+              "E1"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C1"
+            ]
+          },
+          {
+            "effect_id": "E4",
+            "action_id": "A1",
+            "party_id": "P3",
+            "outcome": "saves the dog",
+            "predicate": "save",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "INTERVENTION",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "saves the dog",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C2"
+            ]
+          },
+          {
+            "effect_id": "E5",
+            "action_id": "A1",
+            "party_id": "P3",
+            "outcome": "the dog will live",
+            "predicate": "live",
+            "polarity": "BENEFICIAL",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "the dog will live",
+            "source_effect_ids": [
+              "E4"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C2"
+            ]
+          },
+          {
+            "effect_id": "E6",
+            "action_id": "A1",
+            "party_id": "P2",
+            "outcome": "the child will drown",
+            "predicate": "drown",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "the child will drown",
+            "source_effect_ids": [
+              "E4"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C2"
+            ]
+          }
+        ],
+        "conditions": [],
+        "temporal_relations": [],
+        "causal_links": [
+          {
+            "action_id": "A0",
+            "source_id": "E1",
+            "link_relation": "CAUSES",
+            "target_id": "E2",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C1"
+            ]
+          },
+          {
+            "action_id": "A0",
+            "source_id": "E1",
+            "link_relation": "CAUSES",
+            "target_id": "E3",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C1"
+            ]
+          },
+          {
+            "action_id": "A1",
+            "source_id": "E4",
+            "link_relation": "CAUSES",
+            "target_id": "E5",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C2"
+            ]
+          },
+          {
+            "action_id": "A1",
+            "source_id": "E4",
+            "link_relation": "CAUSES",
+            "target_id": "E6",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C2"
+            ]
+          }
+        ],
+        "counterfactual_links": []
+      },
+      "ellipsis_resolutions": []
+    },
+    "clauses": [
+      {
+        "clause_id": "C0",
+        "text": "Maria can save either the child or the dog, but not both."
+      },
+      {
+        "clause_id": "C1",
+        "text": "If Maria saves the child, the child will live and the dog will drown."
+      },
+      {
+        "clause_id": "C2",
+        "text": "If Maria saves the dog, the dog will live and the child will drown."
+      }
+    ],
+    "unfilled_required_slots": []
+  }
+}

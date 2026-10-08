@@ -1,0 +1,288 @@
+{
+  "status": "COMMITTED",
+  "world_model_status": "COMMITTED",
+  "repair_attempts": 0,
+  "repairs": [],
+  "action_propositions": [
+    {
+      "action_id": "A0",
+      "text": "give the serum to Ben",
+      "propositions": []
+    },
+    {
+      "action_id": "A1",
+      "text": "give the serum to Cara",
+      "propositions": []
+    }
+  ],
+  "compact_role_assignments": [
+    {
+      "action_id": "A0",
+      "bucket": "beneficiaries",
+      "label": "Ben",
+      "effect_id": "E3",
+      "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; compact beneficiaries"
+    },
+    {
+      "action_id": "A1",
+      "bucket": "beneficiaries",
+      "label": "Cara",
+      "effect_id": "E6",
+      "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; compact beneficiaries"
+    }
+  ],
+  "chains": [
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C2",
+          "text": "If Ada gives the serum to Ben, Ben will recover."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "give the serum to Ben"
+      },
+      "world": {
+        "effect_id": "E1",
+        "party_id": "P2",
+        "party_label": "Ben",
+        "outcome": "receives serum",
+        "directness": "DIRECT",
+        "effect_kind": "RESOURCE_TRANSFER",
+        "polarity": "BENEFICIAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C0",
+          "text": "A clinic has one dose of serum."
+        },
+        {
+          "clause_id": "C1",
+          "text": "Ada can give the serum to Ben or Cara, but not both."
+        },
+        {
+          "clause_id": "C2",
+          "text": "If Ada gives the serum to Ben, Ben will recover."
+        },
+        {
+          "clause_id": "C3",
+          "text": "If Ada gives the serum to Cara, Cara will recover."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "give the serum to Ben"
+      },
+      "world": {
+        "effect_id": "E2",
+        "party_id": "P3",
+        "party_label": "Cara",
+        "outcome": "does not receive serum",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "OTHER",
+        "polarity": "ADVERSE",
+        "modality": "CERTAIN",
+        "quantities": [
+          "one dose"
+        ],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C2",
+          "text": "If Ada gives the serum to Ben, Ben will recover."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A0",
+        "text": "give the serum to Ben"
+      },
+      "world": {
+        "effect_id": "E3",
+        "party_id": "P2",
+        "party_label": "Ben",
+        "outcome": "Ben recovers",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "HEALTH_OUTCOME",
+        "polarity": "BENEFICIAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A0",
+        "bucket": "beneficiaries",
+        "label": "Ben",
+        "effect_id": "E3",
+        "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; compact beneficiaries"
+      }
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C3",
+          "text": "If Ada gives the serum to Cara, Cara will recover."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "give the serum to Cara"
+      },
+      "world": {
+        "effect_id": "E4",
+        "party_id": "P3",
+        "party_label": "Cara",
+        "outcome": "receives serum",
+        "directness": "DIRECT",
+        "effect_kind": "RESOURCE_TRANSFER",
+        "polarity": "BENEFICIAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C0",
+          "text": "A clinic has one dose of serum."
+        },
+        {
+          "clause_id": "C1",
+          "text": "Ada can give the serum to Ben or Cara, but not both."
+        },
+        {
+          "clause_id": "C3",
+          "text": "If Ada gives the serum to Cara, Cara will recover."
+        },
+        {
+          "clause_id": "C2",
+          "text": "If Ada gives the serum to Ben, Ben will recover."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "give the serum to Cara"
+      },
+      "world": {
+        "effect_id": "E5",
+        "party_id": "P2",
+        "party_label": "Ben",
+        "outcome": "does not receive serum",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "OTHER",
+        "polarity": "ADVERSE",
+        "modality": "CERTAIN",
+        "quantities": [
+          "one dose"
+        ],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": null
+    },
+    {
+      "source_proposition": [
+        {
+          "clause_id": "C3",
+          "text": "If Ada gives the serum to Cara, Cara will recover."
+        }
+      ],
+      "canonical_action": {
+        "action_id": "A1",
+        "text": "give the serum to Cara"
+      },
+      "world": {
+        "effect_id": "E6",
+        "party_id": "P3",
+        "party_label": "Cara",
+        "outcome": "Cara recovers",
+        "directness": "DOWNSTREAM",
+        "effect_kind": "HEALTH_OUTCOME",
+        "polarity": "BENEFICIAL",
+        "modality": "CERTAIN",
+        "quantities": [],
+        "likelihood_qualifiers": [],
+        "condition_ids": [],
+        "condition_join": "AND",
+        "event_gates": []
+      },
+      "admitted_status": "ADMITTED",
+      "compact_role": {
+        "action_id": "A1",
+        "bucket": "beneficiaries",
+        "label": "Cara",
+        "effect_id": "E6",
+        "reason": "CERTAIN HEALTH_OUTCOME BENEFICIAL; compact beneficiaries"
+      }
+    }
+  ],
+  "topology_edges": [
+    {
+      "layer": "ACTUAL",
+      "action_id": "A0",
+      "source_id": "E1",
+      "target_id": "E3",
+      "relation": "CAUSES",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    },
+    {
+      "layer": "ACTUAL",
+      "action_id": "A1",
+      "source_id": "E4",
+      "target_id": "E6",
+      "relation": "CAUSES",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    },
+    {
+      "layer": "ACTUAL",
+      "action_id": "A0",
+      "source_id": "E1",
+      "target_id": "E2",
+      "relation": "CAUSES",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    },
+    {
+      "layer": "ACTUAL",
+      "action_id": "A1",
+      "source_id": "E4",
+      "target_id": "E5",
+      "relation": "CAUSES",
+      "modality": "CERTAIN",
+      "condition_ids": []
+    }
+  ]
+}

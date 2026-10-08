@@ -1,0 +1,237 @@
+{
+  "schema_version": "1.3",
+  "admission": {
+    "status": "COMMITTED",
+    "admitted_effect_ids": [
+      "E1",
+      "E2",
+      "E3",
+      "E4",
+      "E5",
+      "E6"
+    ],
+    "quarantined_effects": [],
+    "user_override": false,
+    "override_reason": ""
+  },
+  "nodes": [
+    {
+      "id": "P1",
+      "kind": "party",
+      "label": "Ada"
+    },
+    {
+      "id": "P2",
+      "kind": "party",
+      "label": "one indivisible dose of medicine"
+    },
+    {
+      "id": "P3",
+      "kind": "party",
+      "label": "Ben"
+    },
+    {
+      "id": "P4",
+      "kind": "party",
+      "label": "Cara"
+    },
+    {
+      "id": "A0",
+      "kind": "action",
+      "label": "Ben receives it"
+    },
+    {
+      "id": "A1",
+      "kind": "action",
+      "label": "Cara receives it"
+    },
+    {
+      "id": "E1",
+      "kind": "effect",
+      "label": "give the dose to Ben or Cara",
+      "polarity": "NEUTRAL",
+      "modality": "POSSIBLE",
+      "directness": "DIRECT"
+    },
+    {
+      "id": "E2",
+      "kind": "effect",
+      "label": "Ben will recover",
+      "polarity": "BENEFICIAL",
+      "modality": "POSSIBLE",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "E3",
+      "kind": "effect",
+      "label": "give the dose to Ben or Cara",
+      "polarity": "NEUTRAL",
+      "modality": "POSSIBLE",
+      "directness": "DIRECT"
+    },
+    {
+      "id": "E4",
+      "kind": "effect",
+      "label": "Cara will recover",
+      "polarity": "BENEFICIAL",
+      "modality": "POSSIBLE",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "E5",
+      "kind": "effect",
+      "label": "does not receive one indivisible dose of medicine",
+      "polarity": "ADVERSE",
+      "modality": "CERTAIN",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "E6",
+      "kind": "effect",
+      "label": "does not receive one indivisible dose of medicine",
+      "polarity": "ADVERSE",
+      "modality": "CERTAIN",
+      "directness": "DOWNSTREAM"
+    }
+  ],
+  "edges": [
+    {
+      "source": "P1",
+      "relation": "ACTOR",
+      "target": "A0"
+    },
+    {
+      "source": "A0",
+      "relation": "RECIPIENT",
+      "target": "P3"
+    },
+    {
+      "source": "A0",
+      "relation": "HAS_EFFECT",
+      "target": "E1"
+    },
+    {
+      "source": "A0",
+      "relation": "HAS_EFFECT",
+      "target": "E2"
+    },
+    {
+      "source": "A0",
+      "relation": "HAS_EFFECT",
+      "target": "E5"
+    },
+    {
+      "source": "P1",
+      "relation": "ACTOR",
+      "target": "A1"
+    },
+    {
+      "source": "A1",
+      "relation": "RECIPIENT",
+      "target": "P4"
+    },
+    {
+      "source": "A1",
+      "relation": "HAS_EFFECT",
+      "target": "E3"
+    },
+    {
+      "source": "A1",
+      "relation": "HAS_EFFECT",
+      "target": "E4"
+    },
+    {
+      "source": "A1",
+      "relation": "HAS_EFFECT",
+      "target": "E6"
+    },
+    {
+      "source": "E1",
+      "relation": "AFFECTS",
+      "target": "P3"
+    },
+    {
+      "source": "E2",
+      "relation": "AFFECTS",
+      "target": "P3"
+    },
+    {
+      "source": "E3",
+      "relation": "AFFECTS",
+      "target": "P4"
+    },
+    {
+      "source": "E4",
+      "relation": "AFFECTS",
+      "target": "P4"
+    },
+    {
+      "source": "E5",
+      "relation": "AFFECTS",
+      "target": "P4"
+    },
+    {
+      "source": "E6",
+      "relation": "AFFECTS",
+      "target": "P3"
+    },
+    {
+      "source": "E1",
+      "relation": "ENABLES",
+      "target": "E2",
+      "modality": "POSSIBLE"
+    },
+    {
+      "source": "E3",
+      "relation": "ENABLES",
+      "target": "E4",
+      "modality": "POSSIBLE"
+    },
+    {
+      "source": "E1",
+      "relation": "CAUSES",
+      "target": "E5",
+      "modality": "CERTAIN"
+    },
+    {
+      "source": "E3",
+      "relation": "CAUSES",
+      "target": "E6",
+      "modality": "CERTAIN"
+    }
+  ],
+  "conditions": [
+    {
+      "condition_id": "CND1",
+      "description": "If",
+      "value_status": "UNKNOWN",
+      "decision_relevance": "MATERIAL",
+      "provenance": [
+        {
+          "clause_id": "C2",
+          "excerpt": "If Ben receives it, Ben will recover."
+        }
+      ],
+      "event_effect_id": "",
+      "polarity": "POSITIVE",
+      "operator": "IF"
+    },
+    {
+      "condition_id": "CND2",
+      "description": "If",
+      "value_status": "UNKNOWN",
+      "decision_relevance": "MATERIAL",
+      "provenance": [
+        {
+          "clause_id": "C3",
+          "excerpt": "If Cara receives it, Cara will recover."
+        }
+      ],
+      "event_effect_id": "",
+      "polarity": "POSITIVE",
+      "operator": "IF"
+    }
+  ],
+  "temporal_relations": [],
+  "counterfactual_links": []
+}

@@ -1,0 +1,125 @@
+{
+  "origin": "MODEL_AUTHORED_ARGUMENT",
+  "authority": "ATTRIBUTED_NOT_WORLD_STATE",
+  "raw_fields": {
+    "ev": {
+      "A0": {
+        "value": 0,
+        "unit": "NONE",
+        "direction": "HARM",
+        "grounded": false,
+        "method": "NOT_COMPUTED",
+        "source_effect_ids": [],
+        "calculation": "not computed",
+        "assumptions": []
+      },
+      "A1": {
+        "value": 0,
+        "unit": "NONE",
+        "direction": "HARM",
+        "grounded": false,
+        "method": "NOT_COMPUTED",
+        "source_effect_ids": [],
+        "calculation": "not computed",
+        "assumptions": []
+      }
+    },
+    "dp": null,
+    "cl": {
+      "A0": {
+        "v": "MIXED",
+        "p": "Ben",
+        "rt": "DEPENDENCY",
+        "ds": "Ben relies on Ada for life-saving medicine",
+        "rb": "controller of scarce life-saving resource owes response",
+        "nk": "SURVIVAL_HEALTH",
+        "nu": "IMMEDIATE",
+        "te": "STRAINS",
+        "rr": "DIRECT",
+        "f": "ESTABLISHED",
+        "cc": "Cara\u2019s equally urgent dependency",
+        "res": "CONTESTED",
+        "g": "ACTION_GRAPH",
+        "rs": "Responds but low competence risks care failure"
+      },
+      "A1": {
+        "v": "RESPONSIVE",
+        "p": "Cara",
+        "rt": "DEPENDENCY",
+        "ds": "Cara relies on Ada for life-saving medicine",
+        "rb": "controller of scarce life-saving resource owes response",
+        "nk": "SURVIVAL_HEALTH",
+        "nu": "IMMEDIATE",
+        "te": "STRENGTHENS",
+        "rr": "DIRECT",
+        "f": "ESTABLISHED",
+        "cc": "Ben\u2019s equally urgent dependency",
+        "res": "CONTESTED",
+        "g": "ACTION_GRAPH",
+        "rs": "Provides competent, effective care to urgent need"
+      }
+    },
+    "ep": [
+      {
+        "c": "Ben has a 5% chance of survival; affected subject: Ben; modality: PROBABILISTIC",
+        "p": "PROP:WORLD:E2",
+        "dc": true,
+        "a": "A0",
+        "se": [
+          "E2"
+        ],
+        "op": "DIRECT_COPY",
+        "calc": "copy of stated probability",
+        "asm": [],
+        "ot": "PRESERVED"
+      },
+      {
+        "c": "Cara has a 95% chance of survival; affected subject: Cara; modality: PROBABILISTIC",
+        "p": "PROP:WORLD:E4",
+        "dc": true,
+        "a": "A1",
+        "se": [
+          "E4"
+        ],
+        "op": "DIRECT_COPY",
+        "calc": "copy of stated probability",
+        "asm": [],
+        "ot": "PRESERVED"
+      },
+      {
+        "c": "Ada can give the medicine to Ben or Cara, but not both.",
+        "p": "PROP:WORLD:RECOGNITION:56c5573033960ae1",
+        "dc": false,
+        "a": "GLOBAL",
+        "se": [],
+        "op": "DIRECT_COPY",
+        "calc": "exclusive allocation fact",
+        "asm": [],
+        "ot": "PRESERVED"
+      },
+      {
+        "c": "The patient who does not get the medicine will die.",
+        "p": "PROP:WORLD:RECOGNITION:5e3120723f49c75f",
+        "dc": false,
+        "a": "GLOBAL",
+        "se": [],
+        "op": "DIRECT_COPY",
+        "calc": "fatal outcome fact",
+        "asm": [],
+        "ot": "PRESERVED"
+      }
+    ],
+    "dr": "prefer A1 when both patients equally depend but A1 saves with far higher likelihood",
+    "ft": "Ben\u2019s survival chance exceeds Cara\u2019s",
+    "nt": "If care ethics prioritized equal treatment over competence",
+    "fic": [],
+    "foq": []
+  },
+  "native_submission": "VALID",
+  "native_ledger": "COMMITTED_WITH_UNCERTAINTY",
+  "native_warnings": [
+    "A0 competing Care claim remains contested",
+    "A1 competing Care claim remains contested"
+  ],
+  "semantic_support": "NOT_INDEPENDENTLY_VERIFIED"
+}

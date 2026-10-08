@@ -1,0 +1,2148 @@
+{
+  "mode": "live_grounding",
+  "parliament_commit": "614af0c1601dd7169842f130f1c26a5dd0b30564",
+  "parser_packet": {
+    "packet_version": "z10-advisory/1",
+    "authority": "ADVISORY_EVIDENCE_ONLY",
+    "source_sha256": "d6b9652217d388af76c42a7e08f37591ed1899556770d6f4c06812b1324a5abd",
+    "package": {
+      "schema_version": "0.4",
+      "package_id": "pkg_e354f48beb6c4cadb938aad68a7e5944",
+      "document": {
+        "id": "document",
+        "text": "Lila gives Omar the medicine, but not Nora.\n"
+      },
+      "producer": {
+        "name": "parsing_game_Z10",
+        "version": "Z10",
+        "resources": [
+          {
+            "id": "T_reference_policy",
+            "version": "1",
+            "description": "Curated candidate-generation and ranking policy, not learned probabilities or a complete animacy lexicon."
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "id": "e0",
+          "start": 5,
+          "end": 10,
+          "text": "gives"
+        },
+        {
+          "id": "e1",
+          "start": 0,
+          "end": 4,
+          "text": "Lila"
+        },
+        {
+          "id": "e2",
+          "start": 16,
+          "end": 28,
+          "text": "the medicine"
+        },
+        {
+          "id": "e3",
+          "start": 20,
+          "end": 28,
+          "text": "medicine"
+        },
+        {
+          "id": "e4",
+          "start": 11,
+          "end": 15,
+          "text": "Omar"
+        },
+        {
+          "id": "e5",
+          "start": 38,
+          "end": 42,
+          "text": "Nora"
+        },
+        {
+          "id": "e6",
+          "start": 0,
+          "end": 44,
+          "text": "Lila gives Omar the medicine, but not Nora.\n"
+        },
+        {
+          "id": "e7",
+          "start": 34,
+          "end": 37,
+          "text": "not"
+        },
+        {
+          "id": "e8",
+          "start": 34,
+          "end": 42,
+          "text": "not Nora"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "p1",
+          "kind": "proposition",
+          "label": "gives",
+          "predicate": "give",
+          "evidence_ids": [
+            "e0"
+          ],
+          "predicate_evidence_ids": [
+            "e0"
+          ]
+        },
+        {
+          "id": "m0",
+          "kind": "mention",
+          "label": "Lila",
+          "evidence_ids": [
+            "e1"
+          ]
+        },
+        {
+          "id": "m4",
+          "kind": "mention",
+          "label": "the medicine",
+          "evidence_ids": [
+            "e2"
+          ]
+        },
+        {
+          "id": "m2",
+          "kind": "mention",
+          "label": "Omar",
+          "evidence_ids": [
+            "e4"
+          ]
+        },
+        {
+          "id": "m8",
+          "kind": "mention",
+          "label": "Nora",
+          "evidence_ids": [
+            "e5"
+          ]
+        },
+        {
+          "id": "p_reconstructed_5",
+          "kind": "proposition",
+          "label": "reconstructed gives",
+          "predicate": "give",
+          "evidence_ids": [
+            "e0",
+            "e7",
+            "e5"
+          ],
+          "predicate_evidence_ids": [
+            "e0"
+          ]
+        },
+        {
+          "id": "p_reconstructed_6",
+          "kind": "proposition",
+          "label": "reconstructed gives",
+          "predicate": "give",
+          "evidence_ids": [
+            "e0",
+            "e7",
+            "e5"
+          ],
+          "predicate_evidence_ids": [
+            "e0"
+          ]
+        },
+        {
+          "id": "p_reconstructed_7",
+          "kind": "proposition",
+          "label": "reconstructed gives",
+          "predicate": "give",
+          "evidence_ids": [
+            "e0",
+            "e7",
+            "e5"
+          ],
+          "predicate_evidence_ids": [
+            "e0"
+          ]
+        }
+      ],
+      "candidates": [
+        {
+          "id": "c0",
+          "type": "PREDICATION",
+          "arguments": {
+            "proposition": "p1"
+          },
+          "value": null,
+          "evidence_ids": [
+            "e0"
+          ],
+          "scope": {
+            "polarity": "positive",
+            "contexts": []
+          },
+          "provenance": [
+            {
+              "producer": "parsing_game_Z4",
+              "version": "Z4",
+              "method": "bounded_dependency_rules",
+              "resource_ids": []
+            }
+          ],
+          "assessment": {
+            "status": "proposed",
+            "score": null
+          },
+          "requires": [],
+          "exclusive_with": []
+        },
+        {
+          "id": "c1",
+          "type": "PARTICIPANT",
+          "arguments": {
+            "proposition": "p1",
+            "mention": "m0"
+          },
+          "value": "subject",
+          "evidence_ids": [
+            "e1"
+          ],
+          "scope": {
+            "polarity": "positive",
+            "contexts": []
+          },
+          "provenance": [
+            {
+              "producer": "parsing_game_Z4",
+              "version": "Z4",
+              "method": "bounded_dependency_rules",
+              "resource_ids": []
+            }
+          ],
+          "assessment": {
+            "status": "proposed",
+            "score": null
+          },
+          "requires": [
+            "c0"
+          ],
+          "exclusive_with": []
+        },
+        {
+          "id": "c2",
+          "type": "PARTICIPANT",
+          "arguments": {
+            "proposition": "p1",
+            "mention": "m4"
+          },
+          "value": "object",
+          "evidence_ids": [
+            "e3"
+          ],
+          "scope": {
+            "polarity": "positive",
+            "contexts": []
+          },
+          "provenance": [
+            {
+              "producer": "parsing_game_Z4",
+              "version": "Z4",
+              "method": "bounded_dependency_rules",
+              "resource_ids": []
+            }
+          ],
+          "assessment": {
+            "status": "proposed",
+            "score": null
+          },
+          "requires": [
+            "c0"
+          ],
+          "exclusive_with": []
+        },
+        {
+          "id": "c3",
+          "type": "PARTICIPANT",
+          "arguments": {
+            "proposition": "p1",
+            "mention": "m2"
+          },
+          "value": "destination",
+          "evidence_ids": [
+            "e4"
+          ],
+          "scope": {
+            "polarity": "positive",
+            "contexts": []
+          },
+          "provenance": [
+            {
+              "producer": "parsing_game_Z4",
+              "version": "Z4",
+              "method": "dative_or_person_transfer_to",
+              "resource_ids": []
+            }
+          ],
+          "assessment": {
+            "status": "proposed",
+            "score": null
+          },
+          "requires": [
+            "c0"
+          ],
+          "exclusive_with": []
+        },
+        {
+          "id": "c4",
+          "type": "PREDICATION",
+          "arguments": {
+            "proposition": "p_reconstructed_5"
+          },
+          "value": null,
+          "evidence_ids": [
+            "e0",
+            "e7",
+            "e5"
+          ],
+          "scope": {
+            "polarity": "negative",
+            "contexts": []
+          },
+          "provenance": [
+            {
+              "producer": "parsing_game_Z5",
+              "version": "Z5",
+              "method": "stripping_not_nominal",
+              "resource_ids": []
+            }
+          ],
+          "assessment": {
+            "status": "unresolved",
+            "score": null
+          },
+          "requires": [],
+          "exclusive_with": [
+            "c9",
+            "c11"
+          ]
+        },
+        {
+          "id": "c5",
+          "type": "PARTICIPANT",
+          "arguments": {
+            "proposition": "p_reconstructed_5",
+            "mention": "m0"
+          },
+          "value": "subject",
+          "evidence_ids": [
+            "e0",
+            "e7",
+            "e5",
+            "e1"
+          ],
+          "scope": {
+            "polarity": "negative",
+            "contexts": []
+          },
+          "provenance": [
+            {
+              "producer": "parsing_game_Z5",
+              "version": "Z5",
+              "method": "stripping_not_nominal",
+              "resource_ids": []
+            }
+          ],
+          "assessment": {
+            "status": "unresolved",
+            "score": null
+          },
+          "requires": [
+            "c4"
+          ],
+          "exclusive_with": []
+        },
+        {
+          "id": "c6",
+          "type": "PARTICIPANT",
+          "arguments": {
+            "proposition": "p_reconstructed_5",
+            "mention": "m8"
+          },
+          "value": "destination",
+          "evidence_ids": [
+            "e0",
+            "e7",
+            "e5"
+          ],
+          "scope": {
+            "polarity": "negative",
+            "contexts": []
+          },
+          "provenance": [
+            {
+              "producer": "parsing_game_Z5",
+              "version": "Z5",
+              "method": "stripping_not_nominal",
+              "resource_ids": []
+            }
+          ],
+          "assessment": {
+            "status": "unresolved",
+            "score": null
+          },
+          "requires": [
+            "c4"
+          ],
+          "exclusive_with": [
+            "c7",
+            "c8"
+          ]
+        },
+        {
+          "id": "c7",
+          "type": "PARTICIPANT",
+          "arguments": {
+            "proposition": "p_reconstructed_6",
+            "mention": "m8"
+          },
+          "value": "object",
+          "evidence_ids": [
+            "e0",
+            "e7",
+            "e5"
+          ],
+          "scope": {
+            "polarity": "negative",
+            "contexts": []
+          },
+          "provenance": [
+            {
+              "producer": "parsing_game_Z5",
+              "version": "Z5",
+              "method": "stripping_not_nominal",
+              "resource_ids": []
+            }
+          ],
+          "assessment": {
+            "status": "unresolved",
+            "score": null
+          },
+          "requires": [
+            "c9"
+          ],
+          "exclusive_with": [
+            "c6",
+            "c8"
+          ]
+        },
+        {
+          "id": "c8",
+          "type": "PARTICIPANT",
+          "arguments": {
+            "proposition": "p_reconstructed_7",
+            "mention": "m8"
+          },
+          "value": "subject",
+          "evidence_ids": [
+            "e0",
+            "e7",
+            "e5"
+          ],
+          "scope": {
+            "polarity": "negative",
+            "contexts": []
+          },
+          "provenance": [
+            {
+              "producer": "parsing_game_Z5",
+              "version": "Z5",
+              "method": "stripping_not_nominal",
+              "resource_ids": []
+            },
+            {
+              "producer": "parsing_game_Z10",
+              "version": "Z10",
+              "method": "bare_named_subject_contrast",
+              "resource_ids": []
+            }
+          ],
+          "assessment": {
+            "status": "unresolved",
+            "score": null
+          },
+          "requires": [
+            "c11"
+          ],
+          "exclusive_with": [
+            "c6",
+            "c7"
+          ]
+        },
+        {
+          "id": "c9",
+          "type": "PREDICATION",
+          "arguments": {
+            "proposition": "p_reconstructed_6"
+          },
+          "value": null,
+          "evidence_ids": [
+            "e0",
+            "e7",
+            "e5"
+          ],
+          "scope": {
+            "polarity": "negative",
+            "contexts": []
+          },
+          "provenance": [
+            {
+              "producer": "parsing_game_Z5",
+              "version": "Z5",
+              "method": "stripping_not_nominal",
+              "resource_ids": []
+            }
+          ],
+          "assessment": {
+            "status": "unresolved",
+            "score": null
+          },
+          "requires": [],
+          "exclusive_with": [
+            "c4",
+            "c11"
+          ]
+        },
+        {
+          "id": "c10",
+          "type": "PARTICIPANT",
+          "arguments": {
+            "proposition": "p_reconstructed_6",
+            "mention": "m0"
+          },
+          "value": "subject",
+          "evidence_ids": [
+            "e0",
+            "e7",
+            "e5",
+            "e1"
+          ],
+          "scope": {
+            "polarity": "negative",
+            "contexts": []
+          },
+          "provenance": [
+            {
+              "producer": "parsing_game_Z5",
+              "version": "Z5",
+              "method": "stripping_not_nominal",
+              "resource_ids": []
+            }
+          ],
+          "assessment": {
+            "status": "unresolved",
+            "score": null
+          },
+          "requires": [
+            "c9"
+          ],
+          "exclusive_with": []
+        },
+        {
+          "id": "c11",
+          "type": "PREDICATION",
+          "arguments": {
+            "proposition": "p_reconstructed_7"
+          },
+          "value": null,
+          "evidence_ids": [
+            "e0",
+            "e7",
+            "e5"
+          ],
+          "scope": {
+            "polarity": "negative",
+            "contexts": []
+          },
+          "provenance": [
+            {
+              "producer": "parsing_game_Z5",
+              "version": "Z5",
+              "method": "stripping_not_nominal",
+              "resource_ids": []
+            }
+          ],
+          "assessment": {
+            "status": "unresolved",
+            "score": null
+          },
+          "requires": [],
+          "exclusive_with": [
+            "c4",
+            "c9"
+          ]
+        },
+        {
+          "id": "c12",
+          "type": "PARTICIPANT",
+          "arguments": {
+            "proposition": "p_reconstructed_5",
+            "mention": "m4"
+          },
+          "value": "object",
+          "evidence_ids": [
+            "e3"
+          ],
+          "scope": {
+            "polarity": "negative",
+            "contexts": []
+          },
+          "provenance": [
+            {
+              "producer": "parsing_game_Z8",
+              "version": "Z8",
+              "method": "ellipsis_unchanged_participant",
+              "resource_ids": []
+            }
+          ],
+          "assessment": {
+            "status": "unresolved",
+            "score": null
+          },
+          "requires": [
+            "c4"
+          ],
+          "exclusive_with": []
+        },
+        {
+          "id": "c13",
+          "type": "PARTICIPANT",
+          "arguments": {
+            "proposition": "p_reconstructed_6",
+            "mention": "m2"
+          },
+          "value": "destination",
+          "evidence_ids": [
+            "e4"
+          ],
+          "scope": {
+            "polarity": "negative",
+            "contexts": []
+          },
+          "provenance": [
+            {
+              "producer": "parsing_game_Z8",
+              "version": "Z8",
+              "method": "ellipsis_unchanged_participant",
+              "resource_ids": []
+            }
+          ],
+          "assessment": {
+            "status": "unresolved",
+            "score": null
+          },
+          "requires": [
+            "c9"
+          ],
+          "exclusive_with": []
+        },
+        {
+          "id": "c14",
+          "type": "PARTICIPANT",
+          "arguments": {
+            "proposition": "p_reconstructed_7",
+            "mention": "m4"
+          },
+          "value": "object",
+          "evidence_ids": [
+            "e3"
+          ],
+          "scope": {
+            "polarity": "negative",
+            "contexts": []
+          },
+          "provenance": [
+            {
+              "producer": "parsing_game_Z8",
+              "version": "Z8",
+              "method": "ellipsis_unchanged_participant",
+              "resource_ids": []
+            }
+          ],
+          "assessment": {
+            "status": "unresolved",
+            "score": null
+          },
+          "requires": [
+            "c11"
+          ],
+          "exclusive_with": []
+        },
+        {
+          "id": "c15",
+          "type": "PARTICIPANT",
+          "arguments": {
+            "proposition": "p_reconstructed_7",
+            "mention": "m2"
+          },
+          "value": "destination",
+          "evidence_ids": [
+            "e4"
+          ],
+          "scope": {
+            "polarity": "negative",
+            "contexts": []
+          },
+          "provenance": [
+            {
+              "producer": "parsing_game_Z8",
+              "version": "Z8",
+              "method": "ellipsis_unchanged_participant",
+              "resource_ids": []
+            }
+          ],
+          "assessment": {
+            "status": "unresolved",
+            "score": null
+          },
+          "requires": [
+            "c11"
+          ],
+          "exclusive_with": []
+        }
+      ],
+      "choice_sets": [
+        {
+          "id": "choice0",
+          "kind": "interpretation",
+          "candidate_ids": [
+            "c6",
+            "c7"
+          ],
+          "selection_rule": "at_most_one",
+          "exhaustive": false,
+          "evidence_ids": [
+            "e5"
+          ]
+        },
+        {
+          "id": "choice1",
+          "kind": "interpretation",
+          "candidate_ids": [
+            "c4",
+            "c9",
+            "c11"
+          ],
+          "selection_rule": "at_most_one",
+          "exhaustive": false,
+          "evidence_ids": [
+            "e0",
+            "e7",
+            "e5"
+          ]
+        }
+      ],
+      "open_questions": [
+        {
+          "id": "q0",
+          "kind": "reference",
+          "evidence_ids": [
+            "e2"
+          ],
+          "candidate_ids": [],
+          "question": "Which earlier mention, if any, has the same referent? Ranked candidates are not identity decisions.",
+          "blocking_for": []
+        },
+        {
+          "id": "q1",
+          "kind": "missing_representation",
+          "evidence_ids": [
+            "e8"
+          ],
+          "candidate_ids": [],
+          "question": "Stripping: identify the missing predicate, contrast role, unchanged participants and negation scope.",
+          "blocking_for": []
+        },
+        {
+          "id": "q2",
+          "kind": "attachment",
+          "evidence_ids": [
+            "e0",
+            "e7",
+            "e5"
+          ],
+          "candidate_ids": [
+            "c4",
+            "c5",
+            "c6",
+            "c7",
+            "c8",
+            "c9",
+            "c10",
+            "c11",
+            "c12",
+            "c13",
+            "c14",
+            "c15"
+          ],
+          "question": "Which participant does the stripping remnant contrast with? Each alternative has its own proposition and unchanged participants.",
+          "blocking_for": []
+        }
+      ],
+      "coverage": {
+        "status": "partial",
+        "unrepresented_evidence_ids": [
+          "e6"
+        ],
+        "limitations": [
+          "reference_candidates_only_no_identity_merging",
+          "no_world_state_commitment",
+          "bounded_if_and_local_modal_scope",
+          "no_semantic_support_validation",
+          "purpose_and_attachment_readings_are_candidates",
+          "subject_control_is_an_unresolved_candidate",
+          "unambiguous_condition_complements_are_required",
+          "attempt_does_not_entail_the_child",
+          "choice_sets_are_not_exhaustive",
+          "quantity_is_explicit_cardinality_only",
+          "comma_clause_subject_repairs_a_false_conjunct",
+          "same_name_reference_does_not_block_roles",
+          "transfer_recipient_is_destination",
+          "definite_locative_is_location",
+          "definite_reference_does_not_block_roles",
+          "conditional_alternatives_are_not_exhaustive_or_exclusive",
+          "quantity_match_is_not_group_membership",
+          "coordination_shares_the_head_role",
+          "clause_boundary_stops_role_sharing",
+          "clause_boundary_attachment_stays_a_candidate",
+          "stripping_not_nominal_is_an_unresolved_copy",
+          "construction_cues_are_bounded_and_do_not_exhaust_semantic_gaps"
+        ]
+      },
+      "reconstructions": [
+        {
+          "id": "reconstruction_0",
+          "proposition_id": "p_reconstructed_5",
+          "antecedent_proposition_id": "p1",
+          "antecedent_candidate_id": "c0",
+          "predication_candidate_id": "c4",
+          "participant_candidate_ids": [
+            "c5",
+            "c6",
+            "c12"
+          ],
+          "evidence_ids": [
+            "e0",
+            "e7",
+            "e5"
+          ],
+          "method": "stripping_not_nominal"
+        },
+        {
+          "id": "reconstruction_1",
+          "proposition_id": "p_reconstructed_6",
+          "antecedent_proposition_id": "p1",
+          "antecedent_candidate_id": "c0",
+          "predication_candidate_id": "c9",
+          "participant_candidate_ids": [
+            "c7",
+            "c10",
+            "c13"
+          ],
+          "evidence_ids": [
+            "e0",
+            "e7",
+            "e5"
+          ],
+          "method": "stripping_not_nominal"
+        },
+        {
+          "id": "reconstruction_2",
+          "proposition_id": "p_reconstructed_7",
+          "antecedent_proposition_id": "p1",
+          "antecedent_candidate_id": "c0",
+          "predication_candidate_id": "c11",
+          "participant_candidate_ids": [
+            "c8",
+            "c14",
+            "c15"
+          ],
+          "evidence_ids": [
+            "e0",
+            "e7",
+            "e5"
+          ],
+          "method": "stripping_not_nominal"
+        }
+      ],
+      "condition_contents": []
+    }
+  },
+  "actions": [
+    "give the medicine to Omar",
+    "give the medicine to Nora"
+  ],
+  "grounding": {
+    "status": "REJECTED",
+    "actions": {},
+    "world_model": {},
+    "world_model_status": "COMMITTED",
+    "world_contradictions": [],
+    "errors": [
+      "A0 has no distinguishing source clause; its grounding ['C0'] is covered entirely by the other actions",
+      "A1 has no distinguishing source clause; its grounding ['C0'] is covered entirely by the other actions",
+      "repair dropped previously valid parties P_Lila that the listed errors did not name",
+      "repair dropped previously valid parties P_Med that the listed errors did not name",
+      "repair dropped previously valid parties P_Nora that the listed errors did not name",
+      "repair dropped previously valid parties P_Omar that the listed errors did not name"
+    ],
+    "validation_issues": [
+      {
+        "code": "WORLD_VALIDATION_ERROR",
+        "message": "A0 has no distinguishing source clause; its grounding ['C0'] is covered entirely by the other actions",
+        "entity_kind": "action",
+        "entity_id": "A0",
+        "field": "",
+        "related_ids": [],
+        "repair_class": "SEMANTIC_PATCH",
+        "permits_removal": false
+      },
+      {
+        "code": "WORLD_VALIDATION_ERROR",
+        "message": "A1 has no distinguishing source clause; its grounding ['C0'] is covered entirely by the other actions",
+        "entity_kind": "action",
+        "entity_id": "A1",
+        "field": "",
+        "related_ids": [],
+        "repair_class": "SEMANTIC_PATCH",
+        "permits_removal": false
+      }
+    ],
+    "compiler_loss_telemetry": {},
+    "clauses": [
+      {
+        "clause_id": "C0",
+        "text": "Lila gives Omar the medicine, but not Nora."
+      }
+    ],
+    "attempts": [
+      {
+        "attempt": 1,
+        "repair_scope": "FRESH_GENERATION",
+        "inherited_candidate": false,
+        "rebuild_action_ids": [],
+        "errors": [
+          "A0 has no distinguishing source clause; its grounding ['C0'] is covered entirely by the other actions",
+          "A1 has no distinguishing source clause; its grounding ['C0'] is covered entirely by the other actions",
+          "typed world model rejected: A1 recipient P_NORA lacks an atomic DIRECT INTERVENTION, RESOURCE_TRANSFER, or INSTITUTIONAL_OUTCOME effect; E2 is DIRECT on P_NORA, who is neither the actor nor a named recipient; non-recipient process and population states are DOWNSTREAM or FOREGONE. If this row is later conduct (assist, remain, use a road), recast it DOWNSTREAM with a non-INTERVENTION kind; do not add that party as a recipient to make the conduct DIRECT. If this row is the actor assigning or allocating that party, they may be a recipient of a separate DIRECT assignment, not of this later conduct"
+        ],
+        "validation_issues": [
+          {
+            "code": "MISSING_DIRECT_INTERVENTION",
+            "message": "A1 recipient P_NORA lacks an atomic DIRECT INTERVENTION, RESOURCE_TRANSFER, or INSTITUTIONAL_OUTCOME effect",
+            "entity_kind": "action",
+            "entity_id": "A1",
+            "field": "effects",
+            "related_ids": [],
+            "repair_class": "SEMANTIC_PATCH",
+            "permits_removal": false
+          },
+          {
+            "code": "DIRECT_EFFECT_TARGET_MISMATCH",
+            "message": "E2 is DIRECT on P_NORA, who is neither the actor nor a named recipient; non-recipient process and population states are DOWNSTREAM or FOREGONE. If this row is later conduct (assist, remain, use a road), recast it DOWNSTREAM with a non-INTERVENTION kind; do not add that party as a recipient to make the conduct DIRECT. If this row is the actor assigning or allocating that party, they may be a recipient of a separate DIRECT assignment, not of this later conduct",
+            "entity_kind": "effect",
+            "entity_id": "E2",
+            "field": "effects",
+            "related_ids": [
+              "FOREGONE"
+            ],
+            "repair_class": "SEMANTIC_PATCH",
+            "permits_removal": false
+          },
+          {
+            "code": "WORLD_VALIDATION_ERROR",
+            "message": "A0 has no distinguishing source clause; its grounding ['C0'] is covered entirely by the other actions",
+            "entity_kind": "action",
+            "entity_id": "A0",
+            "field": "",
+            "related_ids": [],
+            "repair_class": "SEMANTIC_PATCH",
+            "permits_removal": false
+          },
+          {
+            "code": "WORLD_VALIDATION_ERROR",
+            "message": "A1 has no distinguishing source clause; its grounding ['C0'] is covered entirely by the other actions",
+            "entity_kind": "action",
+            "entity_id": "A1",
+            "field": "",
+            "related_ids": [],
+            "repair_class": "SEMANTIC_PATCH",
+            "permits_removal": false
+          }
+        ],
+        "compiler_loss_telemetry": {
+          "candidate_effect_count": 2,
+          "compiled_effect_count": 2,
+          "compiler_loss_count": 0,
+          "loss_reason_counts": {},
+          "losses": []
+        },
+        "repair_delta": {}
+      },
+      {
+        "attempt": 2,
+        "repair_scope": "SUBGRAPH_REBUILD",
+        "inherited_candidate": true,
+        "rebuild_action_ids": [
+          "A0",
+          "A1"
+        ],
+        "errors": [
+          "A0 has no distinguishing source clause; its grounding ['C0'] is covered entirely by the other actions",
+          "A1 has no distinguishing source clause; its grounding ['C0'] is covered entirely by the other actions",
+          "repair dropped previously valid parties P_Lila that the listed errors did not name",
+          "repair dropped previously valid parties P_Med that the listed errors did not name",
+          "repair dropped previously valid parties P_Nora that the listed errors did not name",
+          "repair dropped previously valid parties P_Omar that the listed errors did not name"
+        ],
+        "validation_issues": [
+          {
+            "code": "WORLD_VALIDATION_ERROR",
+            "message": "A0 has no distinguishing source clause; its grounding ['C0'] is covered entirely by the other actions",
+            "entity_kind": "action",
+            "entity_id": "A0",
+            "field": "",
+            "related_ids": [],
+            "repair_class": "SEMANTIC_PATCH",
+            "permits_removal": false
+          },
+          {
+            "code": "WORLD_VALIDATION_ERROR",
+            "message": "A1 has no distinguishing source clause; its grounding ['C0'] is covered entirely by the other actions",
+            "entity_kind": "action",
+            "entity_id": "A1",
+            "field": "",
+            "related_ids": [],
+            "repair_class": "SEMANTIC_PATCH",
+            "permits_removal": false
+          }
+        ],
+        "compiler_loss_telemetry": {},
+        "repair_delta": {
+          "dropped": {
+            "citations": [
+              "effect|E2|C0",
+              "party|P_Lila|C0",
+              "party|P_Med|C0",
+              "party|P_Nora|C0",
+              "party|P_Omar|C0"
+            ],
+            "effects": [
+              "E2"
+            ],
+            "parties": [
+              "P_Lila",
+              "P_Med",
+              "P_Nora",
+              "P_Omar"
+            ]
+          },
+          "added": {
+            "citations": [
+              "party|P_LILA|C0",
+              "party|P_MED|C0",
+              "party|P_NORA|C0",
+              "party|P_OMAR|C0"
+            ],
+            "parties": [
+              "P_LILA",
+              "P_MED",
+              "P_NORA",
+              "P_OMAR"
+            ]
+          },
+          "illegal_drops": [
+            "repair dropped previously valid parties P_Lila that the listed errors did not name",
+            "repair dropped previously valid parties P_Med that the listed errors did not name",
+            "repair dropped previously valid parties P_Nora that the listed errors did not name",
+            "repair dropped previously valid parties P_Omar that the listed errors did not name"
+          ]
+        }
+      }
+    ],
+    "repair_attempts": 1,
+    "repair_experiment_events": [
+      {
+        "repair_event_schema_version": 1,
+        "repair_event_id": "R001",
+        "recorded_at": "2026-09-30T23:33:11.638667+00:00",
+        "execution_mode": "LLM_REPAIR",
+        "repair_scope": "SUBGRAPH_REBUILD",
+        "context": {
+          "validator_version": "world-validator-2026-09-21-v1",
+          "repair_prompt_version": "world-repair-prompt-v1",
+          "model": "o3",
+          "temperature": 0.0,
+          "max_attempts": 2,
+          "stage_one_guidance_mode": "EVIDENCE_ONLY",
+          "deterministic_repair_guidance_mode": "OFF"
+        },
+        "target_issues": [
+          {
+            "issue_instance_id": "R001:BEFORE:I1:7d6bafb148",
+            "code": "MISSING_DIRECT_INTERVENTION",
+            "entity_kind": "action",
+            "entity_id": "A1",
+            "field": "effects",
+            "message": "A1 recipient P_NORA lacks an atomic DIRECT INTERVENTION, RESOURCE_TRANSFER, or INSTITUTIONAL_OUTCOME effect",
+            "invariant_version": 1,
+            "repair_class": "SEMANTIC_PATCH",
+            "related_ids": []
+          },
+          {
+            "issue_instance_id": "R001:BEFORE:I2:07d901ffa1",
+            "code": "DIRECT_EFFECT_TARGET_MISMATCH",
+            "entity_kind": "effect",
+            "entity_id": "E2",
+            "field": "effects",
+            "message": "E2 is DIRECT on P_NORA, who is neither the actor nor a named recipient; non-recipient process and population states are DOWNSTREAM or FOREGONE. If this row is later conduct (assist, remain, use a road), recast it DOWNSTREAM with a non-INTERVENTION kind; do not add that party as a recipient to make the conduct DIRECT. If this row is the actor assigning or allocating that party, they may be a recipient of a separate DIRECT assignment, not of this later conduct",
+            "invariant_version": 1,
+            "repair_class": "SEMANTIC_PATCH",
+            "related_ids": [
+              "FOREGONE"
+            ]
+          },
+          {
+            "issue_instance_id": "R001:BEFORE:I3:c447b2e173",
+            "code": "WORLD_VALIDATION_ERROR",
+            "entity_kind": "action",
+            "entity_id": "A0",
+            "field": "",
+            "message": "A0 has no distinguishing source clause; its grounding ['C0'] is covered entirely by the other actions",
+            "invariant_version": 1,
+            "repair_class": "SEMANTIC_PATCH",
+            "related_ids": []
+          },
+          {
+            "issue_instance_id": "R001:BEFORE:I4:5e276488a6",
+            "code": "WORLD_VALIDATION_ERROR",
+            "entity_kind": "action",
+            "entity_id": "A1",
+            "field": "",
+            "message": "A1 has no distinguishing source clause; its grounding ['C0'] is covered entirely by the other actions",
+            "invariant_version": 1,
+            "repair_class": "SEMANTIC_PATCH",
+            "related_ids": []
+          }
+        ],
+        "after_issues": [
+          {
+            "issue_instance_id": "R001:AFTER:I1:c447b2e173",
+            "code": "WORLD_VALIDATION_ERROR",
+            "entity_kind": "action",
+            "entity_id": "A0",
+            "field": "",
+            "message": "A0 has no distinguishing source clause; its grounding ['C0'] is covered entirely by the other actions",
+            "invariant_version": 1,
+            "repair_class": "SEMANTIC_PATCH",
+            "related_ids": []
+          },
+          {
+            "issue_instance_id": "R001:AFTER:I2:5e276488a6",
+            "code": "WORLD_VALIDATION_ERROR",
+            "entity_kind": "action",
+            "entity_id": "A1",
+            "field": "",
+            "message": "A1 has no distinguishing source clause; its grounding ['C0'] is covered entirely by the other actions",
+            "invariant_version": 1,
+            "repair_class": "SEMANTIC_PATCH",
+            "related_ids": []
+          }
+        ],
+        "selected_cards": [
+          {
+            "card_id": "MISSING_DIRECT_INTERVENTION_V1",
+            "card_version": 1,
+            "issue_code": "MISSING_DIRECT_INTERVENTION",
+            "entity_id": "A1",
+            "selected": true
+          },
+          {
+            "card_id": "DIRECT_EFFECT_TARGET_MISMATCH_V1",
+            "card_version": 1,
+            "issue_code": "DIRECT_EFFECT_TARGET_MISMATCH",
+            "entity_id": "E2",
+            "selected": true
+          },
+          {
+            "card_id": "WORLD_VALIDATION_ERROR_V1",
+            "card_version": 1,
+            "issue_code": "WORLD_VALIDATION_ERROR",
+            "entity_id": "A0",
+            "selected": true
+          },
+          {
+            "card_id": "WORLD_VALIDATION_ERROR_V1",
+            "card_version": 1,
+            "issue_code": "WORLD_VALIDATION_ERROR",
+            "entity_id": "A1",
+            "selected": true
+          }
+        ],
+        "suppressed_cards": [],
+        "deterministic_patches": [],
+        "graph_diff": {
+          "before_fingerprint": "380e025ce0220d3693698fc7",
+          "after_fingerprint": "072a3385368d64f2a7b9369f",
+          "collections": {
+            "parties": {
+              "added": [
+                "P_LILA",
+                "P_MED",
+                "P_NORA",
+                "P_OMAR"
+              ],
+              "removed": [
+                "P_Lila",
+                "P_Med",
+                "P_Nora",
+                "P_Omar"
+              ],
+              "changed": []
+            },
+            "actions": {
+              "added": [],
+              "removed": [],
+              "changed": [
+                {
+                  "id": "A0",
+                  "fields": [
+                    "actor_party_id",
+                    "effect_ids",
+                    "recipient_party_ids"
+                  ]
+                },
+                {
+                  "id": "A1",
+                  "fields": [
+                    "actor_party_id",
+                    "recipient_party_ids"
+                  ]
+                }
+              ]
+            },
+            "effects": {
+              "added": [],
+              "removed": [
+                "E2"
+              ],
+              "changed": [
+                {
+                  "id": "E1",
+                  "fields": [
+                    "party_id"
+                  ]
+                }
+              ]
+            },
+            "conditions": {
+              "added": [],
+              "removed": [],
+              "changed": []
+            },
+            "temporal_relations": {
+              "added": [],
+              "removed": [],
+              "changed": []
+            },
+            "causal_links": {
+              "added": [],
+              "removed": []
+            },
+            "counterfactual_links": {
+              "added": [],
+              "removed": []
+            }
+          },
+          "nodes_added": [
+            "parties:P_LILA",
+            "parties:P_MED",
+            "parties:P_NORA",
+            "parties:P_OMAR"
+          ],
+          "nodes_removed": [
+            "parties:P_Lila",
+            "parties:P_Med",
+            "parties:P_Nora",
+            "parties:P_Omar",
+            "effects:E2"
+          ],
+          "nodes_changed": [
+            {
+              "node": "actions:A0",
+              "fields": [
+                "actor_party_id",
+                "effect_ids",
+                "recipient_party_ids"
+              ]
+            },
+            {
+              "node": "actions:A1",
+              "fields": [
+                "actor_party_id",
+                "recipient_party_ids"
+              ]
+            },
+            {
+              "node": "effects:E1",
+              "fields": [
+                "party_id"
+              ]
+            }
+          ],
+          "edges_added": [],
+          "edges_removed": [],
+          "certainty_changes": [],
+          "ownership_changes": [
+            "A0",
+            "A1",
+            "E1"
+          ],
+          "provenance_changes": []
+        },
+        "outside_target_entity_changes": [
+          "E1",
+          "P_Lila",
+          "P_Med",
+          "P_Nora",
+          "P_Omar"
+        ],
+        "outcome": {
+          "target_issue_codes": [
+            "DIRECT_EFFECT_TARGET_MISMATCH",
+            "MISSING_DIRECT_INTERVENTION",
+            "WORLD_VALIDATION_ERROR"
+          ],
+          "remaining_target_issue_codes": [
+            "WORLD_VALIDATION_ERROR"
+          ],
+          "resolved_target_issue_codes": [
+            "DIRECT_EFFECT_TARGET_MISMATCH",
+            "MISSING_DIRECT_INTERVENTION"
+          ],
+          "remaining_target_signatures": [
+            [
+              "WORLD_VALIDATION_ERROR",
+              "action",
+              "A0",
+              ""
+            ],
+            [
+              "WORLD_VALIDATION_ERROR",
+              "action",
+              "A1",
+              ""
+            ]
+          ],
+          "resolved_target_signatures": [
+            [
+              "DIRECT_EFFECT_TARGET_MISMATCH",
+              "effect",
+              "E2",
+              "effects"
+            ],
+            [
+              "MISSING_DIRECT_INTERVENTION",
+              "action",
+              "A1",
+              "effects"
+            ]
+          ],
+          "introduced_issue_signatures": [],
+          "introduced_issue_codes": [],
+          "target_fixed": false,
+          "clean_repair": false,
+          "final_world_committed": false,
+          "repair_yield": false
+        }
+      }
+    ],
+    "invariant_card_telemetry": {
+      "telemetry_schema_version": 1,
+      "terminal_status": "REJECTED",
+      "attempt_count": 2,
+      "repair_transition_count": 1,
+      "distinct_issue_codes": 3,
+      "terminal_issue_codes": [
+        "WORLD_VALIDATION_ERROR"
+      ],
+      "definitions": {
+        "attempt_firing": "Issue code appears at least once in one attempt.",
+        "repair_opportunity": "Issue code precedes another attempt and therefore could target the next deterministic or model repair.",
+        "resolved_after_repair": "Target code is absent from the next attempt.",
+        "introduced_after_repair": "Code is absent before a repair transition and present afterward."
+      },
+      "invariants": {
+        "DIRECT_EFFECT_TARGET_MISMATCH": {
+          "attempt_firings": 1,
+          "entity_firings": 1,
+          "attempt_indices": [
+            1
+          ],
+          "repair_opportunities": 1,
+          "resolved_after_repair": 1,
+          "persisted_after_repair": 0,
+          "introduced_after_repair": 0,
+          "commit_after_target": 0,
+          "terminal_present": false,
+          "affected_entity_ids": [
+            "E2"
+          ],
+          "repair_scopes": {
+            "SUBGRAPH_REBUILD": 1
+          },
+          "introduced_issue_codes_while_targeted": [],
+          "resolution_rate": 1.0,
+          "persistence_rate": 0.0
+        },
+        "MISSING_DIRECT_INTERVENTION": {
+          "attempt_firings": 1,
+          "entity_firings": 1,
+          "attempt_indices": [
+            1
+          ],
+          "repair_opportunities": 1,
+          "resolved_after_repair": 1,
+          "persisted_after_repair": 0,
+          "introduced_after_repair": 0,
+          "commit_after_target": 0,
+          "terminal_present": false,
+          "affected_entity_ids": [
+            "A1"
+          ],
+          "repair_scopes": {
+            "SUBGRAPH_REBUILD": 1
+          },
+          "introduced_issue_codes_while_targeted": [],
+          "resolution_rate": 1.0,
+          "persistence_rate": 0.0
+        },
+        "WORLD_VALIDATION_ERROR": {
+          "attempt_firings": 2,
+          "entity_firings": 4,
+          "attempt_indices": [
+            1,
+            2
+          ],
+          "repair_opportunities": 1,
+          "resolved_after_repair": 0,
+          "persisted_after_repair": 1,
+          "introduced_after_repair": 0,
+          "commit_after_target": 0,
+          "terminal_present": true,
+          "affected_entity_ids": [
+            "A0",
+            "A1"
+          ],
+          "repair_scopes": {
+            "SUBGRAPH_REBUILD": 1
+          },
+          "introduced_issue_codes_while_targeted": [],
+          "resolution_rate": 0.0,
+          "persistence_rate": 1.0
+        }
+      },
+      "transitions": [
+        {
+          "from_attempt": 1,
+          "to_attempt": 2,
+          "repair_scope": "SUBGRAPH_REBUILD",
+          "target_issue_codes": [
+            "DIRECT_EFFECT_TARGET_MISMATCH",
+            "MISSING_DIRECT_INTERVENTION",
+            "WORLD_VALIDATION_ERROR"
+          ],
+          "after_issue_codes": [
+            "WORLD_VALIDATION_ERROR"
+          ],
+          "resolved_issue_codes": [
+            "DIRECT_EFFECT_TARGET_MISMATCH",
+            "MISSING_DIRECT_INTERVENTION"
+          ],
+          "persistent_issue_codes": [
+            "WORLD_VALIDATION_ERROR"
+          ],
+          "introduced_issue_codes": [],
+          "committed_after": false
+        }
+      ]
+    },
+    "next_repair_scope": "LOCAL_PATCH",
+    "next_rebuild_action_ids": [],
+    "candidate_generation_contract": {
+      "contract_version": "1.2",
+      "policy": "Coverage checklist only: preserve these source features; do not treat them as permission to invent an effect or action binding.",
+      "actions": {
+        "A0": "give the medicine to Omar",
+        "A1": "give the medicine to Nora"
+      },
+      "allocation_constraint_profile": {
+        "explicit_capacity_or_indivisibility": false,
+        "explicit_alternative_choice": false,
+        "explicit_recipient_exclusion": false,
+        "explicit_nonexclusive_allocation": false,
+        "scoped_out_constraint_mentions": false,
+        "status": "CANDIDATE_NOT_PROVENANCE",
+        "instruction": "Use these source signals only to test whether competing RESOURCE_TRANSFER actions share one constrained resource. Commit an exclusive-allocation complement only after the typed actions identify distinct recipients and either an explicit constraint or shared-resource choice evidence."
+      },
+      "ethical_context_profile": {
+        "task_type": "ETHICAL_DECISION_PROBLEM",
+        "epistemic_status": "RANKING_PRIOR_NOT_PROVENANCE",
+        "canonical_actions": {
+          "A0": "give the medicine to Omar",
+          "A1": "give the medicine to Nora"
+        },
+        "expected_roles": [
+          "DECISION_MAKER",
+          "ALTERNATIVE_ACTION",
+          "AFFECTED_PARTY",
+          "CONSEQUENCE",
+          "CAUSAL_INTERMEDIATE",
+          "RESOURCE_OR_CONSTRAINT",
+          "UNCERTAINTY",
+          "DECISION_QUESTION"
+        ],
+        "decision_question_clause_ids": [],
+        "ranking_rules": [
+          "prefer antecedents that preserve canonical action ownership",
+          "prefer antecedents that preserve party, polarity, modality, quantity, and time",
+          "prefer parallel action/consequence structure when the source marks a contrast",
+          "never add a party, outcome, probability, quantity, or moral conclusion absent from source"
+        ]
+      },
+      "clauses": [
+        {
+          "clause_id": "C0",
+          "role": "FACT",
+          "action_candidates": [
+            "A0",
+            "A1"
+          ],
+          "quantities": [],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "negation_cues": [
+            "not"
+          ],
+          "modality_cues": [],
+          "condition_cues": [],
+          "causal_cues": [],
+          "atomic_source_spans": [
+            "Lila gives Omar the medicine",
+            "but not Nora."
+          ],
+          "discourse_continuation_of": ""
+        }
+      ],
+      "quantity_consequence_obligations": [],
+      "likelihood_binding_obligations": [],
+      "ellipsis_obligations": []
+    },
+    "candidate_generation_stage_one": {
+      "status": "REJECTED",
+      "skeleton": {
+        "parties": [
+          {
+            "party_id": "P1",
+            "label": "Lila",
+            "kind": "PERSON",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P2",
+            "label": "Omar",
+            "kind": "PERSON",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P3",
+            "label": "Nora",
+            "kind": "PERSON",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "propositions": [],
+        "unresolved_source_spans": [],
+        "ellipsis_resolutions": [
+          {
+            "obligation_id": "E0",
+            "status": "RESOLVED",
+            "missing_constituent_type": "PREDICATE",
+            "antecedent_span": "Lila gives Omar the medicine",
+            "reconstructed_span": "Lila does not give Nora the medicine",
+            "candidate_antecedent_spans": [
+              "Lila gives Omar the medicine"
+            ],
+            "ethical_context_roles": [],
+            "context_evidence": [],
+            "confidence": "HIGH",
+            "admission_basis": "SOURCE_ONLY",
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "allocation_completions": [
+          {
+            "status": "NOT_LICENSED",
+            "recipients": {
+              "A0": "P2",
+              "A1": "P3"
+            },
+            "shared_resource_tokens": [
+              "medicine"
+            ],
+            "constraint_profile": {
+              "explicit_capacity_or_indivisibility": false,
+              "explicit_alternative_choice": false,
+              "explicit_recipient_exclusion": false,
+              "explicit_nonexclusive_allocation": false,
+              "scoped_out_constraint_mentions": false,
+              "status": "CANDIDATE_NOT_PROVENANCE",
+              "instruction": "Use these source signals only to test whether competing RESOURCE_TRANSFER actions share one constrained resource. Commit an exclusive-allocation complement only after the typed actions identify distinct recipients and either an explicit constraint or shared-resource choice evidence."
+            }
+          }
+        ],
+        "conditional_rules": []
+      },
+      "admitted_skeleton": {
+        "parties": [
+          {
+            "party_id": "P1",
+            "label": "Lila",
+            "kind": "PERSON",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P2",
+            "label": "Omar",
+            "kind": "PERSON",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P3",
+            "label": "Nora",
+            "kind": "PERSON",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "propositions": [],
+        "unresolved_source_spans": [],
+        "ellipsis_resolutions": [
+          {
+            "obligation_id": "E0",
+            "status": "RESOLVED",
+            "missing_constituent_type": "PREDICATE",
+            "antecedent_span": "Lila gives Omar the medicine",
+            "reconstructed_span": "Lila does not give Nora the medicine",
+            "candidate_antecedent_spans": [
+              "Lila gives Omar the medicine"
+            ],
+            "ethical_context_roles": [],
+            "context_evidence": [],
+            "confidence": "HIGH",
+            "admission_basis": "SOURCE_ONLY",
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "allocation_completions": [
+          {
+            "status": "NOT_LICENSED",
+            "recipients": {
+              "A0": "P2",
+              "A1": "P3"
+            },
+            "shared_resource_tokens": [
+              "medicine"
+            ],
+            "constraint_profile": {
+              "explicit_capacity_or_indivisibility": false,
+              "explicit_alternative_choice": false,
+              "explicit_recipient_exclusion": false,
+              "explicit_nonexclusive_allocation": false,
+              "scoped_out_constraint_mentions": false,
+              "status": "CANDIDATE_NOT_PROVENANCE",
+              "instruction": "Use these source signals only to test whether competing RESOURCE_TRANSFER actions share one constrained resource. Commit an exclusive-allocation complement only after the typed actions identify distinct recipients and either an explicit constraint or shared-resource choice evidence."
+            }
+          }
+        ],
+        "conditional_rules": []
+      },
+      "node_admission_decisions": {},
+      "admission_counts": {
+        "admitted": 0,
+        "quarantined": 0,
+        "rejected": 0
+      },
+      "global_validation_errors": [
+        "stage-one skeleton requires non-empty propositions"
+      ],
+      "errors": [
+        "stage-one skeleton requires non-empty propositions"
+      ],
+      "conditional_rule_instantiations": [],
+      "allocation_completions": [
+        {
+          "status": "NOT_LICENSED",
+          "recipients": {
+            "A0": "P2",
+            "A1": "P3"
+          },
+          "shared_resource_tokens": [
+            "medicine"
+          ],
+          "constraint_profile": {
+            "explicit_capacity_or_indivisibility": false,
+            "explicit_alternative_choice": false,
+            "explicit_recipient_exclusion": false,
+            "explicit_nonexclusive_allocation": false,
+            "scoped_out_constraint_mentions": false,
+            "status": "CANDIDATE_NOT_PROVENANCE",
+            "instruction": "Use these source signals only to test whether competing RESOURCE_TRANSFER actions share one constrained resource. Commit an exclusive-allocation complement only after the typed actions identify distinct recipients and either an explicit constraint or shared-resource choice evidence."
+          }
+        }
+      ]
+    },
+    "parser_advisory": {
+      "packet_version": "z10-advisory/1",
+      "package_id": "pkg_e354f48beb6c4cadb938aad68a7e5944",
+      "source_sha256": "d6b9652217d388af76c42a7e08f37591ed1899556770d6f4c06812b1324a5abd",
+      "authority": "ADVISORY_EVIDENCE_ONLY",
+      "model_call_attempts": 2,
+      "semantic_use": "not_assessed"
+    },
+    "stage_one_guidance_mode": "EVIDENCE_ONLY",
+    "deterministic_repair_guidance_mode": "OFF",
+    "rejected_candidate": {
+      "actions": {
+        "A0": {
+          "clause_ids": [
+            "C0"
+          ],
+          "reason": "C0 explicitly says “Lila gives Omar the medicine,” which matches the canonical action of giving the medicine to Omar."
+        },
+        "A1": {
+          "clause_ids": [
+            "C0"
+          ],
+          "reason": "The same clause contrasts giving to Omar with \"but not Nora.\" It confirms that giving to Nora is the other possible action, though it is not carried out in the "
+        }
+      },
+      "world_model": {
+        "schema_version": "1.3",
+        "parties": [
+          {
+            "party_id": "P_LILA",
+            "label": "Lila",
+            "kind": "PERSON",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P_OMAR",
+            "label": "Omar",
+            "kind": "PERSON",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P_NORA",
+            "label": "Nora",
+            "kind": "PERSON",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P_MED",
+            "label": "the medicine",
+            "kind": "RESOURCE",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "action_id": "A0",
+            "intervention": "give the medicine to Omar",
+            "actor_party_id": "P_LILA",
+            "recipient_party_ids": [
+              "P_OMAR"
+            ],
+            "effect_ids": [
+              "E1"
+            ],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "action_id": "A1",
+            "intervention": "give the medicine to Nora",
+            "actor_party_id": "P_LILA",
+            "recipient_party_ids": [],
+            "effect_ids": [],
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "effects": [
+          {
+            "effect_id": "E1",
+            "action_id": "A0",
+            "party_id": "P_OMAR",
+            "outcome": "receives the medicine",
+            "predicate": "receives",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "RESOURCE_TRANSFER",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "Lila gives Omar the medicine",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "conditions": [],
+        "temporal_relations": [],
+        "causal_links": [],
+        "counterfactual_links": []
+      },
+      "ellipsis_resolutions": []
+    },
+    "rejected_candidate_history": [
+      {
+        "attempt": 1,
+        "repair_scope": "FRESH_GENERATION",
+        "inherited_candidate": false,
+        "rebuild_action_ids": [],
+        "candidate": {
+          "actions": {
+            "A0": {
+              "clause_ids": [
+                "C0"
+              ],
+              "reason": "C0 says \"Lila gives Omar the medicine\", which states the action of giving the medicine to Omar."
+            },
+            "A1": {
+              "clause_ids": [
+                "C0"
+              ],
+              "reason": "The contrasting phrase \"but not Nora\" in C0 makes clear the alternative of giving the medicine to Nora (which is not taken in the source episode)."
+            }
+          },
+          "world_model": {
+            "schema_version": "1.3",
+            "parties": [
+              {
+                "party_id": "P_Lila",
+                "label": "Lila",
+                "kind": "PERSON",
+                "quantities": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "party_id": "P_Omar",
+                "label": "Omar",
+                "kind": "PERSON",
+                "quantities": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "party_id": "P_Nora",
+                "label": "Nora",
+                "kind": "PERSON",
+                "quantities": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "party_id": "P_Med",
+                "label": "the medicine",
+                "kind": "RESOURCE",
+                "quantities": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              }
+            ],
+            "actions": [
+              {
+                "action_id": "A0",
+                "intervention": "give the medicine to Omar",
+                "actor_party_id": "P_Lila",
+                "recipient_party_ids": [
+                  "P_Omar"
+                ],
+                "effect_ids": [
+                  "E1",
+                  "E2"
+                ],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "action_id": "A1",
+                "intervention": "give the medicine to Nora",
+                "actor_party_id": "P_Lila",
+                "recipient_party_ids": [
+                  "P_Nora"
+                ],
+                "effect_ids": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              }
+            ],
+            "effects": [
+              {
+                "effect_id": "E1",
+                "action_id": "A0",
+                "party_id": "P_Omar",
+                "outcome": "receives the medicine",
+                "predicate": "receives",
+                "polarity": "NEUTRAL",
+                "directness": "DIRECT",
+                "modality": "CERTAIN",
+                "effect_kind": "RESOURCE_TRANSFER",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "Lila gives Omar the medicine",
+                "source_effect_ids": [],
+                "derivation_operation": "DIRECT_COPY",
+                "derivation_explanation": "",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "effect_id": "E2",
+                "action_id": "A0",
+                "party_id": "P_Nora",
+                "outcome": "does not receive the medicine",
+                "predicate": "does not receive",
+                "polarity": "NEUTRAL",
+                "directness": "DIRECT",
+                "modality": "CERTAIN",
+                "effect_kind": "RESOURCE_TRANSFER",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "but not Nora",
+                "source_effect_ids": [],
+                "derivation_operation": "DIRECT_COPY",
+                "derivation_explanation": "",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              }
+            ],
+            "conditions": [],
+            "temporal_relations": [],
+            "causal_links": [],
+            "counterfactual_links": []
+          },
+          "ellipsis_resolutions": []
+        }
+      },
+      {
+        "attempt": 2,
+        "repair_scope": "SUBGRAPH_REBUILD",
+        "inherited_candidate": true,
+        "rebuild_action_ids": [
+          "A0",
+          "A1"
+        ],
+        "candidate": {
+          "actions": {
+            "A0": {
+              "clause_ids": [
+                "C0"
+              ],
+              "reason": "C0 explicitly says “Lila gives Omar the medicine,” which matches the canonical action of giving the medicine to Omar."
+            },
+            "A1": {
+              "clause_ids": [
+                "C0"
+              ],
+              "reason": "The same clause contrasts giving to Omar with \"but not Nora.\" It confirms that giving to Nora is the other possible action, though it is not carried out in the "
+            }
+          },
+          "world_model": {
+            "schema_version": "1.3",
+            "parties": [
+              {
+                "party_id": "P_LILA",
+                "label": "Lila",
+                "kind": "PERSON",
+                "quantities": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "party_id": "P_OMAR",
+                "label": "Omar",
+                "kind": "PERSON",
+                "quantities": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "party_id": "P_NORA",
+                "label": "Nora",
+                "kind": "PERSON",
+                "quantities": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "party_id": "P_MED",
+                "label": "the medicine",
+                "kind": "RESOURCE",
+                "quantities": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              }
+            ],
+            "actions": [
+              {
+                "action_id": "A0",
+                "intervention": "give the medicine to Omar",
+                "actor_party_id": "P_LILA",
+                "recipient_party_ids": [
+                  "P_OMAR"
+                ],
+                "effect_ids": [
+                  "E1"
+                ],
+                "clause_ids": [
+                  "C0"
+                ]
+              },
+              {
+                "action_id": "A1",
+                "intervention": "give the medicine to Nora",
+                "actor_party_id": "P_LILA",
+                "recipient_party_ids": [],
+                "effect_ids": [],
+                "clause_ids": [
+                  "C0"
+                ]
+              }
+            ],
+            "effects": [
+              {
+                "effect_id": "E1",
+                "action_id": "A0",
+                "party_id": "P_OMAR",
+                "outcome": "receives the medicine",
+                "predicate": "receives",
+                "polarity": "NEUTRAL",
+                "directness": "DIRECT",
+                "modality": "CERTAIN",
+                "effect_kind": "RESOURCE_TRANSFER",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "Lila gives Omar the medicine",
+                "source_effect_ids": [],
+                "derivation_operation": "DIRECT_COPY",
+                "derivation_explanation": "",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C0"
+                ]
+              }
+            ],
+            "conditions": [],
+            "temporal_relations": [],
+            "causal_links": [],
+            "counterfactual_links": []
+          },
+          "ellipsis_resolutions": []
+        }
+      }
+    ]
+  },
+  "parser_advisory_model_call_attempts": 2,
+  "note": "A deterministic or early-return path can bypass model grounding. Prompt delivery does not demonstrate semantic use. No deliberation is run."
+}

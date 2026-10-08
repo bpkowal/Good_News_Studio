@@ -1,0 +1,118 @@
+{
+  "scenario": "Maria can pull the lever or press the button. If Maria pulls the lever, one worker will die. If Maria does not pull the lever, five workers will die. If Maria pulls the lever, the warning signal will stop.",
+  "question_assessment": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/primitive_composition_pilot/signal/question_assessment.json",
+  "chooser_model": "gpt-4o-mini",
+  "chosen_blueprint_id": "conditional_outcome",
+  "blueprint_status": "FILLED",
+  "candidate_graphs_markdown": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/primitive_composition_pilot/signal/candidate_graphs.md",
+  "candidate_attempts_json": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/primitive_composition_pilot/signal/candidate_attempts.json",
+  "z10_blueprint_comparison": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/primitive_composition_pilot/signal/z10_blueprint_comparison.json",
+  "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/primitive_composition_pilot/signal/blueprint_candidate.json",
+  "scenario_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/primitive_composition_pilot/signal/scenario.json",
+  "actions": [
+    "pulls the lever",
+    "does not pull the lever"
+  ],
+  "deliberation": {
+    "status": "NOT_RUN"
+  },
+  "parliament_version": {
+    "root": "/private/tmp/parliament-smoke-614af0c",
+    "commit": "614af0c1601dd7169842f130f1c26a5dd0b30564",
+    "branch": "relent-framework",
+    "modified_files": [
+      "global_workspace/frozen_world_replay.py",
+      "global_workspace/local_specialists.py",
+      "global_workspace/scenario_semantics.py",
+      "global_workspace/world_state.py"
+    ],
+    "integration_patch_sha256": "3051c826b2aa3b8dae35243f106a7bf21055df654d555feb28fa983318df3285"
+  },
+  "admission_attempts": [
+    {
+      "blueprint_id": "conditional_outcome",
+      "rank": -0.1,
+      "variant": "amended",
+      "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/primitive_composition_pilot/signal/admission_attempts/00_conditional_outcome/candidate.json",
+      "overlay_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/primitive_composition_pilot/signal/admission_attempts/00_conditional_outcome/hypothesis_overlay.json",
+      "status": "ADMITTED",
+      "admission": {
+        "status": "COMMITTED",
+        "world_model_status": "COMMITTED",
+        "effects": 7,
+        "causal_links": 5,
+        "frozen_trace_valid": true,
+        "fingerprint_sha256": "0f05a1fcfdafd009005ea5f8e366f6f9d7a696c3be2c30871b895b10867e803d"
+      },
+      "trace_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/primitive_composition_pilot/signal/admission_attempts/00_conditional_outcome/frozen_world_trace.json"
+    },
+    {
+      "blueprint_id": "conditional_outcome",
+      "rank": 0,
+      "variant": "baseline",
+      "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/primitive_composition_pilot/signal/admission_attempts/01_conditional_outcome/candidate.json",
+      "overlay_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/primitive_composition_pilot/signal/admission_attempts/01_conditional_outcome/hypothesis_overlay.json",
+      "status": "ADMITTED",
+      "admission": {
+        "status": "COMMITTED",
+        "world_model_status": "COMMITTED",
+        "effects": 6,
+        "causal_links": 4,
+        "frozen_trace_valid": true,
+        "fingerprint_sha256": "e040f3e9e5c9477ade6142acd6faa645d4b53e80433cd80117183dd976fd416b"
+      },
+      "trace_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/primitive_composition_pilot/signal/admission_attempts/01_conditional_outcome/frozen_world_trace.json"
+    },
+    {
+      "blueprint_id": "flexible_graph",
+      "rank": 1,
+      "variant": "flexible",
+      "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/primitive_composition_pilot/signal/admission_attempts/02_flexible_graph/candidate.json",
+      "overlay_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/primitive_composition_pilot/signal/admission_attempts/02_flexible_graph/hypothesis_overlay.json",
+      "status": "ADMITTED",
+      "admission": {
+        "status": "COMMITTED",
+        "world_model_status": "COMMITTED",
+        "effects": 7,
+        "causal_links": 5,
+        "frozen_trace_valid": true,
+        "fingerprint_sha256": "561da03e62ddcac4d2df252603c07e8b8c1654e5410dcd3edbecefa5a5a4e275"
+      },
+      "trace_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/primitive_composition_pilot/signal/admission_attempts/02_flexible_graph/frozen_world_trace.json"
+    },
+    {
+      "blueprint_id": "primitive_composition",
+      "rank": 2,
+      "variant": "composition",
+      "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/primitive_composition_pilot/signal/admission_attempts/03_primitive_composition/candidate.json",
+      "overlay_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/primitive_composition_pilot/signal/admission_attempts/03_primitive_composition/hypothesis_overlay.json",
+      "status": "ADMITTED",
+      "admission": {
+        "status": "COMMITTED",
+        "world_model_status": "COMMITTED",
+        "effects": 7,
+        "causal_links": 5,
+        "frozen_trace_valid": true,
+        "fingerprint_sha256": "a8a1d6deeb17d11d4d294cfac1dd58e7842f7ce46ca637e2ee3504170a43bb11"
+      },
+      "trace_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/primitive_composition_pilot/signal/admission_attempts/03_primitive_composition/frozen_world_trace.json"
+    }
+  ],
+  "chooser_preferred_blueprint_id": "conditional_outcome",
+  "hypothesis_overlay": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/primitive_composition_pilot/signal/admission_attempts/00_conditional_outcome/hypothesis_overlay.json",
+  "selected_variant": "amended",
+  "pipeline_status": "ADMITTED",
+  "proposal_contract_valid": true,
+  "selection_contract_valid": null,
+  "parliament_admission": {
+    "status": "COMMITTED",
+    "world_model_status": "COMMITTED",
+    "effects": 7,
+    "causal_links": 5,
+    "frozen_trace_valid": true,
+    "fingerprint_sha256": "0f05a1fcfdafd009005ea5f8e366f6f9d7a696c3be2c30871b895b10867e803d"
+  },
+  "frozen_world_trace": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/primitive_composition_pilot/signal/frozen_world_trace.json",
+  "world_state_topology_markdown": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/primitive_composition_pilot/signal/world_state_topology.md",
+  "world_state_topology_json": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/primitive_composition_pilot/signal/world_state_topology.json"
+}

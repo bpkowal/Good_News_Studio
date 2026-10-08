@@ -99,6 +99,18 @@ def effect_is_asserted(
         text = row.get("text") or ""
         if text and clause_asserts_effect(text, effect, party_label):
             return True
+    # A source-bound counted remnant may name an earlier, unique human group.
+    # Recheck the actual remnant against the outcome; matching a number alone
+    # does not license an unrelated bearer or a second equal-sized group.
+    from blueprint_physical_scene import counted_antecedent
+    source = ' '.join(row.get('text', '') for row in clauses)
+    local = str(effect.get('source_proposition') or effect.get('outcome') or '')
+    for match in re.finditer(r'\b(?:the\s+(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten)|that\s+\w+)\b', local, re.I):
+        reference = match.group(0)
+        if counted_antecedent(source, reference).casefold() != party_label.casefold():
+            continue
+        if any(clause_asserts_effect(row.get('text', ''), effect, reference) for row in clauses):
+            return True
     return False
 
 
@@ -260,7 +272,8 @@ def _number_conflict(label: str, text: str) -> bool:
 
 
 def _copied_span(effect: Mapping[str, Any], clause_text: str) -> bool:
-    cited = (clause_text or "").casefold()
+    # Match spacing symmetrically without altering either stored source span.
+    cited = " ".join((clause_text or "").split()).casefold()
     for span in (effect.get("outcome"), effect.get("source_proposition")):
         text = " ".join(str(span or "").split())
         if text and text.casefold() in cited:

@@ -1,0 +1,97 @@
+......................................./Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/.venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+..........................................F...........................................
+======================================================================
+FAIL: test_trolley_omission_cloze_candidate_passes_parliament_admission (test_blueprint_cloze_chooser.ClozeChooserTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/test_blueprint_cloze_chooser.py", line 718, in test_trolley_omission_cloze_candidate_passes_parliament_admission
+    self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 10, in <module>
+  File "/tmp/parliament-smoke-614af0c/global_workspace/world_state.py", line 3123, in parse_world_model
+    raise WorldModelValidationError(
+global_workspace.world_validation.WorldModelValidationError: AV3 depends on unestablished derivation assumptions; quarantine it as a hypothesis instead of a world effect; AV3 changes source outcome type to POLARITY_INVERTED; quarantine the transformation; AV6 depends on unestablished derivation assumptions; quarantine it as a hypothesis instead of a world effect; AV6 changes source outcome type to POLARITY_INVERTED; quarantine the transformation
+
+
+----------------------------------------------------------------------
+Ran 125 tests in 52.019s
+
+FAILED (failures=1)
+Candidate blueprint attempts:
+  1. promise_reliance: withheld selected; missing=commitment_content
+  2. primitive_composition: withheld; missing=none
+Candidate graph display: /private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmp1mpmadvo/output/candidate_graphs.md
+Blueprint construction was withheld; no world was sent to Parliament.
+{
+  "scenario": "Ada promised.",
+  "semantic_coverage": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmp1mpmadvo/output/semantic_coverage.json",
+  "question_assessment": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmp1mpmadvo/output/question_assessment.json",
+  "chooser_model": "gpt-4o-mini",
+  "chosen_blueprint_id": "promise_reliance",
+  "blueprint_status": "PARTIAL",
+  "candidate_graphs_markdown": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmp1mpmadvo/output/candidate_graphs.md",
+  "candidate_attempts_json": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmp1mpmadvo/output/candidate_attempts.json",
+  "z10_blueprint_comparison": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmp1mpmadvo/output/z10_blueprint_comparison.json",
+  "candidate_path": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmp1mpmadvo/output/blueprint_candidate.json",
+  "scenario_path": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmp1mpmadvo/output/scenario.json",
+  "actions": [],
+  "deliberation": {
+    "status": "NOT_RUN"
+  },
+  "pipeline_status": "WITHHELD",
+  "parliament_admission": {
+    "status": "NOT_RUN"
+  },
+  "withholding_reason": "Blueprint proposal is withheld: [\"Required slots remain unfilled.\"]",
+  "missing_slots": [
+    "commitment_content"
+  ],
+  "world_withheld": [
+    "Required slots remain unfilled."
+  ]
+}
+Candidate blueprint attempts:
+  1. b1: graph selected; missing=none
+  2. b2: graph; missing=none
+Candidate graph display: /private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmp_e0qysul/output/candidate_graphs.md
+Interpretive beam retained; RelEnt was not given a unique frozen world.
+{
+  "scenario": "Ada must decide.",
+  "semantic_coverage": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmp_e0qysul/output/semantic_coverage.json",
+  "question_assessment": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmp_e0qysul/output/question_assessment.json",
+  "chooser_model": "gpt-4o-mini",
+  "chosen_blueprint_id": "b1",
+  "blueprint_status": "FILLED",
+  "candidate_graphs_markdown": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmp_e0qysul/output/candidate_graphs.md",
+  "candidate_attempts_json": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmp_e0qysul/output/candidate_attempts.json",
+  "z10_blueprint_comparison": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmp_e0qysul/output/z10_blueprint_comparison.json",
+  "candidate_path": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmp_e0qysul/output/blueprint_candidate.json",
+  "scenario_path": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmp_e0qysul/output/scenario.json",
+  "actions": [
+    "act-1"
+  ],
+  "deliberation": {
+    "status": "NOT_RUN"
+  },
+  "parliament_version": {
+    "commit": "test"
+  },
+  "admission_attempts": [
+    {
+      "status": "ADMITTED",
+      "blueprint_id": "b1"
+    },
+    {
+      "status": "ADMITTED",
+      "blueprint_id": "b2"
+    }
+  ],
+  "collapse_status": "UNRESOLVED_BEAM",
+  "world_beam": "/private/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmp_e0qysul/output/world_beam.json",
+  "pipeline_status": "INTERPRETIVE_BEAM",
+  "parliament_admission": {
+    "status": "ADMITTED_BEAM",
+    "error": "Competing admitted worlds are not separated or invariant."
+  }
+}

@@ -96,7 +96,7 @@ saved=json.loads(Path('diagnostics/logic_puzzles_targeted_review_live/agenda_cor
 payload=json.loads(saved['choices'][0]['text'])
 payload['dp']['A0']['res']='RESOLVED'
 saved['choices'][0]['text']=json.dumps(payload)
-result=review(source,Path(sys.argv[1]),lambda name:SavedResponses([saved]),max_calls=1)
+result=review(source,Path(sys.argv[1]),lambda name:SavedResponses([saved]),max_calls=1,allow_residual=False)
 reviewed=result['targeted_review']
 assert reviewed['adapter_calls']=={'deontological':1}
 assert len(reviewed['retained_proposals'])==1
@@ -138,7 +138,7 @@ from logic_puzzles_acceptance import SavedResponses
 source=Path('diagnostics/logic_puzzles_independent_live/framework_generation.json')
 before=json.loads(source.read_text())
 saved=json.loads(Path('diagnostics/logic_puzzles_targeted_review_live/agenda_corrected/deontological/model_calls.json').read_text())[0]['response']
-result=review(source,Path(sys.argv[1]),lambda name:SavedResponses([saved]),max_calls=1)
+result=review(source,Path(sys.argv[1]),lambda name:SavedResponses([saved]),max_calls=1,allow_residual=False)
 audit=result['targeted_review']
 partial=audit['isolated_classification_reviews'][0]
 assert partial['native_accepted'] and partial['new_api_calls']==0

@@ -1,0 +1,168 @@
+--- a/global_workspace/expected_value.py
++++ b/global_workspace/expected_value.py
+@@ -110,7 +110,7 @@
+ 
+ 
+ def _recomputed_value(
+-    source_records: Sequence[Mapping[str, Any]], method: str,
++    source_records: Sequence[Mapping[str, Any]], method: str, unit: str = "",
+ ) -> tuple[float, str, tuple[tuple[float, float, float], ...]] | None:
+     if method not in {"DIRECT_COUNT", "EXPECTED_COUNT"}:
+         return None
+@@ -119,6 +119,12 @@
+     for record in source_records:
+         direction = _signed_direction(record)
+         magnitude = _magnitude(record)
++        projection = record.get("count_projection") or {}
++        if (unit.upper() in {"EXPECTED_SURVIVORS", "SURVIVORS", "PERSON", "PERSONS", "LIVES_SAVED"}
++                and projection.get("endpoint") == "SURVIVOR_COUNT"
++                and projection.get("basis") == "ADMITTED_SINGLE_PERSON_IDENTITY"
++                and projection.get("amount") == 1 and projection.get("party_id")):
++            magnitude = 1.0
+         probability = _probability(record)
+         if direction is None or magnitude is None:
+             return None
+@@ -235,7 +241,13 @@
+                     "EV changes a trapping outcome into a mortality quantity"
+                 )
+ 
+-            recomputed = _recomputed_value(source_records, method)
++            # A survivor endpoint cannot count two overlapping descriptions of
++            # the same patient's survival twice.
++            count_parties = [(r.get("count_projection") or {}).get("party_id") for r in source_records
++                             if (r.get("count_projection") or {}).get("endpoint") == "SURVIVOR_COUNT"]
++            if len(count_parties) != len(set(count_parties)):
++                row_errors.append("survivor count repeats an affected person")
++            recomputed = _recomputed_value(source_records, method, unit)
+             if method in {"DIRECT_COUNT", "EXPECTED_COUNT"}:
+                 if recomputed is None:
+                     row_errors.append(
+@@ -287,6 +299,11 @@
+             "validation_errors": row_errors,
+             "arithmetic_identity": arithmetic_identity,
+             "symbolic_expression": symbolic_expression,
++            "count_projections": [dict(r["count_projection"]) for r in source_records
++                                  if r.get("count_projection")] if claimed else [],
++            "valuation_scope": "RESTRICTED_SURVIVOR_ENDPOINT_NOT_TOTAL_WELFARE"
++                if claimed and source_records and all(r.get("count_projection") for r in source_records)
++                else "SPECIALIST_VALUATION",
+         }
+ 
+     if not claimed_keys:
+--- a/global_workspace/local_specialists.py
++++ b/global_workspace/local_specialists.py
+@@ -4494,6 +4494,10 @@
+                     ),
+                     "source_clause_id": effect.source_clause_id,
+                     "consequence_id": effect.consequence_id,
++                    "count_projection": __import__("global_workspace.recognition_bridge", fromlist=["survivor_count_projection"]).survivor_count_projection(
++                        {**(consequence.attributes if consequence is not None else {}),
++                         "party_label": effect.affected_subject, "affected_subject": effect.affected_subject},
++                        consequence.label if consequence is not None else ""),
+                     "epistemic_status": effect.epistemic_status,
+                 })
+         grounded_effect_ids = {
+@@ -6112,6 +6116,14 @@
+         raw = output["choices"][0]["text"] if isinstance(output, dict) else str(output)
+         try:
+             data = _extract_json(raw)
++            if (self.name == "deontological" and getattr(self.llm, "max_calls", 2) > len(getattr(self.llm, "calls", []))) and any(
++                row.get("pb") == "PERFECT_DUTY" and row.get("dt") not in {"PERFECT_NEGATIVE", "PERFECT_POSITIVE"}
++                for row in (data.get("dp") or {}).values() if isinstance(row, dict)
++            ):
++                raise ValueError("DUTY_CONSISTENCY_REPAIR: " + json.dumps({
++                    action: {key: row.get(key) for key in ("dt", "pb", "v", "gv", "res")}
++                    for action, row in (data.get("dp") or {}).items() if isinstance(row, dict)
++                    and row.get("pb") == "PERFECT_DUTY" and row.get("dt") not in {"PERFECT_NEGATIVE", "PERFECT_POSITIVE"}}))
+             calibration = self._calibrate_evidence(scenario, actions, data)
+             candidate = _candidate_from_data(
+                 self.name, actions, data, broadcast, fixed_baseline, self.scenario_facts or {},
+@@ -6151,6 +6163,13 @@
+         except (ValueError, json.JSONDecodeError) as first_error:
+             repair_prompt = f"""[INST]
+ Repair this invalid answer as JSON only: {raw[:400]}
++Validation problem: {str(first_error)}
++Original duty assessments: {json.dumps(data.get("dp", {})) if self.name == "deontological" else "not applicable"}
++For DUTY_CONSISTENCY_REPAIR keep the authored dt classification. Do not invent a
++perfect duty to satisfy PERFECT_DUTY priority. Supply another justified priority
++basis or explicitly use v=CONFLICTED, gv=UNRESOLVED, pb=UNRESOLVED, res=CONTESTED.
++Preserve every action's complete dp record and render fm consistently from dp.
++This is one repair attempt; uncertainty and abstention are valid.
+ Required fields: scores object for {', '.join(action_ids)}, r, c, u, w, j. Also return
+ e=STATED_FACTS, FRAMEWORK_ONLY, or UNSTATED_FACTS and x naming any unstated claim.
+ When an authoritative proposition ledger is present, also return sps, dcp, and ep
+@@ -6201,6 +6220,11 @@
+             repaired_raw = repaired["choices"][0]["text"] if isinstance(repaired, dict) else str(repaired)
+             try:
+                 data = _extract_json(repaired_raw)
++                if str(first_error).startswith("DUTY_CONSISTENCY_REPAIR: "):
++                    offending = json.loads(str(first_error).split(": ", 1)[1])
++                    if any((data.get("dp", {}).get(action) or {}).get("dt") != row["dt"]
++                           for action, row in offending.items()):
++                        raise ValueError("Duty repair changed the original duty classification")
+                 calibration = self._calibrate_evidence(scenario, actions, data)
+                 candidate = _candidate_from_data(
+                     self.name, actions, data, broadcast, fixed_baseline, self.scenario_facts or {},
+--- a/global_workspace/recognition_bridge.py
++++ b/global_workspace/recognition_bridge.py
+@@ -41,6 +41,21 @@
+ 
+ def normalized(text):
+     return ' '.join(str(text).casefold().split()).rstrip('. ')
++
++
++def survivor_count_projection(attributes, outcome):
++    """Count one explicitly named person; never assign one unit of welfare."""
++    label = str(attributes.get('party_label', ''))
++    if (attributes.get('party_kind') != 'PERSON' or not attributes.get('party_id')
++            or not re.fullmatch(r'[A-Z][a-z]+(?: [A-Z][a-z]+)*', label)
++            or normalized(attributes.get('affected_subject', label)) != normalized(label)):
++        return {}
++    match = re.fullmatch(re.escape(label) + r' has a (\d+(?:\.\d+)?)% chance of survival\.?', str(outcome))
++    if not match or explicit_probability(attributes) == 'UNKNOWN':
++        return {}
++    return {'endpoint': 'SURVIVOR_COUNT', 'amount': 1, 'party_id': attributes['party_id'],
++            'basis': 'ADMITTED_SINGLE_PERSON_IDENTITY', 'source_outcome': outcome,
++            'welfare_magnitude': 'UNKNOWN', 'duration': 'UNKNOWN'}
+ 
+ 
+ def supported_records(world, scenario):
+@@ -111,6 +126,24 @@
+             # Only explicit rule wording; preserve modal/negative wording intact.
+             if re.search(r'\bif\b|\bwho\b.+\b(?:will|may|might)\b', row['excerpt'], re.I):
+                 add('RULE', row['excerpt'], [source['effect_id'], target['effect_id']], [row])
++    # Stated commitment occurrence is distinct from performance of its content.
++    # Recognize only standalone affirmative past-tense source statements with
++    # admitted named participants; quotes, attribution and conditional promises
++    # remain outside this deliberately bounded construction.
++    persons = {p['label']: p['party_id'] for p in world.get('parties', [])
++               if p.get('kind') == 'PERSON' and re.fullmatch(r'[A-Z][a-z]+(?: [A-Z][a-z]+)*', p.get('label', ''))}
++    for match in re.finditer(r'(?:^|(?<=\.))\s*([^.!?]+[.!?]?)', scenario):
++        sentence = match[1].strip()
++        for actor, actor_id in persons.items():
++            for recipient, recipient_id in persons.items():
++                if re.fullmatch(re.escape(actor)+r' promised '+re.escape(recipient)+r' (?:that .+|to .+)\.', sentence):
++                    start = scenario.find(sentence, match.start())
++                    proof = 'SOURCE_SPAN:' + hashlib.sha256(f'{start}:{start+len(sentence)}:{sentence}'.encode()).hexdigest()[:16]
++                    add('COMMITMENT_OCCURRENCE', sentence, [actor_id, recipient_id, proof],
++                        [{'clause_id': proof, 'excerpt': sentence, 'start': start, 'end': start+len(sentence)}])
++                    card = next(c for c in cards.values() if c['claim'] == sentence)
++                    card.update(scope='SOURCE_COMMITMENT_OCCURRENCE', content_occurrence='NOT_ESTABLISHED',
++                                normative_force='NOT_ASSESSED')
+     return list(cards.values())
+ 
+ 
+--- a/global_workspace/epistemic_ledger.py
++++ b/global_workspace/epistemic_ledger.py
+@@ -353,9 +353,9 @@
+         ledger[card["proposition_id"]] = PropositionRecord(
+             proposition_id=card["proposition_id"], claim=card["claim"],
+             proposition_type="DESCRIPTIVE", epistemic_status="STIPULATED",
+-            epistemic_type="WORLD_ESTABLISHED", introduced_by="WORLD_MODEL",
++            epistemic_type="WORLD_ESTABLISHED", introduced_by="SOURCE_TEXT" if card["kind"] == "COMMITMENT_OCCURRENCE" else "WORLD_MODEL",
+             support_ids=card["support_ids"], aliases=card["aliases"],
+-            modality="SOURCE_RULE" if card["kind"] == "RULE" else "SOURCE_CONSTRAINT",
++            modality=card.get("scope", "SOURCE_CONSTRAINT"),
+         )
+     return ledger
+ 

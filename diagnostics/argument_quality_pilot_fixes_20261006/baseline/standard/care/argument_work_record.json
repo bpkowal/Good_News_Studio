@@ -1,0 +1,102 @@
+{
+  "origin": "MODEL_AUTHORED_ARGUMENT",
+  "authority": "ATTRIBUTED_NOT_WORLD_STATE",
+  "raw_fields": {
+    "ev": {
+      "A0": {
+        "value": 0,
+        "unit": "NONE",
+        "direction": "HARM",
+        "grounded": false,
+        "method": "NOT_COMPUTED",
+        "source_effect_ids": [],
+        "calculation": "not computed",
+        "assumptions": []
+      },
+      "A1": {
+        "value": 0,
+        "unit": "NONE",
+        "direction": "HARM",
+        "grounded": false,
+        "method": "NOT_COMPUTED",
+        "source_effect_ids": [],
+        "calculation": "not computed",
+        "assumptions": []
+      }
+    },
+    "dp": null,
+    "cl": {
+      "A0": {
+        "v": "RESPONSIVE",
+        "p": "Ben",
+        "rt": "DEPENDENCY",
+        "ds": "Ben needs medicine controlled by Ada",
+        "rb": "Controller owes care to dependent",
+        "nk": "SURVIVAL_HEALTH",
+        "nu": "IMMEDIATE",
+        "te": "PRESERVES",
+        "rr": "DIRECT",
+        "f": "ESTABLISHED",
+        "cc": "Cara\u0019s similar need",
+        "res": "RESOLVED",
+        "g": "ACTION_GRAPH",
+        "rs": "Ada directly meets Ben\u0019s urgent dependency with high competence"
+      },
+      "A1": {
+        "v": "NEGLECTFUL",
+        "p": "Cara",
+        "rt": "DEPENDENCY",
+        "ds": "Cara needs medicine controlled by Ada",
+        "rb": "Controller owes care to dependent",
+        "nk": "SURVIVAL_HEALTH",
+        "nu": "IMMEDIATE",
+        "te": "STRAINS",
+        "rr": "DIRECT",
+        "f": "ESTABLISHED",
+        "cc": "Ben has higher survival chance",
+        "res": "RESOLVED",
+        "g": "ACTION_GRAPH",
+        "rs": "Ada shows poor competence, ignores higher chance to save Ben"
+      }
+    },
+    "ep": [
+      {
+        "c": "Ben has a 95% chance of survival; affected subject: Ben; modality: PROBABILISTIC",
+        "p": "PROP:WORLD:E2",
+        "dc": true,
+        "a": "A0",
+        "se": [
+          "E2"
+        ],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      },
+      {
+        "c": "Cara has a 5% chance of survival; affected subject: Cara; modality: PROBABILISTIC",
+        "p": "PROP:WORLD:E4",
+        "dc": true,
+        "a": "A1",
+        "se": [
+          "E4"
+        ],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      }
+    ],
+    "dr": "Prefer A0 when one patient\u0019s survival likelihood is vastly higher under equal dependency.",
+    "ft": "survival chances reversed",
+    "nt": "equal-probability lottery principle overrides competence",
+    "fic": [],
+    "foq": []
+  },
+  "native_submission": "VALID",
+  "native_ledger": "COMMITTED",
+  "native_warnings": [
+    "decisive counts lack relational comparability"
+  ],
+  "semantic_support": "NOT_INDEPENDENTLY_VERIFIED"
+}

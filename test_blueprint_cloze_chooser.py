@@ -604,7 +604,7 @@ parse_world_model(w, clauses=p["clauses"], action_ids=ids,
         world = result["graph"]["candidate"]["world_model"]
         self.assertEqual(
             [row["intervention"] for row in world["actions"]],
-            ["pulls the lever", "does not pull the lever"],
+            ["pull the lever", "does not pull the lever"],
         )
         self.assertEqual(len([row for row in world["effects"] if row["predicate"] == "die"]), 2)
         deaths = [row for row in world["effects"] if row["predicate"] == "die"]
@@ -627,7 +627,7 @@ parse_world_model(w, clauses=p["clauses"], action_ids=ids,
         ))
         pull = next(row for row in world["effects"] if "lever" in row["outcome"]
                     and "not" not in row["outcome"] and row["directness"] == "DIRECT")
-        self.assertEqual(pull["source_proposition"], "pulls the lever")
+        self.assertEqual(pull["source_proposition"], "pull the lever")
         self.assertNotIn("one", pull["quantities"])
         process_party = next(row for row in world["parties"]
                              if row["party_id"] == pull["party_id"])
@@ -650,7 +650,13 @@ parse_world_model(w, clauses=p["clauses"], action_ids=ids,
         self.assertNotIn("the brake", [row["intervention"] for row in world["actions"]])
         omitted = next(row for row in result["considered"][0]["items"]
                        if row["id"] == "omitted")
-        self.assertEqual(omitted["reason"], "recovered_from_z10_conditional_structure")
+        self.assertTrue(str(omitted["reason"]).startswith("recovered"))
+        self.assertIn("not pull", (omitted.get("span") or "").casefold())
+        done_hyps = result["considered"][0]["slot_hypotheses"]["done"]
+        self.assertTrue(any(
+            row["producer"] == "z10" and "pulls the lever" in (row.get("source_span") or "")
+            for row in done_hyps
+        ))
 
     @unittest.skipUnless(os.environ.get("PARLIAMENT_SMOKE_ROOT") and
                          os.environ.get("PARLIAMENT_SMOKE_PYTHON"),
@@ -683,6 +689,13 @@ parse_world_model(w, clauses=p["clauses"], action_ids=ids,
         with mock.patch("blueprint_cloze_chooser.assess_question",
                         return_value=question):
             proposal = choose_by_cloze(TROLLEY, script)["graph"]
+        from blueprint_admission_core import supported_core
+        original = json.loads(json.dumps(proposal))
+        proposal, overlay = supported_core(proposal)
+        self.assertEqual({e["effect_id"] for e in overlay["effects"]}, {"AV3", "AV6"})
+        self.assertEqual(len(proposal["candidate"]["world_model"]["effects"]), 6)
+        self.assertEqual({e["effect_id"] for e in original["candidate"]["world_model"]["effects"]},
+                         {e["effect_id"] for e in proposal["candidate"]["world_model"]["effects"]} | {"AV3", "AV6"})
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "proposal.json"
             path.write_text(json.dumps(proposal), encoding="utf-8")
@@ -704,10 +717,21 @@ result = _admit_action_source_rows(p["candidate"], actions, ids, p["clauses"])
 assert result["status"] in {"COMMITTED", "COMMITTED_WITH_UNCERTAINTY"}, result
 assert result["world_model_status"] in {
     "COMMITTED", "COMMITTED_WITH_UNCERTAINTY"}, result
+raw = json.load(open(sys.argv[3]))
+raw_world = raw["candidate"]["world_model"]; raw_world["schema_version"] = "1.3"
+try:
+    parse_world_model(raw_world, clauses=raw["clauses"], action_ids=ids,
+                     action_texts=dict(zip(ids, actions)), require_completeness=True)
+except Exception as error:
+    assert "AV3" in str(error) and "AV6" in str(error) and "POLARITY_INVERTED" in str(error), str(error)
+else:
+    raise AssertionError("Hypothesized averted harms must not become admitted effects")
 '''
+            raw_path = Path(directory) / "unfiltered.json"
+            raw_path.write_text(json.dumps(original), encoding="utf-8")
             completed = subprocess.run(
                 [os.environ["PARLIAMENT_SMOKE_PYTHON"], "-c", code,
-                 os.environ["PARLIAMENT_SMOKE_ROOT"], str(path)],
+                 os.environ["PARLIAMENT_SMOKE_ROOT"], str(path), str(raw_path)],
                 text=True, capture_output=True, timeout=60)
         self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
 
@@ -1271,6 +1295,103 @@ assert result["status"] in {"COMMITTED", "COMMITTED_WITH_UNCERTAINTY"}, result
         joined = " ".join(interventions).casefold()
         self.assertIn("child", joined)
         self.assertIn("elderly", joined)
+
+    def test_list_answers_keep_every_valid_copy_as_slot_hypotheses(self):
+        script = Script(
+            ["exclusive_allocation", "conditional_outcome", "omission_harm"],
+            {
+                "exclusive_allocation": {
+                    **_none_sheet("exclusive_allocation"),
+                    "decider": "Ada",
+                    "resource": "the medicine",
+                    "assignment": ["give the medicine", "gives the medicine to Ben"],
+                    "first_recipient": "Ben",
+                    "second_recipient": "Cara",
+                    "exclusivity": "but not both",
+                    "first_outcome": "Ben has a 95% chance of survival",
+                    "second_outcome": "Cara has a 5% chance of survival",
+                },
+                "conditional_outcome": _none_sheet("conditional_outcome"),
+                "omission_harm": _none_sheet("omission_harm"),
+            },
+        )
+        result = choose_by_cloze(MEDICINE, script)
+        hyps = [
+            row for row in result["considered"][0]["slot_hypotheses"]["assignment"]
+            if row["relent_compatibility"] == "copy_ok"
+        ]
+        spans = {row["source_span"].casefold() for row in hyps}
+        self.assertGreaterEqual(len(spans), 2)
+        self.assertTrue(any("give the medicine" in span for span in spans))
+        primary = result["considered"][0]["slots"]["assignment"].casefold()
+        self.assertIn(primary, spans)
+        self.assertIn("assignment", result["graph"]["slot_bindings"]["slot_hypotheses"])
+
+    def test_z10_recovery_competes_with_copied_assignment(self):
+        result = self._allocation_run(MEDICINE, {
+            "decider": "Ada",
+            "resource": "the medicine",
+            "assignment": "give the medicine",
+            "first_recipient": "Ben",
+            "second_recipient": "Cara",
+            "exclusivity": "but not both",
+        })
+        hyps = result["considered"][0]["slot_hypotheses"].get("assignment") or []
+        producers = {row["producer"] for row in hyps if row["relent_compatibility"] == "copy_ok"}
+        self.assertIn("cloze_copy", producers)
+        recoveries = result["considered"][0].get("semantic_recoveries") or {}
+        if "assignment" in recoveries:
+            self.assertIn("z10", producers)
+            self.assertEqual(result["considered"][0]["slots"]["assignment"], "give the medicine")
+
+    def test_implied_process_does_not_add_a_world_beam_member(self):
+        script = Script(
+            ["exclusive_allocation", "conditional_outcome", "omission_harm"],
+            {
+                "exclusive_allocation": {
+                    **_none_sheet("exclusive_allocation"),
+                    "decider": "Ada",
+                    "resource": "the medicine",
+                    "assignment": "give the medicine",
+                    "first_recipient": "Ben",
+                    "second_recipient": "Cara",
+                    "exclusivity": "but not both",
+                    "first_outcome": "Ben has a 95% chance of survival",
+                    "second_outcome": "Cara has a 5% chance of survival",
+                    "first_implied_process": "metabolizing",
+                    "second_implied_process": "metabolizing",
+                },
+                "conditional_outcome": _none_sheet("conditional_outcome"),
+                "omission_harm": _none_sheet("omission_harm"),
+            },
+        )
+        result = choose_by_cloze(MEDICINE, script)
+        self.assertLessEqual(len(result["world_beam"]), 3)
+        self.assertTrue(all(
+            member.get("source") != "implied_process" for member in result["world_beam"]
+        ))
+        ids = [member["blueprint_id"] for member in result["world_beam"]]
+        self.assertEqual(ids.count("exclusive_allocation"), 1)
+
+    def test_deontic_preferred_fill_stays_deontic_rule(self):
+        script = Script(
+            ["deontic_rule", "exclusive_allocation", "omission_harm"],
+            {
+                "deontic_rule": {
+                    **_none_sheet("deontic_rule"),
+                    "bearer": "Ada",
+                    "deontic_words": "must",
+                    "governed_action": "deliver water to Ben",
+                    "target": "Ben",
+                },
+                "exclusive_allocation": _none_sheet("exclusive_allocation"),
+                "omission_harm": _none_sheet("omission_harm"),
+            },
+        )
+        result = choose_by_cloze("Ada must deliver water to Ben.", script)
+        self.assertEqual(result["chosen_blueprint_id"], "deontic_rule")
+        self.assertEqual(len(result["world_beam"]), 1)
+        self.assertEqual(result["world_beam"][0]["blueprint_id"], "deontic_rule")
 
 
 if __name__ == "__main__":

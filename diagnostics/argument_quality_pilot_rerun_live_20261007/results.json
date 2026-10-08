@@ -1,0 +1,1873 @@
+[
+  {
+    "case": "baseline",
+    "arm": "standard",
+    "framework": "utilitarian",
+    "adapter_calls": 1,
+    "submission": "VALID",
+    "ledger_status": "COMMITTED",
+    "acceptance": "SELECTED",
+    "preferred_action": "Ada gives the medicine to Ben",
+    "validation_errors": {},
+    "rationale": "Saves far more expected life",
+    "decision_rule": "Prefer A0 when its expected survivors exceed A1",
+    "argument": {
+      "framework_application": "NONE",
+      "framework_insights": [],
+      "reversal_condition": "",
+      "challenge_response": {},
+      "framework_action_map": {},
+      "factual_reversal_threshold": "Ben\u2019s survival probability falls below Cara\u2019s",
+      "normative_reversal_threshold": "NONE",
+      "expected_value_estimates": {
+        "Ada gives the medicine to Ben": {
+          "value": 0.95,
+          "unit": "EXPECTED_SURVIVORS",
+          "direction": "BENEFIT",
+          "grounded": true,
+          "claimed_grounded": true,
+          "method": "EXPECTED_COUNT",
+          "source_effect_ids": [
+            "E2"
+          ],
+          "calculation": "1 person \u00d7 0.95 = 0.95 expected survivors",
+          "assumptions": [],
+          "validation_status": "ARITHMETIC_VERIFIED",
+          "validation_errors": [],
+          "arithmetic_identity": "19/20",
+          "symbolic_expression": "19/20",
+          "count_projections": [
+            {
+              "endpoint": "SURVIVOR_COUNT",
+              "amount": 1,
+              "party_id": "P3",
+              "basis": "ADMITTED_SINGLE_PERSON_IDENTITY",
+              "source_outcome": "Ben has a 95% chance of survival",
+              "welfare_magnitude": "UNKNOWN",
+              "duration": "UNKNOWN"
+            }
+          ],
+          "valuation_scope": "RESTRICTED_SURVIVOR_ENDPOINT_NOT_TOTAL_WELFARE"
+        },
+        "Ada gives the medicine to Cara": {
+          "value": 0.05,
+          "unit": "EXPECTED_SURVIVORS",
+          "direction": "BENEFIT",
+          "grounded": true,
+          "claimed_grounded": true,
+          "method": "EXPECTED_COUNT",
+          "source_effect_ids": [
+            "E4"
+          ],
+          "calculation": "1 person \u00d7 0.05 = 0.05 expected survivors",
+          "assumptions": [],
+          "validation_status": "ARITHMETIC_VERIFIED",
+          "validation_errors": [],
+          "arithmetic_identity": "1/20",
+          "symbolic_expression": "1/20",
+          "count_projections": [
+            {
+              "endpoint": "SURVIVOR_COUNT",
+              "amount": 1,
+              "party_id": "P4",
+              "basis": "ADMITTED_SINGLE_PERSON_IDENTITY",
+              "source_outcome": "Cara has a 5% chance of survival",
+              "welfare_magnitude": "UNKNOWN",
+              "duration": "UNKNOWN"
+            }
+          ],
+          "valuation_scope": "RESTRICTED_SURVIVOR_ENDPOINT_NOT_TOTAL_WELFARE"
+        }
+      },
+      "utilitarian_ranking_certificate": {},
+      "deontological_ledger_proposal": {},
+      "care_ledger_proposal": {},
+      "framework_internal_conflicts": [],
+      "framework_specific_open_questions": []
+    },
+    "native_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/baseline/standard/utilitarian/native_trace.json",
+    "argument_work_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/baseline/standard/utilitarian/argument_work_record.json",
+    "argument_quality": "REQUIRES_CONTENT_REVIEW"
+  },
+  {
+    "case": "baseline",
+    "arm": "standard",
+    "framework": "deontological",
+    "adapter_calls": 1,
+    "submission": "VALID",
+    "ledger_status": "NONE",
+    "acceptance": "SELECTED",
+    "preferred_action": "Ada gives the medicine to Ben",
+    "validation_errors": {
+      "framework_validation_errors": [
+        "perfect-duty priority for A0 lacks a perfect-duty classification",
+        "perfect-duty priority for A1 lacks a perfect-duty classification",
+        "numeric reversal threshold lacks a scenario-grounded quantity"
+      ]
+    },
+    "rationale": "Fulfil strongest rescue duty",
+    "decision_rule": "prefer action that maximises likelihood of saving a person",
+    "argument": {
+      "framework_application": "NONE",
+      "framework_insights": [],
+      "reversal_condition": "",
+      "challenge_response": {},
+      "framework_action_map": {
+        "Ada gives the medicine to Ben": "REQUIRED: imperfect duty of rescue most effectively fulfilled",
+        "Ada gives the medicine to Cara": "PERMISSIBLE: still aids but fulfils duty less effectively"
+      },
+      "factual_reversal_threshold": "NONE",
+      "normative_reversal_threshold": "if duty effectiveness not priority",
+      "expected_value_estimates": {
+        "Ada gives the medicine to Ben": {
+          "value": 0.0,
+          "unit": "NONE",
+          "direction": "HARM",
+          "grounded": false,
+          "claimed_grounded": false,
+          "method": "NOT_COMPUTED",
+          "source_effect_ids": [],
+          "calculation": "not computed",
+          "assumptions": [],
+          "validation_status": "NOT_CLAIMED",
+          "validation_errors": [],
+          "arithmetic_identity": "",
+          "symbolic_expression": "",
+          "count_projections": [],
+          "valuation_scope": "SPECIALIST_VALUATION"
+        },
+        "Ada gives the medicine to Cara": {
+          "value": 0.0,
+          "unit": "NONE",
+          "direction": "HARM",
+          "grounded": false,
+          "claimed_grounded": false,
+          "method": "NOT_COMPUTED",
+          "source_effect_ids": [],
+          "calculation": "not computed",
+          "assumptions": [],
+          "validation_status": "NOT_CLAIMED",
+          "validation_errors": [],
+          "arithmetic_identity": "",
+          "symbolic_expression": "",
+          "count_projections": [],
+          "valuation_scope": "SPECIALIST_VALUATION"
+        }
+      },
+      "utilitarian_ranking_certificate": {},
+      "deontological_ledger_proposal": {},
+      "care_ledger_proposal": {},
+      "framework_internal_conflicts": [],
+      "framework_specific_open_questions": []
+    },
+    "native_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/baseline/standard/deontological/native_trace.json",
+    "argument_work_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/baseline/standard/deontological/argument_work_record.json",
+    "argument_quality": "REQUIRES_CONTENT_REVIEW"
+  },
+  {
+    "case": "baseline",
+    "arm": "standard",
+    "framework": "care",
+    "adapter_calls": 1,
+    "submission": "VALID",
+    "ledger_status": "COMMITTED_WITH_UNCERTAINTY",
+    "acceptance": "SELECTED",
+    "preferred_action": "Ada gives the medicine to Ben",
+    "validation_errors": {
+      "framework_validation_errors": [
+        "A0 competing Care claim remains contested",
+        "A1 competing Care claim remains contested"
+      ]
+    },
+    "rationale": "competent responsive care",
+    "decision_rule": "prefer A0 when its survival probability greatly exceeds rival action",
+    "argument": {
+      "framework_application": "NONE",
+      "framework_insights": [],
+      "reversal_condition": "",
+      "challenge_response": {},
+      "framework_action_map": {
+        "Ada gives the medicine to Ben": "entrusted acute dependency addressed with competence",
+        "Ada gives the medicine to Cara": "entrusted dependency but incompetent response"
+      },
+      "factual_reversal_threshold": "Cara survival chance \u2265 Ben survival chance",
+      "normative_reversal_threshold": "priority rule that always treats worse-off first",
+      "expected_value_estimates": {
+        "Ada gives the medicine to Ben": {
+          "value": 0.0,
+          "unit": "NONE",
+          "direction": "HARM",
+          "grounded": false,
+          "claimed_grounded": false,
+          "method": "NOT_COMPUTED",
+          "source_effect_ids": [],
+          "calculation": "not computed",
+          "assumptions": [],
+          "validation_status": "NOT_CLAIMED",
+          "validation_errors": [],
+          "arithmetic_identity": "",
+          "symbolic_expression": "",
+          "count_projections": [],
+          "valuation_scope": "SPECIALIST_VALUATION"
+        },
+        "Ada gives the medicine to Cara": {
+          "value": 0.0,
+          "unit": "NONE",
+          "direction": "HARM",
+          "grounded": false,
+          "claimed_grounded": false,
+          "method": "NOT_COMPUTED",
+          "source_effect_ids": [],
+          "calculation": "not computed",
+          "assumptions": [],
+          "validation_status": "NOT_CLAIMED",
+          "validation_errors": [],
+          "arithmetic_identity": "",
+          "symbolic_expression": "",
+          "count_projections": [],
+          "valuation_scope": "SPECIALIST_VALUATION"
+        }
+      },
+      "utilitarian_ranking_certificate": {},
+      "deontological_ledger_proposal": {},
+      "care_ledger_proposal": {
+        "ranking_basis": "ACUTE_DEPENDENCY",
+        "assessments": [
+          {
+            "action_id": "A0",
+            "verdict": "RESPONSIVE",
+            "affected_party": "Ben",
+            "relationship_type": "ENTRUSTED",
+            "dependency_source": "Ada controls life-saving resource",
+            "responsibility_basis": "controller must respond competently",
+            "need_kind": "SURVIVAL_HEALTH",
+            "need_urgency": "IMMEDIATE",
+            "trust_effect": "PRESERVES",
+            "responsiveness": "DIRECT",
+            "feasibility": "ESTABLISHED",
+            "competing_care_claim": "Cara\u2019s parallel need",
+            "resolution_status": "CONTESTED",
+            "evidence_basis": "ACTION_GRAPH",
+            "reason": "A0 directly answers entrusted immediate need with high competence"
+          },
+          {
+            "action_id": "A1",
+            "verdict": "NEGLECTFUL",
+            "affected_party": "Cara",
+            "relationship_type": "ENTRUSTED",
+            "dependency_source": "Ada controls life-saving resource",
+            "responsibility_basis": "controller must respond competently",
+            "need_kind": "SURVIVAL_HEALTH",
+            "need_urgency": "IMMEDIATE",
+            "trust_effect": "STRAINS",
+            "responsiveness": "DIRECT",
+            "feasibility": "ESTABLISHED",
+            "competing_care_claim": "Ben\u2019s higher survival likelihood",
+            "resolution_status": "CONTESTED",
+            "evidence_basis": "ACTION_GRAPH",
+            "reason": "A1 attempts care but fails competence, leaving both likely dead"
+          }
+        ]
+      },
+      "framework_internal_conflicts": [],
+      "framework_specific_open_questions": []
+    },
+    "native_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/baseline/standard/care/native_trace.json",
+    "argument_work_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/baseline/standard/care/argument_work_record.json",
+    "argument_quality": "REQUIRES_CONTENT_REVIEW"
+  },
+  {
+    "case": "baseline",
+    "arm": "argument_checklist",
+    "framework": "utilitarian",
+    "adapter_calls": 1,
+    "submission": "VALID",
+    "ledger_status": "COMMITTED",
+    "acceptance": "SELECTED",
+    "preferred_action": "Ada gives the medicine to Ben",
+    "validation_errors": {},
+    "rationale": "A0 yields more expected lives",
+    "decision_rule": "prefer the action with higher expected survivor count",
+    "argument": {
+      "framework_application": "NONE",
+      "framework_insights": [],
+      "reversal_condition": "",
+      "challenge_response": {},
+      "framework_action_map": {},
+      "factual_reversal_threshold": "Ben\u2019s survival probability falls below Cara\u2019s",
+      "normative_reversal_threshold": "NONE",
+      "expected_value_estimates": {
+        "Ada gives the medicine to Ben": {
+          "value": 0.95,
+          "unit": "PERSONS",
+          "direction": "BENEFIT",
+          "grounded": true,
+          "claimed_grounded": true,
+          "method": "EXPECTED_COUNT",
+          "source_effect_ids": [
+            "E2"
+          ],
+          "calculation": "1 person * 0.95 = 0.95 expected survivors",
+          "assumptions": [],
+          "validation_status": "ARITHMETIC_VERIFIED",
+          "validation_errors": [],
+          "arithmetic_identity": "19/20",
+          "symbolic_expression": "19/20",
+          "count_projections": [
+            {
+              "endpoint": "SURVIVOR_COUNT",
+              "amount": 1,
+              "party_id": "P3",
+              "basis": "ADMITTED_SINGLE_PERSON_IDENTITY",
+              "source_outcome": "Ben has a 95% chance of survival",
+              "welfare_magnitude": "UNKNOWN",
+              "duration": "UNKNOWN"
+            }
+          ],
+          "valuation_scope": "RESTRICTED_SURVIVOR_ENDPOINT_NOT_TOTAL_WELFARE"
+        },
+        "Ada gives the medicine to Cara": {
+          "value": 0.05,
+          "unit": "PERSONS",
+          "direction": "BENEFIT",
+          "grounded": true,
+          "claimed_grounded": true,
+          "method": "EXPECTED_COUNT",
+          "source_effect_ids": [
+            "E4"
+          ],
+          "calculation": "1 person * 0.05 = 0.05 expected survivors",
+          "assumptions": [],
+          "validation_status": "ARITHMETIC_VERIFIED",
+          "validation_errors": [],
+          "arithmetic_identity": "1/20",
+          "symbolic_expression": "1/20",
+          "count_projections": [
+            {
+              "endpoint": "SURVIVOR_COUNT",
+              "amount": 1,
+              "party_id": "P4",
+              "basis": "ADMITTED_SINGLE_PERSON_IDENTITY",
+              "source_outcome": "Cara has a 5% chance of survival",
+              "welfare_magnitude": "UNKNOWN",
+              "duration": "UNKNOWN"
+            }
+          ],
+          "valuation_scope": "RESTRICTED_SURVIVOR_ENDPOINT_NOT_TOTAL_WELFARE"
+        }
+      },
+      "utilitarian_ranking_certificate": {},
+      "deontological_ledger_proposal": {},
+      "care_ledger_proposal": {},
+      "framework_internal_conflicts": [],
+      "framework_specific_open_questions": []
+    },
+    "native_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/baseline/argument_checklist/utilitarian/native_trace.json",
+    "argument_work_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/baseline/argument_checklist/utilitarian/argument_work_record.json",
+    "argument_quality": "REQUIRES_CONTENT_REVIEW"
+  },
+  {
+    "case": "baseline",
+    "arm": "argument_checklist",
+    "framework": "deontological",
+    "adapter_calls": 1,
+    "submission": "VALID",
+    "ledger_status": "COMMITTED_WITH_UNCERTAINTY",
+    "acceptance": "SELECTED",
+    "preferred_action": "Ada gives the medicine to Ben",
+    "validation_errors": {
+      "framework_validation_errors": [
+        "numeric reversal threshold lacks a scenario-grounded quantity",
+        "A0 competing protected party lacks current-run action grounding",
+        "A1 competing protected party lacks current-run action grounding"
+      ]
+    },
+    "rationale": "Deontology resolves both patients's imperfect duty of beneficence against none's none stronger through universal law.",
+    "decision_rule": "more effective rescue required",
+    "argument": {
+      "framework_application": "NONE",
+      "framework_insights": [],
+      "reversal_condition": "",
+      "challenge_response": {},
+      "framework_action_map": {
+        "Ada gives the medicine to Ben": "REQUIRED: promotes life most effectively; consistent with universal beneficence.",
+        "Ada gives the medicine to Cara": "PROHIBITED: neglects stronger chance, fails universalizable duty."
+      },
+      "factual_reversal_threshold": "NONE",
+      "normative_reversal_threshold": "if wasting life were permissible universally",
+      "expected_value_estimates": {
+        "Ada gives the medicine to Ben": {
+          "value": 0.0,
+          "unit": "NONE",
+          "direction": "HARM",
+          "grounded": false,
+          "claimed_grounded": false,
+          "method": "NOT_COMPUTED",
+          "source_effect_ids": [],
+          "calculation": "not computed",
+          "assumptions": [],
+          "validation_status": "NOT_CLAIMED",
+          "validation_errors": [],
+          "arithmetic_identity": "",
+          "symbolic_expression": "",
+          "count_projections": [],
+          "valuation_scope": "SPECIALIST_VALUATION"
+        },
+        "Ada gives the medicine to Cara": {
+          "value": 0.0,
+          "unit": "NONE",
+          "direction": "HARM",
+          "grounded": false,
+          "claimed_grounded": false,
+          "method": "NOT_COMPUTED",
+          "source_effect_ids": [],
+          "calculation": "not computed",
+          "assumptions": [],
+          "validation_status": "NOT_CLAIMED",
+          "validation_errors": [],
+          "arithmetic_identity": "",
+          "symbolic_expression": "",
+          "count_projections": [],
+          "valuation_scope": "SPECIALIST_VALUATION"
+        }
+      },
+      "utilitarian_ranking_certificate": {},
+      "deontological_ledger_proposal": {
+        "assessments": [
+          {
+            "action_id": "A0",
+            "verdict": "REQUIRED",
+            "norm_kind": "DUTY",
+            "norm": "imperfect duty of beneficence",
+            "relation": "SATISFIES",
+            "duty_bearer": "Ada",
+            "protected_party": "both patients",
+            "competing_norm": "none stronger",
+            "competing_norm_kind": "UNKNOWN",
+            "competing_relation": "CONSISTENT",
+            "competing_protected_party": "NONE",
+            "competing_reason": "no conflicting perfect duty",
+            "duty_type": "IMPERFECT",
+            "harm_relation": "PREVENTING_HARM",
+            "special_obligation_status": "NOT_REQUIRED",
+            "special_obligation_basis": "no special relationship needed",
+            "means_relation": "NO_INSTRUMENTALIZATION",
+            "governing_norm": "PRIMARY",
+            "priority_basis": "AUTONOMY",
+            "priority_rule": "more effective rescue required",
+            "protected_standing": "OTHER",
+            "competing_protected_standing": "OTHER",
+            "coercion_kind": "NONE",
+            "coercive_actor": "NONE",
+            "coerced_party": "NONE",
+            "public_justification": "publicly justifiable maxim to save more likely life",
+            "reciprocity_status": "SATISFIED",
+            "necessity_status": "UNKNOWN",
+            "authorization_status": "NOT_APPLICABLE",
+            "derivation": "UNIVERSAL_LAW",
+            "resolution_status": "RESOLVED",
+            "evidence_basis": "FRAMEWORK_ONLY",
+            "reason": "best fulfills beneficence"
+          },
+          {
+            "action_id": "A1",
+            "verdict": "PROHIBITED",
+            "norm_kind": "DUTY",
+            "norm": "imperfect duty of beneficence",
+            "relation": "VIOLATES",
+            "duty_bearer": "Ada",
+            "protected_party": "both patients",
+            "competing_norm": "none stronger",
+            "competing_norm_kind": "UNKNOWN",
+            "competing_relation": "CONSISTENT",
+            "competing_protected_party": "NONE",
+            "competing_reason": "n/a\u2014primary duty violated",
+            "duty_type": "IMPERFECT",
+            "harm_relation": "WITHHOLDING_BENEFIT",
+            "special_obligation_status": "NOT_REQUIRED",
+            "special_obligation_basis": "no special obligation overrides",
+            "means_relation": "NO_INSTRUMENTALIZATION",
+            "governing_norm": "PRIMARY",
+            "priority_basis": "UNIVERSAL_LAW",
+            "priority_rule": "maxim wastes scarce lifesaving means",
+            "protected_standing": "OTHER",
+            "competing_protected_standing": "OTHER",
+            "coercion_kind": "NONE",
+            "coercive_actor": "NONE",
+            "coerced_party": "NONE",
+            "public_justification": "cannot will a rule to waste life chances",
+            "reciprocity_status": "FAILED",
+            "necessity_status": "UNKNOWN",
+            "authorization_status": "NOT_APPLICABLE",
+            "derivation": "UNIVERSAL_LAW",
+            "resolution_status": "RESOLVED",
+            "evidence_basis": "FRAMEWORK_ONLY",
+            "reason": "fails beneficence duty"
+          }
+        ]
+      },
+      "care_ledger_proposal": {},
+      "framework_internal_conflicts": [],
+      "framework_specific_open_questions": []
+    },
+    "native_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/baseline/argument_checklist/deontological/native_trace.json",
+    "argument_work_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/baseline/argument_checklist/deontological/argument_work_record.json",
+    "argument_quality": "REQUIRES_CONTENT_REVIEW"
+  },
+  {
+    "case": "baseline",
+    "arm": "argument_checklist",
+    "framework": "care",
+    "adapter_calls": 1,
+    "submission": "VALID",
+    "ledger_status": "COMMITTED_WITH_UNCERTAINTY",
+    "acceptance": "SELECTED",
+    "preferred_action": "Ada gives the medicine to Ben",
+    "validation_errors": {
+      "framework_validation_errors": [
+        "A0 competing Care claim remains contested",
+        "A1 competing Care claim remains contested"
+      ]
+    },
+    "rationale": "competent, responsive care",
+    "decision_rule": "prefer A0 when its survival probability exceeds A1 for equally dependent patients",
+    "argument": {
+      "framework_application": "NONE",
+      "framework_insights": [],
+      "reversal_condition": "",
+      "challenge_response": {},
+      "framework_action_map": {
+        "Ada gives the medicine to Ben": "entrusted acute dependency met with high competence",
+        "Ada gives the medicine to Cara": "entrusted acute dependency met with low competence"
+      },
+      "factual_reversal_threshold": "Cara\u2019s survival chance rises near Ben\u2019s",
+      "normative_reversal_threshold": "prima-facie equality of patients outweighs competence",
+      "expected_value_estimates": {
+        "Ada gives the medicine to Ben": {
+          "value": 0.95,
+          "unit": "PERSON",
+          "direction": "BENEFIT",
+          "grounded": true,
+          "claimed_grounded": true,
+          "method": "EXPECTED_COUNT",
+          "source_effect_ids": [
+            "E2"
+          ],
+          "calculation": "1 person * 0.95 = 0.95 expected survivor",
+          "assumptions": [],
+          "validation_status": "ARITHMETIC_VERIFIED",
+          "validation_errors": [],
+          "arithmetic_identity": "19/20",
+          "symbolic_expression": "19/20",
+          "count_projections": [
+            {
+              "endpoint": "SURVIVOR_COUNT",
+              "amount": 1,
+              "party_id": "P3",
+              "basis": "ADMITTED_SINGLE_PERSON_IDENTITY",
+              "source_outcome": "Ben has a 95% chance of survival",
+              "welfare_magnitude": "UNKNOWN",
+              "duration": "UNKNOWN"
+            }
+          ],
+          "valuation_scope": "RESTRICTED_SURVIVOR_ENDPOINT_NOT_TOTAL_WELFARE"
+        },
+        "Ada gives the medicine to Cara": {
+          "value": 0.05,
+          "unit": "PERSON",
+          "direction": "BENEFIT",
+          "grounded": true,
+          "claimed_grounded": true,
+          "method": "EXPECTED_COUNT",
+          "source_effect_ids": [
+            "E4"
+          ],
+          "calculation": "1 person * 0.05 = 0.05 expected survivor",
+          "assumptions": [],
+          "validation_status": "ARITHMETIC_VERIFIED",
+          "validation_errors": [],
+          "arithmetic_identity": "1/20",
+          "symbolic_expression": "1/20",
+          "count_projections": [
+            {
+              "endpoint": "SURVIVOR_COUNT",
+              "amount": 1,
+              "party_id": "P4",
+              "basis": "ADMITTED_SINGLE_PERSON_IDENTITY",
+              "source_outcome": "Cara has a 5% chance of survival",
+              "welfare_magnitude": "UNKNOWN",
+              "duration": "UNKNOWN"
+            }
+          ],
+          "valuation_scope": "RESTRICTED_SURVIVOR_ENDPOINT_NOT_TOTAL_WELFARE"
+        }
+      },
+      "utilitarian_ranking_certificate": {},
+      "deontological_ledger_proposal": {},
+      "care_ledger_proposal": {
+        "ranking_basis": "ACUTE_DEPENDENCY",
+        "assessments": [
+          {
+            "action_id": "A0",
+            "verdict": "RESPONSIVE",
+            "affected_party": "Ben",
+            "relationship_type": "ENTRUSTED",
+            "dependency_source": "Ada controls sole life-saving dose",
+            "responsibility_basis": "control creates direct responsibility",
+            "need_kind": "SURVIVAL_HEALTH",
+            "need_urgency": "IMMEDIATE",
+            "trust_effect": "PRESERVES",
+            "responsiveness": "DIRECT",
+            "feasibility": "ESTABLISHED",
+            "competing_care_claim": "Cara\u2019s equal need",
+            "resolution_status": "CONTESTED",
+            "evidence_basis": "ACTION_GRAPH",
+            "reason": "Action meets entrusted immediate need with high competence"
+          },
+          {
+            "action_id": "A1",
+            "verdict": "NEGLECTFUL",
+            "affected_party": "Cara",
+            "relationship_type": "ENTRUSTED",
+            "dependency_source": "Ada controls sole life-saving dose",
+            "responsibility_basis": "control creates direct responsibility",
+            "need_kind": "SURVIVAL_HEALTH",
+            "need_urgency": "IMMEDIATE",
+            "trust_effect": "STRAINS",
+            "responsiveness": "DIRECT",
+            "feasibility": "ESTABLISHED",
+            "competing_care_claim": "Ben\u2019s equal need with higher chance",
+            "resolution_status": "CONTESTED",
+            "evidence_basis": "ACTION_GRAPH",
+            "reason": "Action attempts care but with very low competence"
+          }
+        ]
+      },
+      "framework_internal_conflicts": [],
+      "framework_specific_open_questions": []
+    },
+    "native_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/baseline/argument_checklist/care/native_trace.json",
+    "argument_work_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/baseline/argument_checklist/care/argument_work_record.json",
+    "argument_quality": "REQUIRES_CONTENT_REVIEW"
+  },
+  {
+    "case": "probability_swap",
+    "arm": "standard",
+    "framework": "utilitarian",
+    "adapter_calls": 1,
+    "submission": "VALID",
+    "ledger_status": "COMMITTED",
+    "acceptance": "SELECTED",
+    "preferred_action": "Ada gives the medicine to Cara",
+    "validation_errors": {},
+    "rationale": "A1 saves more life",
+    "decision_rule": "Prefer an action when it yields higher expected survivors",
+    "argument": {
+      "framework_application": "NONE",
+      "framework_insights": [],
+      "reversal_condition": "",
+      "challenge_response": {},
+      "framework_action_map": {},
+      "factual_reversal_threshold": "Cara survival probability < Ben\u2019s 5%",
+      "normative_reversal_threshold": "NONE",
+      "expected_value_estimates": {
+        "Ada gives the medicine to Ben": {
+          "value": 0.05,
+          "unit": "EXPECTED_SURVIVORS",
+          "direction": "BENEFIT",
+          "grounded": true,
+          "claimed_grounded": true,
+          "method": "EXPECTED_COUNT",
+          "source_effect_ids": [
+            "E2"
+          ],
+          "calculation": "1 person * 5%",
+          "assumptions": [],
+          "validation_status": "ARITHMETIC_VERIFIED",
+          "validation_errors": [],
+          "arithmetic_identity": "1/20",
+          "symbolic_expression": "1/20",
+          "count_projections": [
+            {
+              "endpoint": "SURVIVOR_COUNT",
+              "amount": 1,
+              "party_id": "P3",
+              "basis": "ADMITTED_SINGLE_PERSON_IDENTITY",
+              "source_outcome": "Ben has a 5% chance of survival",
+              "welfare_magnitude": "UNKNOWN",
+              "duration": "UNKNOWN"
+            }
+          ],
+          "valuation_scope": "RESTRICTED_SURVIVOR_ENDPOINT_NOT_TOTAL_WELFARE"
+        },
+        "Ada gives the medicine to Cara": {
+          "value": 0.95,
+          "unit": "EXPECTED_SURVIVORS",
+          "direction": "BENEFIT",
+          "grounded": true,
+          "claimed_grounded": true,
+          "method": "EXPECTED_COUNT",
+          "source_effect_ids": [
+            "E4"
+          ],
+          "calculation": "1 person * 95%",
+          "assumptions": [],
+          "validation_status": "ARITHMETIC_VERIFIED",
+          "validation_errors": [],
+          "arithmetic_identity": "19/20",
+          "symbolic_expression": "19/20",
+          "count_projections": [
+            {
+              "endpoint": "SURVIVOR_COUNT",
+              "amount": 1,
+              "party_id": "P4",
+              "basis": "ADMITTED_SINGLE_PERSON_IDENTITY",
+              "source_outcome": "Cara has a 95% chance of survival",
+              "welfare_magnitude": "UNKNOWN",
+              "duration": "UNKNOWN"
+            }
+          ],
+          "valuation_scope": "RESTRICTED_SURVIVOR_ENDPOINT_NOT_TOTAL_WELFARE"
+        }
+      },
+      "utilitarian_ranking_certificate": {},
+      "deontological_ledger_proposal": {},
+      "care_ledger_proposal": {},
+      "framework_internal_conflicts": [],
+      "framework_specific_open_questions": []
+    },
+    "native_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/probability_swap/standard/utilitarian/native_trace.json",
+    "argument_work_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/probability_swap/standard/utilitarian/argument_work_record.json",
+    "argument_quality": "REQUIRES_CONTENT_REVIEW"
+  },
+  {
+    "case": "probability_swap",
+    "arm": "standard",
+    "framework": "deontological",
+    "adapter_calls": 1,
+    "submission": "VALID",
+    "ledger_status": "COMMITTED",
+    "acceptance": "SELECTED",
+    "preferred_action": "Ada gives the medicine to Cara",
+    "validation_errors": {},
+    "rationale": "Deontology resolves cara's imperfect duty of beneficence against ben's duty also owed to Ben through universal law.",
+    "decision_rule": "maximize aid under scarcity",
+    "argument": {
+      "framework_application": "NONE",
+      "framework_insights": [],
+      "reversal_condition": "",
+      "challenge_response": {},
+      "framework_action_map": {
+        "Ada gives the medicine to Ben": "PERMISSIBLE: aids someone but not optimally",
+        "Ada gives the medicine to Cara": "REQUIRED: best fulfills duty to aid"
+      },
+      "factual_reversal_threshold": "if Cara chance < Ben",
+      "normative_reversal_threshold": "if maximizing aid not obligatory",
+      "expected_value_estimates": {
+        "Ada gives the medicine to Ben": {
+          "value": 0.0,
+          "unit": "NONE",
+          "direction": "HARM",
+          "grounded": false,
+          "claimed_grounded": false,
+          "method": "NOT_COMPUTED",
+          "source_effect_ids": [],
+          "calculation": "not computed",
+          "assumptions": [],
+          "validation_status": "NOT_CLAIMED",
+          "validation_errors": [],
+          "arithmetic_identity": "",
+          "symbolic_expression": "",
+          "count_projections": [],
+          "valuation_scope": "SPECIALIST_VALUATION"
+        },
+        "Ada gives the medicine to Cara": {
+          "value": 0.0,
+          "unit": "NONE",
+          "direction": "HARM",
+          "grounded": false,
+          "claimed_grounded": false,
+          "method": "NOT_COMPUTED",
+          "source_effect_ids": [],
+          "calculation": "not computed",
+          "assumptions": [],
+          "validation_status": "NOT_CLAIMED",
+          "validation_errors": [],
+          "arithmetic_identity": "",
+          "symbolic_expression": "",
+          "count_projections": [],
+          "valuation_scope": "SPECIALIST_VALUATION"
+        }
+      },
+      "utilitarian_ranking_certificate": {},
+      "deontological_ledger_proposal": {
+        "assessments": [
+          {
+            "action_id": "A0",
+            "verdict": "PERMISSIBLE",
+            "norm_kind": "DUTY",
+            "norm": "imperfect duty of beneficence",
+            "relation": "CONSISTENT",
+            "duty_bearer": "Ada",
+            "protected_party": "Ben",
+            "competing_norm": "same duty toward Cara",
+            "competing_norm_kind": "DUTY",
+            "competing_relation": "CONSISTENT",
+            "competing_protected_party": "Cara",
+            "competing_reason": "help is given but less effective",
+            "duty_type": "IMPERFECT",
+            "harm_relation": "ALLOWING_HARM",
+            "special_obligation_status": "NOT_REQUIRED",
+            "special_obligation_basis": "no special relation",
+            "means_relation": "NO_INSTRUMENTALIZATION",
+            "governing_norm": "PRIMARY",
+            "priority_basis": "AUTONOMY",
+            "priority_rule": "agent discretion possible",
+            "protected_standing": "OTHER",
+            "competing_protected_standing": "OTHER",
+            "coercion_kind": "NONE",
+            "coercive_actor": "NONE",
+            "coerced_party": "NONE",
+            "public_justification": "universal law allows helping any single person",
+            "reciprocity_status": "SATISFIED",
+            "necessity_status": "UNKNOWN",
+            "authorization_status": "NOT_APPLICABLE",
+            "derivation": "UNIVERSAL_LAW",
+            "resolution_status": "RESOLVED",
+            "evidence_basis": "FRAMEWORK_ONLY",
+            "reason": "meets aid duty weakly"
+          },
+          {
+            "action_id": "A1",
+            "verdict": "REQUIRED",
+            "norm_kind": "DUTY",
+            "norm": "imperfect duty of beneficence",
+            "relation": "SATISFIES",
+            "duty_bearer": "Ada",
+            "protected_party": "Cara",
+            "competing_norm": "duty also owed to Ben",
+            "competing_norm_kind": "DUTY",
+            "competing_relation": "CONSISTENT",
+            "competing_protected_party": "Ben",
+            "competing_reason": "cannot help both",
+            "duty_type": "IMPERFECT",
+            "harm_relation": "ALLOWING_HARM",
+            "special_obligation_status": "NOT_REQUIRED",
+            "special_obligation_basis": "no special relation",
+            "means_relation": "NO_INSTRUMENTALIZATION",
+            "governing_norm": "PRIMARY",
+            "priority_basis": "UNIVERSAL_LAW",
+            "priority_rule": "maximize aid under scarcity",
+            "protected_standing": "OTHER",
+            "competing_protected_standing": "OTHER",
+            "coercion_kind": "NONE",
+            "coercive_actor": "NONE",
+            "coerced_party": "NONE",
+            "public_justification": "a rule to save more lives is universalizable",
+            "reciprocity_status": "SATISFIED",
+            "necessity_status": "UNKNOWN",
+            "authorization_status": "NOT_APPLICABLE",
+            "derivation": "UNIVERSAL_LAW",
+            "resolution_status": "RESOLVED",
+            "evidence_basis": "FRAMEWORK_ONLY",
+            "reason": "fully honors aid duty"
+          }
+        ]
+      },
+      "care_ledger_proposal": {},
+      "framework_internal_conflicts": [],
+      "framework_specific_open_questions": []
+    },
+    "native_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/probability_swap/standard/deontological/native_trace.json",
+    "argument_work_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/probability_swap/standard/deontological/argument_work_record.json",
+    "argument_quality": "REQUIRES_CONTENT_REVIEW"
+  },
+  {
+    "case": "probability_swap",
+    "arm": "standard",
+    "framework": "care",
+    "adapter_calls": 1,
+    "submission": "VALID",
+    "ledger_status": "COMMITTED",
+    "acceptance": "SELECTED",
+    "preferred_action": "Ada gives the medicine to Cara",
+    "validation_errors": {},
+    "rationale": "Meets urgent need competently",
+    "decision_rule": "prefer A1 when it offers clearly higher likelihood of saving a life under equal dependency",
+    "argument": {
+      "framework_application": "NONE",
+      "framework_insights": [],
+      "reversal_condition": "",
+      "challenge_response": {},
+      "framework_action_map": {
+        "Ada gives the medicine to Ben": "fails competence toward Cara\u2019s acute dependency",
+        "Ada gives the medicine to Cara": "responsive to Cara\u2019s acute dependency"
+      },
+      "factual_reversal_threshold": "Ben\u2019s survival probability rises above Cara\u2019s",
+      "normative_reversal_threshold": "priority shifts to strict equality over competence",
+      "expected_value_estimates": {
+        "Ada gives the medicine to Ben": {
+          "value": 0.0,
+          "unit": "NONE",
+          "direction": "HARM",
+          "grounded": false,
+          "claimed_grounded": false,
+          "method": "NOT_COMPUTED",
+          "source_effect_ids": [],
+          "calculation": "not computed",
+          "assumptions": [],
+          "validation_status": "NOT_CLAIMED",
+          "validation_errors": [],
+          "arithmetic_identity": "",
+          "symbolic_expression": "",
+          "count_projections": [],
+          "valuation_scope": "SPECIALIST_VALUATION"
+        },
+        "Ada gives the medicine to Cara": {
+          "value": 0.0,
+          "unit": "NONE",
+          "direction": "HARM",
+          "grounded": false,
+          "claimed_grounded": false,
+          "method": "NOT_COMPUTED",
+          "source_effect_ids": [],
+          "calculation": "not computed",
+          "assumptions": [],
+          "validation_status": "NOT_CLAIMED",
+          "validation_errors": [],
+          "arithmetic_identity": "",
+          "symbolic_expression": "",
+          "count_projections": [],
+          "valuation_scope": "SPECIALIST_VALUATION"
+        }
+      },
+      "utilitarian_ranking_certificate": {},
+      "deontological_ledger_proposal": {},
+      "care_ledger_proposal": {
+        "ranking_basis": "ACUTE_DEPENDENCY",
+        "assessments": [
+          {
+            "action_id": "A0",
+            "verdict": "NEGLECTFUL",
+            "affected_party": "Cara",
+            "relationship_type": "ENTRUSTED",
+            "dependency_source": "Ada controls sole life-saving dose",
+            "responsibility_basis": "control imposes responsibility",
+            "need_kind": "BASIC_NEED",
+            "need_urgency": "IMMEDIATE",
+            "trust_effect": "BETRAYS",
+            "responsiveness": "DIRECT",
+            "feasibility": "ESTABLISHED",
+            "competing_care_claim": "Ben\u2019s lesser chance of survival",
+            "resolution_status": "RESOLVED",
+            "evidence_basis": "ACTION_GRAPH",
+            "reason": "Ignores more effective help for equal need"
+          },
+          {
+            "action_id": "A1",
+            "verdict": "RESPONSIVE",
+            "affected_party": "Cara",
+            "relationship_type": "ENTRUSTED",
+            "dependency_source": "Ada controls sole life-saving dose",
+            "responsibility_basis": "control imposes responsibility",
+            "need_kind": "BASIC_NEED",
+            "need_urgency": "IMMEDIATE",
+            "trust_effect": "PRESERVES",
+            "responsiveness": "DIRECT",
+            "feasibility": "ESTABLISHED",
+            "competing_care_claim": "Ben\u2019s equal need but much lower survival chance",
+            "resolution_status": "RESOLVED",
+            "evidence_basis": "ACTION_GRAPH",
+            "reason": "Provides competent care to one dependent patient"
+          }
+        ]
+      },
+      "framework_internal_conflicts": [],
+      "framework_specific_open_questions": []
+    },
+    "native_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/probability_swap/standard/care/native_trace.json",
+    "argument_work_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/probability_swap/standard/care/argument_work_record.json",
+    "argument_quality": "REQUIRES_CONTENT_REVIEW"
+  },
+  {
+    "case": "probability_swap",
+    "arm": "argument_checklist",
+    "framework": "utilitarian",
+    "adapter_calls": 1,
+    "submission": "VALID",
+    "ledger_status": "COMMITTED",
+    "acceptance": "SELECTED",
+    "preferred_action": "Ada gives the medicine to Cara",
+    "validation_errors": {},
+    "rationale": "Greatest expected survival",
+    "decision_rule": "Prefer action with higher expected survivor count",
+    "argument": {
+      "framework_application": "NONE",
+      "framework_insights": [],
+      "reversal_condition": "",
+      "challenge_response": {},
+      "framework_action_map": {},
+      "factual_reversal_threshold": "If Cara\u2019s survival probability fell below Ben\u2019s",
+      "normative_reversal_threshold": "NONE",
+      "expected_value_estimates": {
+        "Ada gives the medicine to Ben": {
+          "value": 0.05,
+          "unit": "SURVIVORS",
+          "direction": "BENEFIT",
+          "grounded": true,
+          "claimed_grounded": true,
+          "method": "EXPECTED_COUNT",
+          "source_effect_ids": [
+            "E2"
+          ],
+          "calculation": "1 person * 0.05 = 0.05 expected survivors",
+          "assumptions": [],
+          "validation_status": "ARITHMETIC_VERIFIED",
+          "validation_errors": [],
+          "arithmetic_identity": "1/20",
+          "symbolic_expression": "1/20",
+          "count_projections": [
+            {
+              "endpoint": "SURVIVOR_COUNT",
+              "amount": 1,
+              "party_id": "P3",
+              "basis": "ADMITTED_SINGLE_PERSON_IDENTITY",
+              "source_outcome": "Ben has a 5% chance of survival",
+              "welfare_magnitude": "UNKNOWN",
+              "duration": "UNKNOWN"
+            }
+          ],
+          "valuation_scope": "RESTRICTED_SURVIVOR_ENDPOINT_NOT_TOTAL_WELFARE"
+        },
+        "Ada gives the medicine to Cara": {
+          "value": 0.95,
+          "unit": "SURVIVORS",
+          "direction": "BENEFIT",
+          "grounded": true,
+          "claimed_grounded": true,
+          "method": "EXPECTED_COUNT",
+          "source_effect_ids": [
+            "E4"
+          ],
+          "calculation": "1 person * 0.95 = 0.95 expected survivors",
+          "assumptions": [],
+          "validation_status": "ARITHMETIC_VERIFIED",
+          "validation_errors": [],
+          "arithmetic_identity": "19/20",
+          "symbolic_expression": "19/20",
+          "count_projections": [
+            {
+              "endpoint": "SURVIVOR_COUNT",
+              "amount": 1,
+              "party_id": "P4",
+              "basis": "ADMITTED_SINGLE_PERSON_IDENTITY",
+              "source_outcome": "Cara has a 95% chance of survival",
+              "welfare_magnitude": "UNKNOWN",
+              "duration": "UNKNOWN"
+            }
+          ],
+          "valuation_scope": "RESTRICTED_SURVIVOR_ENDPOINT_NOT_TOTAL_WELFARE"
+        }
+      },
+      "utilitarian_ranking_certificate": {},
+      "deontological_ledger_proposal": {},
+      "care_ledger_proposal": {},
+      "framework_internal_conflicts": [],
+      "framework_specific_open_questions": []
+    },
+    "native_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/probability_swap/argument_checklist/utilitarian/native_trace.json",
+    "argument_work_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/probability_swap/argument_checklist/utilitarian/argument_work_record.json",
+    "argument_quality": "REQUIRES_CONTENT_REVIEW"
+  },
+  {
+    "case": "probability_swap",
+    "arm": "argument_checklist",
+    "framework": "deontological",
+    "adapter_calls": 1,
+    "submission": "VALID",
+    "ledger_status": "COMMITTED",
+    "acceptance": "SELECTED",
+    "preferred_action": "Ada gives the medicine to Cara",
+    "validation_errors": {},
+    "rationale": "Deontology resolves cara's imperfect duty of beneficence against ben's beneficence toward Ben through universal law.",
+    "decision_rule": "aid others effectively when possible",
+    "argument": {
+      "framework_application": "NONE",
+      "framework_insights": [],
+      "reversal_condition": "",
+      "challenge_response": {},
+      "framework_action_map": {
+        "Ada gives the medicine to Ben": "PROHIBITED: violates duty of effective beneficence, allows preventable death",
+        "Ada gives the medicine to Cara": "REQUIRED: best fulfils imperfect duty to aid without any conflicting perfect duty"
+      },
+      "factual_reversal_threshold": "Cara\u2019s survival probability falls below Ben\u2019s",
+      "normative_reversal_threshold": "Imperfect beneficence loses priority",
+      "expected_value_estimates": {
+        "Ada gives the medicine to Ben": {
+          "value": 0.0,
+          "unit": "NONE",
+          "direction": "HARM",
+          "grounded": false,
+          "claimed_grounded": false,
+          "method": "NOT_COMPUTED",
+          "source_effect_ids": [],
+          "calculation": "not computed",
+          "assumptions": [],
+          "validation_status": "NOT_CLAIMED",
+          "validation_errors": [],
+          "arithmetic_identity": "",
+          "symbolic_expression": "",
+          "count_projections": [],
+          "valuation_scope": "SPECIALIST_VALUATION"
+        },
+        "Ada gives the medicine to Cara": {
+          "value": 0.0,
+          "unit": "NONE",
+          "direction": "HARM",
+          "grounded": false,
+          "claimed_grounded": false,
+          "method": "NOT_COMPUTED",
+          "source_effect_ids": [],
+          "calculation": "not computed",
+          "assumptions": [],
+          "validation_status": "NOT_CLAIMED",
+          "validation_errors": [],
+          "arithmetic_identity": "",
+          "symbolic_expression": "",
+          "count_projections": [],
+          "valuation_scope": "SPECIALIST_VALUATION"
+        }
+      },
+      "utilitarian_ranking_certificate": {},
+      "deontological_ledger_proposal": {
+        "assessments": [
+          {
+            "action_id": "A0",
+            "verdict": "PROHIBITED",
+            "norm_kind": "DUTY",
+            "norm": "imperfect duty of beneficence",
+            "relation": "VIOLATES",
+            "duty_bearer": "Ada",
+            "protected_party": "Cara",
+            "competing_norm": "beneficence toward Ben",
+            "competing_norm_kind": "DUTY",
+            "competing_relation": "SATISFIES",
+            "competing_protected_party": "Ben",
+            "competing_reason": "act gives some aid to Ben but neglects stronger aid to Cara",
+            "duty_type": "IMPERFECT",
+            "harm_relation": "ALLOWING_HARM",
+            "special_obligation_status": "NOT_REQUIRED",
+            "special_obligation_basis": "no special tie to Cara required",
+            "means_relation": "NO_INSTRUMENTALIZATION",
+            "governing_norm": "PRIMARY",
+            "priority_basis": "RESPECT_PERSONS",
+            "priority_rule": "reasonable aid must not be withheld when easily given",
+            "protected_standing": "OTHER",
+            "competing_protected_standing": "OTHER",
+            "coercion_kind": "NONE",
+            "coercive_actor": "NONE",
+            "coerced_party": "NONE",
+            "public_justification": "Publicly justifiable to aid most effectively",
+            "reciprocity_status": "FAILED",
+            "necessity_status": "UNKNOWN",
+            "authorization_status": "NOT_APPLICABLE",
+            "derivation": "UNIVERSAL_LAW",
+            "resolution_status": "RESOLVED",
+            "evidence_basis": "FRAMEWORK_ONLY",
+            "reason": "Withholds effective aid"
+          },
+          {
+            "action_id": "A1",
+            "verdict": "REQUIRED",
+            "norm_kind": "DUTY",
+            "norm": "imperfect duty of beneficence",
+            "relation": "SATISFIES",
+            "duty_bearer": "Ada",
+            "protected_party": "Cara",
+            "competing_norm": "beneficence toward Ben",
+            "competing_norm_kind": "DUTY",
+            "competing_relation": "CONSISTENT",
+            "competing_protected_party": "Ben",
+            "competing_reason": "still honours Ben\u2019s dignity though he cannot be saved",
+            "duty_type": "IMPERFECT",
+            "harm_relation": "PREVENTING_HARM",
+            "special_obligation_status": "NOT_REQUIRED",
+            "special_obligation_basis": "no special tie to Cara required",
+            "means_relation": "NO_INSTRUMENTALIZATION",
+            "governing_norm": "PRIMARY",
+            "priority_basis": "RESPECT_PERSONS",
+            "priority_rule": "aid others effectively when possible",
+            "protected_standing": "OTHER",
+            "competing_protected_standing": "OTHER",
+            "coercion_kind": "NONE",
+            "coercive_actor": "NONE",
+            "coerced_party": "NONE",
+            "public_justification": "Public rule: aid where outcome most likely",
+            "reciprocity_status": "SATISFIED",
+            "necessity_status": "UNKNOWN",
+            "authorization_status": "NOT_APPLICABLE",
+            "derivation": "UNIVERSAL_LAW",
+            "resolution_status": "RESOLVED",
+            "evidence_basis": "FRAMEWORK_ONLY",
+            "reason": "Best realises beneficence"
+          }
+        ]
+      },
+      "care_ledger_proposal": {},
+      "framework_internal_conflicts": [],
+      "framework_specific_open_questions": []
+    },
+    "native_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/probability_swap/argument_checklist/deontological/native_trace.json",
+    "argument_work_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/probability_swap/argument_checklist/deontological/argument_work_record.json",
+    "argument_quality": "REQUIRES_CONTENT_REVIEW"
+  },
+  {
+    "case": "probability_swap",
+    "arm": "argument_checklist",
+    "framework": "care",
+    "adapter_calls": 1,
+    "submission": "VALID",
+    "ledger_status": "COMMITTED_WITH_UNCERTAINTY",
+    "acceptance": "SELECTED",
+    "preferred_action": "Ada gives the medicine to Cara",
+    "validation_errors": {
+      "framework_validation_errors": [
+        "decisive counts lack relational comparability",
+        "A0 Care relation claims scenario grounding without a matching action effect",
+        "A1 Care relation claims scenario grounding without a matching action effect"
+      ]
+    },
+    "rationale": "Effective competent response",
+    "decision_rule": "Prefer giving drug to patient whose survival chance is markedly higher",
+    "argument": {
+      "framework_application": "NONE",
+      "framework_insights": [],
+      "reversal_condition": "",
+      "challenge_response": {},
+      "framework_action_map": {
+        "Ada gives the medicine to Ben": "acute dependency to Ben but low competence",
+        "Ada gives the medicine to Cara": "acute dependency to Cara with high competence"
+      },
+      "factual_reversal_threshold": "Ben survival probability surpasses Cara\u2019s",
+      "normative_reversal_threshold": "NONE",
+      "expected_value_estimates": {
+        "Ada gives the medicine to Ben": {
+          "value": 0.0,
+          "unit": "NONE",
+          "direction": "HARM",
+          "grounded": false,
+          "claimed_grounded": false,
+          "method": "NOT_COMPUTED",
+          "source_effect_ids": [],
+          "calculation": "not computed",
+          "assumptions": [],
+          "validation_status": "NOT_CLAIMED",
+          "validation_errors": [],
+          "arithmetic_identity": "",
+          "symbolic_expression": "",
+          "count_projections": [],
+          "valuation_scope": "SPECIALIST_VALUATION"
+        },
+        "Ada gives the medicine to Cara": {
+          "value": 0.0,
+          "unit": "NONE",
+          "direction": "HARM",
+          "grounded": false,
+          "claimed_grounded": false,
+          "method": "NOT_COMPUTED",
+          "source_effect_ids": [],
+          "calculation": "not computed",
+          "assumptions": [],
+          "validation_status": "NOT_CLAIMED",
+          "validation_errors": [],
+          "arithmetic_identity": "",
+          "symbolic_expression": "",
+          "count_projections": [],
+          "valuation_scope": "SPECIALIST_VALUATION"
+        }
+      },
+      "utilitarian_ranking_certificate": {},
+      "deontological_ledger_proposal": {},
+      "care_ledger_proposal": {
+        "ranking_basis": "ACUTE_DEPENDENCY",
+        "assessments": [
+          {
+            "action_id": "A0",
+            "verdict": "MIXED",
+            "affected_party": "Ben (1)",
+            "relationship_type": "ENTRUSTED",
+            "dependency_source": "Ada controls sole life-saving resource",
+            "responsibility_basis": "control creates responsibility",
+            "need_kind": "SURVIVAL_HEALTH",
+            "need_urgency": "IMMEDIATE",
+            "trust_effect": "STRAINS",
+            "responsiveness": "DIRECT",
+            "feasibility": "ESTABLISHED",
+            "competing_care_claim": "Cara\u2019s equally acute need with higher survival chance",
+            "resolution_status": "RESOLVED",
+            "evidence_basis": "ACTION_GRAPH",
+            "reason": "Response addresses Ben but incompetently lets Cara die"
+          },
+          {
+            "action_id": "A1",
+            "verdict": "RESPONSIVE",
+            "affected_party": "Cara (1)",
+            "relationship_type": "ENTRUSTED",
+            "dependency_source": "Ada controls sole life-saving resource",
+            "responsibility_basis": "control creates responsibility",
+            "need_kind": "SURVIVAL_HEALTH",
+            "need_urgency": "IMMEDIATE",
+            "trust_effect": "PRESERVES",
+            "responsiveness": "DIRECT",
+            "feasibility": "ESTABLISHED",
+            "competing_care_claim": "Ben\u2019s competing acute need",
+            "resolution_status": "RESOLVED",
+            "evidence_basis": "ACTION_GRAPH",
+            "reason": "Most competent preservation of dependent\u2019s life"
+          }
+        ]
+      },
+      "framework_internal_conflicts": [],
+      "framework_specific_open_questions": []
+    },
+    "native_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/probability_swap/argument_checklist/care/native_trace.json",
+    "argument_work_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/probability_swap/argument_checklist/care/argument_work_record.json",
+    "argument_quality": "REQUIRES_CONTENT_REVIEW"
+  },
+  {
+    "case": "competing_promise",
+    "arm": "standard",
+    "framework": "utilitarian",
+    "adapter_calls": 1,
+    "submission": "VALID",
+    "ledger_status": "COMMITTED",
+    "acceptance": "SELECTED",
+    "preferred_action": "Ada gives the medicine to Ben",
+    "validation_errors": {},
+    "rationale": "saves far more life",
+    "decision_rule": "prefer an action that produces higher expected survivors than alternative",
+    "argument": {
+      "framework_application": "NONE",
+      "framework_insights": [],
+      "reversal_condition": "",
+      "challenge_response": {},
+      "framework_action_map": {},
+      "factual_reversal_threshold": "if Cara\u2019s survival chance exceeded Ben\u2019s",
+      "normative_reversal_threshold": "if keeping promises outweighed lives saved",
+      "expected_value_estimates": {
+        "Ada gives the medicine to Ben": {
+          "value": 0.95,
+          "unit": "EXPECTED_SURVIVORS",
+          "direction": "BENEFIT",
+          "grounded": true,
+          "claimed_grounded": true,
+          "method": "EXPECTED_COUNT",
+          "source_effect_ids": [
+            "E2"
+          ],
+          "calculation": "1 person * 0.95 survival probability",
+          "assumptions": [],
+          "validation_status": "ARITHMETIC_VERIFIED",
+          "validation_errors": [],
+          "arithmetic_identity": "19/20",
+          "symbolic_expression": "19/20",
+          "count_projections": [
+            {
+              "endpoint": "SURVIVOR_COUNT",
+              "amount": 1,
+              "party_id": "P3",
+              "basis": "ADMITTED_SINGLE_PERSON_IDENTITY",
+              "source_outcome": "Ben has a 95% chance of survival",
+              "welfare_magnitude": "UNKNOWN",
+              "duration": "UNKNOWN"
+            }
+          ],
+          "valuation_scope": "RESTRICTED_SURVIVOR_ENDPOINT_NOT_TOTAL_WELFARE"
+        },
+        "Ada gives the medicine to Cara": {
+          "value": 0.05,
+          "unit": "EXPECTED_SURVIVORS",
+          "direction": "BENEFIT",
+          "grounded": true,
+          "claimed_grounded": true,
+          "method": "EXPECTED_COUNT",
+          "source_effect_ids": [
+            "E4"
+          ],
+          "calculation": "1 person * 0.05 survival probability",
+          "assumptions": [],
+          "validation_status": "ARITHMETIC_VERIFIED",
+          "validation_errors": [],
+          "arithmetic_identity": "1/20",
+          "symbolic_expression": "1/20",
+          "count_projections": [
+            {
+              "endpoint": "SURVIVOR_COUNT",
+              "amount": 1,
+              "party_id": "P4",
+              "basis": "ADMITTED_SINGLE_PERSON_IDENTITY",
+              "source_outcome": "Cara has a 5% chance of survival",
+              "welfare_magnitude": "UNKNOWN",
+              "duration": "UNKNOWN"
+            }
+          ],
+          "valuation_scope": "RESTRICTED_SURVIVOR_ENDPOINT_NOT_TOTAL_WELFARE"
+        }
+      },
+      "utilitarian_ranking_certificate": {},
+      "deontological_ledger_proposal": {},
+      "care_ledger_proposal": {},
+      "framework_internal_conflicts": [],
+      "framework_specific_open_questions": []
+    },
+    "native_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/competing_promise/standard/utilitarian/native_trace.json",
+    "argument_work_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/competing_promise/standard/utilitarian/argument_work_record.json",
+    "argument_quality": "REQUIRES_CONTENT_REVIEW"
+  },
+  {
+    "case": "competing_promise",
+    "arm": "standard",
+    "framework": "deontological",
+    "adapter_calls": 1,
+    "submission": "VALID",
+    "ledger_status": "COMMITTED",
+    "acceptance": "SELECTED",
+    "preferred_action": "Ada gives the medicine to Cara",
+    "validation_errors": {},
+    "rationale": "Deontology resolves cara's keep promises against ben's beneficence to maximize survival through universal law.",
+    "decision_rule": "perfect duties trump imperfect",
+    "argument": {
+      "framework_application": "NONE",
+      "framework_insights": [],
+      "reversal_condition": "",
+      "challenge_response": {},
+      "framework_action_map": {
+        "Ada gives the medicine to Ben": "PROHIBITED: breaks perfect duty to keep promises",
+        "Ada gives the medicine to Cara": "REQUIRED: fulfils perfect duty of promise-keeping"
+      },
+      "factual_reversal_threshold": "NONE",
+      "normative_reversal_threshold": "priority shifts if no promise exists",
+      "expected_value_estimates": {
+        "Ada gives the medicine to Ben": {
+          "value": 0.0,
+          "unit": "NONE",
+          "direction": "HARM",
+          "grounded": false,
+          "claimed_grounded": false,
+          "method": "NOT_COMPUTED",
+          "source_effect_ids": [],
+          "calculation": "not computed",
+          "assumptions": [],
+          "validation_status": "NOT_CLAIMED",
+          "validation_errors": [],
+          "arithmetic_identity": "",
+          "symbolic_expression": "",
+          "count_projections": [],
+          "valuation_scope": "SPECIALIST_VALUATION"
+        },
+        "Ada gives the medicine to Cara": {
+          "value": 0.0,
+          "unit": "NONE",
+          "direction": "HARM",
+          "grounded": false,
+          "claimed_grounded": false,
+          "method": "NOT_COMPUTED",
+          "source_effect_ids": [],
+          "calculation": "not computed",
+          "assumptions": [],
+          "validation_status": "NOT_CLAIMED",
+          "validation_errors": [],
+          "arithmetic_identity": "",
+          "symbolic_expression": "",
+          "count_projections": [],
+          "valuation_scope": "SPECIALIST_VALUATION"
+        }
+      },
+      "utilitarian_ranking_certificate": {},
+      "deontological_ledger_proposal": {
+        "assessments": [
+          {
+            "action_id": "A0",
+            "verdict": "PROHIBITED",
+            "norm_kind": "UNIVERSAL_LAW",
+            "norm": "keep promises",
+            "relation": "VIOLATES",
+            "duty_bearer": "Ada",
+            "protected_party": "Cara",
+            "competing_norm": "beneficence to maximize survival",
+            "competing_norm_kind": "DUTY",
+            "competing_relation": "CONFLICTS",
+            "competing_protected_party": "Ben",
+            "competing_reason": "imperfect duty to aid",
+            "duty_type": "PERFECT_NEGATIVE",
+            "harm_relation": "NOT_APPLICABLE",
+            "special_obligation_status": "ESTABLISHED",
+            "special_obligation_basis": "explicit promise creates obligation",
+            "means_relation": "NO_INSTRUMENTALIZATION",
+            "governing_norm": "PRIMARY",
+            "priority_basis": "PERFECT_DUTY",
+            "priority_rule": "perfect duties trump imperfect",
+            "protected_standing": "SPECIAL_OBLIGATION",
+            "competing_protected_standing": "OTHER",
+            "coercion_kind": "NONE",
+            "coercive_actor": "NONE",
+            "coerced_party": "NONE",
+            "public_justification": "cannot will universal law of broken promises",
+            "reciprocity_status": "FAILED",
+            "necessity_status": "UNKNOWN",
+            "authorization_status": "NOT_APPLICABLE",
+            "derivation": "UNIVERSAL_LAW",
+            "resolution_status": "RESOLVED",
+            "evidence_basis": "FRAMEWORK_ONLY",
+            "reason": "breaks promise"
+          },
+          {
+            "action_id": "A1",
+            "verdict": "REQUIRED",
+            "norm_kind": "UNIVERSAL_LAW",
+            "norm": "keep promises",
+            "relation": "SATISFIES",
+            "duty_bearer": "Ada",
+            "protected_party": "Cara",
+            "competing_norm": "beneficence to maximize survival",
+            "competing_norm_kind": "DUTY",
+            "competing_relation": "CONSISTENT",
+            "competing_protected_party": "Ben",
+            "competing_reason": "saves fewer lives but does not violate beneficence",
+            "duty_type": "PERFECT_NEGATIVE",
+            "harm_relation": "ALLOWING_HARM",
+            "special_obligation_status": "ESTABLISHED",
+            "special_obligation_basis": "explicit promise",
+            "means_relation": "NO_INSTRUMENTALIZATION",
+            "governing_norm": "PRIMARY",
+            "priority_basis": "PERFECT_DUTY",
+            "priority_rule": "perfect duties trump imperfect",
+            "protected_standing": "SPECIAL_OBLIGATION",
+            "competing_protected_standing": "OTHER",
+            "coercion_kind": "NONE",
+            "coercive_actor": "NONE",
+            "coerced_party": "NONE",
+            "public_justification": "willing universal law of promise-keeping",
+            "reciprocity_status": "SATISFIED",
+            "necessity_status": "UNKNOWN",
+            "authorization_status": "NOT_APPLICABLE",
+            "derivation": "UNIVERSAL_LAW",
+            "resolution_status": "RESOLVED",
+            "evidence_basis": "FRAMEWORK_ONLY",
+            "reason": "keeps promise"
+          }
+        ]
+      },
+      "care_ledger_proposal": {},
+      "framework_internal_conflicts": [],
+      "framework_specific_open_questions": []
+    },
+    "native_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/competing_promise/standard/deontological/native_trace.json",
+    "argument_work_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/competing_promise/standard/deontological/argument_work_record.json",
+    "argument_quality": "REQUIRES_CONTENT_REVIEW"
+  },
+  {
+    "case": "competing_promise",
+    "arm": "standard",
+    "framework": "care",
+    "adapter_calls": 1,
+    "submission": "VALID",
+    "ledger_status": "COMMITTED_WITH_UNCERTAINTY",
+    "acceptance": "SELECTED",
+    "preferred_action": "Ada gives the medicine to Ben",
+    "validation_errors": {
+      "framework_validation_errors": [
+        "A0 Care relation claims scenario grounding without a matching action effect",
+        "A0 competing Care claim remains contested",
+        "A1 Care relation claims scenario grounding without a matching action effect",
+        "A1 competing Care claim remains contested"
+      ]
+    },
+    "rationale": "competent life-saving priority",
+    "decision_rule": "Prefer A0 when saving a dependent life with high likelihood outweighs promise-keeping that offers minimal help",
+    "argument": {
+      "framework_application": "NONE",
+      "framework_insights": [],
+      "reversal_condition": "",
+      "challenge_response": {},
+      "framework_action_map": {
+        "Ada gives the medicine to Ben": "meets acute dependency with high competence",
+        "Ada gives the medicine to Cara": "honors trust but fails competence"
+      },
+      "factual_reversal_threshold": "Cara survival probability rises near Ben\u2019s",
+      "normative_reversal_threshold": "promise-keeping judged absolute",
+      "expected_value_estimates": {
+        "Ada gives the medicine to Ben": {
+          "value": 0.95,
+          "unit": "PERSON",
+          "direction": "BENEFIT",
+          "grounded": true,
+          "claimed_grounded": true,
+          "method": "EXPECTED_COUNT",
+          "source_effect_ids": [
+            "E2"
+          ],
+          "calculation": "0.95 expected survivor (Ben)",
+          "assumptions": [],
+          "validation_status": "ARITHMETIC_VERIFIED",
+          "validation_errors": [],
+          "arithmetic_identity": "19/20",
+          "symbolic_expression": "19/20",
+          "count_projections": [
+            {
+              "endpoint": "SURVIVOR_COUNT",
+              "amount": 1,
+              "party_id": "P3",
+              "basis": "ADMITTED_SINGLE_PERSON_IDENTITY",
+              "source_outcome": "Ben has a 95% chance of survival",
+              "welfare_magnitude": "UNKNOWN",
+              "duration": "UNKNOWN"
+            }
+          ],
+          "valuation_scope": "RESTRICTED_SURVIVOR_ENDPOINT_NOT_TOTAL_WELFARE"
+        },
+        "Ada gives the medicine to Cara": {
+          "value": 0.05,
+          "unit": "PERSON",
+          "direction": "BENEFIT",
+          "grounded": true,
+          "claimed_grounded": true,
+          "method": "EXPECTED_COUNT",
+          "source_effect_ids": [
+            "E4"
+          ],
+          "calculation": "0.05 expected survivor (Cara)",
+          "assumptions": [],
+          "validation_status": "ARITHMETIC_VERIFIED",
+          "validation_errors": [],
+          "arithmetic_identity": "1/20",
+          "symbolic_expression": "1/20",
+          "count_projections": [
+            {
+              "endpoint": "SURVIVOR_COUNT",
+              "amount": 1,
+              "party_id": "P4",
+              "basis": "ADMITTED_SINGLE_PERSON_IDENTITY",
+              "source_outcome": "Cara has a 5% chance of survival",
+              "welfare_magnitude": "UNKNOWN",
+              "duration": "UNKNOWN"
+            }
+          ],
+          "valuation_scope": "RESTRICTED_SURVIVOR_ENDPOINT_NOT_TOTAL_WELFARE"
+        }
+      },
+      "utilitarian_ranking_certificate": {},
+      "deontological_ledger_proposal": {},
+      "care_ledger_proposal": {
+        "ranking_basis": "ACUTE_DEPENDENCY",
+        "assessments": [
+          {
+            "action_id": "A0",
+            "verdict": "MIXED",
+            "affected_party": "Ben (acute patient)",
+            "relationship_type": "CARE_ROLE",
+            "dependency_source": "Ben\u2019s survival depends on Ada\u2019s competent action",
+            "responsibility_basis": "Ada\u2019s professional role creates responsibility to give effective care",
+            "need_kind": "SURVIVAL_HEALTH",
+            "need_urgency": "IMMEDIATE",
+            "trust_effect": "STRAINS",
+            "responsiveness": "DIRECT",
+            "feasibility": "ESTABLISHED",
+            "competing_care_claim": "Cara\u2019s promised trust claim",
+            "resolution_status": "CONTESTED",
+            "evidence_basis": "ACTION_GRAPH",
+            "reason": "Responds competently to Ben but betrays Cara\u2019s promise"
+          },
+          {
+            "action_id": "A1",
+            "verdict": "MIXED",
+            "affected_party": "Cara (promised recipient)",
+            "relationship_type": "CARE_ROLE",
+            "dependency_source": "Cara relies on Ada honoring her word",
+            "responsibility_basis": "Promise creates relational obligation",
+            "need_kind": "SURVIVAL_HEALTH",
+            "need_urgency": "IMMEDIATE",
+            "trust_effect": "PRESERVES",
+            "responsiveness": "DIRECT",
+            "feasibility": "ESTABLISHED",
+            "competing_care_claim": "Ben\u2019s stronger survival need",
+            "resolution_status": "CONTESTED",
+            "evidence_basis": "ACTION_GRAPH",
+            "reason": "Honors promise but gives low-competence care, neglecting Ben"
+          }
+        ]
+      },
+      "framework_internal_conflicts": [],
+      "framework_specific_open_questions": []
+    },
+    "native_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/competing_promise/standard/care/native_trace.json",
+    "argument_work_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/competing_promise/standard/care/argument_work_record.json",
+    "argument_quality": "REQUIRES_CONTENT_REVIEW"
+  },
+  {
+    "case": "competing_promise",
+    "arm": "argument_checklist",
+    "framework": "utilitarian",
+    "adapter_calls": 1,
+    "submission": "VALID",
+    "ledger_status": "COMMITTED",
+    "acceptance": "PROVISIONAL",
+    "preferred_action": "",
+    "validation_errors": {},
+    "rationale": "Unresolved contestation: Maximize expected survival",
+    "decision_rule": "Unresolved contestation: prefer action with greater expected survivors",
+    "argument": {
+      "framework_application": "NONE",
+      "framework_insights": [],
+      "reversal_condition": "",
+      "challenge_response": {},
+      "framework_action_map": {},
+      "factual_reversal_threshold": "If Cara\u2019s survival probability exceeded Ben\u2019s",
+      "normative_reversal_threshold": "NONE",
+      "expected_value_estimates": {
+        "Ada gives the medicine to Ben": {
+          "value": 0.95,
+          "unit": "PERSON",
+          "direction": "BENEFIT",
+          "grounded": true,
+          "claimed_grounded": true,
+          "method": "EXPECTED_COUNT",
+          "source_effect_ids": [
+            "E2"
+          ],
+          "calculation": "1 person \u00d7 95% = 0.95",
+          "assumptions": [],
+          "validation_status": "ARITHMETIC_VERIFIED",
+          "validation_errors": [],
+          "arithmetic_identity": "19/20",
+          "symbolic_expression": "19/20",
+          "count_projections": [
+            {
+              "endpoint": "SURVIVOR_COUNT",
+              "amount": 1,
+              "party_id": "P3",
+              "basis": "ADMITTED_SINGLE_PERSON_IDENTITY",
+              "source_outcome": "Ben has a 95% chance of survival",
+              "welfare_magnitude": "UNKNOWN",
+              "duration": "UNKNOWN"
+            }
+          ],
+          "valuation_scope": "RESTRICTED_SURVIVOR_ENDPOINT_NOT_TOTAL_WELFARE"
+        },
+        "Ada gives the medicine to Cara": {
+          "value": 0.05,
+          "unit": "PERSON",
+          "direction": "BENEFIT",
+          "grounded": true,
+          "claimed_grounded": true,
+          "method": "EXPECTED_COUNT",
+          "source_effect_ids": [
+            "E4"
+          ],
+          "calculation": "1 person \u00d7 5% = 0.05",
+          "assumptions": [],
+          "validation_status": "ARITHMETIC_VERIFIED",
+          "validation_errors": [],
+          "arithmetic_identity": "1/20",
+          "symbolic_expression": "1/20",
+          "count_projections": [
+            {
+              "endpoint": "SURVIVOR_COUNT",
+              "amount": 1,
+              "party_id": "P4",
+              "basis": "ADMITTED_SINGLE_PERSON_IDENTITY",
+              "source_outcome": "Cara has a 5% chance of survival",
+              "welfare_magnitude": "UNKNOWN",
+              "duration": "UNKNOWN"
+            }
+          ],
+          "valuation_scope": "RESTRICTED_SURVIVOR_ENDPOINT_NOT_TOTAL_WELFARE"
+        }
+      },
+      "utilitarian_ranking_certificate": {},
+      "deontological_ledger_proposal": {},
+      "care_ledger_proposal": {},
+      "framework_internal_conflicts": [],
+      "framework_specific_open_questions": []
+    },
+    "native_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/competing_promise/argument_checklist/utilitarian/native_trace.json",
+    "argument_work_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/competing_promise/argument_checklist/utilitarian/argument_work_record.json",
+    "argument_quality": "REQUIRES_CONTENT_REVIEW"
+  },
+  {
+    "case": "competing_promise",
+    "arm": "argument_checklist",
+    "framework": "care",
+    "adapter_calls": 1,
+    "submission": "VALID",
+    "ledger_status": "NONE",
+    "acceptance": "SELECTED",
+    "preferred_action": "Ada gives the medicine to Ben",
+    "validation_errors": {
+      "landscape_validation_errors": [
+        "unresolved judgment claims its tiebreaker fully succeeded"
+      ],
+      "framework_validation_errors": [
+        "unresolved Care ranking must remain provisional"
+      ]
+    },
+    "rationale": "Provisionally: competence outweighs promise",
+    "decision_rule": "Provisionally: prefer A0 when its competent life-preserving response overrides less effective promise-keeping",
+    "argument": {
+      "framework_application": "NONE",
+      "framework_insights": [],
+      "reversal_condition": "",
+      "challenge_response": {},
+      "framework_action_map": {
+        "Ada gives the medicine to Ben": "addresses acute dependency with competent care",
+        "Ada gives the medicine to Cara": "honours specific entrusted promise"
+      },
+      "factual_reversal_threshold": "Cara survival probability rises near Ben\u2019s",
+      "normative_reversal_threshold": "promise priority over competence",
+      "expected_value_estimates": {
+        "Ada gives the medicine to Ben": {
+          "value": 0.0,
+          "unit": "NONE",
+          "direction": "HARM",
+          "grounded": false,
+          "claimed_grounded": false,
+          "method": "NOT_COMPUTED",
+          "source_effect_ids": [],
+          "calculation": "not computed",
+          "assumptions": [],
+          "validation_status": "NOT_CLAIMED",
+          "validation_errors": [],
+          "arithmetic_identity": "",
+          "symbolic_expression": "",
+          "count_projections": [],
+          "valuation_scope": "SPECIALIST_VALUATION"
+        },
+        "Ada gives the medicine to Cara": {
+          "value": 0.0,
+          "unit": "NONE",
+          "direction": "HARM",
+          "grounded": false,
+          "claimed_grounded": false,
+          "method": "NOT_COMPUTED",
+          "source_effect_ids": [],
+          "calculation": "not computed",
+          "assumptions": [],
+          "validation_status": "NOT_CLAIMED",
+          "validation_errors": [],
+          "arithmetic_identity": "",
+          "symbolic_expression": "",
+          "count_projections": [],
+          "valuation_scope": "SPECIALIST_VALUATION"
+        }
+      },
+      "utilitarian_ranking_certificate": {},
+      "deontological_ledger_proposal": {},
+      "care_ledger_proposal": {},
+      "framework_internal_conflicts": [],
+      "framework_specific_open_questions": []
+    },
+    "native_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/competing_promise/argument_checklist/care/native_trace.json",
+    "argument_work_record": "diagnostics/argument_quality_pilot_rerun_live_20261007/competing_promise/argument_checklist/care/argument_work_record.json",
+    "argument_quality": "REQUIRES_CONTENT_REVIEW"
+  }
+]

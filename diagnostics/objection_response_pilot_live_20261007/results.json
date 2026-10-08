@@ -1,0 +1,346 @@
+[
+  {
+    "case": "competing_promise",
+    "arm": "ordinary_revision",
+    "framework": "utilitarian",
+    "model": "o3",
+    "max_tokens": 4096,
+    "call_status": "RETURNED",
+    "submission": "VALID",
+    "native_ledger": "COMMITTED",
+    "preferred_action": "",
+    "warnings": [
+      "numeric reversal threshold lacks a scenario-grounded quantity"
+    ],
+    "argument": {
+      "target": "utilitarian",
+      "reply": "Utilitarian evaluation now explicitly counts the welfare effect of promise-keeping.  The promise itself is a real fact (PROP:WORLD:RECOGNITION:4697fd89cd506cc4), but the scenario does not state how much utility fulfilment or breach carries.  That welfare increment therefore remains an un-quantified hypothesis.  Given the very large gap in expected survival (0.95 vs 0.05 = 0.90 expected life difference), an additional trust/credibility benefit would have to be at least 0.90 life-equivalents to reverse the ranking.  Ordinary estimates of relationship or institutional trust rarely approach the value of saving almost one whole life, so the expected-survivor calculus still dominates.  I therefore keep the preference for A0 while flagging the quantitative uncertainty about trust utility as a reversal boundary.",
+      "framework_commitment": "Benthamite greatest-happiness principle: choose the act with the larger total expected welfare.",
+      "reasoning_bridge": "1. Expected lives saved: A0 = 0.95, A1 = 0.05 (grounded). 2. Promise-keeping adds some positive utility to A1 and some negative utility to A0, but magnitude is unstated. 3. Unless that magnitude ≥ 0.90 life-equivalents, A0 still maximises expected welfare. 4. Because this threshold is plausible but not established, note it as ft and gu boundary; scores unchanged.",
+      "remaining_uncertainty": "Exact welfare value of broken promise to Cara and to wider social trust; any secondary effects on others.",
+      "reversal_condition": "If the disutility of breaking the promise (or utility of keeping it) reached or exceeded 0.90 expected lives, A1 would become preferable.",
+      "evidence_ids": [
+        "PROP:WORLD:E2",
+        "PROP:WORLD:E4",
+        "PROP:WORLD:RECOGNITION:4697fd89cd506cc4"
+      ],
+      "disposition": "answered"
+    },
+    "content_score": null,
+    "world_unchanged": true
+  },
+  {
+    "case": "competing_promise",
+    "arm": "ordinary_revision",
+    "framework": "deontological",
+    "model": "o3",
+    "max_tokens": 4096,
+    "call_status": "RETURNED",
+    "submission": "VALID",
+    "native_ledger": "COMMITTED_WITH_UNCERTAINTY",
+    "preferred_action": "Ada gives the medicine to Cara",
+    "warnings": [
+      "A0 ADJUDICATION_CALIBRATION: omission was classified as a perfect negative-duty violation without a separate basis",
+      "A0 ADJUDICATION_CALIBRATION: resolved adjudication rests on unsupported decisive premises",
+      "A1 ADJUDICATION_CALIBRATION: perfect positive duty lacks a right-correlative, undertaking, or grounded emergency basis",
+      "A1 ADJUDICATION_CALIBRATION: resolved adjudication rests on unsupported decisive premises"
+    ],
+    "argument": {
+      "target": "EXPERIMENT_ASSIGNED_CHALLENGE_NOT_WORLD_FACT",
+      "reply": "In Kantian deontology, duties are ranked by strictness. Promise-keeping is a perfect duty: its violation cannot be coherently universalised because a world in which promises are routinely broken would destroy the institution of promising itself. Rescuing strangers is an imperfect duty of beneficence: we must sometimes help, but the maxim \"always save the person with the highest chance of survival\" can be willed universally without contradiction; its non-performance in a given instance does not invalidate the practice of beneficence. Hence, when a perfect and an imperfect duty conflict, the perfect duty has lexical priority.  \nIn this case Ada voluntarily created a promissory obligation to Cara. Breaking it would use Cara merely as a means to Ben’s benefit and would undermine the trust necessary for promising. Administering the drug to Ben would realise beneficence, but the rescue duty remains discretionary and cannot override the perfect duty she already owes to Cara. Therefore the de-",
+      "framework_commitment": "Perfect duties (here, fidelity) categorically bind; imperfect duties (beneficence) permit discretion. When they conflict, the perfect duty governs the agent’s action.",
+      "reasoning_bridge": "1. Classify each duty: fidelity → perfect; rescue → imperfect.\n2. Test universalisation: a maxim permitting promise-breaking for utility cannot be willed as universal law; a maxim of selective beneficence can.\n3. Perfect duty therefore has higher deontic stringency.\n4. Ada’s action A1 fulfills the perfect duty; A0 violates it; so A1 is required.",
+      "remaining_uncertainty": "Promise’s moral force might be weakened if given under coercion or if a stronger special obligation to Ben existed (e.g., prior treatment relationship), but these are unstated.",
+      "reversal_condition": "If no promise existed, or if Ada had a perfect special duty to Ben (e.g., prior agreement), beneficence toward Ben could prevail.",
+      "evidence_ids": [
+        "PROP:WORLD:RECOGNITION:4697fd89cd506cc4"
+      ],
+      "disposition": "answered"
+    },
+    "content_score": null,
+    "world_unchanged": true
+  },
+  {
+    "case": "competing_promise",
+    "arm": "ordinary_revision",
+    "framework": "care",
+    "model": "o3",
+    "max_tokens": 4096,
+    "call_status": "RETURNED",
+    "submission": "VALID",
+    "native_ledger": "NONE",
+    "preferred_action": "Ada gives the medicine to Ben",
+    "warnings": [
+      "unresolved Care ranking must remain provisional"
+    ],
+    "argument": {
+      "target": "care",
+      "reply": "Both Ben and Cara possess the same urgent basic survival need, so attentiveness and responsibility place them on an equal footing at the first two phases of care.  The decisive difference arises at the third phase—competence.  Giving the dose to Ben delivers a 95 % chance of meeting that urgent need, whereas giving it to Cara delivers only 5 %.  When two equally urgent needs compete for a single resource that can help only one person, Tronto’s competence phase instructs the carer to use the resource effectively.  Promise-based trust is a genuine fourth-phase (responsiveness) consideration, but care ethics does not license a response that is known to be dramatically ineffective at meeting the very need the promise concerns.  Honouring the promise therefore cannot override the huge competence gap, because keeping a promise that predictably fails the underlying caring purpose undercuts the integrity of care itself.  Thus A0 remains provisionally preferred while acknowledging Cara’s thwart",
+      "framework_commitment": "Attentiveness and responsibility treat both patients’ survival as equally weighty; competence then requires using the scarce medicine where it is vastly more effective, and responsiveness (promise-keeping) cannot justify knowingly incompetent care.",
+      "reasoning_bridge": "Effectiveness is drawn from stated probabilities (PROP:WORLD:E2 vs. PROP:WORLD:E4).  Promise is drawn from PROP:WORLD:RECOGNITION:4697fd89cd506cc4.  Care ethics ranks phases sequentially; a severe failure at competence blocks a later-phase consideration from overriding it.",
+      "remaining_uncertainty": "If Cara’s survival probability were comparable to Ben’s, or if further relational duties toward Cara were established (e.g., long-standing caregiver relationship), the priority might reverse.",
+      "reversal_condition": "Cara’s survival chance rises to near Ben’s (≈ 90 %), or additional entrusted relationship uniquely binds Ada to Cara.",
+      "evidence_ids": [
+        "PROP:WORLD:E2",
+        "PROP:WORLD:E4",
+        "PROP:WORLD:RECOGNITION:4697fd89cd506cc4"
+      ],
+      "disposition": "answered"
+    },
+    "content_score": null,
+    "world_unchanged": true
+  },
+  {
+    "case": "competing_promise",
+    "arm": "objection_focused",
+    "framework": "utilitarian",
+    "model": "o3",
+    "max_tokens": 4096,
+    "call_status": "RETURNED",
+    "submission": "VALID",
+    "native_ledger": "COMMITTED",
+    "preferred_action": "",
+    "warnings": [
+      "numeric reversal threshold lacks a scenario-grounded quantity"
+    ],
+    "argument": {
+      "target": "utilitarian",
+      "reply": "The objection points to a genuine possible cost: breaking Ada’s promise to Cara may reduce overall welfare by undermining trust, causing psychic distress to Cara, and perhaps eroding social cooperation.  Under utilitarianism those indirect effects matter, but their magnitudes must be weighed against the difference in expected life-years (0.95 – 0.05 ≈ 0.9 expected life saved).  The scenario offers no numbers for the disutility of promise-breaking, so the bridge I used is the standard expected-survivors calculation together with an assumed upper bound that the welfare loss from a single broken promise is normally far smaller than the welfare gain from saving almost one additional life.  Many empirical studies on trust and well-being suggest that even large drops in reported life-satisfaction rarely equal the loss of a full life; therefore, unless promise-breaking here produces an unusually catastrophic social ripple, saving Ben remains the welfare-maximising choice.  I acknowledge the –",
+      "framework_commitment": "Utilitarian principle: choose the act that maximises total expected welfare, counting all positive and negative utility (including trust and psychological effects).",
+      "reasoning_bridge": "1. Expected survivors: A0 adds 0.95 expected life; A1 adds 0.05. 2. Typical disutility from one broken promise < disutility of 0.9 expected life lost. 3. Therefore total expected welfare still higher under A0.",
+      "remaining_uncertainty": "Exact utility cost of breaking Ada’s promise is unspecified; if extremely high it could overturn the comparison.",
+      "reversal_condition": "If the social and psychological harm from breaking the promise is estimated to exceed the welfare of 0.9 expected life saved, preference would switch to A1.",
+      "evidence_ids": [
+        "PROP:WORLD:E2",
+        "PROP:WORLD:E4",
+        "PROP:WORLD:RECOGNITION:4697fd89cd506cc4"
+      ],
+      "disposition": "partly_answered"
+    },
+    "content_score": null,
+    "world_unchanged": true
+  },
+  {
+    "case": "competing_promise",
+    "arm": "objection_focused",
+    "framework": "deontological",
+    "model": "o3",
+    "max_tokens": 4096,
+    "call_status": "RETURNED",
+    "submission": "VALID",
+    "native_ledger": "COMMITTED_WITH_UNCERTAINTY",
+    "preferred_action": "Ada gives the medicine to Cara",
+    "warnings": [
+      "A0 ADJUDICATION_CALIBRATION: omission was classified as a perfect negative-duty violation without a separate basis",
+      "A0 ADJUDICATION_CALIBRATION: resolved adjudication rests on unsupported decisive premises",
+      "A1 ADJUDICATION_CALIBRATION: perfect positive duty lacks a right-correlative, undertaking, or grounded emergency basis",
+      "A1 ADJUDICATION_CALIBRATION: resolved adjudication rests on unsupported decisive premises"
+    ],
+    "argument": {
+      "target": "Why should your preferred duty take priority over the competing rescue or fidelity claim?",
+      "reply": "Within Kantian deontology the promise to Cara generates a perfect duty of fidelity. A perfect duty forbids the contradictory opposite (making a promise one intends to break); universalising that maxim would destroy the institution of promising. The rescue of Ben is an imperfect duty of beneficence because Ada has no special tie to Ben beyond general concern for others. Imperfect duties admit latitude; they obligate adopting some maxims of aid, not every possible specific aid. When two duties conflict, Kant holds that perfect duties set strict constraints on maxims that imperfect duties cannot override. Therefore, breaking the promise is categorically impermissible, whereas failing this particular rescue is a permissible (though regrettable) omission consistent with still adopting other beneficent maxims.",
+      "framework_commitment": "Kant: perfect duties (e.g., fidelity) have priority over imperfect duties (e.g., beneficence).",
+      "reasoning_bridge": "Classify promise-keeping as perfect duty; classify rescuing stranger as imperfect beneficence; apply Kantian hierarchy to resolve conflict.",
+      "remaining_uncertainty": "Whether life-threatening stakes can elevate beneficence here to a perfect positive duty of rescue; whether the promise was valid given resource scarcity.",
+      "reversal_condition": "If Ben’s rescue constituted a perfect positive duty (e.g., special obligation or universally necessary aid), or if the promise was invalid, then duty priority could reverse.",
+      "evidence_ids": [
+        "PROP:WORLD:RECOGNITION:4697fd89cd506cc4"
+      ],
+      "disposition": "answered"
+    },
+    "content_score": null,
+    "world_unchanged": true
+  },
+  {
+    "case": "competing_promise",
+    "arm": "objection_focused",
+    "framework": "care",
+    "model": "o3",
+    "max_tokens": 4096,
+    "call_status": "RETURNED",
+    "submission": "VALID",
+    "native_ledger": "NONE",
+    "preferred_action": "Ada gives the medicine to Ben",
+    "warnings": [
+      "unresolved Care ranking must remain provisional"
+    ],
+    "argument": {
+      "target": "objection",
+      "reply": "Both patients share the same urgent basic-need (survival).  Care ethics therefore asks whether Ada can meet that need with (1) attentiveness to dependency, (2) responsibility for it, (3) competent action, and (4) responsiveness to the person’s own trust.  \n• Competence: The only available treatment works far better for Ben (95 % vs 5 %) [PROP:WORLD:E2, PROP:WORLD:E4].  Care that knowingly offers a 5 % chance when a 95 % chance is available is a serious failure of the competence phase, because it withholds a life-saving benefit that the carer has the power to deliver.\n• Promise / trust: Ada’s promise to Cara [PROP:WORLD:RECOGNITION:4697fd89cd506cc4] does generate a responsive obligation; breaking it strains trust.  But in Tronto’s sequence, responsiveness does not license ignoring responsibility and competence.  A promise that directly conflicts with a vastly more competent life-saving act is itself morally defective and must be revised rather than kept.\nThus, when two care obligations ",
+      "framework_commitment": "We rely on Tronto’s four-phase care model: responsibility must be executed competently; responsiveness cannot override responsibility when doing so would knowingly sacrifice a life that could almost certainly be saved.",
+      "reasoning_bridge": "Because the need (survival) and immediacy are identical, the dimension that discriminates the quality of care is competence.  The promise counts, but an imprudent promise cannot transform an incompetent 5 % treatment into the better care option.",
+      "remaining_uncertainty": "Care theory does not offer a precise numerical threshold for when promise-keeping outweighs competence.  If Cara’s chance approached Ben’s, or if additional relational factors (e.g. long-standing dependency) were established, the balance could shift.",
+      "reversal_condition": "If Cara’s survival probability rose to roughly match Ben’s (≥ 90 %), or if the scenario established a unique, long-term entrusted care relationship to Cara that Ben lacks, A1 would become preferable.",
+      "evidence_ids": [
+        "PROP:WORLD:E2",
+        "PROP:WORLD:E4",
+        "PROP:WORLD:RECOGNITION:4697fd89cd506cc4"
+      ],
+      "disposition": "answered"
+    },
+    "content_score": null,
+    "world_unchanged": true
+  },
+  {
+    "case": "probability_swap",
+    "arm": "ordinary_revision",
+    "framework": "utilitarian",
+    "model": "o3",
+    "max_tokens": 4096,
+    "call_status": "RETURNED",
+    "submission": "VALID",
+    "native_ledger": "COMMITTED",
+    "preferred_action": "Ada gives the medicine to Cara",
+    "warnings": [],
+    "argument": {
+      "target": "objection",
+      "reply": "From a utilitarian perspective, what ultimately matters is total expected welfare.  In many emergency‐care dilemmas life-or-death outcomes dominate all other welfare components, because without survival no further experiences (pleasant or unpleasant) are possible.  Therefore I treated “expected number of survivors” as a tractable proxy for total expected welfare.\n\n• Why it supports the preference:  Giving the drug to Cara yields 0.95 expected life-years (one person × 95 %), while giving it to Ben yields only 0.05.  The 0.90 expected-life advantage is very large and swamps any plausible utility differences in post-treatment quality of life, pain, or cost.  Hence the proxy tracks the direction of overall welfare in this scenario.\n\n• What the proxy cannot settle:  It does not measure (a) quality of any saved life, (b) relational or distributive concerns, or (c) second-order effects such as staff morale or public trust.  If such factors were large enough to offset a 0.90 expected-life gap,",
+      "framework_commitment": "Utilitarianism instructs us to choose the action with the highest expected aggregate utility.  When lives are immediately at stake and no further information is offered about quality of life, we approximate total utility by expected survivors.",
+      "reasoning_bridge": "Expected survivors = Σ(persons × survival probability).  A1: 1×0.95 = 0.95.  A0: 1×0.05 = 0.05.  Since 0.95 > 0.05, A1 maximizes the proxy for expected utility.",
+      "remaining_uncertainty": "Unknown quality of life after treatment, other downstream welfare effects, and the possibility that utility per life differs markedly between Ben and Cara.",
+      "reversal_condition": "If Ben’s survival probability rose above Cara’s (≈ >95 %) or if Cara’s fell far below Ben’s, the expected-welfare ranking would reverse.",
+      "evidence_ids": [
+        "PROP:WORLD:E2",
+        "PROP:WORLD:E4"
+      ],
+      "disposition": "answered"
+    },
+    "content_score": null,
+    "world_unchanged": true
+  },
+  {
+    "case": "probability_swap",
+    "arm": "ordinary_revision",
+    "framework": "deontological",
+    "model": "o3",
+    "max_tokens": 4096,
+    "call_status": "RETURNED",
+    "submission": "VALID",
+    "native_ledger": "COMMITTED",
+    "preferred_action": "Ada gives the medicine to Cara",
+    "warnings": [],
+    "argument": {
+      "target": "deontological",
+      "reply": "The relevant moral norm remains the same in either allocation: Ada has the same imperfect duty of beneficence toward each patient.  Probabilities do not create a new duty; they indicate how fully each possible action fulfils that standing duty.  Giving the single dose to Cara fulfils the duty far better (95 % chance of rescuing someone) than giving it to Ben (5 %).  Therefore my ranking is stable unless those empirical chances shift enough to change which act realises the duty more completely.  If the probabilities were reversed, the very same duty would now be better satisfied by treating Ben, and my recommendation would switch accordingly.",
+      "framework_commitment": "Imperfect duty of beneficence requires choosing the feasible act that most effectively rescues persons when all other deontic constraints are equal.",
+      "reasoning_bridge": "Same duty applies to both patients ➔ compare effectiveness of alternative acts ➔ act that realises higher likelihood of rescue better satisfies duty ➔ prefer that act.",
+      "remaining_uncertainty": "No special obligations or consent facts are stated; if such were introduced they could override the effectiveness comparison.",
+      "reversal_condition": "If survival probabilities were reversed (e.g., Ben 95 %, Cara 5 %) the preferred action would switch to giving the medicine to Ben.",
+      "evidence_ids": [
+        "PROP:WORLD:E2",
+        "PROP:WORLD:E4"
+      ],
+      "disposition": "answered"
+    },
+    "content_score": null,
+    "world_unchanged": true
+  },
+  {
+    "case": "probability_swap",
+    "arm": "ordinary_revision",
+    "framework": "care",
+    "model": "o3",
+    "max_tokens": 4096,
+    "call_status": "RETURNED",
+    "submission": "VALID",
+    "native_ledger": "COMMITTED",
+    "preferred_action": "Ada gives the medicine to Cara",
+    "warnings": [],
+    "argument": {
+      "target": "care objection",
+      "reply": "Care ethics grants equal moral consideration to Ben and Cara’s urgent need, yet demands that the carer act competently and responsively with the scarce resource. Because the single dose can realistically save only one patient, competence requires giving it where it can actually preserve life. Treating Ben provides merely a token gesture (≤5 % survival) and effectively abandons both patients—Ben still almost certainly dies and Cara certainly dies. Treating Cara (95 % survival) fulfils the same dependency for one patient in a way that is likely to succeed, while the unavoidable loss of Ben is a consequence of scarcity, not a deliberate neglect of his equal moral worth. Thus the large difference in effectiveness does not create a new priority relation; it shows which act better meets the shared vital need under unavoidable constraint.",
+      "framework_commitment": "Competence and responsiveness are constitutive norms of care; when needs are equal we must allocate scarce means where care can realistically succeed.",
+      "reasoning_bridge": "Both patients are equally dependent, so attentiveness is symmetric. The decisive care dimension becomes competence: choosing the action that is far more likely to realise the aim of preserving life. This uses the stated 95 % versus 5 % survival figures without inventing new relational hierarchies.",
+      "remaining_uncertainty": "No stated facts about differing relationships, additional doses, or alternative interventions.",
+      "reversal_condition": "If Ben’s realistic chance of survival exceeded Cara’s, competence would instead require treating Ben.",
+      "evidence_ids": [
+        "PROP:WORLD:E2",
+        "PROP:WORLD:E4"
+      ],
+      "disposition": "answered"
+    },
+    "content_score": null,
+    "world_unchanged": true
+  },
+  {
+    "case": "probability_swap",
+    "arm": "objection_focused",
+    "framework": "utilitarian",
+    "model": "o3",
+    "max_tokens": 4096,
+    "call_status": "RETURNED",
+    "submission": "VALID",
+    "native_ledger": "COMMITTED",
+    "preferred_action": "Ada gives the medicine to Cara",
+    "warnings": [],
+    "argument": {
+      "target": "utilitarian",
+      "reply": "The objection notes that my earlier argument used \"expected survivors\" (0.95 vs 0.05) as the decisive metric, whereas classical utilitarianism seeks to maximise total expected welfare, not merely survival counts.  \n\n1  Admitted facts supporting the bridge  \n• PROP:WORLD:E2 – Ben’s survival probability is 5 %.  \n• PROP:WORLD:E4 – Cara’s survival probability is 95 %.  \nBoth patients face certain death otherwise (PROP:WORLD:E7, E8).  \n\n2  Framework commitment  \nUtilitarianism ranks actions by their expected utility.  In many urgent medical triage cases, continued life for someone who would otherwise die is taken as the dominant welfare component; when the patients are unknown to us and no further quality-of-life differences are supplied, a one-life-year proxy (or simple life/not-life proxy) is the least‐controversial common unit.  Under that simplifying assumption “expected survivors” becomes a direct proxy for expected utility.  \n\n3  Why the proxy is appropriate here  \n• Symmetry: The n ",
+      "framework_commitment": "Using survival as a welfare proxy is justified when (a) the only material outcomes given are life or death, (b) no quality-of-life or preference differences are stated, and (c) each patient counts equally in Benthamite aggregation.  Under these conditions, maximising expected survivors is equivalent to maximising expected welfare.  ",
+      "reasoning_bridge": "From PROP:WORLD:E2 and PROP:WORLD:E4 we derive expected utility contributions of 0.05 life and 0.95 life.  Because all other utilities are symmetrical or unspecified, the higher expected-life action (A1) yields greater total expected welfare.  ",
+      "remaining_uncertainty": "If there were large, undisclosed differences in post-treatment quality of life, social roles, or the patients’ own preferences, survival counts might not track welfare precisely.  Those data are absent.  ",
+      "reversal_condition": "If Ben’s probability of survival were to exceed Cara’s (e.g. > 95 %), the expected-survivor proxy would favour A0, reversing the recommendation.",
+      "evidence_ids": [
+        "PROP:WORLD:E2",
+        "PROP:WORLD:E4"
+      ],
+      "disposition": "answered"
+    },
+    "content_score": null,
+    "world_unchanged": true
+  },
+  {
+    "case": "probability_swap",
+    "arm": "objection_focused",
+    "framework": "deontological",
+    "model": "o3",
+    "max_tokens": 4096,
+    "call_status": "RETURNED",
+    "submission": "VALID",
+    "native_ledger": "COMMITTED",
+    "preferred_action": "Ada gives the medicine to Cara",
+    "warnings": [],
+    "argument": {
+      "target": "EXPERIMENT_ASSIGNED_CHALLENGE_NOT_WORLD_FACT",
+      "reply": "The imperfect duty of beneficence already binds Ada to try to save a life when she can. That duty does not change when the stated probabilities move; what shifts is how well each available act can realize that same duty. As long as both patients are strangers and neither has a special claim, the duty gives Ada latitude but also requires that the adopted maxim be capable of being a universal law. A maxim such as “When I must choose which of two strangers to treat, I will give the treatment where it has the higher chance of success” can be willed universally because it seeks the same end of aiding others while using available resources rationally. If the probabilities reversed, the same duty would direct the medicine to the now-better-off patient. Thus the comparative numbers do not create a new duty but guide the practical specification of the existing one.",
+      "framework_commitment": "Kantian imperfect duty of beneficence requires adopting a maxim that pursues others’ welfare where one is able; effectiveness is a morally relevant specification of that maxim.",
+      "reasoning_bridge": "1. Duty: aid others when feasible (imperfect). 2. Both Ben and Cara qualify. 3. Imperfect duties allow choice of maxim. 4. A rational, universalizable maxim favors the action that more probably achieves the duty’s end. 5. Therefore give medicine to patient with 95 % chance. Probabilities matter to effectiveness, not existence, of duty.",
+      "remaining_uncertainty": "Boundary where probabilities are roughly equal: fairness or randomization could then be an equally universalizable maxim. We do not know the exact threshold at which effectiveness difference becomes morally insignificant.",
+      "reversal_condition": "If Ben’s chance were at least as high as Cara’s, the same reasoning would reverse the allocation.",
+      "evidence_ids": [
+        "PROP:WORLD:E2",
+        "PROP:WORLD:E4"
+      ],
+      "disposition": "answered"
+    },
+    "content_score": null,
+    "world_unchanged": true
+  },
+  {
+    "case": "probability_swap",
+    "arm": "objection_focused",
+    "framework": "care",
+    "model": "o3",
+    "max_tokens": 4096,
+    "call_status": "RETURNED",
+    "submission": "VALID",
+    "native_ledger": "COMMITTED",
+    "preferred_action": "Ada gives the medicine to Cara",
+    "warnings": [],
+    "argument": {
+      "target": "objection",
+      "reply": "Care ethics recognises that Ada has responsibilities to both Ben and Cara because each is acutely dependent on the single dose she controls.  The objection questions the step in my earlier reasoning that treats the very large difference in likely effectiveness (95 % versus 5 %) as decisive without first establishing a relational priority between the two patients.\n\nAdmitted facts\n• PROP:WORLD:E2 – If Ada treats Ben, Ben has only a 5 % chance of survival.\n• PROP:WORLD:E4 – If Ada treats Cara, Cara has a 95 % chance of survival.\n• Both patients will die if they are not treated.\n\nFramework commitment applied\nIn Tronto’s four-phase model, the phase of competence requires the caregiver to give care that is in fact likely to meet the need.  When resources are insufficient to aid all dependants, competence demands choosing the action that stands the best chance of succeeding, provided no stronger relational duty overrides it.\n\nReasoning bridge defended\n1. Relational footing: Ben and Cara stand",
+      "framework_commitment": "Competence phase of care ethics: when needs are equally urgent and the caregiver cannot meet both, competence directs her to provide the care that is most likely to succeed, unless a stronger, specific relational responsibility overrides that choice.",
+      "reasoning_bridge": "Both patients have the same urgent, life-or-death need and the same general dependency relation to Ada (she controls the only dose).  Because no additional entrusted role, promise, prior relationship, or created vulnerability distinguishes Ben from Cara, their relational claims are symmetrical.  In such a tie, the competence requirement operates as the deciding care criterion.  Treating Cara has a nineteen-fold higher chance of actually preserving life; therefore it is the more competent response.",
+      "remaining_uncertainty": "If some hidden factor created an asymmetric relational duty (e.g., Ada is Ben’s usual physician or caused Ben’s illness), that duty could override competence.  Likewise, if effectiveness were much closer (e.g., 55 % vs 45 %), competence might not clearly outweigh fairness considerations.",
+      "reversal_condition": "Recommendation would reverse if Ben’s expected effectiveness met or exceeded Cara’s (≈ ≥95 %) or if new evidence showed Ada bears a stronger prior care obligation specifically to Ben.",
+      "evidence_ids": [
+        "PROP:WORLD:E2",
+        "PROP:WORLD:E4"
+      ],
+      "disposition": "answered"
+    },
+    "content_score": null,
+    "world_unchanged": true
+  }
+]

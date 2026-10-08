@@ -1,0 +1,592 @@
+{
+  "cloze_version": "blueprint-cloze-chooser/0.5",
+  "chosen_blueprint_id": "ability_permission",
+  "status": "WITHHELD",
+  "ranking": [
+    "ability_permission",
+    "exclusive_allocation",
+    "omission_harm"
+  ],
+  "left_out": [
+    "rescue_contrast",
+    "conditional_outcome",
+    "diversion_redirection",
+    "deontic_rule",
+    "promise_reliance",
+    "uncertain_risk",
+    "disputed_report"
+  ],
+  "question": {
+    "ethical_question": "",
+    "scenario_options": [],
+    "exclusivity": "unspecified",
+    "participants": [
+      {
+        "role": "subject",
+        "mention": "Ada",
+        "predicate": "give"
+      },
+      {
+        "role": "object",
+        "mention": "medicine",
+        "predicate": "give"
+      },
+      {
+        "role": "destination",
+        "mention": "Ben",
+        "predicate": "give"
+      }
+    ],
+    "eligible_for_world_state": false
+  },
+  "world_withheld": [
+    "ability_permission has an evidence plan but no Parliament 1.3 graph builder yet."
+  ],
+  "considered": [
+    {
+      "blueprint_id": "ability_permission",
+      "graph_builder": "plan_only",
+      "status": "FILLED",
+      "rank": 0,
+      "core_filled": 3,
+      "core_count": 3,
+      "optional_filled": 1,
+      "rejected": 0,
+      "coverage_metrics": {
+        "required_filled": 3,
+        "required_total": 3,
+        "optional_filled": 1,
+        "optional_total": 3,
+        "rejected_evidence": 0,
+        "unsupported_atoms": 0,
+        "unresolved_readings": 1
+      },
+      "unfilled": [
+        "outcome",
+        "duty_or_prohibition"
+      ],
+      "unresolved_slots": [
+        "outcome",
+        "duty_or_prohibition"
+      ],
+      "accepted_evidence": {
+        "actor": "Ada",
+        "modal_action": "give medicine",
+        "target": "Ben",
+        "modal_words": "can"
+      },
+      "slots": {
+        "actor": "Ada",
+        "modal_action": "give medicine",
+        "target": "Ben",
+        "modal_words": "can"
+      },
+      "items": [
+        {
+          "id": "actor",
+          "core": true,
+          "sentence": "The actor governed by the modal is",
+          "completion": "Ada",
+          "span": "Ada",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "modal_action",
+          "core": true,
+          "sentence": "The copied action stated with can, may, able, or permitted is",
+          "completion": "give medicine",
+          "span": "give medicine",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "target",
+          "core": true,
+          "sentence": "The target or recipient of that possible action is",
+          "completion": "Ben",
+          "span": "Ben",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "modal_words",
+          "core": false,
+          "sentence": "The exact modal words are",
+          "completion": "can",
+          "span": "can",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "outcome",
+          "core": false,
+          "sentence": "A stated outcome of that action is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "duty_or_prohibition",
+          "core": false,
+          "sentence": "Any duty or prohibition attached to that action is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        }
+      ]
+    },
+    {
+      "blueprint_id": "exclusive_allocation",
+      "graph_builder": "implemented",
+      "status": "PARTIAL",
+      "rank": 1,
+      "core_filled": 3,
+      "core_count": 5,
+      "optional_filled": 2,
+      "rejected": 1,
+      "coverage_metrics": {
+        "required_filled": 3,
+        "required_total": 5,
+        "optional_filled": 2,
+        "optional_total": 14,
+        "rejected_evidence": 1,
+        "unsupported_atoms": 0,
+        "unresolved_readings": 0
+      },
+      "unfilled": [
+        "assignment",
+        "second_transfer",
+        "quantity",
+        "second_recipient",
+        "exclusivity",
+        "first_outcome",
+        "first_hedge",
+        "second_outcome",
+        "second_hedge",
+        "first_implied_process",
+        "second_implied_process",
+        "second_branch_sentence",
+        "survival_chance",
+        "nonreceipt"
+      ],
+      "unresolved_slots": [
+        "assignment",
+        "second_transfer",
+        "quantity",
+        "second_recipient",
+        "exclusivity",
+        "first_outcome",
+        "first_hedge",
+        "second_outcome",
+        "second_hedge",
+        "first_implied_process",
+        "second_implied_process",
+        "second_branch_sentence",
+        "survival_chance",
+        "nonreceipt"
+      ],
+      "accepted_evidence": {
+        "decider": "Ada",
+        "resource": "medicine",
+        "first_transfer": "give medicine to Ben",
+        "first_recipient": "Ben",
+        "first_branch_sentence": "Ada can give medicine to Ben"
+      },
+      "slots": {
+        "decider": "Ada",
+        "resource": "medicine",
+        "first_transfer": "give medicine to Ben",
+        "first_recipient": "Ben",
+        "first_branch_sentence": "Ada can give medicine to Ben"
+      },
+      "items": [
+        {
+          "id": "decider",
+          "core": true,
+          "sentence": "The person who must decide who gets the resource is",
+          "completion": "Ada",
+          "span": "Ada",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "resource",
+          "core": true,
+          "sentence": "The resource that can be given is",
+          "completion": "medicine",
+          "span": "medicine",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "assignment",
+          "core": true,
+          "sentence": "The act that assigns that resource, in the text's own words, is",
+          "completion": "give",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "first_transfer",
+          "core": false,
+          "sentence": "The giving, receipt, allocation, delivery, or administration of the resource to the first party is",
+          "completion": "give medicine to Ben",
+          "span": "give medicine to Ben",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_transfer",
+          "core": false,
+          "sentence": "The giving, receipt, allocation, delivery, or administration of the resource to the second party is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "quantity",
+          "core": false,
+          "sentence": "The exact amount of that resource, stated in the text, is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "first_recipient",
+          "core": true,
+          "sentence": "The first party mentioned in the text who could receive the resource or benefit is",
+          "completion": "Ben",
+          "span": "Ben",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_recipient",
+          "core": true,
+          "sentence": "The second party mentioned in the text who could receive the resource or benefit is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "exclusivity",
+          "core": false,
+          "sentence": "The words that say both parties cannot receive it are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "first_outcome",
+          "core": false,
+          "sentence": "The words that license what happens for the first party are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "first_hedge",
+          "core": false,
+          "sentence": "The if, unless, whether, or percent-chance words inside that first outcome are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "second_outcome",
+          "core": false,
+          "sentence": "The words that license what happens for the second party are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "second_hedge",
+          "core": false,
+          "sentence": "The if, unless, whether, or percent-chance words inside that second outcome are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "first_implied_process",
+          "core": false,
+          "sentence": "The process most aligned with the text might explain how \"{resource}\" leads to \"{outcome}\" is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "second_implied_process",
+          "core": false,
+          "sentence": "The process most aligned with the text might explain how \"{resource}\" leads to \"{outcome}\" is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "first_branch_sentence",
+          "core": false,
+          "sentence": "The sentence that states the first branch and does not state the second is",
+          "completion": "Ada can give medicine to Ben.",
+          "span": "Ada can give medicine to Ben",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_branch_sentence",
+          "core": false,
+          "sentence": "The sentence that states the second branch and does not state the first is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "survival_chance",
+          "core": false,
+          "sentence": "A stated chance of survival is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "nonreceipt",
+          "core": false,
+          "sentence": "The words that say the other party does not receive it are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        }
+      ]
+    },
+    {
+      "blueprint_id": "omission_harm",
+      "graph_builder": "implemented",
+      "status": "PARTIAL",
+      "rank": 2,
+      "core_filled": 2,
+      "core_count": 5,
+      "optional_filled": 0,
+      "rejected": 0,
+      "coverage_metrics": {
+        "required_filled": 2,
+        "required_total": 5,
+        "optional_filled": 0,
+        "optional_total": 4,
+        "rejected_evidence": 0,
+        "unsupported_atoms": 0,
+        "unresolved_readings": 0
+      },
+      "unfilled": [
+        "omitted",
+        "harm_done",
+        "harm_omitted",
+        "done_hedge",
+        "omitted_hedge",
+        "group_counts",
+        "instrument"
+      ],
+      "unresolved_slots": [
+        "omitted",
+        "harm_done",
+        "harm_omitted",
+        "done_hedge",
+        "omitted_hedge",
+        "group_counts",
+        "instrument"
+      ],
+      "accepted_evidence": {
+        "actor": "Ada",
+        "done": "give medicine"
+      },
+      "slots": {
+        "actor": "Ada",
+        "done": "give medicine"
+      },
+      "items": [
+        {
+          "id": "actor",
+          "core": true,
+          "sentence": "The person who may do the action or not do it is",
+          "completion": "Ada",
+          "span": "Ada",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "done",
+          "core": true,
+          "sentence": "The action the text says is done is",
+          "completion": "give medicine",
+          "span": "give medicine",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "omitted",
+          "core": true,
+          "sentence": "The copied non-action branch, including the word not, is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "harm_done",
+          "core": true,
+          "sentence": "The stated harmful outcome if the action is done is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "harm_omitted",
+          "core": true,
+          "sentence": "The stated harmful outcome if the action is not done is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "done_hedge",
+          "core": false,
+          "sentence": "The conditional words attached to the harm from doing the action are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "omitted_hedge",
+          "core": false,
+          "sentence": "The conditional words attached to the harm from not doing the action are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "group_counts",
+          "core": false,
+          "sentence": "One copied group count in a harmful outcome is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "instrument",
+          "core": false,
+          "sentence": "The contrasting instrument named after but not is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        }
+      ]
+    }
+  ],
+  "proposals": [
+    {
+      "proposal_contract_version": "blueprint-proposal-contract/0.2",
+      "proposal_id": "ability_permission_cloze",
+      "blueprint_id": "ability_permission",
+      "status": "WITHHELD",
+      "assignment_kind": "none",
+      "assignment": [],
+      "slot_bindings": {
+        "copied_spans": {
+          "actor": "Ada",
+          "modal_action": "give medicine",
+          "target": "Ben",
+          "modal_words": "can"
+        }
+      },
+      "selection": null,
+      "selection_validation": {
+        "contract_valid": null,
+        "status": "not_assessed",
+        "reason": "No Z10 candidate selection was constructed."
+      },
+      "candidate": null,
+      "clauses": [
+        {
+          "clause_id": "C0",
+          "text": "Ada can give medicine to Ben."
+        }
+      ],
+      "unfilled_required_slots": [],
+      "unresolved_readings": [
+        {
+          "kind": "modal_force",
+          "alternatives": [
+            "ability",
+            "permission",
+            "possibility"
+          ]
+        }
+      ],
+      "construction_problems": [
+        {
+          "code": "world_withheld",
+          "message": "ability_permission has an evidence plan but no Parliament 1.3 graph builder yet."
+        }
+      ],
+      "admission_authorized": false,
+      "notes": [],
+      "pre_world_assessment": {
+        "ethical_question": "",
+        "scenario_options": [],
+        "exclusivity": "unspecified",
+        "participants": [
+          {
+            "role": "subject",
+            "mention": "Ada",
+            "predicate": "give"
+          },
+          {
+            "role": "object",
+            "mention": "medicine",
+            "predicate": "give"
+          },
+          {
+            "role": "destination",
+            "mention": "Ben",
+            "predicate": "give"
+          }
+        ],
+        "status": "WITHHELD",
+        "eligible_for_world_state": false
+      },
+      "accepted_evidence": {
+        "actor": "Ada",
+        "modal_action": "give medicine",
+        "target": "Ben",
+        "modal_words": "can"
+      },
+      "world_withheld": [
+        "ability_permission has an evidence plan but no Parliament 1.3 graph builder yet."
+      ]
+    }
+  ],
+  "graph": null
+}

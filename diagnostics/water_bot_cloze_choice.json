@@ -1,0 +1,614 @@
+{
+  "cloze_version": "blueprint-cloze-chooser/0.2",
+  "chosen_blueprint_id": "exclusive_allocation",
+  "status": "FILLED",
+  "ranking": [
+    "exclusive_allocation",
+    "rescue_contrast",
+    "omission_harm"
+  ],
+  "left_out": [
+    "conditional_outcome"
+  ],
+  "considered": [
+    {
+      "blueprint_id": "exclusive_allocation",
+      "status": "FILLED",
+      "rank": 0,
+      "core_filled": 5,
+      "core_count": 5,
+      "optional_filled": 4,
+      "rejected": 1,
+      "unfilled": [
+        "first_transfer",
+        "second_transfer",
+        "quantity",
+        "exclusivity",
+        "first_hedge",
+        "second_hedge",
+        "first_branch_sentence",
+        "second_branch_sentence",
+        "survival_chance",
+        "nonreceipt"
+      ],
+      "slots": {
+        "decider": "An AI bot",
+        "resource": "water",
+        "assignment": "devote water",
+        "first_recipient": "a farm",
+        "second_recipient": "a small town",
+        "first_outcome": "a farm that can sustain a city's dietary needs",
+        "second_outcome": "a small town that will lose 100 people to drowning",
+        "first_implied_process": "irrigation",
+        "second_implied_process": "flooding"
+      },
+      "items": [
+        {
+          "id": "decider",
+          "core": true,
+          "sentence": "The person who must decide who gets the resource is",
+          "completion": "An AI bot must decide",
+          "span": "An AI bot",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "resource",
+          "core": true,
+          "sentence": "The resource that can be given is",
+          "completion": "water",
+          "span": "water",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "assignment",
+          "core": true,
+          "sentence": "The act that assigns that resource, in the text's own words, is",
+          "completion": "decide whether to devote water",
+          "span": "devote water",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "first_transfer",
+          "core": false,
+          "sentence": "The giving, receipt, allocation, delivery, or administration of the resource to the first party is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "second_transfer",
+          "core": false,
+          "sentence": "The giving, receipt, allocation, delivery, or administration of the resource to the second party is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "quantity",
+          "core": false,
+          "sentence": "The exact amount of that resource, stated in the text, is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "first_recipient",
+          "core": true,
+          "sentence": "The first party mentioned in the text who could receive the resource or benefit is",
+          "completion": "a farm that can sustain a city's dietary needs",
+          "span": "a farm",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_recipient",
+          "core": true,
+          "sentence": "The second party mentioned in the text who could receive the resource or benefit is",
+          "completion": "a small town that will lose 100 people to drowning",
+          "span": "a small town",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "exclusivity",
+          "core": false,
+          "sentence": "The words that say both parties cannot receive it are",
+          "completion": "whether to devote water to a farm that can sustain a city's dietary needs or a small town that will lose 100 people to drowning",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "too_long"
+        },
+        {
+          "id": "first_outcome",
+          "core": false,
+          "sentence": "The words that license what happens for the first party are",
+          "completion": "a farm that can sustain a city's dietary needs",
+          "span": "a farm that can sustain a city's dietary needs",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "first_hedge",
+          "core": false,
+          "sentence": "The if, unless, whether, or percent-chance words inside that first outcome are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "second_outcome",
+          "core": false,
+          "sentence": "The words that license what happens for the second party are",
+          "completion": "a small town that will lose 100 people to drowning",
+          "span": "a small town that will lose 100 people to drowning",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "second_hedge",
+          "core": false,
+          "sentence": "The if, unless, whether, or percent-chance words inside that second outcome are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "first_implied_process",
+          "core": false,
+          "sentence": "The process most aligned with the text might explain how \"water\" leads to \"can sustain a city's dietary needs\" is",
+          "completion": "irrigation",
+          "span": "irrigation",
+          "verdict": "accepted",
+          "reason": "implied"
+        },
+        {
+          "id": "second_implied_process",
+          "core": false,
+          "sentence": "The process most aligned with the text might explain how \"water\" leads to \"will lose 100 people to drowning\" is",
+          "completion": "flooding",
+          "span": "flooding",
+          "verdict": "accepted",
+          "reason": "implied"
+        },
+        {
+          "id": "first_branch_sentence",
+          "core": false,
+          "sentence": "The sentence that states the first branch and does not state the second is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "second_branch_sentence",
+          "core": false,
+          "sentence": "The sentence that states the second branch and does not state the first is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "survival_chance",
+          "core": false,
+          "sentence": "A stated chance of survival is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "nonreceipt",
+          "core": false,
+          "sentence": "The words that say the other party does not receive it are",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        }
+      ]
+    },
+    {
+      "blueprint_id": "rescue_contrast",
+      "status": "PARTIAL",
+      "rank": 1,
+      "core_filled": 0,
+      "core_count": 3,
+      "optional_filled": 1,
+      "rejected": 3,
+      "unfilled": [
+        "rescuer",
+        "saved",
+        "not_saved",
+        "survival",
+        "foregone"
+      ],
+      "slots": {
+        "scene": "a small town that will lose 100 people to drowning"
+      },
+      "items": [
+        {
+          "id": "rescuer",
+          "core": true,
+          "sentence": "The person who can rescue someone is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "saved",
+          "core": true,
+          "sentence": "The party that person can save is",
+          "completion": "a small town that will lose 100 people to drowning",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "not_saved",
+          "core": true,
+          "sentence": "The party that person cannot save is",
+          "completion": "a farm that can sustain a city's dietary needs",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "survival",
+          "core": false,
+          "sentence": "What the text says happens when the rescue succeeds is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "scene",
+          "core": false,
+          "sentence": "The parties named as already in danger are",
+          "completion": "a small town that will lose 100 people to drowning",
+          "span": "a small town that will lose 100 people to drowning",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "foregone",
+          "core": false,
+          "sentence": "What the text says happens to the party who is not saved is",
+          "completion": "100 people to drowning",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        }
+      ]
+    },
+    {
+      "blueprint_id": "omission_harm",
+      "status": "PARTIAL",
+      "rank": 2,
+      "core_filled": 2,
+      "core_count": 5,
+      "optional_filled": 0,
+      "rejected": 2,
+      "unfilled": [
+        "omitted",
+        "harm_done",
+        "harm_omitted",
+        "instrument"
+      ],
+      "slots": {
+        "actor": "An AI bot",
+        "done": "devote water to a farm that can sustain a city's dietary needs"
+      },
+      "items": [
+        {
+          "id": "actor",
+          "core": true,
+          "sentence": "The person who may do the action or not do it is",
+          "completion": "An AI bot",
+          "span": "An AI bot",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "done",
+          "core": true,
+          "sentence": "The action the text says is done is",
+          "completion": "devote water to a farm that can sustain a city's dietary needs",
+          "span": "devote water to a farm that can sustain a city's dietary needs",
+          "verdict": "accepted",
+          "reason": "copied"
+        },
+        {
+          "id": "omitted",
+          "core": true,
+          "sentence": "The action the text says is not done is",
+          "completion": "devote water to a small town that will lose 100 people to drowning",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "not_a_copy"
+        },
+        {
+          "id": "harm_done",
+          "core": true,
+          "sentence": "Who is harmed if the action is done is",
+          "completion": "a small town that will lose 100 people to drowning",
+          "span": null,
+          "verdict": "rejected",
+          "reason": "does_not_answer"
+        },
+        {
+          "id": "harm_omitted",
+          "core": true,
+          "sentence": "Who is harmed if the action is not done is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        },
+        {
+          "id": "instrument",
+          "core": false,
+          "sentence": "Another instrument named beside the action is",
+          "completion": "NONE",
+          "span": null,
+          "verdict": "empty",
+          "reason": "not_stated"
+        }
+      ]
+    }
+  ],
+  "graph": {
+    "proposal_id": "exclusive_allocation_cloze",
+    "status": "FILLED",
+    "notes": [
+      "A0 has no source giving or receipt event, so the act stays an intervention.",
+      "A1 has no source giving or receipt event, so the act stays an intervention.",
+      "A1 joins two copied spans that are not adjacent.",
+      "Both options are stated in the same clause.",
+      "Implied process for the first outcome: irrigation. This is a warning, not a cause copied from the text.",
+      "Implied process for the second outcome: flooding. This is a warning, not a cause copied from the text."
+    ],
+    "candidate": {
+      "world_model": {
+        "schema_version": "1.3",
+        "parties": [
+          {
+            "party_id": "P1",
+            "label": "An AI bot",
+            "kind": "OTHER",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P2",
+            "label": "water",
+            "kind": "RESOURCE",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P3",
+            "label": "a farm",
+            "kind": "COMMUNITY",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P4",
+            "label": "a small town",
+            "kind": "COMMUNITY",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P5",
+            "label": "100 people",
+            "kind": "HUMAN_GROUP",
+            "quantities": [
+              "100"
+            ],
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "action_id": "A0",
+            "intervention": "devote water to a farm",
+            "actor_party_id": "P1",
+            "resource_party_id": "P2",
+            "recipient_party_ids": [
+              "P3"
+            ],
+            "effect_ids": [
+              "E1",
+              "E2"
+            ],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "action_id": "A1",
+            "intervention": "devote water to a small town",
+            "actor_party_id": "P1",
+            "resource_party_id": "P2",
+            "recipient_party_ids": [
+              "P4"
+            ],
+            "effect_ids": [
+              "E3",
+              "E4"
+            ],
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "effects": [
+          {
+            "effect_id": "E1",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "devote water",
+            "predicate": "devote",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "INTERVENTION",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "devote water",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "effect_id": "E2",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "a farm that can sustain a city's dietary needs",
+            "predicate": "sustain",
+            "polarity": "BENEFICIAL",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "WELFARE_OUTCOME",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "a farm that can sustain a city's dietary needs",
+            "source_effect_ids": [
+              "E1"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "effect_id": "E3",
+            "action_id": "A1",
+            "party_id": "P4",
+            "outcome": "devote water",
+            "predicate": "devote",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "INTERVENTION",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "devote water",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "effect_id": "E4",
+            "action_id": "A1",
+            "party_id": "P5",
+            "outcome": "a small town that will lose 100 people to drowning",
+            "predicate": "drown",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [
+              "100"
+            ],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "a small town that will lose 100 people to drowning",
+            "source_effect_ids": [
+              "E3"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "conditions": [],
+        "temporal_relations": [],
+        "causal_links": [
+          {
+            "action_id": "A0",
+            "source_id": "E1",
+            "link_relation": "CAUSES",
+            "target_id": "E2",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "action_id": "A1",
+            "source_id": "E3",
+            "link_relation": "CAUSES",
+            "target_id": "E4",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C0"
+            ]
+          }
+        ],
+        "counterfactual_links": []
+      },
+      "ellipsis_resolutions": []
+    }
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "schema_version": 2,
+  "run_id": "scenario_20261001_185555_282461",
+  "started_at": "2026-10-01T22:55:55.282488+00:00",
+  "elapsed_seconds": 991.869687,
+  "counts": {
+    "events": 8,
+    "by_category": {
+      "cycle_input": 1,
+      "projection": 3,
+      "stage": 4
+    },
+    "by_status": {
+      "CACHE_HIT": 2,
+      "FROZEN": 1,
+      "MATERIALIZED": 1,
+      "OK": 4
+    },
+    "logical_model_calls": 0,
+    "model_call_count": 0,
+    "original_agent_model_calls": 0,
+    "compact_primary_calls": 0,
+    "compact_repair_calls": 0,
+    "repair_count": 0,
+    "timeout_count": 0,
+    "abstention_count": 0,
+    "budget_blocked_calls": 0,
+    "model_cache_hits": 0,
+    "grounded_projection_materializations": 1,
+    "grounded_projection_cache_hits": 2,
+    "provider_attempts": 0,
+    "provider_failures": 0
+  },
+  "timings_by_name_seconds": {
+    "frozen_world_validation": 0.008857,
+    "grounded_effect_projection": 0.000517,
+    "pipeline_total": 991.8218,
+    "prepare_cycle_input": 0.001097,
+    "specialist_evaluation": 988.306964,
+    "workspace_deliberation": 988.339479
+  },
+  "original_agents": {},
+  "compact_specialists": {},
+  "ledger_commits": {},
+  "events": [
+    {
+      "category": "stage",
+      "name": "frozen_world_validation",
+      "status": "OK",
+      "duration_seconds": 0.008857,
+      "finished_at": "2026-10-01T22:55:55.292104+00:00",
+      "metadata": {}
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "MATERIALIZED",
+      "duration_seconds": 0.000512,
+      "finished_at": "2026-10-01T22:55:58.769847+00:00",
+      "metadata": {
+        "graph_revision": 63,
+        "effect_count": 6
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 2e-06,
+      "finished_at": "2026-10-01T22:55:58.777054+00:00",
+      "metadata": {
+        "graph_revision": 63,
+        "effect_count": 6
+      }
+    },
+    {
+      "category": "cycle_input",
+      "name": "prepare_cycle_input",
+      "status": "FROZEN",
+      "duration_seconds": 0.001097,
+      "finished_at": "2026-10-01T22:55:58.778141+00:00",
+      "metadata": {
+        "cycle": 1,
+        "specialist_count": 2,
+        "action_count": 2,
+        "proposition_count": 6,
+        "challenge_count": 0,
+        "evaluation_workers": 1
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 3e-06,
+      "finished_at": "2026-10-01T22:55:58.779868+00:00",
+      "metadata": {
+        "graph_revision": 63,
+        "effect_count": 6
+      }
+    },
+    {
+      "category": "stage",
+      "name": "specialist_evaluation",
+      "status": "OK",
+      "duration_seconds": 988.306964,
+      "finished_at": "2026-10-01T23:12:27.050826+00:00",
+      "metadata": {
+        "cycle": 1,
+        "specialist": "utilitarian",
+        "counterfactual": false,
+        "commit_started": false
+      }
+    },
+    {
+      "category": "stage",
+      "name": "workspace_deliberation",
+      "status": "OK",
+      "duration_seconds": 988.339479,
+      "finished_at": "2026-10-01T23:12:27.059985+00:00",
+      "metadata": {
+        "specialist_count": 2
+      }
+    },
+    {
+      "category": "stage",
+      "name": "pipeline_total",
+      "status": "OK",
+      "duration_seconds": 991.8218,
+      "finished_at": "2026-10-01T23:12:27.064627+00:00",
+      "metadata": {}
+    }
+  ],
+  "content_recording": "DISABLED"
+}

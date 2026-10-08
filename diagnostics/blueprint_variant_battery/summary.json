@@ -1,0 +1,563 @@
+{
+  "model": "gpt-4o-mini",
+  "variant_count": 14,
+  "admitted": [
+    "alloc_grouped",
+    "alloc_antivenom"
+  ],
+  "withheld": [
+    "alloc_or_only",
+    "ability_only",
+    "promise",
+    "disputed_report",
+    "uncertain_risk"
+  ],
+  "rejected": [
+    "alloc_two_groups",
+    "alloc_three_way",
+    "rescue_both",
+    "rescue_truncated",
+    "trolley_omission",
+    "diversion"
+  ],
+  "rows": [
+    {
+      "chosen_blueprint_id": "exclusive_allocation",
+      "status": "FILLED",
+      "ranking": [
+        "exclusive_allocation",
+        "rescue_contrast",
+        "omission_harm"
+      ],
+      "exclusivity": "evidenced",
+      "ethical_question": "gives / gives",
+      "world_withheld": [],
+      "admission_authorized": true,
+      "core_filled": 5,
+      "optional_filled": 9,
+      "rejected": [
+        {
+          "id": "first_transfer",
+          "reason": "not_a_copy",
+          "completion": "give the antiviral to the child"
+        },
+        {
+          "id": "second_transfer",
+          "reason": "not_a_copy",
+          "completion": "give the antiviral to the three adult patients"
+        },
+        {
+          "id": "first_hedge",
+          "reason": "does_not_answer",
+          "completion": "80%"
+        },
+        {
+          "id": "second_hedge",
+          "reason": "does_not_answer",
+          "completion": "60%"
+        },
+        {
+          "id": "second_branch_sentence",
+          "reason": "too_long",
+          "completion": "If Dr. Rivera gives the antiviral to the three adult patients, each of the three adult patients has a 60% chance of survival."
+        }
+      ],
+      "unfilled_core": [],
+      "actions": [
+        "gives the antiviral to the child",
+        "gives the antiviral to the three adult patients"
+      ],
+      "effect_count": 8,
+      "causal_link_count": 4,
+      "construction_problems": [],
+      "notes": [
+        "Implied process for the first outcome: administration. This is a warning, not a cause copied from the text.",
+        "Implied process for the second outcome: administration. This is a warning, not a cause copied from the text."
+      ],
+      "id": "alloc_grouped",
+      "expect": "admit exclusive_allocation",
+      "parliament": {
+        "status": "COMMITTED",
+        "world_model_status": "COMMITTED",
+        "effects": 8,
+        "causal_links": 6,
+        "frozen_trace_valid": true,
+        "fingerprint_sha256": "107a0e8a9ee38606c21559ae705517074ddd19fc672ea0d54728cb54d60c8e6e"
+      }
+    },
+    {
+      "chosen_blueprint_id": "exclusive_allocation",
+      "status": "FILLED",
+      "ranking": [
+        "exclusive_allocation",
+        "rescue_contrast",
+        "conditional_outcome"
+      ],
+      "exclusivity": "evidenced",
+      "ethical_question": "administers / administers",
+      "world_withheld": [],
+      "admission_authorized": true,
+      "core_filled": 5,
+      "optional_filled": 10,
+      "rejected": [],
+      "unfilled_core": [],
+      "actions": [
+        "administers the antivenom to Imani",
+        "administers the antivenom to Pavel"
+      ],
+      "effect_count": 6,
+      "causal_link_count": 2,
+      "construction_problems": [],
+      "notes": [
+        "Implied process for the first outcome: administration. This is a warning, not a cause copied from the text.",
+        "Implied process for the second outcome: administration. This is a warning, not a cause copied from the text."
+      ],
+      "id": "alloc_antivenom",
+      "expect": "admit exclusive_allocation",
+      "parliament": {
+        "status": "COMMITTED",
+        "world_model_status": "COMMITTED",
+        "effects": 6,
+        "causal_links": 4,
+        "frozen_trace_valid": true,
+        "fingerprint_sha256": "d61e0e64193e0529b6a50b3a3cbac3c506a29b52ad2a0c268cb04eadfc7ad68b"
+      }
+    },
+    {
+      "chosen_blueprint_id": "exclusive_allocation",
+      "status": "FILLED",
+      "ranking": [
+        "exclusive_allocation",
+        "rescue_contrast",
+        "omission_harm"
+      ],
+      "exclusivity": "evidenced",
+      "ethical_question": "gives / gives",
+      "world_withheld": [],
+      "admission_authorized": true,
+      "core_filled": 5,
+      "optional_filled": 9,
+      "rejected": [
+        {
+          "id": "first_transfer",
+          "reason": "not_a_copy",
+          "completion": "give the ventilator to the two children"
+        },
+        {
+          "id": "second_transfer",
+          "reason": "not_a_copy",
+          "completion": "give the ventilator to the five adult patients"
+        },
+        {
+          "id": "second_branch_sentence",
+          "reason": "too_long",
+          "completion": "If Dr. Okonkwo gives the ventilator to the five adult patients, each of the five adult patients has a 40% chance of survival."
+        }
+      ],
+      "unfilled_core": [],
+      "actions": [
+        "gives the ventilator to the two children",
+        "gives the ventilator to the five adult patients"
+      ],
+      "effect_count": 8,
+      "causal_link_count": 4,
+      "construction_problems": [],
+      "notes": [
+        "Implied process for the first outcome: providing respiratory support. This is a warning, not a cause copied from the text.",
+        "Implied process for the second outcome: providing respiratory support. This is a warning, not a cause copied from the text."
+      ],
+      "id": "alloc_two_groups",
+      "expect": "admit exclusive_allocation",
+      "parliament": {
+        "status": "REJECTED",
+        "error": "te parent. A person's framing, execution, or death is not that intermediate. Do not delete E4 or drop its causal_link without a replacement parent; the source also names P2 (RESOURCE the ventilator), a plausible missing process-state parent for E4 \\u2014 confirm that reading from the source; an unused facility or resource is not automatically the correct intermediary\"}, \"schema_version\": \"1.3\", \"temporal_relations\": []}, \"world_model_status\": \"COMMITTED_WITH_UNCERTAINTY\", \"world_contradictions\": [], \"errors\": [], \"warnings\": [\"E4 is caused directly by act E3 while its source names P2 (RESOURCE the ventilator) as the intervening process; insert a PHYSICAL_STATE or OTHER effect on that named process as the immediate parent, replace the direct E3 -> E4 link with E3 -> process -> E4, and preserve the child effect E4 is caused directly by another party's act or bodily outcome (E3); insert a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as the immediate parent. A person's framing, execution, or death is not that intermediate. Do not delete E4 or drop its causal_link without a replacement parent; the source also names P2 (RESOURCE the ventilator), a plausible missing process-state parent for E4 \\u2014 confirm that reading from the source; an unused facility or resource is not automatically the correct intermediary\"], \"validation_issues\": [], \"compiler_loss_telemetry\": {}, \"clauses\": [{\"clause_id\": \"C0\", \"text\": \"A ward has one ventilator.\"}, {\"clause_id\": \"C1\", \"text\": \"Dr. Okonkwo must give the ventilator to either two children or five adult patients, but not both.\"}, {\"clause_id\": \"C2\", \"text\": \"If Dr. Okonkwo gives the ventilator to the two children, each of the two children has a 70% chance of survival.\"}, {\"clause_id\": \"C3\", \"text\": \"If Dr. Okonkwo gives the ventilator to the five adult patients, each of the five adult patients has a 40% chance of survival.\"}, {\"clause_id\": \"C4\", \"text\": \"The patients who do not receive the ventilator will die.\"}]}"
+      }
+    },
+    {
+      "chosen_blueprint_id": "exclusive_allocation",
+      "status": "WITHHELD",
+      "ranking": [
+        "exclusive_allocation",
+        "rescue_contrast",
+        "omission_harm"
+      ],
+      "exclusivity": "unspecified",
+      "ethical_question": "gives / gives",
+      "world_withheld": [
+        "Exclusivity is unspecified. The alternatives are not an exclusive set, so an averted-alternative effect is not licensed.",
+        "These outcome participants stay in the question and are not recipient heads: The patient."
+      ],
+      "admission_authorized": false,
+      "core_filled": 5,
+      "optional_filled": 10,
+      "rejected": [
+        {
+          "id": "exclusivity",
+          "reason": "does_not_answer",
+          "completion": "or"
+        },
+        {
+          "id": "survival_chance",
+          "reason": "does_not_answer",
+          "completion": "95%"
+        }
+      ],
+      "unfilled_core": [],
+      "actions": [],
+      "effect_count": 0,
+      "causal_link_count": 0,
+      "construction_problems": [
+        {
+          "code": "world_withheld",
+          "message": "Exclusivity is unspecified. The alternatives are not an exclusive set, so an averted-alternative effect is not licensed."
+        },
+        {
+          "code": "world_withheld",
+          "message": "These outcome participants stay in the question and are not recipient heads: The patient."
+        }
+      ],
+      "notes": [],
+      "id": "alloc_or_only",
+      "expect": "withhold exclusivity",
+      "parliament": {
+        "status": "NOT_ATTEMPTED"
+      }
+    },
+    {
+      "chosen_blueprint_id": "conditional_outcome",
+      "status": "FILLED",
+      "ranking": [
+        "exclusive_allocation",
+        "rescue_contrast",
+        "conditional_outcome"
+      ],
+      "exclusivity": "unspecified",
+      "ethical_question": "gives / gives / gives",
+      "world_withheld": [],
+      "admission_authorized": true,
+      "core_filled": 3,
+      "optional_filled": 4,
+      "rejected": [],
+      "unfilled_core": [],
+      "actions": [
+        "If Ada gives the medicine to Ana",
+        "If Ada gives the medicine to Ben"
+      ],
+      "effect_count": 4,
+      "causal_link_count": 2,
+      "construction_problems": [],
+      "notes": [],
+      "id": "alloc_three_way",
+      "expect": "fail or withhold; two-action only",
+      "parliament": {
+        "status": "REJECTED",
+        "error": "Traceback (most recent call last):\n  File \"/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpenel1l7i/admit.py\", line 27, in <module>\n    parse_world_model(\n  File \"/private/tmp/parliament-smoke-614af0c/global_workspace/world_state.py\", line 3120, in parse_world_model\n    raise WorldModelValidationError(\nglobal_workspace.world_validation.WorldModelValidationError: E2 is POSSIBLE but has no condition; E4 is POSSIBLE but has no condition; causal_link[0] is conditional but has no condition; causal_link[1] is conditional but has no condition; E2 is POSSIBLE but its supporting source is an unhedged indicative; type CERTAIN, or copy a source if/unless/likelihood hedge onto an independent condition; E4 is POSSIBLE but its supporting source is an unhedged indicative; type CERTAIN, or copy a source if/unless/likelihood hedge onto an independent condition"
+      }
+    },
+    {
+      "chosen_blueprint_id": "exclusive_allocation",
+      "status": "PARTIAL",
+      "ranking": [
+        "exclusive_allocation",
+        "omission_harm",
+        "rescue_contrast"
+      ],
+      "exclusivity": "unspecified",
+      "ethical_question": "whether devote",
+      "world_withheld": [],
+      "admission_authorized": false,
+      "core_filled": 4,
+      "optional_filled": 0,
+      "rejected": [
+        {
+          "id": "assignment",
+          "reason": "does_not_answer",
+          "completion": "decide whether to devote"
+        }
+      ],
+      "unfilled_core": [
+        "assignment"
+      ],
+      "actions": [],
+      "effect_count": 0,
+      "causal_link_count": 0,
+      "construction_problems": [
+        {
+          "code": "incomplete_template",
+          "message": "Required slots remain unfilled."
+        }
+      ],
+      "notes": [],
+      "id": "water_or",
+      "expect": "withhold exclusivity",
+      "parliament": {
+        "status": "NOT_ATTEMPTED"
+      }
+    },
+    {
+      "chosen_blueprint_id": "rescue_contrast",
+      "status": "FILLED",
+      "ranking": [
+        "rescue_contrast",
+        "omission_harm",
+        "conditional_outcome"
+      ],
+      "exclusivity": "evidenced",
+      "ethical_question": "saves / saves",
+      "world_withheld": [],
+      "admission_authorized": true,
+      "core_filled": 8,
+      "optional_filled": 2,
+      "rejected": [],
+      "unfilled_core": [],
+      "actions": [
+        "saves the child",
+        "saves the dog"
+      ],
+      "effect_count": 6,
+      "causal_link_count": 4,
+      "construction_problems": [
+        {
+          "code": "rescue_harm_missing_named_process",
+          "message": "The branch states a cross-party harm but names no physical process between the rescue action and that harm."
+        }
+      ],
+      "notes": [],
+      "id": "rescue_both",
+      "expect": "admit rescue_contrast",
+      "parliament": {
+        "status": "REJECTED",
+        "error": "Traceback (most recent call last):\n  File \"/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmp8qr6_poq/admit.py\", line 27, in <module>\n    parse_world_model(\n  File \"/private/tmp/parliament-smoke-614af0c/global_workspace/world_state.py\", line 3120, in parse_world_model\n    raise WorldModelValidationError(\nglobal_workspace.world_validation.WorldModelValidationError: E3 is caused directly by another party's act or bodily outcome (E1); insert a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as the immediate parent. A person's framing, execution, or death is not that intermediate. Do not delete E3 or drop its causal_link without a replacement parent; E6 is caused directly by another party's act or bodily outcome (E4); insert a PROCESS, FACILITY, INSTITUTION, INFRASTRUCTURE, or RESOURCE state as the immediate parent. A person's framing, execution, or death is not that intermediate. Do not delete E6 or drop its causal_link without a replacement parent"
+      }
+    },
+    {
+      "chosen_blueprint_id": "conditional_outcome",
+      "status": "FILLED",
+      "ranking": [
+        "rescue_contrast",
+        "conditional_outcome",
+        "omission_harm"
+      ],
+      "exclusivity": "unspecified",
+      "ethical_question": "",
+      "world_withheld": [],
+      "admission_authorized": true,
+      "core_filled": 3,
+      "optional_filled": 1,
+      "rejected": [],
+      "unfilled_core": [],
+      "actions": [
+        "If Maria saves the child"
+      ],
+      "effect_count": 2,
+      "causal_link_count": 1,
+      "construction_problems": [],
+      "notes": [],
+      "id": "rescue_truncated",
+      "expect": "withhold or incomplete rescue",
+      "parliament": {
+        "status": "REJECTED",
+        "error": "Traceback (most recent call last):\n  File \"/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmp6o8u1qpt/admit.py\", line 27, in <module>\n    parse_world_model(\n  File \"/private/tmp/parliament-smoke-614af0c/global_workspace/world_state.py\", line 3120, in parse_world_model\n    raise WorldModelValidationError(\nglobal_workspace.world_validation.WorldModelValidationError: E2 is POSSIBLE but has no condition; causal_link[0] is conditional but has no condition; E2 is POSSIBLE but its supporting source is an unhedged indicative; type CERTAIN, or copy a source if/unless/likelihood hedge onto an independent condition"
+      }
+    },
+    {
+      "chosen_blueprint_id": "omission_harm",
+      "status": "FILLED",
+      "ranking": [
+        "omission_harm",
+        "conditional_outcome",
+        "ability_permission"
+      ],
+      "exclusivity": "unspecified",
+      "ethical_question": "pulls / not pull",
+      "world_withheld": [],
+      "admission_authorized": true,
+      "core_filled": 5,
+      "optional_filled": 4,
+      "rejected": [],
+      "unfilled_core": [],
+      "actions": [
+        "pulls the lever",
+        "does not pull the lever"
+      ],
+      "effect_count": 4,
+      "causal_link_count": 2,
+      "construction_problems": [],
+      "notes": [
+        "Instrument named in the text: the brake. It is not an action."
+      ],
+      "id": "trolley_omission",
+      "expect": "admit omission_harm",
+      "parliament": {
+        "status": "REJECTED",
+        "error": "Traceback (most recent call last):\n  File \"/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmphxostks2/admit.py\", line 27, in <module>\n    parse_world_model(\n  File \"/private/tmp/parliament-smoke-614af0c/global_workspace/world_state.py\", line 3120, in parse_world_model\n    raise WorldModelValidationError(\nglobal_workspace.world_validation.WorldModelValidationError: E1 omits quantities stated in its outcome and provenance: ['one']; E2 is POSSIBLE but has no condition; E2 omits quantities stated in its outcome and provenance: ['one']; E4 is POSSIBLE but has no condition; causal_link[0] is conditional but has no condition; causal_link[1] is conditional but has no condition; E2 is POSSIBLE but its supporting source is an unhedged indicative; type CERTAIN, or copy a source if/unless/likelihood hedge onto an independent condition; E4 is POSSIBLE but its supporting source is an unhedged indicative; type CERTAIN, or copy a source if/unless/likelihood hedge onto an independent condition; E2 omits source quantity 'one' from quantity-bearing consequence 'one worker will die' (licensing_clause_id=C3); copy the span onto the effect (or its population party)"
+      }
+    },
+    {
+      "chosen_blueprint_id": "ability_permission",
+      "status": "WITHHELD",
+      "ranking": [
+        "ability_permission",
+        "exclusive_allocation",
+        "omission_harm"
+      ],
+      "exclusivity": "unspecified",
+      "ethical_question": "",
+      "world_withheld": [
+        "ability_permission has an evidence plan but no Parliament 1.3 graph builder yet."
+      ],
+      "admission_authorized": false,
+      "core_filled": 3,
+      "optional_filled": 1,
+      "rejected": [],
+      "unfilled_core": [],
+      "actions": [],
+      "effect_count": 0,
+      "causal_link_count": 0,
+      "construction_problems": [
+        {
+          "code": "world_withheld",
+          "message": "ability_permission has an evidence plan but no Parliament 1.3 graph builder yet."
+        }
+      ],
+      "notes": [],
+      "id": "ability_only",
+      "expect": "withhold ability_permission",
+      "parliament": {
+        "status": "NOT_ATTEMPTED"
+      }
+    },
+    {
+      "chosen_blueprint_id": "promise_reliance",
+      "status": "WITHHELD",
+      "ranking": [
+        "promise_reliance",
+        "conditional_outcome",
+        "omission_harm"
+      ],
+      "exclusivity": "unspecified",
+      "ethical_question": "",
+      "world_withheld": [
+        "promise_reliance has an evidence plan but no Parliament 1.3 graph builder yet."
+      ],
+      "admission_authorized": false,
+      "core_filled": 4,
+      "optional_filled": 0,
+      "rejected": [],
+      "unfilled_core": [],
+      "actions": [],
+      "effect_count": 0,
+      "causal_link_count": 0,
+      "construction_problems": [
+        {
+          "code": "world_withheld",
+          "message": "promise_reliance has an evidence plan but no Parliament 1.3 graph builder yet."
+        }
+      ],
+      "notes": [],
+      "id": "promise",
+      "expect": "withhold promise_reliance",
+      "parliament": {
+        "status": "NOT_ATTEMPTED"
+      }
+    },
+    {
+      "chosen_blueprint_id": "disputed_report",
+      "status": "WITHHELD",
+      "ranking": [
+        "disputed_report",
+        "conditional_outcome",
+        "omission_harm"
+      ],
+      "exclusivity": "unspecified",
+      "ethical_question": "",
+      "world_withheld": [
+        "disputed_report has an evidence plan but no Parliament 1.3 graph builder yet."
+      ],
+      "admission_authorized": false,
+      "core_filled": 3,
+      "optional_filled": 1,
+      "rejected": [],
+      "unfilled_core": [],
+      "actions": [],
+      "effect_count": 0,
+      "causal_link_count": 0,
+      "construction_problems": [
+        {
+          "code": "world_withheld",
+          "message": "disputed_report has an evidence plan but no Parliament 1.3 graph builder yet."
+        }
+      ],
+      "notes": [],
+      "id": "disputed_report",
+      "expect": "withhold disputed_report",
+      "parliament": {
+        "status": "NOT_ATTEMPTED"
+      }
+    },
+    {
+      "chosen_blueprint_id": "diversion_redirection",
+      "status": "FILLED",
+      "ranking": [
+        "diversion_redirection",
+        "omission_harm",
+        "rescue_contrast"
+      ],
+      "exclusivity": "unspecified",
+      "ethical_question": "",
+      "world_withheld": [],
+      "admission_authorized": true,
+      "core_filled": 5,
+      "optional_filled": 0,
+      "rejected": [],
+      "unfilled_core": [],
+      "actions": [
+        "divert the trolley toward one worker"
+      ],
+      "effect_count": 3,
+      "causal_link_count": 2,
+      "construction_problems": [],
+      "notes": [],
+      "id": "diversion",
+      "expect": "admit diversion_redirection",
+      "parliament": {
+        "status": "REJECTED",
+        "error": "Traceback (most recent call last):\n  File \"/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpn50erkeb/admit.py\", line 27, in <module>\n    parse_world_model(\n  File \"/private/tmp/parliament-smoke-614af0c/global_workspace/world_state.py\", line 3120, in parse_world_model\n    raise WorldModelValidationError(\nglobal_workspace.world_validation.WorldModelValidationError: E1 omits quantities stated in its outcome and provenance: ['one']; E2 omits quantities stated in its outcome and provenance: ['one']"
+      }
+    },
+    {
+      "chosen_blueprint_id": "ability_permission",
+      "status": "WITHHELD",
+      "ranking": [
+        "omission_harm",
+        "conditional_outcome",
+        "ability_permission"
+      ],
+      "exclusivity": "unspecified",
+      "ethical_question": "",
+      "world_withheld": [
+        "ability_permission has an evidence plan but no Parliament 1.3 graph builder yet."
+      ],
+      "admission_authorized": false,
+      "core_filled": 3,
+      "optional_filled": 2,
+      "rejected": [],
+      "unfilled_core": [],
+      "actions": [],
+      "effect_count": 0,
+      "causal_link_count": 0,
+      "construction_problems": [
+        {
+          "code": "world_withheld",
+          "message": "ability_permission has an evidence plan but no Parliament 1.3 graph builder yet."
+        }
+      ],
+      "notes": [],
+      "id": "uncertain_risk",
+      "expect": "admit uncertain_risk",
+      "parliament": {
+        "status": "NOT_ATTEMPTED"
+      }
+    }
+  ]
+}

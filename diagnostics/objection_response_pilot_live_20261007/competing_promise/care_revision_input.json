@@ -1,0 +1,155 @@
+{
+  "framework": "care",
+  "initial_argument": {
+    "scores": {
+      "A0": 0.8,
+      "A1": 0.2
+    },
+    "r": "A0",
+    "c": "CARE",
+    "u": "NONE",
+    "w": "competence saves life",
+    "j": "NONE",
+    "e": "STATED_FACTS",
+    "x": "NONE",
+    "l": {
+      "A0": "Giving Ben the dose treats an acutely dependent patient with a competent 95 % chance of survival, so",
+      "A1": "Giving Cara the dose honors Ada’s promise and responds directly to Cara’s expressed trust, but only "
+    },
+    "da": "competence versus promise‐keeping responsiveness",
+    "t": "prefer competent care for urgent basic need",
+    "tf": "NONE",
+    "dr": "prefer A0 when it far better meets the same urgent need",
+    "ft": "Cara’s survival chance rises near Ben’s",
+    "nt": "promise‐keeping prioritized over competence",
+    "z": 0.75,
+    "gu": {
+      "operation": "NONE",
+      "from_action": "NONE",
+      "to_action": "NONE",
+      "clauses": []
+    },
+    "ev": {
+      "A0": {
+        "value": 0,
+        "unit": "NONE",
+        "direction": "HARM",
+        "grounded": false,
+        "method": "NOT_COMPUTED",
+        "source_effect_ids": [],
+        "calculation": "not computed",
+        "assumptions": []
+      },
+      "A1": {
+        "value": 0,
+        "unit": "NONE",
+        "direction": "HARM",
+        "grounded": false,
+        "method": "NOT_COMPUTED",
+        "source_effect_ids": [],
+        "calculation": "not computed",
+        "assumptions": []
+      }
+    },
+    "ss": "SELECTED",
+    "am": {
+      "A0": "PERMISSIBLE",
+      "A1": "REJECTED"
+    },
+    "cc": true,
+    "esa": true,
+    "ia": "A0",
+    "wp": "NOT_APPLICABLE",
+    "we": "NONE",
+    "fa": "NONE",
+    "fr": true,
+    "bd": "NONE",
+    "fic": [],
+    "foq": [],
+    "sps": [
+      "PROP:WORLD:E2",
+      "PROP:WORLD:E4",
+      "PROP:WORLD:RECOGNITION:4697fd89cd506cc4"
+    ],
+    "dcp": [],
+    "ep": [
+      {
+        "c": "Ben has a 95% chance of survival; affected subject: Ben; modality: PROBABILISTIC",
+        "p": "PROP:WORLD:E2",
+        "dc": false,
+        "a": "A0",
+        "se": [],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      },
+      {
+        "c": "Cara has a 5% chance of survival; affected subject: Cara; modality: PROBABILISTIC",
+        "p": "PROP:WORLD:E4",
+        "dc": false,
+        "a": "A1",
+        "se": [],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      },
+      {
+        "c": "Ada promised Cara that she would give Cara the medicine.",
+        "p": "PROP:WORLD:RECOGNITION:4697fd89cd506cc4",
+        "dc": false,
+        "a": "GLOBAL",
+        "se": [],
+        "op": "DIRECT_COPY",
+        "calc": "exact proposition copy",
+        "asm": [],
+        "ot": "PRESERVED"
+      }
+    ],
+    "rm": {
+      "A0": "answers acute dependency with competent care",
+      "A1": "attempts to honor trust but offers incompetent care"
+    },
+    "nr": "SECONDARY",
+    "np": "probability difference informs competence and survival likelihood",
+    "cl": {
+      "A0": {
+        "v": "RESPONSIVE",
+        "p": "Ben",
+        "rt": "AGENT_CREATED_VULNERABILITY",
+        "ds": "Ada controls life-saving resource",
+        "rb": "control creates duty to meet urgent need competently",
+        "nk": "SURVIVAL_HEALTH",
+        "nu": "IMMEDIATE",
+        "te": "STRAINS",
+        "rr": "DIRECT",
+        "f": "ESTABLISHED",
+        "cc": "Cara’s promised reliance",
+        "res": "CONTESTED",
+        "g": "ACTION_GRAPH",
+        "rs": "High competence response to acute dependency"
+      },
+      "A1": {
+        "v": "MIXED",
+        "p": "Cara",
+        "rt": "ENTRUSTED",
+        "ds": "explicit promise created reliance",
+        "rb": "promise generates responsibility",
+        "nk": "SURVIVAL_HEALTH",
+        "nu": "IMMEDIATE",
+        "te": "PRESERVES",
+        "rr": "DIRECT",
+        "f": "ESTABLISHED",
+        "cc": "Ben’s higher survival chance under A0",
+        "res": "CONTESTED",
+        "g": "ACTION_GRAPH",
+        "rs": "Honors trust but fails competence to need"
+      }
+    },
+    "cb": "UNRESOLVED"
+  },
+  "objection": "Why should treatment effectiveness or promise-based trust take priority over the competing patient claim? Address both needs and defend your provisional ranking without assuming an unprovided relationship.",
+  "objection_origin": "EXPERIMENT_ASSIGNED_CHALLENGE_NOT_WORLD_FACT",
+  "shared_input_sha256": "a605b3ccde43ce445d5a2190482c2f13c326a9c788153163c50d25294196e006"
+}

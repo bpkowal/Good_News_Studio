@@ -1,0 +1,168 @@
+{
+  "version": "demo-suite/1",
+  "limits": [
+    "No hand-authored normative verdict.",
+    "Frozen means world interpretation, not moral agreement.",
+    "YELLOW targets require fresh live verification; saved/admission tests alone do not establish end-to-end reliability."
+  ],
+  "scenarios": [
+    {
+      "id": "medicine",
+      "scenario": "demo_scenarios/medicine.txt",
+      "source_sha256": "6e9d6963b5d3703c3f5c96eb9080776af64a59a6b1b59dc07f777f9cc8231ab1",
+      "tier": "GREEN",
+      "expected_parse_status": "PACKAGE_WITH_VISIBLE_GAPS",
+      "expected_freeze_status": "FROZEN",
+      "expected_blueprint": "exclusive_allocation",
+      "expected_occurrence_topology": "Two transfers, explicit scarcity and omitted-patient death",
+      "expected_important_unknowns": [
+        "Total welfare units and downstream effects are not supplied"
+      ],
+      "expected_framework_participation": [
+        "utilitarian",
+        "deontological",
+        "care",
+        "virtue",
+        "rawlsian"
+      ],
+      "expected_key_conflict_type": "EMPIRICAL_WELFARE_LIMIT",
+      "expectation_authority": "REGRESSION_TARGET_NOT_GUARANTEED_LIVE_OUTCOME"
+    },
+    {
+      "id": "probability_swap",
+      "scenario": "demo_scenarios/probability_swap.txt",
+      "source_sha256": "5fb98803bfe769967ee79616f38e1e585985a923112d217b04cd4f3cbbbdaef5",
+      "tier": "GREEN",
+      "expected_parse_status": "PACKAGE_WITH_VISIBLE_GAPS",
+      "expected_freeze_status": "FROZEN",
+      "expected_blueprint": "exclusive_allocation",
+      "expected_occurrence_topology": "Same identity/topology; survival probabilities exchanged",
+      "expected_important_unknowns": [
+        "Total welfare units and downstream effects are not supplied"
+      ],
+      "expected_framework_participation": [
+        "utilitarian",
+        "deontological",
+        "care",
+        "virtue",
+        "rawlsian"
+      ],
+      "expected_key_conflict_type": "RESTRICTED_SURVIVOR_ENDPOINT",
+      "expectation_authority": "REGRESSION_TARGET_NOT_GUARANTEED_LIVE_OUTCOME"
+    },
+    {
+      "id": "medicine_promise",
+      "scenario": "demo_scenarios/medicine_promise.txt",
+      "source_sha256": "7a328b77fae4ebdf02df0de99af2bb581d4e74aa774bd56e1229971e6aa8570f",
+      "tier": "YELLOW",
+      "expected_parse_status": "PACKAGE_WITH_VISIBLE_GAPS",
+      "expected_freeze_status": "FROZEN",
+      "expected_blueprint": "exclusive_allocation",
+      "expected_occurrence_topology": "Allocation unchanged; promise occurrence, not promised delivery",
+      "expected_important_unknowns": [
+        "Total welfare units and downstream effects are not supplied"
+      ],
+      "expected_framework_participation": [
+        "utilitarian",
+        "deontological",
+        "care",
+        "virtue",
+        "rawlsian"
+      ],
+      "expected_key_conflict_type": "NORMATIVE_FIDELITY_VS_RESCUE",
+      "expectation_authority": "REGRESSION_TARGET_NOT_GUARANTEED_LIVE_OUTCOME"
+    },
+    {
+      "id": "rescue",
+      "scenario": "demo_scenarios/rescue.txt",
+      "source_sha256": "627ca7650fe0234160c185d248ab9c8621a0d812741bcd5bb7f6765c671accc5",
+      "tier": "YELLOW",
+      "expected_parse_status": "PACKAGE_WITH_VISIBLE_GAPS",
+      "expected_freeze_status": "FROZEN",
+      "expected_blueprint": "rescue_contrast",
+      "expected_occurrence_topology": "Two rescue choices with branch-specific survival and drowning",
+      "expected_important_unknowns": [
+        "Unrepresented semantics must remain visible"
+      ],
+      "expected_framework_participation": [
+        "utilitarian",
+        "deontological",
+        "care",
+        "virtue",
+        "rawlsian"
+      ],
+      "expected_key_conflict_type": "CARE_EFFECTIVENESS",
+      "expectation_authority": "REGRESSION_TARGET_NOT_GUARANTEED_LIVE_OUTCOME"
+    },
+    {
+      "id": "omission",
+      "scenario": "demo_scenarios/omission.txt",
+      "source_sha256": "f79b6554ba9bbbd7376f4d20e509e694513ee0c330681beadbc6bb6d1b79ccd2",
+      "tier": "YELLOW",
+      "expected_parse_status": "PACKAGE_WITH_VISIBLE_GAPS",
+      "expected_freeze_status": "INTERPRETIVE_BEAM",
+      "expected_blueprint": "omission_harm",
+      "expected_occurrence_topology": "Supported omission core may admit; materially competing graphs must survive",
+      "expected_important_unknowns": [
+        "Unrepresented semantics must remain visible"
+      ],
+      "expected_framework_participation": [],
+      "expected_key_conflict_type": "SEMANTIC_INTERPRETATION",
+      "expectation_authority": "REGRESSION_TARGET_NOT_GUARANTEED_LIVE_OUTCOME"
+    },
+    {
+      "id": "conditional",
+      "scenario": "demo_scenarios/conditional.txt",
+      "source_sha256": "ebc44b5586258015957a8aa3e2e231a50446e37364b311f6ada19db0b022e55b",
+      "tier": "YELLOW",
+      "expected_parse_status": "PACKAGE_WITH_VISIBLE_GAPS",
+      "expected_freeze_status": "FROZEN",
+      "expected_blueprint": "conditional_outcome",
+      "expected_occurrence_topology": "Positive and negative condition branches remain distinct",
+      "expected_important_unknowns": [
+        "Unrepresented semantics must remain visible"
+      ],
+      "expected_framework_participation": [
+        "utilitarian",
+        "deontological",
+        "care",
+        "virtue",
+        "rawlsian"
+      ],
+      "expected_key_conflict_type": "CONDITIONAL_HARM_SCOPE",
+      "expectation_authority": "REGRESSION_TARGET_NOT_GUARANTEED_LIVE_OUTCOME"
+    },
+    {
+      "id": "bare_or",
+      "scenario": "demo_scenarios/bare_or.txt",
+      "source_sha256": "dc719a33d4d1913247bd16f816596e3ae5ed4fe26a1f69c7c831c0ac41a2fd10",
+      "tier": "RED",
+      "expected_parse_status": "PACKAGE_WITH_VISIBLE_GAPS",
+      "expected_freeze_status": "CONSTRUCTION_WITHHELD",
+      "expected_blueprint": null,
+      "expected_occurrence_topology": "No exclusive allocation license from bare or alone",
+      "expected_important_unknowns": [
+        "Unrepresented semantics must remain visible"
+      ],
+      "expected_framework_participation": [],
+      "expected_key_conflict_type": "SEMANTIC_EXCLUSIVITY",
+      "expectation_authority": "REGRESSION_TARGET_NOT_GUARANTEED_LIVE_OUTCOME"
+    },
+    {
+      "id": "water_gap",
+      "scenario": "demo_scenarios/water_gap.txt",
+      "source_sha256": "ab38cbb085e17b43d2a858656352090d703cd34b77c88bc44963a94168bf7e40",
+      "tier": "RED",
+      "expected_parse_status": "PACKAGE_WITH_VISIBLE_GAPS",
+      "expected_freeze_status": "CONSTRUCTION_WITHHELD",
+      "expected_blueprint": null,
+      "expected_occurrence_topology": "Unknown mechanisms and allocation exclusivity remain questions",
+      "expected_important_unknowns": [
+        "Unrepresented semantics must remain visible"
+      ],
+      "expected_framework_participation": [],
+      "expected_key_conflict_type": "CAUSAL_MISSING_CONTENT",
+      "expectation_authority": "REGRESSION_TARGET_NOT_GUARANTEED_LIVE_OUTCOME"
+    }
+  ]
+}

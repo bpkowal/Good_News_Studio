@@ -1,0 +1,363 @@
+{
+  "version": "primitive-composition/0.2",
+  "package_id": "blueprint_run_1d68ba9d865d",
+  "constructions": [],
+  "branches": [],
+  "supporting_candidates": [],
+  "nodes": [
+    {
+      "id": "p1",
+      "kind": "proposition",
+      "label": "claims",
+      "predicate": "claim",
+      "evidence_ids": [
+        "e0"
+      ],
+      "predicate_evidence_ids": [
+        "e0"
+      ]
+    },
+    {
+      "id": "p4",
+      "kind": "proposition",
+      "label": "is",
+      "predicate": "be",
+      "evidence_ids": [
+        "e1"
+      ],
+      "predicate_evidence_ids": [
+        "e1"
+      ]
+    },
+    {
+      "id": "m0",
+      "kind": "mention",
+      "label": "Ada",
+      "evidence_ids": [
+        "e2"
+      ]
+    },
+    {
+      "id": "m3",
+      "kind": "mention",
+      "label": "the water",
+      "evidence_ids": [
+        "e3"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "e0",
+      "start": 4,
+      "end": 10,
+      "text": "claims"
+    },
+    {
+      "id": "e1",
+      "start": 21,
+      "end": 23,
+      "text": "is"
+    },
+    {
+      "id": "e2",
+      "start": 0,
+      "end": 3,
+      "text": "Ada"
+    },
+    {
+      "id": "e3",
+      "start": 11,
+      "end": 20,
+      "text": "the water"
+    },
+    {
+      "id": "e4",
+      "start": 15,
+      "end": 20,
+      "text": "water"
+    },
+    {
+      "id": "e5",
+      "start": 0,
+      "end": 29,
+      "text": "Ada claims the water is safe."
+    }
+  ],
+  "unresolved": [],
+  "limits": "Choice and conditional outcomes; at most two constructed actions. Other Z10 semantics remain in the original package. Promise source bundles are retained outside the world graph; candidate accounting is not a semantic completeness measure.",
+  "source_fields_missing": [],
+  "source_candidates": [
+    {
+      "id": "c0",
+      "type": "PREDICATION",
+      "arguments": {
+        "proposition": "p1"
+      },
+      "value": null,
+      "evidence_ids": [
+        "e0"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": []
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [],
+      "exclusive_with": []
+    },
+    {
+      "id": "c1",
+      "type": "PREDICATION",
+      "arguments": {
+        "proposition": "p4"
+      },
+      "value": null,
+      "evidence_ids": [
+        "e1"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "attributed",
+            "source_mention_id": "m0",
+            "report_proposition_id": "p1",
+            "evidence_ids": [
+              "e0"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c0"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c2",
+      "type": "PARTICIPANT",
+      "arguments": {
+        "proposition": "p1",
+        "mention": "m0"
+      },
+      "value": "subject",
+      "evidence_ids": [
+        "e2"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": []
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c0"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c3",
+      "type": "PARTICIPANT",
+      "arguments": {
+        "proposition": "p4",
+        "mention": "m3"
+      },
+      "value": "subject",
+      "evidence_ids": [
+        "e4"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "attributed",
+            "source_mention_id": "m0",
+            "report_proposition_id": "p1",
+            "evidence_ids": [
+              "e0"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c1"
+      ],
+      "exclusive_with": []
+    }
+  ],
+  "source_producer": {
+    "name": "parsing_game_Z10",
+    "version": "Z10",
+    "resources": [
+      {
+        "id": "T_reference_policy",
+        "version": "1",
+        "description": "Curated candidate-generation and ranking policy, not learned probabilities or a complete animacy lexicon."
+      }
+    ]
+  },
+  "source_choice_sets": [],
+  "source_open_questions": [
+    {
+      "id": "q0",
+      "kind": "reference",
+      "evidence_ids": [
+        "e3"
+      ],
+      "candidate_ids": [],
+      "question": "Which earlier mention, if any, has the same referent? Ranked candidates are not identity decisions.",
+      "blocking_for": []
+    },
+    {
+      "id": "q1",
+      "kind": "missing_representation",
+      "evidence_ids": [
+        "e5"
+      ],
+      "candidate_ids": [],
+      "question": "Review unrepresented semantics and scope, including attribution, choice and entailment.",
+      "blocking_for": []
+    }
+  ],
+  "source_coverage": {
+    "status": "partial",
+    "unrepresented_evidence_ids": [
+      "e5"
+    ],
+    "limitations": [
+      "reference_candidates_only_no_identity_merging",
+      "no_world_state_commitment",
+      "bounded_if_and_local_modal_scope",
+      "no_semantic_support_validation",
+      "purpose_and_attachment_readings_are_candidates",
+      "subject_control_is_an_unresolved_candidate",
+      "unambiguous_condition_complements_are_required",
+      "attempt_does_not_entail_the_child",
+      "choice_sets_are_not_exhaustive",
+      "quantity_is_explicit_cardinality_only",
+      "comma_clause_subject_repairs_a_false_conjunct",
+      "same_name_reference_does_not_block_roles",
+      "transfer_recipient_is_destination",
+      "definite_locative_is_location",
+      "definite_reference_does_not_block_roles",
+      "conditional_alternatives_are_not_exhaustive_or_exclusive",
+      "quantity_match_is_not_group_membership",
+      "coordination_shares_the_head_role",
+      "clause_boundary_stops_role_sharing",
+      "clause_boundary_attachment_stays_a_candidate",
+      "stripping_not_nominal_is_an_unresolved_copy"
+    ]
+  },
+  "candidate_accounting": [
+    {
+      "candidate_id": "c0",
+      "consumer_construction_ids": [],
+      "status": "unconsumed",
+      "question": {
+        "id": "unconsumed:c0",
+        "kind": "missing_construction",
+        "candidate_ids": [
+          "c0"
+        ],
+        "evidence_ids": [
+          "e0"
+        ],
+        "question": "Which construction should preserve this PREDICATION reading?"
+      }
+    },
+    {
+      "candidate_id": "c1",
+      "consumer_construction_ids": [],
+      "status": "unconsumed",
+      "question": {
+        "id": "unconsumed:c1",
+        "kind": "missing_construction",
+        "candidate_ids": [
+          "c1"
+        ],
+        "evidence_ids": [
+          "e1"
+        ],
+        "question": "Which construction should preserve this PREDICATION reading?"
+      }
+    },
+    {
+      "candidate_id": "c2",
+      "consumer_construction_ids": [],
+      "status": "unconsumed",
+      "question": {
+        "id": "unconsumed:c2",
+        "kind": "missing_construction",
+        "candidate_ids": [
+          "c2"
+        ],
+        "evidence_ids": [
+          "e2"
+        ],
+        "question": "Which construction should preserve this PARTICIPANT reading?"
+      }
+    },
+    {
+      "candidate_id": "c3",
+      "consumer_construction_ids": [],
+      "status": "unconsumed",
+      "question": {
+        "id": "unconsumed:c3",
+        "kind": "missing_construction",
+        "candidate_ids": [
+          "c3"
+        ],
+        "evidence_ids": [
+          "e4"
+        ],
+        "question": "Which construction should preserve this PARTICIPANT reading?"
+      }
+    }
+  ]
+}

@@ -1,0 +1,2068 @@
+{
+  "scenario": "A runaway tram is heading toward five workers on the main track. Dana can pull a lever that switches the tram onto a side track, where one worker stands. If she pulls the lever, the tram will kill that worker and spare the five. If she does not, it will kill the five and spare the one. Dana cannot stop the tram. Should she pull the lever?",
+  "presentation_actions": [
+    "pulls the lever",
+    "does not pull the lever"
+  ],
+  "actions": [
+    "pulls the lever",
+    "does not pull the lever"
+  ],
+  "action_source_grounding": {
+    "status": "COMMITTED",
+    "actions": {
+      "A0": {
+        "action": "pulls the lever",
+        "clause_ids": [
+          "C2",
+          "C1"
+        ],
+        "clauses": [
+          {
+            "clause_id": "C2",
+            "text": "If she pulls the lever, the tram will kill that worker and spare the five."
+          },
+          {
+            "clause_id": "C1",
+            "text": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+          }
+        ],
+        "reason": "Filled from copied cloze slots."
+      },
+      "A1": {
+        "action": "does not pull the lever",
+        "clause_ids": [
+          "C3",
+          "C2"
+        ],
+        "clauses": [
+          {
+            "clause_id": "C3",
+            "text": "If she does not, it will kill the five and spare the one."
+          },
+          {
+            "clause_id": "C2",
+            "text": "If she pulls the lever, the tram will kill that worker and spare the five."
+          }
+        ],
+        "reason": "Filled from copied cloze slots."
+      }
+    },
+    "world_model": {
+      "parties": [
+        {
+          "party_id": "P1",
+          "label": "Dana",
+          "kind": "PERSON",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+            },
+            {
+              "clause_id": "C4",
+              "excerpt": "Dana cannot stop the tram."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P2",
+          "label": "one worker",
+          "kind": "PERSON",
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P3",
+          "label": "the tram",
+          "kind": "PROCESS",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            },
+            {
+              "clause_id": "C4",
+              "excerpt": "Dana cannot stop the tram."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P4",
+          "label": "five workers",
+          "kind": "HUMAN_GROUP",
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            },
+            {
+              "clause_id": "C0",
+              "excerpt": "A runaway tram is heading toward five workers on the main track."
+            }
+          ],
+          "quantities": [
+            "five"
+          ]
+        },
+        {
+          "party_id": "P6",
+          "label": "a lever",
+          "kind": "PROCESS",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P7",
+          "label": "the main track",
+          "kind": "OTHER",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A runaway tram is heading toward five workers on the main track."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P8",
+          "label": "a side track",
+          "kind": "OTHER",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+            }
+          ],
+          "quantities": []
+        }
+      ],
+      "actions": [
+        {
+          "action_id": "A0",
+          "intervention": "pulls the lever",
+          "actor_party_id": "P1",
+          "recipient_party_ids": [
+            "P6"
+          ],
+          "effect_ids": [
+            "E1",
+            "E2",
+            "E3",
+            "E4"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+            }
+          ]
+        },
+        {
+          "action_id": "A1",
+          "intervention": "does not pull the lever",
+          "actor_party_id": "P1",
+          "recipient_party_ids": [
+            "P6"
+          ],
+          "effect_ids": [
+            "E5",
+            "E6",
+            "E7",
+            "E8"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "effect_id": "E1",
+          "action_id": "A0",
+          "party_id": "P6",
+          "outcome": "pulls the lever",
+          "relation": "PULL",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "INTERVENTION",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "pulls the lever",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "switches the tram onto a side track",
+          "relation": "SWITCH",
+          "polarity": "NEUTRAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "PHYSICAL_STATE",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "switches the tram onto a side track",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "Explicit instrument relative clause supplies the transition on the selected intervention branch.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E3",
+          "action_id": "A0",
+          "party_id": "P2",
+          "outcome": "the tram will kill that worker",
+          "relation": "KILL",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [
+            "one"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "the tram will kill that worker",
+          "source_effect_ids": [
+            "E2"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E4",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "spare the five",
+          "relation": "SPARE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            },
+            {
+              "clause_id": "C0",
+              "excerpt": "A runaway tram is heading toward five workers on the main track."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "spare the five",
+          "source_effect_ids": [
+            "E2"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E5",
+          "action_id": "A1",
+          "party_id": "P6",
+          "outcome": "does not",
+          "relation": "DO",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "INTERVENTION",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "does not",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E6",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "it will kill the five",
+          "relation": "KILL",
+          "polarity": "NEUTRAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "it will kill the five",
+          "source_effect_ids": [
+            "E5"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "Source-stipulated process event; the separate human-bearer effect records its welfare consequence.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E7",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "it will kill the five",
+          "relation": "KILL",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            },
+            {
+              "clause_id": "C0",
+              "excerpt": "A runaway tram is heading toward five workers on the main track."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "it will kill the five",
+          "source_effect_ids": [
+            "E6"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E8",
+          "action_id": "A1",
+          "party_id": "P2",
+          "outcome": "spare the one",
+          "relation": "SPARE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "one"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "spare the one",
+          "source_effect_ids": [
+            "E6"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "CND1",
+          "description": "If she pulls the lever",
+          "value_status": "UNKNOWN",
+          "decision_relevance": "MATERIAL",
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            }
+          ],
+          "event_effect_id": "",
+          "polarity": "POSITIVE",
+          "operator": "IF"
+        },
+        {
+          "condition_id": "CND2",
+          "description": "If she does not",
+          "value_status": "UNKNOWN",
+          "decision_relevance": "MATERIAL",
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            }
+          ],
+          "event_effect_id": "",
+          "polarity": "NEGATED",
+          "operator": "IF"
+        }
+      ],
+      "causal_links": [
+        {
+          "source_id": "E1",
+          "relation": "ENABLES",
+          "target_id": "E2",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E2",
+          "relation": "ENABLES",
+          "target_id": "E3",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E2",
+          "relation": "ENABLES",
+          "target_id": "E4",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E5",
+          "relation": "ENABLES",
+          "target_id": "E6",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            }
+          ],
+          "action_id": "A1"
+        },
+        {
+          "source_id": "E6",
+          "relation": "ENABLES",
+          "target_id": "E7",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            }
+          ],
+          "action_id": "A1"
+        },
+        {
+          "source_id": "E6",
+          "relation": "ENABLES",
+          "target_id": "E8",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            }
+          ],
+          "action_id": "A1"
+        }
+      ],
+      "counterfactual_links": [],
+      "admission": {
+        "status": "COMMITTED",
+        "admitted_effect_ids": [
+          "E1",
+          "E2",
+          "E3",
+          "E4",
+          "E5",
+          "E6",
+          "E7",
+          "E8"
+        ],
+        "quarantined_effects": [],
+        "user_override": false,
+        "override_reason": ""
+      },
+      "schema_version": "1.3",
+      "temporal_relations": [],
+      "propositions": [
+        {
+          "proposition_id": "PR1",
+          "predication": "A runaway tram is heading toward five workers on the main track.",
+          "polarity": "POSITIVE",
+          "status": "ASSERTED",
+          "clause_ids": [
+            "C0"
+          ]
+        },
+        {
+          "proposition_id": "PR2",
+          "predication": "Dana can pull a lever that switches the tram onto a side track, where one worker stands.",
+          "polarity": "POSITIVE",
+          "status": "ASSERTED",
+          "clause_ids": [
+            "C1"
+          ]
+        },
+        {
+          "proposition_id": "PR3",
+          "predication": "Dana cannot stop the tram.",
+          "polarity": "POSITIVE",
+          "status": "ASSERTED",
+          "clause_ids": [
+            "C4"
+          ]
+        }
+      ],
+      "reports": [],
+      "commitments": [],
+      "modal_operators": [],
+      "normative_propositions": []
+    },
+    "world_model_status": "COMMITTED",
+    "world_contradictions": [],
+    "errors": [],
+    "warnings": [],
+    "validation_issues": [],
+    "compiler_loss_telemetry": {},
+    "clauses": [
+      {
+        "clause_id": "C0",
+        "text": "A runaway tram is heading toward five workers on the main track."
+      },
+      {
+        "clause_id": "C1",
+        "text": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+      },
+      {
+        "clause_id": "C2",
+        "text": "If she pulls the lever, the tram will kill that worker and spare the five."
+      },
+      {
+        "clause_id": "C3",
+        "text": "If she does not, it will kill the five and spare the one."
+      },
+      {
+        "clause_id": "C4",
+        "text": "Dana cannot stop the tram."
+      },
+      {
+        "clause_id": "C5",
+        "text": "Should she pull the lever?"
+      }
+    ],
+    "world_model_1_4": {
+      "parties": [
+        {
+          "party_id": "P1",
+          "label": "Dana",
+          "kind": "PERSON",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+            },
+            {
+              "clause_id": "C4",
+              "excerpt": "Dana cannot stop the tram."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P2",
+          "label": "one worker",
+          "kind": "PERSON",
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P3",
+          "label": "the tram",
+          "kind": "PROCESS",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            },
+            {
+              "clause_id": "C4",
+              "excerpt": "Dana cannot stop the tram."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P4",
+          "label": "five workers",
+          "kind": "HUMAN_GROUP",
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            },
+            {
+              "clause_id": "C0",
+              "excerpt": "A runaway tram is heading toward five workers on the main track."
+            }
+          ],
+          "quantities": [
+            "five"
+          ]
+        },
+        {
+          "party_id": "P6",
+          "label": "a lever",
+          "kind": "PROCESS",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P7",
+          "label": "the main track",
+          "kind": "OTHER",
+          "provenance": [
+            {
+              "clause_id": "C0",
+              "excerpt": "A runaway tram is heading toward five workers on the main track."
+            }
+          ],
+          "quantities": []
+        },
+        {
+          "party_id": "P8",
+          "label": "a side track",
+          "kind": "OTHER",
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+            }
+          ],
+          "quantities": []
+        }
+      ],
+      "actions": [
+        {
+          "action_id": "A0",
+          "intervention": "pulls the lever",
+          "actor_party_id": "P1",
+          "recipient_party_ids": [
+            "P6"
+          ],
+          "effect_ids": [
+            "E1",
+            "E2",
+            "E3",
+            "E4"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+            }
+          ]
+        },
+        {
+          "action_id": "A1",
+          "intervention": "does not pull the lever",
+          "actor_party_id": "P1",
+          "recipient_party_ids": [
+            "P6"
+          ],
+          "effect_ids": [
+            "E5",
+            "E6",
+            "E7",
+            "E8"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "effect_id": "E1",
+          "action_id": "A0",
+          "party_id": "P6",
+          "outcome": "pulls the lever",
+          "relation": "PULL",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "INTERVENTION",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "pulls the lever",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "switches the tram onto a side track",
+          "relation": "SWITCH",
+          "polarity": "NEUTRAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "PHYSICAL_STATE",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "switches the tram onto a side track",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "Explicit instrument relative clause supplies the transition on the selected intervention branch.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E3",
+          "action_id": "A0",
+          "party_id": "P2",
+          "outcome": "the tram will kill that worker",
+          "relation": "KILL",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [
+            "one"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "the tram will kill that worker",
+          "source_effect_ids": [
+            "E2"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E4",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "spare the five",
+          "relation": "SPARE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            },
+            {
+              "clause_id": "C0",
+              "excerpt": "A runaway tram is heading toward five workers on the main track."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "spare the five",
+          "source_effect_ids": [
+            "E2"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E5",
+          "action_id": "A1",
+          "party_id": "P6",
+          "outcome": "does not",
+          "relation": "DO",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "INTERVENTION",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "does not",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E6",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "it will kill the five",
+          "relation": "KILL",
+          "polarity": "NEUTRAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "it will kill the five",
+          "source_effect_ids": [
+            "E5"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "Source-stipulated process event; the separate human-bearer effect records its welfare consequence.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E7",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "it will kill the five",
+          "relation": "KILL",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            },
+            {
+              "clause_id": "C0",
+              "excerpt": "A runaway tram is heading toward five workers on the main track."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "it will kill the five",
+          "source_effect_ids": [
+            "E6"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E8",
+          "action_id": "A1",
+          "party_id": "P2",
+          "outcome": "spare the one",
+          "relation": "SPARE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "one"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "spare the one",
+          "source_effect_ids": [
+            "E6"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "conditions": [
+        {
+          "condition_id": "CND1",
+          "description": "If she pulls the lever",
+          "value_status": "UNKNOWN",
+          "decision_relevance": "MATERIAL",
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            }
+          ],
+          "event_effect_id": "",
+          "polarity": "POSITIVE",
+          "operator": "IF"
+        },
+        {
+          "condition_id": "CND2",
+          "description": "If she does not",
+          "value_status": "UNKNOWN",
+          "decision_relevance": "MATERIAL",
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            }
+          ],
+          "event_effect_id": "",
+          "polarity": "NEGATED",
+          "operator": "IF"
+        }
+      ],
+      "causal_links": [
+        {
+          "source_id": "E1",
+          "relation": "ENABLES",
+          "target_id": "E2",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E2",
+          "relation": "ENABLES",
+          "target_id": "E3",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E2",
+          "relation": "ENABLES",
+          "target_id": "E4",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            }
+          ],
+          "action_id": "A0"
+        },
+        {
+          "source_id": "E5",
+          "relation": "ENABLES",
+          "target_id": "E6",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            }
+          ],
+          "action_id": "A1"
+        },
+        {
+          "source_id": "E6",
+          "relation": "ENABLES",
+          "target_id": "E7",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            }
+          ],
+          "action_id": "A1"
+        },
+        {
+          "source_id": "E6",
+          "relation": "ENABLES",
+          "target_id": "E8",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            }
+          ],
+          "action_id": "A1"
+        }
+      ],
+      "counterfactual_links": [],
+      "admission": {
+        "status": "COMMITTED",
+        "admitted_effect_ids": [
+          "E1",
+          "E2",
+          "E3",
+          "E4",
+          "E5",
+          "E6",
+          "E7",
+          "E8"
+        ],
+        "quarantined_effects": [],
+        "user_override": false,
+        "override_reason": ""
+      },
+      "schema_version": "1.4",
+      "temporal_relations": [],
+      "propositions": [
+        {
+          "proposition_id": "PR1",
+          "predication": "A runaway tram is heading toward five workers on the main track.",
+          "polarity": "POSITIVE",
+          "status": "ASSERTED",
+          "clause_ids": [
+            "C0"
+          ]
+        },
+        {
+          "proposition_id": "PR2",
+          "predication": "Dana can pull a lever that switches the tram onto a side track, where one worker stands.",
+          "polarity": "POSITIVE",
+          "status": "ASSERTED",
+          "clause_ids": [
+            "C1"
+          ]
+        },
+        {
+          "proposition_id": "PR3",
+          "predication": "Dana cannot stop the tram.",
+          "polarity": "POSITIVE",
+          "status": "ASSERTED",
+          "clause_ids": [
+            "C4"
+          ]
+        }
+      ],
+      "reports": [],
+      "commitments": [],
+      "modal_operators": [],
+      "normative_propositions": []
+    }
+  },
+  "canonical_action_records": [
+    {
+      "action_id": "A0",
+      "short_label": "Pulls the lever",
+      "canonical_semantic_action": "pulls the lever",
+      "actor": "Dana",
+      "intervention": "pulls the lever",
+      "beneficiaries": [],
+      "harmed": [
+        "one worker"
+      ],
+      "unresolved": [],
+      "at_risk": [],
+      "conditionally_benefited": [],
+      "unresolved_outcomes": [],
+      "grounded_effects": [
+        {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "switches the tram onto a side track",
+          "relation": "SWITCH",
+          "polarity": "NEUTRAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "PHYSICAL_STATE",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "switches the tram onto a side track",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "Explicit instrument relative clause supplies the transition on the selected intervention branch.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E3",
+          "action_id": "A0",
+          "party_id": "P2",
+          "outcome": "the tram will kill that worker",
+          "relation": "KILL",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [
+            "one"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "the tram will kill that worker",
+          "source_effect_ids": [
+            "E2"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E4",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "spare the five",
+          "relation": "SPARE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            },
+            {
+              "clause_id": "C0",
+              "excerpt": "A runaway tram is heading toward five workers on the main track."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "spare the five",
+          "source_effect_ids": [
+            "E2"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "world_effects": [
+        {
+          "effect_id": "E1",
+          "action_id": "A0",
+          "party_id": "P6",
+          "outcome": "pulls the lever",
+          "relation": "PULL",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "INTERVENTION",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "pulls the lever",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "switches the tram onto a side track",
+          "relation": "SWITCH",
+          "polarity": "NEUTRAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "PHYSICAL_STATE",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C1",
+              "excerpt": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "switches the tram onto a side track",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "Explicit instrument relative clause supplies the transition on the selected intervention branch.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E3",
+          "action_id": "A0",
+          "party_id": "P2",
+          "outcome": "the tram will kill that worker",
+          "relation": "KILL",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [
+            "one"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "the tram will kill that worker",
+          "source_effect_ids": [
+            "E2"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E4",
+          "action_id": "A0",
+          "party_id": "P4",
+          "outcome": "spare the five",
+          "relation": "SPARE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            },
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            },
+            {
+              "clause_id": "C0",
+              "excerpt": "A runaway tram is heading toward five workers on the main track."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "spare the five",
+          "source_effect_ids": [
+            "E2"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "causal_links": [
+        {
+          "action_id": "A0",
+          "source_id": "E1",
+          "relation": "ENABLES",
+          "target_id": "E2",
+          "modality": "CERTAIN"
+        },
+        {
+          "action_id": "A0",
+          "source_id": "E2",
+          "relation": "ENABLES",
+          "target_id": "E3",
+          "modality": "CERTAIN"
+        },
+        {
+          "action_id": "A0",
+          "source_id": "E2",
+          "relation": "ENABLES",
+          "target_id": "E4",
+          "modality": "CERTAIN"
+        }
+      ],
+      "counterfactual_effects": [],
+      "mechanism": "pulls the lever enables switches the tram onto a side track; switches the tram onto a side track enables the tram will kill that worker; switches the tram onto a side track enables spare the five",
+      "institutional_effect": "",
+      "source_clauses": [
+        "If she pulls the lever, the tram will kill that worker and spare the five.",
+        "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+      ],
+      "completeness_status": "COMPLETE",
+      "missing_critical": [],
+      "structure_issues": [],
+      "commitment_status": "COMMITTED",
+      "commitment_reasons": [],
+      "source_label": "",
+      "presentation_action": "pulls the lever",
+      "action_origin": "FROZEN_REPLAY"
+    },
+    {
+      "action_id": "A1",
+      "short_label": "Does not pull the lever",
+      "canonical_semantic_action": "does not pull the lever",
+      "actor": "Dana",
+      "intervention": "does not pull the lever",
+      "beneficiaries": [],
+      "harmed": [
+        "five workers"
+      ],
+      "unresolved": [],
+      "at_risk": [],
+      "conditionally_benefited": [],
+      "unresolved_outcomes": [],
+      "grounded_effects": [
+        {
+          "effect_id": "E6",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "it will kill the five",
+          "relation": "KILL",
+          "polarity": "NEUTRAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "it will kill the five",
+          "source_effect_ids": [
+            "E5"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "Source-stipulated process event; the separate human-bearer effect records its welfare consequence.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E7",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "it will kill the five",
+          "relation": "KILL",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            },
+            {
+              "clause_id": "C0",
+              "excerpt": "A runaway tram is heading toward five workers on the main track."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "it will kill the five",
+          "source_effect_ids": [
+            "E6"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E8",
+          "action_id": "A1",
+          "party_id": "P2",
+          "outcome": "spare the one",
+          "relation": "SPARE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "one"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "spare the one",
+          "source_effect_ids": [
+            "E6"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "world_effects": [
+        {
+          "effect_id": "E5",
+          "action_id": "A1",
+          "party_id": "P6",
+          "outcome": "does not",
+          "relation": "DO",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "INTERVENTION",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "does not",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E6",
+          "action_id": "A1",
+          "party_id": "P3",
+          "outcome": "it will kill the five",
+          "relation": "KILL",
+          "polarity": "NEUTRAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "it will kill the five",
+          "source_effect_ids": [
+            "E5"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "Source-stipulated process event; the separate human-bearer effect records its welfare consequence.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E7",
+          "action_id": "A1",
+          "party_id": "P4",
+          "outcome": "it will kill the five",
+          "relation": "KILL",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "HEALTH_OUTCOME",
+          "condition_ids": [],
+          "quantities": [
+            "five"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            },
+            {
+              "clause_id": "C0",
+              "excerpt": "A runaway tram is heading toward five workers on the main track."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "it will kill the five",
+          "source_effect_ids": [
+            "E6"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        },
+        {
+          "effect_id": "E8",
+          "action_id": "A1",
+          "party_id": "P2",
+          "outcome": "spare the one",
+          "relation": "SPARE",
+          "polarity": "BENEFICIAL",
+          "directness": "DOWNSTREAM",
+          "modality": "CERTAIN",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [
+            "one"
+          ],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "If she does not, it will kill the five and spare the one."
+            },
+            {
+              "clause_id": "C2",
+              "excerpt": "If she pulls the lever, the tram will kill that worker and spare the five."
+            },
+            {
+              "clause_id": "C1",
+              "excerpt": "Dana can pull a lever that switches the tram onto a side track, where one worker stands."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "spare the one",
+          "source_effect_ids": [
+            "E6"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      ],
+      "causal_links": [
+        {
+          "action_id": "A1",
+          "source_id": "E5",
+          "relation": "ENABLES",
+          "target_id": "E6",
+          "modality": "CERTAIN"
+        },
+        {
+          "action_id": "A1",
+          "source_id": "E6",
+          "relation": "ENABLES",
+          "target_id": "E7",
+          "modality": "CERTAIN"
+        },
+        {
+          "action_id": "A1",
+          "source_id": "E6",
+          "relation": "ENABLES",
+          "target_id": "E8",
+          "modality": "CERTAIN"
+        }
+      ],
+      "counterfactual_effects": [],
+      "mechanism": "does not enables it will kill the five; it will kill the five enables it will kill the five; it will kill the five enables spare the one",
+      "institutional_effect": "",
+      "source_clauses": [
+        "If she does not, it will kill the five and spare the one.",
+        "If she pulls the lever, the tram will kill that worker and spare the five."
+      ],
+      "completeness_status": "COMPLETE",
+      "missing_critical": [],
+      "structure_issues": [],
+      "commitment_status": "COMMITTED",
+      "commitment_reasons": [],
+      "source_label": "",
+      "presentation_action": "does not pull the lever",
+      "action_origin": "FROZEN_REPLAY"
+    }
+  ],
+  "presentation_action_mapping": [],
+  "source_action_legend": {
+    "A0": "pulls the lever",
+    "A1": "does not pull the lever"
+  },
+  "relent_workspace": {
+    "established": [
+      {
+        "kind": "occurrence_effect",
+        "effect_id": "E1",
+        "outcome": "pulls the lever",
+        "predicate": null,
+        "status": "established"
+      },
+      {
+        "kind": "occurrence_effect",
+        "effect_id": "E2",
+        "outcome": "switches the tram onto a side track",
+        "predicate": null,
+        "status": "established"
+      },
+      {
+        "kind": "occurrence_effect",
+        "effect_id": "E3",
+        "outcome": "the tram will kill that worker",
+        "predicate": null,
+        "status": "established"
+      },
+      {
+        "kind": "occurrence_effect",
+        "effect_id": "E4",
+        "outcome": "spare the five",
+        "predicate": null,
+        "status": "established"
+      },
+      {
+        "kind": "occurrence_effect",
+        "effect_id": "E5",
+        "outcome": "does not",
+        "predicate": null,
+        "status": "established"
+      },
+      {
+        "kind": "occurrence_effect",
+        "effect_id": "E6",
+        "outcome": "it will kill the five",
+        "predicate": null,
+        "status": "established"
+      },
+      {
+        "kind": "occurrence_effect",
+        "effect_id": "E7",
+        "outcome": "it will kill the five",
+        "predicate": null,
+        "status": "established"
+      },
+      {
+        "kind": "occurrence_effect",
+        "effect_id": "E8",
+        "outcome": "spare the one",
+        "predicate": null,
+        "status": "established"
+      }
+    ],
+    "not_established": [],
+    "duty_ledger_citations": [],
+    "ev_forbidden_proposition_ids": [],
+    "factual_status_sources": [
+      "occurrence_effects"
+    ]
+  },
+  "discourse_committed": false
+}

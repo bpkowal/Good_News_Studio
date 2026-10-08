@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Parliament — saved-run inspection</title>
+  <meta name="description" content="Inspect source-bound worlds, framework positions and decision hinges from saved Parliament runs.">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="vendor/mermaid-10.9.3.min.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <aside class="rail">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">P</span><div>PARLIAMENT<small>Research workspace</small></div></div>
+    <p class="rail-label">SAVED RUNS <span>03</span></p>
+    <nav id="run-list" aria-label="Saved runs"></nav>
+    <div class="rail-bottom">
+      <label class="import-control">Open exported run JSON<input id="import-run" type="file" accept=".json,application/json"></label>
+      <p>Read-only inspection<br>No model calls · no world edits</p>
+    </div>
+  </aside>
+  <main>
+    <header class="topbar"><span>WORLD → FRAMEWORKS → HINGES</span><span class="replay-label">SAVED EVIDENCE / LOCAL VIEWER</span></header>
+    <div id="notice" role="alert" hidden></div>
+    <section class="run-header">
+      <div><p class="eyebrow">A SHARED WORLD. DIFFERENT MORAL DEPENDENCIES.</p><h1 id="run-title">Loading saved runs…</h1><p id="run-subtitle"></p></div>
+      <button id="download-run" class="secondary" disabled>Download run JSON ↓</button>
+    </section>
+    <section id="status-strip" aria-label="Run status"></section>
+    <div class="view-nav" role="tablist" aria-label="Inspection views">
+      <button id="tab-world" role="tab" aria-controls="view-world" aria-selected="true" data-view="world">01 <span>World & evidence</span></button>
+      <button id="tab-frameworks" role="tab" aria-controls="view-frameworks" aria-selected="false" data-view="frameworks">02 <span>Framework views</span></button>
+      <button id="tab-hinges" role="tab" aria-controls="view-hinges" aria-selected="false" data-view="hinges">03 <span>Decision hinges</span></button>
+    </div>
+    <section id="view-world" role="tabpanel" aria-labelledby="tab-world">
+      <div class="world-grid">
+        <article class="card source-card"><div class="section-heading"><h2>The ethical scenario</h2><span class="mini-label">ORIGINAL SOURCE</span></div><p id="source-text"></p><div id="stipulations"></div><div class="source-foot">Highlighted passages match exact text in the source. Traceability is not proof of an interpretation.</div></article>
+        <article class="card graph-card"><div class="section-heading"><h2>World-state topology</h2><span id="graph-authority" class="mini-label"></span></div><div id="diagram-tabs" aria-label="World interpretations"></div><p id="graph-caption"></p>
+          <div class="graph-toolbar"><span>Click a node or relation to inspect</span><div><button id="graph-detail" aria-pressed="false">Show full links</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="zoom-reset">Fit</button><button id="zoom-in" aria-label="Zoom in">+</button></div></div>
+          <p id="graph-simplification"></p>
+          <div id="graph-viewport" tabindex="0" aria-label="Scrollable world diagram"><div id="graph-canvas"></div></div>
+          <div class="graph-legend"><span>Solid: recorded relation</span><span>Dashed: role, effect or scope</span><span class="ledger-layer-note">Purple: source-ledger addition, outside frozen topology; its links are support references</span><span>Branches are alternatives, not co-occurring actions</span></div>
+          <details class="record-selector"><summary>Inspect records without the diagram</summary><div id="record-list"></div></details>
+          <details class="mermaid-source"><summary>Mermaid source</summary><pre id="mermaid-source"></pre></details>
+        </article>
+      </div>
+      <article id="inspector" class="card inspector" aria-live="polite"></article>
+    </section>
+    <section id="view-frameworks" role="tabpanel" aria-labelledby="tab-frameworks" hidden><div class="view-intro"><h2>Different frameworks, the same frozen world</h2><p>Recorded preference, operative participation and ledger admission are distinct. Admission does not establish the truth of a moral argument.</p></div><div id="framework-cards"></div></section>
+    <section id="view-hinges" role="tabpanel" aria-labelledby="tab-hinges" hidden><div class="view-intro"><h2>What could change the judgment?</h2><p>These hinges come from saved argument records. They are attributed model claims, not new facts or independently verified thresholds.</p></div><div id="hinge-cards"></div><div class="limits-grid"><article class="card"><h2>What remains uncertain</h2><div id="unknown-list"></div></article><article class="card"><h2>What Parliament did not decide</h2><div id="nondecisions"></div></article></div><article class="card agreement-card"><h2>Agreement & disagreement</h2><div id="agreement"></div></article></section>
+    <footer>No governing moral verdict is inferred by this viewer. <span id="source-hash"></span></footer>
+  </main>
+</body>
+</html>

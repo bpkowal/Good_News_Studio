@@ -1,0 +1,342 @@
+{
+  "schema_version": 2,
+  "run_id": "scenario_20261001_185515_250176",
+  "started_at": "2026-10-01T22:55:15.250207+00:00",
+  "elapsed_seconds": 16.067217,
+  "counts": {
+    "events": 21,
+    "by_category": {
+      "cycle_input": 1,
+      "evaluation_barrier": 1,
+      "ledger_commit": 2,
+      "model_call": 2,
+      "projection": 6,
+      "stage": 9
+    },
+    "by_status": {
+      "CACHE_HIT": 5,
+      "COMPLETE": 1,
+      "ERROR": 2,
+      "FROZEN": 1,
+      "MATERIALIZED": 1,
+      "NO_TRANSACTION": 2,
+      "OK": 7,
+      "SOFT_ERROR": 2
+    },
+    "logical_model_calls": 2,
+    "model_call_count": 2,
+    "original_agent_model_calls": 0,
+    "compact_primary_calls": 2,
+    "compact_repair_calls": 0,
+    "repair_count": 0,
+    "timeout_count": 0,
+    "abstention_count": 2,
+    "budget_blocked_calls": 0,
+    "model_cache_hits": 0,
+    "grounded_projection_materializations": 1,
+    "grounded_projection_cache_hits": 5,
+    "provider_attempts": 0,
+    "provider_failures": 0
+  },
+  "timings_by_name_seconds": {
+    "checkpoint_serialization": 0.006263,
+    "compact_primary": 0.040467,
+    "cycle_execution": 0.048346,
+    "final_report_serialization": 0.006811,
+    "frozen_world_validation": 0.008626,
+    "grounded_effect_projection": 0.00053,
+    "pipeline_total": 16.067119,
+    "prepare_cycle_input": 0.001096,
+    "sequential_ledger_commit": 1.6e-05,
+    "specialist_evaluation": 0.042208,
+    "specialist_evaluation_barrier": 3e-06,
+    "trace_serialization": 0.008162,
+    "workspace_deliberation": 0.073521
+  },
+  "original_agents": {},
+  "compact_specialists": {
+    "deontological": {
+      "primary_calls": 1,
+      "primary_seconds": 0.01995,
+      "repair_calls": 0,
+      "repair_seconds": 0.0
+    },
+    "utilitarian": {
+      "primary_calls": 1,
+      "primary_seconds": 0.020517,
+      "repair_calls": 0,
+      "repair_seconds": 0.0
+    }
+  },
+  "ledger_commits": {
+    "deontological": {
+      "commit_batches": 1,
+      "commit_seconds": 2e-06
+    },
+    "utilitarian": {
+      "commit_batches": 1,
+      "commit_seconds": 1.4e-05
+    }
+  },
+  "events": [
+    {
+      "category": "stage",
+      "name": "frozen_world_validation",
+      "status": "OK",
+      "duration_seconds": 0.008626,
+      "finished_at": "2026-10-01T22:55:15.259828+00:00",
+      "metadata": {}
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "MATERIALIZED",
+      "duration_seconds": 0.000517,
+      "finished_at": "2026-10-01T22:55:31.225778+00:00",
+      "metadata": {
+        "graph_revision": 63,
+        "effect_count": 6
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 2e-06,
+      "finished_at": "2026-10-01T22:55:31.232754+00:00",
+      "metadata": {
+        "graph_revision": 63,
+        "effect_count": 6
+      }
+    },
+    {
+      "category": "cycle_input",
+      "name": "prepare_cycle_input",
+      "status": "FROZEN",
+      "duration_seconds": 0.001096,
+      "finished_at": "2026-10-01T22:55:31.233841+00:00",
+      "metadata": {
+        "cycle": 1,
+        "specialist_count": 2,
+        "action_count": 2,
+        "proposition_count": 6,
+        "challenge_count": 0,
+        "evaluation_workers": 1
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 4e-06,
+      "finished_at": "2026-10-01T22:55:31.235630+00:00",
+      "metadata": {
+        "graph_revision": 63,
+        "effect_count": 6
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "compact_primary",
+      "status": "ERROR",
+      "duration_seconds": 0.020517,
+      "finished_at": "2026-10-01T22:55:31.256673+00:00",
+      "metadata": {
+        "call_kind": "compact_primary",
+        "backend": "Llama",
+        "max_tokens": 128,
+        "structured": true,
+        "cycle": 1,
+        "specialist": "utilitarian",
+        "constraint": "OPEN_DELIBERATION",
+        "response_kind": "deliberation",
+        "exception_type": "ValueError"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "specialist_evaluation",
+      "status": "SOFT_ERROR",
+      "duration_seconds": 0.021658,
+      "finished_at": "2026-10-01T22:55:31.257019+00:00",
+      "metadata": {
+        "cycle": 1,
+        "specialist": "utilitarian",
+        "counterfactual": false,
+        "commit_started": false
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 3e-06,
+      "finished_at": "2026-10-01T22:55:31.258426+00:00",
+      "metadata": {
+        "graph_revision": 63,
+        "effect_count": 6
+      }
+    },
+    {
+      "category": "model_call",
+      "name": "compact_primary",
+      "status": "ERROR",
+      "duration_seconds": 0.01995,
+      "finished_at": "2026-10-01T22:55:31.278661+00:00",
+      "metadata": {
+        "call_kind": "compact_primary",
+        "backend": "Llama",
+        "max_tokens": 128,
+        "structured": true,
+        "cycle": 1,
+        "specialist": "deontological",
+        "constraint": "OPEN_DELIBERATION",
+        "response_kind": "deliberation",
+        "exception_type": "ValueError"
+      }
+    },
+    {
+      "category": "stage",
+      "name": "specialist_evaluation",
+      "status": "SOFT_ERROR",
+      "duration_seconds": 0.02055,
+      "finished_at": "2026-10-01T22:55:31.278770+00:00",
+      "metadata": {
+        "cycle": 1,
+        "specialist": "deontological",
+        "counterfactual": false,
+        "commit_started": false
+      }
+    },
+    {
+      "category": "evaluation_barrier",
+      "name": "specialist_evaluation_barrier",
+      "status": "COMPLETE",
+      "duration_seconds": 3e-06,
+      "finished_at": "2026-10-01T22:55:31.278783+00:00",
+      "metadata": {
+        "cycle": 1,
+        "expected_specialists": [
+          "utilitarian",
+          "deontological"
+        ],
+        "observed_specialists": [
+          "utilitarian",
+          "deontological"
+        ],
+        "candidate_count": 2
+      }
+    },
+    {
+      "category": "ledger_commit",
+      "name": "sequential_ledger_commit",
+      "status": "NO_TRANSACTION",
+      "duration_seconds": 1.4e-05,
+      "finished_at": "2026-10-01T22:55:31.278803+00:00",
+      "metadata": {
+        "cycle": 1,
+        "specialist": "utilitarian",
+        "operations": []
+      }
+    },
+    {
+      "category": "ledger_commit",
+      "name": "sequential_ledger_commit",
+      "status": "NO_TRANSACTION",
+      "duration_seconds": 2e-06,
+      "finished_at": "2026-10-01T22:55:31.278814+00:00",
+      "metadata": {
+        "cycle": 1,
+        "specialist": "deontological",
+        "operations": []
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 2e-06,
+      "finished_at": "2026-10-01T22:55:31.280686+00:00",
+      "metadata": {
+        "graph_revision": 63,
+        "effect_count": 6
+      }
+    },
+    {
+      "category": "stage",
+      "name": "cycle_execution",
+      "status": "OK",
+      "duration_seconds": 0.048346,
+      "finished_at": "2026-10-01T22:55:31.280981+00:00",
+      "metadata": {
+        "cycle": 1,
+        "counterfactual": false,
+        "candidate_count": 2,
+        "abstention_count": 2
+      }
+    },
+    {
+      "category": "stage",
+      "name": "checkpoint_serialization",
+      "status": "OK",
+      "duration_seconds": 0.006263,
+      "finished_at": "2026-10-01T22:55:31.287263+00:00",
+      "metadata": {
+        "cycle_count": 1,
+        "format": "compact",
+        "atomic": true,
+        "bytes_written": 73619
+      }
+    },
+    {
+      "category": "projection",
+      "name": "grounded_effect_projection",
+      "status": "CACHE_HIT",
+      "duration_seconds": 2e-06,
+      "finished_at": "2026-10-01T22:55:31.288745+00:00",
+      "metadata": {
+        "graph_revision": 63,
+        "effect_count": 6
+      }
+    },
+    {
+      "category": "stage",
+      "name": "workspace_deliberation",
+      "status": "OK",
+      "duration_seconds": 0.073521,
+      "finished_at": "2026-10-01T22:55:31.289102+00:00",
+      "metadata": {
+        "specialist_count": 2
+      }
+    },
+    {
+      "category": "stage",
+      "name": "final_report_serialization",
+      "status": "OK",
+      "duration_seconds": 0.006811,
+      "finished_at": "2026-10-01T22:55:31.295966+00:00",
+      "metadata": {}
+    },
+    {
+      "category": "stage",
+      "name": "trace_serialization",
+      "status": "OK",
+      "duration_seconds": 0.008162,
+      "finished_at": "2026-10-01T22:55:31.304145+00:00",
+      "metadata": {
+        "format": "pretty",
+        "atomic": true,
+        "bytes_written": 152411
+      }
+    },
+    {
+      "category": "stage",
+      "name": "pipeline_total",
+      "status": "OK",
+      "duration_seconds": 16.067119,
+      "finished_at": "2026-10-01T22:55:31.317350+00:00",
+      "metadata": {}
+    }
+  ],
+  "content_recording": "DISABLED"
+}

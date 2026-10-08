@@ -1,0 +1,1214 @@
+{
+  "schema_version": "0.4",
+  "package_id": "demo_conditional",
+  "document": {
+    "id": "document",
+    "text": "If Maria pulls the lever, one worker will live. If Maria does not pull the lever, five workers will live."
+  },
+  "producer": {
+    "name": "parsing_game_Z10",
+    "version": "Z10",
+    "resources": [
+      {
+        "id": "T_reference_policy",
+        "version": "1",
+        "description": "Curated candidate-generation and ranking policy, not learned probabilities or a complete animacy lexicon."
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "id": "e0",
+      "start": 9,
+      "end": 14,
+      "text": "pulls"
+    },
+    {
+      "id": "e1",
+      "start": 42,
+      "end": 46,
+      "text": "live"
+    },
+    {
+      "id": "e2",
+      "start": 66,
+      "end": 70,
+      "text": "pull"
+    },
+    {
+      "id": "e3",
+      "start": 100,
+      "end": 104,
+      "text": "live"
+    },
+    {
+      "id": "e4",
+      "start": 62,
+      "end": 65,
+      "text": "not"
+    },
+    {
+      "id": "e5",
+      "start": 0,
+      "end": 2,
+      "text": "If"
+    },
+    {
+      "id": "e6",
+      "start": 48,
+      "end": 50,
+      "text": "If"
+    },
+    {
+      "id": "e7",
+      "start": 37,
+      "end": 41,
+      "text": "will"
+    },
+    {
+      "id": "e8",
+      "start": 95,
+      "end": 99,
+      "text": "will"
+    },
+    {
+      "id": "e9",
+      "start": 3,
+      "end": 8,
+      "text": "Maria"
+    },
+    {
+      "id": "e10",
+      "start": 15,
+      "end": 24,
+      "text": "the lever"
+    },
+    {
+      "id": "e11",
+      "start": 19,
+      "end": 24,
+      "text": "lever"
+    },
+    {
+      "id": "e12",
+      "start": 26,
+      "end": 36,
+      "text": "one worker"
+    },
+    {
+      "id": "e13",
+      "start": 30,
+      "end": 36,
+      "text": "worker"
+    },
+    {
+      "id": "e14",
+      "start": 51,
+      "end": 56,
+      "text": "Maria"
+    },
+    {
+      "id": "e15",
+      "start": 71,
+      "end": 80,
+      "text": "the lever"
+    },
+    {
+      "id": "e16",
+      "start": 75,
+      "end": 80,
+      "text": "lever"
+    },
+    {
+      "id": "e17",
+      "start": 82,
+      "end": 94,
+      "text": "five workers"
+    },
+    {
+      "id": "e18",
+      "start": 87,
+      "end": 94,
+      "text": "workers"
+    },
+    {
+      "id": "e19",
+      "start": 26,
+      "end": 29,
+      "text": "one"
+    },
+    {
+      "id": "e20",
+      "start": 82,
+      "end": 86,
+      "text": "five"
+    },
+    {
+      "id": "e21",
+      "start": 0,
+      "end": 47,
+      "text": "If Maria pulls the lever, one worker will live."
+    },
+    {
+      "id": "e22",
+      "start": 48,
+      "end": 105,
+      "text": "If Maria does not pull the lever, five workers will live."
+    }
+  ],
+  "nodes": [
+    {
+      "id": "p2",
+      "kind": "proposition",
+      "label": "pulls",
+      "predicate": "pull",
+      "evidence_ids": [
+        "e0"
+      ],
+      "predicate_evidence_ids": [
+        "e0"
+      ]
+    },
+    {
+      "id": "p9",
+      "kind": "proposition",
+      "label": "live",
+      "predicate": "live",
+      "evidence_ids": [
+        "e1"
+      ],
+      "predicate_evidence_ids": [
+        "e1"
+      ]
+    },
+    {
+      "id": "p15",
+      "kind": "proposition",
+      "label": "pull",
+      "predicate": "pull",
+      "evidence_ids": [
+        "e2"
+      ],
+      "predicate_evidence_ids": [
+        "e2"
+      ]
+    },
+    {
+      "id": "p22",
+      "kind": "proposition",
+      "label": "live",
+      "predicate": "live",
+      "evidence_ids": [
+        "e3"
+      ],
+      "predicate_evidence_ids": [
+        "e3"
+      ]
+    },
+    {
+      "id": "m1",
+      "kind": "mention",
+      "label": "Maria",
+      "evidence_ids": [
+        "e9"
+      ]
+    },
+    {
+      "id": "m4",
+      "kind": "mention",
+      "label": "the lever",
+      "evidence_ids": [
+        "e10"
+      ]
+    },
+    {
+      "id": "m7",
+      "kind": "mention",
+      "label": "one worker",
+      "evidence_ids": [
+        "e12"
+      ]
+    },
+    {
+      "id": "m12",
+      "kind": "mention",
+      "label": "Maria",
+      "evidence_ids": [
+        "e14"
+      ]
+    },
+    {
+      "id": "m17",
+      "kind": "mention",
+      "label": "the lever",
+      "evidence_ids": [
+        "e15"
+      ]
+    },
+    {
+      "id": "m20",
+      "kind": "mention",
+      "label": "five workers",
+      "evidence_ids": [
+        "e17"
+      ]
+    },
+    {
+      "id": "kif2",
+      "kind": "choice_point",
+      "label": "pulls / not pull",
+      "evidence_ids": [
+        "e5",
+        "e6"
+      ]
+    }
+  ],
+  "candidates": [
+    {
+      "id": "c0",
+      "type": "PREDICATION",
+      "arguments": {
+        "proposition": "p2"
+      },
+      "value": null,
+      "evidence_ids": [
+        "e0"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "hypothetical",
+            "evidence_ids": [
+              "e5"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [],
+      "exclusive_with": []
+    },
+    {
+      "id": "c1",
+      "type": "PREDICATION",
+      "arguments": {
+        "proposition": "p9"
+      },
+      "value": null,
+      "evidence_ids": [
+        "e1"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "conditional",
+            "condition_proposition_id": "p2",
+            "evidence_ids": [
+              "e5"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c0",
+        "c8",
+        "c9"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c2",
+      "type": "PREDICATION",
+      "arguments": {
+        "proposition": "p15"
+      },
+      "value": null,
+      "evidence_ids": [
+        "e2",
+        "e4"
+      ],
+      "scope": {
+        "polarity": "negative",
+        "contexts": [
+          {
+            "kind": "hypothetical",
+            "evidence_ids": [
+              "e6"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [],
+      "exclusive_with": []
+    },
+    {
+      "id": "c3",
+      "type": "PREDICATION",
+      "arguments": {
+        "proposition": "p22"
+      },
+      "value": null,
+      "evidence_ids": [
+        "e3"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "conditional",
+            "condition_proposition_id": "p15",
+            "evidence_ids": [
+              "e6"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c2",
+        "c11",
+        "c12"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c4",
+      "type": "CONDITIONAL_ON",
+      "arguments": {
+        "consequence": "p9",
+        "condition": "p2"
+      },
+      "value": null,
+      "evidence_ids": [
+        "e5"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": []
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c1",
+        "c0",
+        "c8",
+        "c9"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c5",
+      "type": "CONDITIONAL_ON",
+      "arguments": {
+        "consequence": "p22",
+        "condition": "p15"
+      },
+      "value": null,
+      "evidence_ids": [
+        "e6"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": []
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c3",
+        "c2",
+        "c11",
+        "c12"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c6",
+      "type": "MODALITY",
+      "arguments": {
+        "proposition": "p9"
+      },
+      "value": "prediction",
+      "evidence_ids": [
+        "e7"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "conditional",
+            "condition_proposition_id": "p2",
+            "evidence_ids": [
+              "e5"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c1",
+        "c0",
+        "c8",
+        "c9"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c7",
+      "type": "MODALITY",
+      "arguments": {
+        "proposition": "p22"
+      },
+      "value": "prediction",
+      "evidence_ids": [
+        "e8"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "conditional",
+            "condition_proposition_id": "p15",
+            "evidence_ids": [
+              "e6"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c3",
+        "c11",
+        "c12",
+        "c2"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c8",
+      "type": "PARTICIPANT",
+      "arguments": {
+        "proposition": "p2",
+        "mention": "m1"
+      },
+      "value": "subject",
+      "evidence_ids": [
+        "e9"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "hypothetical",
+            "evidence_ids": [
+              "e5"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c0"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c9",
+      "type": "PARTICIPANT",
+      "arguments": {
+        "proposition": "p2",
+        "mention": "m4"
+      },
+      "value": "object",
+      "evidence_ids": [
+        "e11"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "hypothetical",
+            "evidence_ids": [
+              "e5"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c0"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c10",
+      "type": "PARTICIPANT",
+      "arguments": {
+        "proposition": "p9",
+        "mention": "m7"
+      },
+      "value": "subject",
+      "evidence_ids": [
+        "e13"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "conditional",
+            "condition_proposition_id": "p2",
+            "evidence_ids": [
+              "e5"
+            ]
+          },
+          {
+            "kind": "modal",
+            "modality_candidate_id": "c6",
+            "evidence_ids": [
+              "e7"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c1",
+        "c6",
+        "c0",
+        "c8",
+        "c9"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c11",
+      "type": "PARTICIPANT",
+      "arguments": {
+        "proposition": "p15",
+        "mention": "m12"
+      },
+      "value": "subject",
+      "evidence_ids": [
+        "e14"
+      ],
+      "scope": {
+        "polarity": "negative",
+        "contexts": [
+          {
+            "kind": "hypothetical",
+            "evidence_ids": [
+              "e6"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c2"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c12",
+      "type": "PARTICIPANT",
+      "arguments": {
+        "proposition": "p15",
+        "mention": "m17"
+      },
+      "value": "object",
+      "evidence_ids": [
+        "e16"
+      ],
+      "scope": {
+        "polarity": "negative",
+        "contexts": [
+          {
+            "kind": "hypothetical",
+            "evidence_ids": [
+              "e6"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c2"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c13",
+      "type": "PARTICIPANT",
+      "arguments": {
+        "proposition": "p22",
+        "mention": "m20"
+      },
+      "value": "subject",
+      "evidence_ids": [
+        "e18"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "conditional",
+            "condition_proposition_id": "p15",
+            "evidence_ids": [
+              "e6"
+            ]
+          },
+          {
+            "kind": "modal",
+            "modality_candidate_id": "c7",
+            "evidence_ids": [
+              "e8"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c3",
+        "c7",
+        "c11",
+        "c12",
+        "c2"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c14",
+      "type": "QUANTITY",
+      "arguments": {
+        "mention": "m7"
+      },
+      "value": {
+        "operator": "exact",
+        "amount": 1,
+        "unit": "worker"
+      },
+      "evidence_ids": [
+        "e19"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": []
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [],
+      "exclusive_with": []
+    },
+    {
+      "id": "c15",
+      "type": "QUANTITY",
+      "arguments": {
+        "mention": "m20"
+      },
+      "value": {
+        "operator": "exact",
+        "amount": 5,
+        "unit": "worker"
+      },
+      "evidence_ids": [
+        "e20"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": []
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "bounded_dependency_rules",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [],
+      "exclusive_with": []
+    },
+    {
+      "id": "c16",
+      "type": "SAME_REFERENT",
+      "arguments": {
+        "mention_a": "m12",
+        "mention_b": "m1"
+      },
+      "value": null,
+      "evidence_ids": [
+        "e14",
+        "e9"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": []
+      },
+      "provenance": [
+        {
+          "producer": "reference_candidates",
+          "version": "T1",
+          "method": "bounded_number_animacy_recency_role_ranking",
+          "resource_ids": [
+            "T_reference_policy"
+          ]
+        }
+      ],
+      "assessment": {
+        "status": "preferred",
+        "score": {
+          "value": 0.8999999999999999,
+          "kind": "uncalibrated_score",
+          "source": "T_reference_policy",
+          "calibration_id": null
+        }
+      },
+      "requires": [],
+      "exclusive_with": []
+    },
+    {
+      "id": "c17",
+      "type": "SAME_REFERENT",
+      "arguments": {
+        "mention_a": "m17",
+        "mention_b": "m4"
+      },
+      "value": null,
+      "evidence_ids": [
+        "e15",
+        "e10"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": []
+      },
+      "provenance": [
+        {
+          "producer": "reference_candidates",
+          "version": "T1",
+          "method": "bounded_number_animacy_recency_role_ranking",
+          "resource_ids": [
+            "T_reference_policy"
+          ]
+        }
+      ],
+      "assessment": {
+        "status": "preferred",
+        "score": {
+          "value": 0.8,
+          "kind": "uncalibrated_score",
+          "source": "T_reference_policy",
+          "calibration_id": null
+        }
+      },
+      "requires": [],
+      "exclusive_with": []
+    },
+    {
+      "id": "c18",
+      "type": "OPTION_OF",
+      "arguments": {
+        "proposition": "p2",
+        "choice_point": "kif2"
+      },
+      "value": null,
+      "evidence_ids": [
+        "e5",
+        "e6"
+      ],
+      "scope": {
+        "polarity": "positive",
+        "contexts": [
+          {
+            "kind": "hypothetical",
+            "evidence_ids": [
+              "e5"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "attested_conditional_alternatives",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c0",
+        "c4"
+      ],
+      "exclusive_with": []
+    },
+    {
+      "id": "c19",
+      "type": "OPTION_OF",
+      "arguments": {
+        "proposition": "p15",
+        "choice_point": "kif2"
+      },
+      "value": null,
+      "evidence_ids": [
+        "e5",
+        "e6"
+      ],
+      "scope": {
+        "polarity": "negative",
+        "contexts": [
+          {
+            "kind": "hypothetical",
+            "evidence_ids": [
+              "e6"
+            ]
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "producer": "parsing_game_Z4",
+          "version": "Z4",
+          "method": "attested_conditional_alternatives",
+          "resource_ids": []
+        }
+      ],
+      "assessment": {
+        "status": "proposed",
+        "score": null
+      },
+      "requires": [
+        "c2",
+        "c5"
+      ],
+      "exclusive_with": []
+    }
+  ],
+  "choice_sets": [
+    {
+      "id": "choice0",
+      "kind": "interpretation",
+      "candidate_ids": [
+        "c16"
+      ],
+      "selection_rule": "any_subset",
+      "exhaustive": false,
+      "evidence_ids": [
+        "e14"
+      ]
+    },
+    {
+      "id": "choice1",
+      "kind": "interpretation",
+      "candidate_ids": [
+        "c17"
+      ],
+      "selection_rule": "any_subset",
+      "exhaustive": false,
+      "evidence_ids": [
+        "e15"
+      ]
+    },
+    {
+      "id": "choice2",
+      "kind": "scenario_option",
+      "candidate_ids": [
+        "c18",
+        "c19"
+      ],
+      "selection_rule": "any_subset",
+      "exhaustive": false,
+      "evidence_ids": [
+        "e5",
+        "e6"
+      ]
+    }
+  ],
+  "open_questions": [
+    {
+      "id": "q0",
+      "kind": "reference",
+      "evidence_ids": [
+        "e10"
+      ],
+      "candidate_ids": [],
+      "question": "Which earlier mention, if any, has the same referent? Ranked candidates are not identity decisions.",
+      "blocking_for": []
+    },
+    {
+      "id": "q1",
+      "kind": "reference",
+      "evidence_ids": [
+        "e14"
+      ],
+      "candidate_ids": [
+        "c16"
+      ],
+      "question": "Which earlier mention, if any, has the same referent? Ranked candidates are not identity decisions.",
+      "blocking_for": []
+    },
+    {
+      "id": "q2",
+      "kind": "reference",
+      "evidence_ids": [
+        "e15"
+      ],
+      "candidate_ids": [
+        "c17"
+      ],
+      "question": "Which earlier mention, if any, has the same referent? Ranked candidates are not identity decisions.",
+      "blocking_for": []
+    },
+    {
+      "id": "q3",
+      "kind": "missing_representation",
+      "evidence_ids": [
+        "e21"
+      ],
+      "candidate_ids": [],
+      "question": "Review unrepresented semantics and scope, including attribution, choice and entailment.",
+      "blocking_for": []
+    },
+    {
+      "id": "q4",
+      "kind": "missing_representation",
+      "evidence_ids": [
+        "e22"
+      ],
+      "candidate_ids": [],
+      "question": "Review unrepresented semantics and scope, including attribution, choice and entailment.",
+      "blocking_for": []
+    }
+  ],
+  "coverage": {
+    "status": "partial",
+    "unrepresented_evidence_ids": [
+      "e21",
+      "e22"
+    ],
+    "limitations": [
+      "reference_candidates_only_no_identity_merging",
+      "no_world_state_commitment",
+      "bounded_if_and_local_modal_scope",
+      "no_semantic_support_validation",
+      "purpose_and_attachment_readings_are_candidates",
+      "subject_control_is_an_unresolved_candidate",
+      "unambiguous_condition_complements_are_required",
+      "attempt_does_not_entail_the_child",
+      "choice_sets_are_not_exhaustive",
+      "quantity_is_explicit_cardinality_only",
+      "comma_clause_subject_repairs_a_false_conjunct",
+      "same_name_reference_does_not_block_roles",
+      "transfer_recipient_is_destination",
+      "definite_locative_is_location",
+      "definite_reference_does_not_block_roles",
+      "conditional_alternatives_are_not_exhaustive_or_exclusive",
+      "quantity_match_is_not_group_membership",
+      "coordination_shares_the_head_role",
+      "clause_boundary_stops_role_sharing",
+      "clause_boundary_attachment_stays_a_candidate",
+      "stripping_not_nominal_is_an_unresolved_copy"
+    ]
+  },
+  "reconstructions": [],
+  "condition_contents": [
+    {
+      "id": "condition_content_0",
+      "condition_proposition_id": "p15",
+      "required_candidate_ids": [
+        "c11",
+        "c12",
+        "c2"
+      ],
+      "question_ids": [],
+      "evidence_ids": [
+        "e2"
+      ]
+    },
+    {
+      "id": "condition_content_1",
+      "condition_proposition_id": "p2",
+      "required_candidate_ids": [
+        "c0",
+        "c8",
+        "c9"
+      ],
+      "question_ids": [],
+      "evidence_ids": [
+        "e0"
+      ]
+    }
+  ]
+}

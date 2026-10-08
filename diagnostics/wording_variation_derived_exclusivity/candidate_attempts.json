@@ -1,0 +1,1287 @@
+{
+  "chosen_blueprint_id": "exclusive_allocation",
+  "status": "WITHHELD",
+  "question": {
+    "ethical_question": "",
+    "scenario_options": [],
+    "exclusivity": "unspecified",
+    "exclusivity_proof": {
+      "status": "HYPOTHESIZED",
+      "evidence": [
+        {
+          "text": "one"
+        }
+      ],
+      "assumptions": [
+        "the resource is indivisible",
+        "allocation consumes it"
+      ],
+      "explanation": "A single item is mentioned, but indivisibility is not established."
+    },
+    "participants": [
+      {
+        "role": "subject",
+        "mention": "A clinic",
+        "predicate": "has"
+      },
+      {
+        "role": "object",
+        "mention": "one indivisible dose",
+        "predicate": "has"
+      },
+      {
+        "role": "subject",
+        "mention": "Ada",
+        "predicate": "give"
+      },
+      {
+        "role": "object",
+        "mention": "the dose",
+        "predicate": "give"
+      },
+      {
+        "role": "destination",
+        "mention": "Ben",
+        "predicate": "give"
+      },
+      {
+        "role": "subject",
+        "mention": "Ben",
+        "predicate": "receives"
+      },
+      {
+        "role": "object",
+        "mention": "it",
+        "predicate": "receives"
+      },
+      {
+        "role": "subject",
+        "mention": "Ben",
+        "predicate": "recover"
+      },
+      {
+        "role": "subject",
+        "mention": "Cara",
+        "predicate": "receives"
+      },
+      {
+        "role": "object",
+        "mention": "it",
+        "predicate": "receives"
+      },
+      {
+        "role": "subject",
+        "mention": "Cara",
+        "predicate": "recover"
+      },
+      {
+        "role": "destination",
+        "mention": "Cara",
+        "predicate": "give"
+      }
+    ],
+    "eligible_for_world_state": false
+  },
+  "z10_blueprint_comparison": {
+    "comparison_version": "z10-blueprint-comparison/0.1",
+    "policy": "independent_nonbinding_comparison",
+    "selection_changed": false,
+    "z10_package_id": "blueprint_run_6d572a87f4ee",
+    "z10_open_question_ids": [
+      "q0",
+      "q1",
+      "q2",
+      "q3",
+      "q4",
+      "q5",
+      "q6",
+      "q7",
+      "q8",
+      "q9",
+      "q10",
+      "q11"
+    ],
+    "candidate_comparisons": [
+      {
+        "blueprint_id": "exclusive_allocation",
+        "rank": 0,
+        "status": "NO_BLUEPRINT_WORLD",
+        "agreement": [],
+        "z10_only": [
+          "give",
+          "have",
+          "receive",
+          "recover"
+        ],
+        "blueprint_only": [],
+        "conflicts": []
+      },
+      {
+        "blueprint_id": "rescue_contrast",
+        "rank": 1,
+        "status": "NO_BLUEPRINT_WORLD",
+        "agreement": [],
+        "z10_only": [
+          "give",
+          "have",
+          "receive",
+          "recover"
+        ],
+        "blueprint_only": [],
+        "conflicts": []
+      },
+      {
+        "blueprint_id": "conditional_outcome",
+        "rank": 2,
+        "status": "AGREEMENT",
+        "agreement": [
+          "receive",
+          "recover"
+        ],
+        "z10_only": [
+          "give",
+          "have"
+        ],
+        "blueprint_only": [
+          "if",
+          "survive"
+        ],
+        "conflicts": [],
+        "z10_relations": [
+          "CONDITIONAL_ON",
+          "MODALITY",
+          "QUANTITY"
+        ],
+        "blueprint_relations": [
+          "CONDITIONAL_ON",
+          "ENABLES"
+        ],
+        "z10_participant_roles": [
+          "destination",
+          "object",
+          "subject"
+        ],
+        "blueprint_party_labels": [
+          "Ada",
+          "Ben",
+          "Cara"
+        ]
+      }
+    ]
+  },
+  "attempts": [
+    {
+      "blueprint_id": "exclusive_allocation",
+      "rank": 0,
+      "template_status": "FILLED",
+      "selected": true,
+      "core_filled": 5,
+      "core_count": 5,
+      "optional_filled": 9,
+      "unfilled_slots": [
+        "exclusivity",
+        "first_hedge",
+        "second_hedge",
+        "survival_chance",
+        "nonreceipt"
+      ],
+      "contract_valid": true,
+      "contract_errors": [],
+      "proposal": {
+        "proposal_contract_version": "blueprint-proposal-contract/0.3",
+        "proposal_id": "exclusive_allocation_cloze",
+        "blueprint_id": "exclusive_allocation",
+        "status": "WITHHELD",
+        "assignment_kind": "none",
+        "assignment": [],
+        "slot_bindings": {
+          "copied_spans": {
+            "decider": "Ada may give the dose to Ben or Cara",
+            "resource": "one indivisible dose of medicine",
+            "first_transfer": "Ben receives it",
+            "second_transfer": "Cara receives it",
+            "quantity": "one indivisible dose",
+            "first_recipient": "Ben",
+            "second_recipient": "Cara",
+            "first_outcome": "Ben will recover",
+            "second_outcome": "Cara will recover",
+            "first_branch_sentence": "If Ben receives it, Ben will recover",
+            "second_branch_sentence": "If Cara receives it, Cara will recover",
+            "assignment": "Ben receives it",
+            "first_implied_process": "administration",
+            "second_implied_process": "administration"
+          }
+        },
+        "selection": null,
+        "selection_validation": {
+          "contract_valid": null,
+          "status": "not_assessed",
+          "reason": "No Z10 candidate selection was constructed."
+        },
+        "candidate": null,
+        "clauses": [
+          {
+            "clause_id": "C0",
+            "text": "A clinic has one indivisible dose of medicine."
+          },
+          {
+            "clause_id": "C1",
+            "text": "Ada may give the dose to Ben or Cara."
+          },
+          {
+            "clause_id": "C2",
+            "text": "If Ben receives it, Ben will recover."
+          },
+          {
+            "clause_id": "C3",
+            "text": "If Cara receives it, Cara will recover."
+          }
+        ],
+        "unfilled_required_slots": [],
+        "unresolved_readings": [],
+        "construction_problems": [
+          {
+            "code": "world_withheld",
+            "message": "Exclusivity is unspecified. The alternatives are not an exclusive set, so an averted-alternative effect is not licensed."
+          }
+        ],
+        "admission_authorized": false,
+        "notes": [],
+        "pre_world_assessment": {
+          "ethical_question": "",
+          "scenario_options": [],
+          "exclusivity": "unspecified",
+          "exclusivity_proof": {
+            "status": "HYPOTHESIZED",
+            "evidence": [
+              {
+                "text": "one"
+              }
+            ],
+            "assumptions": [
+              "the resource is indivisible",
+              "allocation consumes it"
+            ],
+            "explanation": "A single item is mentioned, but indivisibility is not established."
+          },
+          "participants": [
+            {
+              "role": "subject",
+              "mention": "A clinic",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "one indivisible dose",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "Ada",
+              "predicate": "give"
+            },
+            {
+              "role": "object",
+              "mention": "the dose",
+              "predicate": "give"
+            },
+            {
+              "role": "destination",
+              "mention": "Ben",
+              "predicate": "give"
+            },
+            {
+              "role": "subject",
+              "mention": "Ben",
+              "predicate": "receives"
+            },
+            {
+              "role": "object",
+              "mention": "it",
+              "predicate": "receives"
+            },
+            {
+              "role": "subject",
+              "mention": "Ben",
+              "predicate": "recover"
+            },
+            {
+              "role": "subject",
+              "mention": "Cara",
+              "predicate": "receives"
+            },
+            {
+              "role": "object",
+              "mention": "it",
+              "predicate": "receives"
+            },
+            {
+              "role": "subject",
+              "mention": "Cara",
+              "predicate": "recover"
+            },
+            {
+              "role": "destination",
+              "mention": "Cara",
+              "predicate": "give"
+            }
+          ],
+          "status": "WITHHELD",
+          "eligible_for_world_state": false
+        },
+        "accepted_evidence": {
+          "decider": "Ada may give the dose to Ben or Cara",
+          "resource": "one indivisible dose of medicine",
+          "assignment": "Ben receives it",
+          "first_transfer": "Ben receives it",
+          "second_transfer": "Cara receives it",
+          "quantity": "one indivisible dose",
+          "first_recipient": "Ben",
+          "second_recipient": "Cara",
+          "first_outcome": "Ben will recover",
+          "second_outcome": "Cara will recover",
+          "first_implied_process": "administration",
+          "second_implied_process": "administration",
+          "first_branch_sentence": "If Ben receives it, Ben will recover",
+          "second_branch_sentence": "If Cara receives it, Cara will recover"
+        },
+        "construction_provenance": [
+          {
+            "atom_id": "slot:decider",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Ada may give the dose to Ben or Cara"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:resource",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "one indivisible dose of medicine"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:assignment",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Ben receives it"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:first_transfer",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Ben receives it"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:second_transfer",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Cara receives it"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:quantity",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "one indivisible dose"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:first_recipient",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Ben"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:second_recipient",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Cara"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:first_outcome",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Ben will recover"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:second_outcome",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Cara will recover"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:first_implied_process",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "administration"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:second_implied_process",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "administration"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:first_branch_sentence",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "If Ben receives it, Ben will recover"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:second_branch_sentence",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "If Cara receives it, Cara will recover"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          }
+        ],
+        "relation_alternatives": [],
+        "exclusivity_proof": {
+          "status": "HYPOTHESIZED",
+          "evidence": [
+            {
+              "text": "one"
+            }
+          ],
+          "assumptions": [
+            "the resource is indivisible",
+            "allocation consumes it"
+          ],
+          "explanation": "A single item is mentioned, but indivisibility is not established."
+        },
+        "world_withheld": [
+          "Exclusivity is unspecified. The alternatives are not an exclusive set, so an averted-alternative effect is not licensed."
+        ]
+      }
+    },
+    {
+      "blueprint_id": "rescue_contrast",
+      "rank": 1,
+      "template_status": "PARTIAL",
+      "selected": false,
+      "core_filled": 3,
+      "core_count": 8,
+      "optional_filled": 0,
+      "unfilled_slots": [
+        "first_saved",
+        "second_saved",
+        "rescue_exclusivity",
+        "first_rescue_action",
+        "second_rescue_action",
+        "first_harm",
+        "second_harm",
+        "scene"
+      ],
+      "contract_valid": true,
+      "contract_errors": [],
+      "proposal": {
+        "proposal_contract_version": "blueprint-proposal-contract/0.3",
+        "proposal_id": "rescue_contrast_cloze",
+        "blueprint_id": "rescue_contrast",
+        "status": "WITHHELD",
+        "assignment_kind": "none",
+        "assignment": [],
+        "slot_bindings": {
+          "copied_spans": {
+            "rescuer": "Ada",
+            "first_benefit": "Ben will recover",
+            "second_benefit": "Cara will recover"
+          }
+        },
+        "selection": null,
+        "selection_validation": {
+          "contract_valid": null,
+          "status": "not_assessed",
+          "reason": "No Z10 candidate selection was constructed."
+        },
+        "candidate": null,
+        "clauses": [
+          {
+            "clause_id": "C0",
+            "text": "A clinic has one indivisible dose of medicine."
+          },
+          {
+            "clause_id": "C1",
+            "text": "Ada may give the dose to Ben or Cara."
+          },
+          {
+            "clause_id": "C2",
+            "text": "If Ben receives it, Ben will recover."
+          },
+          {
+            "clause_id": "C3",
+            "text": "If Cara receives it, Cara will recover."
+          }
+        ],
+        "unfilled_required_slots": [
+          "first_saved",
+          "second_saved",
+          "rescue_exclusivity",
+          "first_rescue_action",
+          "second_rescue_action"
+        ],
+        "unresolved_readings": [],
+        "construction_problems": [
+          {
+            "code": "world_withheld",
+            "message": "Required slots remain unfilled: first_saved, second_saved, rescue_exclusivity, first_rescue_action, second_rescue_action"
+          }
+        ],
+        "admission_authorized": false,
+        "notes": [],
+        "pre_world_assessment": {
+          "ethical_question": "",
+          "scenario_options": [],
+          "exclusivity": "unspecified",
+          "exclusivity_proof": {
+            "status": "HYPOTHESIZED",
+            "evidence": [
+              {
+                "text": "one"
+              }
+            ],
+            "assumptions": [
+              "the resource is indivisible",
+              "allocation consumes it"
+            ],
+            "explanation": "A single item is mentioned, but indivisibility is not established."
+          },
+          "participants": [
+            {
+              "role": "subject",
+              "mention": "A clinic",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "one indivisible dose",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "Ada",
+              "predicate": "give"
+            },
+            {
+              "role": "object",
+              "mention": "the dose",
+              "predicate": "give"
+            },
+            {
+              "role": "destination",
+              "mention": "Ben",
+              "predicate": "give"
+            },
+            {
+              "role": "subject",
+              "mention": "Ben",
+              "predicate": "receives"
+            },
+            {
+              "role": "object",
+              "mention": "it",
+              "predicate": "receives"
+            },
+            {
+              "role": "subject",
+              "mention": "Ben",
+              "predicate": "recover"
+            },
+            {
+              "role": "subject",
+              "mention": "Cara",
+              "predicate": "receives"
+            },
+            {
+              "role": "object",
+              "mention": "it",
+              "predicate": "receives"
+            },
+            {
+              "role": "subject",
+              "mention": "Cara",
+              "predicate": "recover"
+            },
+            {
+              "role": "destination",
+              "mention": "Cara",
+              "predicate": "give"
+            }
+          ],
+          "status": "WITHHELD",
+          "eligible_for_world_state": false
+        },
+        "accepted_evidence": {
+          "rescuer": "Ada",
+          "first_benefit": "Ben will recover",
+          "second_benefit": "Cara will recover"
+        },
+        "construction_provenance": [
+          {
+            "atom_id": "slot:rescuer",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Ada"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:first_benefit",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Ben will recover"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          },
+          {
+            "atom_id": "slot:second_benefit",
+            "atom_kind": "slot",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [],
+            "evidence": [
+              "Cara will recover"
+            ],
+            "explanation": "Copied cloze evidence; no world atom was authorized."
+          }
+        ],
+        "relation_alternatives": [],
+        "exclusivity_proof": {
+          "status": "HYPOTHESIZED",
+          "evidence": [
+            {
+              "text": "one"
+            }
+          ],
+          "assumptions": [
+            "the resource is indivisible",
+            "allocation consumes it"
+          ],
+          "explanation": "A single item is mentioned, but indivisibility is not established."
+        },
+        "world_withheld": [
+          "Required slots remain unfilled: first_saved, second_saved, rescue_exclusivity, first_rescue_action, second_rescue_action"
+        ]
+      }
+    },
+    {
+      "blueprint_id": "conditional_outcome",
+      "rank": 2,
+      "template_status": "FILLED",
+      "selected": false,
+      "core_filled": 3,
+      "core_count": 3,
+      "optional_filled": 4,
+      "unfilled_slots": [
+        "chance"
+      ],
+      "contract_valid": true,
+      "contract_errors": [],
+      "proposal": {
+        "proposal_contract_version": "blueprint-proposal-contract/0.3",
+        "proposal_id": "conditional_outcome_cloze",
+        "blueprint_id": "conditional_outcome",
+        "status": "FILLED",
+        "assignment_kind": "intervention_text",
+        "assignment": [
+          "If Ben receives it",
+          "If Cara receives it"
+        ],
+        "slot_bindings": {
+          "copied_spans": {
+            "actor": "Ada",
+            "condition": "If Ben receives it",
+            "bearer": "Ben",
+            "outcome": "Ben will recover",
+            "second_condition": "If Cara receives it",
+            "second_bearer": "Cara",
+            "second_outcome": "Cara will recover"
+          }
+        },
+        "selection": null,
+        "selection_validation": {
+          "contract_valid": null,
+          "status": "not_assessed",
+          "reason": "The cloze path has no Z10 candidate selection."
+        },
+        "candidate": {
+          "actions": {
+            "A0": {
+              "clause_ids": [
+                "C2"
+              ],
+              "reason": "Filled from copied cloze slots."
+            },
+            "A1": {
+              "clause_ids": [
+                "C3"
+              ],
+              "reason": "Filled from copied cloze slots."
+            }
+          },
+          "world_model": {
+            "schema_version": "1.3",
+            "parties": [
+              {
+                "party_id": "P1",
+                "label": "Ada",
+                "kind": "PERSON",
+                "quantities": [],
+                "clause_ids": [
+                  "C1"
+                ]
+              },
+              {
+                "party_id": "P2",
+                "label": "Ben",
+                "kind": "PERSON",
+                "quantities": [],
+                "clause_ids": [
+                  "C1",
+                  "C2"
+                ]
+              },
+              {
+                "party_id": "P3",
+                "label": "Cara",
+                "kind": "PERSON",
+                "quantities": [],
+                "clause_ids": [
+                  "C1",
+                  "C3"
+                ]
+              }
+            ],
+            "actions": [
+              {
+                "action_id": "A0",
+                "intervention": "If Ben receives it",
+                "actor_party_id": "P1",
+                "recipient_party_ids": [
+                  "P2"
+                ],
+                "effect_ids": [
+                  "E1",
+                  "E2"
+                ],
+                "clause_ids": [
+                  "C2"
+                ]
+              },
+              {
+                "action_id": "A1",
+                "intervention": "If Cara receives it",
+                "actor_party_id": "P1",
+                "recipient_party_ids": [
+                  "P3"
+                ],
+                "effect_ids": [
+                  "E3",
+                  "E4"
+                ],
+                "clause_ids": [
+                  "C3"
+                ]
+              }
+            ],
+            "effects": [
+              {
+                "effect_id": "E1",
+                "action_id": "A0",
+                "party_id": "P2",
+                "outcome": "If Ben receives it",
+                "predicate": "if",
+                "polarity": "NEUTRAL",
+                "directness": "DIRECT",
+                "modality": "CERTAIN",
+                "effect_kind": "INTERVENTION",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "If Ben receives it",
+                "source_effect_ids": [],
+                "derivation_operation": "DIRECT_COPY",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C2"
+                ]
+              },
+              {
+                "effect_id": "E2",
+                "action_id": "A0",
+                "party_id": "P2",
+                "outcome": "Ben will recover",
+                "predicate": "survive",
+                "polarity": "BENEFICIAL",
+                "directness": "DOWNSTREAM",
+                "modality": "POSSIBLE",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "Ben will recover",
+                "source_effect_ids": [
+                  "E1"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C2"
+                ]
+              },
+              {
+                "effect_id": "E3",
+                "action_id": "A1",
+                "party_id": "P3",
+                "outcome": "If Cara receives it",
+                "predicate": "if",
+                "polarity": "NEUTRAL",
+                "directness": "DIRECT",
+                "modality": "CERTAIN",
+                "effect_kind": "INTERVENTION",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "If Cara receives it",
+                "source_effect_ids": [],
+                "derivation_operation": "DIRECT_COPY",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C3"
+                ]
+              },
+              {
+                "effect_id": "E4",
+                "action_id": "A1",
+                "party_id": "P3",
+                "outcome": "Cara will recover",
+                "predicate": "survive",
+                "polarity": "BENEFICIAL",
+                "directness": "DOWNSTREAM",
+                "modality": "POSSIBLE",
+                "effect_kind": "HEALTH_OUTCOME",
+                "condition_ids": [],
+                "quantities": [],
+                "likelihood_qualifiers": [],
+                "overall_likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "source_proposition": "Cara will recover",
+                "source_effect_ids": [
+                  "E3"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED",
+                "clause_ids": [
+                  "C3"
+                ]
+              }
+            ],
+            "conditions": [],
+            "temporal_relations": [],
+            "causal_links": [
+              {
+                "action_id": "A0",
+                "source_id": "E1",
+                "link_relation": "ENABLES",
+                "target_id": "E2",
+                "modality": "POSSIBLE",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C2"
+                ]
+              },
+              {
+                "action_id": "A1",
+                "source_id": "E3",
+                "link_relation": "ENABLES",
+                "target_id": "E4",
+                "modality": "POSSIBLE",
+                "condition_ids": [],
+                "clause_ids": [
+                  "C3"
+                ]
+              }
+            ],
+            "counterfactual_links": []
+          },
+          "ellipsis_resolutions": []
+        },
+        "clauses": [
+          {
+            "clause_id": "C0",
+            "text": "A clinic has one indivisible dose of medicine."
+          },
+          {
+            "clause_id": "C1",
+            "text": "Ada may give the dose to Ben or Cara."
+          },
+          {
+            "clause_id": "C2",
+            "text": "If Ben receives it, Ben will recover."
+          },
+          {
+            "clause_id": "C3",
+            "text": "If Cara receives it, Cara will recover."
+          }
+        ],
+        "unfilled_required_slots": [],
+        "unresolved_readings": [
+          {
+            "kind": "conditional_relation",
+            "alternatives": [
+              "CAUSES",
+              "ENABLES"
+            ]
+          }
+        ],
+        "construction_problems": [],
+        "admission_authorized": true,
+        "notes": [],
+        "pre_world_assessment": {
+          "ethical_question": "",
+          "scenario_options": [],
+          "exclusivity": "unspecified",
+          "exclusivity_proof": {
+            "status": "HYPOTHESIZED",
+            "evidence": [
+              {
+                "text": "one"
+              }
+            ],
+            "assumptions": [
+              "the resource is indivisible",
+              "allocation consumes it"
+            ],
+            "explanation": "A single item is mentioned, but indivisibility is not established."
+          },
+          "participants": [
+            {
+              "role": "subject",
+              "mention": "A clinic",
+              "predicate": "has"
+            },
+            {
+              "role": "object",
+              "mention": "one indivisible dose",
+              "predicate": "has"
+            },
+            {
+              "role": "subject",
+              "mention": "Ada",
+              "predicate": "give"
+            },
+            {
+              "role": "object",
+              "mention": "the dose",
+              "predicate": "give"
+            },
+            {
+              "role": "destination",
+              "mention": "Ben",
+              "predicate": "give"
+            },
+            {
+              "role": "subject",
+              "mention": "Ben",
+              "predicate": "receives"
+            },
+            {
+              "role": "object",
+              "mention": "it",
+              "predicate": "receives"
+            },
+            {
+              "role": "subject",
+              "mention": "Ben",
+              "predicate": "recover"
+            },
+            {
+              "role": "subject",
+              "mention": "Cara",
+              "predicate": "receives"
+            },
+            {
+              "role": "object",
+              "mention": "it",
+              "predicate": "receives"
+            },
+            {
+              "role": "subject",
+              "mention": "Cara",
+              "predicate": "recover"
+            },
+            {
+              "role": "destination",
+              "mention": "Cara",
+              "predicate": "give"
+            }
+          ],
+          "eligible_for_world_state": true,
+          "status": "ASSESSED"
+        },
+        "accepted_evidence": {
+          "actor": "Ada",
+          "condition": "If Ben receives it",
+          "bearer": "Ben",
+          "outcome": "Ben will recover",
+          "second_condition": "If Cara receives it",
+          "second_bearer": "Cara",
+          "second_outcome": "Cara will recover"
+        },
+        "construction_provenance": [
+          {
+            "atom_id": "party:P1",
+            "atom_kind": "party",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C1"
+            ],
+            "evidence": [
+              "Ada"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "party:P2",
+            "atom_kind": "party",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C1",
+              "C2"
+            ],
+            "evidence": [
+              "Ben"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "party:P3",
+            "atom_kind": "party",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C1",
+              "C3"
+            ],
+            "evidence": [
+              "Cara"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "action:A0",
+            "atom_kind": "action",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C2"
+            ],
+            "evidence": [
+              "If Ben receives it"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "action:A1",
+            "atom_kind": "action",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C3"
+            ],
+            "evidence": [
+              "If Cara receives it"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "effect:E1",
+            "atom_kind": "effect",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C2"
+            ],
+            "evidence": [
+              "If Ben receives it"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "effect:E2",
+            "atom_kind": "effect",
+            "origin": "STRUCTURALLY_DERIVED",
+            "clause_ids": [
+              "C2"
+            ],
+            "evidence": [
+              "Ben will recover"
+            ],
+            "explanation": "SOURCE_STIPULATED_CAUSAL"
+          },
+          {
+            "atom_id": "effect:E3",
+            "atom_kind": "effect",
+            "origin": "SOURCE_ASSERTED",
+            "clause_ids": [
+              "C3"
+            ],
+            "evidence": [
+              "If Cara receives it"
+            ],
+            "explanation": "DIRECT_COPY"
+          },
+          {
+            "atom_id": "effect:E4",
+            "atom_kind": "effect",
+            "origin": "STRUCTURALLY_DERIVED",
+            "clause_ids": [
+              "C3"
+            ],
+            "evidence": [
+              "Cara will recover"
+            ],
+            "explanation": "SOURCE_STIPULATED_CAUSAL"
+          },
+          {
+            "atom_id": "relation:0",
+            "atom_kind": "relation",
+            "origin": "UNRESOLVED",
+            "clause_ids": [
+              "C2"
+            ],
+            "evidence": [],
+            "explanation": "A conditional association requires a working Parliament relation."
+          },
+          {
+            "atom_id": "relation:1",
+            "atom_kind": "relation",
+            "origin": "UNRESOLVED",
+            "clause_ids": [
+              "C3"
+            ],
+            "evidence": [],
+            "explanation": "A conditional association requires a working Parliament relation."
+          }
+        ],
+        "relation_alternatives": [
+          {
+            "relation_id": "relation:0",
+            "source_id": "E1",
+            "target_id": "E2",
+            "selected_for_parliament": "ENABLES",
+            "alternatives": [
+              "ENABLES",
+              "CAUSES"
+            ],
+            "status": "UNRESOLVED",
+            "evidence": [],
+            "condition_ids": [],
+            "structural_basis": "conditional_parent"
+          },
+          {
+            "relation_id": "relation:1",
+            "source_id": "E3",
+            "target_id": "E4",
+            "selected_for_parliament": "ENABLES",
+            "alternatives": [
+              "ENABLES",
+              "CAUSES"
+            ],
+            "status": "UNRESOLVED",
+            "evidence": [],
+            "condition_ids": [],
+            "structural_basis": "conditional_parent"
+          }
+        ],
+        "exclusivity_proof": {
+          "status": "HYPOTHESIZED",
+          "evidence": [
+            {
+              "text": "one"
+            }
+          ],
+          "assumptions": [
+            "the resource is indivisible",
+            "allocation consumes it"
+          ],
+          "explanation": "A single item is mentioned, but indivisibility is not established."
+        },
+        "world_withheld": []
+      }
+    }
+  ]
+}

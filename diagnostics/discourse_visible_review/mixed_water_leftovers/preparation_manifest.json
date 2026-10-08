@@ -1,0 +1,324 @@
+{
+  "scenario": "An AI bot promised a child the only water tanker. It must decide whether to devote the tanker to the child or five elderly patients, but not both. If the child gets the water, the child will live. If the five elderly patients get the water, the five elderly patients will live. The people who do not get the water will die.",
+  "semantic_coverage": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/semantic_coverage.json",
+  "question_assessment": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/question_assessment.json",
+  "chooser_model": "gpt-4o-mini",
+  "chosen_blueprint_id": "flexible_graph",
+  "blueprint_status": "FILLED",
+  "candidate_graphs_markdown": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/candidate_graphs.md",
+  "candidate_attempts_json": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/candidate_attempts.json",
+  "z10_blueprint_comparison": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/z10_blueprint_comparison.json",
+  "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/blueprint_candidate.json",
+  "scenario_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/scenario.json",
+  "actions": [
+    "gets the water",
+    "get the water"
+  ],
+  "deliberation": {
+    "status": "COMPLETED",
+    "mode": "full",
+    "agents": [
+      "utilitarian",
+      "deontological",
+      "virtue",
+      "care",
+      "rawlsian"
+    ],
+    "max_cycles": 3,
+    "use_rag": false,
+    "command": [
+      "/tmp/parliament-smoke-env/bin/python",
+      "global_workspace_pipeline.py",
+      "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/scenario.json",
+      "--frozen-world-trace",
+      "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/frozen_world_trace.json",
+      "--backend",
+      "openai",
+      "--openai-model",
+      "o3",
+      "--agents",
+      "utilitarian",
+      "deontological",
+      "virtue",
+      "care",
+      "rawlsian",
+      "--max-cycles",
+      "3",
+      "--time-budget",
+      "600.0",
+      "--agent-timeout",
+      "600.0",
+      "--openai-concurrency",
+      "2",
+      "--delegate-tokens",
+      "128",
+      "--output-dir",
+      "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/parliament",
+      "--no-rag-context"
+    ],
+    "judgment_status": "UNRESOLVED",
+    "selected_action": "UNRESOLVED",
+    "current_plurality": "gets the water",
+    "world_generation_calls": 0,
+    "trace": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/parliament/workspace_scenario_20261005_124746.json",
+    "deliberation_report": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/parliament/deliberation_report.md",
+    "summary": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/parliament/workspace_scenario_20261005_124746.txt",
+    "answer": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/parliament/workspace_scenario_20261005_124746_answer.txt",
+    "semantic_preservation_trace": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/parliament/semantic_preservation_trace.json"
+  },
+  "parliament_version": {
+    "root": "/private/tmp/parliament-smoke-614af0c",
+    "commit": null,
+    "branch": null,
+    "modified_files": [],
+    "integration_patch_sha256": "c878f1c6f463219f72bc4f42e5cd11fb177e5f33d62fa39b0334f44deb277d57",
+    "discourse_workspace_patch_sha256": "8741c60141b59062de79102eb0bebcaccadbba8a2111e9dcebebaf92ac4d193e"
+  },
+  "admission_attempts": [
+    {
+      "blueprint_id": "exclusive_allocation",
+      "rank": -0.1,
+      "variant": "amended",
+      "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/admission_attempts/00_exclusive_allocation/candidate.json",
+      "overlay_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/admission_attempts/00_exclusive_allocation/hypothesis_overlay.json",
+      "status": "REJECTED",
+      "returncode": 1,
+      "error": "Traceback (most recent call last):\n  File \"/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpbjm_h1_x/admit_blueprint.py\", line 148, in <module>\n    parse_world_model(\n  File \"/private/tmp/parliament-smoke-614af0c/global_workspace/world_state.py\", line 3123, in parse_world_model\n    raise WorldModelValidationError(\nglobal_workspace.world_validation.WorldModelValidationError: E5 outcome lemma does not bind to source_proposition; rewrite the outcome to a morphological variant of the source event or omit the derived world effect; E8 outcome lemma does not bind to source_proposition; rewrite the outcome to a morphological variant of the source event or omit the derived world effect; E7 is a downstream human outcome whose causal ancestry never reaches a DIRECT act on the actor or a named recipient; connect this action's intervention to the action-mediated process that produces the outcome. If the source does not attribute a stochastic process to the intervention, do not invent that causal link; generate the missing mediated branch; E10 is a downstream human outcome whose causal ancestry never reaches a DIRECT act on the actor or a named recipient; connect this action's intervention to the action-mediated process that produces the outcome. If the source does not attribute a stochastic process to the intervention, do not invent that causal link; generate the missing mediated branch\n"
+    },
+    {
+      "blueprint_id": "exclusive_allocation",
+      "rank": 0,
+      "variant": "baseline",
+      "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/admission_attempts/01_exclusive_allocation/candidate.json",
+      "overlay_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/admission_attempts/01_exclusive_allocation/hypothesis_overlay.json",
+      "status": "REJECTED",
+      "returncode": 1,
+      "error": "Traceback (most recent call last):\n  File \"/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpbjm_h1_x/admit_blueprint.py\", line 148, in <module>\n    parse_world_model(\n  File \"/private/tmp/parliament-smoke-614af0c/global_workspace/world_state.py\", line 3123, in parse_world_model\n    raise WorldModelValidationError(\nglobal_workspace.world_validation.WorldModelValidationError: E5 outcome lemma does not bind to source_proposition; rewrite the outcome to a morphological variant of the source event or omit the derived world effect; E8 outcome lemma does not bind to source_proposition; rewrite the outcome to a morphological variant of the source event or omit the derived world effect; E7 is a downstream human outcome whose causal ancestry never reaches a DIRECT act on the actor or a named recipient; connect this action's intervention to the action-mediated process that produces the outcome. If the source does not attribute a stochastic process to the intervention, do not invent that causal link; generate the missing mediated branch; E10 is a downstream human outcome whose causal ancestry never reaches a DIRECT act on the actor or a named recipient; connect this action's intervention to the action-mediated process that produces the outcome. If the source does not attribute a stochastic process to the intervention, do not invent that causal link; generate the missing mediated branch\n"
+    },
+    {
+      "blueprint_id": "rescue_contrast",
+      "status": "NOT_RUN",
+      "reason": "construction_withheld"
+    },
+    {
+      "blueprint_id": "omission_harm",
+      "status": "NOT_RUN",
+      "reason": "construction_withheld"
+    },
+    {
+      "blueprint_id": "flexible_graph",
+      "rank": 3,
+      "variant": "flexible",
+      "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/admission_attempts/04_flexible_graph/candidate.json",
+      "overlay_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/admission_attempts/04_flexible_graph/hypothesis_overlay.json",
+      "status": "ADMITTED",
+      "admission": {
+        "status": "COMMITTED",
+        "world_model_status": "COMMITTED",
+        "effects": 6,
+        "causal_links": 4,
+        "frozen_trace_valid": true,
+        "discourse_committed": false,
+        "relent_workspace": {
+          "established": [
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E1",
+              "outcome": "gets the water",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E2",
+              "outcome": "gets the water",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E3",
+              "outcome": "the child will live",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E4",
+              "outcome": "get the water",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E5",
+              "outcome": "get the water",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E6",
+              "outcome": "the five elderly patients will live",
+              "predicate": null,
+              "status": "established"
+            }
+          ],
+          "not_established": [],
+          "duty_ledger_citations": [],
+          "ev_forbidden_proposition_ids": [],
+          "factual_status_sources": [
+            "occurrence_effects"
+          ]
+        },
+        "fingerprint_sha256": "42ed609385bea0b39cf11ef6b7d46d89eb0a9b8febe4fb206fe65e3c85b939da"
+      },
+      "trace_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/admission_attempts/04_flexible_graph/frozen_world_trace.json"
+    },
+    {
+      "blueprint_id": "primitive_composition",
+      "rank": 4,
+      "variant": "composition",
+      "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/admission_attempts/05_primitive_composition/candidate.json",
+      "overlay_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/admission_attempts/05_primitive_composition/hypothesis_overlay.json",
+      "status": "ADMITTED",
+      "admission": {
+        "status": "COMMITTED",
+        "world_model_status": "COMMITTED",
+        "effects": 6,
+        "causal_links": 4,
+        "frozen_trace_valid": true,
+        "discourse_committed": false,
+        "relent_workspace": {
+          "established": [
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E1",
+              "outcome": "gets the water",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E2",
+              "outcome": "gets the water",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E3",
+              "outcome": "the child will live",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E4",
+              "outcome": "get the water",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E5",
+              "outcome": "get the water",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E6",
+              "outcome": "the five elderly patients will live",
+              "predicate": null,
+              "status": "established"
+            }
+          ],
+          "not_established": [],
+          "duty_ledger_citations": [],
+          "ev_forbidden_proposition_ids": [],
+          "factual_status_sources": [
+            "occurrence_effects"
+          ]
+        },
+        "fingerprint_sha256": "abf82b55a8f33f863f9615710706b0bd8badee2ddbaeaa3e22b22a11ef26b054"
+      },
+      "trace_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/admission_attempts/05_primitive_composition/frozen_world_trace.json"
+    }
+  ],
+  "chooser_preferred_blueprint_id": "exclusive_allocation",
+  "hypothesis_overlay": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/admission_attempts/04_flexible_graph/hypothesis_overlay.json",
+  "selected_variant": "flexible",
+  "source_construction_advisory": {
+    "path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/source_construction_advisory.json",
+    "construction_count": 1,
+    "authority": "UNSELECTED_PARSER_PROPOSALS"
+  },
+  "pipeline_status": "COMPLETED",
+  "proposal_contract_valid": true,
+  "selection_contract_valid": true,
+  "parliament_admission": {
+    "status": "COMMITTED",
+    "world_model_status": "COMMITTED",
+    "effects": 6,
+    "causal_links": 4,
+    "frozen_trace_valid": true,
+    "discourse_committed": false,
+    "relent_workspace": {
+      "established": [
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E1",
+          "outcome": "gets the water",
+          "predicate": null,
+          "status": "established"
+        },
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E2",
+          "outcome": "gets the water",
+          "predicate": null,
+          "status": "established"
+        },
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E3",
+          "outcome": "the child will live",
+          "predicate": null,
+          "status": "established"
+        },
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E4",
+          "outcome": "get the water",
+          "predicate": null,
+          "status": "established"
+        },
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E5",
+          "outcome": "get the water",
+          "predicate": null,
+          "status": "established"
+        },
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E6",
+          "outcome": "the five elderly patients will live",
+          "predicate": null,
+          "status": "established"
+        }
+      ],
+      "not_established": [],
+      "duty_ledger_citations": [],
+      "ev_forbidden_proposition_ids": [],
+      "factual_status_sources": [
+        "occurrence_effects"
+      ]
+    },
+    "fingerprint_sha256": "42ed609385bea0b39cf11ef6b7d46d89eb0a9b8febe4fb206fe65e3c85b939da"
+  },
+  "frozen_world_trace": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/frozen_world_trace.json",
+  "world_state_topology_markdown": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/world_state_topology.md",
+  "world_state_topology_json": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/discourse_visible_review/mixed_water_leftovers/world_state_topology.json"
+}
