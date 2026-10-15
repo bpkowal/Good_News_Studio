@@ -56,7 +56,7 @@ from candidate_graph_blueprints import _clause_holding, match_exclusive_allocati
 from z10_world_model_adapter import segment_source_clauses
 
 
-CLOZE_VERSION = "blueprint-cloze-chooser/0.11"
+CLOZE_VERSION = "blueprint-cloze-chooser/0.15"
 DEFAULT_OPENAI_ENV = Path(
     "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/.env"
 )
@@ -196,8 +196,8 @@ TEMPLATES: tuple[dict[str, Any], ...] = (
         "summary": "Doing an action and not doing it each harm someone.",
         "graph_builder": "implemented",
         "items": (
-            {"id": "actor", "core": True, "check": "copy",
-             "sentence": "The person who may do the action or not do it is"},
+            {"id": "actor", "core": True, "check": "actor_nominal",
+             "sentence": "Only the name or noun phrase of the person who may act, without a verb or outcome, is"},
             {"id": "done", "core": True, "check": "branch_action",
              "sentence": "The positive action considered (not an event asserted to have occurred), without its if marker or outcome, is"},
             {"id": "omitted", "core": True, "check": "negated_action",
@@ -214,8 +214,18 @@ TEMPLATES: tuple[dict[str, Any], ...] = (
              "sentence": "One copied group count in a harmful outcome is"},
             {"id": "instrument", "core": False, "check": "instrument_contrast",
              "sentence": "The contrasting instrument named after but not is"},
-            {"id": "controllable_process", "core": False, "check": "process_words",
-             "sentence": "The moving or controllable process named in the mechanism (not a human victim) is"},
+            {"id": "controllable_process", "core": False, "check": "process_nominal",
+             "sentence": "Only the noun phrase naming the moving or controllable process, without its movement clause or victims, is"},
+            {"id": "done_patient", "core": False, "check": "branch_patient",
+             "sentence": "Only the affected person's or group's noun phrase in the doing branch, not the killer or a clause, is"},
+            {"id": "omitted_patient", "core": False, "check": "branch_patient",
+             "sentence": "Only the affected person's or group's noun phrase in the omission branch, not the killer or a clause, is"},
+            {"id": "done_quantity", "core": False, "check": "patient_count",
+             "sentence": "Only the explicit number of affected people in the doing branch, or NONE if not stated, is"},
+            {"id": "omitted_quantity", "core": False, "check": "patient_count",
+             "sentence": "Only the explicit number of affected people in the omission branch, or NONE if not stated, is"},
+            {"id": "instrument_entity", "core": False, "check": "instrument_nominal",
+             "sentence": "Only the noun phrase of the instrument operated by the actor (not a contrasting unused instrument) is"},
         ),
     },
     {
@@ -813,6 +823,8 @@ def _template_instructions(blueprint_id: str) -> list[str]:
             "Copy a harm only when that branch states it.",
         ],
         "omission_harm": [
+            "Entity blanks take only names or noun phrases; count blanks take only a number. Keep verbs in action/outcome blanks.",
+            "Fill affected-party and quantity blanks separately for each branch; do not combine victims with the process that harms them.",
             "Copy the complete harmful proposition, including its harm verb.",
             "The doing and not-doing branches are possible choices, not claims that either occurred.",
             "For 'If she does not', copy does not as the negative branch; do not discard it for lacking a repeated verb.",
@@ -1165,6 +1177,18 @@ def _score_slot(text: str, item: dict[str, Any], values: Sequence[str],
 def _normalize_slot_span(text: str, item: dict[str, Any], candidate: str,
                          accepted: dict[str, str]) -> str:
     head = _party_head(text, candidate) if item["id"] in _PARTY_IDS else candidate
+    if item['check'] in {'actor_nominal', 'branch_patient', 'instrument_nominal', 'process_nominal'}:
+        head = _role_nominal(candidate, item['check']) or candidate
+    elif item['check'] == 'patient_count':
+        number = _NUMBER.search(candidate)
+        head = number.group() if number else candidate
+    elif item['check'] == 'branch_action':
+        head = _minimal_action_copy(candidate) or candidate
+    elif item['check'] == 'harm_clause' and item['id'] in {'harm_done','harm_omitted'}:
+        local=candidate
+        if re.match(r'^(?:if|unless)\b',local,re.I) and ',' in local:
+            local=local.split(',',1)[1].strip()
+        head=_branch_conjuncts(local)[0].strip()
     if item["check"] == "assignment":
         head = _assigned_act(text, head)
     elif item["check"] == "commitment_words":
@@ -1172,6 +1196,62 @@ def _normalize_slot_span(text: str, item: dict[str, Any], candidate: str,
     if head != candidate and not _answers_sentence(text, item, head, accepted):
         return candidate
     return head
+
+
+def _role_nominal(span: str, role: str) -> str:
+    """Copy a local role's minimal noun phrase; never synthesize a referent."""
+    import parsing_game_S as parsing
+    doc = parsing.get_nlp()(span)
+    if role=='process_nominal':
+        named=[t for t in doc if t.lemma_.lower() in {'flow','trolley','train','water','traffic','current','fire','process'}]
+        if len(named)!=1:
+            return ''
+        head=named[0]
+        parts=[head]+[t for t in head.children if t.dep_ in {'det','amod','compound'}]
+        return span[min(t.idx for t in parts):max(t.idx+len(t.text) for t in parts)]
+    if role == 'branch_patient':
+        patient = _outcome_patient(span)
+        if patient:
+            return patient
+    candidates = [t for t in doc if t.dep_ in (
+        {'nsubj', 'nsubjpass'} if role == 'actor_nominal' else {'dobj', 'obj'})]
+    matrix = [t for t in candidates if t.head.dep_ == 'ROOT']
+    if len(matrix) == 1:
+        candidates = matrix
+    if len(candidates) != 1:
+        chunks = list(doc.noun_chunks)
+        if len(chunks) != 1:
+            return ''
+        candidates = [chunks[0].root]
+    head = candidates[0]
+    parts = [head] + [t for t in head.children if t.dep_ in {'det','amod','nummod','compound','poss'}]
+    return span[min(t.idx for t in parts):max(t.idx+len(t.text) for t in parts)]
+
+
+def _is_nominal(span: str) -> bool:
+    import parsing_game_S as parsing
+    doc = parsing.get_nlp()(span)
+    return bool(any(t.pos_ in {'NOUN','PROPN','PRON','NUM'} for t in doc)
+                and not any(t.pos_ in {'VERB','AUX'} for t in doc))
+
+
+def _minimal_action_copy(span: str) -> str:
+    """Keep the action's local text; relative mechanisms remain in source evidence."""
+    import parsing_game_S as parsing
+    local=span.split(',',1)[0] if re.match(r'^if\b',span,re.I) else span
+    doc=parsing.get_nlp()(local)
+    roots=[t for t in doc if t.dep_=='ROOT' and t.pos_=='VERB']
+    if len(roots)!=1:
+        return ''
+    root=roots[0]
+    relatives=[t for t in doc if t.dep_=='relcl' and t.head.dep_ in {'dobj','obj'}]
+    end=min((min(child.idx for child in token.subtree) for token in relatives),default=len(local))
+    # Other subordinate/coordinate predicates require separate interpretations;
+    # this adapter only handles an object's explicit relative clause.
+    if any(t.pos_=='VERB' and t!=root and not any(t in list(r.subtree) for r in relatives) for t in doc):
+        return ''
+    start=min([root.idx]+[t.idx for t in root.children if t.dep_ in {'aux','neg'} and t.lemma_.lower()!='do'])
+    return local[start:end].strip(' ,. ')
 
 
 def _fragment_hedge(item: dict[str, Any], span: str | None) -> bool:
@@ -1576,9 +1656,25 @@ def _enrich_conditional_from_z10(text: str, template: dict[str, Any],
         # copied only its first (harmful) conjunct into the cloze harm slot.
         row["slots"]["done_outcomes"] = positive["outcome"]
         row["slots"]["omitted_outcomes"] = negative["outcome"]
+        for prefix, branch in [('done', positive), ('omitted', negative)]:
+            patient = _outcome_patient(branch['outcome']) or branch['bearer']
+            recover(prefix + '_patient', patient, candidate_ids=[branch['link_id']])
+            number = _NUMBER.search(patient)
+            if number:
+                recover(prefix + '_quantity', number.group(), candidate_ids=[branch['link_id']])
+        instrument = _action_object(text, positive['action'])
+        if instrument:
+            recover('instrument_entity', _role_nominal(instrument, 'instrument_nominal') or instrument)
         recover("done_hedge", positive["condition"], candidate_ids=[positive["link_id"]])
         recover("omitted_hedge", negative["condition"], candidate_ids=[negative["link_id"]])
         recover("group_counts", positive["bearer"], replace=False)
+        row['branch_bindings'] = [
+            {'action_slot': prefix if prefix == 'done' else 'omitted',
+             'patient': row['slots'].get(prefix + '_patient'),
+             'quantity': row['slots'].get(prefix + '_quantity'),
+             'condition': branch['condition'], 'outcomes': branch['outcome'],
+             'supporting_candidate_ids': [branch['link_id']]}
+            for prefix, branch in [('done', positive), ('omitted', negative)]]
     return _refresh_scored_row(row)
 
 
@@ -1988,6 +2084,12 @@ def _graph(text: str, winner: dict[str, Any],
         "z10_recovered_slots": dict(winner.get("semantic_recoveries") or {}),
         "slot_hypotheses": dict(winner.get("slot_hypotheses") or {}),
     }
+    if winner["blueprint_id"] in {"omission_harm", "diversion_redirection", "conditional_outcome"}:
+        from blueprint_spatial_projection import spatial_cells, branch_choice_cells
+        slot_bindings["branch_choices"] = branch_choice_cells(world)
+        physical_cells = spatial_cells(text, world)
+        if physical_cells:
+            slot_bindings["physical_scene_cells"] = physical_cells
     if winner["blueprint_id"] == "exclusive_allocation":
         match = match_exclusive_allocation(
             package,
@@ -2497,11 +2599,12 @@ def _omission_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str]]:
     for branch, (action_span, branch_outcome, hedge) in enumerate(pairs):
         harm_span = _branch_conjuncts(branch_outcome)[0]
         reading = _outcome_reading(harm_span)
-        copied_bearer = _outcome_patient(harm_span) or _party_head(text, harm_span)
+        copied_bearer = slots.get('done_patient' if branch == 0 else 'omitted_patient') or _outcome_patient(harm_span) or _party_head(text, harm_span)
         bearer_label, quantities = _outcome_bearer(harm_span, copied_bearer)
         bearer = _party(
             text, parties, index, bearer_label,
-            quantities or ([_quantity_token(bearer_label)]
+            quantities or ([slots['done_quantity' if branch == 0 else 'omitted_quantity']]
+                           if slots.get('done_quantity' if branch == 0 else 'omitted_quantity') else []) or ([_quantity_token(bearer_label)]
                            if _quantity_token(bearer_label) else []),
             role="bearer", construction="omission_harm")
         direct_host = _clause_for(text, action_span)
@@ -2525,7 +2628,7 @@ def _omission_graph(text: str, slots: dict[str, str]) -> tuple[dict, list[str]]:
             else "POSITIVE",
             "operator": "IF",
         })
-        process_label = slots.get('controllable_process') or _action_object(text, action_span)
+        process_label = slots.get('controllable_process') or slots.get('instrument_entity') or _action_object(text, action_span)
         if not process_label and branch and re.fullmatch(r'(?:does|do|did)\s+not', action_span, re.I):
             process_label = _action_object(text, slots['done'])
         direct_party = (_party(
@@ -3125,6 +3228,23 @@ def _checked_modality(outcome: str, hedge: str | None) -> tuple[str, list[str]]:
 def _answers_sentence(text: str, item: dict[str, Any], span: str,
                       accepted: dict[str, str]) -> bool:
     check = item["check"]
+    if check == 'actor_nominal':
+        return _is_nominal(span)
+    if check == 'process_nominal':
+        return _is_nominal(span) and _answers_sentence(text,{**item,'check':'process_words'},span,accepted)
+    if check == 'branch_patient':
+        if not _is_nominal(span):
+            return False
+        outcome = accepted.get('harm_done' if item['id'] == 'done_patient' else 'harm_omitted', '')
+        patient = _outcome_patient(outcome) if outcome else ''
+        return bool(patient and patient.casefold() == span.casefold())
+    if check == 'patient_count':
+        patient = accepted.get('done_patient' if item['id'] == 'done_quantity' else 'omitted_patient', '')
+        return bool(_NUMBER.fullmatch(span) and re.search(r'\b'+re.escape(span)+r'\b', patient, re.I))
+    if check == 'instrument_nominal':
+        action = accepted.get('done', '')
+        instrument = _action_object(text, action) if action else ''
+        return bool(_is_nominal(span) and instrument and span.casefold() == (_role_nominal(instrument, check) or instrument).casefold())
     if check == "copy":
         return True
     if check == "party":

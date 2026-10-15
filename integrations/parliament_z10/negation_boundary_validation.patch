@@ -1,0 +1,105 @@
+--- a/global_workspace/local_specialists.py
++++ b/global_workspace/local_specialists.py
+@@ -1186,6 +1186,51 @@
+ )
+ 
+ 
++def _negated_choice_alignment(actions: Sequence[str], index: int, case: str) -> bool | None:
++    """Recognize a stated choice vs its explicit negation, without NLP or a vote.
++
++    Only applies when the action texts differ by auxiliaries/negation. Other
++    action mappings continue through the existing lexical/semantic checks.
++    """
++    auxiliaries = {'do', 'does', 'did', 'not', 'never', 'the', 'a', 'an', 'to'}
++    def stem(word):
++        for suffix in ('ing', 'ied', 'ed', 'es', 's'):
++            if word.endswith(suffix) and len(word)-len(suffix) >= 4:
++                return word[:-len(suffix)]
++        return word
++    def signature(text):
++        text = text.casefold().replace("n't", ' not')
++        words = re.findall(r'[a-z]+', text)
++        return ('not' in words or 'never' in words,
++                tuple(stem(w) for w in words if w not in auxiliaries))
++    negative, content = signature(actions[index])
++    if not content or not any(signature(a) == (not negative, content)
++                              for i,a in enumerate(actions) if i != index):
++        return None
++    root = content[0]
++    forms = re.escape(root) + r'(?:s|es|ed|ing)?'
++    if root.endswith('e'):
++        forms += '|' + re.escape(root[:-1]) + r'(?:ing|ed)'
++    mention = re.search(r'\b(?:' + forms + r')\b', case, re.I)
++    if not mention:
++        return None
++    prefix = case[:mention.start()].casefold().replace("n't", ' not')
++    case_negative = bool(re.search(
++        r'\b(?:not|never|without)\s+(?:to\s+)?$|'
++        r'\b(?:refrain|abstain)(?:s|ed|ing)?\s+from\s+$', prefix))
++    return case_negative == negative
++
++
++def _hypothetical_reversal_text(text: str) -> bool:
++    """A conservative scope cue for numbers in the reversal field, not evidence."""
++    if re.search(r'\b(?:currently|actually|in fact|there (?:are|is))\b', text, re.I):
++        return False
++    return bool(re.search(
++        r'\b(?:if|would|were|unless)\b|'
++        r'\b(?:drops?|falls?|rises?|increases?|decreases?)\s+(?:below|above|to)\b',
++        text, re.I))
++
++
+ def _landscape_semantic_errors(
+     actions: Sequence[str],
+     landscape_cases: dict[str, str],
+@@ -1229,7 +1274,14 @@
+         leading_tokens = stems(leading_clause)
+         other_tokens = set().union(*(tokens for offset, tokens in enumerate(token_sets) if offset != index))
+         distinctive = token_sets[index] - other_tokens
+-        if _HARM_ACTION.search(action):
++        signed_alignment = _negated_choice_alignment(actions, index, leading_clause)
++        if signed_alignment is False:
++            errors.append(f"case for A{index} tracks the opposing action but not its own action")
++        elif signed_alignment is True:
++            # Negation is the distinguishing operator. "Does" is not an
++            # entity anchor and "not pulling" is not evidence of pulling.
++            pass
++        elif _HARM_ACTION.search(action):
+             # Harm acknowledgment is a stronger and more paraphrase-tolerant
+             # causal anchor than literal repetition of a victim label.
+             if not _HARM_ACKNOWLEDGMENT.search(case):
+@@ -2596,10 +2648,11 @@
+         and isinstance(clause.get("threshold"), (int, float))
+         and not isinstance(clause.get("threshold"), bool)
+     } if isinstance(graph_clauses, list) else set()
+-    ungrounded_numbers = (
+-        proposed_numbers | _numeric_literals(factual_threshold)
+-    ) - grounded_numbers
+-    if ungrounded_numbers:
++    hypothetical_reversal = _hypothetical_reversal_text(factual_threshold)
++    ungrounded_assertions = (_numeric_literals(factual_threshold) - grounded_numbers
++                             if not hypothetical_reversal else set())
++    ungrounded_parameters = proposed_numbers - grounded_numbers
++    if ungrounded_assertions:
+         framework_validation_errors.append(
+             "numeric reversal threshold lacks a scenario-grounded quantity"
+         )
+@@ -2609,7 +2662,17 @@
+             "to_action": "NONE", "clauses": [],
+         }
+         graph_clauses = []
+-    precision_claims = [factual_threshold]
++    elif ungrounded_parameters:
++        # Keep the authored hypothetical reversal visible, but do not commit
++        # an unsupported numeric switching boundary as an operative update.
++        framework_validation_errors.append(
++            "hypothetical reversal boundary parameter is unverified; graph update not committed"
++            if hypothetical_reversal else "numeric reversal threshold lacks a scenario-grounded quantity"
++        )
++        graph_update = {"operation": "NONE", "from_action": "NONE",
++                        "to_action": "NONE", "clauses": []}
++        graph_clauses = []
++    precision_claims = [] if hypothetical_reversal else [factual_threshold]
+     if isinstance(graph_clauses, list):
+         precision_claims.extend(
+             str(clause.get("threshold") or "")

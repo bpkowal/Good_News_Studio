@@ -35,6 +35,47 @@ def close_deontological_map(response):
                     'semantic_fields_changed': False}
 
 
+def candidate_maxim_review(candidate, world=None):
+    """Local argument context; never a reconstruction of the actor's intentions."""
+    records = (candidate.get('committed_native_ledger') or {}).get('records', [])
+    return {
+        'origin': 'CANDIDATE_INTERPRETATION',
+        'world_fact': False,
+        'options': [{'action_id': row.get('canonical_action_id'),
+                     'candidate_maxim': deepcopy(row.get('candidate_maxim')),
+                     'means_relation': row.get('means_relation'),
+                     'proposed_verdict': row.get('proposed_verdict', row.get('verdict')),
+                     'reason': row.get('reason')}
+                    for row in records],
+        'world_references': {
+            'origin': 'FROZEN_WORLD_COPY',
+            'effects': [{key: e.get(key) for key in ('effect_id', 'action_id', 'outcome', 'polarity')}
+                        for e in (world or {}).get('effects', [])],
+            'relations': [{key: e.get(key) for key in ('action_id', 'source_id', 'relation', 'target_id')}
+                          for e in (world or {}).get('causal_links', [])],
+        },
+        'question': (
+            'For each option, including omission, state or revise its candidate maxim. '
+            'Identify the exact step from purpose and chosen means to the claimed duty priority. '
+            'For any proposed use of a person, identify the sought end, the belief that '
+            'employing that person furthers it, and the decision to employ the person for it. '
+            'Distinguish operating a device or redirecting a threat from employing its victim. '
+            'Check means_effect_ids against end_effect_ids: a sibling harmful outcome is not '
+            'a means to rescue just because both result from the same intervention. '
+            'If the burden is a foreseen side effect, explain any claim that the person is '
+            'nevertheless used merely as a means, or retract that inference. If intended use '
+            'is claimed, explain its role in the proposed practical reasoning and the consent '
+            'constraint; external causal necessity alone does not establish the actor\'s reasoning. '
+            'Challenge whether the omission policy adequately answers the rescue claim. '
+            'Examine universalization of the particular policy, not merely a benevolent purpose. '
+            'Keep action permissibility separate from the moral quality of the maxim. '
+            'A supported causal contribution does not by itself establish wrongful killing '
+            'or settle the priority of a perfect duty. Defend that normative step separately. '
+            'Do not assert unknown intentions or consent as world facts. Defend, revise, '
+            'or explicitly leave the inference unresolved; a RESOLVED label cannot retire it.'),
+    }
+
+
 def review_jobs(assessment, issue_ids=None):
     graph = project_conflicts(assessment)
     nodes = {n['id']: n for n in graph['nodes']}
@@ -59,6 +100,13 @@ def review_jobs(assessment, issue_ids=None):
                      '; '.join(i['label'] for i in issues) +
                      '. Identify any native classification you revise, retain, or leave unresolved. '
                      'A missing factual link remains missing; a framework commitment cannot supply it.'})
+    for job in jobs:
+        if job['framework'] == 'deontological':
+            prior = next(c for c in assessment['cycles'][-1]['candidates']
+                         if c['specialist'] == 'deontological')
+            job['maxim_review'] = candidate_maxim_review(
+                prior, (assessment.get('action_source_grounding') or {}).get('world_model'))
+            job['question'] += ' ' + job['maxim_review']['question']
     return jobs
 
 
@@ -167,6 +215,11 @@ def write_review(result, output_dir):
              'Execution modes: ' + json.dumps(result['targeted_review'].get('execution_modes', {})) + '.', '',
              'Acceptance path: ' + result['targeted_review'].get('acceptance_path', 'see native trace') + '.', '',
              'Removing a validator objection is not independent proof of semantic correctness.', '']
+    offer=result.get('follow_up_offer') or {}
+    if offer.get('status')=='AVAILABLE':
+        lines += ['## Optional deeper review', '', offer['message'], '',
+                  'This asks about the revised argument; it does not establish a contradiction or authorize further API calls.', '']
+        lines += [q['question']+'\n' for q in offer['questions']]
     for issue in result['targeted_review']['issues']:
         lines += ['## ' + issue['objection'], '',
                   'Framework: ' + issue['framework'] + '. Review: ' + issue['review_status'] + '.', '',
@@ -194,7 +247,8 @@ def write_review(result, output_dir):
     (output_dir/'targeted_review.md').write_text('\n'.join(lines))
 
 
-def review(assessment_path, output_dir, backend_factory, *, tokens=3072, max_calls=2, allow_partial=True, allow_residual=True, issue_ids=None):
+def review(assessment_path, output_dir, backend_factory, *, tokens=3072, max_calls=2, allow_partial=True, allow_residual=True, issue_ids=None,
+           jobs_override=None, prior_responses=None, verify_prior=False):
     from global_workspace.engine import WorkspaceEngine, WorkspaceConfig
     from global_workspace.frozen_world_replay import load_frozen_world_trace
     from global_workspace.local_specialists import CompactLocalSpecialist, extract_scenario_facts
@@ -204,6 +258,9 @@ def review(assessment_path, output_dir, backend_factory, *, tokens=3072, max_cal
     assessment = json.loads(source_bytes)
     shared = json.loads((assessment_path.parent/'shared_input.json').read_text())
     quotes = json.loads((assessment_path.parent/'framework_commitments.json').read_text())
+    from parliament_run_provenance import record_resource
+    record_resource(assessment_path.parent/'shared_input.json')
+    record_resource(assessment_path.parent/'framework_commitments.json')
     if fingerprint(shared) != assessment['shared_input_sha256'] or shared['scenario'] != assessment['scenario'] or shared['action_source_grounding'] != assessment['action_source_grounding']:
         raise ValueError('Review shared input differs from assessed input')
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -214,7 +271,7 @@ def review(assessment_path, output_dir, backend_factory, *, tokens=3072, max_cal
     replay = load_frozen_world_trace(replay_path, expected_scenario=assessment['scenario'])
     if len(replay.canonical_actions) != 2:
         raise ValueError('Targeted review pilot requires exactly two actions')
-    jobs = review_jobs(assessment, issue_ids)
+    jobs = deepcopy(jobs_override) if jobs_override is not None else review_jobs(assessment, issue_ids)
     output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir/'review_jobs.json').write_text(json.dumps(jobs, indent=2)+'\n')
     source_graph = project_conflicts(assessment)
@@ -228,7 +285,8 @@ def review(assessment_path, output_dir, backend_factory, *, tokens=3072, max_cal
         print('Targeted review: ' + name + ' (' + str(len(job['issues'])) + ' objections)...', flush=True)
         prior_calls = assessment_path.parent/name/'model_calls.json'
         saved_calls = json.loads(prior_calls.read_text()) if prior_calls.exists() else []
-        saved = next((c.get('response') for c in reversed(saved_calls) if c.get('response') is not None), None)
+        saved = deepcopy((prior_responses or {}).get(name)) or next(
+            (c.get('response') for c in reversed(saved_calls) if c.get('response') is not None), None)
         if saved is None:
             (folder/'prior_state_problem.json').write_text(json.dumps({
                 'status': 'PRIOR_REPLAY_UNAVAILABLE', 'framework': name,
@@ -267,6 +325,17 @@ def review(assessment_path, output_dir, backend_factory, *, tokens=3072, max_cal
         class NativeReviewEngine(WorkspaceEngine):
             def prepare_cycle_input(self, **kwargs):
                 if kwargs['cycle_number'] == 2:
+                    if verify_prior:
+                        from global_workspace.deontology_ledger import committed_deontological_assessments
+                        fields=('canonical_action_id','norm','verdict','relation','duty_type','harm_relation',
+                                'means_relation','governing_norm','priority_basis','priority_rule','candidate_maxim')
+                        prior=next(c for c in assessment['cycles'][-1]['candidates'] if c['specialist']==name)
+                        expected=(prior.get('committed_native_ledger') or {}).get('records',[])
+                        actual=committed_deontological_assessments(kwargs['graph_store'].graph)
+                        signature=lambda rows: sorted([{f:r.get(f) for f in fields} for r in rows],
+                                                      key=lambda r:str(r['canonical_action_id']))
+                        if signature(actual)!=signature(expected):
+                            raise RuntimeError('Prior reply does not reproduce the admitted revised argument; no follow-up call made')
                     staged.reviewing = True
                     kwargs['broadcast'] = WorkspaceBroadcast(constraint='PROPOSAL_REVIEW',
                         challenge_agenda=(deepcopy(agenda),))
@@ -366,17 +435,29 @@ def review(assessment_path, output_dir, backend_factory, *, tokens=3072, max_cal
         'maximum_issues_per_round': 2, 'maximum_rounds': 2 if allow_residual else 1,
         'maximum_calls_per_framework': max_calls,
         'total_adapter_calls': sum(result['targeted_review']['adapter_calls'].values())}
+    from logic_puzzles_followup import followup_offer, save_resume_state
+    result['follow_up_offer'] = followup_offer(result)
+    save_resume_state(assessment_path, output_dir, result, shared, quotes)
     write_review(result, output_dir)
+    from parliament_run_provenance import record_checkpoint
+    record_checkpoint('review_recorded',artifacts=[output_dir/'targeted_review.json'])
     return result
 
 
-def main():
+def _main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--trace', type=Path, required=True)
     parser.add_argument('--output-dir', type=Path, required=True)
     parser.add_argument('--parliament-root', type=Path, required=True)
     parser.add_argument('--model', default='o3')
-    args = parser.parse_args()
+    parser.add_argument('--review-depth', choices=('standard','deep'), default='standard',
+                        help='Deep opts in to follow-ups to revised arguments')
+    parser.add_argument('--followup-rounds', type=int, choices=(1,2), default=2)
+    parser.add_argument('--checkpoint-tag', action='append', help='Run label, inherited by child runs; repeatable')
+    args = parser.parse_args(argv)
+    from parliament_run_provenance import record_configuration, record_start
+    record_configuration(args)
+    record_start(args.output_dir)
     sys.path.insert(0, str(args.parliament_root.resolve()))
     from dotenv import load_dotenv
     from global_workspace.openai_backend import OpenAIWorkspaceLLM
@@ -384,7 +465,15 @@ def main():
     backend = OpenAIWorkspaceLLM(args.model, timeout=120)
     backend.execution_mode = 'LIVE_OPENAI'
     review(args.trace, args.output_dir, lambda name: backend)
+    if args.review_depth=='deep':
+        from logic_puzzles_followup import deepen
+        deepen(args.output_dir/'targeted_review.json',args.output_dir/'deeper_review',
+               lambda name:backend,opt_in=True,max_rounds=args.followup_rounds)
 
+
+def main(argv=None):
+    from parliament_run_provenance import record_execution
+    return record_execution(_main, argv, entrypoint='logic_puzzles_review.py', output_flag='--output-dir', defaults={'model':'o3','runtime_profile':'compact_frameworks'})
 
 if __name__ == '__main__':
     main()

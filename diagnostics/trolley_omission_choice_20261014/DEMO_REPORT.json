@@ -1,0 +1,520 @@
+{
+  "version": "parliament-demo/1",
+  "scenario": "A runaway trolley is heading toward five workers on the main track. Maria can pull a lever that switches the trolley onto a side track, where one worker stands. If she pulls the lever, the trolley will kill that worker and spare the five. If she does not, it will kill the five and spare the one. Maria cannot stop the trolley. Should she pull the lever?",
+  "status": "CANDIDATE_PREVIEW",
+  "stop": {
+    "stage": "candidate inspection",
+    "reason": "Revised Cloze replay; native admission and agents not rerun.",
+    "kind": "inspection_only"
+  },
+  "judgment_status": "NOT_ADJUDICATED",
+  "candidate_world_diagrams": [
+    {
+      "label": "Intervention and omission choice",
+      "world": {
+        "parties": [
+          {
+            "party_id": "P1",
+            "label": "Maria",
+            "kind": "PERSON",
+            "kind_origin": "STRUCTURALLY_DERIVED",
+            "quantities": [],
+            "clause_ids": [
+              "C1",
+              "C4"
+            ]
+          },
+          {
+            "party_id": "P2",
+            "label": "one worker",
+            "kind": "PERSON",
+            "kind_origin": "STRUCTURALLY_DERIVED",
+            "quantities": [
+              "one"
+            ],
+            "clause_ids": [
+              "C2",
+              "C1",
+              "C3"
+            ]
+          },
+          {
+            "party_id": "P3",
+            "label": "the trolley",
+            "kind": "PROCESS",
+            "kind_origin": "STRUCTURALLY_DERIVED",
+            "quantities": [],
+            "clause_ids": [
+              "C1",
+              "C2",
+              "C4"
+            ]
+          },
+          {
+            "party_id": "P4",
+            "label": "five workers",
+            "kind": "HUMAN_GROUP",
+            "kind_origin": "STRUCTURALLY_DERIVED",
+            "quantities": [
+              "five"
+            ],
+            "clause_ids": [
+              "C2",
+              "C3",
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P6",
+            "label": "a lever",
+            "kind": "PROCESS",
+            "kind_origin": "STRUCTURALLY_DERIVED",
+            "quantities": [],
+            "clause_ids": [
+              "C1"
+            ]
+          },
+          {
+            "party_id": "P7",
+            "label": "the main track",
+            "kind": "OTHER",
+            "kind_origin": "UNRESOLVED",
+            "quantities": [],
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "party_id": "P8",
+            "label": "a side track",
+            "kind": "OTHER",
+            "kind_origin": "UNRESOLVED",
+            "quantities": [],
+            "clause_ids": [
+              "C1"
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "action_id": "A0",
+            "intervention": "pulls the lever",
+            "actor_party_id": "P1",
+            "recipient_party_ids": [
+              "P6"
+            ],
+            "effect_ids": [
+              "E1",
+              "E2",
+              "E3",
+              "E4"
+            ],
+            "clause_ids": [
+              "C2",
+              "C1"
+            ]
+          },
+          {
+            "action_id": "A1",
+            "intervention": "does not pull the lever",
+            "actor_party_id": "P1",
+            "recipient_party_ids": [
+              "P6"
+            ],
+            "effect_ids": [
+              "E5",
+              "E6",
+              "E7",
+              "E8"
+            ],
+            "clause_ids": [
+              "C3",
+              "C2",
+              "C0"
+            ]
+          }
+        ],
+        "effects": [
+          {
+            "effect_id": "E1",
+            "action_id": "A0",
+            "party_id": "P6",
+            "outcome": "pulls the lever",
+            "predicate": "pull",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "INTERVENTION",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "pulls the lever",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C2"
+            ]
+          },
+          {
+            "effect_id": "E2",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "switches the trolley onto a side track",
+            "predicate": "switch",
+            "polarity": "NEUTRAL",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "PHYSICAL_STATE",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "switches the trolley onto a side track",
+            "source_effect_ids": [
+              "E1"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "Explicit instrument relative clause supplies the transition on the selected intervention branch.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C1"
+            ]
+          },
+          {
+            "effect_id": "E3",
+            "action_id": "A0",
+            "party_id": "P2",
+            "outcome": "the trolley will kill one worker",
+            "predicate": "kill",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [
+              "one"
+            ],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "the trolley will kill that worker",
+            "source_effect_ids": [
+              "E2"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C2",
+              "C1",
+              "C3"
+            ]
+          },
+          {
+            "effect_id": "E4",
+            "action_id": "A0",
+            "party_id": "P4",
+            "outcome": "spare five workers",
+            "predicate": "spare",
+            "polarity": "BENEFICIAL",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "OTHER",
+            "condition_ids": [],
+            "quantities": [
+              "five"
+            ],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "spare the five",
+            "source_effect_ids": [
+              "E2"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C2",
+              "C3",
+              "C0"
+            ]
+          },
+          {
+            "effect_id": "E5",
+            "action_id": "A1",
+            "party_id": "P6",
+            "outcome": "does not",
+            "predicate": "do",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "INTERVENTION",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "does not",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C3"
+            ]
+          },
+          {
+            "effect_id": "E6",
+            "action_id": "A1",
+            "party_id": "P3",
+            "outcome": "heading toward five workers on the main track",
+            "predicate": "head",
+            "polarity": "NEUTRAL",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "OTHER",
+            "condition_ids": [],
+            "quantities": [],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "heading toward five workers on the main track",
+            "source_effect_ids": [
+              "E5"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The stated default motion and same-patient omission outcome jointly support this branch continuation; no new route is invented.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C3",
+              "C0"
+            ]
+          },
+          {
+            "effect_id": "E7",
+            "action_id": "A1",
+            "party_id": "P4",
+            "outcome": "it will kill five workers",
+            "predicate": "kill",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [
+              "five"
+            ],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "it will kill the five",
+            "source_effect_ids": [
+              "E6"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C3",
+              "C2",
+              "C0"
+            ]
+          },
+          {
+            "effect_id": "E8",
+            "action_id": "A1",
+            "party_id": "P2",
+            "outcome": "spare one worker",
+            "predicate": "spare",
+            "polarity": "BENEFICIAL",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "OTHER",
+            "condition_ids": [],
+            "quantities": [
+              "one"
+            ],
+            "likelihood_qualifiers": [],
+            "overall_likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "source_proposition": "spare the one",
+            "source_effect_ids": [
+              "E6"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "clause_ids": [
+              "C3",
+              "C2",
+              "C1"
+            ]
+          }
+        ],
+        "conditions": [
+          {
+            "condition_id": "CND1",
+            "description": "If she pulls the lever",
+            "value_status": "UNKNOWN",
+            "decision_relevance": "MATERIAL",
+            "clause_ids": [
+              "C2"
+            ],
+            "polarity": "POSITIVE",
+            "operator": "IF"
+          },
+          {
+            "condition_id": "CND2",
+            "description": "If she does not",
+            "value_status": "UNKNOWN",
+            "decision_relevance": "MATERIAL",
+            "clause_ids": [
+              "C3"
+            ],
+            "polarity": "NEGATED",
+            "operator": "IF"
+          }
+        ],
+        "temporal_relations": [],
+        "causal_links": [
+          {
+            "action_id": "A0",
+            "source_id": "E1",
+            "link_relation": "ENABLES",
+            "target_id": "E2",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C1"
+            ]
+          },
+          {
+            "action_id": "A0",
+            "source_id": "E2",
+            "link_relation": "ENABLES",
+            "target_id": "E3",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C2"
+            ]
+          },
+          {
+            "action_id": "A0",
+            "source_id": "E2",
+            "link_relation": "ENABLES",
+            "target_id": "E4",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C2"
+            ]
+          },
+          {
+            "action_id": "A1",
+            "source_id": "E5",
+            "link_relation": "ENABLES",
+            "target_id": "E6",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C3"
+            ]
+          },
+          {
+            "action_id": "A1",
+            "source_id": "E6",
+            "link_relation": "ENABLES",
+            "target_id": "E7",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C3"
+            ]
+          },
+          {
+            "action_id": "A1",
+            "source_id": "E6",
+            "link_relation": "ENABLES",
+            "target_id": "E8",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "clause_ids": [
+              "C3"
+            ]
+          }
+        ],
+        "counterfactual_links": [],
+        "schema_version": "1.4",
+        "propositions": [
+          {
+            "proposition_id": "PR1",
+            "predication": "A runaway trolley is heading toward five workers on the main track.",
+            "polarity": "POSITIVE",
+            "status": "ASSERTED",
+            "clause_ids": [
+              "C0"
+            ]
+          },
+          {
+            "proposition_id": "PR2",
+            "predication": "Maria can pull a lever that switches the trolley onto a side track, where one worker stands.",
+            "polarity": "POSITIVE",
+            "status": "ASSERTED",
+            "clause_ids": [
+              "C1"
+            ]
+          },
+          {
+            "proposition_id": "PR3",
+            "predication": "Maria cannot stop the trolley.",
+            "polarity": "POSITIVE",
+            "status": "ASSERTED",
+            "clause_ids": [
+              "C4"
+            ]
+          }
+        ],
+        "reports": [],
+        "commitments": [],
+        "modal_operators": [],
+        "normative_propositions": []
+      }
+    }
+  ],
+  "frameworks": [],
+  "topography": {
+    "status": "UNAVAILABLE",
+    "reason": "Candidate preview; agents not rerun."
+  }
+}

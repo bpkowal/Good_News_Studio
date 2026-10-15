@@ -1,0 +1,24 @@
+.F..................
+======================================================================
+FAIL: test_native_independent_pass_has_identical_inputs_and_no_peer_state (test_logic_puzzles.ConflictProjectionTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/test_logic_puzzles.py", line 126, in test_native_independent_pass_has_identical_inputs_and_no_peer_state
+    self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "<string>", line 22, in <module>
+  File "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/logic_puzzles_frameworks.py", line 143, in generate
+    if core_root else core_pack_for_specialists(frameworks))
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/.runtime/parliament/global_workspace/core_quote_pack.py", line 79, in core_pack_for_specialists
+    quote = load_core_quote(name, root=root)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/.runtime/parliament/global_workspace/core_quote_pack.py", line 45, in load_core_quote
+    import yaml
+ModuleNotFoundError: No module named 'yaml'
+
+
+----------------------------------------------------------------------
+Ran 20 tests in 4.415s
+
+FAILED (failures=1)

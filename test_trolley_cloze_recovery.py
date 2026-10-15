@@ -7,6 +7,7 @@ from copy import deepcopy
 
 from blueprint_cloze_chooser import choose_by_cloze
 from test_blueprint_cloze_chooser import Script
+from parliament_runtime import DEFAULT_PARLIAMENT_ROOT, DEFAULT_PARLIAMENT_PYTHON
 
 ROOT = Path(__file__).resolve().parent
 
@@ -88,7 +89,14 @@ class SavedTrolleyRecoveryTests(unittest.TestCase):
         direct = next(e for e in owned if e['directness'] == 'DIRECT')
         self.assertEqual(direct['source_proposition'], 'does not')
         process = next(e for e in owned if e['directness'] == 'DOWNSTREAM' and e['polarity'] == 'NEUTRAL')
-        self.assertEqual(process['source_proposition'], 'it will kill the five')
+        self.assertEqual(process['source_proposition'], 'heading toward five workers on the main track')
+        self.assertEqual(process['predicate'], 'head')
+        self.assertEqual(process['action_id'], action['action_id'])
+        from blueprint_spatial_projection import typed_reader_view
+        view = typed_reader_view(self.source, self.world)
+        self.assertFalse(view['cells']['open_questions'])
+        self.assertEqual({t['relation'] for t in view['cells']['branch_transitions']}, {'ONTO', 'TOWARD'})
+        self.assertFalse(any(n['kind']=='gap' for n in view['nodes']))
         self.assertNotEqual(process['party_id'], direct['party_id'])
         self.assertEqual(process['source_effect_ids'], [direct['effect_id']])
         proof = next(p for p in self.result['graph']['construction_provenance'] if p['atom_id'] == 'action:'+action['action_id'])
@@ -113,6 +121,40 @@ class SavedTrolleyRecoveryTests(unittest.TestCase):
         diagram = '\n'.join(_mermaid_world(self.world, 'test'))
         self.assertIn('CND2 -.->|"branch scope"| A1', diagram)
         self.assertNotIn('CND2 -.->|"branch scope"| A0', diagram)
+
+    def test_omission_choice_keeps_parallel_shape_without_physical_agency(self):
+        from blueprint_spatial_projection import typed_reader_view, RELATIONS
+        before=deepcopy(self.world)
+        view=typed_reader_view(self.source,self.world)
+        omission=next(c for c in view['cells']['branch_choices'] if c['kind']=='omission')
+        aid=omission['action_id'];positive=omission['omitted_intervention_id']
+        self.assertIn('pull',omission['intervention_description'])
+        self.assertEqual(omission['decision_maker_id'],'P1')
+        edges=view['edges'];nodes={n['id']:n for n in view['nodes']}
+        self.assertEqual(nodes[aid]['kind'],'choice')
+        self.assertTrue(any(e['type']=='DECISION_MAKER' and e['target']==aid for e in edges))
+        self.assertTrue(any(e['type']=='BRANCH_FOR' and e['source']==aid for e in edges))
+        self.assertFalse(any((e['type']=='ACTOR' and e['target']==aid) or
+                             (e['type'] in {'AFFECTS','ENABLES'} and e['source']==aid) for e in edges))
+        for e in edges:
+            self.assertEqual((nodes[e['source']]['kind'],nodes[e['target']]['kind']),RELATIONS[e['type']])
+        # Same nodes, edges and welfare outcomes per branch: labels carry the
+        # distinction, rather than extra nodes that unbalance the layout.
+        for branch in (aid,positive):
+            members={n['id'] for n in view['nodes'] if n['group']=='branch_'+branch}
+            self.assertEqual(len(members),10)
+            self.assertEqual(sum(e['source'] in members and e['target'] in members for e in edges),8)
+        self.assertEqual(self.world,before)
+
+    def test_native_normalization_without_predicates_keeps_continuation(self):
+        from blueprint_spatial_projection import typed_reader_view
+        world=deepcopy(self.world)
+        for effect in world['effects']:
+            effect.pop('predicate',None)
+        view=typed_reader_view(self.source,world)
+        self.assertEqual(view['cells']['open_questions'],[])
+        self.assertEqual({t['relation'] for t in view['cells']['branch_transitions']},{'ONTO','TOWARD'})
+        self.assertFalse(any(n['kind']=='gap' for n in view['nodes']))
 
     def test_wording_variants_preserve_both_branches_and_human_bearers(self):
         variants = [
@@ -147,14 +189,14 @@ class SavedTrolleyRecoveryTests(unittest.TestCase):
                         benefits = [e for e in world['effects'] if e['action_id'] == action['action_id'] and e['polarity'] == 'BENEFICIAL']
                         self.assertEqual((len(harms),len(benefits)), (1,1))
                         self.assertNotEqual(harms[0]['party_id'], benefits[0]['party_id'])
-                if Path('/tmp/parliament-smoke-env/bin/python').exists() and Path('/tmp/parliament-smoke-614af0c').exists():
+                if DEFAULT_PARLIAMENT_PYTHON.exists() and (DEFAULT_PARLIAMENT_ROOT/'global_workspace/action_identity.py').exists():
                     from run_blueprint_parliament import _admit_candidates
                     import parsing_game_Z10 as z10
                     with tempfile.TemporaryDirectory() as folder:
                         _, attempts = _admit_candidates(result, source,
                             z10.export_candidate_graph(source, package_id='variant_test'),
-                            Path(folder), Path('/tmp/parliament-smoke-614af0c'),
-                            Path('/tmp/parliament-smoke-env/bin/python'))
+                            Path(folder), DEFAULT_PARLIAMENT_ROOT,
+                            DEFAULT_PARLIAMENT_PYTHON)
                         self.assertEqual({a['blueprint_id'] for a in attempts if a['status'] == 'ADMITTED'},
                                          {'omission_harm','conditional_outcome'}, attempts)
 
@@ -185,14 +227,14 @@ class SavedTrolleyRecoveryTests(unittest.TestCase):
         self.assertIn('not', direct['source_proposition'])
         self.assertEqual(len([e for e in revised['effects'] if e['predicate'] == 'switch']), 1)
 
-    @unittest.skipUnless(Path('/tmp/parliament-smoke-env/bin/python').exists() and
-                         Path('/tmp/parliament-smoke-614af0c').exists(), 'native checkout unavailable')
+    @unittest.skipUnless(DEFAULT_PARLIAMENT_PYTHON.exists() and
+                         (DEFAULT_PARLIAMENT_ROOT/'global_workspace/action_identity.py').exists(), 'native checkout unavailable')
     def test_recovered_candidates_reach_native_admission(self):
         from run_blueprint_parliament import _admit_candidates
         with tempfile.TemporaryDirectory() as folder:
             _, attempts = _admit_candidates(self.result, self.source, self.package,
-                Path(folder), Path('/tmp/parliament-smoke-614af0c'),
-                Path('/tmp/parliament-smoke-env/bin/python'))
+                Path(folder), DEFAULT_PARLIAMENT_ROOT,
+                DEFAULT_PARLIAMENT_PYTHON)
             admitted = [a for a in attempts if a['status'] == 'ADMITTED']
             self.assertEqual({a['blueprint_id'] for a in admitted}, {'omission_harm', 'conditional_outcome'}, attempts)
 

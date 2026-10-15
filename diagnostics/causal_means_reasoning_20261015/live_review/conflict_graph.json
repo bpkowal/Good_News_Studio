@@ -1,0 +1,1484 @@
+{
+  "version": "logic-puzzles-conflict-projection/0.1",
+  "mode": "READ_ONLY_PROJECTION",
+  "world_mutation": false,
+  "source_judgment_status": "NOT_ADJUDICATED",
+  "nodes": [
+    {
+      "id": "WORLD:E1",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E1",
+        "action_id": "A0",
+        "party_id": "P6",
+        "outcome": "pulls the lever",
+        "relation": "PULL",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "INTERVENTION",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C2",
+            "excerpt": "If she pulls the lever, the tram will kill that worker and spare the ten."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "pulls the lever",
+        "source_effect_ids": [],
+        "derivation_operation": "DIRECT_COPY",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "pulls the lever"
+    },
+    {
+      "id": "WORLD:E2",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E2",
+        "action_id": "A0",
+        "party_id": "P3",
+        "outcome": "redirects the tram onto a side track",
+        "relation": "REDIRECT",
+        "polarity": "NEUTRAL",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "PHYSICAL_STATE",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C1",
+            "excerpt": "Dana can pull a lever that redirects the tram onto a side track, where one worker stands."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "redirects the tram onto a side track",
+        "source_effect_ids": [
+          "E1"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "Explicit instrument relative clause supplies the transition on the selected intervention branch.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "redirects the tram onto a side track"
+    },
+    {
+      "id": "WORLD:E3",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E3",
+        "action_id": "A0",
+        "party_id": "P2",
+        "outcome": "the tram will kill one worker",
+        "relation": "KILL",
+        "polarity": "ADVERSE",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "HEALTH_OUTCOME",
+        "condition_ids": [],
+        "quantities": [
+          "one"
+        ],
+        "provenance": [
+          {
+            "clause_id": "C2",
+            "excerpt": "If she pulls the lever, the tram will kill that worker and spare the ten."
+          },
+          {
+            "clause_id": "C1",
+            "excerpt": "Dana can pull a lever that redirects the tram onto a side track, where one worker stands."
+          },
+          {
+            "clause_id": "C3",
+            "excerpt": "If she does not, it will kill the ten and spare the one."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "the tram will kill that worker",
+        "source_effect_ids": [
+          "E2"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "the tram will kill one worker"
+    },
+    {
+      "id": "WORLD:E4",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E4",
+        "action_id": "A0",
+        "party_id": "P4",
+        "outcome": "spare ten workers",
+        "relation": "SPARE",
+        "polarity": "BENEFICIAL",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "OTHER",
+        "condition_ids": [],
+        "quantities": [
+          "ten"
+        ],
+        "provenance": [
+          {
+            "clause_id": "C2",
+            "excerpt": "If she pulls the lever, the tram will kill that worker and spare the ten."
+          },
+          {
+            "clause_id": "C3",
+            "excerpt": "If she does not, it will kill the ten and spare the one."
+          },
+          {
+            "clause_id": "C0",
+            "excerpt": "A runaway tram is heading toward ten workers on the main track."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "spare the ten",
+        "source_effect_ids": [
+          "E2"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "spare ten workers"
+    },
+    {
+      "id": "WORLD:E5",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E5",
+        "action_id": "A1",
+        "party_id": "P6",
+        "outcome": "does not",
+        "relation": "DO",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "INTERVENTION",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "If she does not, it will kill the ten and spare the one."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "does not",
+        "source_effect_ids": [],
+        "derivation_operation": "DIRECT_COPY",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "does not"
+    },
+    {
+      "id": "WORLD:E6",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E6",
+        "action_id": "A1",
+        "party_id": "P3",
+        "outcome": "heading toward ten workers on the main track",
+        "relation": "HEAD",
+        "polarity": "NEUTRAL",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "OTHER",
+        "condition_ids": [],
+        "quantities": [
+          "ten"
+        ],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "If she does not, it will kill the ten and spare the one."
+          },
+          {
+            "clause_id": "C0",
+            "excerpt": "A runaway tram is heading toward ten workers on the main track."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "heading toward ten workers on the main track",
+        "source_effect_ids": [
+          "E5"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The stated default motion and same-patient omission outcome jointly support this branch continuation; no new route is invented.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "heading toward ten workers on the main track"
+    },
+    {
+      "id": "WORLD:E7",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E7",
+        "action_id": "A1",
+        "party_id": "P4",
+        "outcome": "it will kill ten workers",
+        "relation": "KILL",
+        "polarity": "ADVERSE",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "HEALTH_OUTCOME",
+        "condition_ids": [],
+        "quantities": [
+          "ten"
+        ],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "If she does not, it will kill the ten and spare the one."
+          },
+          {
+            "clause_id": "C2",
+            "excerpt": "If she pulls the lever, the tram will kill that worker and spare the ten."
+          },
+          {
+            "clause_id": "C0",
+            "excerpt": "A runaway tram is heading toward ten workers on the main track."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "it will kill the ten",
+        "source_effect_ids": [
+          "E6"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "it will kill ten workers"
+    },
+    {
+      "id": "WORLD:E8",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E8",
+        "action_id": "A1",
+        "party_id": "P2",
+        "outcome": "spare one worker",
+        "relation": "SPARE",
+        "polarity": "BENEFICIAL",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "OTHER",
+        "condition_ids": [],
+        "quantities": [
+          "one"
+        ],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "If she does not, it will kill the ten and spare the one."
+          },
+          {
+            "clause_id": "C2",
+            "excerpt": "If she pulls the lever, the tram will kill that worker and spare the ten."
+          },
+          {
+            "clause_id": "C1",
+            "excerpt": "Dana can pull a lever that redirects the tram onto a side track, where one worker stands."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "spare the one",
+        "source_effect_ids": [
+          "E6"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "spare one worker"
+    },
+    {
+      "id": "PROP:WORLD:CONDITION:CND1",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:CONDITION:CND1",
+        "claim": "If she pulls the lever",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "UNRESOLVED",
+        "support_ids": [
+          "CND1"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "UNKNOWN_PARAMETER",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "UNRESOLVED",
+      "label": "If she pulls the lever"
+    },
+    {
+      "id": "PROP:WORLD:CONDITION:CND2",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:CONDITION:CND2",
+        "claim": "If she does not",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "UNRESOLVED",
+        "support_ids": [
+          "CND2"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "UNKNOWN_PARAMETER",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "UNRESOLVED",
+      "label": "If she does not"
+    },
+    {
+      "id": "PROP:WORLD:E1",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E1",
+        "claim": "pulls the lever; affected subject: a lever",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E1"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "pulls the lever"
+        ],
+        "action_id": "A0",
+        "outcome": "pulls the lever",
+        "polarity": "NEUTRAL",
+        "party_labels": [
+          "a lever"
+        ],
+        "quantities": [],
+        "effect_kind": "INTERVENTION",
+        "context_terms": [
+          "pulls the lever"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DIRECT",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "pulls the lever; affected subject: a lever"
+    },
+    {
+      "id": "PROP:WORLD:E2",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E2",
+        "claim": "redirects the tram onto a side track; affected subject: the tram",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E2"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "redirects the tram onto a side track"
+        ],
+        "action_id": "A0",
+        "outcome": "redirects the tram onto a side track",
+        "polarity": "NEUTRAL",
+        "party_labels": [
+          "the tram"
+        ],
+        "quantities": [],
+        "effect_kind": "PHYSICAL_STATE",
+        "context_terms": [
+          "redirects the tram onto a side track",
+          "pulls the lever"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "redirects the tram onto a side track; affected subject: the tram"
+    },
+    {
+      "id": "PROP:WORLD:E3",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E3",
+        "claim": "the tram will kill one worker; affected subject: one worker",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E3"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "the tram will kill that worker"
+        ],
+        "action_id": "A0",
+        "outcome": "the tram will kill one worker",
+        "polarity": "ADVERSE",
+        "party_labels": [
+          "one worker"
+        ],
+        "quantities": [
+          "one"
+        ],
+        "effect_kind": "HEALTH_OUTCOME",
+        "context_terms": [
+          "the tram will kill one worker",
+          "pulls the lever",
+          "redirects the tram onto a side track"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "the tram will kill one worker; affected subject: one worker"
+    },
+    {
+      "id": "PROP:WORLD:E4",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E4",
+        "claim": "spare ten workers; affected subject: ten workers",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E4"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "spare the ten"
+        ],
+        "action_id": "A0",
+        "outcome": "spare ten workers",
+        "polarity": "BENEFICIAL",
+        "party_labels": [
+          "ten workers"
+        ],
+        "quantities": [
+          "ten"
+        ],
+        "effect_kind": "OTHER",
+        "context_terms": [
+          "spare ten workers",
+          "pulls the lever",
+          "redirects the tram onto a side track"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "spare ten workers; affected subject: ten workers"
+    },
+    {
+      "id": "PROP:WORLD:E5",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E5",
+        "claim": "does not; affected subject: a lever",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E5"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "does not"
+        ],
+        "action_id": "A1",
+        "outcome": "does not",
+        "polarity": "NEUTRAL",
+        "party_labels": [
+          "a lever"
+        ],
+        "quantities": [],
+        "effect_kind": "INTERVENTION",
+        "context_terms": [
+          "does not",
+          "does not pull the lever"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DIRECT",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "does not; affected subject: a lever"
+    },
+    {
+      "id": "PROP:WORLD:E6",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E6",
+        "claim": "heading toward ten workers on the main track; affected subject: the tram; magnitude or qualifier: ten",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E6"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "heading toward ten workers on the main track"
+        ],
+        "action_id": "A1",
+        "outcome": "heading toward ten workers on the main track",
+        "polarity": "NEUTRAL",
+        "party_labels": [
+          "the tram"
+        ],
+        "quantities": [
+          "ten"
+        ],
+        "effect_kind": "OTHER",
+        "context_terms": [
+          "heading toward ten workers on the main track",
+          "does not pull the lever",
+          "does not"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "heading toward ten workers on the main track; affected subject: the tram; magnitude or qualifier: ten"
+    },
+    {
+      "id": "PROP:WORLD:E7",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E7",
+        "claim": "it will kill ten workers; affected subject: ten workers",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E7"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "it will kill the ten"
+        ],
+        "action_id": "A1",
+        "outcome": "it will kill ten workers",
+        "polarity": "ADVERSE",
+        "party_labels": [
+          "ten workers"
+        ],
+        "quantities": [
+          "ten"
+        ],
+        "effect_kind": "HEALTH_OUTCOME",
+        "context_terms": [
+          "it will kill ten workers",
+          "does not pull the lever",
+          "heading toward ten workers on the main track",
+          "does not"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "it will kill ten workers; affected subject: ten workers"
+    },
+    {
+      "id": "PROP:WORLD:E8",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E8",
+        "claim": "spare one worker; affected subject: one worker",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E8"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "spare the one"
+        ],
+        "action_id": "A1",
+        "outcome": "spare one worker",
+        "polarity": "BENEFICIAL",
+        "party_labels": [
+          "one worker"
+        ],
+        "quantities": [
+          "one"
+        ],
+        "effect_kind": "OTHER",
+        "context_terms": [
+          "spare one worker",
+          "does not pull the lever",
+          "heading toward ten workers on the main track",
+          "does not"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "spare one worker; affected subject: one worker"
+    },
+    {
+      "id": "PROP:WORLD:PARTY:P4:QUANTITY:d87f9069f9a8",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:PARTY:P4:QUANTITY:d87f9069f9a8",
+        "claim": "ten workers",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "P4",
+          "ten"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [],
+        "action_id": "A0",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [
+          "ten workers"
+        ],
+        "quantities": [
+          "ten"
+        ],
+        "effect_kind": "",
+        "context_terms": [
+          "pulls the lever"
+        ],
+        "modality": "",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "ten workers"
+    },
+    {
+      "id": "PROP:WORLD:RECOGNITION:11e3a566e8e1819f",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:RECOGNITION:11e3a566e8e1819f",
+        "claim": "Dana cannot stop the tram.",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "STIPULATED",
+        "support_ids": [
+          "PR3",
+          "SOURCE_SPAN:0b7816ff454075b2"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "SOURCE_SCENE_STATEMENT",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "STIPULATED",
+      "label": "Dana cannot stop the tram."
+    },
+    {
+      "id": "PROP:WORLD:RECOGNITION:15ccdcdb2f87c7b1",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:RECOGNITION:15ccdcdb2f87c7b1",
+        "claim": "If she pulls the lever, the tram will kill that worker and spare the ten.",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "STIPULATED",
+        "support_ids": [
+          "E2",
+          "E3",
+          "E4"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "SOURCE_RULE",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "STIPULATED",
+      "label": "If she pulls the lever, the tram will kill that worker and spare the ten."
+    },
+    {
+      "id": "PROP:WORLD:RECOGNITION:1ed8bceccdbbb4b0",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:RECOGNITION:1ed8bceccdbbb4b0",
+        "claim": "If she does not, it will kill the ten and spare the one.",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "STIPULATED",
+        "support_ids": [
+          "E5",
+          "E6",
+          "E7",
+          "E8"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "SOURCE_RULE",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "STIPULATED",
+      "label": "If she does not, it will kill the ten and spare the one."
+    },
+    {
+      "id": "PROP:WORLD:RECOGNITION:7e7250e0cbf9c447",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:RECOGNITION:7e7250e0cbf9c447",
+        "claim": "Dana can pull a lever that redirects the tram onto a side track, where one worker stands.",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "STIPULATED",
+        "support_ids": [
+          "PR2",
+          "SOURCE_SPAN:838b7019a18afe6d"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "SOURCE_SCENE_STATEMENT",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "STIPULATED",
+      "label": "Dana can pull a lever that redirects the tram onto a side track, where one worker stands."
+    },
+    {
+      "id": "PROP:WORLD:RECOGNITION:bf600e2ef90eae21",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:RECOGNITION:bf600e2ef90eae21",
+        "claim": "A runaway tram is heading toward ten workers on the main track.",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "STIPULATED",
+        "support_ids": [
+          "PR1",
+          "SOURCE_SPAN:6bf8b9a12a8699e3"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "SOURCE_SCENE_STATEMENT",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "STIPULATED",
+      "label": "A runaway tram is heading toward ten workers on the main track."
+    },
+    {
+      "id": "deontological::PROP:WORLD:E1",
+      "kind": "PROPOSITION",
+      "origin": "deontological",
+      "native_proposition_id": "PROP:WORLD:E1",
+      "record": {
+        "proposition_id": "PROP:WORLD:E1",
+        "claim": "pulls the lever; affected subject: a lever",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E1"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 2,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "pulls the lever"
+        ],
+        "action_id": "A0",
+        "outcome": "pulls the lever",
+        "polarity": "NEUTRAL",
+        "party_labels": [
+          "a lever"
+        ],
+        "quantities": [],
+        "effect_kind": "INTERVENTION",
+        "context_terms": [
+          "pulls the lever"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DIRECT",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "pulls the lever; affected subject: a lever"
+    },
+    {
+      "id": "deontological::PROP:WORLD:E2",
+      "kind": "PROPOSITION",
+      "origin": "deontological",
+      "native_proposition_id": "PROP:WORLD:E2",
+      "record": {
+        "proposition_id": "PROP:WORLD:E2",
+        "claim": "redirects the tram onto a side track; affected subject: the tram",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E2"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 2,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "redirects the tram onto a side track"
+        ],
+        "action_id": "A0",
+        "outcome": "redirects the tram onto a side track",
+        "polarity": "NEUTRAL",
+        "party_labels": [
+          "the tram"
+        ],
+        "quantities": [],
+        "effect_kind": "PHYSICAL_STATE",
+        "context_terms": [
+          "redirects the tram onto a side track",
+          "pulls the lever"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "redirects the tram onto a side track; affected subject: the tram"
+    },
+    {
+      "id": "deontological::PROP:WORLD:E3",
+      "kind": "PROPOSITION",
+      "origin": "deontological",
+      "native_proposition_id": "PROP:WORLD:E3",
+      "record": {
+        "proposition_id": "PROP:WORLD:E3",
+        "claim": "the tram will kill one worker; affected subject: one worker",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E3"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 3,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "the tram will kill that worker",
+          "the tram will kill one worker"
+        ],
+        "action_id": "A0",
+        "outcome": "the tram will kill one worker",
+        "polarity": "ADVERSE",
+        "party_labels": [
+          "one worker"
+        ],
+        "quantities": [
+          "one"
+        ],
+        "effect_kind": "HEALTH_OUTCOME",
+        "context_terms": [
+          "the tram will kill one worker",
+          "pulls the lever",
+          "redirects the tram onto a side track"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "the tram will kill one worker; affected subject: one worker"
+    },
+    {
+      "id": "deontological::PROP:WORLD:E4",
+      "kind": "PROPOSITION",
+      "origin": "deontological",
+      "native_proposition_id": "PROP:WORLD:E4",
+      "record": {
+        "proposition_id": "PROP:WORLD:E4",
+        "claim": "spare ten workers; affected subject: ten workers",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E4"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 2,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "spare the ten",
+          "spare ten workers"
+        ],
+        "action_id": "A0",
+        "outcome": "spare ten workers",
+        "polarity": "BENEFICIAL",
+        "party_labels": [
+          "ten workers"
+        ],
+        "quantities": [
+          "ten"
+        ],
+        "effect_kind": "OTHER",
+        "context_terms": [
+          "spare ten workers",
+          "pulls the lever",
+          "redirects the tram onto a side track"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "spare ten workers; affected subject: ten workers"
+    },
+    {
+      "id": "deontological::PROP:WORLD:E5",
+      "kind": "PROPOSITION",
+      "origin": "deontological",
+      "native_proposition_id": "PROP:WORLD:E5",
+      "record": {
+        "proposition_id": "PROP:WORLD:E5",
+        "claim": "does not; affected subject: a lever",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E5"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 2,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "does not"
+        ],
+        "action_id": "A1",
+        "outcome": "does not",
+        "polarity": "NEUTRAL",
+        "party_labels": [
+          "a lever"
+        ],
+        "quantities": [],
+        "effect_kind": "INTERVENTION",
+        "context_terms": [
+          "does not",
+          "does not pull the lever"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DIRECT",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "does not; affected subject: a lever"
+    },
+    {
+      "id": "deontological::PROP:WORLD:E6",
+      "kind": "PROPOSITION",
+      "origin": "deontological",
+      "native_proposition_id": "PROP:WORLD:E6",
+      "record": {
+        "proposition_id": "PROP:WORLD:E6",
+        "claim": "heading toward ten workers on the main track; affected subject: the tram; magnitude or qualifier: ten",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E6"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 2,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "heading toward ten workers on the main track"
+        ],
+        "action_id": "A1",
+        "outcome": "heading toward ten workers on the main track",
+        "polarity": "NEUTRAL",
+        "party_labels": [
+          "the tram"
+        ],
+        "quantities": [
+          "ten"
+        ],
+        "effect_kind": "OTHER",
+        "context_terms": [
+          "heading toward ten workers on the main track",
+          "does not pull the lever",
+          "does not"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "heading toward ten workers on the main track; affected subject: the tram; magnitude or qualifier: ten"
+    },
+    {
+      "id": "deontological::PROP:WORLD:E7",
+      "kind": "PROPOSITION",
+      "origin": "deontological",
+      "native_proposition_id": "PROP:WORLD:E7",
+      "record": {
+        "proposition_id": "PROP:WORLD:E7",
+        "claim": "it will kill ten workers; affected subject: ten workers",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E7"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 3,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "it will kill the ten",
+          "it will kill ten workers"
+        ],
+        "action_id": "A1",
+        "outcome": "it will kill ten workers",
+        "polarity": "ADVERSE",
+        "party_labels": [
+          "ten workers"
+        ],
+        "quantities": [
+          "ten"
+        ],
+        "effect_kind": "HEALTH_OUTCOME",
+        "context_terms": [
+          "it will kill ten workers",
+          "does not pull the lever",
+          "heading toward ten workers on the main track",
+          "does not"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "it will kill ten workers; affected subject: ten workers"
+    },
+    {
+      "id": "CLAIM:ca3e8cabe2a06896",
+      "kind": "CLAIM",
+      "origin": "deontological",
+      "native_ledger_kind": "DEONTOLOGICAL_DUTY_LEDGER",
+      "native_record_id": "DEON_ASSESSMENT:deontological:A0",
+      "record": {
+        "assessment_node_id": "DEON_ASSESSMENT:deontological:A0",
+        "framework": "DEONTOLOGICAL",
+        "specialist": "deontological",
+        "assessment_role": "PRIMARY",
+        "cycle": 2,
+        "canonical_action_id": "A0",
+        "verdict": "PROHIBITED",
+        "proposed_verdict": "PROHIBITED",
+        "relation": "VIOLATES",
+        "proposed_relation": "VIOLATES",
+        "norm_kind": "DUTY",
+        "norm_node_id": "DEON_NORM:0d6881671150b4c6",
+        "party_node_id": "DEON_PARTY:879bcf30890178b8",
+        "bearer_node_id": "DEON_BEARER:2c9e0a2585dc7406",
+        "competing_norm": "Imperfect duty to aid",
+        "competing_norm_kind": "DUTY",
+        "competing_relation": "CONFLICTS",
+        "competing_protected_party": "ten workers",
+        "competing_reason": "rescue duty remains",
+        "duty_type": "PERFECT_NEGATIVE",
+        "harm_relation": "DOING_HARM",
+        "special_obligation_status": "NOT_REQUIRED",
+        "special_obligation_basis": "none",
+        "means_relation": "FORESEEN_SIDE_EFFECT",
+        "candidate_maxim": {
+          "circumstance": "Runaway tram threatens ten",
+          "policy": "Pull the lever",
+          "end": "Preserve ten lives",
+          "means": "Redirect tram onto side track",
+          "person_role": "FORESEEN_AFFECTED",
+          "consent_constraint": "NONE",
+          "universalization": "If everyone caused a certain innocent death to avert greater harm, security of persons would erode.",
+          "action_permissibility": "IMPERMISSIBLE",
+          "maxim_assessment": "INDEFENSIBLE",
+          "instrumental_belief": "DOES_NOT_RELY",
+          "instrumental_use": "DOES_NOT_USE",
+          "practical_reasoning": "Dana relies on redirecting the tram; the death is foreseen but not relied upon as a causal step.",
+          "means_effect_ids": [
+            "E2"
+          ],
+          "end_effect_ids": [
+            "E4"
+          ]
+        },
+        "maxim_origin": "CANDIDATE_INTERPRETATION",
+        "governing_norm": "PRIMARY",
+        "priority_basis": "PERFECT_DUTY",
+        "priority_rule": "Perfect negative duties outrank imperfect aid duties",
+        "protected_standing": "BODILY_INTEGRITY",
+        "competing_protected_standing": "OTHER",
+        "coercion_kind": "NONE",
+        "coercive_actor": "NONE",
+        "coerced_party": "NONE",
+        "public_justification": "No public rule may license direct killing of an innocent to benefit others.",
+        "reciprocity_status": "FAILED",
+        "necessity_status": "LESS_RESTRICTIVE_ROUTE_AVAILABLE",
+        "authorization_status": "NOT_APPLICABLE",
+        "derivation": "RESPECT_PERSONS",
+        "resolution_status": "RESOLVED",
+        "calibration_errors": [],
+        "calibration_issues": [],
+        "calibration_support_node_ids": [],
+        "evidence_basis": "ACTION_GRAPH",
+        "epistemic_status": "GROUNDED_PARTY",
+        "reason": "direct harm to innocent violates perfect duty",
+        "protected_party": "one worker",
+        "norm": "do not intentionally kill the innocent",
+        "duty_bearer": "dana",
+        "provenance": [
+          "delegate:deontological",
+          "cycle:2"
+        ]
+      },
+      "action_id": "A0",
+      "epistemic_status": "GROUNDED_PARTY",
+      "label": "deontological: A0 PROHIBITED"
+    },
+    {
+      "id": "COMMITMENT:8cfc1f370c36e06d",
+      "kind": "FRAMEWORK_COMMITMENT",
+      "origin": "deontological",
+      "field": "norm",
+      "value": "do not intentionally kill the innocent",
+      "label": "do not intentionally kill the innocent",
+      "authority": "FRAMEWORK_LOCAL"
+    },
+    {
+      "id": "COMMITMENT:6b8fbaf06ac1dd2f",
+      "kind": "FRAMEWORK_COMMITMENT",
+      "origin": "deontological",
+      "field": "priority_rule",
+      "value": "Perfect negative duties outrank imperfect aid duties",
+      "label": "Perfect negative duties outrank imperfect aid duties",
+      "authority": "FRAMEWORK_LOCAL"
+    },
+    {
+      "id": "CLAIM:0f0d228ae8dd9684",
+      "kind": "CLAIM",
+      "origin": "deontological",
+      "native_ledger_kind": "DEONTOLOGICAL_DUTY_LEDGER",
+      "native_record_id": "DEON_ASSESSMENT:deontological:A1",
+      "record": {
+        "assessment_node_id": "DEON_ASSESSMENT:deontological:A1",
+        "framework": "DEONTOLOGICAL",
+        "specialist": "deontological",
+        "assessment_role": "PRIMARY",
+        "cycle": 2,
+        "canonical_action_id": "A1",
+        "verdict": "PERMISSIBLE",
+        "proposed_verdict": "PERMISSIBLE",
+        "relation": "SATISFIES",
+        "proposed_relation": "SATISFIES",
+        "norm_kind": "DUTY",
+        "norm_node_id": "DEON_NORM:1d35c3b6a885a54c",
+        "party_node_id": "DEON_PARTY:879bcf30890178b8",
+        "bearer_node_id": "DEON_BEARER:2c9e0a2585dc7406",
+        "competing_norm": "Imperfect duty to aid",
+        "competing_norm_kind": "DUTY",
+        "competing_relation": "CONFLICTS",
+        "competing_protected_party": "ten workers",
+        "competing_reason": "rescue duty exists",
+        "duty_type": "PERFECT_NEGATIVE",
+        "harm_relation": "ALLOWING_HARM",
+        "special_obligation_status": "NOT_REQUIRED",
+        "special_obligation_basis": "none",
+        "means_relation": "NO_INSTRUMENTALIZATION",
+        "candidate_maxim": {
+          "circumstance": "Runaway tram threatens ten",
+          "policy": "Do not intervene",
+          "end": "Avoid killing innocents oneself",
+          "means": "Omit lever pull",
+          "person_role": "NOT_USED",
+          "consent_constraint": "NONE",
+          "universalization": "Refraining from killing to help others can be willed universally.",
+          "action_permissibility": "PERMISSIBLE",
+          "maxim_assessment": "DEFENSIBLE",
+          "instrumental_belief": "DOES_NOT_RELY",
+          "instrumental_use": "DOES_NOT_USE",
+          "practical_reasoning": "Dana refuses to become a killer even though she foresees the tram will kill ten.",
+          "means_effect_ids": [],
+          "end_effect_ids": []
+        },
+        "maxim_origin": "CANDIDATE_INTERPRETATION",
+        "governing_norm": "PRIMARY",
+        "priority_basis": "PERFECT_DUTY",
+        "priority_rule": "Omission that avoids killing satisfies higher-priority perfect duty",
+        "protected_standing": "BODILY_INTEGRITY",
+        "competing_protected_standing": "OTHER",
+        "coercion_kind": "NONE",
+        "coercive_actor": "NONE",
+        "coerced_party": "NONE",
+        "public_justification": "A universal law forbidding killing to save others is coherent.",
+        "reciprocity_status": "SATISFIED",
+        "necessity_status": "UNKNOWN",
+        "authorization_status": "NOT_APPLICABLE",
+        "derivation": "RESPECT_PERSONS",
+        "resolution_status": "RESOLVED",
+        "calibration_errors": [],
+        "calibration_issues": [],
+        "calibration_support_node_ids": [],
+        "evidence_basis": "ACTION_GRAPH",
+        "epistemic_status": "GROUNDED_PARTY",
+        "reason": "omission keeps hands clean of direct killing",
+        "protected_party": "one worker",
+        "norm": "refrain from killing an innocent person",
+        "duty_bearer": "dana",
+        "provenance": [
+          "delegate:deontological",
+          "cycle:2"
+        ]
+      },
+      "action_id": "A1",
+      "epistemic_status": "GROUNDED_PARTY",
+      "label": "deontological: A1 PERMISSIBLE"
+    },
+    {
+      "id": "COMMITMENT:73be284b773005fd",
+      "kind": "FRAMEWORK_COMMITMENT",
+      "origin": "deontological",
+      "field": "norm",
+      "value": "refrain from killing an innocent person",
+      "label": "refrain from killing an innocent person",
+      "authority": "FRAMEWORK_LOCAL"
+    },
+    {
+      "id": "COMMITMENT:d1ea923b1e628e28",
+      "kind": "FRAMEWORK_COMMITMENT",
+      "origin": "deontological",
+      "field": "priority_rule",
+      "value": "Omission that avoids killing satisfies higher-priority perfect duty",
+      "label": "Omission that avoids killing satisfies higher-priority perfect duty",
+      "authority": "FRAMEWORK_LOCAL"
+    },
+    {
+      "id": "CONFLICT:b5a426918a20b307",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "intended-as-means classification corrected to side-effect",
+      "conflict_type": "REPORTED_INTERNAL_CONFLICT",
+      "status": "OPEN",
+      "source": "FRAMEWORK_REPORT",
+      "claim_ids": [
+        "CLAIM:ca3e8cabe2a06896",
+        "CLAIM:0f0d228ae8dd9684"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    }
+  ],
+  "edges": [
+    {
+      "source": "COMMITMENT:8cfc1f370c36e06d",
+      "target": "CLAIM:ca3e8cabe2a06896",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "COMMITMENT:6b8fbaf06ac1dd2f",
+      "target": "CLAIM:ca3e8cabe2a06896",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "COMMITMENT:73be284b773005fd",
+      "target": "CLAIM:0f0d228ae8dd9684",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "COMMITMENT:d1ea923b1e628e28",
+      "target": "CLAIM:0f0d228ae8dd9684",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    }
+  ],
+  "diagnostics": [],
+  "open_conflicts": [
+    "CONFLICT:b5a426918a20b307"
+  ],
+  "review_queue": [
+    "CONFLICT:b5a426918a20b307"
+  ],
+  "limits": [
+    "1 bounded targeted review round(s) completed; no collective judgment.",
+    "Different preferences do not establish a contradiction.",
+    "Native record commitment is not proof of every asserted premise."
+  ]
+}

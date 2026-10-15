@@ -1,0 +1,69 @@
+[
+  {
+    "framework": "utilitarian",
+    "landscape_validation_errors": {
+      "before": [
+        "case for A1 tracks the opposing action but not its own action"
+      ],
+      "after": []
+    },
+    "framework_validation_errors": {
+      "before": [
+        "numeric reversal threshold lacks a scenario-grounded quantity"
+      ],
+      "after": []
+    },
+    "factual_reversal_threshold": {
+      "before": "NONE",
+      "after": "Main-track workers drop below side-track workers (e.g., 0 vs 1)."
+    },
+    "graph_update_proposal": {
+      "before": {
+        "operation": "NONE",
+        "from_action": "NONE",
+        "to_action": "NONE",
+        "clauses": []
+      },
+      "after": {
+        "operation": "BOUNDARY",
+        "from_action": "A0",
+        "to_action": "A1",
+        "clauses": [
+          {
+            "affected_action": "A0",
+            "metric": "deaths",
+            "metric_valence": "ADVERSE",
+            "comparator": "GE",
+            "threshold": 10,
+            "unit": "COUNT",
+            "source_text": "If pulling would kill ten or more"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "framework": "deontological",
+    "landscape_validation_errors": {
+      "before": [
+        "case for A1 tracks the opposing action but not its own action"
+      ],
+      "after": []
+    }
+  },
+  {
+    "framework": "care",
+    "landscape_validation_errors": {
+      "before": [
+        "case for A1 tracks the opposing action but not its own action"
+      ],
+      "after": []
+    }
+  },
+  {
+    "framework": "virtue"
+  },
+  {
+    "framework": "rawlsian"
+  }
+]

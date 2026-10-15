@@ -1,0 +1,150 @@
+usage: global_workspace_pipeline.py [-h] [--model MODEL]
+                                    [--backend {local,openai}]
+                                    [--openai-model OPENAI_MODEL]
+                                    [--agents {utilitarian,deontological,virtue,care,rawlsian} [{utilitarian,deontological,virtue,care,rawlsian} ...]]
+                                    [--actions ACTIONS [ACTIONS ...]]
+                                    [--urgency URGENCY] [--danger DANGER]
+                                    [--max-cycles MAX_CYCLES]
+                                    [--time-budget TIME_BUDGET]
+                                    [--output-dir OUTPUT_DIR]
+                                    [--no-framing-cache]
+                                    [--frozen-world-trace FROZEN_WORLD_TRACE]
+                                    [--performance-output PERFORMANCE_OUTPUT]
+                                    [--skip-original-agents]
+                                    [--no-rag-context] [--core-quote-pack]
+                                    [--agent-timeout AGENT_TIMEOUT]
+                                    [--openai-concurrency OPENAI_CONCURRENCY]
+                                    [--call-reserve-seconds CALL_RESERVE_SECONDS]
+                                    [--max-auxiliary-calls-per-cycle MAX_AUXILIARY_CALLS_PER_CYCLE]
+                                    [--drop-vote-on-graph-rejection]
+                                    [--no-ev-dominance-breaker]
+                                    [--ev-dominance-ratio EV_DOMINANCE_RATIO]
+                                    [--n-ctx N_CTX]
+                                    [--n-gpu-layers N_GPU_LAYERS]
+                                    [--n-batch N_BATCH]
+                                    [--delegate-tokens DELEGATE_TOKENS]
+                                    [--accept-actions] [--accept-world]
+                                    [--stop-after-world]
+                                    [--pairwise-relation-audit]
+                                    [--staged-node-generation]
+                                    [--stage-one-guidance-mode {authoritative,evidence-only,evidence-review,raw-text}]
+                                    [--deterministic-repair-guidance {off,alone,combined}]
+                                    [--pairwise-audit-max-pairs PAIRWISE_AUDIT_MAX_PAIRS]
+                                    [--pairwise-audit-evidence-augmented]
+                                    [--syntactic-resolution-obligations]
+                                    [--targeted-semantic-resolution]
+                                    [--targeted-resolution-max-calls TARGETED_RESOLUTION_MAX_CALLS]
+                                    [--escalate-world-model]
+                                    [--no-world-escalation]
+                                    [--world-escalation-model WORLD_ESCALATION_MODEL]
+                                    [--no-synthesis] [--no-planning]
+                                    [--no-consensus-audit]
+                                    [--no-reformulation]
+                                    [--no-visibility-audit]
+                                    [--no-autonomy-audit]
+                                    [--extension-cycles EXTENSION_CYCLES]
+                                    [--max-cycle-extensions MAX_CYCLE_EXTENSIONS]
+                                    [--no-cycle-extension]
+                                    scenario
+
+Run the recurrent ethical global workspace.
+
+positional arguments:
+  scenario              Scenario JSON containing ethical_question
+
+options:
+  -h, --help            show this help message and exit
+  --model MODEL
+  --backend {local,openai}
+  --openai-model OPENAI_MODEL
+  --agents {utilitarian,deontological,virtue,care,rawlsian} [{utilitarian,deontological,virtue,care,rawlsian} ...]
+                        Run only the selected ethical frameworks (at least
+                        two)
+  --actions ACTIONS [ACTIONS ...]
+                        Skip local action planning and use these actions
+  --urgency URGENCY
+  --danger DANGER
+  --max-cycles MAX_CYCLES
+  --time-budget TIME_BUDGET
+  --output-dir OUTPUT_DIR
+  --no-framing-cache    Recompute action planning and action-source grounding
+  --frozen-world-trace FROZEN_WORLD_TRACE
+                        Reuse the exact committed scenario/actions/world from
+                        a saved trace; any mismatch fails closed
+  --performance-output PERFORMANCE_OUTPUT
+                        Optional path for structured timing and model-call
+                        telemetry
+  --skip-original-agents
+                        Use ungrounded compact specialists
+                        (diagnostic/prototype mode only)
+  --no-rag-context      Consult original agents with corpus retrieval disabled
+  --core-quote-pack     Give compact specialists one authored CORE dialect
+                        excerpt (no MiniLM)
+  --agent-timeout AGENT_TIMEOUT
+  --openai-concurrency OPENAI_CONCURRENCY
+                        Maximum concurrent OpenAI original-agent or specialist
+                        calls (1-3)
+  --call-reserve-seconds CALL_RESERVE_SECONDS
+  --max-auxiliary-calls-per-cycle MAX_AUXILIARY_CALLS_PER_CYCLE
+  --drop-vote-on-graph-rejection
+                        Exclude a delegate vote when its decision-critical
+                        graph update is rejected
+  --no-ev-dominance-breaker
+  --ev-dominance-ratio EV_DOMINANCE_RATIO
+  --n-ctx N_CTX
+  --n-gpu-layers N_GPU_LAYERS
+  --n-batch N_BATCH
+  --delegate-tokens DELEGATE_TOKENS
+  --accept-actions      Skip interactive action confirmation
+  --accept-world        Skip the post-world checkpoint and continue to expert
+                        agents
+  --stop-after-world    Halt after the admitted world is printed; do not run
+                        expert agents
+  --pairwise-relation-audit
+                        Run an opt-in read-only LLM audit of Stage-1 event
+                        pairs; judgments cannot alter or admit the world model
+  --staged-node-generation
+                        Extract action-neutral atomic nodes before a separate
+                        ownership pass
+  --stage-one-guidance-mode {authoritative,evidence-only,evidence-review,raw-text}
+                        How Stage 1 influences final graph generation: enforce
+                        its admitted skeleton, provide advisory evidence only,
+                        or bypass Stage 1
+  --deterministic-repair-guidance {off,alone,combined}
+                        Add Stage-1 evidence deltas to graph-repair retries,
+                        either alone or alongside the existing validator
+                        repair cards
+  --pairwise-audit-max-pairs PAIRWISE_AUDIT_MAX_PAIRS
+                        Maximum independent pairwise shadow judgments per
+                        grounding run
+  --pairwise-audit-evidence-augmented
+                        Rank pairwise jobs by source-local evidence and
+                        provide label-blind syntax, modality, negation, and
+                        conditional cues to the auditor
+  --syntactic-resolution-obligations
+                        Use optional spaCy cues to ask Stage 1 to represent or
+                        quarantine ambiguous grammatical structures
+  --targeted-semantic-resolution
+                        Run additive one-question semantic resolution after
+                        neutral extraction
+  --targeted-resolution-max-calls TARGETED_RESOLUTION_MAX_CALLS
+  --escalate-world-model
+                        If the primary OpenAI world-grounding model does not
+                        COMMIT, retry once with --world-escalation-model
+                        without prompting
+  --no-world-escalation
+                        Never offer or run a stronger-model world-grounding
+                        retry
+  --world-escalation-model WORLD_ESCALATION_MODEL
+                        Model used for one world-grounding retry after the
+                        primary model fails (default: gpt-5.6-sol)
+  --no-synthesis        Disable recurrent action synthesis
+  --no-planning         Disable selective implementation planning
+  --no-consensus-audit  Disable suspicious-consensus access gate
+  --no-reformulation    Disable hypothetical switch-point reformulation
+  --no-visibility-audit
+                        Disable the non-voting epistemic-exclusion audit
+  --no-autonomy-audit   Disable the non-voting autonomy and coercion audit
+  --extension-cycles EXTENSION_CYCLES
+  --max-cycle-extensions MAX_CYCLE_EXTENSIONS
+  --no-cycle-extension

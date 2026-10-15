@@ -55,8 +55,8 @@ DEFAULT_SCENARIO = (
     "The patient who does not get the medicine will die."
 )
 PROJECT_ROOT = Path(__file__).resolve().parent
-DEFAULT_PARLIAMENT_ROOT = Path("/tmp/parliament-smoke-614af0c")
-DEFAULT_PARLIAMENT_PYTHON = Path("/tmp/parliament-smoke-env/bin/python")
+from parliament_run_provenance import current_provenance, record_checkpoint, record_start, record_configuration, record_runtime, record_execution
+from parliament_runtime import DEFAULT_PARLIAMENT_ROOT, DEFAULT_PARLIAMENT_PYTHON, DEFAULT_RELENT_PYTHON, check_runtime
 DEFAULT_OPENAI_ENV = Path(
     "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/.env"
 )
@@ -1106,7 +1106,7 @@ print(json.dumps({
 '''
 
 
-def main(argv: list[str] | None = None) -> int:
+def _main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     source = parser.add_mutually_exclusive_group()
     source.add_argument("--text", help="Scenario text to interpret")
@@ -1115,7 +1115,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--parliament-root", type=Path,
                         default=DEFAULT_PARLIAMENT_ROOT)
     parser.add_argument("--parliament-python", type=Path,
-                        default=DEFAULT_PARLIAMENT_PYTHON)
+                        default=None)
     parser.add_argument("--openai-env", type=Path, default=DEFAULT_OPENAI_ENV)
     parser.add_argument("--chooser-model", default="gpt-4o-mini",
                         help="OpenAI model used to rank and fill blueprints")
@@ -1154,7 +1154,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--prepare-only", action="store_true",
                         help="Stop after admission and topology generation")
+    parser.add_argument('--checkpoint-tag', action='append', help='Run label, inherited by child runs; repeatable')
     args = parser.parse_args(argv)
+    record_configuration(args)
 
     if args.output_dir is None:
         stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -1166,18 +1168,35 @@ def main(argv: list[str] | None = None) -> int:
     args.parliament_root = args.parliament_root.expanduser().resolve()
     # Keep the virtual-environment launcher path intact. Resolving its symlink to
     # the base interpreter would silently discard that environment's packages.
-    args.parliament_python = args.parliament_python.expanduser().absolute()
+    args.parliament_python = (args.parliament_python or (DEFAULT_PARLIAMENT_PYTHON if args.prepare_only else DEFAULT_RELENT_PYTHON)).expanduser().absolute()
     args.openai_env = args.openai_env.expanduser().resolve()
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    record_start(args.output_dir)
     try:
         scenario = _scenario_text(args.text, args.scenario_file)
     except (OSError, ValueError) as exc:
         parser.error(str(exc))
 
+    runtime = check_runtime(args.parliament_root, args.parliament_python,
+                            capability='compact_frameworks' if args.prepare_only else 'full_relent')
+    record_configuration(args)
+    record_runtime(runtime)
+    (args.output_dir / 'runtime_check.json').write_text(json.dumps(runtime, indent=2) + '\n')
+    if not runtime['ready']:
+        reason = 'Runtime preflight failed: ' + '; '.join(runtime['errors'])
+        (args.output_dir / 'preparation_manifest.json').write_text(json.dumps({
+            'run_provenance':current_provenance(), 'scenario':scenario, 'pipeline_status':'RUNTIME_UNAVAILABLE',
+            'withholding_reason':reason, 'runtime_check':runtime,
+            'deliberation':{'status':'NOT_RUN'},
+        }, indent=2) + '\n')
+        print(reason + '\n' + runtime['remediation'])
+        return 3
+
     environment = (
         _load_environment(args.openai_env)
         if args.openai_env.exists() else dict(os.environ)
     )
+    environment.update(runtime.get('environment', {}))
     if not environment.get("OPENAI_API_KEY"):
         raise SystemExit(
             f"OPENAI_API_KEY is absent from {args.openai_env} and the shell"
@@ -1266,6 +1285,7 @@ def main(argv: list[str] | None = None) -> int:
 
     manifest_path = args.output_dir / "preparation_manifest.json"
     manifest = {
+        "run_provenance": current_provenance(),
         "scenario": scenario,
         "semantic_coverage": str(args.output_dir / "semantic_coverage.json"),
         "question_assessment": str(question_path),
@@ -1323,6 +1343,7 @@ def main(argv: list[str] | None = None) -> int:
             raise SystemExit(f"{description} not found: {path}")
 
     manifest["parliament_version"] = _parliament_revision(args.parliament_root)
+    manifest['runtime_check'] = runtime
 
     chosen, admission_attempts = _admit_candidates(
         blueprint, scenario, package, args.output_dir, args.parliament_root,
@@ -1385,16 +1406,22 @@ def main(argv: list[str] | None = None) -> int:
     scenario_path.write_text(json.dumps(scenario_record, indent=2) + "\n", encoding="utf-8")
     shutil.copyfile(chosen["record"]["trace_path"], trace_path)
     from parliament_source_constructions import build_packet
-    source_advisory = build_packet(package, proposal)
+    # Bind interpretation to the actual admitted core, which may differ from
+    # the original macro (unsupported effects can have moved to an overlay).
+    frozen_payload = json.loads(trace_path.read_text(encoding="utf-8"))
+    source_advisory = build_packet(package, proposal,
+        world=frozen_payload['action_source_grounding']['world_model'])
     if source_advisory:
-        frozen_payload = json.loads(trace_path.read_text(encoding="utf-8"))
         frozen_payload["source_construction_advisory"] = source_advisory
         trace_path.write_text(json.dumps(frozen_payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     advisory_path = args.output_dir / "source_construction_advisory.json"
     advisory_path.write_text(json.dumps(source_advisory, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     manifest["source_construction_advisory"] = {"path": str(advisory_path),
         "construction_count": len(source_advisory.get("constructions", [])),
+        "branch_choice_count": len((source_advisory.get('branch_context') or {}).get('choices', [])),
+        "branch_context_world_sha256": (source_advisory.get('branch_context') or {}).get('world_sha256'),
         "authority": source_advisory.get("authority", "NONE")}
+    record_checkpoint("world_frozen", artifacts=[trace_path])
     admission = chosen["record"]["admission"]
     topology_markdown, topology_json = _write_world_topology(
         trace_path, args.output_dir
@@ -1423,6 +1450,8 @@ def main(argv: list[str] | None = None) -> int:
         deliberation = resolve_relent_deliberation(args)
     except ValueError as exc:
         parser.error(str(exc))
+    record_configuration(deliberation)
+    manifest["run_provenance"] = current_provenance()
     parliament_output = args.output_dir / "parliament"
     command = _parliament_deliberation_command(
         parliament_python=args.parliament_python,
@@ -1500,6 +1529,14 @@ def main(argv: list[str] | None = None) -> int:
     print("\nRun manifest:")
     print(json.dumps(manifest, ensure_ascii=False, indent=2))
     return result.returncode or (1 if trace is None else 0)
+
+
+def main(argv=None):
+    arguments=list(sys.argv[1:] if argv is None else argv)
+    from parliament_run_provenance import option
+    if not option(arguments, '--output-dir') and '--help' not in arguments and '-h' not in arguments:
+        arguments += ['--output-dir', str(PROJECT_ROOT/'diagnostics'/'blueprint_parliament_runs'/datetime.now().strftime('%Y%m%d_%H%M%S'))]
+    return record_execution(_main, arguments, entrypoint='run_blueprint_parliament.py', output_flag='--output-dir', defaults={'chooser_model': 'gpt-4o-mini', 'openai_model': 'o3'})
 
 
 if __name__ == "__main__":

@@ -140,6 +140,63 @@ def _process_subject(span, process):
     return 'pronoun' if subject.lower_ == 'it' else ''
 
 
+def _coordinated_process_outcome(clauses, effect, process):
+    """Recover a shared subject from source coordination, not the outcome label."""
+    from parsing_game_S import get_nlp
+    for clause in clauses:
+        if clause['clause_id'] not in effect['clause_ids']:
+            continue
+        for token in get_nlp()(clause['text']):
+            if token.lemma_.lower() != effect.get('predicate') or token.dep_ != 'conj':
+                continue
+            head = token.head
+            if any(c.dep_ == 'neg' for c in list(token.children) + list(head.children)):
+                continue
+            subjects = [c for c in head.children if c.dep_ == 'nsubj']
+            if len(subjects) == 1 and _nominal(subjects[0]).casefold() == process.casefold():
+                return True
+    return False
+
+
+def omission_continuation(text, process, harm):
+    """Bind the stated default motion to its same-patient omission outcome.
+
+    This is a structural inference, not a new assertion of movement or a claim
+    that absence of intervention physically causes it.
+    """
+    from parsing_game_S import get_nlp
+    doc = get_nlp()(text)
+    harm_doc = get_nlp()(harm)
+    objects = [t for t in harm_doc if t.dep_ in {'dobj', 'obj'}]
+    if len(objects) != 1:
+        return None
+    patient_span = _nominal(objects[0])
+    patient = counted_antecedent(text, patient_span) or patient_span
+    matches = []
+    for sent in doc.sents:
+        root = sent.root
+        if root.lemma_ != 'head' or any(t.dep_ == 'neg' or t.lower_ in
+                {'if', 'unless', 'may', 'might', 'could', 'according'} for t in sent):
+            continue
+        subjects = [c for c in root.children if c.dep_ == 'nsubj']
+        targets = [p for c in root.children if c.lower_ in {'toward', 'towards'}
+                   for p in c.children if p.dep_ == 'pobj']
+        if len(subjects) != 1 or len(targets) != 1 or '?' in sent.text:
+            continue
+        if _nominal(subjects[0]).split()[-1].lower() != process.split()[-1].lower():
+            continue
+        if not patient or _nominal(targets[0]).lower() != patient.lower():
+            continue
+        places = [p for c in targets[0].children if c.lower_ == 'on'
+                  for p in c.children if p.dep_ == 'pobj']
+        if len(places) != 1:
+            continue
+        end = max(t.idx + len(t.text) for t in places[0].subtree if not t.is_punct)
+        matches.append({'transition': text[root.idx:end], 'predicate': 'head',
+                        'destination': _nominal(places[0]), 'evidence': sent.text})
+    return matches[0] if len(matches) == 1 else None
+
+
 def attach_physical_scene(text, original, provenance=None):
     from blueprint_cloze_chooser import _party, _clause_for
     doc, mechanism = mechanism_from_source(text)
@@ -236,6 +293,30 @@ def attach_physical_scene(text, original, provenance=None):
             for link in world['causal_links']:
                 if link['target_id'] == middle['effect_id']:
                     link['clause_ids'] = [mechanism_host['clause_id']]
+                    if link['source_id'] == direct['effect_id'] and link.get('link_relation', link.get('relation')) in {'ENABLES', 'CAUSES'}:
+                        link['link_relation' if 'link_relation' in link else 'relation'] = 'CAUSES'
+                        if provenance is not None:
+                            provenance.append({'atom_id': 'relation:' + str(world['causal_links'].index(link)),
+                                'atom_kind': 'relation', 'origin': 'STRUCTURALLY_DERIVED',
+                                'clause_ids': link['clause_ids'], 'evidence': [mechanism['sentence']],
+                                'explanation': 'The explicit instrument mechanism connects its operation to the stated redirection; not merely branch membership.'})
+            # Only the source-bound intervention mechanism is causal here.
+            # Do not upgrade arbitrary conditional associations or omission
+            # dependencies just because their outcomes share a branch.
+            for link_index, link in enumerate(world['causal_links']):
+                target = next((e for e in owned if e['effect_id'] == link['target_id']), None)
+                if (link['source_id'] != middle['effect_id'] or link.get('link_relation', link.get('relation')) not in {'ENABLES', 'CAUSES'}
+                        or not target or target['polarity'] not in {'ADVERSE', 'BENEFICIAL'}
+                        or not (_process_subject(target['outcome'], mechanism['process']) == 'explicit'
+                                or _coordinated_process_outcome(clauses, target, mechanism['process']))):
+                    continue
+                link['link_relation' if 'link_relation' in link else 'relation'] = 'CAUSES'
+                link['clause_ids'] = list(dict.fromkeys([mechanism_host['clause_id']] + target['clause_ids']))
+                if provenance is not None:
+                    provenance.append({'atom_id': 'relation:' + str(link_index), 'atom_kind': 'relation',
+                        'origin': 'STRUCTURALLY_DERIVED', 'clause_ids': link['clause_ids'],
+                        'evidence': [mechanism['sentence'], target['source_proposition']],
+                        'explanation': 'The stated redirection and same-process conditional outcome bind the intervention mechanism to its consequence; no outcome is used as a means to its sibling.'})
         else:
             # Reuse the explicit outcome event as a process perspective, with
             # its human harm kept separately. No invented continuation/route.
@@ -255,7 +336,22 @@ def attach_physical_scene(text, original, provenance=None):
                     likelihood_qualifiers=harm.get('likelihood_qualifiers', []),
                     clause_ids=harm['clause_ids'],
                     derivation_explanation='Source-stipulated process event; the separate human-bearer effect records its welfare consequence.')
-                if provenance is not None:
+                continuation = omission_continuation(text, mechanism['process'], harm['outcome'])
+                if continuation:
+                    from blueprint_allocation_invariants import group_quantity
+                    scene_host = _clause_for(text, continuation['evidence'])
+                    middle.update(outcome=continuation['transition'],
+                        source_proposition=continuation['transition'], predicate=continuation['predicate'],
+                        effect_kind='OTHER', quantities=group_quantity(continuation['transition']),
+                        clause_ids=list(dict.fromkeys(harm['clause_ids'] + [scene_host['clause_id']])),
+                        derivation_explanation='The stated default motion and same-patient omission outcome jointly support this branch continuation; no new route is invented.')
+                    action['clause_ids'] = list(dict.fromkeys(action['clause_ids'] + middle['clause_ids']))
+                    if provenance is not None:
+                        provenance.append({'atom_id': 'effect:' + middle['effect_id'], 'atom_kind': 'effect',
+                            'origin': 'STRUCTURALLY_DERIVED', 'clause_ids': middle['clause_ids'],
+                            'evidence': [continuation['evidence'], harm['source_proposition'], condition],
+                            'explanation': middle['derivation_explanation']})
+                if provenance is not None and not continuation:
                     provenance.append({'atom_id': 'effect:' + middle['effect_id'], 'atom_kind': 'effect',
                         'origin': 'STRUCTURALLY_DERIVED', 'clause_ids': list(dict.fromkeys(
                             harm['clause_ids'] + [cid for e in antecedents for cid in e['clause_ids']])),

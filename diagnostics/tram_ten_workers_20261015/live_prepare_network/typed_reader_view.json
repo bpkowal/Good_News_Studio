@@ -1,0 +1,579 @@
+{
+  "schema_version": "typed-reader-view/1",
+  "mermaid": "flowchart TB\n  subgraph scene[\"Scene\"]\n    direction LR\n    SC_P3[\"the tram<br/>entity\"]\n    SC_P4[\"ten workers<br/>entity\"]\n    SC_P7[\"the main track<br/>place\"]\n    SC_P2[\"one worker<br/>entity\"]\n    SC_P8[\"a side track<br/>place\"]\n  end\n  subgraph branch_A0[\"If she pulls the lever\"]\n    direction LR\n    A0[\"pulls the lever<br/>process\"]\n    E2[\"redirects the tram onto a side track<br/>process\"]\n    A0_P6[\"a lever<br/>entity\"]\n    A0_P3[\"the tram<br/>entity\"]\n    A0_P8[\"a side track<br/>place\"]\n    A0_P2[\"one worker<br/>entity\"]\n    E3[\"the tram will kill one worker<br/>effect\"]\n    A0_P4[\"ten workers<br/>entity\"]\n    E4[\"spare ten workers<br/>effect\"]\n    A0_P7[\"the main track<br/>place\"]\n  end\n  subgraph branch_A1[\"Option: does not pull the lever\"]\n    direction LR\n    A1[\"does not pull the lever<br/>choice\"]\n    E6[\"heading toward ten workers on the main track<br/>process\"]\n    A1_P6[\"a lever<br/>entity\"]\n    A1_P3[\"the tram<br/>entity\"]\n    A1_P7[\"the main track<br/>place\"]\n    A1_P4[\"ten workers<br/>entity\"]\n    E7[\"it will kill ten workers<br/>effect\"]\n    A1_P2[\"one worker<br/>entity\"]\n    E8[\"spare one worker<br/>effect\"]\n    A1_P8[\"a side track<br/>place\"]\n  end\n  subgraph actor[\"Decision maker\"]\n    direction LR\n    ACT_P1[\"Dana<br/>entity\"]\n  end\n  SC_P3 -.->|\"HEADING_TOWARD\"| SC_P4\n  SC_P4 -.->|\"ON\"| SC_P7\n  SC_P2 -.->|\"ON\"| SC_P8\n  ACT_P1 -->|\"ACTOR\"| A0\n  A0 -->|\"AFFECTS\"| A0_P6\n  A0 -->|\"ENABLES\"| E2\n  A0_P3 -->|\"UNDERGOES\"| E2\n  E2 -.->|\"ONTO\"| A0_P8\n  A0_P2 -->|\"RESULT\"| E3\n  A0_P8 -.->|\"OCCUPIED_BY\"| A0_P2\n  A0_P4 -->|\"RESULT\"| E4\n  A0_P7 -.->|\"OCCUPIED_BY\"| A0_P4\n  ACT_P1 -->|\"DECISION_MAKER\"| A1\n  A1 -->|\"OMITS\"| A1_P6\n  A1 -.->|\"BRANCH_FOR\"| E6\n  A1_P3 -->|\"UNDERGOES\"| E6\n  E6 -.->|\"TOWARD\"| A1_P7\n  A1_P4 -->|\"RESULT\"| E7\n  A1_P7 -.->|\"OCCUPIED_BY\"| A1_P4\n  A1_P2 -->|\"RESULT\"| E8\n  A1_P8 -.->|\"OCCUPIED_BY\"| A1_P2\n  classDef sourceReading fill:#eef4fb,stroke:#46739a,color:#233b51\n  classDef unresolved fill:#fff3db,stroke:#af7b26,stroke-dasharray:5 3,color:#60461e\n  classDef reader_entity fill:#eef3fa,stroke:#64809e,color:#26332e\n  class SC_P3,SC_P4,SC_P2,ACT_P1,A0_P6,A0_P3,A0_P2,A0_P4,A1_P6,A1_P3,A1_P4,A1_P2 reader_entity\n  classDef reader_place fill:#e9f4ec,stroke:#60836a,color:#26332e\n  class SC_P7,SC_P8,A0_P8,A0_P7,A1_P7,A1_P8 reader_place\n  classDef reader_process fill:#fff6e4,stroke:#a18a56,color:#26332e\n  class A0,E2,E6 reader_process\n  classDef reader_choice fill:#fff6e4,stroke:#a18a56,color:#26332e\n  class A1 reader_choice\n  classDef reader_effect fill:#f6edf5,stroke:#96738d,color:#26332e\n  class E3,E4,E7,E8 reader_effect",
+  "nodes": [
+    {
+      "id": "SC_P3",
+      "label": "the tram",
+      "kind": "entity",
+      "world_ids": [
+        "P3"
+      ],
+      "group": "scene"
+    },
+    {
+      "id": "SC_P4",
+      "label": "ten workers",
+      "kind": "entity",
+      "world_ids": [
+        "P4"
+      ],
+      "group": "scene"
+    },
+    {
+      "id": "SC_P7",
+      "label": "the main track",
+      "kind": "place",
+      "world_ids": [
+        "P7"
+      ],
+      "group": "scene"
+    },
+    {
+      "id": "SC_P2",
+      "label": "one worker",
+      "kind": "entity",
+      "world_ids": [
+        "P2"
+      ],
+      "group": "scene"
+    },
+    {
+      "id": "SC_P8",
+      "label": "a side track",
+      "kind": "place",
+      "world_ids": [
+        "P8"
+      ],
+      "group": "scene"
+    },
+    {
+      "id": "A0",
+      "label": "pulls the lever",
+      "kind": "process",
+      "world_ids": [
+        "A0",
+        "E1"
+      ],
+      "group": "branch_A0",
+      "display_reconstruction": false,
+      "choice_semantics": {
+        "action_id": "A0",
+        "kind": "intervention",
+        "decision_maker_id": "P1",
+        "omitted_intervention_id": null,
+        "intervention_description": "pulls the lever",
+        "instrument_ids": [
+          "P6"
+        ],
+        "origin": "FROZEN_FIELD",
+        "clause_ids": [],
+        "meaning": "Candidate intervention; occurrence is not asserted."
+      }
+    },
+    {
+      "id": "ACT_P1",
+      "label": "Dana",
+      "kind": "entity",
+      "world_ids": [
+        "P1"
+      ],
+      "group": "actor"
+    },
+    {
+      "id": "E2",
+      "label": "redirects the tram onto a side track",
+      "kind": "process",
+      "world_ids": [
+        "E2"
+      ],
+      "group": "branch_A0"
+    },
+    {
+      "id": "A0_P6",
+      "label": "a lever",
+      "kind": "entity",
+      "world_ids": [
+        "P6"
+      ],
+      "group": "branch_A0"
+    },
+    {
+      "id": "A0_P3",
+      "label": "the tram",
+      "kind": "entity",
+      "world_ids": [
+        "P3"
+      ],
+      "group": "branch_A0"
+    },
+    {
+      "id": "A0_P8",
+      "label": "a side track",
+      "kind": "place",
+      "world_ids": [
+        "P8"
+      ],
+      "group": "branch_A0"
+    },
+    {
+      "id": "A0_P2",
+      "label": "one worker",
+      "kind": "entity",
+      "world_ids": [
+        "P2"
+      ],
+      "group": "branch_A0"
+    },
+    {
+      "id": "E3",
+      "label": "the tram will kill one worker",
+      "kind": "effect",
+      "world_ids": [
+        "E3"
+      ],
+      "group": "branch_A0"
+    },
+    {
+      "id": "A0_P4",
+      "label": "ten workers",
+      "kind": "entity",
+      "world_ids": [
+        "P4"
+      ],
+      "group": "branch_A0"
+    },
+    {
+      "id": "E4",
+      "label": "spare ten workers",
+      "kind": "effect",
+      "world_ids": [
+        "E4"
+      ],
+      "group": "branch_A0"
+    },
+    {
+      "id": "A0_P7",
+      "label": "the main track",
+      "kind": "place",
+      "world_ids": [
+        "P7"
+      ],
+      "group": "branch_A0"
+    },
+    {
+      "id": "A1",
+      "label": "does not pull the lever",
+      "kind": "choice",
+      "world_ids": [
+        "A1",
+        "E5"
+      ],
+      "group": "branch_A1",
+      "display_reconstruction": false,
+      "choice_semantics": {
+        "action_id": "A1",
+        "kind": "omission",
+        "decision_maker_id": "P1",
+        "omitted_intervention_id": "A0",
+        "intervention_description": "pulls the lever",
+        "instrument_ids": [
+          "P6"
+        ],
+        "origin": "STRUCTURALLY_DERIVED",
+        "clause_ids": [],
+        "meaning": "Choice to omit the paired intervention; not an act causing continued motion."
+      }
+    },
+    {
+      "id": "E6",
+      "label": "heading toward ten workers on the main track",
+      "kind": "process",
+      "world_ids": [
+        "E6"
+      ],
+      "group": "branch_A1"
+    },
+    {
+      "id": "A1_P6",
+      "label": "a lever",
+      "kind": "entity",
+      "world_ids": [
+        "P6"
+      ],
+      "group": "branch_A1"
+    },
+    {
+      "id": "A1_P3",
+      "label": "the tram",
+      "kind": "entity",
+      "world_ids": [
+        "P3"
+      ],
+      "group": "branch_A1"
+    },
+    {
+      "id": "A1_P7",
+      "label": "the main track",
+      "kind": "place",
+      "world_ids": [
+        "P7"
+      ],
+      "group": "branch_A1"
+    },
+    {
+      "id": "A1_P4",
+      "label": "ten workers",
+      "kind": "entity",
+      "world_ids": [
+        "P4"
+      ],
+      "group": "branch_A1"
+    },
+    {
+      "id": "E7",
+      "label": "it will kill ten workers",
+      "kind": "effect",
+      "world_ids": [
+        "E7"
+      ],
+      "group": "branch_A1"
+    },
+    {
+      "id": "A1_P2",
+      "label": "one worker",
+      "kind": "entity",
+      "world_ids": [
+        "P2"
+      ],
+      "group": "branch_A1"
+    },
+    {
+      "id": "E8",
+      "label": "spare one worker",
+      "kind": "effect",
+      "world_ids": [
+        "E8"
+      ],
+      "group": "branch_A1"
+    },
+    {
+      "id": "A1_P8",
+      "label": "a side track",
+      "kind": "place",
+      "world_ids": [
+        "P8"
+      ],
+      "group": "branch_A1"
+    }
+  ],
+  "edges": [
+    {
+      "id": "TE1",
+      "source": "SC_P3",
+      "type": "HEADING_TOWARD",
+      "target": "SC_P4",
+      "origin": "SOURCE_READING",
+      "evidence": {
+        "start": 0,
+        "end": 63,
+        "text": "A runaway tram is heading toward ten workers on the main track."
+      }
+    },
+    {
+      "id": "TE2",
+      "source": "SC_P4",
+      "type": "ON",
+      "target": "SC_P7",
+      "origin": "SOURCE_READING",
+      "evidence": {
+        "start": 0,
+        "end": 63,
+        "text": "A runaway tram is heading toward ten workers on the main track."
+      }
+    },
+    {
+      "id": "TE3",
+      "source": "SC_P2",
+      "type": "ON",
+      "target": "SC_P8",
+      "origin": "SOURCE_READING",
+      "evidence": {
+        "start": 64,
+        "end": 153,
+        "text": "Dana can pull a lever that redirects the tram onto a side track, where one worker stands."
+      }
+    },
+    {
+      "id": "TE4",
+      "source": "ACT_P1",
+      "type": "ACTOR",
+      "target": "A0",
+      "origin": "FROZEN_FIELD"
+    },
+    {
+      "id": "TE5",
+      "source": "A0",
+      "type": "AFFECTS",
+      "target": "A0_P6",
+      "origin": "FROZEN_FIELD",
+      "meaning": "Intervention acts on this instrument."
+    },
+    {
+      "id": "TE6",
+      "source": "A0",
+      "type": "ENABLES",
+      "target": "E2",
+      "origin": "FROZEN_FIELD",
+      "world_link_ids": [
+        0
+      ]
+    },
+    {
+      "id": "TE7",
+      "source": "A0_P3",
+      "type": "UNDERGOES",
+      "target": "E2",
+      "origin": "FROZEN_FIELD"
+    },
+    {
+      "id": "TE8",
+      "source": "E2",
+      "type": "ONTO",
+      "target": "A0_P8",
+      "origin": "SOURCE_READING",
+      "evidence": {
+        "start": 91,
+        "end": 127,
+        "text": "redirects the tram onto a side track"
+      }
+    },
+    {
+      "id": "TE9",
+      "source": "A0_P2",
+      "type": "RESULT",
+      "target": "E3",
+      "origin": "FROZEN_FIELD",
+      "meaning": "The named party has this branch outcome; not a causal arrow from the person."
+    },
+    {
+      "id": "TE10",
+      "source": "A0_P8",
+      "type": "OCCUPIED_BY",
+      "target": "A0_P2",
+      "origin": "SOURCE_READING",
+      "evidence": {
+        "start": 64,
+        "end": 153,
+        "text": "Dana can pull a lever that redirects the tram onto a side track, where one worker stands."
+      }
+    },
+    {
+      "id": "TE11",
+      "source": "A0_P4",
+      "type": "RESULT",
+      "target": "E4",
+      "origin": "FROZEN_FIELD",
+      "meaning": "The named party has this branch outcome; not a causal arrow from the person."
+    },
+    {
+      "id": "TE12",
+      "source": "A0_P7",
+      "type": "OCCUPIED_BY",
+      "target": "A0_P4",
+      "origin": "SOURCE_READING",
+      "evidence": {
+        "start": 0,
+        "end": 63,
+        "text": "A runaway tram is heading toward ten workers on the main track."
+      }
+    },
+    {
+      "id": "TE13",
+      "source": "ACT_P1",
+      "type": "DECISION_MAKER",
+      "target": "A1",
+      "origin": "FROZEN_FIELD"
+    },
+    {
+      "id": "TE14",
+      "source": "A1",
+      "type": "OMITS",
+      "target": "A1_P6",
+      "origin": "FROZEN_FIELD",
+      "meaning": "Omits operating this instrument; does not physically affect it."
+    },
+    {
+      "id": "TE15",
+      "source": "A1",
+      "type": "BRANCH_FOR",
+      "target": "E6",
+      "origin": "STRUCTURALLY_DERIVED",
+      "meaning": "Physical continuation within this choice branch, not physical causation by omission."
+    },
+    {
+      "id": "TE16",
+      "source": "A1_P3",
+      "type": "UNDERGOES",
+      "target": "E6",
+      "origin": "FROZEN_FIELD"
+    },
+    {
+      "id": "TE17",
+      "source": "E6",
+      "type": "TOWARD",
+      "target": "A1_P7",
+      "origin": "STRUCTURALLY_DERIVED",
+      "evidence": {
+        "start": 18,
+        "end": 62,
+        "text": "heading toward ten workers on the main track"
+      }
+    },
+    {
+      "id": "TE18",
+      "source": "A1_P4",
+      "type": "RESULT",
+      "target": "E7",
+      "origin": "FROZEN_FIELD",
+      "meaning": "The named party has this branch outcome; not a causal arrow from the person."
+    },
+    {
+      "id": "TE19",
+      "source": "A1_P7",
+      "type": "OCCUPIED_BY",
+      "target": "A1_P4",
+      "origin": "SOURCE_READING",
+      "evidence": {
+        "start": 0,
+        "end": 63,
+        "text": "A runaway tram is heading toward ten workers on the main track."
+      }
+    },
+    {
+      "id": "TE20",
+      "source": "A1_P2",
+      "type": "RESULT",
+      "target": "E8",
+      "origin": "FROZEN_FIELD",
+      "meaning": "The named party has this branch outcome; not a causal arrow from the person."
+    },
+    {
+      "id": "TE21",
+      "source": "A1_P8",
+      "type": "OCCUPIED_BY",
+      "target": "A1_P2",
+      "origin": "SOURCE_READING",
+      "evidence": {
+        "start": 64,
+        "end": 153,
+        "text": "Dana can pull a lever that redirects the tram onto a side track, where one worker stands."
+      }
+    }
+  ],
+  "cells": {
+    "schema_version": "spatial-reader-cells/1",
+    "observational_only": true,
+    "movement_entity": "P3",
+    "instrument": "P6",
+    "destination": "P8",
+    "scene_relations": [
+      {
+        "id": "SP1",
+        "type": "HEADING_TOWARD",
+        "source": "P3",
+        "target": "P4",
+        "origin": "SOURCE_READING",
+        "evidence": {
+          "start": 0,
+          "end": 63,
+          "text": "A runaway tram is heading toward ten workers on the main track."
+        }
+      },
+      {
+        "id": "SP2",
+        "type": "ON",
+        "source": "P4",
+        "target": "P7",
+        "origin": "SOURCE_READING",
+        "evidence": {
+          "start": 0,
+          "end": 63,
+          "text": "A runaway tram is heading toward ten workers on the main track."
+        }
+      },
+      {
+        "id": "SP3",
+        "type": "ON",
+        "source": "P2",
+        "target": "P8",
+        "origin": "SOURCE_READING",
+        "evidence": {
+          "start": 64,
+          "end": 153,
+          "text": "Dana can pull a lever that redirects the tram onto a side track, where one worker stands."
+        }
+      }
+    ],
+    "branch_transitions": [
+      {
+        "action_id": "A0",
+        "process_id": "E2",
+        "movement_entity": "P3",
+        "instrument": "P6",
+        "destination": "P8",
+        "relation": "ONTO",
+        "origin": "SOURCE_READING",
+        "evidence": {
+          "start": 91,
+          "end": 127,
+          "text": "redirects the tram onto a side track"
+        }
+      },
+      {
+        "action_id": "A1",
+        "process_id": "E6",
+        "movement_entity": "P3",
+        "instrument": "P6",
+        "destination": "P7",
+        "relation": "TOWARD",
+        "origin": "STRUCTURALLY_DERIVED",
+        "evidence": {
+          "start": 18,
+          "end": 62,
+          "text": "heading toward ten workers on the main track"
+        }
+      }
+    ],
+    "open_questions": [],
+    "branch_choices": [
+      {
+        "action_id": "A0",
+        "kind": "intervention",
+        "decision_maker_id": "P1",
+        "omitted_intervention_id": null,
+        "intervention_description": "pulls the lever",
+        "instrument_ids": [
+          "P6"
+        ],
+        "origin": "FROZEN_FIELD",
+        "clause_ids": [],
+        "meaning": "Candidate intervention; occurrence is not asserted."
+      },
+      {
+        "action_id": "A1",
+        "kind": "omission",
+        "decision_maker_id": "P1",
+        "omitted_intervention_id": "A0",
+        "intervention_description": "pulls the lever",
+        "instrument_ids": [
+          "P6"
+        ],
+        "origin": "STRUCTURALLY_DERIVED",
+        "clause_ids": [],
+        "meaning": "Choice to omit the paired intervention; not an act causing continued motion."
+      }
+    ]
+  },
+  "notice": "Typed reader projection. Dashed arrows are source readings, structural derivations or unresolved branch structure, not additional admitted relations. Omission is a choice: DECISION_MAKER identifies its owner; OMITS identifies the unused instrument; BRANCH_FOR is branch dependence, not causation. Native records remain unchanged. RESULT associates a patient with an outcome; it does not make the patient its cause. Default motion is bound only when the stated scene and omission outcome identify the same patients; no REMAINS_ON or AWAY_FROM route is invented. Repeated entity boxes are display copies, not new identities. Entity/place/process are reader roles; original native kinds are retained in inspection. Full graph retains every original record."
+}

@@ -1,3 +1,4 @@
+from parliament_runtime import DEFAULT_PARLIAMENT_ROOT, DEFAULT_PARLIAMENT_PYTHON
 from copy import deepcopy
 import json
 from pathlib import Path
@@ -81,12 +82,13 @@ class PartialRevisionTests(unittest.TestCase):
         self.assertEqual(json.loads(isolated['choices'][0]['text'])['dp']['A0']['res'], 'UNKNOWN')
 
     def test_native_partial_acceptance_preserves_duties_and_disputed_bundle(self):
-        native = Path('/tmp/parliament-smoke-env/bin/python')
+        native = DEFAULT_PARLIAMENT_PYTHON
         if not native.exists(): self.skipTest('Native interpreter unavailable')
         code = r'''
 import sys,json
 from pathlib import Path
-sys.path.insert(0,'/tmp/parliament-smoke-614af0c')
+from parliament_runtime import DEFAULT_PARLIAMENT_ROOT
+sys.path.insert(0,str(DEFAULT_PARLIAMENT_ROOT))
 from logic_puzzles_review import review
 from logic_puzzles_acceptance import SavedResponses
 from run_logic_puzzles import project_conflicts
@@ -127,12 +129,13 @@ assert any(n['kind']=='PROPOSED_REVISION' and n['world_state_authority']=='NONE'
 
 
     def test_native_harm_uncertainty_does_not_resurrect_original_prohibition(self):
-        native = Path('/tmp/parliament-smoke-env/bin/python')
+        native = DEFAULT_PARLIAMENT_PYTHON
         if not native.exists(): self.skipTest('Native interpreter unavailable')
         code = r'''
 import sys,json
 from pathlib import Path
-sys.path.insert(0,'/tmp/parliament-smoke-614af0c')
+from parliament_runtime import DEFAULT_PARLIAMENT_ROOT
+sys.path.insert(0,str(DEFAULT_PARLIAMENT_ROOT))
 from logic_puzzles_review import review
 from logic_puzzles_acceptance import SavedResponses
 source=Path('diagnostics/logic_puzzles_independent_live/framework_generation.json')

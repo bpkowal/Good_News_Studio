@@ -247,7 +247,8 @@ class BlueprintRunnerArtifactsTests(unittest.TestCase):
             env = root / "api.env"
             env.write_text("OPENAI_API_KEY=test-only\n", encoding="utf-8")
             output = root / "output"
-            with mock.patch("run_blueprint_parliament.z10.export_candidate_graph",
+            with mock.patch("run_blueprint_parliament.check_runtime", return_value={'ready':True}), \
+                 mock.patch("run_blueprint_parliament.z10.export_candidate_graph",
                             return_value={"package_id": "test"}), \
                  mock.patch("run_blueprint_parliament.assess_question",
                             return_value={"ethical_question": ""}), \
@@ -424,7 +425,8 @@ class RelEntHandoffTests(unittest.TestCase):
             (parliament / "global_workspace_pipeline.py").write_text("# stub\n")
             python = root / "python"
             python.write_text("#!/bin/sh\n")
-            with mock.patch("run_blueprint_parliament.z10.export_candidate_graph",
+            with mock.patch("run_blueprint_parliament.check_runtime", return_value={'ready':True}), \
+                 mock.patch("run_blueprint_parliament.z10.export_candidate_graph",
                             return_value={"package_id": "test"}), \
                  mock.patch("run_blueprint_parliament.extract_inventory",
                             return_value={"constructions": [], "candidate_accounting": [],

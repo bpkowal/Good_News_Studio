@@ -1,0 +1,118 @@
+--- a/global_workspace/deontology_ledger.py
++++ b/global_workspace/deontology_ledger.py
+@@ -86,6 +86,12 @@
+     universalization: str = Field(min_length=4, max_length=300)
+     action_permissibility: Literal["PERMISSIBLE", "IMPERMISSIBLE", "UNRESOLVED"]
+     maxim_assessment: Literal["DEFENSIBLE", "INDEFENSIBLE", "UNRESOLVED"]
++    # None preserves earlier saved maxims without inventing a belief/use claim.
++    instrumental_belief: Literal["RELIES_ON_PERSON", "DOES_NOT_RELY", "UNRESOLVED"] | None = None
++    instrumental_use: Literal["USES_PERSON", "DOES_NOT_USE", "UNRESOLVED"] | None = None
++    practical_reasoning: str | None = Field(default=None, min_length=4, max_length=300)
++    means_effect_ids: list[str] | None = Field(default=None, max_length=8)
++    end_effect_ids: list[str] | None = Field(default=None, max_length=8)
+ 
+ 
+ class DutyAssessmentProposal(BaseModel):
+@@ -812,6 +818,33 @@
+                 and item.verdict in {"PERMISSIBLE", "REQUIRED"})
+                 or (maxim.action_permissibility == "PERMISSIBLE" and item.verdict == "PROHIBITED")):
+             errors.append("candidate maxim action-permissibility conflicts with duty verdict")
++        beliefs_present = maxim.instrumental_belief is not None or maxim.instrumental_use is not None
++        if beliefs_present:
++            relies = maxim.instrumental_belief == "RELIES_ON_PERSON"
++            uses = maxim.instrumental_use == "USES_PERSON"
++            if maxim.person_role == "INTENDED_MEANS" and not (relies and uses and maxim.practical_reasoning):
++                errors.append("candidate maxim intended use lacks a proposed instrumental belief and purposive use")
++            if relies and uses and maxim.person_role in {"FORESEEN_AFFECTED", "NOT_USED"}:
++                errors.append("candidate maxim denies intended use while proposing instrumental belief and purposive use")
++            if item.resolution_status == "RESOLVED" and (
++                maxim.instrumental_belief in {None, "UNRESOLVED"}
++                or maxim.instrumental_use in {None, "UNRESOLVED"}
++            ):
++                errors.append("candidate maxim practical-reasoning qualification remains unresolved")
++        # Check cited physical means against the same action's admitted graph.
++        # This is a support check, never proof of the person's actual intention.
++        typed = _typed_action_consequences(graph, action)
++        effects = {node.id.rsplit(":", 1)[-1]: node for node in typed}
++        references = [*(maxim.means_effect_ids or []), *(maxim.end_effect_ids or [])]
++        if any(ref not in effects for ref in references):
++            errors.append("candidate maxim cites an unknown or other-action effect")
++        elif maxim.means_effect_ids and maxim.end_effect_ids:
++            for ref in maxim.means_effect_ids:
++                reached = _reachable_via(graph, [effects[ref].id], _MEANS_LINK_RELATIONS)
++                if not any(effects[end].id != effects[ref].id and effects[end].id in reached
++                           for end in maxim.end_effect_ids):
++                    errors.append("candidate maxim chosen means has no admitted path to its stated end")
++                    break
+         # Catch the saved reply's positive "uses the worker as a mere means"
+         # phrasing without treating an explicit denial as that assertion.
+         positive_use = re.search(r"\buses?\b[^.;]{1,90}\bas (?:a )?mere means\b", item.reason, re.I)
+@@ -1340,7 +1373,7 @@
+                 "special_obligation_status": item.special_obligation_status,
+                 "special_obligation_basis": item.special_obligation_basis,
+                 "means_relation": item.means_relation,
+-                **({"candidate_maxim": item.candidate_maxim.model_dump(),
++                **({"candidate_maxim": item.candidate_maxim.model_dump(exclude_none=True),
+                     "maxim_origin": "CANDIDATE_INTERPRETATION"} if item.candidate_maxim else {}),
+                 "governing_norm": item.governing_norm,
+                 "priority_basis": item.priority_basis,
+@@ -1441,7 +1474,7 @@
+                 "special_obligation_status": item.special_obligation_status,
+                 "special_obligation_basis": item.special_obligation_basis,
+                 "means_relation": item.means_relation,
+-                **({"candidate_maxim": item.candidate_maxim.model_dump(),
++                **({"candidate_maxim": item.candidate_maxim.model_dump(exclude_none=True),
+                     "maxim_origin": "CANDIDATE_INTERPRETATION"} if item.candidate_maxim else {}),
+                 "derivation": item.derivation,
+                 "resolution_status": item.resolution_status,
+@@ -1499,7 +1532,7 @@
+             "special_obligation_status": item.special_obligation_status,
+             "special_obligation_basis": item.special_obligation_basis,
+             "means_relation": item.means_relation,
+-            **({"candidate_maxim": item.candidate_maxim.model_dump(),
++            **({"candidate_maxim": item.candidate_maxim.model_dump(exclude_none=True),
+                 "maxim_origin": "CANDIDATE_INTERPRETATION"} if item.candidate_maxim else {}),
+             "governing_norm": item.governing_norm,
+             "priority_basis": item.priority_basis,
+--- a/global_workspace/local_specialists.py
++++ b/global_workspace/local_specialists.py
+@@ -5122,9 +5122,15 @@
+                     "consent_constraint": maxim_text(240), "universalization": maxim_text(300),
+                     "action_permissibility": {"type": "string", "enum": ["PERMISSIBLE", "IMPERMISSIBLE", "UNRESOLVED"]},
+                     "maxim_assessment": {"type": "string", "enum": ["DEFENSIBLE", "INDEFENSIBLE", "UNRESOLVED"]},
++                    "instrumental_belief": {"type": "string", "enum": ["RELIES_ON_PERSON", "DOES_NOT_RELY", "UNRESOLVED"]},
++                    "instrumental_use": {"type": "string", "enum": ["USES_PERSON", "DOES_NOT_USE", "UNRESOLVED"]},
++                    "practical_reasoning": maxim_text(300),
++                    "means_effect_ids": {"type": "array", "maxItems": 8, "items": {"type": "string"}},
++                    "end_effect_ids": {"type": "array", "maxItems": 8, "items": {"type": "string"}},
+                 },
+                 "required": ["circumstance", "policy", "end", "means", "person_role",
+-                             "consent_constraint", "universalization", "action_permissibility", "maxim_assessment"],
++                             "consent_constraint", "universalization", "action_permissibility", "maxim_assessment",
++                             "instrumental_belief", "instrumental_use", "practical_reasoning", "means_effect_ids", "end_effect_ids"],
+             }
+             duty_assessment_schema["required"].append("mx")
+             schema["properties"]["dp"] = {
+@@ -5553,6 +5559,22 @@
+ Before ranking duties, give mx for EVERY option, including omissions. mx is a
+ CANDIDATE INTERPRETATION of practical reasoning, not a fact about the actor's intent.
+ State circumstance, policy (what one would do or refrain from doing), end, and means.
++PRACTICAL-REASONING QUALIFICATION: within the proposed maxim, using a person as a
++means requires an end the agent seeks, a belief that employing that person can
++further the end, and employing the person for that purpose. Record
++instrumental_belief=RELIES_ON_PERSON/DOES_NOT_RELY/UNRESOLVED and
++instrumental_use=USES_PERSON/DOES_NOT_USE/UNRESOLVED. practical_reasoning explains
++that connection without asserting an unknown actual intention. A physical causal
++path alone does not establish instrumental belief or purposive use. Likewise,
++causing a foreseen death does not establish that the death is the rescue mechanism.
++Name the chosen operation or mechanism in means, not simply its harmful outcome.
++Bind means_effect_ids and end_effect_ids to same-action admitted E identifiers.
++For physical ends, each cited means must have a path to the end: sibling harm and
++rescue effects do not support a harm-as-means claim. If an end is normative rather
++than a represented physical effect, use an empty end list and explain it. Omission
++may have an empty means list; do not manufacture a performed physical action.
++If the scenario does not establish a person's actual intention, retain the
++candidate status; these are possible policy readings, not recovered mental facts.
+ person_role says whether the protected person is INTENDED_MEANS, FORESEEN_AFFECTED,
+ NOT_USED, or UNRESOLVED in that reasoning; keep it consistent with mr. Distinguish
+ purpose from chosen means and foreseeable consequences. A rescue purpose alone

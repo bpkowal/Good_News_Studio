@@ -1,0 +1,23 @@
+// Pure receipt checks: fake fetch responses, real SHA-256, no browser or network.
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+import assert from 'node:assert/strict';
+const source=fs.readFileSync(new URL('./dist/app.js',import.meta.url),'utf8');
+import {exportReceipt} from './dist/provenance-receipts.mjs';
+const bytes=new TextEncoder().encode('{"id":"medicine"}');
+const runId='run_'+'a'.repeat(32);
+const digest=value=>crypto.createHash('sha256').update(value).digest('hex');
+const assets={'frontend/dist/app.js':'app.js','frontend/dist/provenance-receipts.mjs':'provenance-receipts.mjs','frontend/dist/index.html':'index.html','frontend/dist/styles.css':'styles.css','frontend/dist/vendor/mermaid-10.9.3.min.js':'vendor/mermaid-10.9.3.min.js'};
+const files=Object.fromEntries(Object.keys(assets).map(k=>[k,digest('asset')]));
+const data={viewer_provenance:{execution:{run_id:runId},manifest_file:runId+'.json',presentation_files:files}};
+const manifest={schema_version:'parliament-run/1',run_id:runId,artifacts:{'medicine.json':digest(bytes)},checkpoints:[]};
+const fetchGood=async url=>url.startsWith('data/provenance/')?{ok:true,json:async()=>manifest}:{ok:true,arrayBuffer:async()=>new TextEncoder().encode('asset').buffer};
+const execute=(payload,input=bytes,fetcher=fetchGood)=>exportReceipt(payload,{file:'medicine.json'},input,{fetch:fetcher,crypto:crypto.webcrypto});
+let result=await execute(data);assert.equal(result.status,'MATCHED');assert.equal(result.renderer.status,'MATCHED');
+result=await execute(data,new TextEncoder().encode('changed'));assert.equal(result.status,'MISMATCH');
+result=await execute(data,bytes,async()=>({ok:false}));assert.equal(result.status,'UNAVAILABLE');
+result=await execute({...data,viewer_provenance:{...data.viewer_provenance,manifest_file:'https://external.invalid/receipt'}} ,bytes,async()=>{throw new Error('Must not fetch an external URL');});assert.equal(result.status,'MISMATCH');
+result=await execute({...data,viewer_provenance:{...data.viewer_provenance,presentation_files:{...files,'frontend/dist/app.js':digest('old asset')}}});assert.equal(result.status,'MATCHED');assert.equal(result.renderer.status,'DIFFERENT');assert.deepEqual(result.renderer.changed,['app.js']);
+result=await execute({...data,viewer_provenance:{...data.viewer_provenance,presentation_files:{}}});assert.equal(result.renderer.status,'UNAVAILABLE');
+assert.ok(source.includes("data.export_receipt={status:'UNAVAILABLE',reason:'Imported JSON has no independently loaded export receipt.'}"));
+export const results={checks:7,passed:7,network_calls:0};

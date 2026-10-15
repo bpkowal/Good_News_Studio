@@ -21,7 +21,27 @@ _PROCESS_BEARER = re.compile(
 
 def branch_world(text, branch):
     from blueprint_cloze_chooser import _conditional_graph, _outcome_reading
+    from blueprint_physical_scene import mechanism_from_source, _nominal
+    doc, mechanism = mechanism_from_source(text)
+    branch = deepcopy(branch)
+    if mechanism:
+        branch['controllable_process'] = mechanism['instrument']
     world, notes = _conditional_graph(text, branch)
+    if mechanism:
+        # Expand only a bare negative auxiliary against the unique explicit
+        # positive conditional operating the same instrument. Keep its source
+        # effect and condition verbatim, as in the macro's VP-ellipsis path.
+        antecedents = [(t, obj) for t in doc if t.lemma_ == mechanism['action_predicate']
+                       and not any(c.dep_=='neg' for c in t.children)
+                       and any(c.lower_=='if' and c.dep_=='mark' for c in t.children)
+                       for obj in t.children if obj.dep_ in {'dobj','obj'}
+                       and obj.lemma_ == mechanism['instrument_head']]
+        for action in world['actions']:
+            if branch.get('actor_resolution_evidence'):
+                action['intervention'] = re.sub(r'^(?:she|he)\s+', '', action['intervention'], flags=re.I)
+            if re.fullmatch(r'(?:does|do|did)\s+not', action['intervention'], re.I) and len(antecedents)==1:
+                verb,obj=antecedents[0]
+                action['intervention'] += ' '+verb.lemma_+' '+_nominal(obj)
     if branch.get("construction") == "physical_state":
         outcome = world["effects"][-1]
         outcome.update(predicate=branch["predicate"], polarity="NEUTRAL", effect_kind="PHYSICAL_STATE")
@@ -29,8 +49,8 @@ def branch_world(text, branch):
         # is in the existing builder. Do not treat the branch's own "if" as an
         # independent uncertainty gate or promote may/might to certainty.
         if _outcome_reading(branch["outcome"])["modality"] == "CERTAIN":
-            outcome.update(modality="CERTAIN", likelihood_qualifiers=[])
-            world["causal_links"][-1]["modality"] = "CERTAIN"
+            outcome.update(modality="CERTAIN", likelihood_qualifiers=[], condition_ids=[])
+            world["causal_links"][-1].update(modality="CERTAIN", condition_ids=[])
         bearer = next(p for p in world["parties"] if p["party_id"] == outcome["party_id"])
         licensed = license_kind(
             bearer["label"], role="process", text=text, construction="physical_state")
@@ -43,13 +63,25 @@ def conditional_inventory(text, package):
     from parsing_game_S import get_nlp
     doc = get_nlp()(text)
     nodes = {n["id"]: n for n in package.get("nodes", [])}
-    roles, predications = {}, {}
+    roles, predications, objects = {}, {}, {}
     for candidate in package.get("candidates", []):
         if candidate["type"] == "PREDICATION":
             predications[candidate["arguments"]["proposition"]] = candidate
         if candidate["type"] == "PARTICIPANT" and candidate.get("value") == "subject":
             roles.setdefault(candidate["arguments"]["proposition"], []).append(
                 nodes[candidate["arguments"]["mention"]]["label"])
+        if candidate['type'] == 'PARTICIPANT' and candidate.get('value') in {'object','patient'}:
+            objects.setdefault(candidate['arguments']['proposition'], []).append(
+                nodes[candidate['arguments']['mention']]['label'])
+    from blueprint_physical_scene import mechanism_from_source, counted_antecedent, _nominal
+    _, mechanism = mechanism_from_source(text)
+    mechanism_actor = ''
+    if mechanism:
+        roots=[s.root for s in doc.sents if s.text == mechanism['sentence']]
+        subjects=[c for root in roots for c in root.children if c.dep_ == 'nsubj']
+        names={t.text.casefold() for t in doc if t.pos_=='PROPN'}
+        if len(subjects)==1 and subjects[0].pos_=='PROPN' and names=={subjects[0].text.casefold()}:
+            mechanism_actor=_nominal(subjects[0])
     branches, unresolved, seen = [], [], set()
     for candidate in package.get("candidates", []):
         if candidate["type"] != "CONDITIONAL_ON":
@@ -76,6 +108,24 @@ def conditional_inventory(text, package):
             continue
         seen.add(signature)
         actors, bearers = roles.get(condition_id, []), roles.get(outcome_id, [])
+        from blueprint_cloze_chooser import _outcome_reading, _outcome_patient, _branch_conjuncts
+        reading = _outcome_reading(outcome)
+        if reading['kind'] in {'HEALTH_OUTCOME','WELFARE_OUTCOME'} and objects.get(outcome_id):
+            bearers=list(dict.fromkeys(objects[outcome_id]))
+        resolved = False
+        if mechanism_actor and len(actors)==1 and actors[0].lower() in {'she','he'}:
+            condition_token=doc[index]
+            if condition_token.lemma_ in {mechanism['action_predicate'],'do'}:
+                actors=[mechanism_actor];resolved=True
+        if mechanism and reading['kind'] in {'HEALTH_OUTCOME','WELFARE_OUTCOME'}:
+            patient=_outcome_patient(_branch_conjuncts(outcome)[0])
+            if patient:
+                bearers=[counted_antecedent(text,patient) or patient]
+        coordinated = bool(re.search(r'\b(?:and|or)\b',outcome,re.I))
+        supported_bundle = (mechanism is not None and ' or ' not in outcome.lower()
+            and all((_outcome_reading(part)['kind'] in {'HEALTH_OUTCOME','WELFARE_OUTCOME'}
+                     or _outcome_reading(part)['predicate']=='spare')
+                    and _outcome_patient(part) for part in _branch_conjuncts(outcome)))
         scopes = [c.get("scope", {}) for c in (
             candidate, predications.get(condition_id, {}), predications.get(outcome_id, {}))]
         contexts = [context for scope in scopes for context in scope.get("contexts", [])]
@@ -87,7 +137,7 @@ def conditional_inventory(text, package):
                 or any(s not in text for s in actors + bearers)
                 or re.search(r"\b(?:unless|whether)\b|\?", sentence, re.I)
                 or re.search(r"\b(?:tries|tried|decides|decided|promises|believes|reports)\b", condition, re.I)
-                or re.search(r"\b(?:and|or)\b", outcome, re.I)):
+                or (coordinated and not supported_bundle)):
             unresolved.append({"evidence": sentence, "reason": "scope_or_participants_need_resolution"})
             continue
         # Non-welfare asserted consequences may be proposed as physical_state.
@@ -115,6 +165,10 @@ def conditional_inventory(text, package):
         branch = {"actor": actors[0], "condition": condition,
                          "bearer": bearers[0], "outcome": outcome,
                          "candidate_id": candidate["id"]}
+        if resolved:
+            # Branch values remain copied strings for the common construction
+            # engine's evidence closure; the inventory records the derivation.
+            branch['actor_resolution_evidence']=mechanism['sentence']
         if process_claim:
             branch.update(construction="physical_state", predicate=predicate)
         branches.append(branch)
@@ -125,13 +179,27 @@ def merge_world(base, addition):
     """Union compatible records. No template whitelist limits nodes or links."""
     world = deepcopy(base)
     remap, added = {}, []
+    shared_actions = {a['intervention'].casefold() for a in base.get('actions', [])} & {
+        a['intervention'].casefold() for a in addition.get('actions', [])}
+    instrument_labels = set()
+    for graph in (base, addition):
+        recipients = {pid for a in graph.get('actions', []) if a['intervention'].casefold() in shared_actions
+                      for pid in a.get('recipient_party_ids', [])}
+        instrument_labels.update(re.sub(r'^(?:a|an|the)\s+', '', p['label'].casefold())
+                                 for p in graph.get('parties', []) if p['party_id'] in recipients)
     specifications = (
         ("parties", "party_id", "P"), ("actions", "action_id", "A"),
         ("effects", "effect_id", "E"), ("conditions", "condition_id", "CND"),
     )
     def signature(collection, row):
         if collection == "parties":
-            return (row.get("label", "").casefold(), row.get("kind"))
+            label = row.get("label", "").casefold()
+            # Instrument mentions on the same intervention can be introduced
+            # as "a lever" and repeated as "the lever". Do not create a second
+            # recipient merely because the conditional changes its determiner.
+            if row.get('kind') == 'PROCESS' and re.sub(r'^(?:a|an|the)\s+', '', label) in instrument_labels:
+                label = re.sub(r'^(?:a|an|the)\s+', '', label)
+            return (label, row.get("kind"))
         if collection == "actions":
             return (row.get("intervention", "").casefold(), row.get("actor_party_id"))
         if collection == "conditions":
@@ -206,16 +274,52 @@ def expand_candidates(text, package, blueprint, inventory=None):
         world = projected["candidate"]["world_model"]
         added = []
         for branch in branches:
+            # A macro may already contain the full coordinated branch. Match
+            # its condition, polarity, predicates and resolved patients before
+            # adding records; source pronouns are not extra interventions.
+            from blueprint_cloze_chooser import _branch_conjuncts, _outcome_patient, _outcome_reading
+            from blueprint_physical_scene import counted_antecedent
+            from z10_world_model_adapter import segment_source_clauses
+            def nominal(value):return re.sub(r'^(?:a|an|the)\s+', '', value.casefold())
+            branch_clauses={c['clause_id'] for c in segment_source_clauses(text)
+                            if branch['condition'] in c['text']}
+            negative=bool(re.search(r'\bnot\b',branch['condition'],re.I))
+            party_labels={p['party_id']:nominal(p['label']) for p in world['parties']}
+            existing=[a for a in world['actions'] if bool(re.search(r'\bnot\b',a['intervention'],re.I))==negative
+                      and branch_clauses.intersection(a.get('clause_ids',[]))]
+            def covers(action):
+                effects=[e for e in world['effects'] if e['action_id']==action['action_id']]
+                for part in _branch_conjuncts(branch['outcome']):
+                    patient=_outcome_patient(part)
+                    patient=counted_antecedent(text,patient) or patient
+                    if not patient or not any(e['predicate']==_outcome_reading(part)['predicate']
+                            and party_labels[e['party_id']]==nominal(patient) for e in effects):return False
+                return True
+            if any(covers(action) for action in existing):
+                continue
             extra, _ = branch_world(text, branch)
             world, changes = merge_world(world, extra)
             added.extend(changes)
+        # The same scene/omission completion used by macros applies after
+        # union, when both branches are available for identity binding.
+        from blueprint_physical_scene import attach_physical_scene
+        from blueprint_spatial_projection import branch_choice_cells, spatial_cells
+        scene_provenance = []
+        world = attach_physical_scene(text, world, scene_provenance)
         projected["candidate"]["world_model"] = world
+        projected.setdefault('slot_bindings', {})['branch_choices'] = branch_choice_cells(world)
+        cells = spatial_cells(text, world)
+        if cells:
+            projected['slot_bindings']['physical_scene_cells'] = cells
         projected["assignment"] = [a["intervention"] for a in world["actions"]]
         sources = projected["candidate"].setdefault("actions", {})
         for action in world["actions"]:
             sources.setdefault(action["action_id"], {"clause_ids": action["clause_ids"],
                                                     "reason": "Copied conditional branch."})
+            sources[action['action_id']]['clause_ids'] = list(dict.fromkeys(
+                sources[action['action_id']].get('clause_ids', []) + action['clause_ids']))
         projected["construction_provenance"] = _construction_provenance(world, projected["clauses"], {})
+        projected["construction_provenance"].extend(scene_provenance)
         projected["relation_alternatives"] = _relation_alternatives(world, projected["clauses"])
         projected["evidence_graph"] = bind_world_atoms(
             list(projected.get("evidence_graph") or []), world, projected["clauses"])

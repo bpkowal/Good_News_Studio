@@ -120,7 +120,7 @@ Admitted source copies and structurally derived records follow. Exact excerpts e
 
 Position: **ABSTAIN**. Recorded preference: withheld (not necessarily operative).
 
-Unresolved contestation: Max expected survival
+Framework did not select a live action. UNRESOLVED FRAMEWORK CONFLICT: live competing derivations. No comparative leaning is yet grounded. Interim working action recorded without becoming a ranking: Ada gives the medicine to Ben. Unresolved contestation: Max expected survival. Unresolved contestation: prefer A0 when it yields greater expected survivors than A1. Recorded comparison — Ada gives the medicine to Ben: Gives Ben a 95% survival chance; maximises expected lives saved.; Ada gives the medicine to Cara: Keeps Ada’s promise to Cara; still offers small 5% chance of saving one life. Unadmitted magnitude cannot decide the ranking; the claim remains a reversal boundary.
 
 Assumption: Not separately recorded.
 
@@ -128,13 +128,13 @@ Dependencies: Ben has a 95% chance of survival; affected subject: Ben; modality:
 
 Live objection: None separately recorded.
 
-Reversal: Promise-keeping given overriding moral weight; Ben survival probability falls to ≤5%
+Abstention boundary (no ranking to reverse): Promise-keeping given overriding moral weight; Ben survival probability falls to ≤5%
 
 ### deontological
 
 Position: **ABSTAIN**. Recorded preference: Ada gives the medicine to Cara (not necessarily operative).
 
-Provisionally: Deontology identifies competing claims between cara's perfect duty to keep promises and ben's imperfect duty of beneficence. NONE's restriction of NONE is not yet justified because what makes the positive duty perfect rather 
+Selected action has non-ranking duty verdict CONFLICTED. UNRESOLVED DUTY CONFLICT: cara: perfect duty to keep promises ↔ ben: imperfect duty of beneficence. Current reasoning leans Ada gives the medicine to Cara, but the competing strict claim has not been vindicated or defeated. Deontology identifies competing claims between cara's perfect duty to keep promises and ben's imperfect duty of beneficence. NONE's restriction of NONE is not yet justified because what makes the positive duty perfect rather than imperfect. The Kantian judgment remains contested. Provisionally: Keep the action contested until what makes the positive duty perfect rather than imperfect. Recorded comparison — Ada gives the medicine to Ben: best case: saves Ben, meets beneficence; Ada gives the medicine to Cara: best case: keeps promise, respects perfect duty
 
 Assumption: Not separately recorded.
 
@@ -142,13 +142,13 @@ Dependencies: Ada promised Cara that she would give Cara the medicine.
 
 Live objection: A0 ADJUDICATION_CALIBRATION: omission was classified as a perfect negative-duty violation without a separate basis; A0 ADJUDICATION_CALIBRATION: resolved adjudication rests on unsupported decisive premises; A1 ADJUDICATION_CALIBRATION: perfect positive duty lacks a right-correlative, undertaking, or grounded emergency basis; A1 ADJUDICATION_CALIBRATION: resolved adjudication rests on unsupported decisive premises; what makes the positive duty perfect rather than imperfect; cara: perfect duty to keep promises ↔ ben: imperfect duty of beneficence
 
-Reversal: would reverse if promise-keeping not obligatory
+Would reverse the recorded preference: would reverse if promise-keeping not obligatory
 
 ### care
 
 Position: **ABSTAIN**. Recorded preference: Ada gives the medicine to Ben (not necessarily operative).
 
-competence saves life
+Expected CARE_RELATIONSHIP_LEDGER, but no matching committed ledger is operative. competence saves life. prefer A0 when it far better meets the same urgent need
 
 Assumption: Not separately recorded.
 
@@ -156,7 +156,7 @@ Dependencies: Not separately recorded.
 
 Live objection: unresolved Care ranking must remain provisional
 
-Reversal: promise‐keeping prioritized over competence; Cara’s survival chance rises near Ben’s
+Would reverse the recorded preference: promise‐keeping prioritized over competence; Cara’s survival chance rises near Ben’s
 
 ## Agreement and disagreement
 
@@ -164,21 +164,27 @@ Recorded preferences differ.
 
 Framework-local normative arguments and empirical dependencies are shown above; no automatic causal classification is claimed.
 
-- utilitarian: normative dependency — Promise-keeping given overriding moral weight
 - deontological: normative dependency — would reverse if promise-keeping not obligatory
 - care: normative dependency — promise‐keeping prioritized over competence
 
 ## Decision hinges
 
-- utilitarian: Promise-keeping given overriding moral weight (reported argument, not verified premise; `cycles/0/candidates/0/normative_reversal_threshold`).
-- deontological: would reverse if promise-keeping not obligatory (reported argument, not verified premise; `cycles/0/candidates/1/normative_reversal_threshold`).
-- care: promise‐keeping prioritized over competence (reported argument, not verified premise; `cycles/0/candidates/2/normative_reversal_threshold`).
+- utilitarian: Promise-keeping given overriding moral weight (abstention boundary, no ranking to reverse; `cycles/0/candidates/0/normative_reversal_threshold`).
+- deontological: would reverse if promise-keeping not obligatory (would reverse a recorded preference; `cycles/0/candidates/1/normative_reversal_threshold`).
+- care: promise‐keeping prioritized over competence (would reverse a recorded preference; `cycles/0/candidates/2/normative_reversal_threshold`).
 
 ## What Parliament did not decide
 
 - This report does not adjudicate a governing moral verdict.
 - Ledger admission does not prove the argument or supply missing welfare units.
 - Unresolved objections remain live; reported reversal thresholds are not source facts.
+
+## Topography
+
+
+
+No native Care, welfare, or obligation coordinates were recorded.
+
 
 ## Pipeline stop and inspection
 

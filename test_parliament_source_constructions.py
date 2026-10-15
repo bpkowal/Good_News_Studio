@@ -32,7 +32,8 @@ class SourceConstructionTests(unittest.TestCase):
 
     def test_absent_packet_preserves_legacy_prompt(self):
         self.assertEqual(render_advisory({}, BASE), "")
-        self.assertEqual(self.packet(BASE), {})
+        self.assertEqual(self.packet(BASE)['constructions'], [])
+        self.assertTrue(self.packet(BASE)['branch_context'])
 
     def test_mapped_commitment_is_not_an_unselected_advisory(self):
         from blueprint_discourse import build_promise_reliance
@@ -76,6 +77,9 @@ class SourceConstructionTests(unittest.TestCase):
     def test_native_replay_delivers_advisory_to_specialists_without_world_mutation(self):
         source = Path("diagnostics/primitive_promise_coverage/promise/frozen_world_trace.json").resolve()
         packet = self.packet(PROMISE + BASE)
+        # This historical trace predates branch context. Keep this test of the
+        # original promise transport independent of a different compiled world.
+        packet.pop('branch_context', None)
         code = r'''
 import json,sys
 from copy import deepcopy

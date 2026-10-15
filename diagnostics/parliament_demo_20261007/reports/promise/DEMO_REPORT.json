@@ -910,14 +910,15 @@
       "framework": "utilitarian",
       "position": "ABSTAIN",
       "preference": null,
-      "reason": "Unresolved contestation: Max expected survival",
+      "reason": "Framework did not select a live action. UNRESOLVED FRAMEWORK CONFLICT: live competing derivations. No comparative leaning is yet grounded. Interim working action recorded without becoming a ranking: Ada gives the medicine to Ben. Unresolved contestation: Max expected survival. Unresolved contestation: prefer A0 when it yields greater expected survivors than A1. Recorded comparison — Ada gives the medicine to Ben: Gives Ben a 95% survival chance; maximises expected lives saved.; Ada gives the medicine to Cara: Keeps Ada’s promise to Cara; still offers small 5% chance of saving one life. Unadmitted magnitude cannot decide the ranking; the claim remains a reversal boundary.",
       "assumptions": [],
       "live_objections": [],
       "dependencies": [
         "Ben has a 95% chance of survival; affected subject: Ben; modality: PROBABILISTIC",
         "Cara has a 5% chance of survival; affected subject: Cara; modality: PROBABILISTIC"
       ],
-      "reversal_conditions": [
+      "reversal_conditions": [],
+      "decision_boundaries": [
         "Promise-keeping given overriding moral weight",
         "Ben survival probability falls to ≤5%"
       ],
@@ -927,7 +928,7 @@
       "framework": "deontological",
       "position": "ABSTAIN",
       "preference": "Ada gives the medicine to Cara",
-      "reason": "Provisionally: Deontology identifies competing claims between cara's perfect duty to keep promises and ben's imperfect duty of beneficence. NONE's restriction of NONE is not yet justified because what makes the positive duty perfect rather ",
+      "reason": "Selected action has non-ranking duty verdict CONFLICTED. UNRESOLVED DUTY CONFLICT: cara: perfect duty to keep promises ↔ ben: imperfect duty of beneficence. Current reasoning leans Ada gives the medicine to Cara, but the competing strict claim has not been vindicated or defeated. Deontology identifies competing claims between cara's perfect duty to keep promises and ben's imperfect duty of beneficence. NONE's restriction of NONE is not yet justified because what makes the positive duty perfect rather than imperfect. The Kantian judgment remains contested. Provisionally: Keep the action contested until what makes the positive duty perfect rather than imperfect. Recorded comparison — Ada gives the medicine to Ben: best case: saves Ben, meets beneficence; Ada gives the medicine to Cara: best case: keeps promise, respects perfect duty",
       "assumptions": [],
       "live_objections": [
         "A0 ADJUDICATION_CALIBRATION: omission was classified as a perfect negative-duty violation without a separate basis",
@@ -943,13 +944,14 @@
       "reversal_conditions": [
         "would reverse if promise-keeping not obligatory"
       ],
+      "decision_boundaries": [],
       "ledger_status": "COMMITTED_WITH_UNCERTAINTY"
     },
     {
       "framework": "care",
       "position": "ABSTAIN",
       "preference": "Ada gives the medicine to Ben",
-      "reason": "competence saves life",
+      "reason": "Expected CARE_RELATIONSHIP_LEDGER, but no matching committed ledger is operative. competence saves life. prefer A0 when it far better meets the same urgent need",
       "assumptions": [],
       "live_objections": [
         "unresolved Care ranking must remain provisional"
@@ -959,6 +961,7 @@
         "promise‐keeping prioritized over competence",
         "Cara’s survival chance rises near Ben’s"
       ],
+      "decision_boundaries": [],
       "ledger_status": "NONE"
     }
   ],
@@ -967,28 +970,25 @@
       "framework": "utilitarian",
       "text": "Promise-keeping given overriding moral weight",
       "record": "cycles/0/candidates/0/normative_reversal_threshold",
-      "authority": "MODEL_REPORTED_NOT_INDEPENDENTLY_VERIFIED"
+      "authority": "MODEL_REPORTED_NOT_INDEPENDENTLY_VERIFIED",
+      "role": "ABSTENTION_BOUNDARY"
     },
     {
       "framework": "deontological",
       "text": "would reverse if promise-keeping not obligatory",
       "record": "cycles/0/candidates/1/normative_reversal_threshold",
-      "authority": "MODEL_REPORTED_NOT_INDEPENDENTLY_VERIFIED"
+      "authority": "MODEL_REPORTED_NOT_INDEPENDENTLY_VERIFIED",
+      "role": "PREFERENCE_REVERSAL"
     },
     {
       "framework": "care",
       "text": "promise‐keeping prioritized over competence",
       "record": "cycles/0/candidates/2/normative_reversal_threshold",
-      "authority": "MODEL_REPORTED_NOT_INDEPENDENTLY_VERIFIED"
+      "authority": "MODEL_REPORTED_NOT_INDEPENDENTLY_VERIFIED",
+      "role": "PREFERENCE_REVERSAL"
     }
   ],
   "disagreements": [
-    {
-      "framework": "utilitarian",
-      "kind": "normative",
-      "dependency": "Promise-keeping given overriding moral weight",
-      "record": "cycles/0/candidates/0/normative_reversal_threshold"
-    },
     {
       "framework": "deontological",
       "kind": "normative",
@@ -1022,5 +1022,203 @@
   ],
   "competing_interpretations": [],
   "candidate_world_diagrams": [],
-  "diagram_notices": []
+  "diagram_notices": [],
+  "topography": {
+    "version": "parliament-topography/2",
+    "status": "RECORDED",
+    "unavailable_reason": null,
+    "caption": "Plotted coordinates are Decisions-API probabilities that each action satisfies a named criterion, given the Parliament packet. They are not native ledger ordinals or total welfare. A refused or missing answer is a hole, not zero. Attractors are occupancy of recorded points.",
+    "axes": {
+      "care": {
+        "available": true,
+        "encoding": "probability",
+        "source": "decisions/v1",
+        "question": "Given this Parliament packet, is this action adequately responsive to the relevant dependents under a care-ethics standard? Use the source, frozen world, specialist arguments, ledgers, objections, and abstentions. Do not treat a missing Care ledger as proof of neglect."
+      },
+      "welfare": {
+        "available": true,
+        "encoding": "probability",
+        "source": "decisions/v1",
+        "question": "Given this Parliament packet, does this action maximize expected survivors among the recorded alternatives? Use stipulated survival chances and any arithmetic-verified expected-value records. Unknown total-welfare magnitude does not by itself decide this question."
+      },
+      "obligation": {
+        "available": true,
+        "encoding": "probability",
+        "source": "decisions/v1",
+        "question": "Given this Parliament packet, is this action at least deontologically permissible (not prohibited)? Use the source, frozen world, duty arguments, ledgers, and live objections. A conflicted or contested duty should lower this probability relative to a clearly permissible or required action."
+      }
+    },
+    "actions": [
+      {
+        "id": "A0",
+        "label": "Ada gives the medicine to Ben",
+        "care": {
+          "present": true,
+          "probability": 0.51,
+          "encoding": "probability",
+          "question": "Given this Parliament packet, is this action adequately responsive to the relevant dependents under a care-ethics standard? Use the source, frozen world, specialist arguments, ledgers, objections, and abstentions. Do not treat a missing Care ledger as proof of neglect.",
+          "source": "decisions/v1",
+          "model": "gpt-6-luna"
+        },
+        "welfare": {
+          "present": true,
+          "probability": 1.0,
+          "encoding": "probability",
+          "question": "Given this Parliament packet, does this action maximize expected survivors among the recorded alternatives? Use stipulated survival chances and any arithmetic-verified expected-value records. Unknown total-welfare magnitude does not by itself decide this question.",
+          "source": "decisions/v1",
+          "model": "gpt-6-luna"
+        },
+        "obligation": {
+          "present": true,
+          "probability": 0.47,
+          "encoding": "probability",
+          "question": "Given this Parliament packet, is this action at least deontologically permissible (not prohibited)? Use the source, frozen world, duty arguments, ledgers, and live objections. A conflicted or contested duty should lower this probability relative to a clearly permissible or required action.",
+          "source": "decisions/v1",
+          "model": "gpt-6-luna"
+        },
+        "native": {
+          "care": {
+            "present": false,
+            "omit_reason": "No CARE_RELATIONSHIP_LEDGER commit."
+          },
+          "welfare": {
+            "present": true,
+            "value": 0.95,
+            "unit": "PERSON",
+            "direction": "BENEFIT",
+            "arithmetic": "ARITHMETIC_VERIFIED",
+            "calculation": "1 person * 95% = 0.95 expected survivors",
+            "scope": "RESTRICTED_SURVIVOR_ENDPOINT_NOT_TOTAL_WELFARE",
+            "total_welfare": "UNKNOWN"
+          },
+          "obligation": {
+            "present": true,
+            "ordinal": 1,
+            "verdict": "CONFLICTED",
+            "unresolved": true,
+            "reason": "breaks a promise",
+            "norm": "perfect duty to keep promises"
+          }
+        }
+      },
+      {
+        "id": "A1",
+        "label": "Ada gives the medicine to Cara",
+        "care": {
+          "present": true,
+          "probability": 0.26,
+          "encoding": "probability",
+          "question": "Given this Parliament packet, is this action adequately responsive to the relevant dependents under a care-ethics standard? Use the source, frozen world, specialist arguments, ledgers, objections, and abstentions. Do not treat a missing Care ledger as proof of neglect.",
+          "source": "decisions/v1",
+          "model": "gpt-6-luna"
+        },
+        "welfare": {
+          "present": true,
+          "probability": 0.0,
+          "encoding": "probability",
+          "question": "Given this Parliament packet, does this action maximize expected survivors among the recorded alternatives? Use stipulated survival chances and any arithmetic-verified expected-value records. Unknown total-welfare magnitude does not by itself decide this question.",
+          "source": "decisions/v1",
+          "model": "gpt-6-luna"
+        },
+        "obligation": {
+          "present": true,
+          "probability": 0.5,
+          "encoding": "probability",
+          "question": "Given this Parliament packet, is this action at least deontologically permissible (not prohibited)? Use the source, frozen world, duty arguments, ledgers, and live objections. A conflicted or contested duty should lower this probability relative to a clearly permissible or required action.",
+          "source": "decisions/v1",
+          "model": "gpt-6-luna"
+        },
+        "native": {
+          "care": {
+            "present": false,
+            "omit_reason": "No CARE_RELATIONSHIP_LEDGER commit."
+          },
+          "welfare": {
+            "present": true,
+            "value": 0.05,
+            "unit": "PERSON",
+            "direction": "BENEFIT",
+            "arithmetic": "ARITHMETIC_VERIFIED",
+            "calculation": "1 person * 5% = 0.05 expected survivors",
+            "scope": "RESTRICTED_SURVIVOR_ENDPOINT_NOT_TOTAL_WELFARE",
+            "total_welfare": "UNKNOWN"
+          },
+          "obligation": {
+            "present": true,
+            "ordinal": 1,
+            "verdict": "CONFLICTED",
+            "unresolved": true,
+            "reason": "keeps the promise",
+            "norm": "perfect duty to keep promises"
+          }
+        }
+      }
+    ],
+    "framework_arrows": [
+      {
+        "framework": "utilitarian",
+        "preference": null,
+        "action_id": null,
+        "position": "ABSTAIN",
+        "ledger_status": "COMMITTED"
+      },
+      {
+        "framework": "deontological",
+        "preference": "Ada gives the medicine to Cara",
+        "action_id": "A1",
+        "position": "ABSTAIN",
+        "ledger_status": "COMMITTED_WITH_UNCERTAINTY"
+      },
+      {
+        "framework": "care",
+        "preference": "Ada gives the medicine to Ben",
+        "action_id": "A0",
+        "position": "ABSTAIN",
+        "ledger_status": "NONE"
+      }
+    ],
+    "flags": {
+      "degenerate": [
+        "care_welfare_probability_copy"
+      ],
+      "attractors": [],
+      "conflicts": [
+        {
+          "axes": [
+            "care",
+            "obligation"
+          ],
+          "maxima": {
+            "care": "A0",
+            "obligation": "A1"
+          }
+        },
+        {
+          "axes": [
+            "welfare",
+            "obligation"
+          ],
+          "maxima": {
+            "welfare": "A0",
+            "obligation": "A1"
+          }
+        }
+      ],
+      "holes": [],
+      "maxima": {
+        "care": "A0",
+        "welfare": "A0",
+        "obligation": "A1"
+      }
+    },
+    "notices": [
+      "Plotted axes are Decisions probabilities over the Parliament packet, not ledger ordinals.",
+      "Care and welfare probability rankings coincide; this is marked degenerate, not an attractor."
+    ],
+    "provenance": {
+      "origin": "decisions/v1",
+      "model": "gpt-6-luna",
+      "new_model_calls": 2
+    }
+  }
 }

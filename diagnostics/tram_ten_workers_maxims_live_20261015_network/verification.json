@@ -1,0 +1,76 @@
+{
+  "checks": {
+    "same_world_as_previous": true,
+    "same_world_supplied_to_frameworks": true,
+    "same_world_after_review": true,
+    "scenario_unchanged": true,
+    "initial_framework_submissions_valid": true
+  },
+  "world_sha256": "16e0cafb826c17a4df8d228b9e74f717c9391a5d6686dd151be9a9e1c3b010f3",
+  "frozen_trace_sha256": "788db153cb8a34c63b118acf57899072b56599138ec96f18bc89d1593b428516",
+  "calls": [
+    {
+      "stage": "frameworks",
+      "framework": "care",
+      "path": "frameworks/care/model_calls.json",
+      "adapter_calls": 1,
+      "returned": 1,
+      "artifact_sha256": "c55a0b357ce5660f53f5d9aabfae86c340f74cfeaca112949e0667f0451ce79b"
+    },
+    {
+      "stage": "frameworks",
+      "framework": "deontological",
+      "path": "frameworks/deontological/model_calls.json",
+      "adapter_calls": 1,
+      "returned": 1,
+      "artifact_sha256": "d7d5076c78d0de816f2b907edd833136f73e80bd1c03c0eb166d0974656a72cc"
+    },
+    {
+      "stage": "frameworks",
+      "framework": "rawlsian",
+      "path": "frameworks/rawlsian/model_calls.json",
+      "adapter_calls": 1,
+      "returned": 1,
+      "artifact_sha256": "3b1ecdf93d6c6c489b88984a9d2466c7e4502079cf662e80a68a3bf9d3abd0ee"
+    },
+    {
+      "stage": "frameworks",
+      "framework": "utilitarian",
+      "path": "frameworks/utilitarian/model_calls.json",
+      "adapter_calls": 1,
+      "returned": 1,
+      "artifact_sha256": "351e774cbf4982f6b08968234fa4e7cb1d2921ee700fb7b2f750e9f91843faf5"
+    },
+    {
+      "stage": "frameworks",
+      "framework": "virtue",
+      "path": "frameworks/virtue/model_calls.json",
+      "adapter_calls": 1,
+      "returned": 1,
+      "artifact_sha256": "f11e80af3d5ba1041f95aff009e0a239f7c2fc07171044e8bd5b3ddd4a9f3daf"
+    },
+    {
+      "stage": "review",
+      "framework": "deontological",
+      "path": "review/deontological/model_calls.json",
+      "adapter_calls": 1,
+      "returned": 1,
+      "artifact_sha256": "73557b122d91e5b48e73ffdc9a89b8123b23abb3368b2c3b1a1cfed715c18817"
+    },
+    {
+      "stage": "review",
+      "framework": "rawlsian",
+      "path": "review/residual_round/rawlsian/model_calls.json",
+      "adapter_calls": 1,
+      "returned": 1,
+      "artifact_sha256": "c1b903b517bea74ac918b8e16b48132dcefdada6a677949a01654fd5b8f07cf2"
+    }
+  ],
+  "report_status": "FRAMEWORK_PARTIAL",
+  "execution": "LIVE_OPENAI",
+  "limits": [
+    "Independent frameworks plus bounded targeted review; no full RelEnt deliberation.",
+    "Adapter calls are recorded; provider internal retries are not counted as additional adapter calls.",
+    "Admission is not independent verification of normative soundness."
+  ]
+}

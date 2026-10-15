@@ -6,6 +6,10 @@ from pathlib import Path
 
 
 class ViewerHandler(SimpleHTTPRequestHandler):
+    # Read the complete Markdown in a browser tab rather than triggering a
+    # download for text/markdown. The file remains ordinary Markdown on disk.
+    extensions_map = {**SimpleHTTPRequestHandler.extensions_map, '.md': 'text/plain; charset=utf-8'}
+
     def end_headers(self):
         self.send_header('X-Content-Type-Options','nosniff')
         self.send_header('Cache-Control','no-cache')

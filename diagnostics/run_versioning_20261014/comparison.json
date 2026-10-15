@@ -1,0 +1,73 @@
+{
+  "left": "run_96e7cc5e5e244dd9a4dd5afc8da765b5",
+  "right": "run_a14b6d53e32146f7be043adcd91cef57",
+  "differences": {
+    "execution_path": {
+      "left": "saved_replay",
+      "right": "full_relent"
+    },
+    "mode": {
+      "left": "SAVED_REPLAY_NO_API",
+      "right": "LIVE"
+    },
+    "configuration": {
+      "left": {
+        "model": "o3",
+        "chooser_model": "gpt-4o-mini",
+        "runtime_profile": "compact_frameworks",
+        "prepare_only": false,
+        "review": false,
+        "baseline": false,
+        "parliament_root": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/.runtime/parliament",
+        "parliament_python": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/.runtime/venv/bin/python"
+      },
+      "right": {
+        "chooser_model": "gpt-4o-mini",
+        "openai_model": "o3",
+        "parliament_root": "/private/tmp/parliament-intentionally-absent-versioning",
+        "parliament_python": "/tmp/parliament-python-intentionally-absent-versioning",
+        "runtime_profile": "full_relent",
+        "agents": null,
+        "max_cycles": null,
+        "use_rag": null,
+        "time_budget": null,
+        "agent_timeout": null,
+        "prototype_deliberation": false,
+        "prepare_only": false
+      }
+    },
+    "inputs": {
+      "left": {
+        "scenario": {
+          "sha256": "6e9d6963b5d3703c3f5c96eb9080776af64a59a6b1b59dc07f777f9cc8231ab1"
+        },
+        "replay_origin": {
+          "manifest_sha256": null,
+          "status": "UNKNOWN_HISTORICAL"
+        }
+      },
+      "right": {
+        "text": {
+          "sha256": "3bc2d97315ce08454e4b8488974c5562eb3c0bb0a797bb4e87a75caeac5a0739"
+        }
+      }
+    },
+    "native_runtime": {
+      "left": null,
+      "right": {
+        "check_version": "parliament-runtime-check/1",
+        "ready": false,
+        "profile": "full_relent",
+        "parliament_root": "/private/tmp/parliament-intentionally-absent-versioning",
+        "python": "/tmp/parliament-python-intentionally-absent-versioning",
+        "errors": [
+          "Missing native Git checkout: /private/tmp/parliament-intentionally-absent-versioning",
+          "Missing persistent Python environment: /tmp/parliament-python-intentionally-absent-versioning"
+        ],
+        "lock_sha256": "ad70949be43313bf08a212356300787ebc67e3ff849df89d7a10e5cb142b433b",
+        "capability": "full_relent",
+        "remediation": "Run: .venv/bin/python parliament_runtime.py setup --profile full_relent --python python3.11"
+      }
+    }
+  }
+}

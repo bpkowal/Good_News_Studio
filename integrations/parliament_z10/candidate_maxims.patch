@@ -1,0 +1,148 @@
+--- a/global_workspace/deontology_ledger.py
++++ b/global_workspace/deontology_ledger.py
+@@ -74,8 +74,23 @@
+ )
+ 
+ 
++class CandidateMaxim(BaseModel):
++    """Attributed practical reasoning, never evidence of the actor's intention."""
++    model_config = ConfigDict(extra="forbid", strict=True)
++    circumstance: str = Field(min_length=4, max_length=240)
++    policy: str = Field(min_length=4, max_length=240)
++    end: str = Field(min_length=4, max_length=180)
++    means: str = Field(min_length=4, max_length=180)
++    person_role: Literal["INTENDED_MEANS", "FORESEEN_AFFECTED", "NOT_USED", "UNRESOLVED"]
++    consent_constraint: str = Field(min_length=4, max_length=240)
++    universalization: str = Field(min_length=4, max_length=300)
++    action_permissibility: Literal["PERMISSIBLE", "IMPERMISSIBLE", "UNRESOLVED"]
++    maxim_assessment: Literal["DEFENSIBLE", "INDEFENSIBLE", "UNRESOLVED"]
++
++
+ class DutyAssessmentProposal(BaseModel):
+     model_config = ConfigDict(extra="forbid", strict=True)
++    candidate_maxim: CandidateMaxim | None = None
+     action_id: str = Field(pattern=r"^A\d+$")
+     verdict: Literal["REQUIRED", "PERMISSIBLE", "PROHIBITED", "CONFLICTED"]
+     norm_kind: Literal[
+@@ -782,6 +797,30 @@
+                 "intended-as-means classification lacks an in-action causal path"
+             )
+ 
++    if item.candidate_maxim is not None:
++        maxim = item.candidate_maxim
++        expected = {"INTENDED_AS_MEANS": "INTENDED_MEANS",
++                    "FORESEEN_SIDE_EFFECT": "FORESEEN_AFFECTED",
++                    "NO_INSTRUMENTALIZATION": "NOT_USED"}.get(item.means_relation)
++        if expected and maxim.person_role != expected:
++            errors.append("candidate maxim person-role conflicts with means classification")
++        if item.resolution_status == "RESOLVED" and (
++            maxim.person_role == "UNRESOLVED" or maxim.action_permissibility == "UNRESOLVED"
++        ):
++            errors.append("candidate maxim leaves a decisive practical-reasoning premise unresolved")
++        if ((maxim.action_permissibility == "IMPERMISSIBLE"
++                and item.verdict in {"PERMISSIBLE", "REQUIRED"})
++                or (maxim.action_permissibility == "PERMISSIBLE" and item.verdict == "PROHIBITED")):
++            errors.append("candidate maxim action-permissibility conflicts with duty verdict")
++        # Catch the saved reply's positive "uses the worker as a mere means"
++        # phrasing without treating an explicit denial as that assertion.
++        positive_use = re.search(r"\buses?\b[^.;]{1,90}\bas (?:a )?mere means\b", item.reason, re.I)
++        denied_use = re.search(r"\b(?:not|never|without)\b[^.;]{0,35}\bus(?:e|es|ing)\b", item.reason, re.I)
++        if (maxim.person_role in {"FORESEEN_AFFECTED", "NOT_USED"}
++                and positive_use and not denied_use):
++            errors.append("merely-as-means conclusion lacks intended-as-means classification")
++        # An indefensible maxim does NOT by itself make the action impermissible.
++
+     if item.derivation == "KANTIAN_ANALOGICAL" and item.resolution_status == "RESOLVED":
+         errors.append(KANTIAN_ANALOGICAL_CANNOT_SETTLE)
+     if (
+@@ -916,6 +955,8 @@
+         unresolved.append("what makes the positive duty perfect rather than imperfect")
+     if any("perfect negative-duty" in error for error in errors):
+         unresolved.append("whether the omission violates a separate right-correlative prohibition")
++    if any("candidate maxim" in error for error in errors):
++        unresolved.append("whether the candidate maxim's means, person-role, and action assessment justify the claimed priority")
+     if not unresolved:
+         unresolved.append("which claim governs under a universal public rule")
+     return list(dict.fromkeys(unresolved))
+@@ -1299,6 +1340,8 @@
+                 "special_obligation_status": item.special_obligation_status,
+                 "special_obligation_basis": item.special_obligation_basis,
+                 "means_relation": item.means_relation,
++                **({"candidate_maxim": item.candidate_maxim.model_dump(),
++                    "maxim_origin": "CANDIDATE_INTERPRETATION"} if item.candidate_maxim else {}),
+                 "governing_norm": item.governing_norm,
+                 "priority_basis": item.priority_basis,
+                 "priority_rule": item.priority_rule,
+@@ -1398,6 +1441,8 @@
+                 "special_obligation_status": item.special_obligation_status,
+                 "special_obligation_basis": item.special_obligation_basis,
+                 "means_relation": item.means_relation,
++                **({"candidate_maxim": item.candidate_maxim.model_dump(),
++                    "maxim_origin": "CANDIDATE_INTERPRETATION"} if item.candidate_maxim else {}),
+                 "derivation": item.derivation,
+                 "resolution_status": item.resolution_status,
+                 "coercion_kind": item.coercion_kind,
+@@ -1454,6 +1499,8 @@
+             "special_obligation_status": item.special_obligation_status,
+             "special_obligation_basis": item.special_obligation_basis,
+             "means_relation": item.means_relation,
++            **({"candidate_maxim": item.candidate_maxim.model_dump(),
++                "maxim_origin": "CANDIDATE_INTERPRETATION"} if item.candidate_maxim else {}),
+             "governing_norm": item.governing_norm,
+             "priority_basis": item.priority_basis,
+             "priority_rule": item.priority_rule,
+--- a/global_workspace/local_specialists.py
++++ b/global_workspace/local_specialists.py
+@@ -2489,6 +2489,7 @@
+                     "special_obligation_status": special_obligation_status,
+                     "special_obligation_basis": special_obligation_basis,
+                     "means_relation": means_relation,
++                    **({"candidate_maxim": raw_assessment["mx"]} if "mx" in raw_assessment else {}),
+                     "governing_norm": governing_norm,
+                     "priority_basis": priority_basis,
+                     "priority_rule": priority_rule,
+@@ -5111,6 +5112,21 @@
+                 ],
+                 "additionalProperties": False,
+             }
++            maxim_text = lambda length: {"type": "string", "minLength": 4, "maxLength": length}
++            duty_assessment_schema["properties"]["mx"] = {
++                "type": "object", "additionalProperties": False,
++                "properties": {
++                    "circumstance": maxim_text(240), "policy": maxim_text(240),
++                    "end": maxim_text(180), "means": maxim_text(180),
++                    "person_role": {"type": "string", "enum": ["INTENDED_MEANS", "FORESEEN_AFFECTED", "NOT_USED", "UNRESOLVED"]},
++                    "consent_constraint": maxim_text(240), "universalization": maxim_text(300),
++                    "action_permissibility": {"type": "string", "enum": ["PERMISSIBLE", "IMPERMISSIBLE", "UNRESOLVED"]},
++                    "maxim_assessment": {"type": "string", "enum": ["DEFENSIBLE", "INDEFENSIBLE", "UNRESOLVED"]},
++                },
++                "required": ["circumstance", "policy", "end", "means", "person_role",
++                             "consent_constraint", "universalization", "action_permissibility", "maxim_assessment"],
++            }
++            duty_assessment_schema["required"].append("mx")
+             schema["properties"]["dp"] = {
+                 "type": "object",
+                 "properties": {
+@@ -5534,6 +5550,22 @@
+ VIOLATES, or CONFLICTS with that norm; b is the duty bearer; p is the protected
+ party; cn names the strongest competing norm. ck, crel, cp, and crs type that
+ competing norm, its relation to the action, its protected party, and why it matters.
++Before ranking duties, give mx for EVERY option, including omissions. mx is a
++CANDIDATE INTERPRETATION of practical reasoning, not a fact about the actor's intent.
++State circumstance, policy (what one would do or refrain from doing), end, and means.
++person_role says whether the protected person is INTENDED_MEANS, FORESEEN_AFFECTED,
++NOT_USED, or UNRESOLVED in that reasoning; keep it consistent with mr. Distinguish
++purpose from chosen means and foreseeable consequences. A rescue purpose alone
++neither licenses every means nor makes omission permissible. consent_constraint
++explains whether using a person is conditional on consent; do not invent consent.
++universalization must examine this particular policy and its strongest objection,
++not just say it can or cannot be universalized. action_permissibility and
++maxim_assessment are separate: a defective maxim does not alone prohibit an action,
++and a benevolent end does not alone justify one. Missing intentions stay unknown;
++explain the conditional reading rather than attributing it to the scenario actor.
++In review, address the challenged maxim's specific inference; revise the relevant
++mx/mr/rs/pr fields or preserve the objection. Saying RESOLVED is not a justification.
++Keep these fields concise so every option fits the response budget.
+ Before assigning categorical priority, classify four independent premises. dt says
+ whether the governing claim is a PERFECT_NEGATIVE, PERFECT_POSITIVE, IMPERFECT,
+ RIGHT_CORRELATIVE, SPECIAL_OBLIGATION, or UNRESOLVED duty. hr distinguishes DOING_HARM,

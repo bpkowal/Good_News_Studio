@@ -1,5 +1,20 @@
 # Z10 advisory bridge: first Parliament integration
 
+The branch-choice increment adds `branch_choice_context.patch` after the existing
+locked patches. It transports an optional, world-hash-bound interpretation of
+intervention, omitted intervention and physical continuation through frozen replay
+to the native specialist's primary, repair, recurrent and contingency prompts.
+The independent-framework and RelEnt entrypoints share this specialist transport.
+It does not change the world schema or make omission morally permissible.
+Reconstruct through `pipeline.lock.json`; do not apply the patch twice to an
+already patched checkout. See the [bounded replay and live results](../../diagnostics/trolley_choice_pipeline_20261014/RESULT.md).
+
+`negation_boundary_validation.patch` follows that patch in the runtime lock.
+It recognizes explicit negation and refraining/abstaining descriptions of paired
+choices, and distinguishes hypothetical reversal prose from current-world numeric
+assertions. Unsupported operative boundary parameters remain uncommitted.
+See the [saved-response validation comparison](../../diagnostics/negation_boundary_validation_20261015/RESULT.md).
+
 Z10 remains frozen. The bridge gives Parliament its complete candidate package
 alongside the original scenario, plus readable reconstruction role frames.
 It does not replace the input with a guessed corrected sentence.
@@ -13,6 +28,12 @@ alternatives remain separate propositions. Unimplemented verb-phrase ellipsis,
 gapping, and sluicing reconstructions remain missing-content questions.
 
 ## Files and boundary
+
+Current runtime setup is pinned by [`pipeline.lock.json`](../../pipeline.lock.json)
+and [`PARLIAMENT_RUNTIME.md`](../../PARLIAMENT_RUNTIME.md). The demo/blueprint
+runners now default to `.runtime/parliament` and `.runtime/venv/bin/python`.
+The `/tmp` paths below describe the historical experiments. Use the lock's ordered
+patch list (including the canonical discourse patch) for new reconstruction.
 
 - `parliament_z10_bridge.py` in the project root validates schema 0.4 packages,
   matches exact source text, preserves every package field, and renders advisory
@@ -83,6 +104,31 @@ and use an environment with Parliament's provider dependencies and credentials.
 No live calls were made during this implementation.
 
 ## Validation and remaining work
+
+### Framework presentation and duty roles (October 9)
+
+`framework_presentation.patch` is additive to the integrated native checkout used
+for the October 8 trolley runs. It fixes the deontological formatter to name the
+`duty_bearer` on both sides of a duty conflict, with `protected_party` and
+`competing_protected_party` remaining beneficiaries of those obligations. It also
+removes character slicing from the main rationale, application, action comparison,
+decision rule, and reversal fields, and short schema limits on explanation fields.
+The overall model response budget and native admission criteria are unchanged.
+Apply with `git apply --check` first on a matching checkout; do not apply twice.
+The patch was round-trip checked against its four saved pre-change files.
+
+`parliament_framework_presentation.py` retains raw model explanations alongside
+native decisions. Saved-report export can refresh legacy prose only from that
+report's matching source, world, preference, and ledger status. This prevents an
+older export from restoring the misleading “five workers' duty to rescue” wording.
+It does not turn a contested agent interpretation into an accepted moral judgment.
+
+The October 9 replay and validation record are in
+`diagnostics/trolley_framework_views_20261009/RESULT.md`. No API calls were made
+for that presentation replay. The latest run passed 52 checks; two native
+integration checks could not import the temporary checkout because
+`global_workspace/care_ledger.py` was missing. The earlier 53-check run, before
+that checkout became incomplete, passed. These are separate verification results.
 
 ### Recognition projection increment
 
@@ -243,3 +289,23 @@ The first-pass argument-quality pilot retains one call per cell for comparabilit
 with the original run. The two-call duty repair and residual review paths have
 separate regression coverage. `argument_work_record.json` preserves model-authored
 arguments alongside native acceptance status, including rejected arguments.
+
+### Full OpenAI RelEnt/RAG profile
+
+See [the runtime guide](../../PARLIAMENT_RUNTIME.md) for the separate
+`full_relent` environment, exact dependencies, pinned offline MiniLM cache, and
+five-framework retrieval smoke check. It shares the locked native source but
+never installs retrieval dependencies into the compact environment.
+
+### Candidate maxims
+
+The locked `candidate_maxims.patch` adds attributed practical-reasoning records
+to deontological assessments and their native projection. See
+[Candidate maxims](../../CANDIDATE_MAXIMS.md) for the fields, targeted challenges,
+report behavior, compatibility, and regression commands.
+
+The subsequent `causal_means_reasoning.patch` records proposed instrumental belief
+and purposive use separately and checks same-action physical means/end references.
+The physical-scene producer supplies source-supported `CAUSES` links for the
+intervention while preserving omission dependencies. Historical frozen worlds
+are not migrated in place.

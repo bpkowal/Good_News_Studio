@@ -41,6 +41,11 @@ class RecordedModel:
                 if self.independent else
                 'NATIVE PARLIAMENT PASS: peer arguments remain attributed; preserve your framework and unresolved premises.\n')
         prompt = (mode +
+                  'Write explanation fields as complete readable prose, never serialized JSON fragments. '
+                  'Keep the acting duty-bearer distinct from the people protected or harmed. '
+                  'State an important interpretive assumption or commitment in your reasoning; do not invent an empirical fact to fill that slot. '
+                  'For reversal conditions, identify the current and alternative actions and the relevant factual or normative change. '
+                  'Treat stated scenario quantities as givens for this run, and distinguish those stipulations from knowledge of how the numbers were obtained.\n' +
                   'Exact source scenario (unabridged): ' + json.dumps(self.scenario) + '\n' + prompt)
         record = {'prompt': prompt, 'schema': deepcopy(kwargs.get('schema')),
                   'max_tokens': kwargs.get('max_tokens'), 'status': 'STARTED',
@@ -169,6 +174,8 @@ def generate(trace_path, output_dir, frameworks, backend_factory, *, tokens=3072
         # Preserve local hypotheses but never pass them to the next framework.
         aggregate['framework_proposition_ledgers'][name] = payload['proposition_ledger']
         candidates = payload['cycles'][-1]['candidates'] if payload['cycles'] else []
+        from parliament_framework_presentation import preserve_model_arguments
+        preserve_model_arguments(candidates, output_dir)
         aggregate['cycles'][0]['candidates'].extend(deepcopy(candidates))
         run = {'framework': name, 'adapter_calls': len(recorded.calls),
                'model': getattr(recorded.backend, 'model', 'test_backend'),
@@ -182,10 +189,12 @@ def generate(trace_path, output_dir, frameworks, backend_factory, *, tokens=3072
         print(name + ': ' + ', '.join(run['candidate_statuses']), flush=True)
     if replay.action_source_grounding != before or trace_path.read_bytes() != source_bytes:
         raise RuntimeError('Frozen source was mutated')
+    from parliament_run_provenance import record_checkpoint
+    record_checkpoint('frameworks_recorded',artifacts=[output_dir/'framework_generation.json'])
     return aggregate
 
 
-def main():
+def _main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--trace', type=Path, required=True)
     parser.add_argument('--output-dir', type=Path, required=True)
@@ -194,8 +203,20 @@ def main():
     parser.add_argument('--model', default='o3')
     parser.add_argument('--core-root', type=Path,
                         default=Path('/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL'))
-    args = parser.parse_args()
+    parser.add_argument('--checkpoint-tag', action='append', help='Run label, inherited by child runs; repeatable')
+    args = parser.parse_args(argv)
+    from parliament_run_provenance import record_configuration, record_runtime, record_resource, record_start
+    record_configuration(args)
+    record_start(args.output_dir)
+    from parliament_runtime import check_runtime
+    runtime = check_runtime(args.parliament_root, Path(sys.executable))
+    record_runtime(runtime)
+    if not runtime['ready']:
+        parser.error('Runtime preflight failed: ' + '; '.join(runtime['errors']) + '. ' + runtime['remediation'])
     sys.path.insert(0, str(args.parliament_root.resolve()))
+    from global_workspace.core_quote_pack import CORE_PACK_SOURCES
+    for directory,filename in CORE_PACK_SOURCES.values():
+        record_resource(args.core_root/directory/filename)
     from global_workspace.openai_backend import OpenAIWorkspaceLLM
     # Existing environment loading is read-only and never records the key.
     from dotenv import load_dotenv
@@ -204,6 +225,10 @@ def main():
     generate(args.trace, args.output_dir, args.frameworks, lambda name: backend,
              core_root=args.core_root if args.core_root.exists() else None)
 
+
+def main(argv=None):
+    from parliament_run_provenance import record_execution
+    return record_execution(_main, argv, entrypoint='logic_puzzles_frameworks.py', output_flag='--output-dir', defaults={'model':'o3','runtime_profile':'compact_frameworks'})
 
 if __name__ == '__main__':
     main()

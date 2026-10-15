@@ -20,7 +20,7 @@
     </div>
   </aside>
   <main>
-    <header class="topbar"><span>WORLD → FRAMEWORKS → HINGES</span><span class="replay-label">SAVED EVIDENCE / LOCAL VIEWER</span></header>
+    <header class="topbar"><span>WORLD → FRAMEWORKS → HINGES → TOPOGRAPHY</span><span class="replay-label">SAVED EVIDENCE / LOCAL VIEWER</span></header>
     <div id="notice" role="alert" hidden></div>
     <section class="run-header">
       <div><p class="eyebrow">A SHARED WORLD. DIFFERENT MORAL DEPENDENCIES.</p><h1 id="run-title">Loading saved runs…</h1><p id="run-subtitle"></p></div>
@@ -31,6 +31,7 @@
       <button id="tab-world" role="tab" aria-controls="view-world" aria-selected="true" data-view="world">01 <span>World & evidence</span></button>
       <button id="tab-frameworks" role="tab" aria-controls="view-frameworks" aria-selected="false" data-view="frameworks">02 <span>Framework views</span></button>
       <button id="tab-hinges" role="tab" aria-controls="view-hinges" aria-selected="false" data-view="hinges">03 <span>Decision hinges</span></button>
+      <button id="tab-topography" role="tab" aria-controls="view-topography" aria-selected="false" data-view="topography">04 <span>Topography</span></button>
     </div>
     <section id="view-world" role="tabpanel" aria-labelledby="tab-world">
       <div class="world-grid">
@@ -38,8 +39,9 @@
         <article class="card graph-card"><div class="section-heading"><h2>World-state topology</h2><span id="graph-authority" class="mini-label"></span></div><div id="diagram-tabs" aria-label="World interpretations"></div><p id="graph-caption"></p>
           <div class="graph-toolbar"><span>Click a node or relation to inspect</span><div><button id="graph-detail" aria-pressed="false">Show full links</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="zoom-reset">Fit</button><button id="zoom-in" aria-label="Zoom in">+</button></div></div>
           <p id="graph-simplification"></p>
+          <div id="graph-context"></div>
           <div id="graph-viewport" tabindex="0" aria-label="Scrollable world diagram"><div id="graph-canvas"></div></div>
-          <div class="graph-legend"><span>Solid: recorded relation</span><span>Dashed: role, effect or scope</span><span class="ledger-layer-note">Purple: source-ledger addition, outside frozen topology; its links are support references</span><span>Branches are alternatives, not co-occurring actions</span></div>
+          <div class="graph-legend" id="graph-legend"><span>Solid: recorded relation</span><span>Dashed: role, effect or scope</span><span class="ledger-layer-note">Purple: source-ledger addition, outside frozen topology; its links are support references</span><span>Branches are alternatives, not co-occurring actions</span></div>
           <details class="record-selector"><summary>Inspect records without the diagram</summary><div id="record-list"></div></details>
           <details class="mermaid-source"><summary>Mermaid source</summary><pre id="mermaid-source"></pre></details>
         </article>
@@ -47,7 +49,31 @@
       <article id="inspector" class="card inspector" aria-live="polite"></article>
     </section>
     <section id="view-frameworks" role="tabpanel" aria-labelledby="tab-frameworks" hidden><div class="view-intro"><h2>Different frameworks, the same frozen world</h2><p>Recorded preference, operative participation and ledger admission are distinct. Admission does not establish the truth of a moral argument.</p></div><div id="framework-cards"></div></section>
-    <section id="view-hinges" role="tabpanel" aria-labelledby="tab-hinges" hidden><div class="view-intro"><h2>What could change the judgment?</h2><p>These hinges come from saved argument records. They are attributed model claims, not new facts or independently verified thresholds.</p></div><div id="hinge-cards"></div><div class="limits-grid"><article class="card"><h2>What remains uncertain</h2><div id="unknown-list"></div></article><article class="card"><h2>What Parliament did not decide</h2><div id="nondecisions"></div></article></div><article class="card agreement-card"><h2>Agreement & disagreement</h2><div id="agreement"></div></article></section>
+    <section id="view-hinges" role="tabpanel" aria-labelledby="tab-hinges" hidden><div class="view-intro"><h2>What could change the judgment?</h2><p>These hinges come from saved argument records. They are attributed model claims, not new facts or independently verified thresholds. An abstention boundary is a recorded condition that would resolve a withheld ranking; it is not the reversal of a preference that was never admitted.</p></div><div id="hinge-cards"></div><div class="limits-grid"><article class="card"><h2>What remains uncertain</h2><div id="unknown-list"></div></article><article class="card"><h2>What Parliament did not decide</h2><div id="nondecisions"></div></article></div><article class="card agreement-card"><h2>Agreement & disagreement</h2><div id="agreement"></div></article></section>
+    <section id="view-topography" role="tabpanel" aria-labelledby="tab-topography" hidden>
+      <div class="view-intro">
+        <h2>Care, welfare, and obligation in one space</h2>
+        <p>The 3D composite interpolates a display-only surface when at least two actions have all three coordinates. After a Decisions pass, axes are probabilities that the action satisfies the Care, welfare, or obligation criterion given the Parliament packet. The bundled scenarios use jackknife intervals from ablating one tenth of the packet text at a time; the marker is the jackknife mean. These measure sensitivity to packet omissions, not moral certainty. Missing or refused answers are holes, not zeros. Attractors are occupancy of recorded points. 2D projections are not interpolated.</p>
+      </div>
+      <div id="topo-empty" class="empty" hidden></div>
+      <div id="topo-body">
+        <article class="card topo-stage">
+          <div class="section-heading"><h2>3D composite</h2><span class="mini-label">ISOMETRIC · 90° SNAPS</span></div>
+          <p id="topo-caption" class="topo-caption"></p>
+          <div class="graph-toolbar"><span id="topo-axis-legend">Care × welfare × obligation</span><div><button type="button" id="topo-rotate">Rotate 90°</button><button type="button" id="topo-reset">Reset view</button></div></div>
+          <div id="topo-3d" class="topo-frame" aria-label="Three-dimensional topography of recorded actions"></div>
+          <div id="topo-loci" class="topo-loci"></div>
+          <div id="topo-flags" class="topo-flags"></div>
+        </article>
+        <div class="topo-projections">
+          <article class="card"><h2>Care × welfare</h2><div id="topo-p-care-welfare" class="topo-frame"></div></article>
+          <article class="card"><h2>Care × obligation</h2><div id="topo-p-care-obligation" class="topo-frame"></div></article>
+          <article class="card"><h2>Welfare × obligation</h2><div id="topo-p-welfare-obligation" class="topo-frame"></div></article>
+        </div>
+        <article id="topo-inspector" class="card inspector" aria-live="polite"></article>
+      </div>
+    </section>
+    <details id="run-provenance" class="stipulations" open><summary>Version and run provenance</summary><div id="provenance-summary"></div><div id="checkpoint-list"></div><details><summary>Raw provenance records</summary><pre id="run-provenance-record"></pre></details></details>
     <footer>No governing moral verdict is inferred by this viewer. <span id="source-hash"></span></footer>
   </main>
 </body>

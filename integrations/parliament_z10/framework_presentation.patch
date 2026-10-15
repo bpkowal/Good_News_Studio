@@ -1,0 +1,198 @@
+--- a/global_workspace/deontology_ledger.py
++++ b/global_workspace/deontology_ledger.py
+@@ -983,8 +983,11 @@
+     )
+     primary_claim = str(assessment.get("norm", "a protected claim"))
+     competing_claim = str(assessment.get("competing_norm", "a competing claim"))
++    duty_bearer = str(assessment.get("duty_bearer") or "the duty-bearer")
++    primary_description = f"{duty_bearer}'s duty '{primary_claim}' protecting {primary_party}"
++    competing_description = f"{duty_bearer}'s competing duty '{competing_claim}' protecting {competing_party}"
+     conflict = (
+-        f"{primary_party}: {primary_claim} ↔ {competing_party}: {competing_claim}"
++        f"{primary_description} ↔ {competing_description}"
+     )
+     leaning = (
+         " ".join(str(recommended_action).split())
+@@ -996,10 +999,15 @@
+         actor = str(assessment.get("coercive_actor", "the acting authority"))
+         coerced = str(assessment.get("coerced_party", "the restricted party"))
+         unresolved = _unresolved_premises(assessment)
++        issue = (f"{actor}'s restriction of {coerced} is not yet justified because "
++                 if actor.upper() not in {"NONE", "UNKNOWN", ""}
++                 and coerced.upper() not in {"NONE", "UNKNOWN", ""}
++                 and assessment.get("coercive_actor") and assessment.get("coerced_party")
++                 else "The priority between these duties is not yet established because ")
+         rationale = (
+-            f"Deontology identifies competing claims between {primary_party}'s "
+-            f"{primary_claim} and {competing_party}'s {competing_claim}. "
+-            f"{actor}'s restriction of {coerced} is not yet justified because "
++            f"Deontology identifies a conflict between {primary_description} "
++            f"and {competing_description}. "
++            + issue
+             + "; and ".join(unresolved)
+             + ". The Kantian judgment remains contested."
+         )
+@@ -1035,10 +1043,9 @@
+                     f"{rival_id} prohibited by {rival_claim} ↔ {premise}"
+                 )
+         rationale = (
+-            f"Deontology ranks {primary_party}'s {primary_claim} above "
+-            f"{competing_party}'s {competing_claim} through {derivation}, but that "
+-            f"priority holds only if {rival_ids} is genuinely prohibited, and the "
+-            f"prohibition rests on unestablished premises: "
++            f"Deontology provisionally prioritizes {primary_description} over "
++            f"{competing_description} through {derivation}. That priority "
++            f"depends on an unestablished prohibition of {rival_ids}: "
+             + "; and ".join(unresolved)
+             + ". The comparative Kantian judgment remains contested."
+         )
+@@ -1058,8 +1065,8 @@
+         policy_weight_factor=1.0,
+         investigative_claim="",
+         rationale=(
+-            f"Deontology resolves {primary_party}'s {primary_claim} against "
+-            f"{competing_party}'s {competing_claim} through {derivation}."
++            f"Deontology resolves the conflict between {primary_description} and "
++            f"{competing_description} through {derivation}."
+         ),
+         decision_rule=str(assessment.get("priority_rule", "priority remains unresolved")),
+         internal_conflicts=(),
+--- a/global_workspace/models.py
++++ b/global_workspace/models.py
+@@ -978,7 +978,7 @@
+         if self.schema_valid:
+             self.delegate_status = "VALID"
+             self.error_type = "NONE"
+-        self.rationale = " ".join(self.rationale.split())[:180]
++        self.rationale = " ".join(self.rationale.split())
+         baseline_status = self.baseline_status.strip().upper()
+         self.baseline_status = (
+             baseline_status
+@@ -1100,7 +1100,7 @@
+             else "NOT_APPLICABLE"
+         )
+         self.landscape_cases = {
+-            str(action): " ".join(str(reason).split())[:180]
++            str(action): " ".join(str(reason).split())
+             for action, reason in self.landscape_cases.items()
+             if str(action).strip() and " ".join(str(reason).split())
+         }
+@@ -1124,7 +1124,7 @@
+             if " ".join(str(error).split())
+         ][:8]
+         self.independence_bonus = clamp(self.independence_bonus)
+-        self.decision_rule = " ".join(self.decision_rule.split())[:180]
++        self.decision_rule = " ".join(self.decision_rule.split())
+         adjudication = self.adjudication_status.strip().upper()
+         from .specialist_authority import normalize_specialist_status
+         if adjudication in {
+@@ -1196,10 +1196,10 @@
+         self.reopen_reason = " ".join(str(self.reopen_reason).split())[:240]
+         self.reopen_question_key = " ".join(str(self.reopen_question_key).split())[:120]
+         self.factual_reversal_threshold = (
+-            " ".join(self.factual_reversal_threshold.split())[:180] or "NONE"
++            " ".join(self.factual_reversal_threshold.split()) or "NONE"
+         )
+         self.normative_reversal_threshold = (
+-            " ".join(self.normative_reversal_threshold.split())[:180] or "NONE"
++            " ".join(self.normative_reversal_threshold.split()) or "NONE"
+         )
+         response = self.reversal_review_response.strip().upper()
+         self.reversal_review_response = (
+@@ -1274,7 +1274,7 @@
+         self.workspace_reasoning_effect = (
+             effect if effect in {"NONE", "FACTUAL", "NORMATIVE", "BOTH"} else "NONE"
+         )
+-        self.framework_application = " ".join(self.framework_application.split())[:180]
++        self.framework_application = " ".join(self.framework_application.split())
+         dependence = self.self_reported_broadcast_dependence.strip().upper()
+         self.self_reported_broadcast_dependence = (
+             dependence if dependence in {"NONE", "LOW", "MEDIUM", "HIGH"} else "NONE"
+@@ -1295,7 +1295,7 @@
+             else "NOT_MEASURED"
+         )
+         self.framework_action_map = {
+-            str(action): " ".join(str(reason).split())[:180]
++            str(action): " ".join(str(reason).split())
+             for action, reason in self.framework_action_map.items()
+             if str(action).strip() and " ".join(str(reason).split())
+         }
+--- a/global_workspace/specialist_authority.py
++++ b/global_workspace/specialist_authority.py
+@@ -332,14 +332,14 @@
+     )[:180]
+ 
+ 
+-def downgrade_claim_authority(text: str, status: str) -> str:
++def downgrade_claim_authority(text: str, status: str, *, limit: int | None = 240) -> str:
+     """Compression may remove detail; it may never increase authority."""
+     normalized = normalize_specialist_status(status)
+     claim = " ".join(str(text or "").split())
+     if not claim:
+         return ""
+     if normalized in {SUPPORTS, CONDITIONAL_SUPPORTS}:
+-        return claim[:240]
++        return claim[:limit]
+     # Strip categorical requirement/prohibition language from incomplete states.
+     softened = _CATEGORICAL_AUTHORITY.sub("provisionally favored under incomplete adjudication", claim)
+     if normalized == PROVISIONAL_LEANING and not softened.lower().startswith("provisional"):
+@@ -347,7 +347,7 @@
+             softened = f"Provisionally: {softened}"
+     if normalized == CONTESTED_NO_LEANING and "unresolved" not in softened.casefold():
+         softened = f"Unresolved contestation: {softened}"
+-    return softened[:240]
++    return softened[:limit]
+ 
+ 
+ def policy_weight_for(
+@@ -1046,7 +1046,7 @@
+             candidate.decision_rule, profile.adjudication_status,
+         )
+         candidate.rationale = downgrade_claim_authority(
+-            getattr(candidate, "rationale", ""), profile.adjudication_status,
++            getattr(candidate, "rationale", ""), profile.adjudication_status, limit=None,
+         )
+         candidate.governing_eligible = False
+     apply_validator_governance_gate(candidate)
+--- a/global_workspace/local_specialists.py
++++ b/global_workspace/local_specialists.py
+@@ -4542,7 +4542,7 @@
+                 "l": {
+                     "type": "object",
+                     "properties": {
+-                        action_id: {"type": "string", "maxLength": 100}
++                        action_id: {"type": "string"}
+                         for action_id in action_ids
+                     },
+                     "required": action_ids,
+@@ -4551,9 +4551,9 @@
+                 "da": {"type": "string", "maxLength": 80},
+                 "t": {"type": "string", "maxLength": 100},
+                 "tf": {"type": "string", "maxLength": 100},
+-                "dr": {"type": "string", "maxLength": 120},
+-                "ft": {"type": "string", "maxLength": 120},
+-                "nt": {"type": "string", "maxLength": 120},
++                "dr": {"type": "string"},
++                "ft": {"type": "string"},
++                "nt": {"type": "string"},
+                 "z": {"type": "number", "minimum": 0, "maximum": 1},
+                 "gu": {
+                     "type": "object",
+@@ -4639,7 +4639,7 @@
+                     "enum": ["NOT_APPLICABLE", "ACCEPT", "QUALIFY", "REJECT"],
+                 },
+                 "we": {"type": "string", "enum": ["NONE", "FACTUAL", "NORMATIVE", "BOTH"]},
+-                "fa": {"type": "string", "maxLength": 140},
++                "fa": {"type": "string"},
+                 "fr": {"type": "boolean"},
+                 "bd": {"type": "string", "enum": ["NONE", "LOW", "MEDIUM", "HIGH"]},
+                 "fic": {
+@@ -5237,7 +5237,7 @@
+                 "additionalProperties": False,
+             }
+             schema["properties"]["fa"] = {
+-                "type": "string", "minLength": 8, "maxLength": 140,
++                "type": "string", "minLength": 8,
+             }
+             schema["required"].extend(["rp", "rb", "rbc", "lpj", "lc"])
+         if broadcast.constraint == "PROPOSAL_REVIEW":

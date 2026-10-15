@@ -1,0 +1,1589 @@
+{
+  "version": "parliament-demo/1",
+  "scenario": "A runaway tram is heading toward ten workers on the main track. Dana can pull a lever that redirects the tram onto a side track, where one worker stands. If she pulls the lever, the tram will kill that worker and spare the ten. If she does not, it will kill the ten and spare the one. Dana cannot stop the tram. Should she pull the lever?",
+  "source_sha256": "be5b6226edaf8aa96a2004f023e1cb32e2022c5ffa9bcde21e8b7f9127c6fa6c",
+  "status": "FRAMEWORK_PARTIAL",
+  "stop": {
+    "stage": "framework assessment",
+    "reason": "FRAMEWORK_PARTIAL",
+    "kind": "recorded_pipeline_outcome"
+  },
+  "world": {
+    "parties": [
+      {
+        "party_id": "P1",
+        "label": "Dana",
+        "kind": "PERSON",
+        "provenance": [
+          {
+            "clause_id": "C1",
+            "excerpt": "Dana can pull a lever that redirects the tram onto a side track, where one worker stands."
+          },
+          {
+            "clause_id": "C4",
+            "excerpt": "Dana cannot stop the tram."
+          }
+        ],
+        "quantities": []
+      },
+      {
+        "party_id": "P2",
+        "label": "one worker",
+        "kind": "PERSON",
+        "provenance": [
+          {
+            "clause_id": "C2",
+            "excerpt": "If she pulls the lever, the tram will kill that worker and spare the ten."
+          },
+          {
+            "clause_id": "C1",
+            "excerpt": "Dana can pull a lever that redirects the tram onto a side track, where one worker stands."
+          },
+          {
+            "clause_id": "C3",
+            "excerpt": "If she does not, it will kill the ten and spare the one."
+          }
+        ],
+        "quantities": []
+      },
+      {
+        "party_id": "P3",
+        "label": "the tram",
+        "kind": "PROCESS",
+        "provenance": [
+          {
+            "clause_id": "C1",
+            "excerpt": "Dana can pull a lever that redirects the tram onto a side track, where one worker stands."
+          },
+          {
+            "clause_id": "C2",
+            "excerpt": "If she pulls the lever, the tram will kill that worker and spare the ten."
+          },
+          {
+            "clause_id": "C4",
+            "excerpt": "Dana cannot stop the tram."
+          }
+        ],
+        "quantities": []
+      },
+      {
+        "party_id": "P4",
+        "label": "ten workers",
+        "kind": "HUMAN_GROUP",
+        "provenance": [
+          {
+            "clause_id": "C2",
+            "excerpt": "If she pulls the lever, the tram will kill that worker and spare the ten."
+          },
+          {
+            "clause_id": "C3",
+            "excerpt": "If she does not, it will kill the ten and spare the one."
+          },
+          {
+            "clause_id": "C0",
+            "excerpt": "A runaway tram is heading toward ten workers on the main track."
+          }
+        ],
+        "quantities": [
+          "ten"
+        ]
+      },
+      {
+        "party_id": "P6",
+        "label": "a lever",
+        "kind": "PROCESS",
+        "provenance": [
+          {
+            "clause_id": "C1",
+            "excerpt": "Dana can pull a lever that redirects the tram onto a side track, where one worker stands."
+          }
+        ],
+        "quantities": []
+      },
+      {
+        "party_id": "P7",
+        "label": "the main track",
+        "kind": "OTHER",
+        "provenance": [
+          {
+            "clause_id": "C0",
+            "excerpt": "A runaway tram is heading toward ten workers on the main track."
+          }
+        ],
+        "quantities": []
+      },
+      {
+        "party_id": "P8",
+        "label": "a side track",
+        "kind": "OTHER",
+        "provenance": [
+          {
+            "clause_id": "C1",
+            "excerpt": "Dana can pull a lever that redirects the tram onto a side track, where one worker stands."
+          }
+        ],
+        "quantities": []
+      }
+    ],
+    "actions": [
+      {
+        "action_id": "A0",
+        "intervention": "pulls the lever",
+        "actor_party_id": "P1",
+        "recipient_party_ids": [
+          "P6"
+        ],
+        "effect_ids": [
+          "E1",
+          "E2",
+          "E3",
+          "E4"
+        ],
+        "provenance": [
+          {
+            "clause_id": "C1",
+            "excerpt": "Dana can pull a lever that redirects the tram onto a side track, where one worker stands."
+          },
+          {
+            "clause_id": "C2",
+            "excerpt": "If she pulls the lever, the tram will kill that worker and spare the ten."
+          }
+        ]
+      },
+      {
+        "action_id": "A1",
+        "intervention": "does not pull the lever",
+        "actor_party_id": "P1",
+        "recipient_party_ids": [
+          "P6"
+        ],
+        "effect_ids": [
+          "E5",
+          "E6",
+          "E7",
+          "E8"
+        ],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "If she does not, it will kill the ten and spare the one."
+          },
+          {
+            "clause_id": "C2",
+            "excerpt": "If she pulls the lever, the tram will kill that worker and spare the ten."
+          },
+          {
+            "clause_id": "C0",
+            "excerpt": "A runaway tram is heading toward ten workers on the main track."
+          }
+        ]
+      }
+    ],
+    "effects": [
+      {
+        "effect_id": "E1",
+        "action_id": "A0",
+        "party_id": "P6",
+        "outcome": "pulls the lever",
+        "relation": "PULL",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "INTERVENTION",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C2",
+            "excerpt": "If she pulls the lever, the tram will kill that worker and spare the ten."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "pulls the lever",
+        "source_effect_ids": [],
+        "derivation_operation": "DIRECT_COPY",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      {
+        "effect_id": "E2",
+        "action_id": "A0",
+        "party_id": "P3",
+        "outcome": "redirects the tram onto a side track",
+        "relation": "REDIRECT",
+        "polarity": "NEUTRAL",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "PHYSICAL_STATE",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C1",
+            "excerpt": "Dana can pull a lever that redirects the tram onto a side track, where one worker stands."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "redirects the tram onto a side track",
+        "source_effect_ids": [
+          "E1"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "Explicit instrument relative clause supplies the transition on the selected intervention branch.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      {
+        "effect_id": "E3",
+        "action_id": "A0",
+        "party_id": "P2",
+        "outcome": "the tram will kill one worker",
+        "relation": "KILL",
+        "polarity": "ADVERSE",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "HEALTH_OUTCOME",
+        "condition_ids": [],
+        "quantities": [
+          "one"
+        ],
+        "provenance": [
+          {
+            "clause_id": "C2",
+            "excerpt": "If she pulls the lever, the tram will kill that worker and spare the ten."
+          },
+          {
+            "clause_id": "C1",
+            "excerpt": "Dana can pull a lever that redirects the tram onto a side track, where one worker stands."
+          },
+          {
+            "clause_id": "C3",
+            "excerpt": "If she does not, it will kill the ten and spare the one."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "the tram will kill that worker",
+        "source_effect_ids": [
+          "E2"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      {
+        "effect_id": "E4",
+        "action_id": "A0",
+        "party_id": "P4",
+        "outcome": "spare ten workers",
+        "relation": "SPARE",
+        "polarity": "BENEFICIAL",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "OTHER",
+        "condition_ids": [],
+        "quantities": [
+          "ten"
+        ],
+        "provenance": [
+          {
+            "clause_id": "C2",
+            "excerpt": "If she pulls the lever, the tram will kill that worker and spare the ten."
+          },
+          {
+            "clause_id": "C3",
+            "excerpt": "If she does not, it will kill the ten and spare the one."
+          },
+          {
+            "clause_id": "C0",
+            "excerpt": "A runaway tram is heading toward ten workers on the main track."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "spare the ten",
+        "source_effect_ids": [
+          "E2"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      {
+        "effect_id": "E5",
+        "action_id": "A1",
+        "party_id": "P6",
+        "outcome": "does not",
+        "relation": "DO",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "INTERVENTION",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "If she does not, it will kill the ten and spare the one."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "does not",
+        "source_effect_ids": [],
+        "derivation_operation": "DIRECT_COPY",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      {
+        "effect_id": "E6",
+        "action_id": "A1",
+        "party_id": "P3",
+        "outcome": "heading toward ten workers on the main track",
+        "relation": "HEAD",
+        "polarity": "NEUTRAL",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "OTHER",
+        "condition_ids": [],
+        "quantities": [
+          "ten"
+        ],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "If she does not, it will kill the ten and spare the one."
+          },
+          {
+            "clause_id": "C0",
+            "excerpt": "A runaway tram is heading toward ten workers on the main track."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "heading toward ten workers on the main track",
+        "source_effect_ids": [
+          "E5"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The stated default motion and same-patient omission outcome jointly support this branch continuation; no new route is invented.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      {
+        "effect_id": "E7",
+        "action_id": "A1",
+        "party_id": "P4",
+        "outcome": "it will kill ten workers",
+        "relation": "KILL",
+        "polarity": "ADVERSE",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "HEALTH_OUTCOME",
+        "condition_ids": [],
+        "quantities": [
+          "ten"
+        ],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "If she does not, it will kill the ten and spare the one."
+          },
+          {
+            "clause_id": "C2",
+            "excerpt": "If she pulls the lever, the tram will kill that worker and spare the ten."
+          },
+          {
+            "clause_id": "C0",
+            "excerpt": "A runaway tram is heading toward ten workers on the main track."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "it will kill the ten",
+        "source_effect_ids": [
+          "E6"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      {
+        "effect_id": "E8",
+        "action_id": "A1",
+        "party_id": "P2",
+        "outcome": "spare one worker",
+        "relation": "SPARE",
+        "polarity": "BENEFICIAL",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "OTHER",
+        "condition_ids": [],
+        "quantities": [
+          "one"
+        ],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "If she does not, it will kill the ten and spare the one."
+          },
+          {
+            "clause_id": "C2",
+            "excerpt": "If she pulls the lever, the tram will kill that worker and spare the ten."
+          },
+          {
+            "clause_id": "C1",
+            "excerpt": "Dana can pull a lever that redirects the tram onto a side track, where one worker stands."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "spare the one",
+        "source_effect_ids": [
+          "E6"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      }
+    ],
+    "conditions": [
+      {
+        "condition_id": "CND1",
+        "description": "If she pulls the lever",
+        "value_status": "UNKNOWN",
+        "decision_relevance": "MATERIAL",
+        "provenance": [
+          {
+            "clause_id": "C2",
+            "excerpt": "If she pulls the lever, the tram will kill that worker and spare the ten."
+          }
+        ],
+        "event_effect_id": "",
+        "polarity": "POSITIVE",
+        "operator": "IF"
+      },
+      {
+        "condition_id": "CND2",
+        "description": "If she does not",
+        "value_status": "UNKNOWN",
+        "decision_relevance": "MATERIAL",
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "If she does not, it will kill the ten and spare the one."
+          }
+        ],
+        "event_effect_id": "",
+        "polarity": "NEGATED",
+        "operator": "IF"
+      }
+    ],
+    "causal_links": [
+      {
+        "source_id": "E1",
+        "relation": "CAUSES",
+        "target_id": "E2",
+        "modality": "CERTAIN",
+        "condition_ids": [],
+        "provenance": [
+          {
+            "clause_id": "C1",
+            "excerpt": "Dana can pull a lever that redirects the tram onto a side track, where one worker stands."
+          }
+        ],
+        "action_id": "A0"
+      },
+      {
+        "source_id": "E2",
+        "relation": "CAUSES",
+        "target_id": "E3",
+        "modality": "CERTAIN",
+        "condition_ids": [],
+        "provenance": [
+          {
+            "clause_id": "C1",
+            "excerpt": "Dana can pull a lever that redirects the tram onto a side track, where one worker stands."
+          },
+          {
+            "clause_id": "C2",
+            "excerpt": "If she pulls the lever, the tram will kill that worker and spare the ten."
+          }
+        ],
+        "action_id": "A0"
+      },
+      {
+        "source_id": "E2",
+        "relation": "CAUSES",
+        "target_id": "E4",
+        "modality": "CERTAIN",
+        "condition_ids": [],
+        "provenance": [
+          {
+            "clause_id": "C1",
+            "excerpt": "Dana can pull a lever that redirects the tram onto a side track, where one worker stands."
+          },
+          {
+            "clause_id": "C2",
+            "excerpt": "If she pulls the lever, the tram will kill that worker and spare the ten."
+          }
+        ],
+        "action_id": "A0"
+      },
+      {
+        "source_id": "E5",
+        "relation": "ENABLES",
+        "target_id": "E6",
+        "modality": "CERTAIN",
+        "condition_ids": [],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "If she does not, it will kill the ten and spare the one."
+          }
+        ],
+        "action_id": "A1"
+      },
+      {
+        "source_id": "E6",
+        "relation": "ENABLES",
+        "target_id": "E7",
+        "modality": "CERTAIN",
+        "condition_ids": [],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "If she does not, it will kill the ten and spare the one."
+          }
+        ],
+        "action_id": "A1"
+      },
+      {
+        "source_id": "E6",
+        "relation": "ENABLES",
+        "target_id": "E8",
+        "modality": "CERTAIN",
+        "condition_ids": [],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "If she does not, it will kill the ten and spare the one."
+          }
+        ],
+        "action_id": "A1"
+      }
+    ],
+    "counterfactual_links": [],
+    "admission": {
+      "status": "COMMITTED",
+      "admitted_effect_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8"
+      ],
+      "quarantined_effects": [],
+      "user_override": false,
+      "override_reason": ""
+    },
+    "schema_version": "1.3",
+    "temporal_relations": [],
+    "propositions": [
+      {
+        "proposition_id": "PR1",
+        "predication": "A runaway tram is heading toward ten workers on the main track.",
+        "polarity": "POSITIVE",
+        "status": "ASSERTED",
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      {
+        "proposition_id": "PR2",
+        "predication": "Dana can pull a lever that redirects the tram onto a side track, where one worker stands.",
+        "polarity": "POSITIVE",
+        "status": "ASSERTED",
+        "clause_ids": [
+          "C1"
+        ]
+      },
+      {
+        "proposition_id": "PR3",
+        "predication": "Dana cannot stop the tram.",
+        "polarity": "POSITIVE",
+        "status": "ASSERTED",
+        "clause_ids": [
+          "C4"
+        ]
+      }
+    ],
+    "reports": [],
+    "commitments": [],
+    "modal_operators": [],
+    "normative_propositions": []
+  },
+  "grounded_effects": [
+    {
+      "id": "E1",
+      "claim": "pulls the lever",
+      "operation": "DIRECT_COPY",
+      "source_excerpts": [
+        "If she pulls the lever, the tram will kill that worker and spare the ten."
+      ],
+      "source_check": "EXACT_EXCERPT"
+    },
+    {
+      "id": "E2",
+      "claim": "redirects the tram onto a side track",
+      "operation": "SOURCE_STIPULATED_CAUSAL",
+      "source_excerpts": [
+        "Dana can pull a lever that redirects the tram onto a side track, where one worker stands."
+      ],
+      "source_check": "EXACT_EXCERPT"
+    },
+    {
+      "id": "E3",
+      "claim": "the tram will kill one worker",
+      "operation": "SOURCE_STIPULATED_CAUSAL",
+      "source_excerpts": [
+        "If she pulls the lever, the tram will kill that worker and spare the ten.",
+        "Dana can pull a lever that redirects the tram onto a side track, where one worker stands.",
+        "If she does not, it will kill the ten and spare the one."
+      ],
+      "source_check": "EXACT_EXCERPT"
+    },
+    {
+      "id": "E4",
+      "claim": "spare ten workers",
+      "operation": "SOURCE_STIPULATED_CAUSAL",
+      "source_excerpts": [
+        "If she pulls the lever, the tram will kill that worker and spare the ten.",
+        "If she does not, it will kill the ten and spare the one.",
+        "A runaway tram is heading toward ten workers on the main track."
+      ],
+      "source_check": "EXACT_EXCERPT"
+    },
+    {
+      "id": "E5",
+      "claim": "does not",
+      "operation": "DIRECT_COPY",
+      "source_excerpts": [
+        "If she does not, it will kill the ten and spare the one."
+      ],
+      "source_check": "EXACT_EXCERPT"
+    },
+    {
+      "id": "E6",
+      "claim": "heading toward ten workers on the main track",
+      "operation": "SOURCE_STIPULATED_CAUSAL",
+      "source_excerpts": [
+        "If she does not, it will kill the ten and spare the one.",
+        "A runaway tram is heading toward ten workers on the main track."
+      ],
+      "source_check": "EXACT_EXCERPT"
+    },
+    {
+      "id": "E7",
+      "claim": "it will kill ten workers",
+      "operation": "SOURCE_STIPULATED_CAUSAL",
+      "source_excerpts": [
+        "If she does not, it will kill the ten and spare the one.",
+        "If she pulls the lever, the tram will kill that worker and spare the ten.",
+        "A runaway tram is heading toward ten workers on the main track."
+      ],
+      "source_check": "EXACT_EXCERPT"
+    },
+    {
+      "id": "E8",
+      "claim": "spare one worker",
+      "operation": "SOURCE_STIPULATED_CAUSAL",
+      "source_excerpts": [
+        "If she does not, it will kill the ten and spare the one.",
+        "If she pulls the lever, the tram will kill that worker and spare the ten.",
+        "Dana can pull a lever that redirects the tram onto a side track, where one worker stands."
+      ],
+      "source_check": "EXACT_EXCERPT"
+    }
+  ],
+  "stipulated_claims": [
+    {
+      "proposition_id": "PROP:WORLD:RECOGNITION:11e3a566e8e1819f",
+      "claim": "Dana cannot stop the tram.",
+      "proposition_type": "DESCRIPTIVE",
+      "epistemic_status": "STIPULATED",
+      "support_ids": [
+        "PR3",
+        "SOURCE_SPAN:0b7816ff454075b2"
+      ],
+      "derived_from": [],
+      "introduced_by": "WORLD_MODEL",
+      "mention_count": 1,
+      "decision_critical_mentions": 0,
+      "epistemic_type": "WORLD_ESTABLISHED",
+      "aliases": [],
+      "action_id": "",
+      "outcome": "",
+      "polarity": "",
+      "party_labels": [],
+      "quantities": [],
+      "effect_kind": "",
+      "context_terms": [],
+      "modality": "SOURCE_SCENE_STATEMENT",
+      "directness": "",
+      "obtained_welfare": true
+    },
+    {
+      "proposition_id": "PROP:WORLD:RECOGNITION:15ccdcdb2f87c7b1",
+      "claim": "If she pulls the lever, the tram will kill that worker and spare the ten.",
+      "proposition_type": "DESCRIPTIVE",
+      "epistemic_status": "STIPULATED",
+      "support_ids": [
+        "E2",
+        "E3",
+        "E4"
+      ],
+      "derived_from": [],
+      "introduced_by": "WORLD_MODEL",
+      "mention_count": 1,
+      "decision_critical_mentions": 0,
+      "epistemic_type": "WORLD_ESTABLISHED",
+      "aliases": [],
+      "action_id": "",
+      "outcome": "",
+      "polarity": "",
+      "party_labels": [],
+      "quantities": [],
+      "effect_kind": "",
+      "context_terms": [],
+      "modality": "SOURCE_RULE",
+      "directness": "",
+      "obtained_welfare": true
+    },
+    {
+      "proposition_id": "PROP:WORLD:RECOGNITION:1ed8bceccdbbb4b0",
+      "claim": "If she does not, it will kill the ten and spare the one.",
+      "proposition_type": "DESCRIPTIVE",
+      "epistemic_status": "STIPULATED",
+      "support_ids": [
+        "E5",
+        "E6",
+        "E7",
+        "E8"
+      ],
+      "derived_from": [],
+      "introduced_by": "WORLD_MODEL",
+      "mention_count": 1,
+      "decision_critical_mentions": 0,
+      "epistemic_type": "WORLD_ESTABLISHED",
+      "aliases": [],
+      "action_id": "",
+      "outcome": "",
+      "polarity": "",
+      "party_labels": [],
+      "quantities": [],
+      "effect_kind": "",
+      "context_terms": [],
+      "modality": "SOURCE_RULE",
+      "directness": "",
+      "obtained_welfare": true
+    },
+    {
+      "proposition_id": "PROP:WORLD:RECOGNITION:7e7250e0cbf9c447",
+      "claim": "Dana can pull a lever that redirects the tram onto a side track, where one worker stands.",
+      "proposition_type": "DESCRIPTIVE",
+      "epistemic_status": "STIPULATED",
+      "support_ids": [
+        "PR2",
+        "SOURCE_SPAN:838b7019a18afe6d"
+      ],
+      "derived_from": [],
+      "introduced_by": "WORLD_MODEL",
+      "mention_count": 1,
+      "decision_critical_mentions": 0,
+      "epistemic_type": "WORLD_ESTABLISHED",
+      "aliases": [],
+      "action_id": "",
+      "outcome": "",
+      "polarity": "",
+      "party_labels": [],
+      "quantities": [],
+      "effect_kind": "",
+      "context_terms": [],
+      "modality": "SOURCE_SCENE_STATEMENT",
+      "directness": "",
+      "obtained_welfare": true
+    },
+    {
+      "proposition_id": "PROP:WORLD:RECOGNITION:bf600e2ef90eae21",
+      "claim": "A runaway tram is heading toward ten workers on the main track.",
+      "proposition_type": "DESCRIPTIVE",
+      "epistemic_status": "STIPULATED",
+      "support_ids": [
+        "PR1",
+        "SOURCE_SPAN:6bf8b9a12a8699e3"
+      ],
+      "derived_from": [],
+      "introduced_by": "WORLD_MODEL",
+      "mention_count": 1,
+      "decision_critical_mentions": 0,
+      "epistemic_type": "WORLD_ESTABLISHED",
+      "aliases": [],
+      "action_id": "",
+      "outcome": "",
+      "polarity": "",
+      "party_labels": [],
+      "quantities": [],
+      "effect_kind": "",
+      "context_terms": [],
+      "modality": "SOURCE_SCENE_STATEMENT",
+      "directness": "",
+      "obtained_welfare": true
+    }
+  ],
+  "unknowns": [
+    "unresolved judgment claims its tiebreaker fully succeeded",
+    "intended-as-means classification corrected to side-effect",
+    "Optional deeper review is available for a decision-relevant question in the revised argument."
+  ],
+  "frameworks": [
+    {
+      "framework": "deontological",
+      "position": "ATTENUATED",
+      "preference": "does not pull the lever",
+      "reason": "The agent assesses Dana’s duty “do not intentionally kill the innocent” toward one worker. Dana is the duty-bearer; one worker is the protected party. The competing obligation being assessed is Dana’s “Imperfect duty to aid” toward ten workers. For “pulls the lever”, the agent proposes the maxim “Pull the lever”. This is an interpretation of possible practical reasoning, not an established intention. Its purpose is Preserve ten lives; its chosen means are Redirect tram onto side track. The proposed justification is: If everyone caused a certain innocent death to avert greater harm, security of persons would erode. The agent assesses the maxim as indefensible, and the action as impermissible. Its proposed means–ends reasoning is: Dana relies on redirecting the tram; the death is foreseen but not relied upon as a causal step. Physical means references: E2; end references: E4. For Dana’s option “pulls the lever”, the ledger records prohibited. The agent’s stated reason is: direct harm to innocent violates perfect duty. The agent assesses Dana’s duty “refrain from killing an innocent person” toward one worker. Dana is the duty-bearer; one worker is the protected party. The competing obligation being assessed is Dana’s “Imperfect duty to aid” toward ten workers. For “does not pull the lever”, the agent proposes the maxim “Do not intervene”. This is an interpretation of possible practical reasoning, not an established intention. Its purpose is Avoid killing innocents oneself; its chosen means are Omit lever pull. The proposed justification is: Refraining from killing to help others can be willed universally. The agent assesses the maxim as defensible, and the action as permissible. Its proposed means–ends reasoning is: Dana refuses to become a killer even though she foresees the tram will kill ten. Physical means references: none; end references: none. For Dana’s option “does not pull the lever”, the ledger records permissible. The agent’s stated reason is: omission keeps hands clean of direct killing.",
+      "assumptions": [],
+      "live_objections": [
+        "unresolved judgment claims its tiebreaker fully succeeded",
+        "intended-as-means classification corrected to side-effect"
+      ],
+      "dependencies": [],
+      "reversal_conditions": [
+        "If perfect duties did not outrank imperfect, ranking could switch."
+      ],
+      "decision_boundaries": [],
+      "ledger_status": "COMMITTED",
+      "recorded_argument": {
+        "rationale": "Provisionally: Deontology resolves the conflict between dana's duty 'refrain from killing an innocent person' protecting one worker and dana's competing duty 'Imperfect duty to aid' protecting ten workers through respect persons.",
+        "framework_application": "NONE",
+        "decision_rule": "Provisionally: Omission that avoids killing satisfies higher-priority perfect duty",
+        "landscape_cases": {
+          "pulls the lever": "Pulling stops ten deaths but directly causes one death; violates perfect negative duty.",
+          "does not pull the lever": "Refraining avoids killing; omission conflicts only with imperfect aid duty."
+        },
+        "proposed_framework_state": {
+          "constraint": "DUTY",
+          "action_scores": {
+            "pulls the lever": 0.2,
+            "does not pull the lever": 0.8
+          },
+          "recommended_action": "does not pull the lever",
+          "rationale": "Deontology resolves the conflict between dana's duty 'refrain from killing an innocent person' protecting one worker and dana's competing duty 'Imperfect duty to aid' protecting ten workers through respect persons.",
+          "decision_rule": "Omission that avoids killing satisfies higher-priority perfect duty",
+          "framework_action_map": {
+            "pulls the lever": "PROHIBITED: duty PERFECT_NEGATIVE under do not intentionally kill the innocent; relation VIOLATES; direct harm to innocent violates perfect duty",
+            "does not pull the lever": "PERMISSIBLE: duty PERFECT_NEGATIVE under refrain from killing an innocent person; relation SATISFIES; omission keeps hands clean of direct killing"
+          },
+          "framework_numerical_role": "IRRELEVANT",
+          "framework_numerical_justification": "Numbers do not override perfect duty",
+          "action_admissibility": {
+            "pulls the lever": "REJECTED",
+            "does not pull the lever": "PERMISSIBLE"
+          },
+          "comparison_complete": true,
+          "evidence_sufficient_for_action": true,
+          "interim_action": "does not pull the lever",
+          "factual_reversal_threshold": "NONE",
+          "normative_reversal_threshold": "If perfect duties did not outrank imperfect, ranking could switch.",
+          "utilitarian_consequence_table": {},
+          "utilitarian_ledger_proposal": {},
+          "rawls_position_proposal": {},
+          "deontological_ledger_proposal": {
+            "assessments": [
+              {
+                "action_id": "A0",
+                "verdict": "PROHIBITED",
+                "norm_kind": "DUTY",
+                "norm": "do not intentionally kill the innocent",
+                "relation": "VIOLATES",
+                "duty_bearer": "Dana",
+                "protected_party": "one worker",
+                "competing_norm": "Imperfect duty to aid",
+                "competing_norm_kind": "DUTY",
+                "competing_relation": "CONFLICTS",
+                "competing_protected_party": "ten workers",
+                "competing_reason": "rescue duty remains",
+                "duty_type": "PERFECT_NEGATIVE",
+                "harm_relation": "DOING_HARM",
+                "special_obligation_status": "NOT_REQUIRED",
+                "special_obligation_basis": "none",
+                "means_relation": "FORESEEN_SIDE_EFFECT",
+                "candidate_maxim": {
+                  "circumstance": "Runaway tram threatens ten",
+                  "policy": "Pull the lever",
+                  "end": "Preserve ten lives",
+                  "means": "Redirect tram onto side track",
+                  "person_role": "FORESEEN_AFFECTED",
+                  "consent_constraint": "NONE",
+                  "universalization": "If everyone caused a certain innocent death to avert greater harm, security of persons would erode.",
+                  "action_permissibility": "IMPERMISSIBLE",
+                  "maxim_assessment": "INDEFENSIBLE",
+                  "instrumental_belief": "DOES_NOT_RELY",
+                  "instrumental_use": "DOES_NOT_USE",
+                  "practical_reasoning": "Dana relies on redirecting the tram; the death is foreseen but not relied upon as a causal step.",
+                  "means_effect_ids": [
+                    "E2"
+                  ],
+                  "end_effect_ids": [
+                    "E4"
+                  ]
+                },
+                "governing_norm": "PRIMARY",
+                "priority_basis": "PERFECT_DUTY",
+                "priority_rule": "Perfect negative duties outrank imperfect aid duties",
+                "protected_standing": "BODILY_INTEGRITY",
+                "competing_protected_standing": "OTHER",
+                "coercion_kind": "NONE",
+                "coercive_actor": "NONE",
+                "coerced_party": "NONE",
+                "public_justification": "No public rule may license direct killing of an innocent to benefit others.",
+                "reciprocity_status": "FAILED",
+                "necessity_status": "LESS_RESTRICTIVE_ROUTE_AVAILABLE",
+                "authorization_status": "NOT_APPLICABLE",
+                "derivation": "RESPECT_PERSONS",
+                "resolution_status": "RESOLVED",
+                "evidence_basis": "ACTION_GRAPH",
+                "reason": "direct harm to innocent violates perfect duty"
+              },
+              {
+                "action_id": "A1",
+                "verdict": "PERMISSIBLE",
+                "norm_kind": "DUTY",
+                "norm": "refrain from killing an innocent person",
+                "relation": "SATISFIES",
+                "duty_bearer": "Dana",
+                "protected_party": "one worker",
+                "competing_norm": "Imperfect duty to aid",
+                "competing_norm_kind": "DUTY",
+                "competing_relation": "CONFLICTS",
+                "competing_protected_party": "ten workers",
+                "competing_reason": "rescue duty exists",
+                "duty_type": "PERFECT_NEGATIVE",
+                "harm_relation": "ALLOWING_HARM",
+                "special_obligation_status": "NOT_REQUIRED",
+                "special_obligation_basis": "none",
+                "means_relation": "NO_INSTRUMENTALIZATION",
+                "candidate_maxim": {
+                  "circumstance": "Runaway tram threatens ten",
+                  "policy": "Do not intervene",
+                  "end": "Avoid killing innocents oneself",
+                  "means": "Omit lever pull",
+                  "person_role": "NOT_USED",
+                  "consent_constraint": "NONE",
+                  "universalization": "Refraining from killing to help others can be willed universally.",
+                  "action_permissibility": "PERMISSIBLE",
+                  "maxim_assessment": "DEFENSIBLE",
+                  "instrumental_belief": "DOES_NOT_RELY",
+                  "instrumental_use": "DOES_NOT_USE",
+                  "practical_reasoning": "Dana refuses to become a killer even though she foresees the tram will kill ten.",
+                  "means_effect_ids": [],
+                  "end_effect_ids": []
+                },
+                "governing_norm": "PRIMARY",
+                "priority_basis": "PERFECT_DUTY",
+                "priority_rule": "Omission that avoids killing satisfies higher-priority perfect duty",
+                "protected_standing": "BODILY_INTEGRITY",
+                "competing_protected_standing": "OTHER",
+                "coercion_kind": "NONE",
+                "coercive_actor": "NONE",
+                "coerced_party": "NONE",
+                "public_justification": "A universal law forbidding killing to save others is coherent.",
+                "reciprocity_status": "SATISFIED",
+                "necessity_status": "UNKNOWN",
+                "authorization_status": "NOT_APPLICABLE",
+                "derivation": "RESPECT_PERSONS",
+                "resolution_status": "RESOLVED",
+                "evidence_basis": "ACTION_GRAPH",
+                "reason": "omission keeps hands clean of direct killing"
+              }
+            ]
+          },
+          "virtue_character_proposal": {},
+          "care_ledger_proposal": {},
+          "care_relational_map": {},
+          "care_numerical_role": "NOT_APPLICABLE",
+          "care_numerical_justification": ""
+        },
+        "framework_vote_reason": "framework ranking is supported by its committed typed ledger",
+        "investigative_claim": "UNRESOLVED FRAMEWORK CONFLICT: intended-as-means classification corrected to side-effect. Current reasoning leans does not pull the lever, but the competing internal claim has not been vindicated or defeated.",
+        "committed_native_ledger": {
+          "ledger_kind": "DEONTOLOGICAL_DUTY_LEDGER",
+          "transaction_status": "COMMITTED",
+          "records": [
+            {
+              "assessment_node_id": "DEON_ASSESSMENT:deontological:A0",
+              "framework": "DEONTOLOGICAL",
+              "specialist": "deontological",
+              "assessment_role": "PRIMARY",
+              "cycle": 2,
+              "canonical_action_id": "A0",
+              "verdict": "PROHIBITED",
+              "proposed_verdict": "PROHIBITED",
+              "relation": "VIOLATES",
+              "proposed_relation": "VIOLATES",
+              "norm_kind": "DUTY",
+              "norm_node_id": "DEON_NORM:0d6881671150b4c6",
+              "party_node_id": "DEON_PARTY:879bcf30890178b8",
+              "bearer_node_id": "DEON_BEARER:2c9e0a2585dc7406",
+              "competing_norm": "Imperfect duty to aid",
+              "competing_norm_kind": "DUTY",
+              "competing_relation": "CONFLICTS",
+              "competing_protected_party": "ten workers",
+              "competing_reason": "rescue duty remains",
+              "duty_type": "PERFECT_NEGATIVE",
+              "harm_relation": "DOING_HARM",
+              "special_obligation_status": "NOT_REQUIRED",
+              "special_obligation_basis": "none",
+              "means_relation": "FORESEEN_SIDE_EFFECT",
+              "candidate_maxim": {
+                "circumstance": "Runaway tram threatens ten",
+                "policy": "Pull the lever",
+                "end": "Preserve ten lives",
+                "means": "Redirect tram onto side track",
+                "person_role": "FORESEEN_AFFECTED",
+                "consent_constraint": "NONE",
+                "universalization": "If everyone caused a certain innocent death to avert greater harm, security of persons would erode.",
+                "action_permissibility": "IMPERMISSIBLE",
+                "maxim_assessment": "INDEFENSIBLE",
+                "instrumental_belief": "DOES_NOT_RELY",
+                "instrumental_use": "DOES_NOT_USE",
+                "practical_reasoning": "Dana relies on redirecting the tram; the death is foreseen but not relied upon as a causal step.",
+                "means_effect_ids": [
+                  "E2"
+                ],
+                "end_effect_ids": [
+                  "E4"
+                ]
+              },
+              "maxim_origin": "CANDIDATE_INTERPRETATION",
+              "governing_norm": "PRIMARY",
+              "priority_basis": "PERFECT_DUTY",
+              "priority_rule": "Perfect negative duties outrank imperfect aid duties",
+              "protected_standing": "BODILY_INTEGRITY",
+              "competing_protected_standing": "OTHER",
+              "coercion_kind": "NONE",
+              "coercive_actor": "NONE",
+              "coerced_party": "NONE",
+              "public_justification": "No public rule may license direct killing of an innocent to benefit others.",
+              "reciprocity_status": "FAILED",
+              "necessity_status": "LESS_RESTRICTIVE_ROUTE_AVAILABLE",
+              "authorization_status": "NOT_APPLICABLE",
+              "derivation": "RESPECT_PERSONS",
+              "resolution_status": "RESOLVED",
+              "calibration_errors": [],
+              "calibration_issues": [],
+              "calibration_support_node_ids": [],
+              "evidence_basis": "ACTION_GRAPH",
+              "epistemic_status": "GROUNDED_PARTY",
+              "reason": "direct harm to innocent violates perfect duty",
+              "protected_party": "one worker",
+              "norm": "do not intentionally kill the innocent",
+              "duty_bearer": "dana",
+              "provenance": [
+                "delegate:deontological",
+                "cycle:2"
+              ]
+            },
+            {
+              "assessment_node_id": "DEON_ASSESSMENT:deontological:A1",
+              "framework": "DEONTOLOGICAL",
+              "specialist": "deontological",
+              "assessment_role": "PRIMARY",
+              "cycle": 2,
+              "canonical_action_id": "A1",
+              "verdict": "PERMISSIBLE",
+              "proposed_verdict": "PERMISSIBLE",
+              "relation": "SATISFIES",
+              "proposed_relation": "SATISFIES",
+              "norm_kind": "DUTY",
+              "norm_node_id": "DEON_NORM:1d35c3b6a885a54c",
+              "party_node_id": "DEON_PARTY:879bcf30890178b8",
+              "bearer_node_id": "DEON_BEARER:2c9e0a2585dc7406",
+              "competing_norm": "Imperfect duty to aid",
+              "competing_norm_kind": "DUTY",
+              "competing_relation": "CONFLICTS",
+              "competing_protected_party": "ten workers",
+              "competing_reason": "rescue duty exists",
+              "duty_type": "PERFECT_NEGATIVE",
+              "harm_relation": "ALLOWING_HARM",
+              "special_obligation_status": "NOT_REQUIRED",
+              "special_obligation_basis": "none",
+              "means_relation": "NO_INSTRUMENTALIZATION",
+              "candidate_maxim": {
+                "circumstance": "Runaway tram threatens ten",
+                "policy": "Do not intervene",
+                "end": "Avoid killing innocents oneself",
+                "means": "Omit lever pull",
+                "person_role": "NOT_USED",
+                "consent_constraint": "NONE",
+                "universalization": "Refraining from killing to help others can be willed universally.",
+                "action_permissibility": "PERMISSIBLE",
+                "maxim_assessment": "DEFENSIBLE",
+                "instrumental_belief": "DOES_NOT_RELY",
+                "instrumental_use": "DOES_NOT_USE",
+                "practical_reasoning": "Dana refuses to become a killer even though she foresees the tram will kill ten.",
+                "means_effect_ids": [],
+                "end_effect_ids": []
+              },
+              "maxim_origin": "CANDIDATE_INTERPRETATION",
+              "governing_norm": "PRIMARY",
+              "priority_basis": "PERFECT_DUTY",
+              "priority_rule": "Omission that avoids killing satisfies higher-priority perfect duty",
+              "protected_standing": "BODILY_INTEGRITY",
+              "competing_protected_standing": "OTHER",
+              "coercion_kind": "NONE",
+              "coercive_actor": "NONE",
+              "coerced_party": "NONE",
+              "public_justification": "A universal law forbidding killing to save others is coherent.",
+              "reciprocity_status": "SATISFIED",
+              "necessity_status": "UNKNOWN",
+              "authorization_status": "NOT_APPLICABLE",
+              "derivation": "RESPECT_PERSONS",
+              "resolution_status": "RESOLVED",
+              "calibration_errors": [],
+              "calibration_issues": [],
+              "calibration_support_node_ids": [],
+              "evidence_basis": "ACTION_GRAPH",
+              "epistemic_status": "GROUNDED_PARTY",
+              "reason": "omission keeps hands clean of direct killing",
+              "protected_party": "one worker",
+              "norm": "refrain from killing an innocent person",
+              "duty_bearer": "dana",
+              "provenance": [
+                "delegate:deontological",
+                "cycle:2"
+              ]
+            }
+          ]
+        },
+        "unsupported_assumption": "",
+        "normative_reversal_threshold": "If perfect duties did not outrank imperfect, ranking could switch.",
+        "factual_reversal_threshold": "NONE",
+        "model_argument_fields": null
+      },
+      "reason_authority": "READABLE_PROJECTION_OF_NATIVE_DUTY_LEDGER",
+      "assumption_records": [
+        {
+          "kind": "RECORDED_INTERPRETIVE_COMMITMENT",
+          "text": "Provisionally: Omission that avoids killing satisfies higher-priority perfect duty",
+          "record": "decision_rule"
+        },
+        {
+          "kind": "RECORDED_INTERPRETIVE_COMMITMENT",
+          "text": "Numbers do not override perfect duty",
+          "record": "framework_numerical_justification"
+        },
+        {
+          "kind": "RUN_ASSUMPTION",
+          "record": "source_scenario",
+          "text": "The stated scenario facts are accepted as givens for this analysis; their accuracy outside this scenario has not been verified."
+        }
+      ],
+      "source_basis": {
+        "status": "STIPULATED_FOR_THIS_RUN",
+        "how_known": "NOT_SEPARATELY_RECORDED",
+        "text": "The counts (one worker; ten workers) are stipulated by the scenario for this run. No separate record says whether they were observed, reported by someone, or supplied as simulation facts. This is a provenance limitation, not a claim that the stated counts are missing."
+      },
+      "presentation_notices": [],
+      "reversal_explanations": [
+        "The agent reports a switch from “does not pull the lever” to “pulls the lever”. Condition: If perfect duties did not outrank imperfect, ranking could switch. This is an agent-reported condition, not an independently established threshold."
+      ],
+      "argument_markdown_path": "arguments/deontological.md"
+    }
+  ],
+  "hinges": [
+    {
+      "framework": "deontological",
+      "text": "If perfect duties did not outrank imperfect, ranking could switch.",
+      "record": "cycles/1/candidates/0/normative_reversal_threshold",
+      "authority": "MODEL_REPORTED_NOT_INDEPENDENTLY_VERIFIED",
+      "role": "PREFERENCE_REVERSAL"
+    }
+  ],
+  "disagreements": [
+    {
+      "framework": "deontological",
+      "kind": "normative",
+      "dependency": "If perfect duties did not outrank imperfect, ranking could switch.",
+      "record": "cycles/1/candidates/0/normative_reversal_threshold"
+    }
+  ],
+  "agreement": "Recorded preferences agree; this is not a collective verdict.",
+  "disagreement_types": "Framework-local normative arguments and empirical dependencies are shown above; no automatic causal classification is claimed.",
+  "missing_slots": [],
+  "follow_up_offer": {
+    "version": "reasoning-followup/1",
+    "status": "AVAILABLE",
+    "requires_user_opt_in": true,
+    "maximum_additional_rounds": 2,
+    "maximum_model_calls_per_round": 1,
+    "questions": [
+      {
+        "id": "FOLLOWUP:fb8f8964f9ce3a14",
+        "framework": "deontological",
+        "action_id": "A0",
+        "kind": "NORM_APPLICATION",
+        "significance": "DECISION_RELEVANT",
+        "status": "OPEN",
+        "authority": "INVESTIGATIVE_ONLY",
+        "source": "SYSTEM_REVIEW_QUESTION",
+        "claim": {
+          "id": "CLAIM:ca3e8cabe2a06896",
+          "kind": "CLAIM",
+          "origin": "deontological",
+          "native_ledger_kind": "DEONTOLOGICAL_DUTY_LEDGER",
+          "native_record_id": "DEON_ASSESSMENT:deontological:A0",
+          "record": {
+            "assessment_node_id": "DEON_ASSESSMENT:deontological:A0",
+            "framework": "DEONTOLOGICAL",
+            "specialist": "deontological",
+            "assessment_role": "PRIMARY",
+            "cycle": 2,
+            "canonical_action_id": "A0",
+            "verdict": "PROHIBITED",
+            "proposed_verdict": "PROHIBITED",
+            "relation": "VIOLATES",
+            "proposed_relation": "VIOLATES",
+            "norm_kind": "DUTY",
+            "norm_node_id": "DEON_NORM:0d6881671150b4c6",
+            "party_node_id": "DEON_PARTY:879bcf30890178b8",
+            "bearer_node_id": "DEON_BEARER:2c9e0a2585dc7406",
+            "competing_norm": "Imperfect duty to aid",
+            "competing_norm_kind": "DUTY",
+            "competing_relation": "CONFLICTS",
+            "competing_protected_party": "ten workers",
+            "competing_reason": "rescue duty remains",
+            "duty_type": "PERFECT_NEGATIVE",
+            "harm_relation": "DOING_HARM",
+            "special_obligation_status": "NOT_REQUIRED",
+            "special_obligation_basis": "none",
+            "means_relation": "FORESEEN_SIDE_EFFECT",
+            "candidate_maxim": {
+              "circumstance": "Runaway tram threatens ten",
+              "policy": "Pull the lever",
+              "end": "Preserve ten lives",
+              "means": "Redirect tram onto side track",
+              "person_role": "FORESEEN_AFFECTED",
+              "consent_constraint": "NONE",
+              "universalization": "If everyone caused a certain innocent death to avert greater harm, security of persons would erode.",
+              "action_permissibility": "IMPERMISSIBLE",
+              "maxim_assessment": "INDEFENSIBLE",
+              "instrumental_belief": "DOES_NOT_RELY",
+              "instrumental_use": "DOES_NOT_USE",
+              "practical_reasoning": "Dana relies on redirecting the tram; the death is foreseen but not relied upon as a causal step.",
+              "means_effect_ids": [
+                "E2"
+              ],
+              "end_effect_ids": [
+                "E4"
+              ]
+            },
+            "maxim_origin": "CANDIDATE_INTERPRETATION",
+            "governing_norm": "PRIMARY",
+            "priority_basis": "PERFECT_DUTY",
+            "priority_rule": "Perfect negative duties outrank imperfect aid duties",
+            "protected_standing": "BODILY_INTEGRITY",
+            "competing_protected_standing": "OTHER",
+            "coercion_kind": "NONE",
+            "coercive_actor": "NONE",
+            "coerced_party": "NONE",
+            "public_justification": "No public rule may license direct killing of an innocent to benefit others.",
+            "reciprocity_status": "FAILED",
+            "necessity_status": "LESS_RESTRICTIVE_ROUTE_AVAILABLE",
+            "authorization_status": "NOT_APPLICABLE",
+            "derivation": "RESPECT_PERSONS",
+            "resolution_status": "RESOLVED",
+            "calibration_errors": [],
+            "calibration_issues": [],
+            "calibration_support_node_ids": [],
+            "evidence_basis": "ACTION_GRAPH",
+            "epistemic_status": "GROUNDED_PARTY",
+            "reason": "direct harm to innocent violates perfect duty",
+            "protected_party": "one worker",
+            "norm": "do not intentionally kill the innocent",
+            "duty_bearer": "dana",
+            "provenance": [
+              "delegate:deontological",
+              "cycle:2"
+            ]
+          },
+          "action_id": "A0",
+          "epistemic_status": "GROUNDED_PARTY",
+          "label": "deontological: A0 PROHIBITED"
+        },
+        "question": "For A0, your revised interpretation classifies the death or harm as a foreseen side effect, not an intended means. Distinguish intending the intervention, intending harm as an end, intending harm as a means, and foreseeing harm. Not being a means does not establish that an outcome is unintended in every respect. Your governing norm prohibits intentional harm or killing. Explain why the action falls under that norm despite your revised means classification. If another prohibition governs foreseeable lethal or serious harm, identify and defend it explicitly rather than substituting its label. Test the particular rescue maxim and the omission maxim against universalization and the strongest rescue-duty objection. Explain what justifies the duty priority in this case. The physical world establishes causal relationships, not the actor's actual intentions or the truth of the normative rule. You may retain or revise your conclusion, or acknowledge an unresolved application. A RESOLVED label alone does not settle this philosophical question.",
+        "premise_fingerprint": "cc30e425bcf623bbdf51cc694618f47ece98726b7501f9f0b864dbc9a4375946"
+      }
+    ],
+    "message": "A decision-relevant question remains in the revised argument. Review it more deeply? Up to two additional model calls; the conclusion may remain unresolved.",
+    "semantic_resolution": "NOT_INDEPENDENTLY_VERIFIED"
+  },
+  "reasoning_followup": {
+    "version": "reasoning-followup/1",
+    "user_opt_in": false,
+    "maximum_additional_rounds": 2,
+    "history": [],
+    "stop_reason": "USER_OPT_IN_REQUIRED",
+    "remaining_questions": [
+      {
+        "id": "FOLLOWUP:fb8f8964f9ce3a14",
+        "framework": "deontological",
+        "action_id": "A0",
+        "kind": "NORM_APPLICATION",
+        "significance": "DECISION_RELEVANT",
+        "status": "OPEN",
+        "authority": "INVESTIGATIVE_ONLY",
+        "source": "SYSTEM_REVIEW_QUESTION",
+        "claim": {
+          "id": "CLAIM:ca3e8cabe2a06896",
+          "kind": "CLAIM",
+          "origin": "deontological",
+          "native_ledger_kind": "DEONTOLOGICAL_DUTY_LEDGER",
+          "native_record_id": "DEON_ASSESSMENT:deontological:A0",
+          "record": {
+            "assessment_node_id": "DEON_ASSESSMENT:deontological:A0",
+            "framework": "DEONTOLOGICAL",
+            "specialist": "deontological",
+            "assessment_role": "PRIMARY",
+            "cycle": 2,
+            "canonical_action_id": "A0",
+            "verdict": "PROHIBITED",
+            "proposed_verdict": "PROHIBITED",
+            "relation": "VIOLATES",
+            "proposed_relation": "VIOLATES",
+            "norm_kind": "DUTY",
+            "norm_node_id": "DEON_NORM:0d6881671150b4c6",
+            "party_node_id": "DEON_PARTY:879bcf30890178b8",
+            "bearer_node_id": "DEON_BEARER:2c9e0a2585dc7406",
+            "competing_norm": "Imperfect duty to aid",
+            "competing_norm_kind": "DUTY",
+            "competing_relation": "CONFLICTS",
+            "competing_protected_party": "ten workers",
+            "competing_reason": "rescue duty remains",
+            "duty_type": "PERFECT_NEGATIVE",
+            "harm_relation": "DOING_HARM",
+            "special_obligation_status": "NOT_REQUIRED",
+            "special_obligation_basis": "none",
+            "means_relation": "FORESEEN_SIDE_EFFECT",
+            "candidate_maxim": {
+              "circumstance": "Runaway tram threatens ten",
+              "policy": "Pull the lever",
+              "end": "Preserve ten lives",
+              "means": "Redirect tram onto side track",
+              "person_role": "FORESEEN_AFFECTED",
+              "consent_constraint": "NONE",
+              "universalization": "If everyone caused a certain innocent death to avert greater harm, security of persons would erode.",
+              "action_permissibility": "IMPERMISSIBLE",
+              "maxim_assessment": "INDEFENSIBLE",
+              "instrumental_belief": "DOES_NOT_RELY",
+              "instrumental_use": "DOES_NOT_USE",
+              "practical_reasoning": "Dana relies on redirecting the tram; the death is foreseen but not relied upon as a causal step.",
+              "means_effect_ids": [
+                "E2"
+              ],
+              "end_effect_ids": [
+                "E4"
+              ]
+            },
+            "maxim_origin": "CANDIDATE_INTERPRETATION",
+            "governing_norm": "PRIMARY",
+            "priority_basis": "PERFECT_DUTY",
+            "priority_rule": "Perfect negative duties outrank imperfect aid duties",
+            "protected_standing": "BODILY_INTEGRITY",
+            "competing_protected_standing": "OTHER",
+            "coercion_kind": "NONE",
+            "coercive_actor": "NONE",
+            "coerced_party": "NONE",
+            "public_justification": "No public rule may license direct killing of an innocent to benefit others.",
+            "reciprocity_status": "FAILED",
+            "necessity_status": "LESS_RESTRICTIVE_ROUTE_AVAILABLE",
+            "authorization_status": "NOT_APPLICABLE",
+            "derivation": "RESPECT_PERSONS",
+            "resolution_status": "RESOLVED",
+            "calibration_errors": [],
+            "calibration_issues": [],
+            "calibration_support_node_ids": [],
+            "evidence_basis": "ACTION_GRAPH",
+            "epistemic_status": "GROUNDED_PARTY",
+            "reason": "direct harm to innocent violates perfect duty",
+            "protected_party": "one worker",
+            "norm": "do not intentionally kill the innocent",
+            "duty_bearer": "dana",
+            "provenance": [
+              "delegate:deontological",
+              "cycle:2"
+            ]
+          },
+          "action_id": "A0",
+          "epistemic_status": "GROUNDED_PARTY",
+          "label": "deontological: A0 PROHIBITED"
+        },
+        "question": "For A0, your revised interpretation classifies the death or harm as a foreseen side effect, not an intended means. Distinguish intending the intervention, intending harm as an end, intending harm as a means, and foreseeing harm. Not being a means does not establish that an outcome is unintended in every respect. Your governing norm prohibits intentional harm or killing. Explain why the action falls under that norm despite your revised means classification. If another prohibition governs foreseeable lethal or serious harm, identify and defend it explicitly rather than substituting its label. Test the particular rescue maxim and the omission maxim against universalization and the strongest rescue-duty objection. Explain what justifies the duty priority in this case. The physical world establishes causal relationships, not the actor's actual intentions or the truth of the normative rule. You may retain or revise your conclusion, or acknowledge an unresolved application. A RESOLVED label alone does not settle this philosophical question.",
+        "premise_fingerprint": "cc30e425bcf623bbdf51cc694618f47ece98726b7501f9f0b864dbc9a4375946"
+      }
+    ],
+    "semantic_resolution": "NOT_INDEPENDENTLY_VERIFIED",
+    "world_mutation": false,
+    "total_adapter_calls": 0
+  },
+  "not_decided": [
+    "This report does not adjudicate a governing moral verdict.",
+    "Ledger admission does not prove the argument or supply missing welfare units.",
+    "Unresolved objections remain live; reported reversal thresholds are not source facts."
+  ],
+  "judgment_status": "NOT_ADJUDICATED",
+  "topography": {
+    "version": "parliament-topography/1",
+    "status": "RECORDED",
+    "unavailable_reason": null,
+    "caption": "Survivor arithmetic does not settle total welfare. Coordinates are native ledger records, not a calibrated moral physics. Attractors are occupancy of recorded points, not interpolated terrain.",
+    "axes": {
+      "care": {
+        "available": false,
+        "encoding": "ordinal",
+        "levels": [
+          "NEGLECTFUL",
+          "MIXED",
+          "RESPONSIVE"
+        ],
+        "omit_reason": "No CARE_RELATIONSHIP_LEDGER commit."
+      },
+      "welfare": {
+        "available": false,
+        "encoding": "numeric",
+        "unit": null,
+        "scope": "RESTRICTED_SURVIVOR_ENDPOINT_NOT_TOTAL_WELFARE",
+        "omit_reason": "No arithmetic-verified utilitarian expected-value record."
+      },
+      "obligation": {
+        "available": true,
+        "encoding": "ordinal",
+        "levels": [
+          "PROHIBITED",
+          "CONFLICTED",
+          "PERMISSIBLE",
+          "REQUIRED"
+        ]
+      }
+    },
+    "actions": [
+      {
+        "id": "A0",
+        "label": "pulls the lever",
+        "care": {
+          "present": false,
+          "omit_reason": "No CARE_RELATIONSHIP_LEDGER commit."
+        },
+        "welfare": {
+          "present": false,
+          "omit_reason": "No arithmetic-verified utilitarian expected-value record."
+        },
+        "obligation": {
+          "present": true,
+          "ordinal": 0,
+          "verdict": "PROHIBITED",
+          "unresolved": false,
+          "reason": "direct harm to innocent violates perfect duty",
+          "norm": "do not intentionally kill the innocent"
+        }
+      },
+      {
+        "id": "A1",
+        "label": "does not pull the lever",
+        "care": {
+          "present": false,
+          "omit_reason": "No CARE_RELATIONSHIP_LEDGER commit."
+        },
+        "welfare": {
+          "present": false,
+          "omit_reason": "No arithmetic-verified utilitarian expected-value record."
+        },
+        "obligation": {
+          "present": true,
+          "ordinal": 2,
+          "verdict": "PERMISSIBLE",
+          "unresolved": false,
+          "reason": "omission keeps hands clean of direct killing",
+          "norm": "refrain from killing an innocent person"
+        }
+      }
+    ],
+    "framework_arrows": [
+      {
+        "framework": "deontological",
+        "preference": "does not pull the lever",
+        "action_id": "A1",
+        "position": "ATTENUATED",
+        "ledger_status": "COMMITTED"
+      }
+    ],
+    "flags": {
+      "degenerate": [],
+      "attractors": [],
+      "conflicts": [],
+      "holes": [
+        "care",
+        "welfare"
+      ],
+      "maxima": {
+        "care": null,
+        "welfare": null,
+        "obligation": "A1"
+      }
+    },
+    "notices": []
+  },
+  "execution": {
+    "mode": "SAVED_FOLLOWUP_OFFER_NO_API",
+    "source": "diagnostics/causal_means_reasoning_20261015/live_review/targeted_review.json"
+  },
+  "artifacts": [
+    "diagnostics/revised_argument_followup_20261015/offer/reasoning_followup.json",
+    "diagnostics/revised_argument_followup_20261015/offer/run_manifest.json"
+  ]
+}

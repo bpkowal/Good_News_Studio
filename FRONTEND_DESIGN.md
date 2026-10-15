@@ -23,10 +23,25 @@ selection, moral adjudication, or native ledger updates are available here.
   alternative to diagram inspection. Matching excerpts highlight in the source.
 - The Frameworks tab separates operative participation, recorded preference and
   ledger admission. Reasons, assumptions, dependencies and live objections are
-  visible. No committed ledger or native abstention cannot appear as FULL.
+  visible. No committed ledger or native abstention cannot appear as FULL. A
+  withheld preference uses recorded vote reasons and comparisons rather than a
+  slogan, and leftover thresholds are abstention boundaries, not ranking reversals.
 - The Hinges tab displays recorded reversal conditions and their original record
   paths, current unknowns, disagreement and nondecisions. Model-reported hinges
-  are attributed and unverified, not new source propositions.
+  are attributed and unverified, not new source propositions. Hinges on a
+  withheld ranking are labeled as abstention boundaries.
+- The Topography tab plots recorded action loci in Care × welfare × obligation
+  space, with three 2D projections. After an offline Decisions pass, coordinates
+  are predicate probabilities from `/v1/decisions`, not native ordinals. When
+  jackknife intervals are stored, plots use 95% intervals from ten packet-text
+  ablations instead of a single point; attractors then require a non-overlapping
+  unique maximum. Each omitted tenth, its influence on the leave-one-out
+  estimate, and the most hinging slice are stored for inspection. Native
+  ledger verdicts remain nested for inspection. Attractors are occupancy of
+  recorded points. The 3D composite interpolates a display-only surface when at
+  least two actions have all three coordinates; 2D projections stay recorded
+  loci. Missing or refused answers are holes, never zero. Interpreting
+  a Care ranking that copies the welfare ranking as an attractor is forbidden.
 - Run JSON can be downloaded or an exported presentation record opened locally.
   Import accepts only `parliament-view/1`. Source/world objects are not edited.
 
@@ -41,15 +56,19 @@ The presentation record contains:
 | `source`, `source_sha256` | Exact source text and export hash |
 | `status`, `stop`, `judgment_status`, `mode` | Recorded pipeline outcome and replay context |
 | `diagrams` | Each original world, hash, Mermaid source, authority, and whether framework assessment was recorded |
-| `frameworks` | Native participation plus attributed reasons/preferences/dependencies |
+| `frameworks` | Native participation plus attributed reasons/preferences/dependencies; `argument_url` points at a path-free Markdown record under `data/` |
 | `hinges`, `unknowns`, `disagreements`, `not_decided` | Recorded analytical limits, never synthesized extra arguments |
+| `topography` | Additive Care/welfare/obligation loci; plotted coordinates may be Decisions probabilities with jackknife intervals when stored, native ordinals nested |
 | `provenance` | Saved-report hash and zero new model calls |
 
 The adapter does not choose a beam member or promote a framework claim into a
 world effect. It omits local diagnostic paths, execution commands and credentials
-from the static bundle. World/source hashes track export identity; they are not
-semantic correctness certificates. Promise occurrence can be in the source ledger
-without being a world event: source stipulations are displayed separately.
+from the static bundle. Default export pins reports through
+`frontend/saved_runs.json` (`parliament-saved-runs/1`); `--reports` and
+`--trolley-report` override that catalog. World/source hashes track export
+identity; they are not semantic correctness certificates. Promise occurrence can
+be in the source ledger without being a world event: source stipulations are
+displayed separately.
 
 ## Implementation
 
@@ -98,3 +117,12 @@ status, and origin. Exact source matches are highlighted without fabricating a
 provenance record. Candidate worlds receive no such overlay, since their ledger
 alignment has not been established. Ordinary world-derived ledger claims are not
 duplicated in this layer.
+
+### Reversible reader projection
+
+Compact graphs can bundle a matching neutral/certain action and direct effect in
+one box. `reader_bundles` maps that box to original IDs; its inspector includes
+both complete records. `reader_context_ids` moves only ungoverned ASSERTED scene
+propositions into clickable context statements. Referenced propositions and source
+ledger endpoints remain in the graph. Full graph uses the original Mermaid source.
+Neither this projection nor its alias links rewrite agent input or world hashes.

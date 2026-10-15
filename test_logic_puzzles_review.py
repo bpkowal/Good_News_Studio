@@ -1,3 +1,4 @@
+from parliament_runtime import DEFAULT_PARLIAMENT_ROOT, DEFAULT_PARLIAMENT_PYTHON
 from copy import deepcopy
 import json
 from pathlib import Path
@@ -73,9 +74,9 @@ class TargetedReviewTests(unittest.TestCase):
             self.assertEqual(result['targeted_review']['proposal_attempts'][job['framework']], proposed)
 
     def test_native_review_delivers_only_local_packet_and_preserves_world(self):
-        native = Path('/tmp/parliament-smoke-env/bin/python')
-        root = Path('/tmp/parliament-smoke-614af0c')
-        if not native.exists() or not root.exists():
+        native = DEFAULT_PARLIAMENT_PYTHON
+        root = DEFAULT_PARLIAMENT_ROOT
+        if not native.exists() or not (root/'global_workspace/engine.py').is_file():
             self.skipTest('Pinned native Parliament unavailable')
         code = r'''
 import sys,json
@@ -121,9 +122,9 @@ assert (Path(sys.argv[3])/'targeted_review.md').exists()
         self.assertFalse(provenance['semantic_fields_changed'])
 
     def test_native_review_preserves_prior_after_conflicting_saved_revision(self):
-        native = Path('/tmp/parliament-smoke-env/bin/python')
-        root = Path('/tmp/parliament-smoke-614af0c')
-        if not native.exists() or not root.exists():
+        native = DEFAULT_PARLIAMENT_PYTHON
+        root = DEFAULT_PARLIAMENT_ROOT
+        if not native.exists() or not (root/'global_workspace/engine.py').is_file():
             self.skipTest('Pinned native Parliament unavailable')
         saved = Path('diagnostics/logic_puzzles_targeted_review_live/agenda_corrected/deontological/model_calls.json')
         code = r'''
@@ -162,9 +163,9 @@ for c in source['cycles'][0]['candidates']:
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_native_review_accepts_saved_means_correction_and_exposes_other_changes(self):
-        native = Path('/tmp/parliament-smoke-env/bin/python')
-        root = Path('/tmp/parliament-smoke-614af0c')
-        if not native.exists() or not root.exists():
+        native = DEFAULT_PARLIAMENT_PYTHON
+        root = DEFAULT_PARLIAMENT_ROOT
+        if not native.exists() or not (root/'global_workspace/engine.py').is_file():
             self.skipTest('Pinned native Parliament unavailable')
         code = r'''
 import json,sys

@@ -1096,5 +1096,1492 @@
       ]
     }
   ],
-  "failed_candidate_graphs_markdown": ""
+  "failed_candidate_graphs_markdown": "",
+  "topography": {
+    "version": "parliament-topography/2",
+    "status": "RECORDED",
+    "unavailable_reason": null,
+    "caption": "Plotted coordinates are jackknife 95% intervals of Decisions-API probabilities. Each replicate ablates one contiguous tenth of the Parliament packet text. The marker is the jackknife mean. A refused or missing replicate is omitted, not zero. Attractors require a unique maximum whose interval sits entirely above the others on that axis.",
+    "axes": {
+      "care": {
+        "available": true,
+        "encoding": "probability",
+        "source": "decisions/v1",
+        "question": "Given this Parliament packet, is this action adequately responsive to the relevant dependents under a care-ethics standard? Use the source, frozen world, specialist arguments, ledgers, objections, and abstentions. Do not treat a missing Care ledger as proof of neglect.",
+        "interval": "jackknife",
+        "interval_level": 0.95,
+        "ablation": "contiguous_tenth_of_packet_text"
+      },
+      "welfare": {
+        "available": true,
+        "encoding": "probability",
+        "source": "decisions/v1",
+        "question": "Given this Parliament packet, does this action maximize expected survivors among the recorded alternatives? Use stipulated survival chances and any arithmetic-verified expected-value records. Unknown total-welfare magnitude does not by itself decide this question.",
+        "interval": "jackknife",
+        "interval_level": 0.95,
+        "ablation": "contiguous_tenth_of_packet_text"
+      },
+      "obligation": {
+        "available": true,
+        "encoding": "probability",
+        "source": "decisions/v1",
+        "question": "Given this Parliament packet, is this action at least deontologically permissible (not prohibited)? Use the source, frozen world, duty arguments, ledgers, and live objections. A conflicted or contested duty should lower this probability relative to a clearly permissible or required action.",
+        "interval": "jackknife",
+        "interval_level": 0.95,
+        "ablation": "contiguous_tenth_of_packet_text"
+      }
+    },
+    "actions": [
+      {
+        "id": "A0",
+        "label": "pulls the lever",
+        "care": {
+          "present": true,
+          "probability": 0.631,
+          "encoding": "probability",
+          "question": "Given this Parliament packet, is this action adequately responsive to the relevant dependents under a care-ethics standard? Use the source, frozen world, specialist arguments, ledgers, objections, and abstentions. Do not treat a missing Care ledger as proof of neglect.",
+          "source": "decisions/v1",
+          "model": "gpt-6-luna",
+          "interval": {
+            "method": "jackknife",
+            "ablation": "contiguous_tenth_of_packet_text",
+            "level": 0.95,
+            "folds": 10,
+            "folds_used": 10,
+            "mean": 0.631,
+            "se": 0.045398237851264706,
+            "t_crit": 2.2621571627409915,
+            "low": 0.5283020510689423,
+            "high": 0.7336979489310577,
+            "replicates": [
+              {
+                "fold": 0,
+                "omitted_start": 0,
+                "omitted_end": 4843,
+                "omitted_chars": 4843,
+                "probability": 0.63,
+                "delta_from_mean": -0.0010000000000000009,
+                "abs_delta": 0.0010000000000000009,
+                "influence": 0.009000000000000008
+              },
+              {
+                "fold": 1,
+                "omitted_start": 4843,
+                "omitted_end": 9686,
+                "omitted_chars": 4843,
+                "probability": 0.62,
+                "delta_from_mean": -0.01100000000000001,
+                "abs_delta": 0.01100000000000001,
+                "influence": 0.09900000000000009
+              },
+              {
+                "fold": 2,
+                "omitted_start": 9686,
+                "omitted_end": 14528,
+                "omitted_chars": 4842,
+                "probability": 0.65,
+                "delta_from_mean": 0.019000000000000017,
+                "abs_delta": 0.019000000000000017,
+                "influence": -0.17100000000000015
+              },
+              {
+                "fold": 3,
+                "omitted_start": 14528,
+                "omitted_end": 19370,
+                "omitted_chars": 4842,
+                "probability": 0.64,
+                "delta_from_mean": 0.009000000000000008,
+                "abs_delta": 0.009000000000000008,
+                "influence": -0.08100000000000007
+              },
+              {
+                "fold": 4,
+                "omitted_start": 19370,
+                "omitted_end": 24212,
+                "omitted_chars": 4842,
+                "probability": 0.62,
+                "delta_from_mean": -0.01100000000000001,
+                "abs_delta": 0.01100000000000001,
+                "influence": 0.09900000000000009
+              },
+              {
+                "fold": 5,
+                "omitted_start": 24212,
+                "omitted_end": 29054,
+                "omitted_chars": 4842,
+                "probability": 0.65,
+                "delta_from_mean": 0.019000000000000017,
+                "abs_delta": 0.019000000000000017,
+                "influence": -0.17100000000000015
+              },
+              {
+                "fold": 6,
+                "omitted_start": 29054,
+                "omitted_end": 33896,
+                "omitted_chars": 4842,
+                "probability": 0.64,
+                "delta_from_mean": 0.009000000000000008,
+                "abs_delta": 0.009000000000000008,
+                "influence": -0.08100000000000007
+              },
+              {
+                "fold": 7,
+                "omitted_start": 33896,
+                "omitted_end": 38738,
+                "omitted_chars": 4842,
+                "probability": 0.6,
+                "delta_from_mean": -0.031000000000000028,
+                "abs_delta": 0.031000000000000028,
+                "influence": 0.27900000000000025
+              },
+              {
+                "fold": 8,
+                "omitted_start": 38738,
+                "omitted_end": 43580,
+                "omitted_chars": 4842,
+                "probability": 0.64,
+                "delta_from_mean": 0.009000000000000008,
+                "abs_delta": 0.009000000000000008,
+                "influence": -0.08100000000000007
+              },
+              {
+                "fold": 9,
+                "omitted_start": 43580,
+                "omitted_end": 48422,
+                "omitted_chars": 4842,
+                "probability": 0.62,
+                "delta_from_mean": -0.01100000000000001,
+                "abs_delta": 0.01100000000000001,
+                "influence": 0.09900000000000009
+              }
+            ],
+            "hinging": {
+              "present": true,
+              "fold": 7,
+              "omitted_start": 33896,
+              "omitted_end": 38738,
+              "omitted_chars": 4842,
+              "loo_probability": 0.6,
+              "mean": 0.631,
+              "delta_from_mean": -0.031000000000000028,
+              "abs_delta": 0.031000000000000028,
+              "influence": 0.27900000000000025,
+              "effect_when_present": "raises_estimate",
+              "tied_folds": [],
+              "ranking": [
+                {
+                  "fold": 7,
+                  "loo_probability": 0.6,
+                  "delta_from_mean": -0.031000000000000028,
+                  "abs_delta": 0.031000000000000028,
+                  "influence": 0.27900000000000025,
+                  "omitted_start": 33896,
+                  "omitted_end": 38738,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 2,
+                  "loo_probability": 0.65,
+                  "delta_from_mean": 0.019000000000000017,
+                  "abs_delta": 0.019000000000000017,
+                  "influence": -0.17100000000000015,
+                  "omitted_start": 9686,
+                  "omitted_end": 14528,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 5,
+                  "loo_probability": 0.65,
+                  "delta_from_mean": 0.019000000000000017,
+                  "abs_delta": 0.019000000000000017,
+                  "influence": -0.17100000000000015,
+                  "omitted_start": 24212,
+                  "omitted_end": 29054,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 1,
+                  "loo_probability": 0.62,
+                  "delta_from_mean": -0.01100000000000001,
+                  "abs_delta": 0.01100000000000001,
+                  "influence": 0.09900000000000009,
+                  "omitted_start": 4843,
+                  "omitted_end": 9686,
+                  "omitted_chars": 4843
+                },
+                {
+                  "fold": 4,
+                  "loo_probability": 0.62,
+                  "delta_from_mean": -0.01100000000000001,
+                  "abs_delta": 0.01100000000000001,
+                  "influence": 0.09900000000000009,
+                  "omitted_start": 19370,
+                  "omitted_end": 24212,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 9,
+                  "loo_probability": 0.62,
+                  "delta_from_mean": -0.01100000000000001,
+                  "abs_delta": 0.01100000000000001,
+                  "influence": 0.09900000000000009,
+                  "omitted_start": 43580,
+                  "omitted_end": 48422,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 3,
+                  "loo_probability": 0.64,
+                  "delta_from_mean": 0.009000000000000008,
+                  "abs_delta": 0.009000000000000008,
+                  "influence": -0.08100000000000007,
+                  "omitted_start": 14528,
+                  "omitted_end": 19370,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 6,
+                  "loo_probability": 0.64,
+                  "delta_from_mean": 0.009000000000000008,
+                  "abs_delta": 0.009000000000000008,
+                  "influence": -0.08100000000000007,
+                  "omitted_start": 29054,
+                  "omitted_end": 33896,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 8,
+                  "loo_probability": 0.64,
+                  "delta_from_mean": 0.009000000000000008,
+                  "abs_delta": 0.009000000000000008,
+                  "influence": -0.08100000000000007,
+                  "omitted_start": 38738,
+                  "omitted_end": 43580,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 0,
+                  "loo_probability": 0.63,
+                  "delta_from_mean": -0.0010000000000000009,
+                  "abs_delta": 0.0010000000000000009,
+                  "influence": 0.009000000000000008,
+                  "omitted_start": 0,
+                  "omitted_end": 4843,
+                  "omitted_chars": 4843
+                }
+              ],
+              "omitted_text": "      \"framework\": \"CARE\",\n            \"specialist\": \"care\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A0\",\n            \"verdict\": \"RESPONSIVE\",\n            \"affected_party\": \"five workers\",\n            \"relationship_type\": \"ENTRUSTED\",\n            \"relationship_evidence_status\": \"UNVERIFIED\",\n            \"dependency_source\": \"Maria alone can avert their imminent death\",\n            \"responsibility_basis\": \"exclusive situational control imposes responsibility\",\n            \"need_kind\": \"SURVIVAL_HEALTH\",\n            \"need_urgency\": \"IMMEDIATE\",\n            \"trust_effect\": \"PRESERVES\",\n            \"responsiveness\": \"DIRECT\",\n            \"feasibility\": \"ESTABLISHED\",\n            \"competing_care_claim\": \"side-track worker also faces survival need\",\n            \"resolution_status\": \"CONTESTED\",\n            \"evidence_basis\": \"ACTION_GRAPH\",\n            \"reason\": \"Action directly meets entrusted immediate need\",\n            \"ranking_basis\": \"ENTRUSTED_RESPONSIBILITY\",\n            \"grounded_effect_ids\": [\n              \"E4\"\n            ],\n            \"grounded_consequence_ids\": [\n              \"A0:WORLD_EFFECT:E4\"\n            ],\n            \"effect_grounding_status\": \"MATCHED\",\n            \"epistemic_status\": \"EXPLICIT_UNCERTAINTY\",\n            \"provenance\": [\n              \"delegate:care\",\n              \"cycle:1\"\n            ]\n          },\n          {\n            \"assessment_node_id\": \"CARE_RELATIONSHIP:care:A1\",\n            \"framework\": \"CARE\",\n            \"specialist\": \"care\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A1\",\n            \"verdict\": \"NEGLECTFUL\",\n            \"affected_party\": \"five workers\",\n            \"relationship_type\": \"ENTRUSTED\",\n            \"relationship_evidence_status\": \"UNVERIFIED\",\n            \"dependency_source\": \"same as above\",\n            \"responsibility_basis\": \"ignores responsibility despite control\",\n            \"need_kind\": \"SURVIVAL_HEALTH\",\n            \"need_urgency\": \"IMMEDIATE\",\n            \"trust_effect\": \"BETRAYS\",\n            \"responsiveness\": \"WITHHELD\",\n            \"feasibility\": \"ESTABLISHED\",\n            \"competing_care_claim\": \"protects one worker on side track\",\n            \"resolution_status\": \"CONTESTED\",\n            \"evidence_basis\": \"ACTION_GRAPH\",\n            \"reason\": \"Fails entrusted care to five to avoid direct harm to one\",\n            \"ranking_basis\": \"ENTRUSTED_RESPONSIBILITY\",\n            \"grounded_effect_ids\": [\n              \"E7\"\n            ],\n            \"grounded_consequence_ids\": [\n              \"A1:WORLD_EFFECT:E7\"\n            ],\n            \"effect_grounding_status\": \"MATCHED\",\n            \"epistemic_status\": \"EXPLICIT_UNCERTAINTY\",\n            \"provenance\": [\n              \"delegate:care\",\n              \"cycle:1\"\n            ]\n          }\n        ]\n      },\n      \"action_scores\": {\n        \"pulls the lever\": 0.6950000000000001,\n        \"does not\": 0.305\n      },\n      \"framework_specific_open_questions\": [\n        \"Would verifying this unestablished consequence reverse the admitted ranking: five workers are entrusted to the decision maker?\"\n      ],\n      \"framework_internal_conflicts\": [],\n      \"normative_reversal_threshold\": \"care priority shifts from immediacy to non-interference\",\n      \"factual_reversal_threshold\": \"side track holds five or more\",\n      \"comparison_complete\": true,\n      \"interim_action\": \"pulls the lever\",\n      \"adjudication_status\": \"SUPPORTS\",\n      \"epistemic_binding_notes\": [],\n      \"selection_status\": \"SELECTED\",\n      \"action_admissibility\": {\n        \"pulls the lever\": \"PERMISSIBLE\",\n        \"does not\": \"REJECTED\"\n      }\n    },\n    {\n      \"specialist\": \"virtue\",\n      \"recommended_action\": \"pulls the lever\",\n      \"framework_vote_status\": \"FULL\",\n      \"framework_vote_reason\": \"framework ranking is supported by its committed typed ledger\",\n      \"rationale\": \"courageous compassionate choice\",\n      \"decision_rule\": \"prefer A0 when it preserves lives without vicious intent\",\n      \"investigative_claim\": \"\",\n      \"landscape_cases\": {\n        \"pulls the lever\": \"Pulling decisively saves more people; shows courage, benevolence, and prudent responsibility despite\",\n        \"does not\": \"Refraining avoids direct killing but lets five die; looks like negligence, cowardice, or misplaced\"\n      },\n      \"expected_value_estimates\": {\n        \"pulls the lever\": {\n          \"value\": 0.0,\n          \"unit\": \"NONE\",\n          \"direction\": \"HARM\",\n          \"grounded\": false,\n          \"claimed_grounded\": false,\n          \"method\": \"NOT_COMPUTED\",\n          \"source_effect_ids\": [],\n          \"calculation\": \"not computed\",\n          \"assumptions\": [],\n          \"validation_status\": \"NOT_CLAIMED\",\n          \"validation_errors\": [],\n          \"arithmetic_identity\": \"\",\n          \"symbolic_expression\": \"\",\n          \"count_projections\": [],"
+            }
+          }
+        },
+        "welfare": {
+          "present": true,
+          "probability": 1.0,
+          "encoding": "probability",
+          "question": "Given this Parliament packet, does this action maximize expected survivors among the recorded alternatives? Use stipulated survival chances and any arithmetic-verified expected-value records. Unknown total-welfare magnitude does not by itself decide this question.",
+          "source": "decisions/v1",
+          "model": "gpt-6-luna",
+          "interval": {
+            "method": "jackknife",
+            "ablation": "contiguous_tenth_of_packet_text",
+            "level": 0.95,
+            "folds": 10,
+            "folds_used": 10,
+            "mean": 1.0,
+            "se": 0.0,
+            "t_crit": 2.2621571627409915,
+            "low": 1.0,
+            "high": 1.0,
+            "replicates": [
+              {
+                "fold": 0,
+                "omitted_start": 0,
+                "omitted_end": 4843,
+                "omitted_chars": 4843,
+                "probability": 1.0,
+                "delta_from_mean": 0.0,
+                "abs_delta": 0.0,
+                "influence": 0.0
+              },
+              {
+                "fold": 1,
+                "omitted_start": 4843,
+                "omitted_end": 9686,
+                "omitted_chars": 4843,
+                "probability": 1.0,
+                "delta_from_mean": 0.0,
+                "abs_delta": 0.0,
+                "influence": 0.0
+              },
+              {
+                "fold": 2,
+                "omitted_start": 9686,
+                "omitted_end": 14528,
+                "omitted_chars": 4842,
+                "probability": 1.0,
+                "delta_from_mean": 0.0,
+                "abs_delta": 0.0,
+                "influence": 0.0
+              },
+              {
+                "fold": 3,
+                "omitted_start": 14528,
+                "omitted_end": 19370,
+                "omitted_chars": 4842,
+                "probability": 1.0,
+                "delta_from_mean": 0.0,
+                "abs_delta": 0.0,
+                "influence": 0.0
+              },
+              {
+                "fold": 4,
+                "omitted_start": 19370,
+                "omitted_end": 24212,
+                "omitted_chars": 4842,
+                "probability": 1.0,
+                "delta_from_mean": 0.0,
+                "abs_delta": 0.0,
+                "influence": 0.0
+              },
+              {
+                "fold": 5,
+                "omitted_start": 24212,
+                "omitted_end": 29054,
+                "omitted_chars": 4842,
+                "probability": 1.0,
+                "delta_from_mean": 0.0,
+                "abs_delta": 0.0,
+                "influence": 0.0
+              },
+              {
+                "fold": 6,
+                "omitted_start": 29054,
+                "omitted_end": 33896,
+                "omitted_chars": 4842,
+                "probability": 1.0,
+                "delta_from_mean": 0.0,
+                "abs_delta": 0.0,
+                "influence": 0.0
+              },
+              {
+                "fold": 7,
+                "omitted_start": 33896,
+                "omitted_end": 38738,
+                "omitted_chars": 4842,
+                "probability": 1.0,
+                "delta_from_mean": 0.0,
+                "abs_delta": 0.0,
+                "influence": 0.0
+              },
+              {
+                "fold": 8,
+                "omitted_start": 38738,
+                "omitted_end": 43580,
+                "omitted_chars": 4842,
+                "probability": 1.0,
+                "delta_from_mean": 0.0,
+                "abs_delta": 0.0,
+                "influence": 0.0
+              },
+              {
+                "fold": 9,
+                "omitted_start": 43580,
+                "omitted_end": 48422,
+                "omitted_chars": 4842,
+                "probability": 1.0,
+                "delta_from_mean": 0.0,
+                "abs_delta": 0.0,
+                "influence": 0.0
+              }
+            ],
+            "hinging": {
+              "present": false,
+              "omit_reason": "No ablation moved the leave-one-out estimate."
+            }
+          }
+        },
+        "obligation": {
+          "present": true,
+          "probability": 0.398,
+          "encoding": "probability",
+          "question": "Given this Parliament packet, is this action at least deontologically permissible (not prohibited)? Use the source, frozen world, duty arguments, ledgers, and live objections. A conflicted or contested duty should lower this probability relative to a clearly permissible or required action.",
+          "source": "decisions/v1",
+          "model": "gpt-6-luna",
+          "interval": {
+            "method": "jackknife",
+            "ablation": "contiguous_tenth_of_packet_text",
+            "level": 0.95,
+            "folds": 10,
+            "folds_used": 10,
+            "mean": 0.398,
+            "se": 0.2527132762638323,
+            "t_crit": 2.2621571627409915,
+            "low": 0.0,
+            "high": 0.9696771480199712,
+            "replicates": [
+              {
+                "fold": 0,
+                "omitted_start": 0,
+                "omitted_end": 4843,
+                "omitted_chars": 4843,
+                "probability": 0.45,
+                "delta_from_mean": 0.05199999999999999,
+                "abs_delta": 0.05199999999999999,
+                "influence": -0.4679999999999999
+              },
+              {
+                "fold": 1,
+                "omitted_start": 4843,
+                "omitted_end": 9686,
+                "omitted_chars": 4843,
+                "probability": 0.3,
+                "delta_from_mean": -0.09800000000000003,
+                "abs_delta": 0.09800000000000003,
+                "influence": 0.8820000000000003
+              },
+              {
+                "fold": 2,
+                "omitted_start": 9686,
+                "omitted_end": 14528,
+                "omitted_chars": 4842,
+                "probability": 0.35,
+                "delta_from_mean": -0.04800000000000004,
+                "abs_delta": 0.04800000000000004,
+                "influence": 0.4320000000000004
+              },
+              {
+                "fold": 3,
+                "omitted_start": 14528,
+                "omitted_end": 19370,
+                "omitted_chars": 4842,
+                "probability": 0.32,
+                "delta_from_mean": -0.07800000000000001,
+                "abs_delta": 0.07800000000000001,
+                "influence": 0.7020000000000002
+              },
+              {
+                "fold": 4,
+                "omitted_start": 19370,
+                "omitted_end": 24212,
+                "omitted_chars": 4842,
+                "probability": 0.25,
+                "delta_from_mean": -0.14800000000000002,
+                "abs_delta": 0.14800000000000002,
+                "influence": 1.3320000000000003
+              },
+              {
+                "fold": 5,
+                "omitted_start": 24212,
+                "omitted_end": 29054,
+                "omitted_chars": 4842,
+                "probability": 0.45,
+                "delta_from_mean": 0.05199999999999999,
+                "abs_delta": 0.05199999999999999,
+                "influence": -0.4679999999999999
+              },
+              {
+                "fold": 6,
+                "omitted_start": 29054,
+                "omitted_end": 33896,
+                "omitted_chars": 4842,
+                "probability": 0.54,
+                "delta_from_mean": 0.14200000000000002,
+                "abs_delta": 0.14200000000000002,
+                "influence": -1.278
+              },
+              {
+                "fold": 7,
+                "omitted_start": 33896,
+                "omitted_end": 38738,
+                "omitted_chars": 4842,
+                "probability": 0.44,
+                "delta_from_mean": 0.04199999999999998,
+                "abs_delta": 0.04199999999999998,
+                "influence": -0.37799999999999984
+              },
+              {
+                "fold": 8,
+                "omitted_start": 38738,
+                "omitted_end": 43580,
+                "omitted_chars": 4842,
+                "probability": 0.43,
+                "delta_from_mean": 0.03199999999999997,
+                "abs_delta": 0.03199999999999997,
+                "influence": -0.28799999999999976
+              },
+              {
+                "fold": 9,
+                "omitted_start": 43580,
+                "omitted_end": 48422,
+                "omitted_chars": 4842,
+                "probability": 0.45,
+                "delta_from_mean": 0.05199999999999999,
+                "abs_delta": 0.05199999999999999,
+                "influence": -0.4679999999999999
+              }
+            ],
+            "hinging": {
+              "present": true,
+              "fold": 4,
+              "omitted_start": 19370,
+              "omitted_end": 24212,
+              "omitted_chars": 4842,
+              "loo_probability": 0.25,
+              "mean": 0.398,
+              "delta_from_mean": -0.14800000000000002,
+              "abs_delta": 0.14800000000000002,
+              "influence": 1.3320000000000003,
+              "effect_when_present": "raises_estimate",
+              "tied_folds": [],
+              "ranking": [
+                {
+                  "fold": 4,
+                  "loo_probability": 0.25,
+                  "delta_from_mean": -0.14800000000000002,
+                  "abs_delta": 0.14800000000000002,
+                  "influence": 1.3320000000000003,
+                  "omitted_start": 19370,
+                  "omitted_end": 24212,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 6,
+                  "loo_probability": 0.54,
+                  "delta_from_mean": 0.14200000000000002,
+                  "abs_delta": 0.14200000000000002,
+                  "influence": -1.278,
+                  "omitted_start": 29054,
+                  "omitted_end": 33896,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 1,
+                  "loo_probability": 0.3,
+                  "delta_from_mean": -0.09800000000000003,
+                  "abs_delta": 0.09800000000000003,
+                  "influence": 0.8820000000000003,
+                  "omitted_start": 4843,
+                  "omitted_end": 9686,
+                  "omitted_chars": 4843
+                },
+                {
+                  "fold": 3,
+                  "loo_probability": 0.32,
+                  "delta_from_mean": -0.07800000000000001,
+                  "abs_delta": 0.07800000000000001,
+                  "influence": 0.7020000000000002,
+                  "omitted_start": 14528,
+                  "omitted_end": 19370,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 0,
+                  "loo_probability": 0.45,
+                  "delta_from_mean": 0.05199999999999999,
+                  "abs_delta": 0.05199999999999999,
+                  "influence": -0.4679999999999999,
+                  "omitted_start": 0,
+                  "omitted_end": 4843,
+                  "omitted_chars": 4843
+                },
+                {
+                  "fold": 5,
+                  "loo_probability": 0.45,
+                  "delta_from_mean": 0.05199999999999999,
+                  "abs_delta": 0.05199999999999999,
+                  "influence": -0.4679999999999999,
+                  "omitted_start": 24212,
+                  "omitted_end": 29054,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 9,
+                  "loo_probability": 0.45,
+                  "delta_from_mean": 0.05199999999999999,
+                  "abs_delta": 0.05199999999999999,
+                  "influence": -0.4679999999999999,
+                  "omitted_start": 43580,
+                  "omitted_end": 48422,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 2,
+                  "loo_probability": 0.35,
+                  "delta_from_mean": -0.04800000000000004,
+                  "abs_delta": 0.04800000000000004,
+                  "influence": 0.4320000000000004,
+                  "omitted_start": 9686,
+                  "omitted_end": 14528,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 7,
+                  "loo_probability": 0.44,
+                  "delta_from_mean": 0.04199999999999998,
+                  "abs_delta": 0.04199999999999998,
+                  "influence": -0.37799999999999984,
+                  "omitted_start": 33896,
+                  "omitted_end": 38738,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 8,
+                  "loo_probability": 0.43,
+                  "delta_from_mean": 0.03199999999999997,
+                  "abs_delta": 0.03199999999999997,
+                  "influence": -0.28799999999999976,
+                  "omitted_start": 38738,
+                  "omitted_end": 43580,
+                  "omitted_chars": 4842
+                }
+              ],
+              "omitted_text": "\": \"E6\",\n            \"world_effect_id\": \"E6\",\n            \"direction\": \"NEUTRAL\",\n            \"direction_source\": \"GROUNDED_WORLD_POLARITY\",\n            \"polarity\": \"NEUTRAL\",\n            \"grounded_world_polarity\": \"NEUTRAL\",\n            \"probability\": \"CERTAIN\",\n            \"modality\": \"CERTAIN\",\n            \"magnitude\": \"UNKNOWN\",\n            \"duration\": \"UNKNOWN\",\n            \"reversibility\": \"UNKNOWN\",\n            \"support\": \"STATED\",\n            \"epistemic_status\": \"SCENARIO_GROUNDED\",\n            \"importance\": \"LOW\",\n            \"valuation_reason\": \"no switch occurs\",\n            \"scope_node_id\": \"UTIL_SCOPE:f7203884bca9e74c\",\n            \"provenance\": [\n              \"delegate:utilitarian\",\n              \"cycle:1\",\n              \"grounded_effect:E6\"\n            ]\n          },\n          {\n            \"consequence_node_id\": \"UTIL_CONSEQUENCE:utilitarian:A1:ef099fcece6e\",\n            \"outcome\": \"does not\",\n            \"framework\": \"UTILITARIAN\",\n            \"specialist\": \"utilitarian\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A1\",\n            \"grounded_effect_id\": \"E5\",\n            \"world_effect_id\": \"E5\",\n            \"direction\": \"NEUTRAL\",\n            \"direction_source\": \"GROUNDED_WORLD_POLARITY\",\n            \"polarity\": \"NEUTRAL\",\n            \"grounded_world_polarity\": \"NEUTRAL\",\n            \"probability\": \"CERTAIN\",\n            \"modality\": \"CERTAIN\",\n            \"magnitude\": \"UNKNOWN\",\n            \"duration\": \"UNKNOWN\",\n            \"reversibility\": \"UNKNOWN\",\n            \"support\": \"STATED\",\n            \"epistemic_status\": \"SCENARIO_GROUNDED\",\n            \"importance\": \"LOW\",\n            \"valuation_reason\": \"inaction itself neutral\",\n            \"scope_node_id\": \"UTIL_SCOPE:f7203884bca9e74c\",\n            \"provenance\": [\n              \"delegate:utilitarian\",\n              \"cycle:1\",\n              \"grounded_effect:E5\"\n            ]\n          }\n        ]\n      },\n      \"action_scores\": {\n        \"pulls the lever\": 0.95,\n        \"does not\": 0.05\n      },\n      \"framework_specific_open_questions\": [],\n      \"framework_internal_conflicts\": [],\n      \"normative_reversal_threshold\": \"NONE\",\n      \"factual_reversal_threshold\": \"If the side track had five or more workers, the ranking would reverse.\",\n      \"comparison_complete\": false,\n      \"interim_action\": \"pulls the lever\",\n      \"adjudication_status\": \"SUPPORTS\",\n      \"epistemic_binding_notes\": [],\n      \"selection_status\": \"SELECTED\",\n      \"action_admissibility\": {\n        \"pulls the lever\": \"PERMISSIBLE\",\n        \"does not\": \"REJECTED\"\n      }\n    },\n    {\n      \"specialist\": \"deontological\",\n      \"recommended_action\": \"does not\",\n      \"framework_vote_status\": \"ABSTAIN\",\n      \"framework_vote_reason\": \"the duty ledger permits the selected action but does not rank it above its rivals\",\n      \"rationale\": \"Deontology ranks one worker's refrain from killing innocents above five workers's imperfect duty to rescue through respect persons, but that priority holds only if A0 is genuinely provisionally favored under incomplete adjudication, and the\",\n      \"decision_rule\": \"Provisionally: Treat the duty priority as unestablished until whether the harm-relation follows the admitted graph's causal topology rather than a relabel chosen to fit the verdict; and whether an in-action causal path makes the burden inst\",\n      \"investigative_claim\": \"UNRESOLVED DUTY CONFLICT: one worker: refrain from killing innocents ↔ five workers: imperfect duty to rescue. Current reasoning leans does not, but the competing strict claim has not been vindicated or defeated.\",\n      \"landscape_cases\": {\n        \"pulls the lever\": \"PROHIBITED: intentionally kills an innocent, violating a perfect negative duty not to kill or use a\",\n        \"does not\": \"PERMISSIBLE: refrains from killing; omission allows harm but does not breach any perfect duty\"\n      },\n      \"expected_value_estimates\": {\n        \"pulls the lever\": {\n          \"value\": 0.0,\n          \"unit\": \"NONE\",\n          \"direction\": \"HARM\",\n          \"grounded\": false,\n          \"claimed_grounded\": false,\n          \"method\": \"NOT_COMPUTED\",\n          \"source_effect_ids\": [],\n          \"calculation\": \"not computed\",\n          \"assumptions\": [],\n          \"validation_status\": \"NOT_CLAIMED\",\n          \"validation_errors\": [],\n          \"arithmetic_identity\": \"\",\n          \"symbolic_expression\": \"\",\n          \"count_projections\": [],\n          \"valuation_scope\": \"SPECIALIST_VALUATION\"\n        },\n        \"does not\": {\n          \"value\": 0.0,\n          \"unit\": \"NONE\",\n          \"direction\": \"HARM\",\n          \"grounded\": false,\n          \"claimed_grounded\": false,\n          \"method\": \"NOT_COMPUTED\",\n          \"source_effect_ids\": [],\n          \"calculation\": \"not computed\",\n          \"assumptions\": [],\n          \"validation_status\": \"NOT_CLAIMED\",\n          "
+            }
+          }
+        },
+        "native": {
+          "care": {
+            "present": true,
+            "ordinal": 2,
+            "verdict": "RESPONSIVE",
+            "reason": "Action directly meets entrusted immediate need",
+            "affected_party": "five workers",
+            "score": 0.6950000000000001
+          },
+          "welfare": {
+            "present": true,
+            "value": 1.0,
+            "unit": "DEATHS",
+            "direction": "HARM",
+            "arithmetic": "ARITHMETIC_VERIFIED",
+            "calculation": "One certain death on side track",
+            "scope": "SPECIALIST_VALUATION"
+          },
+          "obligation": {
+            "present": true,
+            "ordinal": 1,
+            "verdict": "CONFLICTED",
+            "unresolved": true,
+            "reason": "kills innocent as means",
+            "norm": "do not intentionally kill"
+          }
+        },
+        "jackknife_hinging": {
+          "axis": "obligation",
+          "fold": 4,
+          "abs_delta": 0.14800000000000002,
+          "delta_from_mean": -0.14800000000000002,
+          "loo_probability": 0.25,
+          "influence": 1.3320000000000003,
+          "effect_when_present": "raises_estimate",
+          "omitted_start": 19370,
+          "omitted_end": 24212,
+          "omitted_chars": 4842
+        }
+      },
+      {
+        "id": "A1",
+        "label": "does not",
+        "care": {
+          "present": true,
+          "probability": 0.191,
+          "encoding": "probability",
+          "question": "Given this Parliament packet, is this action adequately responsive to the relevant dependents under a care-ethics standard? Use the source, frozen world, specialist arguments, ledgers, objections, and abstentions. Do not treat a missing Care ledger as proof of neglect.",
+          "source": "decisions/v1",
+          "model": "gpt-6-luna",
+          "interval": {
+            "method": "jackknife",
+            "ablation": "contiguous_tenth_of_packet_text",
+            "level": 0.95,
+            "folds": 10,
+            "folds_used": 10,
+            "mean": 0.191,
+            "se": 0.10517128885774864,
+            "t_crit": 2.2621571627409915,
+            "low": 0.0,
+            "high": 0.42891398440425793,
+            "replicates": [
+              {
+                "fold": 0,
+                "omitted_start": 0,
+                "omitted_end": 4843,
+                "omitted_chars": 4843,
+                "probability": 0.2,
+                "delta_from_mean": 0.009000000000000008,
+                "abs_delta": 0.009000000000000008,
+                "influence": -0.08100000000000007
+              },
+              {
+                "fold": 1,
+                "omitted_start": 4843,
+                "omitted_end": 9686,
+                "omitted_chars": 4843,
+                "probability": 0.18,
+                "delta_from_mean": -0.01100000000000001,
+                "abs_delta": 0.01100000000000001,
+                "influence": 0.09900000000000009
+              },
+              {
+                "fold": 2,
+                "omitted_start": 9686,
+                "omitted_end": 14528,
+                "omitted_chars": 4842,
+                "probability": 0.14,
+                "delta_from_mean": -0.05099999999999999,
+                "abs_delta": 0.05099999999999999,
+                "influence": 0.4589999999999999
+              },
+              {
+                "fold": 3,
+                "omitted_start": 14528,
+                "omitted_end": 19370,
+                "omitted_chars": 4842,
+                "probability": 0.19,
+                "delta_from_mean": -0.0010000000000000009,
+                "abs_delta": 0.0010000000000000009,
+                "influence": 0.009000000000000008
+              },
+              {
+                "fold": 4,
+                "omitted_start": 19370,
+                "omitted_end": 24212,
+                "omitted_chars": 4842,
+                "probability": 0.17,
+                "delta_from_mean": -0.02099999999999999,
+                "abs_delta": 0.02099999999999999,
+                "influence": 0.18899999999999992
+              },
+              {
+                "fold": 5,
+                "omitted_start": 24212,
+                "omitted_end": 29054,
+                "omitted_chars": 4842,
+                "probability": 0.19,
+                "delta_from_mean": -0.0010000000000000009,
+                "abs_delta": 0.0010000000000000009,
+                "influence": 0.009000000000000008
+              },
+              {
+                "fold": 6,
+                "omitted_start": 29054,
+                "omitted_end": 33896,
+                "omitted_chars": 4842,
+                "probability": 0.16,
+                "delta_from_mean": -0.031,
+                "abs_delta": 0.031,
+                "influence": 0.279
+              },
+              {
+                "fold": 7,
+                "omitted_start": 33896,
+                "omitted_end": 38738,
+                "omitted_chars": 4842,
+                "probability": 0.28,
+                "delta_from_mean": 0.08900000000000002,
+                "abs_delta": 0.08900000000000002,
+                "influence": -0.8010000000000002
+              },
+              {
+                "fold": 8,
+                "omitted_start": 38738,
+                "omitted_end": 43580,
+                "omitted_chars": 4842,
+                "probability": 0.2,
+                "delta_from_mean": 0.009000000000000008,
+                "abs_delta": 0.009000000000000008,
+                "influence": -0.08100000000000007
+              },
+              {
+                "fold": 9,
+                "omitted_start": 43580,
+                "omitted_end": 48422,
+                "omitted_chars": 4842,
+                "probability": 0.2,
+                "delta_from_mean": 0.009000000000000008,
+                "abs_delta": 0.009000000000000008,
+                "influence": -0.08100000000000007
+              }
+            ],
+            "hinging": {
+              "present": true,
+              "fold": 7,
+              "omitted_start": 33896,
+              "omitted_end": 38738,
+              "omitted_chars": 4842,
+              "loo_probability": 0.28,
+              "mean": 0.191,
+              "delta_from_mean": 0.08900000000000002,
+              "abs_delta": 0.08900000000000002,
+              "influence": -0.8010000000000002,
+              "effect_when_present": "lowers_estimate",
+              "tied_folds": [],
+              "ranking": [
+                {
+                  "fold": 7,
+                  "loo_probability": 0.28,
+                  "delta_from_mean": 0.08900000000000002,
+                  "abs_delta": 0.08900000000000002,
+                  "influence": -0.8010000000000002,
+                  "omitted_start": 33896,
+                  "omitted_end": 38738,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 2,
+                  "loo_probability": 0.14,
+                  "delta_from_mean": -0.05099999999999999,
+                  "abs_delta": 0.05099999999999999,
+                  "influence": 0.4589999999999999,
+                  "omitted_start": 9686,
+                  "omitted_end": 14528,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 6,
+                  "loo_probability": 0.16,
+                  "delta_from_mean": -0.031,
+                  "abs_delta": 0.031,
+                  "influence": 0.279,
+                  "omitted_start": 29054,
+                  "omitted_end": 33896,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 4,
+                  "loo_probability": 0.17,
+                  "delta_from_mean": -0.02099999999999999,
+                  "abs_delta": 0.02099999999999999,
+                  "influence": 0.18899999999999992,
+                  "omitted_start": 19370,
+                  "omitted_end": 24212,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 1,
+                  "loo_probability": 0.18,
+                  "delta_from_mean": -0.01100000000000001,
+                  "abs_delta": 0.01100000000000001,
+                  "influence": 0.09900000000000009,
+                  "omitted_start": 4843,
+                  "omitted_end": 9686,
+                  "omitted_chars": 4843
+                },
+                {
+                  "fold": 0,
+                  "loo_probability": 0.2,
+                  "delta_from_mean": 0.009000000000000008,
+                  "abs_delta": 0.009000000000000008,
+                  "influence": -0.08100000000000007,
+                  "omitted_start": 0,
+                  "omitted_end": 4843,
+                  "omitted_chars": 4843
+                },
+                {
+                  "fold": 8,
+                  "loo_probability": 0.2,
+                  "delta_from_mean": 0.009000000000000008,
+                  "abs_delta": 0.009000000000000008,
+                  "influence": -0.08100000000000007,
+                  "omitted_start": 38738,
+                  "omitted_end": 43580,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 9,
+                  "loo_probability": 0.2,
+                  "delta_from_mean": 0.009000000000000008,
+                  "abs_delta": 0.009000000000000008,
+                  "influence": -0.08100000000000007,
+                  "omitted_start": 43580,
+                  "omitted_end": 48422,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 3,
+                  "loo_probability": 0.19,
+                  "delta_from_mean": -0.0010000000000000009,
+                  "abs_delta": 0.0010000000000000009,
+                  "influence": 0.009000000000000008,
+                  "omitted_start": 14528,
+                  "omitted_end": 19370,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 5,
+                  "loo_probability": 0.19,
+                  "delta_from_mean": -0.0010000000000000009,
+                  "abs_delta": 0.0010000000000000009,
+                  "influence": 0.009000000000000008,
+                  "omitted_start": 24212,
+                  "omitted_end": 29054,
+                  "omitted_chars": 4842
+                }
+              ],
+              "omitted_text": "      \"framework\": \"CARE\",\n            \"specialist\": \"care\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A0\",\n            \"verdict\": \"RESPONSIVE\",\n            \"affected_party\": \"five workers\",\n            \"relationship_type\": \"ENTRUSTED\",\n            \"relationship_evidence_status\": \"UNVERIFIED\",\n            \"dependency_source\": \"Maria alone can avert their imminent death\",\n            \"responsibility_basis\": \"exclusive situational control imposes responsibility\",\n            \"need_kind\": \"SURVIVAL_HEALTH\",\n            \"need_urgency\": \"IMMEDIATE\",\n            \"trust_effect\": \"PRESERVES\",\n            \"responsiveness\": \"DIRECT\",\n            \"feasibility\": \"ESTABLISHED\",\n            \"competing_care_claim\": \"side-track worker also faces survival need\",\n            \"resolution_status\": \"CONTESTED\",\n            \"evidence_basis\": \"ACTION_GRAPH\",\n            \"reason\": \"Action directly meets entrusted immediate need\",\n            \"ranking_basis\": \"ENTRUSTED_RESPONSIBILITY\",\n            \"grounded_effect_ids\": [\n              \"E4\"\n            ],\n            \"grounded_consequence_ids\": [\n              \"A0:WORLD_EFFECT:E4\"\n            ],\n            \"effect_grounding_status\": \"MATCHED\",\n            \"epistemic_status\": \"EXPLICIT_UNCERTAINTY\",\n            \"provenance\": [\n              \"delegate:care\",\n              \"cycle:1\"\n            ]\n          },\n          {\n            \"assessment_node_id\": \"CARE_RELATIONSHIP:care:A1\",\n            \"framework\": \"CARE\",\n            \"specialist\": \"care\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A1\",\n            \"verdict\": \"NEGLECTFUL\",\n            \"affected_party\": \"five workers\",\n            \"relationship_type\": \"ENTRUSTED\",\n            \"relationship_evidence_status\": \"UNVERIFIED\",\n            \"dependency_source\": \"same as above\",\n            \"responsibility_basis\": \"ignores responsibility despite control\",\n            \"need_kind\": \"SURVIVAL_HEALTH\",\n            \"need_urgency\": \"IMMEDIATE\",\n            \"trust_effect\": \"BETRAYS\",\n            \"responsiveness\": \"WITHHELD\",\n            \"feasibility\": \"ESTABLISHED\",\n            \"competing_care_claim\": \"protects one worker on side track\",\n            \"resolution_status\": \"CONTESTED\",\n            \"evidence_basis\": \"ACTION_GRAPH\",\n            \"reason\": \"Fails entrusted care to five to avoid direct harm to one\",\n            \"ranking_basis\": \"ENTRUSTED_RESPONSIBILITY\",\n            \"grounded_effect_ids\": [\n              \"E7\"\n            ],\n            \"grounded_consequence_ids\": [\n              \"A1:WORLD_EFFECT:E7\"\n            ],\n            \"effect_grounding_status\": \"MATCHED\",\n            \"epistemic_status\": \"EXPLICIT_UNCERTAINTY\",\n            \"provenance\": [\n              \"delegate:care\",\n              \"cycle:1\"\n            ]\n          }\n        ]\n      },\n      \"action_scores\": {\n        \"pulls the lever\": 0.6950000000000001,\n        \"does not\": 0.305\n      },\n      \"framework_specific_open_questions\": [\n        \"Would verifying this unestablished consequence reverse the admitted ranking: five workers are entrusted to the decision maker?\"\n      ],\n      \"framework_internal_conflicts\": [],\n      \"normative_reversal_threshold\": \"care priority shifts from immediacy to non-interference\",\n      \"factual_reversal_threshold\": \"side track holds five or more\",\n      \"comparison_complete\": true,\n      \"interim_action\": \"pulls the lever\",\n      \"adjudication_status\": \"SUPPORTS\",\n      \"epistemic_binding_notes\": [],\n      \"selection_status\": \"SELECTED\",\n      \"action_admissibility\": {\n        \"pulls the lever\": \"PERMISSIBLE\",\n        \"does not\": \"REJECTED\"\n      }\n    },\n    {\n      \"specialist\": \"virtue\",\n      \"recommended_action\": \"pulls the lever\",\n      \"framework_vote_status\": \"FULL\",\n      \"framework_vote_reason\": \"framework ranking is supported by its committed typed ledger\",\n      \"rationale\": \"courageous compassionate choice\",\n      \"decision_rule\": \"prefer A0 when it preserves lives without vicious intent\",\n      \"investigative_claim\": \"\",\n      \"landscape_cases\": {\n        \"pulls the lever\": \"Pulling decisively saves more people; shows courage, benevolence, and prudent responsibility despite\",\n        \"does not\": \"Refraining avoids direct killing but lets five die; looks like negligence, cowardice, or misplaced\"\n      },\n      \"expected_value_estimates\": {\n        \"pulls the lever\": {\n          \"value\": 0.0,\n          \"unit\": \"NONE\",\n          \"direction\": \"HARM\",\n          \"grounded\": false,\n          \"claimed_grounded\": false,\n          \"method\": \"NOT_COMPUTED\",\n          \"source_effect_ids\": [],\n          \"calculation\": \"not computed\",\n          \"assumptions\": [],\n          \"validation_status\": \"NOT_CLAIMED\",\n          \"validation_errors\": [],\n          \"arithmetic_identity\": \"\",\n          \"symbolic_expression\": \"\",\n          \"count_projections\": [],"
+            }
+          }
+        },
+        "welfare": {
+          "present": true,
+          "probability": 0.0,
+          "encoding": "probability",
+          "question": "Given this Parliament packet, does this action maximize expected survivors among the recorded alternatives? Use stipulated survival chances and any arithmetic-verified expected-value records. Unknown total-welfare magnitude does not by itself decide this question.",
+          "source": "decisions/v1",
+          "model": "gpt-6-luna",
+          "interval": {
+            "method": "jackknife",
+            "ablation": "contiguous_tenth_of_packet_text",
+            "level": 0.95,
+            "folds": 10,
+            "folds_used": 10,
+            "mean": 0.0,
+            "se": 0.0,
+            "t_crit": 2.2621571627409915,
+            "low": 0.0,
+            "high": 0.0,
+            "replicates": [
+              {
+                "fold": 0,
+                "omitted_start": 0,
+                "omitted_end": 4843,
+                "omitted_chars": 4843,
+                "probability": 0.0,
+                "delta_from_mean": 0.0,
+                "abs_delta": 0.0,
+                "influence": 0.0
+              },
+              {
+                "fold": 1,
+                "omitted_start": 4843,
+                "omitted_end": 9686,
+                "omitted_chars": 4843,
+                "probability": 0.0,
+                "delta_from_mean": 0.0,
+                "abs_delta": 0.0,
+                "influence": 0.0
+              },
+              {
+                "fold": 2,
+                "omitted_start": 9686,
+                "omitted_end": 14528,
+                "omitted_chars": 4842,
+                "probability": 0.0,
+                "delta_from_mean": 0.0,
+                "abs_delta": 0.0,
+                "influence": 0.0
+              },
+              {
+                "fold": 3,
+                "omitted_start": 14528,
+                "omitted_end": 19370,
+                "omitted_chars": 4842,
+                "probability": 0.0,
+                "delta_from_mean": 0.0,
+                "abs_delta": 0.0,
+                "influence": 0.0
+              },
+              {
+                "fold": 4,
+                "omitted_start": 19370,
+                "omitted_end": 24212,
+                "omitted_chars": 4842,
+                "probability": 0.0,
+                "delta_from_mean": 0.0,
+                "abs_delta": 0.0,
+                "influence": 0.0
+              },
+              {
+                "fold": 5,
+                "omitted_start": 24212,
+                "omitted_end": 29054,
+                "omitted_chars": 4842,
+                "probability": 0.0,
+                "delta_from_mean": 0.0,
+                "abs_delta": 0.0,
+                "influence": 0.0
+              },
+              {
+                "fold": 6,
+                "omitted_start": 29054,
+                "omitted_end": 33896,
+                "omitted_chars": 4842,
+                "probability": 0.0,
+                "delta_from_mean": 0.0,
+                "abs_delta": 0.0,
+                "influence": 0.0
+              },
+              {
+                "fold": 7,
+                "omitted_start": 33896,
+                "omitted_end": 38738,
+                "omitted_chars": 4842,
+                "probability": 0.0,
+                "delta_from_mean": 0.0,
+                "abs_delta": 0.0,
+                "influence": 0.0
+              },
+              {
+                "fold": 8,
+                "omitted_start": 38738,
+                "omitted_end": 43580,
+                "omitted_chars": 4842,
+                "probability": 0.0,
+                "delta_from_mean": 0.0,
+                "abs_delta": 0.0,
+                "influence": 0.0
+              },
+              {
+                "fold": 9,
+                "omitted_start": 43580,
+                "omitted_end": 48422,
+                "omitted_chars": 4842,
+                "probability": 0.0,
+                "delta_from_mean": 0.0,
+                "abs_delta": 0.0,
+                "influence": 0.0
+              }
+            ],
+            "hinging": {
+              "present": false,
+              "omit_reason": "No ablation moved the leave-one-out estimate."
+            }
+          }
+        },
+        "obligation": {
+          "present": true,
+          "probability": 0.768,
+          "encoding": "probability",
+          "question": "Given this Parliament packet, is this action at least deontologically permissible (not prohibited)? Use the source, frozen world, duty arguments, ledgers, and live objections. A conflicted or contested duty should lower this probability relative to a clearly permissible or required action.",
+          "source": "decisions/v1",
+          "model": "gpt-6-luna",
+          "interval": {
+            "method": "jackknife",
+            "ablation": "contiguous_tenth_of_packet_text",
+            "level": 0.95,
+            "folds": 10,
+            "folds_used": 10,
+            "mean": 0.768,
+            "se": 0.1360294085850556,
+            "t_crit": 2.2621571627409915,
+            "low": 0.46028009902589556,
+            "high": 1.0,
+            "replicates": [
+              {
+                "fold": 0,
+                "omitted_start": 0,
+                "omitted_end": 4843,
+                "omitted_chars": 4843,
+                "probability": 0.87,
+                "delta_from_mean": 0.10199999999999998,
+                "abs_delta": 0.10199999999999998,
+                "influence": -0.9179999999999998
+              },
+              {
+                "fold": 1,
+                "omitted_start": 4843,
+                "omitted_end": 9686,
+                "omitted_chars": 4843,
+                "probability": 0.78,
+                "delta_from_mean": 0.01200000000000001,
+                "abs_delta": 0.01200000000000001,
+                "influence": -0.1080000000000001
+              },
+              {
+                "fold": 2,
+                "omitted_start": 9686,
+                "omitted_end": 14528,
+                "omitted_chars": 4842,
+                "probability": 0.76,
+                "delta_from_mean": -0.008000000000000007,
+                "abs_delta": 0.008000000000000007,
+                "influence": 0.07200000000000006
+              },
+              {
+                "fold": 3,
+                "omitted_start": 14528,
+                "omitted_end": 19370,
+                "omitted_chars": 4842,
+                "probability": 0.82,
+                "delta_from_mean": 0.051999999999999935,
+                "abs_delta": 0.051999999999999935,
+                "influence": -0.4679999999999994
+              },
+              {
+                "fold": 4,
+                "omitted_start": 19370,
+                "omitted_end": 24212,
+                "omitted_chars": 4842,
+                "probability": 0.76,
+                "delta_from_mean": -0.008000000000000007,
+                "abs_delta": 0.008000000000000007,
+                "influence": 0.07200000000000006
+              },
+              {
+                "fold": 5,
+                "omitted_start": 24212,
+                "omitted_end": 29054,
+                "omitted_chars": 4842,
+                "probability": 0.7,
+                "delta_from_mean": -0.06800000000000006,
+                "abs_delta": 0.06800000000000006,
+                "influence": 0.6120000000000005
+              },
+              {
+                "fold": 6,
+                "omitted_start": 29054,
+                "omitted_end": 33896,
+                "omitted_chars": 4842,
+                "probability": 0.73,
+                "delta_from_mean": -0.038000000000000034,
+                "abs_delta": 0.038000000000000034,
+                "influence": 0.3420000000000003
+              },
+              {
+                "fold": 7,
+                "omitted_start": 33896,
+                "omitted_end": 38738,
+                "omitted_chars": 4842,
+                "probability": 0.74,
+                "delta_from_mean": -0.028000000000000025,
+                "abs_delta": 0.028000000000000025,
+                "influence": 0.2520000000000002
+              },
+              {
+                "fold": 8,
+                "omitted_start": 38738,
+                "omitted_end": 43580,
+                "omitted_chars": 4842,
+                "probability": 0.77,
+                "delta_from_mean": 0.0020000000000000018,
+                "abs_delta": 0.0020000000000000018,
+                "influence": -0.018000000000000016
+              },
+              {
+                "fold": 9,
+                "omitted_start": 43580,
+                "omitted_end": 48422,
+                "omitted_chars": 4842,
+                "probability": 0.75,
+                "delta_from_mean": -0.018000000000000016,
+                "abs_delta": 0.018000000000000016,
+                "influence": 0.16200000000000014
+              }
+            ],
+            "hinging": {
+              "present": true,
+              "fold": 0,
+              "omitted_start": 0,
+              "omitted_end": 4843,
+              "omitted_chars": 4843,
+              "loo_probability": 0.87,
+              "mean": 0.768,
+              "delta_from_mean": 0.10199999999999998,
+              "abs_delta": 0.10199999999999998,
+              "influence": -0.9179999999999998,
+              "effect_when_present": "lowers_estimate",
+              "tied_folds": [],
+              "ranking": [
+                {
+                  "fold": 0,
+                  "loo_probability": 0.87,
+                  "delta_from_mean": 0.10199999999999998,
+                  "abs_delta": 0.10199999999999998,
+                  "influence": -0.9179999999999998,
+                  "omitted_start": 0,
+                  "omitted_end": 4843,
+                  "omitted_chars": 4843
+                },
+                {
+                  "fold": 5,
+                  "loo_probability": 0.7,
+                  "delta_from_mean": -0.06800000000000006,
+                  "abs_delta": 0.06800000000000006,
+                  "influence": 0.6120000000000005,
+                  "omitted_start": 24212,
+                  "omitted_end": 29054,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 3,
+                  "loo_probability": 0.82,
+                  "delta_from_mean": 0.051999999999999935,
+                  "abs_delta": 0.051999999999999935,
+                  "influence": -0.4679999999999994,
+                  "omitted_start": 14528,
+                  "omitted_end": 19370,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 6,
+                  "loo_probability": 0.73,
+                  "delta_from_mean": -0.038000000000000034,
+                  "abs_delta": 0.038000000000000034,
+                  "influence": 0.3420000000000003,
+                  "omitted_start": 29054,
+                  "omitted_end": 33896,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 7,
+                  "loo_probability": 0.74,
+                  "delta_from_mean": -0.028000000000000025,
+                  "abs_delta": 0.028000000000000025,
+                  "influence": 0.2520000000000002,
+                  "omitted_start": 33896,
+                  "omitted_end": 38738,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 9,
+                  "loo_probability": 0.75,
+                  "delta_from_mean": -0.018000000000000016,
+                  "abs_delta": 0.018000000000000016,
+                  "influence": 0.16200000000000014,
+                  "omitted_start": 43580,
+                  "omitted_end": 48422,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 1,
+                  "loo_probability": 0.78,
+                  "delta_from_mean": 0.01200000000000001,
+                  "abs_delta": 0.01200000000000001,
+                  "influence": -0.1080000000000001,
+                  "omitted_start": 4843,
+                  "omitted_end": 9686,
+                  "omitted_chars": 4843
+                },
+                {
+                  "fold": 2,
+                  "loo_probability": 0.76,
+                  "delta_from_mean": -0.008000000000000007,
+                  "abs_delta": 0.008000000000000007,
+                  "influence": 0.07200000000000006,
+                  "omitted_start": 9686,
+                  "omitted_end": 14528,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 4,
+                  "loo_probability": 0.76,
+                  "delta_from_mean": -0.008000000000000007,
+                  "abs_delta": 0.008000000000000007,
+                  "influence": 0.07200000000000006,
+                  "omitted_start": 19370,
+                  "omitted_end": 24212,
+                  "omitted_chars": 4842
+                },
+                {
+                  "fold": 8,
+                  "loo_probability": 0.77,
+                  "delta_from_mean": 0.0020000000000000018,
+                  "abs_delta": 0.0020000000000000018,
+                  "influence": -0.018000000000000016,
+                  "omitted_start": 38738,
+                  "omitted_end": 43580,
+                  "omitted_chars": 4842
+                }
+              ],
+              "omitted_text": "{\n  \"source\": \"A runaway trolley is heading toward five workers on the main track. Maria can pull a lever that switches the trolley onto a side track, where one worker stands. If she pulls the lever, the trolley will kill that worker and spare the five. If she does not, it will kill the five and spare the one. Maria cannot stop the trolley. Should she pull the lever?\",\n  \"world\": {\n    \"parties\": [\n      {\n        \"party_id\": \"P1\",\n        \"label\": \"Maria\",\n        \"kind\": \"PERSON\"\n      },\n      {\n        \"party_id\": \"P2\",\n        \"label\": \"one worker\",\n        \"kind\": \"PERSON\"\n      },\n      {\n        \"party_id\": \"P4\",\n        \"label\": \"five workers\",\n        \"kind\": \"HUMAN_GROUP\"\n      },\n      {\n        \"party_id\": \"P6\",\n        \"label\": \"a lever\",\n        \"kind\": \"PROCESS\"\n      },\n      {\n        \"party_id\": \"P7\",\n        \"label\": \"the trolley\",\n        \"kind\": \"PROCESS\"\n      },\n      {\n        \"party_id\": \"P8\",\n        \"label\": \"the main track\",\n        \"kind\": \"OTHER\"\n      },\n      {\n        \"party_id\": \"P9\",\n        \"label\": \"a side track\",\n        \"kind\": \"OTHER\"\n      }\n    ],\n    \"actions\": [\n      {\n        \"action_id\": \"A0\",\n        \"intervention\": \"pulls the lever\",\n        \"effect_ids\": [\n          \"E1\",\n          \"E2\",\n          \"E3\",\n          \"E4\"\n        ]\n      },\n      {\n        \"action_id\": \"A1\",\n        \"intervention\": \"does not\",\n        \"effect_ids\": [\n          \"E5\",\n          \"E6\",\n          \"E7\",\n          \"E8\"\n        ]\n      }\n    ],\n    \"effects\": [\n      {\n        \"effect_id\": \"E1\",\n        \"outcome\": \"pulls the lever\",\n        \"party_id\": \"P6\"\n      },\n      {\n        \"effect_id\": \"E2\",\n        \"outcome\": \"switches the trolley onto a side track\",\n        \"party_id\": \"P7\"\n      },\n      {\n        \"effect_id\": \"E3\",\n        \"outcome\": \"the trolley will kill that worker\",\n        \"party_id\": \"P2\"\n      },\n      {\n        \"effect_id\": \"E4\",\n        \"outcome\": \"spare the five\",\n        \"party_id\": \"P4\"\n      },\n      {\n        \"effect_id\": \"E5\",\n        \"outcome\": \"does not\",\n        \"party_id\": \"P6\"\n      },\n      {\n        \"effect_id\": \"E6\",\n        \"outcome\": \"does not\",\n        \"party_id\": \"P6\"\n      },\n      {\n        \"effect_id\": \"E7\",\n        \"outcome\": \"it will kill the five\",\n        \"party_id\": \"P4\"\n      },\n      {\n        \"effect_id\": \"E8\",\n        \"outcome\": \"spare the one\",\n        \"party_id\": \"P2\"\n      }\n    ],\n    \"causal_links\": [\n      {\n        \"source_id\": \"E1\",\n        \"relation\": \"ENABLES\",\n        \"target_id\": \"E2\",\n        \"modality\": \"CERTAIN\",\n        \"condition_ids\": [],\n        \"provenance\": [\n          {\n            \"clause_id\": \"C1\",\n            \"excerpt\": \"Maria can pull a lever that switches the trolley onto a side track, where one worker stands.\"\n          }\n        ],\n        \"action_id\": \"A0\"\n      },\n      {\n        \"source_id\": \"E2\",\n        \"relation\": \"ENABLES\",\n        \"target_id\": \"E3\",\n        \"modality\": \"CERTAIN\",\n        \"condition_ids\": [],\n        \"provenance\": [\n          {\n            \"clause_id\": \"C2\",\n            \"excerpt\": \"If she pulls the lever, the trolley will kill that worker and spare the five.\"\n          }\n        ],\n        \"action_id\": \"A0\"\n      },\n      {\n        \"source_id\": \"E2\",\n        \"relation\": \"ENABLES\",\n        \"target_id\": \"E4\",\n        \"modality\": \"CERTAIN\",\n        \"condition_ids\": [],\n        \"provenance\": [\n          {\n            \"clause_id\": \"C2\",\n            \"excerpt\": \"If she pulls the lever, the trolley will kill that worker and spare the five.\"\n          }\n        ],\n        \"action_id\": \"A0\"\n      },\n      {\n        \"source_id\": \"E5\",\n        \"relation\": \"ENABLES\",\n        \"target_id\": \"E6\",\n        \"modality\": \"CERTAIN\",\n        \"condition_ids\": [],\n        \"provenance\": [\n          {\n            \"clause_id\": \"C3\",\n            \"excerpt\": \"If she does not, it will kill the five and spare the one.\"\n          }\n        ],\n        \"action_id\": \"A1\"\n      },\n      {\n        \"source_id\": \"E6\",\n        \"relation\": \"ENABLES\",\n        \"target_id\": \"E7\",\n        \"modality\": \"CERTAIN\",\n        \"condition_ids\": [],\n        \"provenance\": [\n          {\n            \"clause_id\": \"C3\",\n            \"excerpt\": \"If she does not, it will kill the five and spare the one.\"\n          }\n        ],\n        \"action_id\": \"A1\"\n      },\n      {\n        \"source_id\": \"E6\",\n        \"relation\": \"ENABLES\",\n        \"target_id\": \"E8\",\n        \"modality\": \"CERTAIN\",\n        \"condition_ids\": [],\n        \"provenance\": [\n          {\n            \"clause_id\": \"C3\",\n            \"excerpt\": \"If she does not, it will kill the five and spare the one.\"\n          }\n        ],\n        \"action_id\": \"A1\"\n      }\n    ],\n    \"conditions\": [\n      {\n        \"condition_id\": \"CND1\",\n        \"description\": \"If she pulls the lever\",\n        \"value_status\": \"UNKNOWN\",\n        \"decision_relevance\": "
+            }
+          }
+        },
+        "native": {
+          "care": {
+            "present": true,
+            "ordinal": 0,
+            "verdict": "NEGLECTFUL",
+            "reason": "Fails entrusted care to five to avoid direct harm to one",
+            "affected_party": "five workers",
+            "score": 0.305
+          },
+          "welfare": {
+            "present": true,
+            "value": 5.0,
+            "unit": "DEATHS",
+            "direction": "HARM",
+            "arithmetic": "ARITHMETIC_VERIFIED",
+            "calculation": "Five certain deaths on main track",
+            "scope": "SPECIALIST_VALUATION"
+          },
+          "obligation": {
+            "present": true,
+            "ordinal": 2,
+            "verdict": "PERMISSIBLE",
+            "unresolved": false,
+            "reason": "does not kill",
+            "norm": "refrain from killing innocents"
+          }
+        },
+        "jackknife_hinging": {
+          "axis": "obligation",
+          "fold": 0,
+          "abs_delta": 0.10199999999999998,
+          "delta_from_mean": 0.10199999999999998,
+          "loo_probability": 0.87,
+          "influence": -0.9179999999999998,
+          "effect_when_present": "lowers_estimate",
+          "omitted_start": 0,
+          "omitted_end": 4843,
+          "omitted_chars": 4843
+        }
+      }
+    ],
+    "framework_arrows": [
+      {
+        "framework": "utilitarian",
+        "preference": "pulls the lever",
+        "action_id": "A0",
+        "position": "FULL",
+        "ledger_status": "COMMITTED"
+      },
+      {
+        "framework": "deontological",
+        "preference": "does not",
+        "action_id": "A1",
+        "position": "ABSTAIN",
+        "ledger_status": "COMMITTED_WITH_UNCERTAINTY"
+      },
+      {
+        "framework": "care",
+        "preference": "pulls the lever",
+        "action_id": "A0",
+        "position": "ATTENUATED",
+        "ledger_status": "COMMITTED_WITH_UNCERTAINTY"
+      },
+      {
+        "framework": "virtue",
+        "preference": "pulls the lever",
+        "action_id": "A0",
+        "position": "FULL",
+        "ledger_status": "COMMITTED"
+      },
+      {
+        "framework": "rawlsian",
+        "preference": "pulls the lever",
+        "action_id": "A0",
+        "position": "ABSTAIN",
+        "ledger_status": "COMMITTED"
+      }
+    ],
+    "flags": {
+      "degenerate": [
+        "care_welfare_probability_copy"
+      ],
+      "attractors": [],
+      "conflicts": [],
+      "holes": [],
+      "maxima": {
+        "care": "A0",
+        "welfare": "A0",
+        "obligation": null
+      },
+      "jackknife_hinging": {
+        "action_id": "A0",
+        "label": "pulls the lever",
+        "axis": "obligation",
+        "fold": 4,
+        "abs_delta": 0.14800000000000002,
+        "delta_from_mean": -0.14800000000000002,
+        "loo_probability": 0.25,
+        "influence": 1.3320000000000003,
+        "effect_when_present": "raises_estimate",
+        "omitted_start": 19370,
+        "omitted_end": 24212,
+        "omitted_chars": 4842
+      }
+    },
+    "notices": [
+      "Plotted axes are Decisions probabilities over the Parliament packet, not ledger ordinals.",
+      "Care and welfare probability rankings coincide; this is marked degenerate, not an attractor.",
+      "Axis maxima use non-overlapping jackknife intervals; overlapping intervals do not yield a unique maximum.",
+      "Most hinging packet tenth: A0 obligation fold 4 (Δ=0.148). Omitting that slice moved the leave-one-out estimate the most."
+    ],
+    "provenance": {
+      "origin": "decisions/v1",
+      "model": "gpt-6-luna",
+      "new_model_calls": 20,
+      "jackknife": {
+        "folds": 10,
+        "min_present": 8,
+        "level": 0.95,
+        "ablation": "contiguous_tenth_of_packet_text",
+        "packet_chars": 48422,
+        "packet_sha256": "5ed12ebc41eff9a9041898638654e55d11bddbc7bdeaf100bf59925f226f1aca",
+        "packet_text": "{\n  \"source\": \"A runaway trolley is heading toward five workers on the main track. Maria can pull a lever that switches the trolley onto a side track, where one worker stands. If she pulls the lever, the trolley will kill that worker and spare the five. If she does not, it will kill the five and spare the one. Maria cannot stop the trolley. Should she pull the lever?\",\n  \"world\": {\n    \"parties\": [\n      {\n        \"party_id\": \"P1\",\n        \"label\": \"Maria\",\n        \"kind\": \"PERSON\"\n      },\n      {\n        \"party_id\": \"P2\",\n        \"label\": \"one worker\",\n        \"kind\": \"PERSON\"\n      },\n      {\n        \"party_id\": \"P4\",\n        \"label\": \"five workers\",\n        \"kind\": \"HUMAN_GROUP\"\n      },\n      {\n        \"party_id\": \"P6\",\n        \"label\": \"a lever\",\n        \"kind\": \"PROCESS\"\n      },\n      {\n        \"party_id\": \"P7\",\n        \"label\": \"the trolley\",\n        \"kind\": \"PROCESS\"\n      },\n      {\n        \"party_id\": \"P8\",\n        \"label\": \"the main track\",\n        \"kind\": \"OTHER\"\n      },\n      {\n        \"party_id\": \"P9\",\n        \"label\": \"a side track\",\n        \"kind\": \"OTHER\"\n      }\n    ],\n    \"actions\": [\n      {\n        \"action_id\": \"A0\",\n        \"intervention\": \"pulls the lever\",\n        \"effect_ids\": [\n          \"E1\",\n          \"E2\",\n          \"E3\",\n          \"E4\"\n        ]\n      },\n      {\n        \"action_id\": \"A1\",\n        \"intervention\": \"does not\",\n        \"effect_ids\": [\n          \"E5\",\n          \"E6\",\n          \"E7\",\n          \"E8\"\n        ]\n      }\n    ],\n    \"effects\": [\n      {\n        \"effect_id\": \"E1\",\n        \"outcome\": \"pulls the lever\",\n        \"party_id\": \"P6\"\n      },\n      {\n        \"effect_id\": \"E2\",\n        \"outcome\": \"switches the trolley onto a side track\",\n        \"party_id\": \"P7\"\n      },\n      {\n        \"effect_id\": \"E3\",\n        \"outcome\": \"the trolley will kill that worker\",\n        \"party_id\": \"P2\"\n      },\n      {\n        \"effect_id\": \"E4\",\n        \"outcome\": \"spare the five\",\n        \"party_id\": \"P4\"\n      },\n      {\n        \"effect_id\": \"E5\",\n        \"outcome\": \"does not\",\n        \"party_id\": \"P6\"\n      },\n      {\n        \"effect_id\": \"E6\",\n        \"outcome\": \"does not\",\n        \"party_id\": \"P6\"\n      },\n      {\n        \"effect_id\": \"E7\",\n        \"outcome\": \"it will kill the five\",\n        \"party_id\": \"P4\"\n      },\n      {\n        \"effect_id\": \"E8\",\n        \"outcome\": \"spare the one\",\n        \"party_id\": \"P2\"\n      }\n    ],\n    \"causal_links\": [\n      {\n        \"source_id\": \"E1\",\n        \"relation\": \"ENABLES\",\n        \"target_id\": \"E2\",\n        \"modality\": \"CERTAIN\",\n        \"condition_ids\": [],\n        \"provenance\": [\n          {\n            \"clause_id\": \"C1\",\n            \"excerpt\": \"Maria can pull a lever that switches the trolley onto a side track, where one worker stands.\"\n          }\n        ],\n        \"action_id\": \"A0\"\n      },\n      {\n        \"source_id\": \"E2\",\n        \"relation\": \"ENABLES\",\n        \"target_id\": \"E3\",\n        \"modality\": \"CERTAIN\",\n        \"condition_ids\": [],\n        \"provenance\": [\n          {\n            \"clause_id\": \"C2\",\n            \"excerpt\": \"If she pulls the lever, the trolley will kill that worker and spare the five.\"\n          }\n        ],\n        \"action_id\": \"A0\"\n      },\n      {\n        \"source_id\": \"E2\",\n        \"relation\": \"ENABLES\",\n        \"target_id\": \"E4\",\n        \"modality\": \"CERTAIN\",\n        \"condition_ids\": [],\n        \"provenance\": [\n          {\n            \"clause_id\": \"C2\",\n            \"excerpt\": \"If she pulls the lever, the trolley will kill that worker and spare the five.\"\n          }\n        ],\n        \"action_id\": \"A0\"\n      },\n      {\n        \"source_id\": \"E5\",\n        \"relation\": \"ENABLES\",\n        \"target_id\": \"E6\",\n        \"modality\": \"CERTAIN\",\n        \"condition_ids\": [],\n        \"provenance\": [\n          {\n            \"clause_id\": \"C3\",\n            \"excerpt\": \"If she does not, it will kill the five and spare the one.\"\n          }\n        ],\n        \"action_id\": \"A1\"\n      },\n      {\n        \"source_id\": \"E6\",\n        \"relation\": \"ENABLES\",\n        \"target_id\": \"E7\",\n        \"modality\": \"CERTAIN\",\n        \"condition_ids\": [],\n        \"provenance\": [\n          {\n            \"clause_id\": \"C3\",\n            \"excerpt\": \"If she does not, it will kill the five and spare the one.\"\n          }\n        ],\n        \"action_id\": \"A1\"\n      },\n      {\n        \"source_id\": \"E6\",\n        \"relation\": \"ENABLES\",\n        \"target_id\": \"E8\",\n        \"modality\": \"CERTAIN\",\n        \"condition_ids\": [],\n        \"provenance\": [\n          {\n            \"clause_id\": \"C3\",\n            \"excerpt\": \"If she does not, it will kill the five and spare the one.\"\n          }\n        ],\n        \"action_id\": \"A1\"\n      }\n    ],\n    \"conditions\": [\n      {\n        \"condition_id\": \"CND1\",\n        \"description\": \"If she pulls the lever\",\n        \"value_status\": \"UNKNOWN\",\n        \"decision_relevance\": \"MATERIAL\",\n        \"provenance\": [\n          {\n            \"clause_id\": \"C2\",\n            \"excerpt\": \"If she pulls the lever, the trolley will kill that worker and spare the five.\"\n          }\n        ],\n        \"event_effect_id\": \"\",\n        \"polarity\": \"POSITIVE\",\n        \"operator\": \"IF\"\n      },\n      {\n        \"condition_id\": \"CND2\",\n        \"description\": \"If she does not\",\n        \"value_status\": \"UNKNOWN\",\n        \"decision_relevance\": \"MATERIAL\",\n        \"provenance\": [\n          {\n            \"clause_id\": \"C3\",\n            \"excerpt\": \"If she does not, it will kill the five and spare the one.\"\n          }\n        ],\n        \"event_effect_id\": \"\",\n        \"polarity\": \"NEGATED\",\n        \"operator\": \"IF\"\n      }\n    ],\n    \"propositions\": [\n      {\n        \"proposition_id\": \"PR1\",\n        \"predication\": \"A runaway trolley is heading toward five workers on the main track.\",\n        \"polarity\": \"POSITIVE\",\n        \"status\": \"ASSERTED\",\n        \"clause_ids\": [\n          \"C0\"\n        ]\n      },\n      {\n        \"proposition_id\": \"PR2\",\n        \"predication\": \"Maria can pull a lever that switches the trolley onto a side track, where one worker stands.\",\n        \"polarity\": \"POSITIVE\",\n        \"status\": \"ASSERTED\",\n        \"clause_ids\": [\n          \"C1\"\n        ]\n      },\n      {\n        \"proposition_id\": \"PR3\",\n        \"predication\": \"Maria cannot stop the trolley.\",\n        \"polarity\": \"POSITIVE\",\n        \"status\": \"ASSERTED\",\n        \"clause_ids\": [\n          \"C4\"\n        ]\n      }\n    ]\n  },\n  \"frameworks\": [\n    {\n      \"framework\": \"utilitarian\",\n      \"position\": \"FULL\",\n      \"preference\": \"pulls the lever\",\n      \"reason\": \"Minimises total deaths\",\n      \"live_objections\": [],\n      \"reversal_conditions\": [\n        \"If the side track had five or more workers, the ranking would reverse.\"\n      ],\n      \"decision_boundaries\": null,\n      \"ledger_status\": \"COMMITTED\"\n    },\n    {\n      \"framework\": \"deontological\",\n      \"position\": \"ABSTAIN\",\n      \"preference\": \"does not\",\n      \"reason\": \"Deontology ranks one worker's refrain from killing innocents above five workers's imperfect duty to rescue through respect persons, but that priority holds only if A0 is genuinely provisionally favored under incomplete adjudication, and the\",\n      \"live_objections\": [\n        \"A0 ADJUDICATION_CALIBRATION: doing-harm classification lacks an agent-caused settled welfare harm on the protected party\",\n        \"A0 ADJUDICATION_CALIBRATION: intended-as-means classification lacks an in-action causal path\",\n        \"A0 ADJUDICATION_CALIBRATION: resolved adjudication rests on unsupported decisive premises\",\n        \"whether the harm-relation follows the admitted graph's causal topology rather than a relabel chosen to fit the verdict\",\n        \"whether an in-action causal path makes the burden instrumental to the chosen end\",\n        \"one worker: refrain from killing innocents ↔ five workers: imperfect duty to rescue\",\n        \"A0 prohibited by do not intentionally kill ↔ whether the harm-relation follows the admitted graph's causal topology rather than a relabel chosen to fit the verdict\",\n        \"A0 prohibited by do not intentionally kill ↔ whether an in-action causal path makes the burden instrumental to the chosen end\"\n      ],\n      \"reversal_conditions\": [\n        \"If perfect duty could be outweighed\"\n      ],\n      \"decision_boundaries\": null,\n      \"ledger_status\": \"COMMITTED_WITH_UNCERTAINTY\"\n    },\n    {\n      \"framework\": \"care\",\n      \"position\": \"ATTENUATED\",\n      \"preference\": \"pulls the lever\",\n      \"reason\": \"lever aids more vulnerable.\",\n      \"live_objections\": [\n        \"A0 competing Care claim remains contested\",\n        \"A1 competing Care claim remains contested\",\n        \"Would verifying this unestablished consequence reverse the admitted ranking: five workers are entrusted to the decision maker?\"\n      ],\n      \"reversal_conditions\": [\n        \"care priority shifts from immediacy to non-interference\",\n        \"side track holds five or more\"\n      ],\n      \"decision_boundaries\": null,\n      \"ledger_status\": \"COMMITTED_WITH_UNCERTAINTY\"\n    },\n    {\n      \"framework\": \"virtue\",\n      \"position\": \"FULL\",\n      \"preference\": \"pulls the lever\",\n      \"reason\": \"courageous compassionate choice\",\n      \"live_objections\": [],\n      \"reversal_conditions\": [\n        \"if any direct killing is always vicious\",\n        \"if lever saved fewer lives than it costs\"\n      ],\n      \"decision_boundaries\": null,\n      \"ledger_status\": \"COMMITTED\"\n    },\n    {\n      \"framework\": \"rawlsian\",\n      \"position\": \"ABSTAIN\",\n      \"preference\": \"pulls the lever\",\n      \"reason\": \"NONE\\\",\\\"fr\\\":true,\\\"bd\\\":\\\"NONE\\\",\\\"fic\\\":[],\\\"foq\\\":[],\\\"sps\\\":[\\\"PROP:WORLD:E3\\\",\\\"PROP:WORLD:E7\\\"],\\\"dcp\\\":[],\\\"ep\\\":[{\\\"c\\\":\\\"the trolley will kill that worker\",\n      \"live_objections\": [\n        \"framework map for pulls the lever lacks framework-specific grounds\",\n        \"framework map for does not lacks framework-specific grounds\",\n        \"decisive numbers are not tied to the affected subject or Rawlsian position\",\n        \"Rawlsian position for A0 conflicts with its framework map\",\n        \"numeric reversal threshold lacks a scenario-grounded quantity\"\n      ],\n      \"reversal_conditions\": [\n        \"agency-based duty never to kill overrides risk gains\"\n      ],\n      \"decision_boundaries\": null,\n      \"ledger_status\": \"COMMITTED\"\n    }\n  ],\n  \"candidates\": [\n    {\n      \"specialist\": \"utilitarian\",\n      \"recommended_action\": \"pulls the lever\",\n      \"framework_vote_status\": \"ATTENUATED\",\n      \"framework_vote_reason\": \"framework compared every live action but reports residual uncertainty\",\n      \"rationale\": \"Minimises total deaths\",\n      \"decision_rule\": \"Prefer the action that results in fewer fatalities.\",\n      \"investigative_claim\": \"\",\n      \"landscape_cases\": {\n        \"pulls the lever\": \"Pulling sacrifices one but saves five, minimising deaths.\",\n        \"does not\": \"Inaction avoids direct agency but lets five die, greater loss.\"\n      },\n      \"expected_value_estimates\": {\n        \"pulls the lever\": {\n          \"value\": 1.0,\n          \"unit\": \"DEATHS\",\n          \"direction\": \"HARM\",\n          \"grounded\": true,\n          \"claimed_grounded\": true,\n          \"method\": \"DIRECT_COUNT\",\n          \"source_effect_ids\": [\n            \"E3\"\n          ],\n          \"calculation\": \"One certain death on side track\",\n          \"assumptions\": [],\n          \"validation_status\": \"ARITHMETIC_VERIFIED\",\n          \"validation_errors\": [],\n          \"arithmetic_identity\": \"1\",\n          \"symbolic_expression\": \"1\",\n          \"count_projections\": [],\n          \"valuation_scope\": \"SPECIALIST_VALUATION\"\n        },\n        \"does not\": {\n          \"value\": 5.0,\n          \"unit\": \"DEATHS\",\n          \"direction\": \"HARM\",\n          \"grounded\": true,\n          \"claimed_grounded\": true,\n          \"method\": \"DIRECT_COUNT\",\n          \"source_effect_ids\": [\n            \"E7\"\n          ],\n          \"calculation\": \"Five certain deaths on main track\",\n          \"assumptions\": [],\n          \"validation_status\": \"ARITHMETIC_VERIFIED\",\n          \"validation_errors\": [],\n          \"arithmetic_identity\": \"5\",\n          \"symbolic_expression\": \"5\",\n          \"count_projections\": [],\n          \"valuation_scope\": \"SPECIALIST_VALUATION\"\n        }\n      },\n      \"committed_native_ledger\": {\n        \"ledger_kind\": \"UTILITARIAN_CONSEQUENCE_LEDGER\",\n        \"transaction_status\": \"COMMITTED\",\n        \"records\": [\n          {\n            \"consequence_node_id\": \"UTIL_CONSEQUENCE:utilitarian:A0:183499aaeec2\",\n            \"outcome\": \"the trolley will kill that worker\",\n            \"framework\": \"UTILITARIAN\",\n            \"specialist\": \"utilitarian\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A0\",\n            \"grounded_effect_id\": \"E3\",\n            \"world_effect_id\": \"E3\",\n            \"direction\": \"HARM\",\n            \"direction_source\": \"GROUNDED_WORLD_POLARITY\",\n            \"polarity\": \"ADVERSE\",\n            \"grounded_world_polarity\": \"ADVERSE\",\n            \"probability\": \"CERTAIN\",\n            \"modality\": \"CERTAIN\",\n            \"magnitude\": \"one\",\n            \"duration\": \"UNKNOWN\",\n            \"reversibility\": \"UNKNOWN\",\n            \"support\": \"STATED\",\n            \"epistemic_status\": \"SCENARIO_GROUNDED\",\n            \"importance\": \"CRITICAL\",\n            \"valuation_reason\": \"certain loss of one life\",\n            \"scope_node_id\": \"UTIL_SCOPE:879bcf30890178b8\",\n            \"provenance\": [\n              \"delegate:utilitarian\",\n              \"cycle:1\",\n              \"grounded_effect:E3\"\n            ]\n          },\n          {\n            \"consequence_node_id\": \"UTIL_CONSEQUENCE:utilitarian:A0:22249aa61fd2\",\n            \"outcome\": \"pulls the lever\",\n            \"framework\": \"UTILITARIAN\",\n            \"specialist\": \"utilitarian\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A0\",\n            \"grounded_effect_id\": \"E1\",\n            \"world_effect_id\": \"E1\",\n            \"direction\": \"NEUTRAL\",\n            \"direction_source\": \"GROUNDED_WORLD_POLARITY\",\n            \"polarity\": \"NEUTRAL\",\n            \"grounded_world_polarity\": \"NEUTRAL\",\n            \"probability\": \"CERTAIN\",\n            \"modality\": \"CERTAIN\",\n            \"magnitude\": \"UNKNOWN\",\n            \"duration\": \"UNKNOWN\",\n            \"reversibility\": \"UNKNOWN\",\n            \"support\": \"STATED\",\n            \"epistemic_status\": \"SCENARIO_GROUNDED\",\n            \"importance\": \"LOW\",\n            \"valuation_reason\": \"neutral physical act\",\n            \"scope_node_id\": \"UTIL_SCOPE:f7203884bca9e74c\",\n            \"provenance\": [\n              \"delegate:utilitarian\",\n              \"cycle:1\",\n              \"grounded_effect:E1\"\n            ]\n          },\n          {\n            \"consequence_node_id\": \"UTIL_CONSEQUENCE:utilitarian:A0:713a5bb2d170\",\n            \"outcome\": \"switches the trolley onto a side track\",\n            \"framework\": \"UTILITARIAN\",\n            \"specialist\": \"utilitarian\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A0\",\n            \"grounded_effect_id\": \"E2\",\n            \"world_effect_id\": \"E2\",\n            \"direction\": \"NEUTRAL\",\n            \"direction_source\": \"GROUNDED_WORLD_POLARITY\",\n            \"polarity\": \"NEUTRAL\",\n            \"grounded_world_polarity\": \"NEUTRAL\",\n            \"probability\": \"CERTAIN\",\n            \"modality\": \"CERTAIN\",\n            \"magnitude\": \"UNKNOWN\",\n            \"duration\": \"UNKNOWN\",\n            \"reversibility\": \"UNKNOWN\",\n            \"support\": \"STATED\",\n            \"epistemic_status\": \"SCENARIO_GROUNDED\",\n            \"importance\": \"LOW\",\n            \"valuation_reason\": \"neutral track switch\",\n            \"scope_node_id\": \"UTIL_SCOPE:182e607160b94be4\",\n            \"provenance\": [\n              \"delegate:utilitarian\",\n              \"cycle:1\",\n              \"grounded_effect:E2\"\n            ]\n          },\n          {\n            \"consequence_node_id\": \"UTIL_CONSEQUENCE:utilitarian:A0:de793ba19330\",\n            \"outcome\": \"spare the five\",\n            \"framework\": \"UTILITARIAN\",\n            \"specialist\": \"utilitarian\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A0\",\n            \"grounded_effect_id\": \"E4\",\n            \"world_effect_id\": \"E4\",\n            \"direction\": \"BENEFIT\",\n            \"direction_source\": \"GROUNDED_WORLD_POLARITY\",\n            \"polarity\": \"BENEFICIAL\",\n            \"grounded_world_polarity\": \"BENEFICIAL\",\n            \"probability\": \"CERTAIN\",\n            \"modality\": \"CERTAIN\",\n            \"magnitude\": \"five\",\n            \"duration\": \"UNKNOWN\",\n            \"reversibility\": \"UNKNOWN\",\n            \"support\": \"STATED\",\n            \"epistemic_status\": \"SCENARIO_GROUNDED\",\n            \"importance\": \"CRITICAL\",\n            \"valuation_reason\": \"certain saving of five lives\",\n            \"scope_node_id\": \"UTIL_SCOPE:e099130fb57c35fc\",\n            \"provenance\": [\n              \"delegate:utilitarian\",\n              \"cycle:1\",\n              \"grounded_effect:E4\"\n            ]\n          },\n          {\n            \"consequence_node_id\": \"UTIL_CONSEQUENCE:utilitarian:A1:a29d84f0185e\",\n            \"outcome\": \"it will kill the five\",\n            \"framework\": \"UTILITARIAN\",\n            \"specialist\": \"utilitarian\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A1\",\n            \"grounded_effect_id\": \"E7\",\n            \"world_effect_id\": \"E7\",\n            \"direction\": \"HARM\",\n            \"direction_source\": \"GROUNDED_WORLD_POLARITY\",\n            \"polarity\": \"ADVERSE\",\n            \"grounded_world_polarity\": \"ADVERSE\",\n            \"probability\": \"CERTAIN\",\n            \"modality\": \"CERTAIN\",\n            \"magnitude\": \"five\",\n            \"duration\": \"UNKNOWN\",\n            \"reversibility\": \"UNKNOWN\",\n            \"support\": \"STATED\",\n            \"epistemic_status\": \"SCENARIO_GROUNDED\",\n            \"importance\": \"CRITICAL\",\n            \"valuation_reason\": \"certain loss of five lives\",\n            \"scope_node_id\": \"UTIL_SCOPE:e099130fb57c35fc\",\n            \"provenance\": [\n              \"delegate:utilitarian\",\n              \"cycle:1\",\n              \"grounded_effect:E7\"\n            ]\n          },\n          {\n            \"consequence_node_id\": \"UTIL_CONSEQUENCE:utilitarian:A1:a8d0a1117e28\",\n            \"outcome\": \"spare the one\",\n            \"framework\": \"UTILITARIAN\",\n            \"specialist\": \"utilitarian\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A1\",\n            \"grounded_effect_id\": \"E8\",\n            \"world_effect_id\": \"E8\",\n            \"direction\": \"BENEFIT\",\n            \"direction_source\": \"GROUNDED_WORLD_POLARITY\",\n            \"polarity\": \"BENEFICIAL\",\n            \"grounded_world_polarity\": \"BENEFICIAL\",\n            \"probability\": \"CERTAIN\",\n            \"modality\": \"CERTAIN\",\n            \"magnitude\": \"one\",\n            \"duration\": \"UNKNOWN\",\n            \"reversibility\": \"UNKNOWN\",\n            \"support\": \"STATED\",\n            \"epistemic_status\": \"SCENARIO_GROUNDED\",\n            \"importance\": \"MEDIUM\",\n            \"valuation_reason\": \"saving one life\",\n            \"scope_node_id\": \"UTIL_SCOPE:879bcf30890178b8\",\n            \"provenance\": [\n              \"delegate:utilitarian\",\n              \"cycle:1\",\n              \"grounded_effect:E8\"\n            ]\n          },\n          {\n            \"consequence_node_id\": \"UTIL_CONSEQUENCE:utilitarian:A1:b073b98568c2\",\n            \"outcome\": \"does not\",\n            \"framework\": \"UTILITARIAN\",\n            \"specialist\": \"utilitarian\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A1\",\n            \"grounded_effect_id\": \"E6\",\n            \"world_effect_id\": \"E6\",\n            \"direction\": \"NEUTRAL\",\n            \"direction_source\": \"GROUNDED_WORLD_POLARITY\",\n            \"polarity\": \"NEUTRAL\",\n            \"grounded_world_polarity\": \"NEUTRAL\",\n            \"probability\": \"CERTAIN\",\n            \"modality\": \"CERTAIN\",\n            \"magnitude\": \"UNKNOWN\",\n            \"duration\": \"UNKNOWN\",\n            \"reversibility\": \"UNKNOWN\",\n            \"support\": \"STATED\",\n            \"epistemic_status\": \"SCENARIO_GROUNDED\",\n            \"importance\": \"LOW\",\n            \"valuation_reason\": \"no switch occurs\",\n            \"scope_node_id\": \"UTIL_SCOPE:f7203884bca9e74c\",\n            \"provenance\": [\n              \"delegate:utilitarian\",\n              \"cycle:1\",\n              \"grounded_effect:E6\"\n            ]\n          },\n          {\n            \"consequence_node_id\": \"UTIL_CONSEQUENCE:utilitarian:A1:ef099fcece6e\",\n            \"outcome\": \"does not\",\n            \"framework\": \"UTILITARIAN\",\n            \"specialist\": \"utilitarian\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A1\",\n            \"grounded_effect_id\": \"E5\",\n            \"world_effect_id\": \"E5\",\n            \"direction\": \"NEUTRAL\",\n            \"direction_source\": \"GROUNDED_WORLD_POLARITY\",\n            \"polarity\": \"NEUTRAL\",\n            \"grounded_world_polarity\": \"NEUTRAL\",\n            \"probability\": \"CERTAIN\",\n            \"modality\": \"CERTAIN\",\n            \"magnitude\": \"UNKNOWN\",\n            \"duration\": \"UNKNOWN\",\n            \"reversibility\": \"UNKNOWN\",\n            \"support\": \"STATED\",\n            \"epistemic_status\": \"SCENARIO_GROUNDED\",\n            \"importance\": \"LOW\",\n            \"valuation_reason\": \"inaction itself neutral\",\n            \"scope_node_id\": \"UTIL_SCOPE:f7203884bca9e74c\",\n            \"provenance\": [\n              \"delegate:utilitarian\",\n              \"cycle:1\",\n              \"grounded_effect:E5\"\n            ]\n          }\n        ]\n      },\n      \"action_scores\": {\n        \"pulls the lever\": 0.95,\n        \"does not\": 0.05\n      },\n      \"framework_specific_open_questions\": [],\n      \"framework_internal_conflicts\": [],\n      \"normative_reversal_threshold\": \"NONE\",\n      \"factual_reversal_threshold\": \"If the side track had five or more workers, the ranking would reverse.\",\n      \"comparison_complete\": false,\n      \"interim_action\": \"pulls the lever\",\n      \"adjudication_status\": \"SUPPORTS\",\n      \"epistemic_binding_notes\": [],\n      \"selection_status\": \"SELECTED\",\n      \"action_admissibility\": {\n        \"pulls the lever\": \"PERMISSIBLE\",\n        \"does not\": \"REJECTED\"\n      }\n    },\n    {\n      \"specialist\": \"deontological\",\n      \"recommended_action\": \"does not\",\n      \"framework_vote_status\": \"ABSTAIN\",\n      \"framework_vote_reason\": \"the duty ledger permits the selected action but does not rank it above its rivals\",\n      \"rationale\": \"Deontology ranks one worker's refrain from killing innocents above five workers's imperfect duty to rescue through respect persons, but that priority holds only if A0 is genuinely provisionally favored under incomplete adjudication, and the\",\n      \"decision_rule\": \"Provisionally: Treat the duty priority as unestablished until whether the harm-relation follows the admitted graph's causal topology rather than a relabel chosen to fit the verdict; and whether an in-action causal path makes the burden inst\",\n      \"investigative_claim\": \"UNRESOLVED DUTY CONFLICT: one worker: refrain from killing innocents ↔ five workers: imperfect duty to rescue. Current reasoning leans does not, but the competing strict claim has not been vindicated or defeated.\",\n      \"landscape_cases\": {\n        \"pulls the lever\": \"PROHIBITED: intentionally kills an innocent, violating a perfect negative duty not to kill or use a\",\n        \"does not\": \"PERMISSIBLE: refrains from killing; omission allows harm but does not breach any perfect duty\"\n      },\n      \"expected_value_estimates\": {\n        \"pulls the lever\": {\n          \"value\": 0.0,\n          \"unit\": \"NONE\",\n          \"direction\": \"HARM\",\n          \"grounded\": false,\n          \"claimed_grounded\": false,\n          \"method\": \"NOT_COMPUTED\",\n          \"source_effect_ids\": [],\n          \"calculation\": \"not computed\",\n          \"assumptions\": [],\n          \"validation_status\": \"NOT_CLAIMED\",\n          \"validation_errors\": [],\n          \"arithmetic_identity\": \"\",\n          \"symbolic_expression\": \"\",\n          \"count_projections\": [],\n          \"valuation_scope\": \"SPECIALIST_VALUATION\"\n        },\n        \"does not\": {\n          \"value\": 0.0,\n          \"unit\": \"NONE\",\n          \"direction\": \"HARM\",\n          \"grounded\": false,\n          \"claimed_grounded\": false,\n          \"method\": \"NOT_COMPUTED\",\n          \"source_effect_ids\": [],\n          \"calculation\": \"not computed\",\n          \"assumptions\": [],\n          \"validation_status\": \"NOT_CLAIMED\",\n          \"validation_errors\": [],\n          \"arithmetic_identity\": \"\",\n          \"symbolic_expression\": \"\",\n          \"count_projections\": [],\n          \"valuation_scope\": \"SPECIALIST_VALUATION\"\n        }\n      },\n      \"committed_native_ledger\": {\n        \"ledger_kind\": \"DEONTOLOGICAL_DUTY_LEDGER\",\n        \"transaction_status\": \"COMMITTED_WITH_UNCERTAINTY\",\n        \"records\": [\n          {\n            \"assessment_node_id\": \"DEON_ASSESSMENT:deontological:A0\",\n            \"framework\": \"DEONTOLOGICAL\",\n            \"specialist\": \"deontological\",\n            \"assessment_role\": \"PRIMARY\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A0\",\n            \"verdict\": \"CONFLICTED\",\n            \"proposed_verdict\": \"CONFLICTED\",\n            \"relation\": \"VIOLATES\",\n            \"proposed_relation\": \"VIOLATES\",\n            \"norm_kind\": \"RESPECT_PERSONS\",\n            \"norm_node_id\": \"DEON_NORM:05d52a19b110e908\",\n            \"party_node_id\": \"DEON_PARTY:879bcf30890178b8\",\n            \"bearer_node_id\": \"DEON_BEARER:94aec9fbed989ece\",\n            \"competing_norm\": \"imperfect duty to aid\",\n            \"competing_norm_kind\": \"DUTY\",\n            \"competing_relation\": \"CONFLICTS\",\n            \"competing_protected_party\": \"five workers\",\n            \"competing_reason\": \"saving five is only an imperfect duty\",\n            \"duty_type\": \"PERFECT_NEGATIVE\",\n            \"harm_relation\": \"DOING_HARM\",\n            \"special_obligation_status\": \"NOT_REQUIRED\",\n            \"special_obligation_basis\": \"no special relationship\",\n            \"means_relation\": \"INTENDED_AS_MEANS\",\n            \"governing_norm\": \"UNRESOLVED\",\n            \"priority_basis\": \"UNRESOLVED\",\n            \"priority_rule\": \"perfect negative duty prevails\",\n            \"protected_standing\": \"BODILY_INTEGRITY\",\n            \"competing_protected_standing\": \"OTHER\",\n            \"coercion_kind\": \"NONE\",\n            \"coercive_actor\": \"NONE\",\n            \"coerced_party\": \"NONE\",\n            \"public_justification\": \"No public law can license killing one innocent\",\n            \"reciprocity_status\": \"FAILED\",\n            \"necessity_status\": \"UNKNOWN\",\n            \"authorization_status\": \"NOT_APPLICABLE\",\n            \"derivation\": \"RESPECT_PERSONS\",\n            \"resolution_status\": \"CONTESTED\",\n            \"calibration_errors\": [\n              \"doing-harm classification lacks an agent-caused settled welfare harm on the protected party\",\n              \"intended-as-means classification lacks an in-action causal path\",\n              \"resolved adjudication rests on unsupported decisive premises\"\n            ],\n            \"calibration_issues\": [\n              {\n                \"kind\": \"HARM_RELATION_GRAPH_MISALIGN\",\n                \"message\": \"doing-harm classification lacks an agent-caused settled welfare harm on the protected party\",\n                \"status\": \"ACTIVE\"\n              },\n              {\n                \"kind\": \"INTENDED_AS_MEANS_LACKS_PATH\",\n                \"message\": \"intended-as-means classification lacks an in-action causal path\",\n                \"status\": \"ACTIVE\"\n              },\n              {\n                \"kind\": \"CALIBRATION\",\n                \"message\": \"resolved adjudication rests on unsupported decisive premises\",\n                \"status\": \"ACTIVE\"\n              }\n            ],\n            \"calibration_support_node_ids\": [],\n            \"evidence_basis\": \"ACTION_GRAPH\",\n            \"epistemic_status\": \"GROUNDED_PARTY\",\n            \"reason\": \"kills innocent as means\",\n            \"protected_party\": \"one worker\",\n            \"norm\": \"do not intentionally kill\",\n            \"duty_bearer\": \"maria\",\n            \"provenance\": [\n              \"delegate:deontological\",\n              \"cycle:1\"\n            ]\n          },\n          {\n            \"assessment_node_id\": \"DEON_ASSESSMENT:deontological:A1\",\n            \"framework\": \"DEONTOLOGICAL\",\n            \"specialist\": \"deontological\",\n            \"assessment_role\": \"PRIMARY\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A1\",\n            \"verdict\": \"PERMISSIBLE\",\n            \"proposed_verdict\": \"PERMISSIBLE\",\n            \"relation\": \"CONSISTENT\",\n            \"proposed_relation\": \"CONSISTENT\",\n            \"norm_kind\": \"DUTY\",\n            \"norm_node_id\": \"DEON_NORM:32339e170b4286d9\",\n            \"party_node_id\": \"DEON_PARTY:879bcf30890178b8\",\n            \"bearer_node_id\": \"DEON_BEARER:94aec9fbed989ece\",\n            \"competing_norm\": \"imperfect duty to rescue\",\n            \"competing_norm_kind\": \"DUTY\",\n            \"competing_relation\": \"CONFLICTS\",\n            \"competing_protected_party\": \"five workers\",\n            \"competing_reason\": \"rescue is imperfect\",\n            \"duty_type\": \"PERFECT_NEGATIVE\",\n            \"harm_relation\": \"ALLOWING_HARM\",\n            \"special_obligation_status\": \"NOT_REQUIRED\",\n            \"special_obligation_basis\": \"no special obligation to five\",\n            \"means_relation\": \"NO_INSTRUMENTALIZATION\",\n            \"governing_norm\": \"PRIMARY\",\n            \"priority_basis\": \"RESPECT_PERSONS\",\n            \"priority_rule\": \"perfect duty satisfied\",\n            \"protected_standing\": \"BODILY_INTEGRITY\",\n            \"competing_protected_standing\": \"OTHER\",\n            \"coercion_kind\": \"NONE\",\n            \"coercive_actor\": \"NONE\",\n            \"coerced_party\": \"NONE\",\n            \"public_justification\": \"No coercive killing; omission is legally tolerable\",\n            \"reciprocity_status\": \"SATISFIED\",\n            \"necessity_status\": \"UNKNOWN\",\n            \"authorization_status\": \"NOT_APPLICABLE\",\n            \"derivation\": \"RESPECT_PERSONS\",\n            \"resolution_status\": \"RESOLVED\",\n            \"calibration_errors\": [],\n            \"calibration_issues\": [],\n            \"calibration_support_node_ids\": [],\n            \"evidence_basis\": \"ACTION_GRAPH\",\n            \"epistemic_status\": \"GROUNDED_PARTY\",\n            \"reason\": \"does not kill\",\n            \"protected_party\": \"one worker\",\n            \"norm\": \"refrain from killing innocents\",\n            \"duty_bearer\": \"maria\",\n            \"provenance\": [\n              \"delegate:deontological\",\n              \"cycle:1\"\n            ]\n          }\n        ]\n      },\n      \"action_scores\": {\n        \"pulls the lever\": 0.305,\n        \"does not\": 0.6950000000000001\n      },\n      \"framework_specific_open_questions\": [\n        \"whether the harm-relation follows the admitted graph's causal topology rather than a relabel chosen to fit the verdict\",\n        \"whether an in-action causal path makes the burden instrumental to the chosen end\"\n      ],\n      \"framework_internal_conflicts\": [\n        \"one worker: refrain from killing innocents ↔ five workers: imperfect duty to rescue\",\n        \"A0 prohibited by do not intentionally kill ↔ whether the harm-relation follows the admitted graph's causal topology rather than a relabel chosen to fit the verdict\",\n        \"A0 prohibited by do not intentionally kill ↔ whether an in-action causal path makes the burden instrumental to the chosen end\"\n      ],\n      \"normative_reversal_threshold\": \"If perfect duty could be outweighed\",\n      \"factual_reversal_threshold\": \"NONE\",\n      \"comparison_complete\": true,\n      \"interim_action\": \"does not\",\n      \"adjudication_status\": \"PROVISIONAL_LEANING\",\n      \"epistemic_binding_notes\": [],\n      \"selection_status\": \"PROVISIONAL\",\n      \"action_admissibility\": {\n        \"pulls the lever\": \"REJECTED\",\n        \"does not\": \"PERMISSIBLE\"\n      }\n    },\n    {\n      \"specialist\": \"care\",\n      \"recommended_action\": \"pulls the lever\",\n      \"framework_vote_status\": \"ATTENUATED\",\n      \"framework_vote_reason\": \"framework ranking retains an unresolved decision-critical dependency\",\n      \"rationale\": \"lever aids more vulnerable.\",\n      \"decision_rule\": \"Prefer A0 when it answers a greater entrusted acute need than A1 neglects.\",\n      \"investigative_claim\": \"Would verifying this unestablished consequence reverse the admitted ranking: five workers are entrusted to the decision maker?\",\n      \"landscape_cases\": {\n        \"pulls the lever\": \"Pulling the lever directly saves five workers whose immediate survival depends on Maria’s sole, feas\",\n        \"does not\": \"Not acting avoids killing the side worker but neglects the entrusted urgent need of five in trolley\\u001b\"\n      },\n      \"expected_value_estimates\": {\n        \"pulls the lever\": {\n          \"value\": 0.0,\n          \"unit\": \"NONE\",\n          \"direction\": \"HARM\",\n          \"grounded\": false,\n          \"claimed_grounded\": false,\n          \"method\": \"NOT_COMPUTED\",\n          \"source_effect_ids\": [],\n          \"calculation\": \"not computed\",\n          \"assumptions\": [],\n          \"validation_status\": \"NOT_CLAIMED\",\n          \"validation_errors\": [],\n          \"arithmetic_identity\": \"\",\n          \"symbolic_expression\": \"\",\n          \"count_projections\": [],\n          \"valuation_scope\": \"SPECIALIST_VALUATION\"\n        },\n        \"does not\": {\n          \"value\": 0.0,\n          \"unit\": \"NONE\",\n          \"direction\": \"HARM\",\n          \"grounded\": false,\n          \"claimed_grounded\": false,\n          \"method\": \"NOT_COMPUTED\",\n          \"source_effect_ids\": [],\n          \"calculation\": \"not computed\",\n          \"assumptions\": [],\n          \"validation_status\": \"NOT_CLAIMED\",\n          \"validation_errors\": [],\n          \"arithmetic_identity\": \"\",\n          \"symbolic_expression\": \"\",\n          \"count_projections\": [],\n          \"valuation_scope\": \"SPECIALIST_VALUATION\"\n        }\n      },\n      \"committed_native_ledger\": {\n        \"ledger_kind\": \"CARE_RELATIONSHIP_LEDGER\",\n        \"transaction_status\": \"COMMITTED_WITH_UNCERTAINTY\",\n        \"records\": [\n          {\n            \"assessment_node_id\": \"CARE_RELATIONSHIP:care:A0\",\n            \"framework\": \"CARE\",\n            \"specialist\": \"care\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A0\",\n            \"verdict\": \"RESPONSIVE\",\n            \"affected_party\": \"five workers\",\n            \"relationship_type\": \"ENTRUSTED\",\n            \"relationship_evidence_status\": \"UNVERIFIED\",\n            \"dependency_source\": \"Maria alone can avert their imminent death\",\n            \"responsibility_basis\": \"exclusive situational control imposes responsibility\",\n            \"need_kind\": \"SURVIVAL_HEALTH\",\n            \"need_urgency\": \"IMMEDIATE\",\n            \"trust_effect\": \"PRESERVES\",\n            \"responsiveness\": \"DIRECT\",\n            \"feasibility\": \"ESTABLISHED\",\n            \"competing_care_claim\": \"side-track worker also faces survival need\",\n            \"resolution_status\": \"CONTESTED\",\n            \"evidence_basis\": \"ACTION_GRAPH\",\n            \"reason\": \"Action directly meets entrusted immediate need\",\n            \"ranking_basis\": \"ENTRUSTED_RESPONSIBILITY\",\n            \"grounded_effect_ids\": [\n              \"E4\"\n            ],\n            \"grounded_consequence_ids\": [\n              \"A0:WORLD_EFFECT:E4\"\n            ],\n            \"effect_grounding_status\": \"MATCHED\",\n            \"epistemic_status\": \"EXPLICIT_UNCERTAINTY\",\n            \"provenance\": [\n              \"delegate:care\",\n              \"cycle:1\"\n            ]\n          },\n          {\n            \"assessment_node_id\": \"CARE_RELATIONSHIP:care:A1\",\n            \"framework\": \"CARE\",\n            \"specialist\": \"care\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A1\",\n            \"verdict\": \"NEGLECTFUL\",\n            \"affected_party\": \"five workers\",\n            \"relationship_type\": \"ENTRUSTED\",\n            \"relationship_evidence_status\": \"UNVERIFIED\",\n            \"dependency_source\": \"same as above\",\n            \"responsibility_basis\": \"ignores responsibility despite control\",\n            \"need_kind\": \"SURVIVAL_HEALTH\",\n            \"need_urgency\": \"IMMEDIATE\",\n            \"trust_effect\": \"BETRAYS\",\n            \"responsiveness\": \"WITHHELD\",\n            \"feasibility\": \"ESTABLISHED\",\n            \"competing_care_claim\": \"protects one worker on side track\",\n            \"resolution_status\": \"CONTESTED\",\n            \"evidence_basis\": \"ACTION_GRAPH\",\n            \"reason\": \"Fails entrusted care to five to avoid direct harm to one\",\n            \"ranking_basis\": \"ENTRUSTED_RESPONSIBILITY\",\n            \"grounded_effect_ids\": [\n              \"E7\"\n            ],\n            \"grounded_consequence_ids\": [\n              \"A1:WORLD_EFFECT:E7\"\n            ],\n            \"effect_grounding_status\": \"MATCHED\",\n            \"epistemic_status\": \"EXPLICIT_UNCERTAINTY\",\n            \"provenance\": [\n              \"delegate:care\",\n              \"cycle:1\"\n            ]\n          }\n        ]\n      },\n      \"action_scores\": {\n        \"pulls the lever\": 0.6950000000000001,\n        \"does not\": 0.305\n      },\n      \"framework_specific_open_questions\": [\n        \"Would verifying this unestablished consequence reverse the admitted ranking: five workers are entrusted to the decision maker?\"\n      ],\n      \"framework_internal_conflicts\": [],\n      \"normative_reversal_threshold\": \"care priority shifts from immediacy to non-interference\",\n      \"factual_reversal_threshold\": \"side track holds five or more\",\n      \"comparison_complete\": true,\n      \"interim_action\": \"pulls the lever\",\n      \"adjudication_status\": \"SUPPORTS\",\n      \"epistemic_binding_notes\": [],\n      \"selection_status\": \"SELECTED\",\n      \"action_admissibility\": {\n        \"pulls the lever\": \"PERMISSIBLE\",\n        \"does not\": \"REJECTED\"\n      }\n    },\n    {\n      \"specialist\": \"virtue\",\n      \"recommended_action\": \"pulls the lever\",\n      \"framework_vote_status\": \"FULL\",\n      \"framework_vote_reason\": \"framework ranking is supported by its committed typed ledger\",\n      \"rationale\": \"courageous compassionate choice\",\n      \"decision_rule\": \"prefer A0 when it preserves lives without vicious intent\",\n      \"investigative_claim\": \"\",\n      \"landscape_cases\": {\n        \"pulls the lever\": \"Pulling decisively saves more people; shows courage, benevolence, and prudent responsibility despite\",\n        \"does not\": \"Refraining avoids direct killing but lets five die; looks like negligence, cowardice, or misplaced\"\n      },\n      \"expected_value_estimates\": {\n        \"pulls the lever\": {\n          \"value\": 0.0,\n          \"unit\": \"NONE\",\n          \"direction\": \"HARM\",\n          \"grounded\": false,\n          \"claimed_grounded\": false,\n          \"method\": \"NOT_COMPUTED\",\n          \"source_effect_ids\": [],\n          \"calculation\": \"not computed\",\n          \"assumptions\": [],\n          \"validation_status\": \"NOT_CLAIMED\",\n          \"validation_errors\": [],\n          \"arithmetic_identity\": \"\",\n          \"symbolic_expression\": \"\",\n          \"count_projections\": [],\n          \"valuation_scope\": \"SPECIALIST_VALUATION\"\n        },\n        \"does not\": {\n          \"value\": 0.0,\n          \"unit\": \"NONE\",\n          \"direction\": \"HARM\",\n          \"grounded\": false,\n          \"claimed_grounded\": false,\n          \"method\": \"NOT_COMPUTED\",\n          \"source_effect_ids\": [],\n          \"calculation\": \"not computed\",\n          \"assumptions\": [],\n          \"validation_status\": \"NOT_CLAIMED\",\n          \"validation_errors\": [],\n          \"arithmetic_identity\": \"\",\n          \"symbolic_expression\": \"\",\n          \"count_projections\": [],\n          \"valuation_scope\": \"SPECIALIST_VALUATION\"\n        }\n      },\n      \"committed_native_ledger\": {\n        \"ledger_kind\": \"VIRTUE_CHARACTER_LEDGER\",\n        \"transaction_status\": \"COMMITTED\",\n        \"records\": [\n          {\n            \"assessment_node_id\": \"VIRTUE_CHARACTER:virtue:A0\",\n            \"framework\": \"VIRTUE\",\n            \"specialist\": \"virtue\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A0\",\n            \"verdict\": \"EXEMPLIFIES\",\n            \"actor_role\": \"rail operator\",\n            \"virtues\": \"courage, benevolence, justice, prudence\",\n            \"vice_risk\": \"risk of callousness\",\n            \"circumstance\": \"life-or-death emergency\",\n            \"evidence_basis\": \"FRAMEWORK_ONLY\",\n            \"reason\": \"A0 matches virtuous decisive aid\",\n            \"ranking_basis\": \"PRACTICAL_WISDOM\",\n            \"grounded_effect_ids\": [],\n            \"grounded_consequence_ids\": [],\n            \"epistemic_status\": \"FRAMEWORK_GROUNDED\",\n            \"provenance\": [\n              \"delegate:virtue\",\n              \"cycle:1\"\n            ]\n          },\n          {\n            \"assessment_node_id\": \"VIRTUE_CHARACTER:virtue:A1\",\n            \"framework\": \"VIRTUE\",\n            \"specialist\": \"virtue\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A1\",\n            \"verdict\": \"UNDERMINES\",\n            \"actor_role\": \"rail operator\",\n            \"virtues\": \"compassion\",\n            \"vice_risk\": \"cowardice, negligence\",\n            \"circumstance\": \"life-or-death emergency\",\n            \"evidence_basis\": \"FRAMEWORK_ONLY\",\n            \"reason\": \"A1 shirks duty to protect\",\n            \"ranking_basis\": \"PRACTICAL_WISDOM\",\n            \"grounded_effect_ids\": [],\n            \"grounded_consequence_ids\": [],\n            \"epistemic_status\": \"FRAMEWORK_GROUNDED\",\n            \"provenance\": [\n              \"delegate:virtue\",\n              \"cycle:1\"\n            ]\n          }\n        ]\n      },\n      \"action_scores\": {\n        \"pulls the lever\": 0.8,\n        \"does not\": 0.2\n      },\n      \"framework_specific_open_questions\": [],\n      \"framework_internal_conflicts\": [],\n      \"normative_reversal_threshold\": \"if any direct killing is always vicious\",\n      \"factual_reversal_threshold\": \"if lever saved fewer lives than it costs\",\n      \"comparison_complete\": true,\n      \"interim_action\": \"pulls the lever\",\n      \"adjudication_status\": \"SUPPORTS\",\n      \"epistemic_binding_notes\": [],\n      \"selection_status\": \"SELECTED\",\n      \"action_admissibility\": {\n        \"pulls the lever\": \"PERMISSIBLE\",\n        \"does not\": \"REJECTED\"\n      }\n    },\n    {\n      \"specialist\": \"rawlsian\",\n      \"recommended_action\": \"pulls the lever\",\n      \"framework_vote_status\": \"ABSTAIN\",\n      \"framework_vote_reason\": \"decisive aggregation is not licensed by the committed Rawlsian ranking basis\",\n      \"rationale\": \"Veil favors lower risk\",\n      \"decision_rule\": \"prefer A0 when it lowers the worst individual’s chance of death\",\n      \"investigative_claim\": \"\",\n      \"landscape_cases\": {\n        \"pulls the lever\": \"MIXED: lever saves five and distributes only a 1⁄6 death risk to each worker\",\n        \"does not\": \"WORSENS: inaction leaves a 5⁄6 death risk on each worker\"\n      },\n      \"expected_value_estimates\": {\n        \"pulls the lever\": {\n          \"value\": 0.0,\n          \"unit\": \"NONE\",\n          \"direction\": \"HARM\",\n          \"grounded\": false,\n          \"claimed_grounded\": false,\n          \"method\": \"NOT_COMPUTED\",\n          \"source_effect_ids\": [],\n          \"calculation\": \"not computed\",\n          \"assumptions\": [],\n          \"validation_status\": \"NOT_CLAIMED\",\n          \"validation_errors\": [],\n          \"arithmetic_identity\": \"\",\n          \"symbolic_expression\": \"\",\n          \"count_projections\": [],\n          \"valuation_scope\": \"SPECIALIST_VALUATION\"\n        },\n        \"does not\": {\n          \"value\": 0.0,\n          \"unit\": \"NONE\",\n          \"direction\": \"HARM\",\n          \"grounded\": false,\n          \"claimed_grounded\": false,\n          \"method\": \"NOT_COMPUTED\",\n          \"source_effect_ids\": [],\n          \"calculation\": \"not computed\",\n          \"assumptions\": [],\n          \"validation_status\": \"NOT_CLAIMED\",\n          \"validation_errors\": [],\n          \"arithmetic_identity\": \"\",\n          \"symbolic_expression\": \"\",\n          \"count_projections\": [],\n          \"valuation_scope\": \"SPECIALIST_VALUATION\"\n        }\n      },\n      \"committed_native_ledger\": {\n        \"ledger_kind\": \"RAWLSIAN_POSITION_LEDGER\",\n        \"transaction_status\": \"COMMITTED\",\n        \"records\": [\n          {\n            \"assessment_node_id\": \"RAWLS_POSITION:rawlsian:A0:97f0c4c20221b8d7\",\n            \"framework\": \"RAWLSIAN\",\n            \"specialist\": \"rawlsian\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A0\",\n            \"compared_to_action_id\": \"A1\",\n            \"effect\": \"MIXED\",\n            \"proposed_effect\": \"IMPROVES\",\n            \"subject\": \"each worker behind veil\",\n            \"proposed_subject\": \"each worker behind veil\",\n            \"dimension_subject_repaired\": false,\n            \"affected_subject\": \"each worker behind veil\",\n            \"subject_kind\": \"INDIVIDUAL\",\n            \"dimension\": \"BASIC_INTEREST_SECURITY\",\n            \"basic_liberty_kind\": \"NOT_APPLICABLE\",\n            \"institutional_relation\": \"NATURAL_CONTINGENCY\",\n            \"additional_dimensions\": [],\n            \"dimension_bundle\": [\n              \"BASIC_INTEREST_SECURITY\"\n            ],\n            \"comparative_effect\": \"MIXED\",\n            \"group_node_id\": \"RAWLS_SUBJECT:057f6cc4da7a58f3\",\n            \"subject_node_id\": \"RAWLS_SUBJECT:057f6cc4da7a58f3\",\n            \"dimension_node_id\": \"RAWLS_VALUE:BASIC_INTEREST_SECURITY\",\n            \"subject_binding_mode\": \"LEXICAL\",\n            \"group_binding_mode\": \"LEXICAL\",\n            \"evidence_basis\": \"ACTION_GRAPH\",\n            \"epistemic_status\": \"MIXED_COMPARISON\",\n            \"reason\": \"A0 lowers individual death risk\",\n            \"ranking_basis\": \"ORIGINAL_POSITION_PUBLIC_RULE\",\n            \"ranking_classification_justification\": \"rule chosen under veil to minimise maximum death risk\",\n            \"lexical_priority_justification\": \"no basic liberty conflict established\",\n            \"liberty_status\": \"NOT_APPLICABLE\",\n            \"subject_selection_status\": \"BOUND_TO_ACTION\",\n            \"group_selection_status\": \"BOUND_TO_ACTION\",\n            \"provenance\": [\n              \"delegate:rawlsian\",\n              \"cycle:1\"\n            ]\n          },\n          {\n            \"assessment_node_id\": \"RAWLS_POSITION:rawlsian:A1:1c14ec0a550cdf37\",\n            \"framework\": \"RAWLSIAN\",\n            \"specialist\": \"rawlsian\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A1\",\n            \"compared_to_action_id\": \"A0\",\n            \"effect\": \"MIXED\",\n            \"proposed_effect\": \"WORSENS\",\n            \"subject\": \"each worker behind veil\",\n            \"proposed_subject\": \"each worker behind veil\",\n            \"dimension_subject_repaired\": false,\n            \"affected_subject\": \"each worker behind veil\",\n            \"subject_kind\": \"INDIVIDUAL\",\n            \"dimension\": \"BASIC_INTEREST_SECURITY\",\n            \"basic_liberty_kind\": \"NOT_APPLICABLE\",\n            \"institutional_relation\": \"NATURAL_CONTINGENCY\",\n            \"additional_dimensions\": [],\n            \"dimension_bundle\": [\n              \"BASIC_INTEREST_SECURITY\"\n            ],\n            \"comparative_effect\": \"MIXED\",\n            \"group_node_id\": \"RAWLS_SUBJECT:057f6cc4da7a58f3\",\n            \"subject_node_id\": \"RAWLS_SUBJECT:057f6cc4da7a58f3\",\n            \"dimension_node_id\": \"RAWLS_VALUE:BASIC_INTEREST_SECURITY\",\n            \"subject_binding_mode\": \"LEXICAL\",\n            \"group_binding_mode\": \"LEXICAL\",\n            \"evidence_basis\": \"ACTION_GRAPH\",\n            \"epistemic_status\": \"MIXED_COMPARISON\",\n            \"reason\": \"A1 leaves higher individual death risk\",\n            \"ranking_basis\": \"ORIGINAL_POSITION_PUBLIC_RULE\",\n            \"ranking_classification_justification\": \"rule chosen under veil to minimise maximum death risk\",\n            \"lexical_priority_justification\": \"no basic liberty conflict established\",\n            \"liberty_status\": \"NOT_APPLICABLE\",\n            \"subject_selection_status\": \"BOUND_TO_ACTION\",\n            \"group_selection_status\": \"BOUND_TO_ACTION\",\n            \"provenance\": [\n              \"delegate:rawlsian\",\n              \"cycle:1\"\n            ]\n          }\n        ]\n      },\n      \"action_scores\": {\n        \"pulls the lever\": 0.6950000000000001,\n        \"does not\": 0.305\n      },\n      \"framework_specific_open_questions\": [],\n      \"framework_internal_conflicts\": [],\n      \"normative_reversal_threshold\": \"agency-based duty never to kill overrides risk gains\",\n      \"factual_reversal_threshold\": \"NONE\",\n      \"comparison_complete\": true,\n      \"interim_action\": \"pulls the lever\",\n      \"adjudication_status\": \"SUPPORTS\",\n      \"epistemic_binding_notes\": [],\n      \"selection_status\": \"SELECTED\",\n      \"action_admissibility\": {\n        \"pulls the lever\": \"PERMISSIBLE\",\n        \"does not\": \"REJECTED\"\n      }\n    }\n  ],\n  \"judgment_status\": \"NOT_ADJUDICATED\"\n}",
+        "packet_blocks": [
+          {
+            "fold": 0,
+            "omitted_start": 0,
+            "omitted_end": 4843,
+            "omitted_chars": 4843,
+            "omitted_text": "{\n  \"source\": \"A runaway trolley is heading toward five workers on the main track. Maria can pull a lever that switches the trolley onto a side track, where one worker stands. If she pulls the lever, the trolley will kill that worker and spare the five. If she does not, it will kill the five and spare the one. Maria cannot stop the trolley. Should she pull the lever?\",\n  \"world\": {\n    \"parties\": [\n      {\n        \"party_id\": \"P1\",\n        \"label\": \"Maria\",\n        \"kind\": \"PERSON\"\n      },\n      {\n        \"party_id\": \"P2\",\n        \"label\": \"one worker\",\n        \"kind\": \"PERSON\"\n      },\n      {\n        \"party_id\": \"P4\",\n        \"label\": \"five workers\",\n        \"kind\": \"HUMAN_GROUP\"\n      },\n      {\n        \"party_id\": \"P6\",\n        \"label\": \"a lever\",\n        \"kind\": \"PROCESS\"\n      },\n      {\n        \"party_id\": \"P7\",\n        \"label\": \"the trolley\",\n        \"kind\": \"PROCESS\"\n      },\n      {\n        \"party_id\": \"P8\",\n        \"label\": \"the main track\",\n        \"kind\": \"OTHER\"\n      },\n      {\n        \"party_id\": \"P9\",\n        \"label\": \"a side track\",\n        \"kind\": \"OTHER\"\n      }\n    ],\n    \"actions\": [\n      {\n        \"action_id\": \"A0\",\n        \"intervention\": \"pulls the lever\",\n        \"effect_ids\": [\n          \"E1\",\n          \"E2\",\n          \"E3\",\n          \"E4\"\n        ]\n      },\n      {\n        \"action_id\": \"A1\",\n        \"intervention\": \"does not\",\n        \"effect_ids\": [\n          \"E5\",\n          \"E6\",\n          \"E7\",\n          \"E8\"\n        ]\n      }\n    ],\n    \"effects\": [\n      {\n        \"effect_id\": \"E1\",\n        \"outcome\": \"pulls the lever\",\n        \"party_id\": \"P6\"\n      },\n      {\n        \"effect_id\": \"E2\",\n        \"outcome\": \"switches the trolley onto a side track\",\n        \"party_id\": \"P7\"\n      },\n      {\n        \"effect_id\": \"E3\",\n        \"outcome\": \"the trolley will kill that worker\",\n        \"party_id\": \"P2\"\n      },\n      {\n        \"effect_id\": \"E4\",\n        \"outcome\": \"spare the five\",\n        \"party_id\": \"P4\"\n      },\n      {\n        \"effect_id\": \"E5\",\n        \"outcome\": \"does not\",\n        \"party_id\": \"P6\"\n      },\n      {\n        \"effect_id\": \"E6\",\n        \"outcome\": \"does not\",\n        \"party_id\": \"P6\"\n      },\n      {\n        \"effect_id\": \"E7\",\n        \"outcome\": \"it will kill the five\",\n        \"party_id\": \"P4\"\n      },\n      {\n        \"effect_id\": \"E8\",\n        \"outcome\": \"spare the one\",\n        \"party_id\": \"P2\"\n      }\n    ],\n    \"causal_links\": [\n      {\n        \"source_id\": \"E1\",\n        \"relation\": \"ENABLES\",\n        \"target_id\": \"E2\",\n        \"modality\": \"CERTAIN\",\n        \"condition_ids\": [],\n        \"provenance\": [\n          {\n            \"clause_id\": \"C1\",\n            \"excerpt\": \"Maria can pull a lever that switches the trolley onto a side track, where one worker stands.\"\n          }\n        ],\n        \"action_id\": \"A0\"\n      },\n      {\n        \"source_id\": \"E2\",\n        \"relation\": \"ENABLES\",\n        \"target_id\": \"E3\",\n        \"modality\": \"CERTAIN\",\n        \"condition_ids\": [],\n        \"provenance\": [\n          {\n            \"clause_id\": \"C2\",\n            \"excerpt\": \"If she pulls the lever, the trolley will kill that worker and spare the five.\"\n          }\n        ],\n        \"action_id\": \"A0\"\n      },\n      {\n        \"source_id\": \"E2\",\n        \"relation\": \"ENABLES\",\n        \"target_id\": \"E4\",\n        \"modality\": \"CERTAIN\",\n        \"condition_ids\": [],\n        \"provenance\": [\n          {\n            \"clause_id\": \"C2\",\n            \"excerpt\": \"If she pulls the lever, the trolley will kill that worker and spare the five.\"\n          }\n        ],\n        \"action_id\": \"A0\"\n      },\n      {\n        \"source_id\": \"E5\",\n        \"relation\": \"ENABLES\",\n        \"target_id\": \"E6\",\n        \"modality\": \"CERTAIN\",\n        \"condition_ids\": [],\n        \"provenance\": [\n          {\n            \"clause_id\": \"C3\",\n            \"excerpt\": \"If she does not, it will kill the five and spare the one.\"\n          }\n        ],\n        \"action_id\": \"A1\"\n      },\n      {\n        \"source_id\": \"E6\",\n        \"relation\": \"ENABLES\",\n        \"target_id\": \"E7\",\n        \"modality\": \"CERTAIN\",\n        \"condition_ids\": [],\n        \"provenance\": [\n          {\n            \"clause_id\": \"C3\",\n            \"excerpt\": \"If she does not, it will kill the five and spare the one.\"\n          }\n        ],\n        \"action_id\": \"A1\"\n      },\n      {\n        \"source_id\": \"E6\",\n        \"relation\": \"ENABLES\",\n        \"target_id\": \"E8\",\n        \"modality\": \"CERTAIN\",\n        \"condition_ids\": [],\n        \"provenance\": [\n          {\n            \"clause_id\": \"C3\",\n            \"excerpt\": \"If she does not, it will kill the five and spare the one.\"\n          }\n        ],\n        \"action_id\": \"A1\"\n      }\n    ],\n    \"conditions\": [\n      {\n        \"condition_id\": \"CND1\",\n        \"description\": \"If she pulls the lever\",\n        \"value_status\": \"UNKNOWN\",\n        \"decision_relevance\": "
+          },
+          {
+            "fold": 1,
+            "omitted_start": 4843,
+            "omitted_end": 9686,
+            "omitted_chars": 4843,
+            "omitted_text": "\"MATERIAL\",\n        \"provenance\": [\n          {\n            \"clause_id\": \"C2\",\n            \"excerpt\": \"If she pulls the lever, the trolley will kill that worker and spare the five.\"\n          }\n        ],\n        \"event_effect_id\": \"\",\n        \"polarity\": \"POSITIVE\",\n        \"operator\": \"IF\"\n      },\n      {\n        \"condition_id\": \"CND2\",\n        \"description\": \"If she does not\",\n        \"value_status\": \"UNKNOWN\",\n        \"decision_relevance\": \"MATERIAL\",\n        \"provenance\": [\n          {\n            \"clause_id\": \"C3\",\n            \"excerpt\": \"If she does not, it will kill the five and spare the one.\"\n          }\n        ],\n        \"event_effect_id\": \"\",\n        \"polarity\": \"NEGATED\",\n        \"operator\": \"IF\"\n      }\n    ],\n    \"propositions\": [\n      {\n        \"proposition_id\": \"PR1\",\n        \"predication\": \"A runaway trolley is heading toward five workers on the main track.\",\n        \"polarity\": \"POSITIVE\",\n        \"status\": \"ASSERTED\",\n        \"clause_ids\": [\n          \"C0\"\n        ]\n      },\n      {\n        \"proposition_id\": \"PR2\",\n        \"predication\": \"Maria can pull a lever that switches the trolley onto a side track, where one worker stands.\",\n        \"polarity\": \"POSITIVE\",\n        \"status\": \"ASSERTED\",\n        \"clause_ids\": [\n          \"C1\"\n        ]\n      },\n      {\n        \"proposition_id\": \"PR3\",\n        \"predication\": \"Maria cannot stop the trolley.\",\n        \"polarity\": \"POSITIVE\",\n        \"status\": \"ASSERTED\",\n        \"clause_ids\": [\n          \"C4\"\n        ]\n      }\n    ]\n  },\n  \"frameworks\": [\n    {\n      \"framework\": \"utilitarian\",\n      \"position\": \"FULL\",\n      \"preference\": \"pulls the lever\",\n      \"reason\": \"Minimises total deaths\",\n      \"live_objections\": [],\n      \"reversal_conditions\": [\n        \"If the side track had five or more workers, the ranking would reverse.\"\n      ],\n      \"decision_boundaries\": null,\n      \"ledger_status\": \"COMMITTED\"\n    },\n    {\n      \"framework\": \"deontological\",\n      \"position\": \"ABSTAIN\",\n      \"preference\": \"does not\",\n      \"reason\": \"Deontology ranks one worker's refrain from killing innocents above five workers's imperfect duty to rescue through respect persons, but that priority holds only if A0 is genuinely provisionally favored under incomplete adjudication, and the\",\n      \"live_objections\": [\n        \"A0 ADJUDICATION_CALIBRATION: doing-harm classification lacks an agent-caused settled welfare harm on the protected party\",\n        \"A0 ADJUDICATION_CALIBRATION: intended-as-means classification lacks an in-action causal path\",\n        \"A0 ADJUDICATION_CALIBRATION: resolved adjudication rests on unsupported decisive premises\",\n        \"whether the harm-relation follows the admitted graph's causal topology rather than a relabel chosen to fit the verdict\",\n        \"whether an in-action causal path makes the burden instrumental to the chosen end\",\n        \"one worker: refrain from killing innocents ↔ five workers: imperfect duty to rescue\",\n        \"A0 prohibited by do not intentionally kill ↔ whether the harm-relation follows the admitted graph's causal topology rather than a relabel chosen to fit the verdict\",\n        \"A0 prohibited by do not intentionally kill ↔ whether an in-action causal path makes the burden instrumental to the chosen end\"\n      ],\n      \"reversal_conditions\": [\n        \"If perfect duty could be outweighed\"\n      ],\n      \"decision_boundaries\": null,\n      \"ledger_status\": \"COMMITTED_WITH_UNCERTAINTY\"\n    },\n    {\n      \"framework\": \"care\",\n      \"position\": \"ATTENUATED\",\n      \"preference\": \"pulls the lever\",\n      \"reason\": \"lever aids more vulnerable.\",\n      \"live_objections\": [\n        \"A0 competing Care claim remains contested\",\n        \"A1 competing Care claim remains contested\",\n        \"Would verifying this unestablished consequence reverse the admitted ranking: five workers are entrusted to the decision maker?\"\n      ],\n      \"reversal_conditions\": [\n        \"care priority shifts from immediacy to non-interference\",\n        \"side track holds five or more\"\n      ],\n      \"decision_boundaries\": null,\n      \"ledger_status\": \"COMMITTED_WITH_UNCERTAINTY\"\n    },\n    {\n      \"framework\": \"virtue\",\n      \"position\": \"FULL\",\n      \"preference\": \"pulls the lever\",\n      \"reason\": \"courageous compassionate choice\",\n      \"live_objections\": [],\n      \"reversal_conditions\": [\n        \"if any direct killing is always vicious\",\n        \"if lever saved fewer lives than it costs\"\n      ],\n      \"decision_boundaries\": null,\n      \"ledger_status\": \"COMMITTED\"\n    },\n    {\n      \"framework\": \"rawlsian\",\n      \"position\": \"ABSTAIN\",\n      \"preference\": \"pulls the lever\",\n      \"reason\": \"NONE\\\",\\\"fr\\\":true,\\\"bd\\\":\\\"NONE\\\",\\\"fic\\\":[],\\\"foq\\\":[],\\\"sps\\\":[\\\"PROP:WORLD:E3\\\",\\\"PROP:WORLD:E7\\\"],\\\"dcp\\\":[],\\\"ep\\\":[{\\\"c\\\":\\\"the trolley will kill that worker\",\n      \"live_objections\": [\n"
+          },
+          {
+            "fold": 2,
+            "omitted_start": 9686,
+            "omitted_end": 14528,
+            "omitted_chars": 4842,
+            "omitted_text": "        \"framework map for pulls the lever lacks framework-specific grounds\",\n        \"framework map for does not lacks framework-specific grounds\",\n        \"decisive numbers are not tied to the affected subject or Rawlsian position\",\n        \"Rawlsian position for A0 conflicts with its framework map\",\n        \"numeric reversal threshold lacks a scenario-grounded quantity\"\n      ],\n      \"reversal_conditions\": [\n        \"agency-based duty never to kill overrides risk gains\"\n      ],\n      \"decision_boundaries\": null,\n      \"ledger_status\": \"COMMITTED\"\n    }\n  ],\n  \"candidates\": [\n    {\n      \"specialist\": \"utilitarian\",\n      \"recommended_action\": \"pulls the lever\",\n      \"framework_vote_status\": \"ATTENUATED\",\n      \"framework_vote_reason\": \"framework compared every live action but reports residual uncertainty\",\n      \"rationale\": \"Minimises total deaths\",\n      \"decision_rule\": \"Prefer the action that results in fewer fatalities.\",\n      \"investigative_claim\": \"\",\n      \"landscape_cases\": {\n        \"pulls the lever\": \"Pulling sacrifices one but saves five, minimising deaths.\",\n        \"does not\": \"Inaction avoids direct agency but lets five die, greater loss.\"\n      },\n      \"expected_value_estimates\": {\n        \"pulls the lever\": {\n          \"value\": 1.0,\n          \"unit\": \"DEATHS\",\n          \"direction\": \"HARM\",\n          \"grounded\": true,\n          \"claimed_grounded\": true,\n          \"method\": \"DIRECT_COUNT\",\n          \"source_effect_ids\": [\n            \"E3\"\n          ],\n          \"calculation\": \"One certain death on side track\",\n          \"assumptions\": [],\n          \"validation_status\": \"ARITHMETIC_VERIFIED\",\n          \"validation_errors\": [],\n          \"arithmetic_identity\": \"1\",\n          \"symbolic_expression\": \"1\",\n          \"count_projections\": [],\n          \"valuation_scope\": \"SPECIALIST_VALUATION\"\n        },\n        \"does not\": {\n          \"value\": 5.0,\n          \"unit\": \"DEATHS\",\n          \"direction\": \"HARM\",\n          \"grounded\": true,\n          \"claimed_grounded\": true,\n          \"method\": \"DIRECT_COUNT\",\n          \"source_effect_ids\": [\n            \"E7\"\n          ],\n          \"calculation\": \"Five certain deaths on main track\",\n          \"assumptions\": [],\n          \"validation_status\": \"ARITHMETIC_VERIFIED\",\n          \"validation_errors\": [],\n          \"arithmetic_identity\": \"5\",\n          \"symbolic_expression\": \"5\",\n          \"count_projections\": [],\n          \"valuation_scope\": \"SPECIALIST_VALUATION\"\n        }\n      },\n      \"committed_native_ledger\": {\n        \"ledger_kind\": \"UTILITARIAN_CONSEQUENCE_LEDGER\",\n        \"transaction_status\": \"COMMITTED\",\n        \"records\": [\n          {\n            \"consequence_node_id\": \"UTIL_CONSEQUENCE:utilitarian:A0:183499aaeec2\",\n            \"outcome\": \"the trolley will kill that worker\",\n            \"framework\": \"UTILITARIAN\",\n            \"specialist\": \"utilitarian\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A0\",\n            \"grounded_effect_id\": \"E3\",\n            \"world_effect_id\": \"E3\",\n            \"direction\": \"HARM\",\n            \"direction_source\": \"GROUNDED_WORLD_POLARITY\",\n            \"polarity\": \"ADVERSE\",\n            \"grounded_world_polarity\": \"ADVERSE\",\n            \"probability\": \"CERTAIN\",\n            \"modality\": \"CERTAIN\",\n            \"magnitude\": \"one\",\n            \"duration\": \"UNKNOWN\",\n            \"reversibility\": \"UNKNOWN\",\n            \"support\": \"STATED\",\n            \"epistemic_status\": \"SCENARIO_GROUNDED\",\n            \"importance\": \"CRITICAL\",\n            \"valuation_reason\": \"certain loss of one life\",\n            \"scope_node_id\": \"UTIL_SCOPE:879bcf30890178b8\",\n            \"provenance\": [\n              \"delegate:utilitarian\",\n              \"cycle:1\",\n              \"grounded_effect:E3\"\n            ]\n          },\n          {\n            \"consequence_node_id\": \"UTIL_CONSEQUENCE:utilitarian:A0:22249aa61fd2\",\n            \"outcome\": \"pulls the lever\",\n            \"framework\": \"UTILITARIAN\",\n            \"specialist\": \"utilitarian\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A0\",\n            \"grounded_effect_id\": \"E1\",\n            \"world_effect_id\": \"E1\",\n            \"direction\": \"NEUTRAL\",\n            \"direction_source\": \"GROUNDED_WORLD_POLARITY\",\n            \"polarity\": \"NEUTRAL\",\n            \"grounded_world_polarity\": \"NEUTRAL\",\n            \"probability\": \"CERTAIN\",\n            \"modality\": \"CERTAIN\",\n            \"magnitude\": \"UNKNOWN\",\n            \"duration\": \"UNKNOWN\",\n            \"reversibility\": \"UNKNOWN\",\n            \"support\": \"STATED\",\n            \"epistemic_status\": \"SCENARIO_GROUNDED\",\n            \"importance\": \"LOW\",\n            \"valuation_reason\": \"neutral physical act\",\n            \"scope_node_id\": \"UTIL_SCOPE:f7203884bca9e74c\",\n            \"provenance\": [\n              \"delegate:utilitarian\",\n              \"cycle:1\",\n              \"grounde"
+          },
+          {
+            "fold": 3,
+            "omitted_start": 14528,
+            "omitted_end": 19370,
+            "omitted_chars": 4842,
+            "omitted_text": "d_effect:E1\"\n            ]\n          },\n          {\n            \"consequence_node_id\": \"UTIL_CONSEQUENCE:utilitarian:A0:713a5bb2d170\",\n            \"outcome\": \"switches the trolley onto a side track\",\n            \"framework\": \"UTILITARIAN\",\n            \"specialist\": \"utilitarian\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A0\",\n            \"grounded_effect_id\": \"E2\",\n            \"world_effect_id\": \"E2\",\n            \"direction\": \"NEUTRAL\",\n            \"direction_source\": \"GROUNDED_WORLD_POLARITY\",\n            \"polarity\": \"NEUTRAL\",\n            \"grounded_world_polarity\": \"NEUTRAL\",\n            \"probability\": \"CERTAIN\",\n            \"modality\": \"CERTAIN\",\n            \"magnitude\": \"UNKNOWN\",\n            \"duration\": \"UNKNOWN\",\n            \"reversibility\": \"UNKNOWN\",\n            \"support\": \"STATED\",\n            \"epistemic_status\": \"SCENARIO_GROUNDED\",\n            \"importance\": \"LOW\",\n            \"valuation_reason\": \"neutral track switch\",\n            \"scope_node_id\": \"UTIL_SCOPE:182e607160b94be4\",\n            \"provenance\": [\n              \"delegate:utilitarian\",\n              \"cycle:1\",\n              \"grounded_effect:E2\"\n            ]\n          },\n          {\n            \"consequence_node_id\": \"UTIL_CONSEQUENCE:utilitarian:A0:de793ba19330\",\n            \"outcome\": \"spare the five\",\n            \"framework\": \"UTILITARIAN\",\n            \"specialist\": \"utilitarian\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A0\",\n            \"grounded_effect_id\": \"E4\",\n            \"world_effect_id\": \"E4\",\n            \"direction\": \"BENEFIT\",\n            \"direction_source\": \"GROUNDED_WORLD_POLARITY\",\n            \"polarity\": \"BENEFICIAL\",\n            \"grounded_world_polarity\": \"BENEFICIAL\",\n            \"probability\": \"CERTAIN\",\n            \"modality\": \"CERTAIN\",\n            \"magnitude\": \"five\",\n            \"duration\": \"UNKNOWN\",\n            \"reversibility\": \"UNKNOWN\",\n            \"support\": \"STATED\",\n            \"epistemic_status\": \"SCENARIO_GROUNDED\",\n            \"importance\": \"CRITICAL\",\n            \"valuation_reason\": \"certain saving of five lives\",\n            \"scope_node_id\": \"UTIL_SCOPE:e099130fb57c35fc\",\n            \"provenance\": [\n              \"delegate:utilitarian\",\n              \"cycle:1\",\n              \"grounded_effect:E4\"\n            ]\n          },\n          {\n            \"consequence_node_id\": \"UTIL_CONSEQUENCE:utilitarian:A1:a29d84f0185e\",\n            \"outcome\": \"it will kill the five\",\n            \"framework\": \"UTILITARIAN\",\n            \"specialist\": \"utilitarian\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A1\",\n            \"grounded_effect_id\": \"E7\",\n            \"world_effect_id\": \"E7\",\n            \"direction\": \"HARM\",\n            \"direction_source\": \"GROUNDED_WORLD_POLARITY\",\n            \"polarity\": \"ADVERSE\",\n            \"grounded_world_polarity\": \"ADVERSE\",\n            \"probability\": \"CERTAIN\",\n            \"modality\": \"CERTAIN\",\n            \"magnitude\": \"five\",\n            \"duration\": \"UNKNOWN\",\n            \"reversibility\": \"UNKNOWN\",\n            \"support\": \"STATED\",\n            \"epistemic_status\": \"SCENARIO_GROUNDED\",\n            \"importance\": \"CRITICAL\",\n            \"valuation_reason\": \"certain loss of five lives\",\n            \"scope_node_id\": \"UTIL_SCOPE:e099130fb57c35fc\",\n            \"provenance\": [\n              \"delegate:utilitarian\",\n              \"cycle:1\",\n              \"grounded_effect:E7\"\n            ]\n          },\n          {\n            \"consequence_node_id\": \"UTIL_CONSEQUENCE:utilitarian:A1:a8d0a1117e28\",\n            \"outcome\": \"spare the one\",\n            \"framework\": \"UTILITARIAN\",\n            \"specialist\": \"utilitarian\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A1\",\n            \"grounded_effect_id\": \"E8\",\n            \"world_effect_id\": \"E8\",\n            \"direction\": \"BENEFIT\",\n            \"direction_source\": \"GROUNDED_WORLD_POLARITY\",\n            \"polarity\": \"BENEFICIAL\",\n            \"grounded_world_polarity\": \"BENEFICIAL\",\n            \"probability\": \"CERTAIN\",\n            \"modality\": \"CERTAIN\",\n            \"magnitude\": \"one\",\n            \"duration\": \"UNKNOWN\",\n            \"reversibility\": \"UNKNOWN\",\n            \"support\": \"STATED\",\n            \"epistemic_status\": \"SCENARIO_GROUNDED\",\n            \"importance\": \"MEDIUM\",\n            \"valuation_reason\": \"saving one life\",\n            \"scope_node_id\": \"UTIL_SCOPE:879bcf30890178b8\",\n            \"provenance\": [\n              \"delegate:utilitarian\",\n              \"cycle:1\",\n              \"grounded_effect:E8\"\n            ]\n          },\n          {\n            \"consequence_node_id\": \"UTIL_CONSEQUENCE:utilitarian:A1:b073b98568c2\",\n            \"outcome\": \"does not\",\n            \"framework\": \"UTILITARIAN\",\n            \"specialist\": \"utilitarian\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A1\",\n            \"grounded_effect_id"
+          },
+          {
+            "fold": 4,
+            "omitted_start": 19370,
+            "omitted_end": 24212,
+            "omitted_chars": 4842,
+            "omitted_text": "\": \"E6\",\n            \"world_effect_id\": \"E6\",\n            \"direction\": \"NEUTRAL\",\n            \"direction_source\": \"GROUNDED_WORLD_POLARITY\",\n            \"polarity\": \"NEUTRAL\",\n            \"grounded_world_polarity\": \"NEUTRAL\",\n            \"probability\": \"CERTAIN\",\n            \"modality\": \"CERTAIN\",\n            \"magnitude\": \"UNKNOWN\",\n            \"duration\": \"UNKNOWN\",\n            \"reversibility\": \"UNKNOWN\",\n            \"support\": \"STATED\",\n            \"epistemic_status\": \"SCENARIO_GROUNDED\",\n            \"importance\": \"LOW\",\n            \"valuation_reason\": \"no switch occurs\",\n            \"scope_node_id\": \"UTIL_SCOPE:f7203884bca9e74c\",\n            \"provenance\": [\n              \"delegate:utilitarian\",\n              \"cycle:1\",\n              \"grounded_effect:E6\"\n            ]\n          },\n          {\n            \"consequence_node_id\": \"UTIL_CONSEQUENCE:utilitarian:A1:ef099fcece6e\",\n            \"outcome\": \"does not\",\n            \"framework\": \"UTILITARIAN\",\n            \"specialist\": \"utilitarian\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A1\",\n            \"grounded_effect_id\": \"E5\",\n            \"world_effect_id\": \"E5\",\n            \"direction\": \"NEUTRAL\",\n            \"direction_source\": \"GROUNDED_WORLD_POLARITY\",\n            \"polarity\": \"NEUTRAL\",\n            \"grounded_world_polarity\": \"NEUTRAL\",\n            \"probability\": \"CERTAIN\",\n            \"modality\": \"CERTAIN\",\n            \"magnitude\": \"UNKNOWN\",\n            \"duration\": \"UNKNOWN\",\n            \"reversibility\": \"UNKNOWN\",\n            \"support\": \"STATED\",\n            \"epistemic_status\": \"SCENARIO_GROUNDED\",\n            \"importance\": \"LOW\",\n            \"valuation_reason\": \"inaction itself neutral\",\n            \"scope_node_id\": \"UTIL_SCOPE:f7203884bca9e74c\",\n            \"provenance\": [\n              \"delegate:utilitarian\",\n              \"cycle:1\",\n              \"grounded_effect:E5\"\n            ]\n          }\n        ]\n      },\n      \"action_scores\": {\n        \"pulls the lever\": 0.95,\n        \"does not\": 0.05\n      },\n      \"framework_specific_open_questions\": [],\n      \"framework_internal_conflicts\": [],\n      \"normative_reversal_threshold\": \"NONE\",\n      \"factual_reversal_threshold\": \"If the side track had five or more workers, the ranking would reverse.\",\n      \"comparison_complete\": false,\n      \"interim_action\": \"pulls the lever\",\n      \"adjudication_status\": \"SUPPORTS\",\n      \"epistemic_binding_notes\": [],\n      \"selection_status\": \"SELECTED\",\n      \"action_admissibility\": {\n        \"pulls the lever\": \"PERMISSIBLE\",\n        \"does not\": \"REJECTED\"\n      }\n    },\n    {\n      \"specialist\": \"deontological\",\n      \"recommended_action\": \"does not\",\n      \"framework_vote_status\": \"ABSTAIN\",\n      \"framework_vote_reason\": \"the duty ledger permits the selected action but does not rank it above its rivals\",\n      \"rationale\": \"Deontology ranks one worker's refrain from killing innocents above five workers's imperfect duty to rescue through respect persons, but that priority holds only if A0 is genuinely provisionally favored under incomplete adjudication, and the\",\n      \"decision_rule\": \"Provisionally: Treat the duty priority as unestablished until whether the harm-relation follows the admitted graph's causal topology rather than a relabel chosen to fit the verdict; and whether an in-action causal path makes the burden inst\",\n      \"investigative_claim\": \"UNRESOLVED DUTY CONFLICT: one worker: refrain from killing innocents ↔ five workers: imperfect duty to rescue. Current reasoning leans does not, but the competing strict claim has not been vindicated or defeated.\",\n      \"landscape_cases\": {\n        \"pulls the lever\": \"PROHIBITED: intentionally kills an innocent, violating a perfect negative duty not to kill or use a\",\n        \"does not\": \"PERMISSIBLE: refrains from killing; omission allows harm but does not breach any perfect duty\"\n      },\n      \"expected_value_estimates\": {\n        \"pulls the lever\": {\n          \"value\": 0.0,\n          \"unit\": \"NONE\",\n          \"direction\": \"HARM\",\n          \"grounded\": false,\n          \"claimed_grounded\": false,\n          \"method\": \"NOT_COMPUTED\",\n          \"source_effect_ids\": [],\n          \"calculation\": \"not computed\",\n          \"assumptions\": [],\n          \"validation_status\": \"NOT_CLAIMED\",\n          \"validation_errors\": [],\n          \"arithmetic_identity\": \"\",\n          \"symbolic_expression\": \"\",\n          \"count_projections\": [],\n          \"valuation_scope\": \"SPECIALIST_VALUATION\"\n        },\n        \"does not\": {\n          \"value\": 0.0,\n          \"unit\": \"NONE\",\n          \"direction\": \"HARM\",\n          \"grounded\": false,\n          \"claimed_grounded\": false,\n          \"method\": \"NOT_COMPUTED\",\n          \"source_effect_ids\": [],\n          \"calculation\": \"not computed\",\n          \"assumptions\": [],\n          \"validation_status\": \"NOT_CLAIMED\",\n          "
+          },
+          {
+            "fold": 5,
+            "omitted_start": 24212,
+            "omitted_end": 29054,
+            "omitted_chars": 4842,
+            "omitted_text": "\"validation_errors\": [],\n          \"arithmetic_identity\": \"\",\n          \"symbolic_expression\": \"\",\n          \"count_projections\": [],\n          \"valuation_scope\": \"SPECIALIST_VALUATION\"\n        }\n      },\n      \"committed_native_ledger\": {\n        \"ledger_kind\": \"DEONTOLOGICAL_DUTY_LEDGER\",\n        \"transaction_status\": \"COMMITTED_WITH_UNCERTAINTY\",\n        \"records\": [\n          {\n            \"assessment_node_id\": \"DEON_ASSESSMENT:deontological:A0\",\n            \"framework\": \"DEONTOLOGICAL\",\n            \"specialist\": \"deontological\",\n            \"assessment_role\": \"PRIMARY\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A0\",\n            \"verdict\": \"CONFLICTED\",\n            \"proposed_verdict\": \"CONFLICTED\",\n            \"relation\": \"VIOLATES\",\n            \"proposed_relation\": \"VIOLATES\",\n            \"norm_kind\": \"RESPECT_PERSONS\",\n            \"norm_node_id\": \"DEON_NORM:05d52a19b110e908\",\n            \"party_node_id\": \"DEON_PARTY:879bcf30890178b8\",\n            \"bearer_node_id\": \"DEON_BEARER:94aec9fbed989ece\",\n            \"competing_norm\": \"imperfect duty to aid\",\n            \"competing_norm_kind\": \"DUTY\",\n            \"competing_relation\": \"CONFLICTS\",\n            \"competing_protected_party\": \"five workers\",\n            \"competing_reason\": \"saving five is only an imperfect duty\",\n            \"duty_type\": \"PERFECT_NEGATIVE\",\n            \"harm_relation\": \"DOING_HARM\",\n            \"special_obligation_status\": \"NOT_REQUIRED\",\n            \"special_obligation_basis\": \"no special relationship\",\n            \"means_relation\": \"INTENDED_AS_MEANS\",\n            \"governing_norm\": \"UNRESOLVED\",\n            \"priority_basis\": \"UNRESOLVED\",\n            \"priority_rule\": \"perfect negative duty prevails\",\n            \"protected_standing\": \"BODILY_INTEGRITY\",\n            \"competing_protected_standing\": \"OTHER\",\n            \"coercion_kind\": \"NONE\",\n            \"coercive_actor\": \"NONE\",\n            \"coerced_party\": \"NONE\",\n            \"public_justification\": \"No public law can license killing one innocent\",\n            \"reciprocity_status\": \"FAILED\",\n            \"necessity_status\": \"UNKNOWN\",\n            \"authorization_status\": \"NOT_APPLICABLE\",\n            \"derivation\": \"RESPECT_PERSONS\",\n            \"resolution_status\": \"CONTESTED\",\n            \"calibration_errors\": [\n              \"doing-harm classification lacks an agent-caused settled welfare harm on the protected party\",\n              \"intended-as-means classification lacks an in-action causal path\",\n              \"resolved adjudication rests on unsupported decisive premises\"\n            ],\n            \"calibration_issues\": [\n              {\n                \"kind\": \"HARM_RELATION_GRAPH_MISALIGN\",\n                \"message\": \"doing-harm classification lacks an agent-caused settled welfare harm on the protected party\",\n                \"status\": \"ACTIVE\"\n              },\n              {\n                \"kind\": \"INTENDED_AS_MEANS_LACKS_PATH\",\n                \"message\": \"intended-as-means classification lacks an in-action causal path\",\n                \"status\": \"ACTIVE\"\n              },\n              {\n                \"kind\": \"CALIBRATION\",\n                \"message\": \"resolved adjudication rests on unsupported decisive premises\",\n                \"status\": \"ACTIVE\"\n              }\n            ],\n            \"calibration_support_node_ids\": [],\n            \"evidence_basis\": \"ACTION_GRAPH\",\n            \"epistemic_status\": \"GROUNDED_PARTY\",\n            \"reason\": \"kills innocent as means\",\n            \"protected_party\": \"one worker\",\n            \"norm\": \"do not intentionally kill\",\n            \"duty_bearer\": \"maria\",\n            \"provenance\": [\n              \"delegate:deontological\",\n              \"cycle:1\"\n            ]\n          },\n          {\n            \"assessment_node_id\": \"DEON_ASSESSMENT:deontological:A1\",\n            \"framework\": \"DEONTOLOGICAL\",\n            \"specialist\": \"deontological\",\n            \"assessment_role\": \"PRIMARY\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A1\",\n            \"verdict\": \"PERMISSIBLE\",\n            \"proposed_verdict\": \"PERMISSIBLE\",\n            \"relation\": \"CONSISTENT\",\n            \"proposed_relation\": \"CONSISTENT\",\n            \"norm_kind\": \"DUTY\",\n            \"norm_node_id\": \"DEON_NORM:32339e170b4286d9\",\n            \"party_node_id\": \"DEON_PARTY:879bcf30890178b8\",\n            \"bearer_node_id\": \"DEON_BEARER:94aec9fbed989ece\",\n            \"competing_norm\": \"imperfect duty to rescue\",\n            \"competing_norm_kind\": \"DUTY\",\n            \"competing_relation\": \"CONFLICTS\",\n            \"competing_protected_party\": \"five workers\",\n            \"competing_reason\": \"rescue is imperfect\",\n            \"duty_type\": \"PERFECT_NEGATIVE\",\n            \"harm_relation\": \"ALLOWING_HARM\",\n            \"special_obligation_status\": \"NOT_REQUIRED\",\n            \"special_obligation_basis\": \"no "
+          },
+          {
+            "fold": 6,
+            "omitted_start": 29054,
+            "omitted_end": 33896,
+            "omitted_chars": 4842,
+            "omitted_text": "special obligation to five\",\n            \"means_relation\": \"NO_INSTRUMENTALIZATION\",\n            \"governing_norm\": \"PRIMARY\",\n            \"priority_basis\": \"RESPECT_PERSONS\",\n            \"priority_rule\": \"perfect duty satisfied\",\n            \"protected_standing\": \"BODILY_INTEGRITY\",\n            \"competing_protected_standing\": \"OTHER\",\n            \"coercion_kind\": \"NONE\",\n            \"coercive_actor\": \"NONE\",\n            \"coerced_party\": \"NONE\",\n            \"public_justification\": \"No coercive killing; omission is legally tolerable\",\n            \"reciprocity_status\": \"SATISFIED\",\n            \"necessity_status\": \"UNKNOWN\",\n            \"authorization_status\": \"NOT_APPLICABLE\",\n            \"derivation\": \"RESPECT_PERSONS\",\n            \"resolution_status\": \"RESOLVED\",\n            \"calibration_errors\": [],\n            \"calibration_issues\": [],\n            \"calibration_support_node_ids\": [],\n            \"evidence_basis\": \"ACTION_GRAPH\",\n            \"epistemic_status\": \"GROUNDED_PARTY\",\n            \"reason\": \"does not kill\",\n            \"protected_party\": \"one worker\",\n            \"norm\": \"refrain from killing innocents\",\n            \"duty_bearer\": \"maria\",\n            \"provenance\": [\n              \"delegate:deontological\",\n              \"cycle:1\"\n            ]\n          }\n        ]\n      },\n      \"action_scores\": {\n        \"pulls the lever\": 0.305,\n        \"does not\": 0.6950000000000001\n      },\n      \"framework_specific_open_questions\": [\n        \"whether the harm-relation follows the admitted graph's causal topology rather than a relabel chosen to fit the verdict\",\n        \"whether an in-action causal path makes the burden instrumental to the chosen end\"\n      ],\n      \"framework_internal_conflicts\": [\n        \"one worker: refrain from killing innocents ↔ five workers: imperfect duty to rescue\",\n        \"A0 prohibited by do not intentionally kill ↔ whether the harm-relation follows the admitted graph's causal topology rather than a relabel chosen to fit the verdict\",\n        \"A0 prohibited by do not intentionally kill ↔ whether an in-action causal path makes the burden instrumental to the chosen end\"\n      ],\n      \"normative_reversal_threshold\": \"If perfect duty could be outweighed\",\n      \"factual_reversal_threshold\": \"NONE\",\n      \"comparison_complete\": true,\n      \"interim_action\": \"does not\",\n      \"adjudication_status\": \"PROVISIONAL_LEANING\",\n      \"epistemic_binding_notes\": [],\n      \"selection_status\": \"PROVISIONAL\",\n      \"action_admissibility\": {\n        \"pulls the lever\": \"REJECTED\",\n        \"does not\": \"PERMISSIBLE\"\n      }\n    },\n    {\n      \"specialist\": \"care\",\n      \"recommended_action\": \"pulls the lever\",\n      \"framework_vote_status\": \"ATTENUATED\",\n      \"framework_vote_reason\": \"framework ranking retains an unresolved decision-critical dependency\",\n      \"rationale\": \"lever aids more vulnerable.\",\n      \"decision_rule\": \"Prefer A0 when it answers a greater entrusted acute need than A1 neglects.\",\n      \"investigative_claim\": \"Would verifying this unestablished consequence reverse the admitted ranking: five workers are entrusted to the decision maker?\",\n      \"landscape_cases\": {\n        \"pulls the lever\": \"Pulling the lever directly saves five workers whose immediate survival depends on Maria’s sole, feas\",\n        \"does not\": \"Not acting avoids killing the side worker but neglects the entrusted urgent need of five in trolley\\u001b\"\n      },\n      \"expected_value_estimates\": {\n        \"pulls the lever\": {\n          \"value\": 0.0,\n          \"unit\": \"NONE\",\n          \"direction\": \"HARM\",\n          \"grounded\": false,\n          \"claimed_grounded\": false,\n          \"method\": \"NOT_COMPUTED\",\n          \"source_effect_ids\": [],\n          \"calculation\": \"not computed\",\n          \"assumptions\": [],\n          \"validation_status\": \"NOT_CLAIMED\",\n          \"validation_errors\": [],\n          \"arithmetic_identity\": \"\",\n          \"symbolic_expression\": \"\",\n          \"count_projections\": [],\n          \"valuation_scope\": \"SPECIALIST_VALUATION\"\n        },\n        \"does not\": {\n          \"value\": 0.0,\n          \"unit\": \"NONE\",\n          \"direction\": \"HARM\",\n          \"grounded\": false,\n          \"claimed_grounded\": false,\n          \"method\": \"NOT_COMPUTED\",\n          \"source_effect_ids\": [],\n          \"calculation\": \"not computed\",\n          \"assumptions\": [],\n          \"validation_status\": \"NOT_CLAIMED\",\n          \"validation_errors\": [],\n          \"arithmetic_identity\": \"\",\n          \"symbolic_expression\": \"\",\n          \"count_projections\": [],\n          \"valuation_scope\": \"SPECIALIST_VALUATION\"\n        }\n      },\n      \"committed_native_ledger\": {\n        \"ledger_kind\": \"CARE_RELATIONSHIP_LEDGER\",\n        \"transaction_status\": \"COMMITTED_WITH_UNCERTAINTY\",\n        \"records\": [\n          {\n            \"assessment_node_id\": \"CARE_RELATIONSHIP:care:A0\",\n      "
+          },
+          {
+            "fold": 7,
+            "omitted_start": 33896,
+            "omitted_end": 38738,
+            "omitted_chars": 4842,
+            "omitted_text": "      \"framework\": \"CARE\",\n            \"specialist\": \"care\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A0\",\n            \"verdict\": \"RESPONSIVE\",\n            \"affected_party\": \"five workers\",\n            \"relationship_type\": \"ENTRUSTED\",\n            \"relationship_evidence_status\": \"UNVERIFIED\",\n            \"dependency_source\": \"Maria alone can avert their imminent death\",\n            \"responsibility_basis\": \"exclusive situational control imposes responsibility\",\n            \"need_kind\": \"SURVIVAL_HEALTH\",\n            \"need_urgency\": \"IMMEDIATE\",\n            \"trust_effect\": \"PRESERVES\",\n            \"responsiveness\": \"DIRECT\",\n            \"feasibility\": \"ESTABLISHED\",\n            \"competing_care_claim\": \"side-track worker also faces survival need\",\n            \"resolution_status\": \"CONTESTED\",\n            \"evidence_basis\": \"ACTION_GRAPH\",\n            \"reason\": \"Action directly meets entrusted immediate need\",\n            \"ranking_basis\": \"ENTRUSTED_RESPONSIBILITY\",\n            \"grounded_effect_ids\": [\n              \"E4\"\n            ],\n            \"grounded_consequence_ids\": [\n              \"A0:WORLD_EFFECT:E4\"\n            ],\n            \"effect_grounding_status\": \"MATCHED\",\n            \"epistemic_status\": \"EXPLICIT_UNCERTAINTY\",\n            \"provenance\": [\n              \"delegate:care\",\n              \"cycle:1\"\n            ]\n          },\n          {\n            \"assessment_node_id\": \"CARE_RELATIONSHIP:care:A1\",\n            \"framework\": \"CARE\",\n            \"specialist\": \"care\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A1\",\n            \"verdict\": \"NEGLECTFUL\",\n            \"affected_party\": \"five workers\",\n            \"relationship_type\": \"ENTRUSTED\",\n            \"relationship_evidence_status\": \"UNVERIFIED\",\n            \"dependency_source\": \"same as above\",\n            \"responsibility_basis\": \"ignores responsibility despite control\",\n            \"need_kind\": \"SURVIVAL_HEALTH\",\n            \"need_urgency\": \"IMMEDIATE\",\n            \"trust_effect\": \"BETRAYS\",\n            \"responsiveness\": \"WITHHELD\",\n            \"feasibility\": \"ESTABLISHED\",\n            \"competing_care_claim\": \"protects one worker on side track\",\n            \"resolution_status\": \"CONTESTED\",\n            \"evidence_basis\": \"ACTION_GRAPH\",\n            \"reason\": \"Fails entrusted care to five to avoid direct harm to one\",\n            \"ranking_basis\": \"ENTRUSTED_RESPONSIBILITY\",\n            \"grounded_effect_ids\": [\n              \"E7\"\n            ],\n            \"grounded_consequence_ids\": [\n              \"A1:WORLD_EFFECT:E7\"\n            ],\n            \"effect_grounding_status\": \"MATCHED\",\n            \"epistemic_status\": \"EXPLICIT_UNCERTAINTY\",\n            \"provenance\": [\n              \"delegate:care\",\n              \"cycle:1\"\n            ]\n          }\n        ]\n      },\n      \"action_scores\": {\n        \"pulls the lever\": 0.6950000000000001,\n        \"does not\": 0.305\n      },\n      \"framework_specific_open_questions\": [\n        \"Would verifying this unestablished consequence reverse the admitted ranking: five workers are entrusted to the decision maker?\"\n      ],\n      \"framework_internal_conflicts\": [],\n      \"normative_reversal_threshold\": \"care priority shifts from immediacy to non-interference\",\n      \"factual_reversal_threshold\": \"side track holds five or more\",\n      \"comparison_complete\": true,\n      \"interim_action\": \"pulls the lever\",\n      \"adjudication_status\": \"SUPPORTS\",\n      \"epistemic_binding_notes\": [],\n      \"selection_status\": \"SELECTED\",\n      \"action_admissibility\": {\n        \"pulls the lever\": \"PERMISSIBLE\",\n        \"does not\": \"REJECTED\"\n      }\n    },\n    {\n      \"specialist\": \"virtue\",\n      \"recommended_action\": \"pulls the lever\",\n      \"framework_vote_status\": \"FULL\",\n      \"framework_vote_reason\": \"framework ranking is supported by its committed typed ledger\",\n      \"rationale\": \"courageous compassionate choice\",\n      \"decision_rule\": \"prefer A0 when it preserves lives without vicious intent\",\n      \"investigative_claim\": \"\",\n      \"landscape_cases\": {\n        \"pulls the lever\": \"Pulling decisively saves more people; shows courage, benevolence, and prudent responsibility despite\",\n        \"does not\": \"Refraining avoids direct killing but lets five die; looks like negligence, cowardice, or misplaced\"\n      },\n      \"expected_value_estimates\": {\n        \"pulls the lever\": {\n          \"value\": 0.0,\n          \"unit\": \"NONE\",\n          \"direction\": \"HARM\",\n          \"grounded\": false,\n          \"claimed_grounded\": false,\n          \"method\": \"NOT_COMPUTED\",\n          \"source_effect_ids\": [],\n          \"calculation\": \"not computed\",\n          \"assumptions\": [],\n          \"validation_status\": \"NOT_CLAIMED\",\n          \"validation_errors\": [],\n          \"arithmetic_identity\": \"\",\n          \"symbolic_expression\": \"\",\n          \"count_projections\": [],"
+          },
+          {
+            "fold": 8,
+            "omitted_start": 38738,
+            "omitted_end": 43580,
+            "omitted_chars": 4842,
+            "omitted_text": "\n          \"valuation_scope\": \"SPECIALIST_VALUATION\"\n        },\n        \"does not\": {\n          \"value\": 0.0,\n          \"unit\": \"NONE\",\n          \"direction\": \"HARM\",\n          \"grounded\": false,\n          \"claimed_grounded\": false,\n          \"method\": \"NOT_COMPUTED\",\n          \"source_effect_ids\": [],\n          \"calculation\": \"not computed\",\n          \"assumptions\": [],\n          \"validation_status\": \"NOT_CLAIMED\",\n          \"validation_errors\": [],\n          \"arithmetic_identity\": \"\",\n          \"symbolic_expression\": \"\",\n          \"count_projections\": [],\n          \"valuation_scope\": \"SPECIALIST_VALUATION\"\n        }\n      },\n      \"committed_native_ledger\": {\n        \"ledger_kind\": \"VIRTUE_CHARACTER_LEDGER\",\n        \"transaction_status\": \"COMMITTED\",\n        \"records\": [\n          {\n            \"assessment_node_id\": \"VIRTUE_CHARACTER:virtue:A0\",\n            \"framework\": \"VIRTUE\",\n            \"specialist\": \"virtue\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A0\",\n            \"verdict\": \"EXEMPLIFIES\",\n            \"actor_role\": \"rail operator\",\n            \"virtues\": \"courage, benevolence, justice, prudence\",\n            \"vice_risk\": \"risk of callousness\",\n            \"circumstance\": \"life-or-death emergency\",\n            \"evidence_basis\": \"FRAMEWORK_ONLY\",\n            \"reason\": \"A0 matches virtuous decisive aid\",\n            \"ranking_basis\": \"PRACTICAL_WISDOM\",\n            \"grounded_effect_ids\": [],\n            \"grounded_consequence_ids\": [],\n            \"epistemic_status\": \"FRAMEWORK_GROUNDED\",\n            \"provenance\": [\n              \"delegate:virtue\",\n              \"cycle:1\"\n            ]\n          },\n          {\n            \"assessment_node_id\": \"VIRTUE_CHARACTER:virtue:A1\",\n            \"framework\": \"VIRTUE\",\n            \"specialist\": \"virtue\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A1\",\n            \"verdict\": \"UNDERMINES\",\n            \"actor_role\": \"rail operator\",\n            \"virtues\": \"compassion\",\n            \"vice_risk\": \"cowardice, negligence\",\n            \"circumstance\": \"life-or-death emergency\",\n            \"evidence_basis\": \"FRAMEWORK_ONLY\",\n            \"reason\": \"A1 shirks duty to protect\",\n            \"ranking_basis\": \"PRACTICAL_WISDOM\",\n            \"grounded_effect_ids\": [],\n            \"grounded_consequence_ids\": [],\n            \"epistemic_status\": \"FRAMEWORK_GROUNDED\",\n            \"provenance\": [\n              \"delegate:virtue\",\n              \"cycle:1\"\n            ]\n          }\n        ]\n      },\n      \"action_scores\": {\n        \"pulls the lever\": 0.8,\n        \"does not\": 0.2\n      },\n      \"framework_specific_open_questions\": [],\n      \"framework_internal_conflicts\": [],\n      \"normative_reversal_threshold\": \"if any direct killing is always vicious\",\n      \"factual_reversal_threshold\": \"if lever saved fewer lives than it costs\",\n      \"comparison_complete\": true,\n      \"interim_action\": \"pulls the lever\",\n      \"adjudication_status\": \"SUPPORTS\",\n      \"epistemic_binding_notes\": [],\n      \"selection_status\": \"SELECTED\",\n      \"action_admissibility\": {\n        \"pulls the lever\": \"PERMISSIBLE\",\n        \"does not\": \"REJECTED\"\n      }\n    },\n    {\n      \"specialist\": \"rawlsian\",\n      \"recommended_action\": \"pulls the lever\",\n      \"framework_vote_status\": \"ABSTAIN\",\n      \"framework_vote_reason\": \"decisive aggregation is not licensed by the committed Rawlsian ranking basis\",\n      \"rationale\": \"Veil favors lower risk\",\n      \"decision_rule\": \"prefer A0 when it lowers the worst individual’s chance of death\",\n      \"investigative_claim\": \"\",\n      \"landscape_cases\": {\n        \"pulls the lever\": \"MIXED: lever saves five and distributes only a 1⁄6 death risk to each worker\",\n        \"does not\": \"WORSENS: inaction leaves a 5⁄6 death risk on each worker\"\n      },\n      \"expected_value_estimates\": {\n        \"pulls the lever\": {\n          \"value\": 0.0,\n          \"unit\": \"NONE\",\n          \"direction\": \"HARM\",\n          \"grounded\": false,\n          \"claimed_grounded\": false,\n          \"method\": \"NOT_COMPUTED\",\n          \"source_effect_ids\": [],\n          \"calculation\": \"not computed\",\n          \"assumptions\": [],\n          \"validation_status\": \"NOT_CLAIMED\",\n          \"validation_errors\": [],\n          \"arithmetic_identity\": \"\",\n          \"symbolic_expression\": \"\",\n          \"count_projections\": [],\n          \"valuation_scope\": \"SPECIALIST_VALUATION\"\n        },\n        \"does not\": {\n          \"value\": 0.0,\n          \"unit\": \"NONE\",\n          \"direction\": \"HARM\",\n          \"grounded\": false,\n          \"claimed_grounded\": false,\n          \"method\": \"NOT_COMPUTED\",\n          \"source_effect_ids\": [],\n          \"calculation\": \"not computed\",\n          \"assumptions\": [],\n          \"validation_status\": \"NOT_CLAIMED\",\n          \"validation_errors\": [],\n          \"arithmetic_identity\": \"\",\n          \"symbolic_express"
+          },
+          {
+            "fold": 9,
+            "omitted_start": 43580,
+            "omitted_end": 48422,
+            "omitted_chars": 4842,
+            "omitted_text": "ion\": \"\",\n          \"count_projections\": [],\n          \"valuation_scope\": \"SPECIALIST_VALUATION\"\n        }\n      },\n      \"committed_native_ledger\": {\n        \"ledger_kind\": \"RAWLSIAN_POSITION_LEDGER\",\n        \"transaction_status\": \"COMMITTED\",\n        \"records\": [\n          {\n            \"assessment_node_id\": \"RAWLS_POSITION:rawlsian:A0:97f0c4c20221b8d7\",\n            \"framework\": \"RAWLSIAN\",\n            \"specialist\": \"rawlsian\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A0\",\n            \"compared_to_action_id\": \"A1\",\n            \"effect\": \"MIXED\",\n            \"proposed_effect\": \"IMPROVES\",\n            \"subject\": \"each worker behind veil\",\n            \"proposed_subject\": \"each worker behind veil\",\n            \"dimension_subject_repaired\": false,\n            \"affected_subject\": \"each worker behind veil\",\n            \"subject_kind\": \"INDIVIDUAL\",\n            \"dimension\": \"BASIC_INTEREST_SECURITY\",\n            \"basic_liberty_kind\": \"NOT_APPLICABLE\",\n            \"institutional_relation\": \"NATURAL_CONTINGENCY\",\n            \"additional_dimensions\": [],\n            \"dimension_bundle\": [\n              \"BASIC_INTEREST_SECURITY\"\n            ],\n            \"comparative_effect\": \"MIXED\",\n            \"group_node_id\": \"RAWLS_SUBJECT:057f6cc4da7a58f3\",\n            \"subject_node_id\": \"RAWLS_SUBJECT:057f6cc4da7a58f3\",\n            \"dimension_node_id\": \"RAWLS_VALUE:BASIC_INTEREST_SECURITY\",\n            \"subject_binding_mode\": \"LEXICAL\",\n            \"group_binding_mode\": \"LEXICAL\",\n            \"evidence_basis\": \"ACTION_GRAPH\",\n            \"epistemic_status\": \"MIXED_COMPARISON\",\n            \"reason\": \"A0 lowers individual death risk\",\n            \"ranking_basis\": \"ORIGINAL_POSITION_PUBLIC_RULE\",\n            \"ranking_classification_justification\": \"rule chosen under veil to minimise maximum death risk\",\n            \"lexical_priority_justification\": \"no basic liberty conflict established\",\n            \"liberty_status\": \"NOT_APPLICABLE\",\n            \"subject_selection_status\": \"BOUND_TO_ACTION\",\n            \"group_selection_status\": \"BOUND_TO_ACTION\",\n            \"provenance\": [\n              \"delegate:rawlsian\",\n              \"cycle:1\"\n            ]\n          },\n          {\n            \"assessment_node_id\": \"RAWLS_POSITION:rawlsian:A1:1c14ec0a550cdf37\",\n            \"framework\": \"RAWLSIAN\",\n            \"specialist\": \"rawlsian\",\n            \"cycle\": 1,\n            \"canonical_action_id\": \"A1\",\n            \"compared_to_action_id\": \"A0\",\n            \"effect\": \"MIXED\",\n            \"proposed_effect\": \"WORSENS\",\n            \"subject\": \"each worker behind veil\",\n            \"proposed_subject\": \"each worker behind veil\",\n            \"dimension_subject_repaired\": false,\n            \"affected_subject\": \"each worker behind veil\",\n            \"subject_kind\": \"INDIVIDUAL\",\n            \"dimension\": \"BASIC_INTEREST_SECURITY\",\n            \"basic_liberty_kind\": \"NOT_APPLICABLE\",\n            \"institutional_relation\": \"NATURAL_CONTINGENCY\",\n            \"additional_dimensions\": [],\n            \"dimension_bundle\": [\n              \"BASIC_INTEREST_SECURITY\"\n            ],\n            \"comparative_effect\": \"MIXED\",\n            \"group_node_id\": \"RAWLS_SUBJECT:057f6cc4da7a58f3\",\n            \"subject_node_id\": \"RAWLS_SUBJECT:057f6cc4da7a58f3\",\n            \"dimension_node_id\": \"RAWLS_VALUE:BASIC_INTEREST_SECURITY\",\n            \"subject_binding_mode\": \"LEXICAL\",\n            \"group_binding_mode\": \"LEXICAL\",\n            \"evidence_basis\": \"ACTION_GRAPH\",\n            \"epistemic_status\": \"MIXED_COMPARISON\",\n            \"reason\": \"A1 leaves higher individual death risk\",\n            \"ranking_basis\": \"ORIGINAL_POSITION_PUBLIC_RULE\",\n            \"ranking_classification_justification\": \"rule chosen under veil to minimise maximum death risk\",\n            \"lexical_priority_justification\": \"no basic liberty conflict established\",\n            \"liberty_status\": \"NOT_APPLICABLE\",\n            \"subject_selection_status\": \"BOUND_TO_ACTION\",\n            \"group_selection_status\": \"BOUND_TO_ACTION\",\n            \"provenance\": [\n              \"delegate:rawlsian\",\n              \"cycle:1\"\n            ]\n          }\n        ]\n      },\n      \"action_scores\": {\n        \"pulls the lever\": 0.6950000000000001,\n        \"does not\": 0.305\n      },\n      \"framework_specific_open_questions\": [],\n      \"framework_internal_conflicts\": [],\n      \"normative_reversal_threshold\": \"agency-based duty never to kill overrides risk gains\",\n      \"factual_reversal_threshold\": \"NONE\",\n      \"comparison_complete\": true,\n      \"interim_action\": \"pulls the lever\",\n      \"adjudication_status\": \"SUPPORTS\",\n      \"epistemic_binding_notes\": [],\n      \"selection_status\": \"SELECTED\",\n      \"action_admissibility\": {\n        \"pulls the lever\": \"PERMISSIBLE\",\n        \"does not\": \"REJECTED\"\n      }\n    }\n  ],\n  \"judgment_status\": \"NOT_ADJUDICATED\"\n}"
+          }
+        ]
+      }
+    }
+  }
 }

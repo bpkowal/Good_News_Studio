@@ -20,6 +20,10 @@ def extract_inventory(text, package):
             "candidate_ids": [source["id"]], "requires": list(source["requires"]),
             "evidence_ids": list(source["evidence_ids"]),
             "scope": deepcopy(source["scope"]),
+            "participant_resolution": ({'origin':'STRUCTURALLY_DERIVED',
+                'evidence':[branch['actor_resolution_evidence'],branch['condition']],
+                'explanation':'Pronoun bound to the unique named actor operating this instrument.'}
+                if branch.get('actor_resolution_evidence') else None),
         })
     choices = []
     for group in package.get("choice_sets", []):
@@ -73,13 +77,19 @@ def compose(text, inventory, question):
     for branch in inventory["branches"]:
         addition, _ = branch_world(text, branch)
         world, _ = merge_world(world, addition)
+    from blueprint_physical_scene import attach_physical_scene
+    from blueprint_spatial_projection import branch_choice_cells, spatial_cells
+    scene_provenance = []
+    world = attach_physical_scene(text, world, scene_provenance)
     reasons = []
     if not world["actions"]:
         reasons.append("No supported conditional branch was extracted.")
     if len(world["actions"]) > 2:
         reasons.append("This composition pilot covers at most two actions.")
     common = dict(proposal_id="primitive_composition_0", blueprint_id="primitive_composition",
-                  clauses=clauses, slot_bindings={"inventory_version": inventory["version"]},
+                  clauses=clauses, slot_bindings={"inventory_version": inventory["version"],
+                      "branch_choices": branch_choice_cells(world),
+                      "physical_scene_cells": spatial_cells(text, world)},
                   unresolved_readings=inventory["unresolved"], pre_world_assessment=question)
     if reasons:
         return retain_source(withheld_proposal(**common, assignment=[], unfilled_required_slots=[],
@@ -93,7 +103,7 @@ def compose(text, inventory, question):
         candidate_value=candidate({a["action_id"]: {"clause_ids": a["clause_ids"],
                                     "reason": "Constructed from conditional primitive."}
                                    for a in world["actions"]}, world),
-        construction_provenance=_construction_provenance(world, clauses, {}),
+        construction_provenance=_construction_provenance(world, clauses, {}) + scene_provenance,
         relation_alternatives=_relation_alternatives(world, clauses),
         notes=["Choice alternatives are retained in the inventory. Listing options does not "
                "establish exclusivity or actual occurrence."],

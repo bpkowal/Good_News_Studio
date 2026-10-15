@@ -1,0 +1,671 @@
+{
+  "capabilities": [
+    "compact_frameworks",
+    "full_relent"
+  ],
+  "contracts": {
+    "report": "parliament-demo/1",
+    "run_manifest": "parliament-run/1",
+    "viewer": "parliament-view/1",
+    "world": "1.4"
+  },
+  "lock_version": "parliament-runtime/2",
+  "parliament": {
+    "branch": "relent-framework",
+    "commit": "614af0c1601dd7169842f130f1c26a5dd0b30564",
+    "patched_tree_sha256": "41818314dc010587f8b6756b198743b6cfe4cad0ad0d592a9021f771b82636a1",
+    "patches": [
+      {
+        "path": "integrations/parliament_z10/grounding_hook.patch",
+        "sha256": "c878f1c6f463219f72bc4f42e5cd11fb177e5f33d62fa39b0334f44deb277d57"
+      },
+      {
+        "path": "integrations/parliament_z10/runtime_patches/discourse_workspace.patch",
+        "sha256": "e7337313f352d62b3aa8daec06611011128130b5ebbaa35139ceb784910ded25"
+      },
+      {
+        "path": "integrations/parliament_z10/recognition_gap.patch",
+        "sha256": "deaf51c014b9d7c855a00438247d2cd7f94671bbc2cf0acaa3c6fac812244f01"
+      },
+      {
+        "path": "integrations/parliament_z10/argument_quality_fixes.patch",
+        "sha256": "38b34952d59de27b911ad77241737b81616d2a2559f40a58b1ce6691e191a192"
+      },
+      {
+        "path": "integrations/parliament_z10/scene_recognition.patch",
+        "sha256": "49e158c3bcc1c4177d35230e04e3fdad797dd266f5a171ca1b5601d34d468438"
+      },
+      {
+        "path": "integrations/parliament_z10/framework_presentation.patch",
+        "sha256": "ec7ee01027a26e0d25359a5cf3eeb25b649a8983470c9866fab172d781475f7e"
+      },
+      {
+        "path": "integrations/parliament_z10/branch_choice_context.patch",
+        "sha256": "54189705096de10d84ef7e2adf6d5276108b44feb407df8e26c7fb60794963c3"
+      },
+      {
+        "path": "integrations/parliament_z10/negation_boundary_validation.patch",
+        "sha256": "2c90d14c96a4fc39cc749975ef863a0a1fca2155162e9d19823012ca3dc4fd27"
+      },
+      {
+        "path": "integrations/parliament_z10/candidate_maxims.patch",
+        "sha256": "ae1f617a9faa1a362812f6ba4d12b4a3916c403034c3e50aa9a31e281254a333"
+      },
+      {
+        "path": "integrations/parliament_z10/causal_means_reasoning.patch",
+        "sha256": "1d3119abe98618095034d30add05831b4601eb8e98c6e071aa5c81e32a52db5a"
+      }
+    ],
+    "repository": "https://github.com/bpkowal/Good_News_Studio.git",
+    "required_files": [
+      "global_workspace_pipeline.py",
+      "global_workspace/action_identity.py",
+      "global_workspace/frozen_world_replay.py",
+      "global_workspace/local_specialists.py",
+      "global_workspace/world_state.py",
+      "global_workspace/engine.py",
+      "global_workspace/core_quote_pack.py",
+      "global_workspace/epistemic_ledger.py",
+      "global_workspace/scenario_semantics.py",
+      "global_workspace/openai_backend.py",
+      "global_workspace/structured_io.py"
+    ]
+  },
+  "profile_notes": "Separate compact and OpenAI RelEnt/RAG environments. Full profile pins MiniLM and native approved corpora; local GGUF backend is not included.",
+  "profiles": {
+    "full_relent": {
+      "backend": "openai",
+      "embedding_model": {
+        "files": [
+          "1_Pooling/config.json",
+          "config.json",
+          "config_sentence_transformers.json",
+          "model.safetensors",
+          "modules.json",
+          "sentence_bert_config.json",
+          "special_tokens_map.json",
+          "tokenizer.json",
+          "tokenizer_config.json",
+          "vocab.txt"
+        ],
+        "repository": "sentence-transformers/all-MiniLM-L6-v2",
+        "revision": "c9745ed1d9f207416be6d2e6f8de32d1f16199bf"
+      },
+      "environment": {
+        "ANONYMIZED_TELEMETRY": "False",
+        "HF_HUB_CACHE": ".runtime/rag/hub",
+        "HF_HUB_OFFLINE": "1",
+        "TOKENIZERS_PARALLELISM": "false",
+        "TRANSFORMERS_OFFLINE": "1"
+      },
+      "excluded_backends": [
+        "local_gguf"
+      ],
+      "profile_version": "relent-openai-rag/1",
+      "python": {
+        "distributions": {
+          "aiohappyeyeballs": "2.7.1",
+          "aiohttp": "3.14.5",
+          "aiohttp-retry": "2.9.1",
+          "aiosignal": "1.4.0",
+          "annotated-doc": "0.0.5",
+          "annotated-types": "0.8.0",
+          "anyio": "4.15.1",
+          "attrs": "26.1.0",
+          "backoff": "2.2.1",
+          "bcrypt": "5.0.0",
+          "build": "1.6.1",
+          "certifi": "2026.7.22",
+          "charset-normalizer": "3.5.2",
+          "chromadb": "1.0.20",
+          "click": "8.5.0",
+          "cloudpickle": "3.1.2",
+          "distro": "1.9.0",
+          "durationpy": "0.11",
+          "filelock": "4.1.2",
+          "flatbuffers": "25.12.19",
+          "frozenlist": "1.8.0",
+          "fsspec": "2026.9.0",
+          "googleapis-common-protos": "1.75.5",
+          "grpcio": "1.84.0",
+          "h11": "0.16.0",
+          "hf-xet": "1.7.0",
+          "httpcore": "1.0.9",
+          "httpcore2": "2.13.1",
+          "httptools": "0.9.0",
+          "httpx": "0.28.1",
+          "httpx2": "2.13.1",
+          "huggingface-hub": "0.36.2",
+          "idna": "3.20",
+          "importlib-resources": "7.1.0",
+          "jinja2": "3.1.6",
+          "jiter": "0.17.0",
+          "joblib": "1.6.0",
+          "jsonpatch": "1.35",
+          "jsonpointer": "3.2.1",
+          "jsonschema": "4.26.0",
+          "jsonschema-specifications": "2025.9.1",
+          "kubernetes": "37.0.1",
+          "langchain-chroma": "0.2.6",
+          "langchain-core": "0.3.86",
+          "langchain-huggingface": "0.2.0",
+          "langsmith": "0.14.8",
+          "markdown-it-py": "4.2.0",
+          "markupsafe": "3.0.4",
+          "mdurl": "0.1.2",
+          "mmh3": "5.3.1",
+          "mpmath": "1.3.0",
+          "multidict": "7.1.0",
+          "narwhals": "2.27.1",
+          "networkx": "3.6.1",
+          "numpy": "2.4.6",
+          "oauthlib": "4.0.0",
+          "onnxruntime": "1.31.0",
+          "openai": "3.31.0",
+          "opentelemetry-api": "1.45.1",
+          "opentelemetry-exporter-otlp-common": "0.66b1",
+          "opentelemetry-exporter-otlp-proto-common": "1.45.1",
+          "opentelemetry-exporter-otlp-proto-grpc": "1.45.1",
+          "opentelemetry-proto": "1.45.1",
+          "opentelemetry-sdk": "1.45.1",
+          "opentelemetry-semantic-conventions": "0.66b1",
+          "orjson": "3.13.0",
+          "overrides": "7.7.0",
+          "packaging": "25.0",
+          "pillow": "12.3.0",
+          "posthog": "5.4.0",
+          "propcache": "0.5.4",
+          "protobuf": "7.36.2",
+          "pybase64": "1.5.1",
+          "pydantic": "2.14.1",
+          "pydantic-core": "2.50.1",
+          "pygments": "2.21.0",
+          "pypika": "0.51.1",
+          "pyproject-hooks": "1.3.3",
+          "python-dateutil": "2.9.0.post0",
+          "python-dotenv": "1.2.4",
+          "pyyaml": "6.0.3",
+          "referencing": "0.37.0",
+          "regex": "2026.9.29",
+          "requests": "2.34.2",
+          "requests-oauthlib": "2.0.0",
+          "requests-toolbelt": "1.0.0",
+          "rich": "15.0.0",
+          "rpds-py": "2026.9.1",
+          "safetensors": "0.8.0",
+          "scikit-learn": "1.9.1",
+          "scipy": "1.17.1",
+          "sentence-transformers": "4.1.0",
+          "shellingham": "1.5.4",
+          "six": "1.17.0",
+          "sniffio": "1.3.1",
+          "sympy": "1.14.0",
+          "tenacity": "9.2.1",
+          "threadpoolctl": "3.7.0",
+          "tokenizers": "0.22.2",
+          "torch": "2.14.1",
+          "tqdm": "4.70.1",
+          "transformers": "4.57.6",
+          "truststore": "0.10.5",
+          "typer": "0.27.3",
+          "typing-extensions": "4.16.0",
+          "typing-inspection": "0.4.4",
+          "urllib3": "2.8.0",
+          "uuid-utils": "0.17.1",
+          "uvicorn": "0.54.0",
+          "uvloop": "0.23.0",
+          "watchfiles": "1.3.0",
+          "websocket-client": "1.9.2",
+          "websockets": "17.2",
+          "xxhash": "4.0.1",
+          "yarl": "1.25.1",
+          "zstandard": "0.25.0"
+        },
+        "imports": [
+          "global_workspace.action_identity",
+          "global_workspace.frozen_world_replay",
+          "global_workspace.local_specialists",
+          "global_workspace.world_state",
+          "global_workspace.engine",
+          "global_workspace.core_quote_pack",
+          "global_workspace.epistemic_ledger",
+          "global_workspace.scenario_semantics",
+          "global_workspace.openai_backend",
+          "global_workspace.structured_io",
+          "openai",
+          "dotenv",
+          "numpy",
+          "yaml",
+          "langchain_huggingface",
+          "sentence_transformers",
+          "langchain_chroma",
+          "chromadb",
+          "global_workspace_pipeline",
+          "global_workspace.legacy_bridge",
+          "global_workspace.framework_retrieval",
+          "get_semantic_tag",
+          "utilitarian_agent_p",
+          "deontological_agent_p",
+          "virtue_ethics_agent_p",
+          "care_ethics_agent_p",
+          "rawlsian_ethics_agent_p"
+        ],
+        "requirements": {
+          "path": "integrations/parliament_z10/relent-rag-requirements.lock",
+          "sha256": "ed9b1c6c6fece93e38bd8f8abb51ec59f0ada6e54118218983702905ac55de30"
+        },
+        "version": [
+          3,
+          11
+        ]
+      },
+      "resources": [
+        {
+          "path": ".runtime/rag/hub/models--sentence-transformers--all-MiniLM-L6-v2/snapshots/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/1_Pooling/config.json",
+          "sha256": "4be450dde3b0273bb9787637cfbd28fe04a7ba6ab9d36ac48e92b11e350ffc23"
+        },
+        {
+          "path": ".runtime/rag/hub/models--sentence-transformers--all-MiniLM-L6-v2/snapshots/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/config.json",
+          "sha256": "953f9c0d463486b10a6871cc2fd59f223b2c70184f49815e7efbcab5d8908b41"
+        },
+        {
+          "path": ".runtime/rag/hub/models--sentence-transformers--all-MiniLM-L6-v2/snapshots/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/config_sentence_transformers.json",
+          "sha256": "061ca9d39661d6c6d6de5ba27f79a1cd5770ea247f8d46412a68a498dc5ac9f3"
+        },
+        {
+          "path": ".runtime/rag/hub/models--sentence-transformers--all-MiniLM-L6-v2/snapshots/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/model.safetensors",
+          "sha256": "53aa51172d142c89d9012cce15ae4d6cc0ca6895895114379cacb4fab128d9db"
+        },
+        {
+          "path": ".runtime/rag/hub/models--sentence-transformers--all-MiniLM-L6-v2/snapshots/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/modules.json",
+          "sha256": "84e40c8e006c9b1d6c122e02cba9b02458120b5fb0c87b746c41e0207cf642cf"
+        },
+        {
+          "path": ".runtime/rag/hub/models--sentence-transformers--all-MiniLM-L6-v2/snapshots/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/sentence_bert_config.json",
+          "sha256": "fc1993fde0a95c24ec6c022539d41cf6e2f7c9721e5415d6fb6897472a9cd4b7"
+        },
+        {
+          "path": ".runtime/rag/hub/models--sentence-transformers--all-MiniLM-L6-v2/snapshots/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/special_tokens_map.json",
+          "sha256": "303df45a03609e4ead04bc3dc1536d0ab19b5358db685b6f3da123d05ec200e3"
+        },
+        {
+          "path": ".runtime/rag/hub/models--sentence-transformers--all-MiniLM-L6-v2/snapshots/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/tokenizer.json",
+          "sha256": "be50c3628f2bf5bb5e3a7f17b1f74611b2561a3a27eeab05e5aa30f411572037"
+        },
+        {
+          "path": ".runtime/rag/hub/models--sentence-transformers--all-MiniLM-L6-v2/snapshots/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/tokenizer_config.json",
+          "sha256": "acb92769e8195aabd29b7b2137a9e6d6e25c476a4f15aa4355c233426c61576b"
+        },
+        {
+          "path": ".runtime/rag/hub/models--sentence-transformers--all-MiniLM-L6-v2/snapshots/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/vocab.txt",
+          "sha256": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3"
+        },
+        {
+          "path": ".runtime/rag/hub/models--sentence-transformers--all-MiniLM-L6-v2/refs/main",
+          "sha256": "edb692c300dcf5dd2a56116221d7613e9d360b6f0be22bc3e02e040e095b135b"
+        },
+        {
+          "path": ".runtime/parliament/utilitarian_corpus/bentham_01.md",
+          "sha256": "525c1d57a9ede2c536aed1462034f0dca5bdc6d649ac9e7616a1ed0d59ee5c7a"
+        },
+        {
+          "path": ".runtime/parliament/utilitarian_corpus/edgeworth_01.md",
+          "sha256": "4e66a89ab83b1f638861ff2536cbcd9267ebbbd7763a23553616aceed11b9df6"
+        },
+        {
+          "path": ".runtime/parliament/utilitarian_corpus/false_reference_pending.md",
+          "sha256": "b4b38d79739d199882522e007174eb1b8c98e3e0ae82334a4e2b88355827ce0f"
+        },
+        {
+          "path": ".runtime/parliament/utilitarian_corpus/hare_01.md",
+          "sha256": "ee8b647f528b993d5efd7d4f46620a3ee0df4684d2a8e40fe656086e7c2365ad"
+        },
+        {
+          "path": ".runtime/parliament/utilitarian_corpus/kagan_01.md",
+          "sha256": "1942c4d8b6d332e463449848cb2030652da25d0c613806a962755c59b6d0d4e6"
+        },
+        {
+          "path": ".runtime/parliament/utilitarian_corpus/mill_01.md",
+          "sha256": "a91068167c06c9238a6683576360df74f1f6be8c6eea8cf1d5998c74397add84"
+        },
+        {
+          "path": ".runtime/parliament/utilitarian_corpus/mill_02.md",
+          "sha256": "242bc2883185869d6f57129f913730072b28454b606a547e65bc89b78494e1a5"
+        },
+        {
+          "path": ".runtime/parliament/utilitarian_corpus/parfit_01.md",
+          "sha256": "951c4cd480f73647d4914d1fcaed377516cc20e9d49d6e5879b0a6a2c753485f"
+        },
+        {
+          "path": ".runtime/parliament/utilitarian_corpus/parfit_02.md",
+          "sha256": "874beb002423468475d868ed49d1b143f45e75ac1bd120e9e2cf404332ec706f"
+        },
+        {
+          "path": ".runtime/parliament/utilitarian_corpus/pigou_01.md",
+          "sha256": "3a558792348d8834efcb39fb779a2135f8cdf423d2e5dc60cf3e2ab43bcd0451"
+        },
+        {
+          "path": ".runtime/parliament/utilitarian_corpus/sen_01.md",
+          "sha256": "6edeca4836c47b7ac38cac0eff0573eb1405d9bc28c2bd7f36f8bed001972f9b"
+        },
+        {
+          "path": ".runtime/parliament/utilitarian_corpus/sidgwick_01.md",
+          "sha256": "341b56bc5f5ff10ff8f4e26442770eaa014597e1078141ffa721f7fff685dde7"
+        },
+        {
+          "path": ".runtime/parliament/utilitarian_corpus/sidgwick_02.md",
+          "sha256": "40aac134bd9316d9464f895645af536f81349559876a1f5c46ad5883436778af"
+        },
+        {
+          "path": ".runtime/parliament/utilitarian_corpus/singer_01.md",
+          "sha256": "66c186c524250198db967beeefa699fdad264e04aa458c9ea9445abbfb63f188"
+        },
+        {
+          "path": ".runtime/parliament/utilitarian_corpus/singer_02.md",
+          "sha256": "0b21de3b5a887abbfa529892e0b340301d155780f4529b1c515d9a761e68f2f5"
+        },
+        {
+          "path": ".runtime/parliament/utilitarian_corpus/singer_03.md",
+          "sha256": "38e456c130d7d7fde2d48c59bed9227316a4d0eae7e6bc779c5fca67f524fede"
+        },
+        {
+          "path": ".runtime/parliament/utilitarian_corpus/smart_01.md",
+          "sha256": "f3fef52170b47f8ae767881d09c8d987c81f3e101410778b5b09be42f29e2b06"
+        },
+        {
+          "path": ".runtime/parliament/utilitarian_corpus/smart_02.md",
+          "sha256": "94bc8c533bafae55ce61f5c71a91bd1bc2d6044119375cdcdf9b39969e5cbd48"
+        },
+        {
+          "path": ".runtime/parliament/utilitarian_corpus/tempkin_01.md",
+          "sha256": "6e9c0d054d7e9a632185db635e0cb952125ed15368c8149c074b6223428b526f"
+        },
+        {
+          "path": ".runtime/parliament/deontological_corpus/anscombe_001.md",
+          "sha256": "0727dcec3c03cf7b05fa854f9158edd5068b78c07f86a724d9bd7ec3f52b91ed"
+        },
+        {
+          "path": ".runtime/parliament/deontological_corpus/aquanis_001.md",
+          "sha256": "cffd411fdd8e7935aaaf48db7b88f6caa0a11c534b6cbe7be681009633dd1d7c"
+        },
+        {
+          "path": ".runtime/parliament/deontological_corpus/aquanis_002.md",
+          "sha256": "1765ea69ff91ad18aaccf14742e6f747694193224dbb9a8a93c017cecd740a2c"
+        },
+        {
+          "path": ".runtime/parliament/deontological_corpus/foot_001.md",
+          "sha256": "bac1865170491dc101dfe90211be9444cb2e7d15c8b0a08ab16be03f6964e86c"
+        },
+        {
+          "path": ".runtime/parliament/deontological_corpus/kant_001.md",
+          "sha256": "9a93457fa55126c6aa2a869026a0be56736140efe911c1ae8c53e97182783a0e"
+        },
+        {
+          "path": ".runtime/parliament/deontological_corpus/kant_002.md",
+          "sha256": "8b0ed173b4213d9522882bfebe494146e15dd887fd03a0b1da0e80a28eb6a1d8"
+        },
+        {
+          "path": ".runtime/parliament/deontological_corpus/kant_003.md",
+          "sha256": "102f055fbee43bc239a20f110b6b2f1ba6c3ac919c46ae0913ab8902109d23fc"
+        },
+        {
+          "path": ".runtime/parliament/deontological_corpus/koresgaard_001.md",
+          "sha256": "f948e4ab163437ef21d917d89c50e95a5d671a08c64e99774e5d48093d0dffd4"
+        },
+        {
+          "path": ".runtime/parliament/deontological_corpus/koresgaard_002.md",
+          "sha256": "7fb0412047cf22327514352e2caea429017095a07b31a90ac4b2515143434a36"
+        },
+        {
+          "path": ".runtime/parliament/deontological_corpus/oneill_001.md",
+          "sha256": "819543109bc1e247b7748e7767672ed55f80df355e08a8fa8fc47dc63a8065f9"
+        },
+        {
+          "path": ".runtime/parliament/deontological_corpus/oneill_002.md",
+          "sha256": "57e76934e7176d91dba2ac06de5ebb235ae82affcf52b3deb1f11c473a63ea4e"
+        },
+        {
+          "path": ".runtime/parliament/deontological_corpus/rawls_001.md",
+          "sha256": "0d14e3adc6c4e1e96b7b2bda6e43e2f0ccffb08066c0330f92730d5061ffb1a1"
+        },
+        {
+          "path": ".runtime/parliament/deontological_corpus/ross_001.md",
+          "sha256": "391d7bf8a4f1be9a3d7bc5cc5ed2fddd2dc1f44d0a2774a1c672713af320aa1b"
+        },
+        {
+          "path": ".runtime/parliament/deontological_corpus/ross_002.md",
+          "sha256": "3aae6f7d53c077978e4c361798bd1a6b1cccec706813e01fb062e44f611d1b3c"
+        },
+        {
+          "path": ".runtime/parliament/deontological_corpus/walzer_001.md",
+          "sha256": "ba88b826cc6f1d48dc6436f9e00bd937e203b320043621a2a8c64d92c4d980f3"
+        },
+        {
+          "path": ".runtime/parliament/virtue_ethics_corpus/annas_001.md",
+          "sha256": "ec750ceec7161f5c93048eece117146546131bcb2ab7a869fe4746ade8060111"
+        },
+        {
+          "path": ".runtime/parliament/virtue_ethics_corpus/anscombe_001.md",
+          "sha256": "d825224a477bf2624d5c4559013f26abb3b8f6dbaa00896875e5bb694bd2b877"
+        },
+        {
+          "path": ".runtime/parliament/virtue_ethics_corpus/aquinas_001.md",
+          "sha256": "06bd11bad1c4e521523bb3bc7329440506dc54e4c6eacbc5f87638f6639f7624"
+        },
+        {
+          "path": ".runtime/parliament/virtue_ethics_corpus/aristotle_001.md",
+          "sha256": "ee3cd2e7a576a4db3e7cf91129e5fc8e8c7b6c8cbc3dc4dd45bd079b83650de6"
+        },
+        {
+          "path": ".runtime/parliament/virtue_ethics_corpus/foot_001.md",
+          "sha256": "2b5e5a0e264dc1fe383f5dd66a82fb54cac30e38b55507145016907a545bc008"
+        },
+        {
+          "path": ".runtime/parliament/virtue_ethics_corpus/foot_002.md",
+          "sha256": "ee88422e9c1cb59f494173481ce5fad58d49815f7b2fdf3bed61a8e57035f243"
+        },
+        {
+          "path": ".runtime/parliament/virtue_ethics_corpus/foot_003.md",
+          "sha256": "40d64920308661b6f530600efd41d6a5147e7be17ce86ef91561a36b0f7158e3"
+        },
+        {
+          "path": ".runtime/parliament/virtue_ethics_corpus/hume_001.md",
+          "sha256": "4e2a63fd0000b7a3cae4066b21842618473ba35461fce0fd8b662fcba6290a88"
+        },
+        {
+          "path": ".runtime/parliament/virtue_ethics_corpus/macintyre_001.md",
+          "sha256": "92dec2bcc281bcf4eda618184e2ae82f8153daa2d74c59f0d3d7a82a2e088827"
+        },
+        {
+          "path": ".runtime/parliament/virtue_ethics_corpus/macintyre_002.md",
+          "sha256": "93aa6e87e8a902d451d2158a8069c8c9cd985d888da54ae2ddf09189e4a3b82c"
+        },
+        {
+          "path": ".runtime/parliament/virtue_ethics_corpus/murdoch_001.md",
+          "sha256": "5bbd7bb9fd12633ef7019b4ad878ee709245148f6b26fcfb5ff94ef8cc4dec78"
+        },
+        {
+          "path": ".runtime/parliament/virtue_ethics_corpus/nussbaum_001.md",
+          "sha256": "fb8a562c850018c71924901ffacc37976c1421f70444bb1ac276a9d7af3390b2"
+        },
+        {
+          "path": ".runtime/parliament/virtue_ethics_corpus/rachlin_001.md",
+          "sha256": "f87117b1195bd1bb0133a6257e85d6031e1e9a69ca617dde1cff654737854c2f"
+        },
+        {
+          "path": ".runtime/parliament/virtue_ethics_corpus/rachlin_002.md",
+          "sha256": "3674d0c57220c982341367d099612639f94bd3575207bf8b1b5efc060abac305"
+        },
+        {
+          "path": ".runtime/parliament/virtue_ethics_corpus/rachlin_003.md",
+          "sha256": "a258970ba6d2a9eea38012f98cce0c73b4fe2a135e33075a04b51754a7a639d5"
+        },
+        {
+          "path": ".runtime/parliament/virtue_ethics_corpus/taylor_001.md",
+          "sha256": "25c37a58593aee381f5e32341194830e5218dfab24d9d0c53dae852e82e13217"
+        },
+        {
+          "path": ".runtime/parliament/care_ethics_corpus/gilligan_001.md",
+          "sha256": "ca1b177f2480f1ee606a91026ab0bb1f0aa9b712214b56cc75e9a2b84363622d"
+        },
+        {
+          "path": ".runtime/parliament/care_ethics_corpus/gilligan_002.md",
+          "sha256": "ef5e289f6a2b4c565d688de94099f1300ea311e1a9ad836121a9aaf27d79e7ba"
+        },
+        {
+          "path": ".runtime/parliament/care_ethics_corpus/gilligan_003.md",
+          "sha256": "d769ae9ea2f129882942807baf4f570c0053427628bff07521952f665f92b2ee"
+        },
+        {
+          "path": ".runtime/parliament/care_ethics_corpus/held_001.md",
+          "sha256": "ed8c2ed3d95a342fcd50260efd472a02afbb4ab1e48eeb6abcb0564df1e0d367"
+        },
+        {
+          "path": ".runtime/parliament/care_ethics_corpus/held_002.md",
+          "sha256": "15e2575d3ca18aa7f7889c8dffdea361df29cf1128a95580fce10699a0a510fb"
+        },
+        {
+          "path": ".runtime/parliament/care_ethics_corpus/held_003.md",
+          "sha256": "367b75ed4a222ef7b2b8c93905c890b6d5963da41c4865a1c5086569af148fc8"
+        },
+        {
+          "path": ".runtime/parliament/care_ethics_corpus/held_004.md",
+          "sha256": "b58b919dc0a658484dd89dd40d0fcc816cc582099340522b33d51fc8ad3391d8"
+        },
+        {
+          "path": ".runtime/parliament/care_ethics_corpus/kittay_001.md",
+          "sha256": "fca4d14fac51d978dcb185f95058b95faaed2c63ff03074b042cf538bee9cf5c"
+        },
+        {
+          "path": ".runtime/parliament/care_ethics_corpus/noddings_001.md",
+          "sha256": "2cbf50a1c419b88ae77c31189c14a1edea92fa7fbf7438aed7801c129adb171b"
+        },
+        {
+          "path": ".runtime/parliament/care_ethics_corpus/noddings_002.md",
+          "sha256": "3a59c6b237de3c0ecf5c19c66dc0ed3d15c5aea1e08062105f4ced35a36d17ca"
+        },
+        {
+          "path": ".runtime/parliament/care_ethics_corpus/noddings_003.md",
+          "sha256": "e7fdbcbf8afd7ffce3caf87732ff4401e3ea920bb30c591f173fba3b4a16960b"
+        },
+        {
+          "path": ".runtime/parliament/care_ethics_corpus/noddings_004.md",
+          "sha256": "734b237161bc701cc6869b5e60f1836763b675496f18b28a1ce05cf3d7f3f332"
+        },
+        {
+          "path": ".runtime/parliament/care_ethics_corpus/tronto_001.md",
+          "sha256": "e0bec6a38a4683c309c875dd9c27b2bcbd5214c7aa9336eed33ba7c49f204200"
+        },
+        {
+          "path": ".runtime/parliament/care_ethics_corpus/tronto_002.md",
+          "sha256": "b0fd7dbb1dba92234f66ec97d2c52926acb7a7ee16e3a281df4898ef5c282bde"
+        },
+        {
+          "path": ".runtime/parliament/care_ethics_corpus/tronto_003.md",
+          "sha256": "5f86b15e2609b26fd5393e1207530dcdde5d93de8c9c8712dea8b4fcdfd0385a"
+        },
+        {
+          "path": ".runtime/parliament/care_ethics_corpus/tronto_004.md",
+          "sha256": "0e5ce0663bb9f0a89a7c54888557048d24bec7530b3942a3e7b40b95f5fa9be3"
+        },
+        {
+          "path": ".runtime/parliament/rawlsian_ethics_corpus/rawls_001.md",
+          "sha256": "2e4bf77922da3a1dd6294a84caf6fd5599b9aaccba1ec29730a4d6d8242e0a66"
+        },
+        {
+          "path": ".runtime/parliament/rawlsian_ethics_corpus/rawls_002.md",
+          "sha256": "b512b0c0176acba8f0698f9c578ecf8df07fda14d31a75f72f5e85b0aee3bc29"
+        },
+        {
+          "path": ".runtime/parliament/rawlsian_ethics_corpus/rawls_003.md",
+          "sha256": "6b27bc76f368c2ac8b925310047b7559289098196b172961bbf312781353cd93"
+        },
+        {
+          "path": ".runtime/parliament/rawlsian_ethics_corpus/rawls_004.md",
+          "sha256": "3997418978a0247ce860b4342bf86eb2fb8418ce4da8f364000284d19a233942"
+        },
+        {
+          "path": ".runtime/parliament/rawlsian_ethics_corpus/rawls_005.md",
+          "sha256": "a8e1d00b3505ee87316680aa69e8a6b3c41b94dce71e8fc50836ba397adb54bc"
+        },
+        {
+          "path": ".runtime/parliament/rawlsian_ethics_corpus/rawls_006.md",
+          "sha256": "fe0aa710e3022f7806e432373ffd8bdd54bff8b29a59d7dc1963fe8d65a722da"
+        },
+        {
+          "path": ".runtime/parliament/rawlsian_ethics_corpus/rawls_007.md",
+          "sha256": "c97f65e091d539e04f85219029c5795029b754cedb1ced0b66f694b4e95205d1"
+        },
+        {
+          "path": ".runtime/parliament/rawlsian_ethics_corpus/rawls_008.md",
+          "sha256": "45879e5f41ab1224af4648fc475f2137c390516804caa5b459943023e1be0e0d"
+        },
+        {
+          "path": ".runtime/parliament/rawlsian_ethics_corpus/rawls_009.md",
+          "sha256": "d5d6fb173d1106298dcf737452ec362a96eaab6ff5ee8ac4f6a84a5ca164ce90"
+        },
+        {
+          "path": ".runtime/parliament/rawlsian_ethics_corpus/rawls_010.md",
+          "sha256": "f103975978bce514a0fc676782c495d303a0ee9ffd8b2f754df750f0607892c4"
+        },
+        {
+          "path": ".runtime/parliament/rawlsian_ethics_corpus/rawls_011.md",
+          "sha256": "b295870c6b8088728172bce87ca196975a6536fbe1a396e5ea901a5dd93f77ac"
+        },
+        {
+          "path": ".runtime/parliament/rawlsian_ethics_corpus/rawls_012.md",
+          "sha256": "a8b840a2072afed220f6fbe269b3601e330782c82651716d1eedf26afd311e2c"
+        },
+        {
+          "path": ".runtime/parliament/rawlsian_ethics_corpus/rawls_013.md",
+          "sha256": "06fe15736da3b0c2ddb35ecd4a4b89fa4aa54d35c2be6a1426229ca588474b1d"
+        }
+      ]
+    }
+  },
+  "python": {
+    "distributions": {
+      "annotated-types": "0.8.0",
+      "anyio": "4.15.1",
+      "h11": "0.16.0",
+      "httpcore2": "2.13.1",
+      "httpx2": "2.13.1",
+      "idna": "3.20",
+      "jiter": "0.17.0",
+      "mpmath": "1.3.0",
+      "openai": "3.31.0",
+      "pydantic": "2.14.1",
+      "pydantic-core": "2.50.1",
+      "python-dotenv": "1.2.4",
+      "pyyaml": "6.0.3",
+      "sniffio": "1.3.1",
+      "sympy": "1.14.0",
+      "truststore": "0.10.5",
+      "typing-extensions": "4.16.0",
+      "typing-inspection": "0.4.4"
+    },
+    "imports": [
+      "global_workspace.action_identity",
+      "global_workspace.frozen_world_replay",
+      "global_workspace.local_specialists",
+      "global_workspace.world_state",
+      "global_workspace.engine",
+      "global_workspace.core_quote_pack",
+      "global_workspace.epistemic_ledger",
+      "global_workspace.scenario_semantics",
+      "global_workspace.openai_backend",
+      "global_workspace.structured_io",
+      "openai",
+      "dotenv",
+      "yaml"
+    ],
+    "requirements": {
+      "path": "integrations/parliament_z10/runtime-requirements.lock",
+      "sha256": "0666541c79a499103c9cffefad291bbf57bbf017d4bff515a6ce7fd9b95860a7"
+    },
+    "version": [
+      3,
+      11
+    ]
+  }
+}

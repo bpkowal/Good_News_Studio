@@ -1,3 +1,4 @@
+from parliament_runtime import DEFAULT_PARLIAMENT_ROOT, DEFAULT_PARLIAMENT_PYTHON
 from copy import deepcopy
 import json
 from pathlib import Path
@@ -65,9 +66,9 @@ class ConflictProjectionTests(unittest.TestCase):
                 self.assertEqual(by_id[edge['target']]['epistemic_status'], 'HYPOTHESIZED')
 
     def test_native_independent_pass_has_identical_inputs_and_no_peer_state(self):
-        native = Path('/tmp/parliament-smoke-env/bin/python')
-        root = Path('/tmp/parliament-smoke-614af0c')
-        if not native.exists() or not root.exists():
+        native = DEFAULT_PARLIAMENT_PYTHON
+        root = DEFAULT_PARLIAMENT_ROOT
+        if not native.exists() or not (root/'global_workspace/engine.py').is_file():
             self.skipTest('Pinned native Parliament checkout is unavailable')
         code = r'''
 import json, sys
@@ -109,6 +110,13 @@ assert not any(n['kind']=='CLAIM' for n in json.loads((Path(sys.argv[3])/'confli
 for name in FRAMEWORKS:
     calls=json.loads((Path(sys.argv[3])/name/'model_calls.json').read_text())
     assert calls and all(json.dumps(result['scenario']) in c['prompt'] for c in calls)
+    for call in calls:
+        props=(call.get('schema') or {}).get('properties', {})
+        if 'l' in props:
+            assert all('maxLength' not in spec for spec in props['l']['properties'].values())
+            assert all('maxLength' not in props[key] for key in ('fa','dr','ft','nt'))
+        assert 'acting duty-bearer' in call['prompt']
+        assert 'interpretive assumption or commitment' in call['prompt']
 print('Five independent native workspaces verified; invalid fake responses remain diagnostic.')
 '''
         with tempfile.TemporaryDirectory() as folder:

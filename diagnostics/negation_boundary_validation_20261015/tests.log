@@ -1,0 +1,33 @@
+..EE
+======================================================================
+ERROR: test_saved_hypothetical_example_keeps_grounded_boundary (test_negation_boundary_validation.NegationBoundaryTests.test_saved_hypothetical_example_keeps_grounded_boundary)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/test_negation_boundary_validation.py", line 48, in test_saved_hypothetical_example_keeps_grounded_boundary
+    candidate=self.parse(reply)
+              ^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/test_negation_boundary_validation.py", line 24, in parse
+    return _candidate_from_data('utilitarian',self.fixture['actions'],deepcopy(data),
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/.runtime/parliament/global_workspace/local_specialists.py", line 1476, in _candidate_from_data
+    raise ValueError(f"empirical premise cites unknown proposition ID: {basis}")
+ValueError: empirical premise cites unknown proposition ID: PROP:WORLD:CONDITION:CND1
+
+======================================================================
+ERROR: test_unverified_parameter_is_not_committed_and_assertion_still_rejected (test_negation_boundary_validation.NegationBoundaryTests.test_unverified_parameter_is_not_committed_and_assertion_still_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/test_negation_boundary_validation.py", line 60, in test_unverified_parameter_is_not_committed_and_assertion_still_rejected
+    candidate=self.parse(reply)
+              ^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/test_negation_boundary_validation.py", line 24, in parse
+    return _candidate_from_data('utilitarian',self.fixture['actions'],deepcopy(data),
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/.runtime/parliament/global_workspace/local_specialists.py", line 1476, in _candidate_from_data
+    raise ValueError(f"empirical premise cites unknown proposition ID: {basis}")
+ValueError: empirical premise cites unknown proposition ID: PROP:WORLD:CONDITION:CND1
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.003s
+
+FAILED (errors=2)
