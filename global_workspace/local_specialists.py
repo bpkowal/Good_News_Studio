@@ -14,6 +14,7 @@ from .action_identity import (
 )
 from .candidate_obligations import build_candidate_generation_contract
 from .allocation_completion import complete_exclusive_allocations
+from .recognition_bridge import explicit_probability
 from .conditional_rule_instantiation import instantiate_conditional_rules
 from .ellipsis_integrity import validate_ellipsis_resolution_records
 from .evidence_repair_guidance import build_evidence_repair_delta
@@ -1185,6 +1186,51 @@ _HARM_ACKNOWLEDGMENT = re.compile(
 )
 
 
+def _negated_choice_alignment(actions: Sequence[str], index: int, case: str) -> bool | None:
+    """Recognize a stated choice vs its explicit negation, without NLP or a vote.
+
+    Only applies when the action texts differ by auxiliaries/negation. Other
+    action mappings continue through the existing lexical/semantic checks.
+    """
+    auxiliaries = {'do', 'does', 'did', 'not', 'never', 'the', 'a', 'an', 'to'}
+    def stem(word):
+        for suffix in ('ing', 'ied', 'ed', 'es', 's'):
+            if word.endswith(suffix) and len(word)-len(suffix) >= 4:
+                return word[:-len(suffix)]
+        return word
+    def signature(text):
+        text = text.casefold().replace("n't", ' not')
+        words = re.findall(r'[a-z]+', text)
+        return ('not' in words or 'never' in words,
+                tuple(stem(w) for w in words if w not in auxiliaries))
+    negative, content = signature(actions[index])
+    if not content or not any(signature(a) == (not negative, content)
+                              for i,a in enumerate(actions) if i != index):
+        return None
+    root = content[0]
+    forms = re.escape(root) + r'(?:s|es|ed|ing)?'
+    if root.endswith('e'):
+        forms += '|' + re.escape(root[:-1]) + r'(?:ing|ed)'
+    mention = re.search(r'\b(?:' + forms + r')\b', case, re.I)
+    if not mention:
+        return None
+    prefix = case[:mention.start()].casefold().replace("n't", ' not')
+    case_negative = bool(re.search(
+        r'\b(?:not|never|without)\s+(?:to\s+)?$|'
+        r'\b(?:refrain|abstain)(?:s|ed|ing)?\s+from\s+$', prefix))
+    return case_negative == negative
+
+
+def _hypothetical_reversal_text(text: str) -> bool:
+    """A conservative scope cue for numbers in the reversal field, not evidence."""
+    if re.search(r'\b(?:currently|actually|in fact|there (?:are|is))\b', text, re.I):
+        return False
+    return bool(re.search(
+        r'\b(?:if|would|were|unless)\b|'
+        r'\b(?:drops?|falls?|rises?|increases?|decreases?)\s+(?:below|above|to)\b',
+        text, re.I))
+
+
 def _landscape_semantic_errors(
     actions: Sequence[str],
     landscape_cases: dict[str, str],
@@ -1228,7 +1274,14 @@ def _landscape_semantic_errors(
         leading_tokens = stems(leading_clause)
         other_tokens = set().union(*(tokens for offset, tokens in enumerate(token_sets) if offset != index))
         distinctive = token_sets[index] - other_tokens
-        if _HARM_ACTION.search(action):
+        signed_alignment = _negated_choice_alignment(actions, index, leading_clause)
+        if signed_alignment is False:
+            errors.append(f"case for A{index} tracks the opposing action but not its own action")
+        elif signed_alignment is True:
+            # Negation is the distinguishing operator. "Does" is not an
+            # entity anchor and "not pulling" is not evidence of pulling.
+            pass
+        elif _HARM_ACTION.search(action):
             # Harm acknowledgment is a stronger and more paraphrase-tolerant
             # causal anchor than literal repetition of a victim label.
             if not _HARM_ACKNOWLEDGMENT.search(case):
@@ -1640,7 +1693,7 @@ def _candidate_from_data(
                             "scope": str(effect.get("subject", "")),
                             "direction": accounting_direction,
                             "polarity": str(effect.get("polarity", "UNRESOLVED")).upper(),
-                            "probability": "CERTAIN" if modality == "CERTAIN" else "UNKNOWN",
+                            "probability": explicit_probability(effect),
                             "magnitude": _closed_world_magnitude(effect),
                             "duration": "UNKNOWN", "reversibility": "UNKNOWN",
                             "support": "STATED",
@@ -2436,6 +2489,7 @@ def _candidate_from_data(
                     "special_obligation_status": special_obligation_status,
                     "special_obligation_basis": special_obligation_basis,
                     "means_relation": means_relation,
+                    **({"candidate_maxim": raw_assessment["mx"]} if "mx" in raw_assessment else {}),
                     "governing_norm": governing_norm,
                     "priority_basis": priority_basis,
                     "priority_rule": priority_rule,
@@ -2595,10 +2649,11 @@ def _candidate_from_data(
         and isinstance(clause.get("threshold"), (int, float))
         and not isinstance(clause.get("threshold"), bool)
     } if isinstance(graph_clauses, list) else set()
-    ungrounded_numbers = (
-        proposed_numbers | _numeric_literals(factual_threshold)
-    ) - grounded_numbers
-    if ungrounded_numbers:
+    hypothetical_reversal = _hypothetical_reversal_text(factual_threshold)
+    ungrounded_assertions = (_numeric_literals(factual_threshold) - grounded_numbers
+                             if not hypothetical_reversal else set())
+    ungrounded_parameters = proposed_numbers - grounded_numbers
+    if ungrounded_assertions:
         framework_validation_errors.append(
             "numeric reversal threshold lacks a scenario-grounded quantity"
         )
@@ -2608,7 +2663,17 @@ def _candidate_from_data(
             "to_action": "NONE", "clauses": [],
         }
         graph_clauses = []
-    precision_claims = [factual_threshold]
+    elif ungrounded_parameters:
+        # Keep the authored hypothetical reversal visible, but do not commit
+        # an unsupported numeric switching boundary as an operative update.
+        framework_validation_errors.append(
+            "hypothetical reversal boundary parameter is unverified; graph update not committed"
+            if hypothetical_reversal else "numeric reversal threshold lacks a scenario-grounded quantity"
+        )
+        graph_update = {"operation": "NONE", "from_action": "NONE",
+                        "to_action": "NONE", "clauses": []}
+        graph_clauses = []
+    precision_claims = [] if hypothetical_reversal else [factual_threshold]
     if isinstance(graph_clauses, list):
         precision_claims.extend(
             str(clause.get("threshold") or "")
@@ -3640,6 +3705,7 @@ class CompactLocalSpecialist:
     core_quote_pack: dict[str, str] = field(default_factory=dict)
     # Read-only proposition identities supplied by the engine for this cycle.
     proposition_ledger: list[dict[str, Any]] = field(default_factory=list)
+    source_construction_advisory: dict[str, Any] = field(default_factory=dict)
 
     def _audit_framework_state_change(
         self, candidate: CandidateChunk, broadcast: WorkspaceBroadcast,
@@ -4198,6 +4264,8 @@ class CompactLocalSpecialist:
             "additionalProperties": False,
         }
         legend = {action_id: action for action_id, action in zip(action_ids, actions)}
+        from .source_constructions import render_advisory
+        branch_context = render_advisory(self.source_construction_advisory, scenario)
         prompt = f"""[INST]
 You are the {self.name} ethical specialist. Framework: {FRAMEWORK_ROLES[self.name]}
 Original testimony: {_compact_testimony(self.testimony, 400) or 'NONE'}
@@ -4206,6 +4274,7 @@ Failed synthesis: {broadcast.contingency_synthesis_action}
 Required predicate: {broadcast.contingency_predicate}
 Assume the required predicate is FALSE: {broadcast.contingency_failure_condition}
 Fallbacks: {json.dumps(legend)}
+{branch_context}
 The synthesis is unavailable. Compare ONLY the two fallbacks under your framework.
 Return compact JSON: scores for both IDs; cr=the higher-scored fallback; c=your
 framework constraint; u=remaining uncertainty or NONE; cj=one short reason that
@@ -4347,6 +4416,7 @@ framework remains operative. Do not restate the base case without applying failu
             return parse(raw)
         except (ValueError, json.JSONDecodeError) as first_error:
             repair_prompt = f"""[INST]
+{branch_context}
 Repair this contingency answer as JSON only: {raw[:300] if 'raw' in locals() else ''}
 Use only fallback IDs A0 and A1. cr must have the higher score. cj must explain
 the choice assuming this failure is true: {broadcast.contingency_failure_condition}
@@ -4383,6 +4453,8 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
     ) -> CandidateChunk:
         if broadcast.constraint == "CONTINGENCY_REVIEW":
             return self._evaluate_contingency(scenario, actions, broadcast)
+        from .source_constructions import render_advisory as render_source_constructions
+        source_construction_context = render_source_constructions(self.source_construction_advisory, scenario)
         role = FRAMEWORK_ROLES[self.name]
         testimony = _compact_testimony(self.testimony, 900)
         action_ids = [f"A{index}" for index in range(len(actions))]
@@ -4490,6 +4562,10 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                     ),
                     "source_clause_id": effect.source_clause_id,
                     "consequence_id": effect.consequence_id,
+                    "count_projection": __import__("global_workspace.recognition_bridge", fromlist=["survivor_count_projection"]).survivor_count_projection(
+                        {**(consequence.attributes if consequence is not None else {}),
+                         "party_label": effect.affected_subject, "affected_subject": effect.affected_subject},
+                        consequence.label if consequence is not None else ""),
                     "epistemic_status": effect.epistemic_status,
                 })
         grounded_effect_ids = {
@@ -4534,7 +4610,7 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                 "l": {
                     "type": "object",
                     "properties": {
-                        action_id: {"type": "string", "maxLength": 100}
+                        action_id: {"type": "string"}
                         for action_id in action_ids
                     },
                     "required": action_ids,
@@ -4543,9 +4619,9 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                 "da": {"type": "string", "maxLength": 80},
                 "t": {"type": "string", "maxLength": 100},
                 "tf": {"type": "string", "maxLength": 100},
-                "dr": {"type": "string", "maxLength": 120},
-                "ft": {"type": "string", "maxLength": 120},
-                "nt": {"type": "string", "maxLength": 120},
+                "dr": {"type": "string"},
+                "ft": {"type": "string"},
+                "nt": {"type": "string"},
                 "z": {"type": "number", "minimum": 0, "maximum": 1},
                 "gu": {
                     "type": "object",
@@ -4631,7 +4707,7 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                     "enum": ["NOT_APPLICABLE", "ACCEPT", "QUALIFY", "REJECT"],
                 },
                 "we": {"type": "string", "enum": ["NONE", "FACTUAL", "NORMATIVE", "BOTH"]},
-                "fa": {"type": "string", "maxLength": 140},
+                "fa": {"type": "string"},
                 "fr": {"type": "boolean"},
                 "bd": {"type": "string", "enum": ["NONE", "LOW", "MEDIUM", "HIGH"]},
                 "fic": {
@@ -5036,6 +5112,27 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                 ],
                 "additionalProperties": False,
             }
+            maxim_text = lambda length: {"type": "string", "minLength": 4, "maxLength": length}
+            duty_assessment_schema["properties"]["mx"] = {
+                "type": "object", "additionalProperties": False,
+                "properties": {
+                    "circumstance": maxim_text(240), "policy": maxim_text(240),
+                    "end": maxim_text(180), "means": maxim_text(180),
+                    "person_role": {"type": "string", "enum": ["INTENDED_MEANS", "FORESEEN_AFFECTED", "NOT_USED", "UNRESOLVED"]},
+                    "consent_constraint": maxim_text(240), "universalization": maxim_text(300),
+                    "action_permissibility": {"type": "string", "enum": ["PERMISSIBLE", "IMPERMISSIBLE", "UNRESOLVED"]},
+                    "maxim_assessment": {"type": "string", "enum": ["DEFENSIBLE", "INDEFENSIBLE", "UNRESOLVED"]},
+                    "instrumental_belief": {"type": "string", "enum": ["RELIES_ON_PERSON", "DOES_NOT_RELY", "UNRESOLVED"]},
+                    "instrumental_use": {"type": "string", "enum": ["USES_PERSON", "DOES_NOT_USE", "UNRESOLVED"]},
+                    "practical_reasoning": maxim_text(300),
+                    "means_effect_ids": {"type": "array", "maxItems": 8, "items": {"type": "string"}},
+                    "end_effect_ids": {"type": "array", "maxItems": 8, "items": {"type": "string"}},
+                },
+                "required": ["circumstance", "policy", "end", "means", "person_role",
+                             "consent_constraint", "universalization", "action_permissibility", "maxim_assessment",
+                             "instrumental_belief", "instrumental_use", "practical_reasoning", "means_effect_ids", "end_effect_ids"],
+            }
+            duty_assessment_schema["required"].append("mx")
             schema["properties"]["dp"] = {
                 "type": "object",
                 "properties": {
@@ -5229,7 +5326,7 @@ Required: scores, cr, c, u, cj, z, fr. No other fields.
                 "additionalProperties": False,
             }
             schema["properties"]["fa"] = {
-                "type": "string", "minLength": 8, "maxLength": 140,
+                "type": "string", "minLength": 8,
             }
             schema["required"].extend(["rp", "rb", "rbc", "lpj", "lc"])
         if broadcast.constraint == "PROPOSAL_REVIEW":
@@ -5387,7 +5484,13 @@ trust; rr distinguishes direct, indirect, delayed, withheld, mixed, or unknown
 responsiveness; f records whether that response is feasible. cc names the strongest
 competing Care claim, res states whether the comparison is resolved, and g separates
 action/scenario evidence from framework interpretation. rs gives the integrated Care
-reason. cb identifies the governing relational basis: ENTRUSTED_RESPONSIBILITY,
+reason.
+For ACTION_GRAPH grounding, copy p from an affected-party label on THIS action's
+effects, including its quantity. A rival branch's death is not a benefit on this
+branch. Put the rival group's claim in cc instead of citing the wrong effect.
+If the party or relationship is only a framework interpretation, say so with g;
+an outcome alone does not establish entrustment, a guardian role, or a controller.
+cb identifies the governing relational basis: ENTRUSTED_RESPONSIBILITY,
 ACUTE_DEPENDENCY, AGENT_CREATED_VULNERABILITY, RELATIONAL_CONTINUITY,
 RESPONSIVE_FEASIBILITY, or UNRESOLVED. Need alone does not establish entrustment,
 urgency alone does not erase longer dependency, and population size does not establish
@@ -5453,6 +5556,38 @@ identify the norm; rel states whether the action SATISFIES, is CONSISTENT with,
 VIOLATES, or CONFLICTS with that norm; b is the duty bearer; p is the protected
 party; cn names the strongest competing norm. ck, crel, cp, and crs type that
 competing norm, its relation to the action, its protected party, and why it matters.
+Before ranking duties, give mx for EVERY option, including omissions. mx is a
+CANDIDATE INTERPRETATION of practical reasoning, not a fact about the actor's intent.
+State circumstance, policy (what one would do or refrain from doing), end, and means.
+PRACTICAL-REASONING QUALIFICATION: within the proposed maxim, using a person as a
+means requires an end the agent seeks, a belief that employing that person can
+further the end, and employing the person for that purpose. Record
+instrumental_belief=RELIES_ON_PERSON/DOES_NOT_RELY/UNRESOLVED and
+instrumental_use=USES_PERSON/DOES_NOT_USE/UNRESOLVED. practical_reasoning explains
+that connection without asserting an unknown actual intention. A physical causal
+path alone does not establish instrumental belief or purposive use. Likewise,
+causing a foreseen death does not establish that the death is the rescue mechanism.
+Name the chosen operation or mechanism in means, not simply its harmful outcome.
+Bind means_effect_ids and end_effect_ids to same-action admitted E identifiers.
+For physical ends, each cited means must have a path to the end: sibling harm and
+rescue effects do not support a harm-as-means claim. If an end is normative rather
+than a represented physical effect, use an empty end list and explain it. Omission
+may have an empty means list; do not manufacture a performed physical action.
+If the scenario does not establish a person's actual intention, retain the
+candidate status; these are possible policy readings, not recovered mental facts.
+person_role says whether the protected person is INTENDED_MEANS, FORESEEN_AFFECTED,
+NOT_USED, or UNRESOLVED in that reasoning; keep it consistent with mr. Distinguish
+purpose from chosen means and foreseeable consequences. A rescue purpose alone
+neither licenses every means nor makes omission permissible. consent_constraint
+explains whether using a person is conditional on consent; do not invent consent.
+universalization must examine this particular policy and its strongest objection,
+not just say it can or cannot be universalized. action_permissibility and
+maxim_assessment are separate: a defective maxim does not alone prohibit an action,
+and a benevolent end does not alone justify one. Missing intentions stay unknown;
+explain the conditional reading rather than attributing it to the scenario actor.
+In review, address the challenged maxim's specific inference; revise the relevant
+mx/mr/rs/pr fields or preserve the objection. Saying RESOLVED is not a justification.
+Keep these fields concise so every option fits the response budget.
 Before assigning categorical priority, classify four independent premises. dt says
 whether the governing claim is a PERFECT_NEGATIVE, PERFECT_POSITIVE, IMPERFECT,
 RIGHT_CORRELATIVE, SPECIAL_OBLIGATION, or UNRESOLVED duty. hr distinguishes DOING_HARM,
@@ -5481,7 +5616,12 @@ represent it through ck=AUTONOMY or RIGHT and crel=VIOLATES or CONFLICTS. g sepa
 action/scenario grounding from framework interpretation; rs gives the shortest justification. A REQUIRED
 verdict normally SATISFIES, PERMISSIBLE is CONSISTENT, PROHIBITED VIOLATES, and
 CONFLICTED leaves priority unresolved. gv says whether the PRIMARY or COMPETING
-norm governs the separate overall verdict; pb gives the deontological priority basis;
+norm governs the separate overall verdict; pb gives the deontological priority basis.
+Consistency check before returning dp: pb=PERFECT_DUTY is valid only when dt is
+PERFECT_NEGATIVE or PERFECT_POSITIVE. An IMPERFECT rescue duty does not become a
+perfect duty because one option is more effective. Keep its classification and
+supply a separately justified priority basis, or leave priority UNRESOLVED with
+v=CONFLICTED, gv=UNRESOLVED, res=CONTESTED. Do not change dt merely to pass validation.
 pr states the non-consequential priority rule. The overall verdict is derived from
 the governing norm, not necessarily the primary row: an action may be PROHIBITED
 while CONSISTENT with its primary norm when a competing violated duty governs.
@@ -5812,6 +5952,7 @@ Canonical grounded action effects: {json.dumps(grounded_effect_context[:60], sor
 Prior contribution profile: {json.dumps(self.memory_profile or {}, sort_keys=True)}
 Active audited propositions: {json.dumps(self.epistemic_commitments[-3:])}
 Authoritative proposition ledger: {json.dumps(self.proposition_ledger[:40], sort_keys=True)}
+{source_construction_context}
 PROPOSITION DEPENDENCY CONTRACT: sps lists the existing proposition IDs supporting
 your ranking; dcp lists the subset whose truth could materially change that ranking.
 ep must inventory EVERY material empirical premise used anywhere in your rationale,
@@ -6096,6 +6237,14 @@ range, population size, or claim that the hidden harm cannot approach a threshol
         raw = output["choices"][0]["text"] if isinstance(output, dict) else str(output)
         try:
             data = _extract_json(raw)
+            if (self.name == "deontological" and getattr(self.llm, "max_calls", 2) > len(getattr(self.llm, "calls", []))) and any(
+                row.get("pb") == "PERFECT_DUTY" and row.get("dt") not in {"PERFECT_NEGATIVE", "PERFECT_POSITIVE"}
+                for row in (data.get("dp") or {}).values() if isinstance(row, dict)
+            ):
+                raise ValueError("DUTY_CONSISTENCY_REPAIR: " + json.dumps({
+                    action: {key: row.get(key) for key in ("dt", "pb", "v", "gv", "res")}
+                    for action, row in (data.get("dp") or {}).items() if isinstance(row, dict)
+                    and row.get("pb") == "PERFECT_DUTY" and row.get("dt") not in {"PERFECT_NEGATIVE", "PERFECT_POSITIVE"}}))
             calibration = self._calibrate_evidence(scenario, actions, data)
             candidate = _candidate_from_data(
                 self.name, actions, data, broadcast, fixed_baseline, self.scenario_facts or {},
@@ -6134,7 +6283,15 @@ range, population size, or claim that the hidden harm cannot approach a threshol
             return candidate
         except (ValueError, json.JSONDecodeError) as first_error:
             repair_prompt = f"""[INST]
+{source_construction_context}
 Repair this invalid answer as JSON only: {raw[:400]}
+Validation problem: {str(first_error)}
+Original duty assessments: {json.dumps(data.get("dp", {})) if self.name == "deontological" else "not applicable"}
+For DUTY_CONSISTENCY_REPAIR keep the authored dt classification. Do not invent a
+perfect duty to satisfy PERFECT_DUTY priority. Supply another justified priority
+basis or explicitly use v=CONFLICTED, gv=UNRESOLVED, pb=UNRESOLVED, res=CONTESTED.
+Preserve every action's complete dp record and render fm consistently from dp.
+This is one repair attempt; uncertainty and abstention are valid.
 Required fields: scores object for {', '.join(action_ids)}, r, c, u, w, j. Also return
 e=STATED_FACTS, FRAMEWORK_ONLY, or UNSTATED_FACTS and x naming any unstated claim.
 When an authoritative proposition ledger is present, also return sps, dcp, and ep
@@ -6185,6 +6342,11 @@ c must be one of: {', '.join(allowed_constraints)}. No prose.
             repaired_raw = repaired["choices"][0]["text"] if isinstance(repaired, dict) else str(repaired)
             try:
                 data = _extract_json(repaired_raw)
+                if str(first_error).startswith("DUTY_CONSISTENCY_REPAIR: "):
+                    offending = json.loads(str(first_error).split(": ", 1)[1])
+                    if any((data.get("dp", {}).get(action) or {}).get("dt") != row["dt"]
+                           for action, row in offending.items()):
+                        raise ValueError("Duty repair changed the original duty classification")
                 calibration = self._calibrate_evidence(scenario, actions, data)
                 candidate = _candidate_from_data(
                     self.name, actions, data, broadcast, fixed_baseline, self.scenario_facts or {},
@@ -8609,6 +8771,7 @@ def ground_actions_in_scenario(
     enable_syntactic_resolution_obligations: bool = False,
     enable_targeted_semantic_resolution: bool = False,
     targeted_resolution_max_calls: int = 6,
+    parser_evidence_packet: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Map every canonical action to explicit scenario clauses for graph provenance.
 
@@ -8633,6 +8796,12 @@ def ground_actions_in_scenario(
             "unsupported deterministic repair guidance mode: "
             f"{deterministic_repair_guidance_mode}"
         )
+    parser_advisory = ""
+    if parser_evidence_packet is not None:
+        if guidance_mode != "EVIDENCE_ONLY":
+            raise ValueError("Z10 advisory requires EVIDENCE_ONLY guidance mode")
+        from parliament_z10_bridge import render_advisory
+        parser_advisory = render_advisory(parser_evidence_packet, scenario)
     clauses = segment_scenario_clauses(scenario)
     action_ids = [f"A{index}" for index in range(len(actions))]
     clause_ids = [clause["clause_id"] for clause in clauses]
@@ -9096,6 +9265,10 @@ states; never concatenate separate spans into a new source proposition.
 
 Return JSON only. For each action give clause_ids and a short mapping reason.
 [/INST]"""
+    if parser_advisory:
+        from parliament_z10_bridge import append_advisory
+        prompt = append_advisory(prompt, parser_advisory)
+    parser_advisory_calls = 0
     attempts: list[dict[str, Any]] = []
     rejected_candidate_history: list[dict[str, Any]] = []
     repair_note = ""
@@ -9930,6 +10103,8 @@ Return JSON only.
                     call_prompt = call_prompt.replace(
                         "\n[/INST]", stage_instruction + "\n[/INST]", 1,
                     )
+                if parser_advisory:
+                    parser_advisory_calls += 1
                 output = _call_json_llm(
                     llm, call_prompt, max_tokens=max(6144, max_tokens),
                     temperature=0.0, schema=schema,
@@ -10503,6 +10678,15 @@ Return JSON only.
     )
     result["candidate_generation_contract"] = copy.deepcopy(generation_contract)
     result["candidate_generation_stage_one"] = copy.deepcopy(stage_one_result)
+    if parser_advisory:
+        result["parser_advisory"] = {
+            "packet_version": parser_evidence_packet["packet_version"],
+            "package_id": parser_evidence_packet["package"]["package_id"],
+            "source_sha256": parser_evidence_packet["source_sha256"],
+            "authority": "ADVISORY_EVIDENCE_ONLY",
+            "model_call_attempts": parser_advisory_calls,
+            "semantic_use": "not_assessed",
+        }
     result["stage_one_guidance_mode"] = guidance_mode
     result["deterministic_repair_guidance_mode"] = repair_guidance_mode
     if result.get("status") != "COMMITTED" and rejected_candidate is not None:
@@ -11043,7 +11227,11 @@ def _admit_action_source_rows(
     # Explicitly user-authored A0/A1 texts are themselves distinct,
     # authoritative branch evidence. Their shared background clauses need not
     # contain a second lexical distinction merely to repeat that evidence.
+    warnings: list[str] = []
     if not allow_action_text_evidence:
+        shared_sentence = _shared_sentence_warning(admitted)
+        if shared_sentence:
+            warnings.append(shared_sentence)
         errors.extend(_distinguishing_support_errors(admitted))
     world_model: dict[str, Any] = {}
     world_contradictions: list[list[str]] = []
@@ -11143,6 +11331,8 @@ def _admit_action_source_rows(
                 "CONTRADICTORY" if contradictions
                 else parsed_world.admission.status
             )
+            if parsed_world.admission.override_reason:
+                warnings.append(parsed_world.admission.override_reason)
         except WorldModelValidationError as exc:
             errors.append(f"typed world model rejected: {exc}")
             validation_issues.extend(issue.as_dict() for issue in exc.issues)
@@ -11193,10 +11383,145 @@ def _admit_action_source_rows(
         "world_model_status": world_model_status,
         "world_contradictions": world_contradictions,
         "errors": errors,
+        "warnings": warnings,
         "validation_issues": validation_issues,
         "compiler_loss_telemetry": compiler_loss_telemetry,
         "clauses": list(clauses),
     }
+
+
+# Content words used to see which side of a fused "but not" clause an action
+# names. Closed function words are ignored so "save the dog" meets the remnant
+# "the dog" on "dog", and does not meet it merely because both strings contain
+# "the".
+_BUT_NOT_CONTENT_STOP = frozenset({
+    "a", "an", "the", "to", "of", "and", "or", "but", "not", "can", "will",
+    "if", "in", "on", "at", "for", "with", "from",
+})
+# The remnant stops at a comma or sentence boundary. "but not the dog." yields
+# "the dog". "but not the brake, one worker will die" yields "the brake", so a
+# following consequence is not treated as part of the contrast.
+_BUT_NOT_CONTRAST = re.compile(
+    r"^(?P<left>.*?)\bbut not\b\s+(?P<remnant>[^,.;]+)",
+    re.IGNORECASE | re.DOTALL,
+)
+
+
+def _but_not_content_tokens(text: str) -> set[str]:
+    return {
+        token.lower()
+        for token in re.findall(r"[A-Za-z0-9]+", text)
+        if token.lower() not in _BUT_NOT_CONTENT_STOP
+    }
+
+
+def _shared_sentence_warning(admitted: dict[str, dict[str, Any]]) -> str:
+    """Warn when every action cites one sentence that already names each branch.
+
+    Citing C0 together with C1 is still an error. An action whose clauses are
+    a subset of another's is still an error. One shared sentence is a warning
+    only when each action has a content word in that sentence which the other
+    action does not. The 2026-10-01 water sentence is the case: both actions
+    cite C0, and "farm" and "town" are already in that sentence.
+    """
+    if len(admitted) < 2:
+        return ""
+    cited = [tuple(row.get("clause_ids") or []) for row in admitted.values()]
+    if len(set(cited)) != 1 or len(cited[0]) != 1:
+        return ""
+    clause_id = cited[0][0]
+    clause = next(
+        (item for row in admitted.values() for item in (row.get("clauses") or [])
+         if isinstance(item, dict) and str(item.get("clause_id") or "") == str(clause_id)),
+        None,
+    )
+    text = str((clause or {}).get("text") or "")
+    if not text or re.search(
+        r"(?:\beither\b|\b(?:must\s+)?choose\b|\bchoice\s*:).+\bor\b",
+        text, re.I | re.S,
+    ):
+        return ""
+    sentence_words = _but_not_content_tokens(text)
+    distinctive = [
+        _but_not_content_tokens(str(row.get("action") or "")) & sentence_words
+        for row in admitted.values()
+    ]
+    uniques: list[set[str]] = []
+    for index, own in enumerate(distinctive):
+        others = set().union(*(
+            other for j, other in enumerate(distinctive) if j != index
+        ))
+        unique = own - others
+        if not unique:
+            return ""
+        uniques.append(unique)
+    shown = "; ".join(", ".join(sorted(item)) for item in uniques)
+    return (
+        f"{', '.join(admitted)} cite the same sentence {clause_id}. "
+        f"Each action has its own words in that sentence ({shown}). "
+        "This shared sentence is a warning, not a missing clause."
+    )
+
+
+def _but_not_remnant_distinguishes(
+    action_id: str,
+    admitted: dict[str, dict[str, Any]],
+    clause_by_id: dict[str, str],
+) -> bool:
+    """Whether a shared "but not" remnant already tells this action apart.
+
+    Rescue scenario, live grounding 2026-09-30. The source was:
+
+        A child and a dog are in the water.
+        Maria can save the child, but not the dog.
+        If Maria saves the child, the child will live.
+
+    Parliament stored those as C0, C1, and C2. "save the child" was grounded to
+    C1 and C2. "save the dog" was grounded only to C1. C2 is the child's own
+    clause, so the child action already had a distinguishing id. The dog action
+    did not: C1 is also cited by the child action, and the checker compared
+    clause ids only. The dog's distinctive words are inside C1, after "but not",
+    and the model's reason already said so ("C1 explicitly contrasts that Maria
+    cannot perform this action"). The world had kept Maria, the child, and the
+    dog, with the dog's direct effect NEUTRAL. Nothing further had to be
+    invented. The clause id check could not see the contrast the sentence
+    already states.
+
+    This returns true only when all of the following hold:
+
+    - This action cites a clause whose text has "but not" plus a short remnant.
+    - A content word of this action occurs in that remnant ("dog" in "the dog").
+    - A rival action also cites that same clause, and a content word of the
+      rival occurs on the left of "but not" ("child" in "save the child").
+
+    An action that merely shares the clause, such as "call the coast guard"
+    against this sentence, still fails. A rival that does not cite the contrast
+    clause does not license the remnant. Either/or and "must choose" stay on
+    their own earlier exemption. No new clause id is created, and the source
+    text is not rewritten.
+    """
+    action_tokens = _but_not_content_tokens(
+        str(admitted[action_id].get("action") or "")
+    )
+    if not action_tokens:
+        return False
+    for clause_id in admitted[action_id].get("clause_ids") or []:
+        match = _BUT_NOT_CONTRAST.search(clause_by_id.get(str(clause_id), ""))
+        if match is None:
+            continue
+        remnant_tokens = _but_not_content_tokens(match.group("remnant"))
+        left_tokens = _but_not_content_tokens(match.group("left"))
+        if not (action_tokens & remnant_tokens):
+            continue
+        for rival_id, rival in admitted.items():
+            if rival_id == action_id:
+                continue
+            if str(clause_id) not in {str(value) for value in rival.get("clause_ids") or []}:
+                continue
+            rival_tokens = _but_not_content_tokens(str(rival.get("action") or ""))
+            if rival_tokens & left_tokens:
+                return True
+    return False
 
 
 def _distinguishing_support_errors(
@@ -11207,7 +11532,9 @@ def _distinguishing_support_errors(
     Distinct alternatives legitimately share background facts. A fused binary
     clause can also be the authoritative source for every branch; in that case
     effect/action ownership, not a fabricated extra clause id, distinguishes
-    the alternatives.
+    the alternatives. A "but not" remnant is one such contrast: the remnant
+    side may share the sentence id with the other side when its own content
+    words sit in the remnant. See _but_not_remnant_distinguishes.
     """
     if len(admitted) < 2:
         return []
@@ -11226,6 +11553,9 @@ def _distinguishing_support_errors(
     # is common both in "either X or Y" prompts and in natural choice clauses
     # such as "the doctor must choose: give A ... or give B ...".  Requiring a
     # fabricated clause per action loses provenance rather than improving it.
+    # A fused sentence that names every branch ("devote water to a farm ... or
+    # a small town") is recorded as a warning by _shared_sentence_warning, not
+    # as a missing clause id.
     if any(
         re.search(
             r"(?:\beither\b|\b(?:must\s+)?choose\b|\bchoice\s*:).+\bor\b",
@@ -11241,6 +11571,12 @@ def _distinguishing_support_errors(
             *(other for rival, other in cited.items() if rival != action_id)
         )
         if not own - shared:
+            # The rescue dog action cites only the shared "but not" sentence.
+            # Its remnant is the distinction; do not demand a second clause id.
+            if _but_not_remnant_distinguishes(action_id, admitted, clause_by_id):
+                continue
+            if _shared_sentence_warning(admitted):
+                continue
             errors.append(
                 f"{action_id} has no distinguishing source clause; its grounding "
                 f"{sorted(own)} is covered entirely by the other actions"

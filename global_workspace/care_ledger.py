@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from typing import Any, Literal
+import re
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
@@ -84,6 +85,20 @@ def _resolve_action(graph: SemanticGraph, reference: str) -> SemanticNode | None
     return matches[0] if len(matches) == 1 else None
 
 
+def _party_key(label: str) -> str:
+    """Normalize display spelling, without collapsing distinct groups or counts."""
+    return re.sub(r"^(?:the|a|an)\s+", "", " ".join(label.casefold().split())).strip()
+
+
+def _care_effects(graph: SemanticGraph, action_id: str, affected_party: str):
+    # Explanations mention rivals and obligations too. Those words cannot supply
+    # identity for the declared affected party. Do not borrow another action's
+    # effects or infer that identically named groups with different counts merge.
+    key = _party_key(affected_party)
+    return [effect for effect in query_grounded_action_effects(graph, action_id)
+            if _party_key(effect.affected_subject) == key]
+
+
 def apply_care_ledger_transaction(
     store: SemanticGraphStore,
     proposal: dict[str, Any],
@@ -131,13 +146,12 @@ def apply_care_ledger_transaction(
         action = _resolve_action(store.graph, assessment.action_id)
         if action is None:
             continue
-        grounded_effects = query_grounded_action_effects(
-            store.graph,
-            assessment.action_id,
-            claim=(
-                f"{assessment.affected_party} {assessment.dependency_source} "
-                f"{assessment.responsibility_basis} {assessment.reason}"
-            ),
+        grounded_effects = _care_effects(
+            store.graph, assessment.action_id, assessment.affected_party,
+        )
+        unmatched_grounding = (
+            assessment.evidence_basis in {"ACTION_GRAPH", "SCENARIO"}
+            and not grounded_effects
         )
         if assessment.evidence_basis in {"ACTION_GRAPH", "SCENARIO"} and not grounded_effects:
             uncertainties.append(
@@ -162,6 +176,13 @@ def apply_care_ledger_transaction(
                 "verdict": assessment.verdict,
                 "affected_party": assessment.affected_party,
                 "relationship_type": assessment.relationship_type,
+                # Effect support validates an outcome endpoint, not this
+                # relationship. The proposition ledger tracks its origin and
+                # adoption separately; never display ENTRUSTED as world evidence.
+                "relationship_evidence_status": (
+                    "UNVERIFIED" if assessment.relationship_type == "ENTRUSTED"
+                    else "NOT_ASSESSED"
+                ),
                 "dependency_source": assessment.dependency_source,
                 "responsibility_basis": assessment.responsibility_basis,
                 "need_kind": assessment.need_kind,
@@ -176,10 +197,12 @@ def apply_care_ledger_transaction(
                 "ranking_basis": validated.ranking_basis,
                 "grounded_effect_ids": [effect.effect_id for effect in grounded_effects],
                 "grounded_consequence_ids": [effect.consequence_id for effect in grounded_effects],
+                "effect_grounding_status": "MATCHED" if grounded_effects else "UNMATCHED",
                 "epistemic_status": (
                     "EXPLICIT_UNCERTAINTY"
                     if assessment.resolution_status != "RESOLVED"
                     or assessment.evidence_basis == "UNKNOWN"
+                    or unmatched_grounding
                     else "FRAMEWORK_GROUNDED_WITH_ACTION_EFFECTS"
                     if grounded_effects else "FRAMEWORK_GROUNDED"
                 ),
