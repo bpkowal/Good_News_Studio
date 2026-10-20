@@ -110,7 +110,7 @@ def _signed_direction(record: Mapping[str, Any]) -> float | None:
 
 
 def _recomputed_value(
-    source_records: Sequence[Mapping[str, Any]], method: str,
+    source_records: Sequence[Mapping[str, Any]], method: str, unit: str = "",
 ) -> tuple[float, str, tuple[tuple[float, float, float], ...]] | None:
     if method not in {"DIRECT_COUNT", "EXPECTED_COUNT"}:
         return None
@@ -119,6 +119,12 @@ def _recomputed_value(
     for record in source_records:
         direction = _signed_direction(record)
         magnitude = _magnitude(record)
+        projection = record.get("count_projection") or {}
+        if (unit.upper() in {"EXPECTED_SURVIVORS", "SURVIVORS", "PERSON", "PERSONS", "LIVES_SAVED"}
+                and projection.get("endpoint") == "SURVIVOR_COUNT"
+                and projection.get("basis") == "ADMITTED_SINGLE_PERSON_IDENTITY"
+                and projection.get("amount") == 1 and projection.get("party_id")):
+            magnitude = 1.0
         probability = _probability(record)
         if direction is None or magnitude is None:
             return None
@@ -235,7 +241,13 @@ def validate_expected_value_estimates(
                     "EV changes a trapping outcome into a mortality quantity"
                 )
 
-            recomputed = _recomputed_value(source_records, method)
+            # A survivor endpoint cannot count two overlapping descriptions of
+            # the same patient's survival twice.
+            count_parties = [(r.get("count_projection") or {}).get("party_id") for r in source_records
+                             if (r.get("count_projection") or {}).get("endpoint") == "SURVIVOR_COUNT"]
+            if len(count_parties) != len(set(count_parties)):
+                row_errors.append("survivor count repeats an affected person")
+            recomputed = _recomputed_value(source_records, method, unit)
             if method in {"DIRECT_COUNT", "EXPECTED_COUNT"}:
                 if recomputed is None:
                     row_errors.append(
@@ -287,6 +299,11 @@ def validate_expected_value_estimates(
             "validation_errors": row_errors,
             "arithmetic_identity": arithmetic_identity,
             "symbolic_expression": symbolic_expression,
+            "count_projections": [dict(r["count_projection"]) for r in source_records
+                                  if r.get("count_projection")] if claimed else [],
+            "valuation_scope": "RESTRICTED_SURVIVOR_ENDPOINT_NOT_TOTAL_WELFARE"
+                if claimed and source_records and all(r.get("count_projection") for r in source_records)
+                else "SPECIALIST_VALUATION",
         }
 
     if not claimed_keys:

@@ -83,6 +83,7 @@ class SemanticEdge:
 class SemanticGraph:
     nodes: dict[str, SemanticNode] = field(default_factory=dict)
     edges: list[SemanticEdge] = field(default_factory=list)
+    discourse_collections: dict[str, list[Any]] = field(default_factory=dict)
     _revision: int = field(default=0, init=False, repr=False, compare=False)
     _projection_cache: dict[str, tuple[int, tuple[Any, ...]]] = field(
         default_factory=dict, init=False, repr=False, compare=False,

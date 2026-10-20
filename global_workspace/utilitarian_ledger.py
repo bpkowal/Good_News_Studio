@@ -222,7 +222,8 @@ def utilitarian_accounting(
     polarity = str(evidence.attributes.get("polarity", "UNRESOLVED")).upper()
     direction = _accounting_role(polarity)
     modality = str(evidence.attributes.get("modality", "UNKNOWN")).upper()
-    probability = "CERTAIN" if modality == "CERTAIN" else "UNKNOWN"
+    from .recognition_bridge import explicit_probability
+    probability = explicit_probability(evidence.attributes)
     # An admitted, unhedged source consequence is already the factual result
     # whose direction the framework must value.  Do not reinterpret it as
     # merely averting the alternative action's uncertain harm.  That would

@@ -348,7 +348,121 @@ def seed_proposition_ledger(graph: SemanticGraph) -> dict[str, PropositionRecord
     _seed_protective_relations(ledger)
     _annotate_binding_context(ledger, graph)
     _seed_unknown_parameters(ledger, graph)
+    _seed_discourse_collections(ledger, graph)
+    for card in (getattr(graph, "discourse_collections", {}) or {}).get("recognition_records", []):
+        ledger[card["proposition_id"]] = PropositionRecord(
+            proposition_id=card["proposition_id"], claim=card["claim"],
+            proposition_type="DESCRIPTIVE", epistemic_status="STIPULATED",
+            epistemic_type="WORLD_ESTABLISHED", introduced_by="SOURCE_TEXT" if card["kind"] == "COMMITMENT_OCCURRENCE" else "WORLD_MODEL",
+            support_ids=card["support_ids"], aliases=card["aliases"],
+            modality=card.get("scope", "SOURCE_CONSTRAINT"),
+        )
     return ledger
+
+
+_NONFACTUAL_STATUSES = {
+    "ATTRIBUTED", "COMMITTED_CONTENT", "GOVERNED", "UNASSERTED",
+}
+
+
+def _seed_discourse_collections(ledger: dict[str, PropositionRecord], graph: SemanticGraph) -> None:
+    """Cite reports, commitments, and modals without establishing their content."""
+    collections = getattr(graph, "discourse_collections", None) or {}
+    for proposition in collections.get("propositions") or []:
+        if proposition.get("status") not in _NONFACTUAL_STATUSES:
+            continue
+        ident = str(proposition.get("proposition_id") or "")
+        claim = str(proposition.get("predication") or "")
+        if not ident:
+            continue
+        ledger[f"PROP:DISCOURSE:{ident}"] = PropositionRecord(
+            proposition_id=f"PROP:DISCOURSE:{ident}",
+            claim=claim,
+            proposition_type="DESCRIPTIVE",
+            epistemic_status="UNRESOLVED",
+            support_ids=[ident],
+            introduced_by="DISCOURSE",
+            epistemic_type="ATTRIBUTED" if proposition.get("status") == "ATTRIBUTED" else "NOT_ESTABLISHED",
+        )
+    for report in collections.get("reports") or []:
+        ident = str(report.get("report_id") or "")
+        if not ident:
+            continue
+        ledger[f"PROP:REPORT:{ident}"] = PropositionRecord(
+            proposition_id=f"PROP:REPORT:{ident}",
+            claim=str(report.get("speech_act") or "claims"),
+            proposition_type="DESCRIPTIVE",
+            epistemic_status="UNRESOLVED",
+            support_ids=[ident, str(report.get("content_proposition_id") or "")],
+            introduced_by="DISCOURSE",
+            epistemic_type="REPORT_ACT",
+        )
+    for commitment in collections.get("commitments") or []:
+        ident = str(commitment.get("commitment_id") or "")
+        if not ident:
+            continue
+        content_id = str(commitment.get("content_proposition_id") or "")
+        content = next(
+            (str(row.get("predication") or "")
+             for row in collections.get("propositions") or []
+             if str(row.get("proposition_id") or "") == content_id),
+            "",
+        )
+        claim = " ".join(
+            part for part in (
+                str(commitment.get("commitment_event") or "promised"),
+                content,
+            ) if part
+        ).strip()
+        ledger[f"PROP:COMMITMENT:{ident}"] = PropositionRecord(
+            proposition_id=f"PROP:COMMITMENT:{ident}",
+            claim=claim,
+            proposition_type="NORMATIVE",
+            epistemic_status="UNRESOLVED",
+            support_ids=[ident, content_id] if content_id else [ident],
+            introduced_by="DISCOURSE",
+            epistemic_type="COMMITMENT",
+        )
+    for modal in collections.get("modal_operators") or []:
+        ident = str(modal.get("modal_id") or "")
+        if not ident:
+            continue
+        ledger[f"PROP:MODAL:{ident}"] = PropositionRecord(
+            proposition_id=f"PROP:MODAL:{ident}",
+            claim=str(modal.get("force") or "modal"),
+            proposition_type="DESCRIPTIVE",
+            epistemic_status="UNRESOLVED",
+            support_ids=[ident],
+            introduced_by="DISCOURSE",
+            epistemic_type="MODAL",
+        )
+    for norm in collections.get("normative_propositions") or []:
+        ident = str(norm.get("norm_id") or "")
+        if not ident:
+            continue
+        ledger[f"PROP:NORM:{ident}"] = PropositionRecord(
+            proposition_id=f"PROP:NORM:{ident}",
+            claim=str(norm.get("force") or "norm"),
+            proposition_type="NORMATIVE",
+            epistemic_status="UNRESOLVED",
+            support_ids=[ident],
+            introduced_by="DISCOURSE",
+            epistemic_type="NORMATIVE",
+        )
+    forbidden = {
+        str(row.get("predication") or "").casefold()
+        for row in collections.get("propositions") or []
+        if row.get("status") in _NONFACTUAL_STATUSES
+    }
+    for key, record in list(ledger.items()):
+        if record.epistemic_type != "WORLD_ESTABLISHED":
+            continue
+        claim = (record.claim or "").casefold()
+        outcome = (record.outcome or "").casefold()
+        if any(content and (content == outcome or content in claim) for content in forbidden):
+            record.epistemic_type = "NOT_ESTABLISHED"
+            record.epistemic_status = "UNRESOLVED"
+            record.introduced_by = "DISCOURSE_LEAK_BLOCKED"
 
 
 def ledger_projection(
@@ -768,8 +882,24 @@ def _claim_uses_foregone_language(claim: str) -> bool:
     ))
 
 
+def _quantity_atom_may_bind(claim: str, record: PropositionRecord) -> bool:
+    """Party cardinality alone cannot license an outcome or relationship.
+
+    Quantity atoms have no predicate or branch entailment. Keep their binding
+    to canonical copies rather than borrowing the originating effect context.
+    """
+    if record.proposition_id.startswith("PROP:WORLD:RECOGNITION:"):
+        return _normalized_claim(claim) in {
+            _normalized_claim(record.claim), *(_normalized_claim(a) for a in record.aliases)}
+    if ":PARTY:" not in record.proposition_id or ":QUANTITY:" not in record.proposition_id:
+        return True
+    return _normalized_claim(claim) == _normalized_claim(record.claim)
+
+
 def _cover_may_bind(claim: str, record: PropositionRecord) -> bool:
     """Exact canonical copies bind; component copies must keep modality and duals."""
+    if not _quantity_atom_may_bind(claim, record):
+        return False
     if _normalized_claim(claim) == _normalized_claim(record.claim):
         return True
     if _record_is_foregone(record) and not _claim_uses_foregone_language(claim):
@@ -1017,6 +1147,8 @@ def _semantic_match(
     *,
     ledger: dict[str, PropositionRecord],
 ) -> int | None:
+    if not _quantity_atom_may_bind(claim, record):
+        return None
     if _normalized_claim(claim) == _normalized_claim(record.claim):
         return 100
     if _record_is_foregone(record) and not _claim_uses_foregone_language(claim):
@@ -2018,6 +2150,25 @@ def attach_candidate_dependencies(
     ledger: dict[str, PropositionRecord], candidate: Any,
 ) -> None:
     """Resolve candidate references and impose the decision-critical status cap."""
+    # A matched outcome is not evidence of an entrusted relationship. Structured
+    # Care fields otherwise bypass the empirical-premise ledger and can travel
+    # as unlabeled facts. Keep this bounded to ENTRUSTED pending typed relational
+    # evidence; registration is not a world mutation or an assessment rejection.
+    care = getattr(candidate, "care_ledger_proposal", {}) or {}
+    if str(getattr(candidate, "specialist", "")).casefold() == "care":
+        claims = list(getattr(candidate, "material_empirical_claims", []) or [])
+        for assessment in care.get("assessments", []):
+            if assessment.get("relationship_type") != "ENTRUSTED":
+                continue
+            party = str(assessment.get("affected_party", "")).strip()
+            if not party:
+                continue
+            claim = f"{party} are entrusted to the decision maker"
+            if not any(row.get("claim") == claim for row in claims if isinstance(row, dict)):
+                claims.append({"claim": claim, "declared_basis": "HYPOTHESIS",
+                               "origin": "STRUCTURED_CARE_RELATIONSHIP",
+                               "decision_critical": care.get("ranking_basis") == "ENTRUSTED_RESPONSIBILITY"})
+        candidate.material_empirical_claims = claims
     submitted_cited = list(dict.fromkeys(
         str(item) for item in getattr(candidate, "supporting_proposition_ids", [])
     ))
@@ -2076,6 +2227,16 @@ def attach_candidate_dependencies(
             premise["canonical_proposition"] = proposition_id
             registered_claims[_normalized_claim(claim)] = proposition_id
             continue
+        # Report exact supported components without accepting a compound's
+        # extra inference. All unresolved parts keep the original hypothetical.
+        from .recognition_bridge import component_support
+        cards = [{"proposition_id": r.proposition_id, "claim": r.claim, "aliases": r.aliases, "kind": "QUANTITY" if r.modality == "SOURCE_CONSTRAINT" and r.aliases else "RULE"}
+                 for r in ledger.values() if r.proposition_id.startswith("PROP:WORLD:RECOGNITION:")]
+        components = component_support(claim, cards)
+        component_ids = list(dict.fromkeys(i for row in components for i in [*row["support_ids"], *(j for fragment in row.get("supported_fragments", []) for j in fragment["support_ids"]) ]))
+        if component_ids and any(row["status"] != "SUPPORTED_COMPONENT" for row in components):
+            premise["recognized_components"] = components
+            binding_notes.append("Supported components retained; compound inference remains unestablished: " + claim)
         authoritative = ledger.get(basis)
         bound = resolve_proposition(
             ledger, claim, preferred=basis if authoritative is not None else "",
@@ -2104,7 +2265,10 @@ def attach_candidate_dependencies(
                     f"Premise rebound from {basis} to canonical {bound}."
                 )
             continue
-        derived_from = [basis] if authoritative is not None else cited
+        derived_from = (
+            [] if premise.get("origin") == "STRUCTURED_CARE_RELATIONSHIP"
+            else [basis] if authoritative is not None else list(dict.fromkeys([*cited, *component_ids]))
+        )
         existing_ids = set(ledger)
         hypothesis_id = register_hypothesis(
             ledger, claim,
@@ -2239,6 +2403,9 @@ def apply_side_premise_audit(
                     f"{precision_errors[0]}"
                 ).strip()[:320],
             }
+        # Audit-supplied IDs need the same cardinality boundary as resolver IDs.
+        if binding in ledger and not _quantity_atom_may_bind(claim, ledger[binding]):
+            binding = "NEW_HYPOTHESIS"
         derived_from = [
             str(value) for value in raw.get("derived_from", [])
             if str(value) in ledger
@@ -2362,6 +2529,10 @@ def shared_unresolved_dependency_projection(
         "proposition_id": proposition_id,
         "claim": ledger[proposition_id].claim,
         "epistemic_status": ledger[proposition_id].epistemic_status,
+        "epistemic_type": ledger[proposition_id].epistemic_type,
+        "introduced_by": ledger[proposition_id].introduced_by,
+        "support_ids": list(ledger[proposition_id].support_ids),
+        "derived_from": list(ledger[proposition_id].derived_from),
         "dependent_specialists": sorted(agents),
         "dependent_specialist_count": len(agents),
         "mention_count": ledger[proposition_id].mention_count,

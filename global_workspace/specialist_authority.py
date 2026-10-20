@@ -332,14 +332,14 @@ def ensure_conditional_governing_rule(candidate: Any) -> str:
     )[:180]
 
 
-def downgrade_claim_authority(text: str, status: str) -> str:
+def downgrade_claim_authority(text: str, status: str, *, limit: int | None = 240) -> str:
     """Compression may remove detail; it may never increase authority."""
     normalized = normalize_specialist_status(status)
     claim = " ".join(str(text or "").split())
     if not claim:
         return ""
     if normalized in {SUPPORTS, CONDITIONAL_SUPPORTS}:
-        return claim[:240]
+        return claim[:limit]
     # Strip categorical requirement/prohibition language from incomplete states.
     softened = _CATEGORICAL_AUTHORITY.sub("provisionally favored under incomplete adjudication", claim)
     if normalized == PROVISIONAL_LEANING and not softened.lower().startswith("provisional"):
@@ -347,7 +347,7 @@ def downgrade_claim_authority(text: str, status: str) -> str:
             softened = f"Provisionally: {softened}"
     if normalized == CONTESTED_NO_LEANING and "unresolved" not in softened.casefold():
         softened = f"Unresolved contestation: {softened}"
-    return softened[:240]
+    return softened[:limit]
 
 
 def policy_weight_for(
@@ -1046,7 +1046,7 @@ def apply_specialist_authority(candidate: Any) -> SpecialistAuthorityProfile:
             candidate.decision_rule, profile.adjudication_status,
         )
         candidate.rationale = downgrade_claim_authority(
-            getattr(candidate, "rationale", ""), profile.adjudication_status,
+            getattr(candidate, "rationale", ""), profile.adjudication_status, limit=None,
         )
         candidate.governing_eligible = False
     apply_validator_governance_gate(candidate)

@@ -74,8 +74,31 @@ _OMISSION_VIOLATION_MESSAGE = (
 )
 
 
+class CandidateMaxim(BaseModel):
+    """Attributed practical reasoning, never evidence of the actor's intention."""
+    model_config = ConfigDict(extra="forbid", strict=True)
+    circumstance: str = Field(min_length=4, max_length=240)
+    policy: str = Field(min_length=4, max_length=240)
+    end: str = Field(min_length=4, max_length=180)
+    means: str = Field(min_length=4, max_length=180)
+    person_role: Literal["INTENDED_MEANS", "FORESEEN_AFFECTED", "NOT_USED", "UNRESOLVED"]
+    consent_constraint: str = Field(min_length=4, max_length=240)
+    universalization: str = Field(min_length=4, max_length=300)
+    action_permissibility: Literal["PERMISSIBLE", "IMPERMISSIBLE", "UNRESOLVED"]
+    maxim_assessment: Literal["DEFENSIBLE", "INDEFENSIBLE", "UNRESOLVED"]
+    # None preserves earlier saved maxims without inventing a belief/use claim.
+    instrumental_belief: Literal["RELIES_ON_PERSON", "DOES_NOT_RELY", "UNRESOLVED"] | None = None
+    instrumental_use: Literal["USES_PERSON", "DOES_NOT_USE", "UNRESOLVED"] | None = None
+    practical_reasoning: str | None = Field(default=None, min_length=4, max_length=300)
+    means_effect_ids: list[str] | None = Field(default=None, max_length=8)
+    end_effect_ids: list[str] | None = Field(default=None, max_length=8)
+
+
 class DutyAssessmentProposal(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
+    candidate_maxim: CandidateMaxim | None = None
+    # Adapter-authored provenance, never a required model-response field.
+    classification_revision: dict[str, str] | None = None
     action_id: str = Field(pattern=r"^A\d+$")
     verdict: Literal["REQUIRED", "PERMISSIBLE", "PROHIBITED", "CONFLICTED"]
     norm_kind: Literal[
@@ -713,6 +736,19 @@ def _means_path_support(
     return bool(support), list(dict.fromkeys(support))
 
 
+def perfect_duty_priority_issue(duty_type: str, governing_norm: str, priority_basis: str) -> str | None:
+    """Check the governing claim; primary classification cannot type its rival."""
+    if priority_basis != "PERFECT_DUTY":
+        return None
+    if governing_norm == "COMPETING":
+        return "competing governing duty has no separately established perfect-duty classification"
+    if governing_norm != "PRIMARY":
+        return "perfect-duty priority lacks an identified governing norm"
+    if duty_type not in {"PERFECT_NEGATIVE", "PERFECT_POSITIVE"}:
+        return "perfect-duty priority lacks a perfect-duty classification of the primary governing norm"
+    return None
+
+
 def calibrate_deontological_adjudication(
     graph: SemanticGraph,
     action: SemanticNode,
@@ -728,6 +764,11 @@ def calibrate_deontological_adjudication(
     errors: list[str] = []
     support: list[str] = []
     updates: dict[str, Any] = {}
+    priority_issue = perfect_duty_priority_issue(item.duty_type, item.governing_norm, item.priority_basis)
+    if priority_issue:
+        errors.append(priority_issue)
+    if item.classification_revision:
+        errors.append("revised duty classification is retained but requires independent review")
 
     if _PRIORITY_SLOGAN.search(" ".join((item.priority_rule, item.reason))):
         errors.append("priority slogan does not supply a Kantian derivation")
@@ -755,11 +796,6 @@ def calibrate_deontological_adjudication(
         ):
             errors.append("special duty asserted without an established special obligation")
         if (
-            item.priority_basis == "PERFECT_DUTY"
-            and item.duty_type not in {"PERFECT_NEGATIVE", "PERFECT_POSITIVE"}
-        ):
-            errors.append("perfect-duty priority lacks a perfect-duty classification")
-        if (
             item.duty_type == "PERFECT_POSITIVE"
             and item.special_obligation_status != "ESTABLISHED"
             and not _PERFECT_POSITIVE_BASIS.search(item.special_obligation_basis)
@@ -781,6 +817,57 @@ def calibrate_deontological_adjudication(
             errors.append(
                 "intended-as-means classification lacks an in-action causal path"
             )
+
+    if item.candidate_maxim is not None:
+        maxim = item.candidate_maxim
+        expected = {"INTENDED_AS_MEANS": "INTENDED_MEANS",
+                    "FORESEEN_SIDE_EFFECT": "FORESEEN_AFFECTED",
+                    "NO_INSTRUMENTALIZATION": "NOT_USED"}.get(item.means_relation)
+        if expected and maxim.person_role != expected:
+            errors.append("candidate maxim person-role conflicts with means classification")
+        if item.resolution_status == "RESOLVED" and (
+            maxim.person_role == "UNRESOLVED" or maxim.action_permissibility == "UNRESOLVED"
+        ):
+            errors.append("candidate maxim leaves a decisive practical-reasoning premise unresolved")
+        if ((maxim.action_permissibility == "IMPERMISSIBLE"
+                and item.verdict in {"PERMISSIBLE", "REQUIRED"})
+                or (maxim.action_permissibility == "PERMISSIBLE" and item.verdict == "PROHIBITED")):
+            errors.append("candidate maxim action-permissibility conflicts with duty verdict")
+        beliefs_present = maxim.instrumental_belief is not None or maxim.instrumental_use is not None
+        if beliefs_present:
+            relies = maxim.instrumental_belief == "RELIES_ON_PERSON"
+            uses = maxim.instrumental_use == "USES_PERSON"
+            if maxim.person_role == "INTENDED_MEANS" and not (relies and uses and maxim.practical_reasoning):
+                errors.append("candidate maxim intended use lacks a proposed instrumental belief and purposive use")
+            if relies and uses and maxim.person_role in {"FORESEEN_AFFECTED", "NOT_USED"}:
+                errors.append("candidate maxim denies intended use while proposing instrumental belief and purposive use")
+            if item.resolution_status == "RESOLVED" and (
+                maxim.instrumental_belief in {None, "UNRESOLVED"}
+                or maxim.instrumental_use in {None, "UNRESOLVED"}
+            ):
+                errors.append("candidate maxim practical-reasoning qualification remains unresolved")
+        # Check cited physical means against the same action's admitted graph.
+        # This is a support check, never proof of the person's actual intention.
+        typed = _typed_action_consequences(graph, action)
+        effects = {node.id.rsplit(":", 1)[-1]: node for node in typed}
+        references = [*(maxim.means_effect_ids or []), *(maxim.end_effect_ids or [])]
+        if any(ref not in effects for ref in references):
+            errors.append("candidate maxim cites an unknown or other-action effect")
+        elif maxim.means_effect_ids and maxim.end_effect_ids:
+            for ref in maxim.means_effect_ids:
+                reached = _reachable_via(graph, [effects[ref].id], _MEANS_LINK_RELATIONS)
+                if not any(effects[end].id != effects[ref].id and effects[end].id in reached
+                           for end in maxim.end_effect_ids):
+                    errors.append("candidate maxim chosen means has no admitted path to its stated end")
+                    break
+        # Catch the saved reply's positive "uses the worker as a mere means"
+        # phrasing without treating an explicit denial as that assertion.
+        positive_use = re.search(r"\buses?\b[^.;]{1,90}\bas (?:a )?mere means\b", item.reason, re.I)
+        denied_use = re.search(r"\b(?:not|never|without)\b[^.;]{0,35}\bus(?:e|es|ing)\b", item.reason, re.I)
+        if (maxim.person_role in {"FORESEEN_AFFECTED", "NOT_USED"}
+                and positive_use and not denied_use):
+            errors.append("merely-as-means conclusion lacks intended-as-means classification")
+        # An indefensible maxim does NOT by itself make the action impermissible.
 
     if item.derivation == "KANTIAN_ANALOGICAL" and item.resolution_status == "RESOLVED":
         errors.append(KANTIAN_ANALOGICAL_CANNOT_SETTLE)
@@ -916,6 +1003,8 @@ def _unresolved_premises(assessment: dict[str, Any]) -> list[str]:
         unresolved.append("what makes the positive duty perfect rather than imperfect")
     if any("perfect negative-duty" in error for error in errors):
         unresolved.append("whether the omission violates a separate right-correlative prohibition")
+    if any("candidate maxim" in error for error in errors):
+        unresolved.append("whether the candidate maxim's means, person-role, and action assessment justify the claimed priority")
     if not unresolved:
         unresolved.append("which claim governs under a universal public rule")
     return list(dict.fromkeys(unresolved))
@@ -983,8 +1072,11 @@ def classify_deontological_authority(
     )
     primary_claim = str(assessment.get("norm", "a protected claim"))
     competing_claim = str(assessment.get("competing_norm", "a competing claim"))
+    duty_bearer = str(assessment.get("duty_bearer") or "the duty-bearer")
+    primary_description = f"{duty_bearer}'s duty '{primary_claim}' protecting {primary_party}"
+    competing_description = f"{duty_bearer}'s competing duty '{competing_claim}' protecting {competing_party}"
     conflict = (
-        f"{primary_party}: {primary_claim} ↔ {competing_party}: {competing_claim}"
+        f"{primary_description} ↔ {competing_description}"
     )
     leaning = (
         " ".join(str(recommended_action).split())
@@ -996,10 +1088,15 @@ def classify_deontological_authority(
         actor = str(assessment.get("coercive_actor", "the acting authority"))
         coerced = str(assessment.get("coerced_party", "the restricted party"))
         unresolved = _unresolved_premises(assessment)
+        issue = (f"{actor}'s restriction of {coerced} is not yet justified because "
+                 if actor.upper() not in {"NONE", "UNKNOWN", ""}
+                 and coerced.upper() not in {"NONE", "UNKNOWN", ""}
+                 and assessment.get("coercive_actor") and assessment.get("coerced_party")
+                 else "The priority between these duties is not yet established because ")
         rationale = (
-            f"Deontology identifies competing claims between {primary_party}'s "
-            f"{primary_claim} and {competing_party}'s {competing_claim}. "
-            f"{actor}'s restriction of {coerced} is not yet justified because "
+            f"Deontology identifies a conflict between {primary_description} "
+            f"and {competing_description}. "
+            + issue
             + "; and ".join(unresolved)
             + ". The Kantian judgment remains contested."
         )
@@ -1035,10 +1132,9 @@ def classify_deontological_authority(
                     f"{rival_id} prohibited by {rival_claim} ↔ {premise}"
                 )
         rationale = (
-            f"Deontology ranks {primary_party}'s {primary_claim} above "
-            f"{competing_party}'s {competing_claim} through {derivation}, but that "
-            f"priority holds only if {rival_ids} is genuinely prohibited, and the "
-            f"prohibition rests on unestablished premises: "
+            f"Deontology provisionally prioritizes {primary_description} over "
+            f"{competing_description} through {derivation}. That priority "
+            f"depends on an unestablished prohibition of {rival_ids}: "
             + "; and ".join(unresolved)
             + ". The comparative Kantian judgment remains contested."
         )
@@ -1058,8 +1154,8 @@ def classify_deontological_authority(
         policy_weight_factor=1.0,
         investigative_claim="",
         rationale=(
-            f"Deontology resolves {primary_party}'s {primary_claim} against "
-            f"{competing_party}'s {competing_claim} through {derivation}."
+            f"Deontology resolves the conflict between {primary_description} and "
+            f"{competing_description} through {derivation}."
         ),
         decision_rule=str(assessment.get("priority_rule", "priority remains unresolved")),
         internal_conflicts=(),
@@ -1288,10 +1384,13 @@ def apply_deontological_ledger_transaction(
                 "competing_protected_party": competing_party_label,
                 "competing_reason": item.competing_reason,
                 "duty_type": item.duty_type,
+                **({"classification_revision": dict(item.classification_revision)} if item.classification_revision else {}),
                 "harm_relation": item.harm_relation,
                 "special_obligation_status": item.special_obligation_status,
                 "special_obligation_basis": item.special_obligation_basis,
                 "means_relation": item.means_relation,
+                **({"candidate_maxim": item.candidate_maxim.model_dump(exclude_none=True),
+                    "maxim_origin": "CANDIDATE_INTERPRETATION"} if item.candidate_maxim else {}),
                 "governing_norm": item.governing_norm,
                 "priority_basis": item.priority_basis,
                 "priority_rule": item.priority_rule,
@@ -1387,10 +1486,13 @@ def apply_deontological_ledger_transaction(
                 "priority_basis": item.priority_basis,
                 "priority_rule": item.priority_rule,
                 "duty_type": item.duty_type,
+                **({"classification_revision": dict(item.classification_revision)} if item.classification_revision else {}),
                 "harm_relation": item.harm_relation,
                 "special_obligation_status": item.special_obligation_status,
                 "special_obligation_basis": item.special_obligation_basis,
                 "means_relation": item.means_relation,
+                **({"candidate_maxim": item.candidate_maxim.model_dump(exclude_none=True),
+                    "maxim_origin": "CANDIDATE_INTERPRETATION"} if item.candidate_maxim else {}),
                 "derivation": item.derivation,
                 "resolution_status": item.resolution_status,
                 "coercion_kind": item.coercion_kind,
@@ -1443,10 +1545,13 @@ def apply_deontological_ledger_transaction(
             "competing_protected_party": competing_party_label,
             "competing_reason": item.competing_reason,
             "duty_type": item.duty_type,
+            **({"classification_revision": dict(item.classification_revision)} if item.classification_revision else {}),
             "harm_relation": item.harm_relation,
             "special_obligation_status": item.special_obligation_status,
             "special_obligation_basis": item.special_obligation_basis,
             "means_relation": item.means_relation,
+            **({"candidate_maxim": item.candidate_maxim.model_dump(exclude_none=True),
+                "maxim_origin": "CANDIDATE_INTERPRETATION"} if item.candidate_maxim else {}),
             "governing_norm": item.governing_norm,
             "priority_basis": item.priority_basis,
             "priority_rule": item.priority_rule,
