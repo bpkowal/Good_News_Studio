@@ -1,0 +1,200 @@
+--- a/global_workspace/local_specialists.py
++++ b/global_workspace/local_specialists.py
+@@ -1,6 +1,7 @@
+ from __future__ import annotations
+ 
+ import copy
++import hashlib
+ import json
+ import re
+ from dataclasses import dataclass, field
+@@ -2442,10 +2443,8 @@
+                     )
+                 if duty_type == "SPECIAL_OBLIGATION" and special_obligation_status != "ESTABLISHED":
+                     duty_errors.append(f"special duty for {action_id} lacks an established obligation")
+-                if priority_basis == "PERFECT_DUTY" and duty_type not in {
+-                    "PERFECT_NEGATIVE", "PERFECT_POSITIVE",
+-                }:
+-                    duty_errors.append(f"perfect-duty priority for {action_id} lacks a perfect-duty classification")
++                # A priority mismatch is an argument calibration issue, not a
++                # malformed ledger. Preserve the complete proposal for review.
+                 borrowed = re.search(
+                     r"\b(?:fair equality of opportunity|difference principle|least[- ]advantaged)\b",
+                     " ".join((norm, competing, priority_rule)), re.IGNORECASE,
+@@ -5617,11 +5616,15 @@
+ verdict normally SATISFIES, PERMISSIBLE is CONSISTENT, PROHIBITED VIOLATES, and
+ CONFLICTED leaves priority unresolved. gv says whether the PRIMARY or COMPETING
+ norm governs the separate overall verdict; pb gives the deontological priority basis.
+-Consistency check before returning dp: pb=PERFECT_DUTY is valid only when dt is
+-PERFECT_NEGATIVE or PERFECT_POSITIVE. An IMPERFECT rescue duty does not become a
++Consistency check before returning dp: dt classifies the PRIMARY norm. When
++gv=PRIMARY, pb=PERFECT_DUTY needs dt=PERFECT_NEGATIVE or PERFECT_POSITIVE. When
++gv=COMPETING, the primary dt does not classify that competing norm; if its duty
++classification is not represented, leave priority unresolved instead of borrowing dt.
++An IMPERFECT rescue duty does not become a
+ perfect duty because one option is more effective. Keep its classification and
+ supply a separately justified priority basis, or leave priority UNRESOLVED with
+-v=CONFLICTED, gv=UNRESOLVED, res=CONTESTED. Do not change dt merely to pass validation.
++v=CONFLICTED, gv=UNRESOLVED, res=CONTESTED. Explain any revised classification;
++it remains an attributed interpretation rather than an established correction.
+ pr states the non-consequential priority rule. The overall verdict is derived from
+ the governing norm, not necessarily the primary row: an action may be PROHIBITED
+ while CONSISTENT with its primary norm when a competing violated duty governs.
+@@ -6239,12 +6242,14 @@
+             data = _extract_json(raw)
+             if (self.name == "deontological" and getattr(self.llm, "max_calls", 2) > len(getattr(self.llm, "calls", []))) and any(
+                 row.get("pb") == "PERFECT_DUTY" and row.get("dt") not in {"PERFECT_NEGATIVE", "PERFECT_POSITIVE"}
++                and row.get("gv", "PRIMARY") == "PRIMARY"
+                 for row in (data.get("dp") or {}).values() if isinstance(row, dict)
+             ):
+                 raise ValueError("DUTY_CONSISTENCY_REPAIR: " + json.dumps({
+                     action: {key: row.get(key) for key in ("dt", "pb", "v", "gv", "res")}
+                     for action, row in (data.get("dp") or {}).items() if isinstance(row, dict)
+-                    and row.get("pb") == "PERFECT_DUTY" and row.get("dt") not in {"PERFECT_NEGATIVE", "PERFECT_POSITIVE"}}))
++                    and row.get("pb") == "PERFECT_DUTY" and row.get("dt") not in {"PERFECT_NEGATIVE", "PERFECT_POSITIVE"}
++                    and row.get("gv", "PRIMARY") == "PRIMARY"}))
+             calibration = self._calibrate_evidence(scenario, actions, data)
+             candidate = _candidate_from_data(
+                 self.name, actions, data, broadcast, fixed_baseline, self.scenario_facts or {},
+@@ -6287,9 +6292,12 @@
+ Repair this invalid answer as JSON only: {raw[:400]}
+ Validation problem: {str(first_error)}
+ Original duty assessments: {json.dumps(data.get("dp", {})) if self.name == "deontological" else "not applicable"}
+-For DUTY_CONSISTENCY_REPAIR keep the authored dt classification. Do not invent a
+-perfect duty to satisfy PERFECT_DUTY priority. Supply another justified priority
+-basis or explicitly use v=CONFLICTED, gv=UNRESOLVED, pb=UNRESOLVED, res=CONTESTED.
++For DUTY_CONSISTENCY_REPAIR distinguish the primary duty from the governing norm.
++Do not invent a perfect duty to satisfy PERFECT_DUTY priority. You may correct a
++mistaken classification, explaining the original-to-revised interpretation in
++existing rs/pr fields. Python preserves both versions and keeps the revision
++contested pending independent review. Otherwise supply a justified priority basis
++or use v=CONFLICTED, gv=UNRESOLVED, pb=UNRESOLVED, res=CONTESTED.
+ Preserve every action's complete dp record and render fm consistently from dp.
+ This is one repair attempt; uncertainty and abstention are valid.
+ Required fields: scores object for {', '.join(action_ids)}, r, c, u, w, j. Also return
+@@ -6342,11 +6350,31 @@
+             repaired_raw = repaired["choices"][0]["text"] if isinstance(repaired, dict) else str(repaired)
+             try:
+                 data = _extract_json(repaired_raw)
+-                if str(first_error).startswith("DUTY_CONSISTENCY_REPAIR: "):
+-                    offending = json.loads(str(first_error).split(": ", 1)[1])
+-                    if any((data.get("dp", {}).get(action) or {}).get("dt") != row["dt"]
+-                           for action, row in offending.items()):
+-                        raise ValueError("Duty repair changed the original duty classification")
++                revisions = {}
++                if self.name == "deontological":
++                    try:
++                        original_duties = _extract_json(raw).get("dp", {})
++                    except (ValueError, json.JSONDecodeError):
++                        original_duties = {}
++                    if not isinstance(original_duties, dict):
++                        original_duties = {}
++                    repaired_duties = data.get("dp") or {}
++                    for action, row in (repaired_duties.items() if isinstance(repaired_duties, dict) else ()):
++                        previous = original_duties.get(action, {})
++                        if isinstance(row, dict) and isinstance(previous, dict) and "dt" in previous and previous.get("dt") != row.get("dt"):
++                            revisions[action] = {
++                                "previous_duty_type": str(previous.get("dt", "")),
++                                "revised_duty_type": str(row.get("dt", "")),
++                                "previous_norm": str(previous.get("n", "")),
++                                "revised_norm": str(row.get("n", "")),
++                                "reason": str(row.get("rs", "")),
++                                "priority_explanation": str(row.get("pr", "")),
++                                "reason_assessment": "NOT_INDEPENDENTLY_ASSESSED",
++                                "review_status": "UNVERIFIED",
++                                "response_hash_scope": "NATIVE_PARSER_INPUT",
++                                "original_response_sha256": hashlib.sha256(raw.encode()).hexdigest(),
++                                "repaired_response_sha256": hashlib.sha256(repaired_raw.encode()).hexdigest(),
++                            }
+                 calibration = self._calibrate_evidence(scenario, actions, data)
+                 candidate = _candidate_from_data(
+                     self.name, actions, data, broadcast, fixed_baseline, self.scenario_facts or {},
+@@ -6366,6 +6394,9 @@
+                     grounded_effect_context,
+                     self.proposition_ledger,
+                 )
++                for assessment in candidate.deontological_ledger_proposal.get("assessments", []):
++                    if assessment.get("action_id") in revisions:
++                        assessment["classification_revision"] = revisions[assessment["action_id"]]
+                 try:
+                     self._audit_framework_state_change(candidate, broadcast)
+                 except Exception as error:
+--- a/global_workspace/deontology_ledger.py
++++ b/global_workspace/deontology_ledger.py
+@@ -97,6 +97,8 @@
+ class DutyAssessmentProposal(BaseModel):
+     model_config = ConfigDict(extra="forbid", strict=True)
+     candidate_maxim: CandidateMaxim | None = None
++    # Adapter-authored provenance, never a required model-response field.
++    classification_revision: dict[str, str] | None = None
+     action_id: str = Field(pattern=r"^A\d+$")
+     verdict: Literal["REQUIRED", "PERMISSIBLE", "PROHIBITED", "CONFLICTED"]
+     norm_kind: Literal[
+@@ -734,6 +736,19 @@
+     return bool(support), list(dict.fromkeys(support))
+ 
+ 
++def perfect_duty_priority_issue(duty_type: str, governing_norm: str, priority_basis: str) -> str | None:
++    """Check the governing claim; primary classification cannot type its rival."""
++    if priority_basis != "PERFECT_DUTY":
++        return None
++    if governing_norm == "COMPETING":
++        return "competing governing duty has no separately established perfect-duty classification"
++    if governing_norm != "PRIMARY":
++        return "perfect-duty priority lacks an identified governing norm"
++    if duty_type not in {"PERFECT_NEGATIVE", "PERFECT_POSITIVE"}:
++        return "perfect-duty priority lacks a perfect-duty classification of the primary governing norm"
++    return None
++
++
+ def calibrate_deontological_adjudication(
+     graph: SemanticGraph,
+     action: SemanticNode,
+@@ -749,6 +764,11 @@
+     errors: list[str] = []
+     support: list[str] = []
+     updates: dict[str, Any] = {}
++    priority_issue = perfect_duty_priority_issue(item.duty_type, item.governing_norm, item.priority_basis)
++    if priority_issue:
++        errors.append(priority_issue)
++    if item.classification_revision:
++        errors.append("revised duty classification is retained but requires independent review")
+ 
+     if _PRIORITY_SLOGAN.search(" ".join((item.priority_rule, item.reason))):
+         errors.append("priority slogan does not supply a Kantian derivation")
+@@ -775,11 +795,6 @@
+             and item.special_obligation_status != "ESTABLISHED"
+         ):
+             errors.append("special duty asserted without an established special obligation")
+-        if (
+-            item.priority_basis == "PERFECT_DUTY"
+-            and item.duty_type not in {"PERFECT_NEGATIVE", "PERFECT_POSITIVE"}
+-        ):
+-            errors.append("perfect-duty priority lacks a perfect-duty classification")
+         if (
+             item.duty_type == "PERFECT_POSITIVE"
+             and item.special_obligation_status != "ESTABLISHED"
+@@ -1369,6 +1384,7 @@
+                 "competing_protected_party": competing_party_label,
+                 "competing_reason": item.competing_reason,
+                 "duty_type": item.duty_type,
++                **({"classification_revision": dict(item.classification_revision)} if item.classification_revision else {}),
+                 "harm_relation": item.harm_relation,
+                 "special_obligation_status": item.special_obligation_status,
+                 "special_obligation_basis": item.special_obligation_basis,
+@@ -1470,6 +1486,7 @@
+                 "priority_basis": item.priority_basis,
+                 "priority_rule": item.priority_rule,
+                 "duty_type": item.duty_type,
++                **({"classification_revision": dict(item.classification_revision)} if item.classification_revision else {}),
+                 "harm_relation": item.harm_relation,
+                 "special_obligation_status": item.special_obligation_status,
+                 "special_obligation_basis": item.special_obligation_basis,
+@@ -1528,6 +1545,7 @@
+             "competing_protected_party": competing_party_label,
+             "competing_reason": item.competing_reason,
+             "duty_type": item.duty_type,
++            **({"classification_revision": dict(item.classification_revision)} if item.classification_revision else {}),
+             "harm_relation": item.harm_relation,
+             "special_obligation_status": item.special_obligation_status,
+             "special_obligation_basis": item.special_obligation_basis,

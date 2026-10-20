@@ -38,6 +38,11 @@ def close_deontological_map(response):
 def candidate_maxim_review(candidate, world=None):
     """Local argument context; never a reconstruction of the actor's intentions."""
     records = (candidate.get('committed_native_ledger') or {}).get('records', [])
+    if not records:
+        records = [{'canonical_action_id': action, 'candidate_maxim': row.get('mx'),
+                    'means_relation': row.get('mr'), 'verdict': row.get('v'), 'reason': row.get('rs')}
+                   for action, row in (candidate.get('authored_duty_proposal') or {}).get('duties', {}).items()
+                   if isinstance(row, dict)]
     return {
         'origin': 'CANDIDATE_INTERPRETATION',
         'world_fact': False,
@@ -107,6 +112,13 @@ def review_jobs(assessment, issue_ids=None):
             job['maxim_review'] = candidate_maxim_review(
                 prior, (assessment.get('action_source_grounding') or {}).get('world_model'))
             job['question'] += ' ' + job['maxim_review']['question']
+            from deontology_rule_attention import source_rule_context, rule_attention_instruction
+            job['source_rules'] = source_rule_context(
+                (assessment.get('action_source_grounding') or {}).get('world_model', {}))
+            job['question'] += ' ' + rule_attention_instruction(job['source_rules'])
+            job['question'] += (' Explain why POSSIBLE staff exposure warrants the claimed perfect-duty '
+                                'violation; do not upgrade risk to settled injury. Keep institutional '
+                                'authority, emergency rescue, and foreseen side effects distinct.')
     return jobs
 
 
@@ -151,7 +163,8 @@ def reconcile(assessment, jobs, review_candidates, local_ledgers):
             claim = next((c for c in related_claims if issue['label'].startswith(
                 str(c['record'].get('canonical_action_id'))+' ')), related_claims[0])
             old = claim['record']
-            replacements = [r for r in ledger.get('records', [])
+            nonoperative = claim.get('kind') == 'PROPOSED_ARGUMENT'
+            replacements = deepcopy(ledger.get('records', [])) if nonoperative else [r for r in ledger.get('records', [])
                             if r.get('assessment_node_id') == old.get('assessment_node_id')]
             retained_error = any(issue['label'] in r.get('calibration_errors', []) for r in replacements)
             changes = [{field: {'before': old.get(field), 'after': row.get(field)}
@@ -171,7 +184,8 @@ def reconcile(assessment, jobs, review_candidates, local_ledgers):
             warning_present = any(issue['label'] in str(w) for w in (proposed or {}).get('framework_validation_errors', []))
             removed = bool(accepted and replacements and substantive and (
                 issue['conflict_type'] == 'UNSUPPORTED_INFERENCE' and not retained_error
-                or issue['conflict_type'] == 'NATIVE_FRAMEWORK_WARNING' and not warning_present))
+                or issue['conflict_type'] == 'NATIVE_FRAMEWORK_WARNING' and not warning_present
+                or issue['conflict_type'] == 'UNADMITTED_ARGUMENT' and not warning_present))
             unresolved_fields = [{field: value for field, value in row.items()
                                   if isinstance(value, str) and value in {'UNRESOLVED', 'CONTESTED', 'UNCERTAIN', 'UNKNOWN'}}
                                  for row in replacements]
@@ -256,6 +270,12 @@ def review(assessment_path, output_dir, backend_factory, *, tokens=3072, max_cal
     assessment_path, output_dir = Path(assessment_path), Path(output_dir)
     source_bytes = assessment_path.read_bytes()
     assessment = json.loads(source_bytes)
+    from deontology_rule_attention import authored_duty_proposal, source_rule_context
+    for candidate in assessment.get('cycles', [])[-1]['candidates']:
+        if candidate['specialist'] == 'deontological' and not candidate.get('authored_duty_proposal'):
+            path = assessment_path.parent/'deontological/model_calls.json'
+            if path.exists():
+                candidate['authored_duty_proposal'] = authored_duty_proposal(json.loads(path.read_text()))
     shared = json.loads((assessment_path.parent/'shared_input.json').read_text())
     quotes = json.loads((assessment_path.parent/'framework_commitments.json').read_text())
     from parliament_run_provenance import record_resource
@@ -280,6 +300,8 @@ def review(assessment_path, output_dir, backend_factory, *, tokens=3072, max_cal
     retained_proposals, partial_reviews = [], []
     for job in jobs:
         name = job['framework']
+        prior = next(c for c in assessment['cycles'][-1]['candidates'] if c['specialist'] == name)
+        recovery = not str((prior.get('committed_native_ledger') or {}).get('transaction_status', '')).startswith('COMMITTED')
         folder = output_dir/name
         folder.mkdir(parents=True, exist_ok=True)
         print('Targeted review: ' + name + ' (' + str(len(job['issues'])) + ' objections)...', flush=True)
@@ -293,6 +315,7 @@ def review(assessment_path, output_dir, backend_factory, *, tokens=3072, max_cal
                 'retained_original': True}, indent=2)+'\n')
             continue
         model = RecordedModel(backend_factory(name), replay.scenario, folder/'model_calls.json', review_context=job,
+                              source_rules=source_rule_context(shared['action_source_grounding']['world_model']) if name == 'deontological' else None,
                               response_normalizer=close_deontological_map if name == 'deontological' else None,
                               max_calls=max_calls)
         execution_modes[name] = getattr(model.backend, 'execution_mode', 'MODEL_BACKEND')
@@ -313,6 +336,12 @@ def review(assessment_path, output_dir, backend_factory, *, tokens=3072, max_cal
                     'response_sha256': fingerprint(saved), 'new_model_call': False}, indent=2)+'\n')
                 return response
         staged = PriorThenReview()
+        if recovery:
+            staged.reviewing = True
+            (folder/'prior_replay.json').write_text(json.dumps({
+                'origin': 'SAVED_UNADMITTED_RESPONSE_CONTEXT_ONLY', 'response': saved,
+                'response_sha256': fingerprint(saved), 'new_model_call': False,
+                'seeded_as_operative': False}, indent=2)+'\n')
         specialist = CompactLocalSpecialist(name, staged, max_tokens=tokens,
             scenario_facts=extract_scenario_facts(replay.scenario),
             source_construction_advisory=deepcopy(replay.source_construction_advisory),
@@ -324,8 +353,8 @@ def review(assessment_path, output_dir, backend_factory, *, tokens=3072, max_cal
                   'grounding_status': 'ATTRIBUTED_OBJECTION', 'raised_by': ''}
         class NativeReviewEngine(WorkspaceEngine):
             def prepare_cycle_input(self, **kwargs):
-                if kwargs['cycle_number'] == 2:
-                    if verify_prior:
+                if kwargs['cycle_number'] == (1 if recovery else 2):
+                    if verify_prior and not recovery:
                         from global_workspace.deontology_ledger import committed_deontological_assessments
                         fields=('canonical_action_id','norm','verdict','relation','duty_type','harm_relation',
                                 'means_relation','governing_norm','priority_basis','priority_rule','candidate_maxim')
@@ -344,7 +373,7 @@ def review(assessment_path, output_dir, backend_factory, *, tokens=3072, max_cal
                         'prior_candidate': next(c for c in assessment['cycles'][-1]['candidates'] if c['specialist'] == name),
                         'review_constraint': 'PROPOSAL_REVIEW'}, indent=2)+'\n')
                 return super().prepare_cycle_input(**kwargs)
-        engine = NativeReviewEngine([specialist], WorkspaceConfig(max_cycles=2, high_urgency_cycles=2,
+        engine = NativeReviewEngine([specialist], WorkspaceConfig(max_cycles=1 if recovery else 2, high_urgency_cycles=2,
             min_valid_specialists=1, stop_redundant_consensus_cycles=False, max_cycle_extensions=0,
             enable_synthesis=False, enable_planning=False, enable_consensus_audit=False,
             enable_problem_state_audit=False, enable_reversal_audit=False))
@@ -357,7 +386,7 @@ def review(assessment_path, output_dir, backend_factory, *, tokens=3072, max_cal
         (folder/'native_trace.json').write_text(json.dumps(native, indent=2)+'\n')
         if native['action_source_grounding']['world_model'] != replay.action_source_grounding['world_model']:
             raise RuntimeError('Targeted review changed admitted world')
-        if len(native['cycles']) >= 2:
+        if len(native['cycles']) >= (1 if recovery else 2):
             attempts[name] = native['cycles'][-1]['candidates'][0]
             ledgers[name] = native['proposition_ledger']
         interim = reconcile(assessment, [job], attempts, ledgers)
@@ -393,8 +422,11 @@ def review(assessment_path, output_dir, backend_factory, *, tokens=3072, max_cal
         job['framework']: len(json.loads((output_dir/job['framework']/'model_calls.json').read_text()))
         if (output_dir/job['framework']/'model_calls.json').exists() else 0 for job in jobs}
     result['targeted_review']['acceptance_path'] = 'NATIVE_RECURRENT_PROPOSAL_REVIEW'
+    result['targeted_review']['nonoperative_recovery_frameworks'] = [job['framework'] for job in jobs
+        if not str((next(c for c in assessment['cycles'][-1]['candidates'] if c['specialist'] == job['framework']).get('committed_native_ledger') or {}).get('transaction_status', '')).startswith('COMMITTED')]
     result['targeted_review']['prior_replay_calls'] = {job['framework']: 1 if
-        (output_dir/job['framework']/'prior_replay.json').exists() else 0 for job in jobs}
+        (output_dir/job['framework']/'prior_replay.json').exists() and
+        job['framework'] not in result['targeted_review']['nonoperative_recovery_frameworks'] else 0 for job in jobs}
     result['targeted_review']['execution_modes'] = execution_modes
     result['targeted_review']['retained_proposals'] = retained_proposals
     result['targeted_review']['isolated_classification_reviews'] = partial_reviews
@@ -422,7 +454,7 @@ def review(assessment_path, output_dir, backend_factory, *, tokens=3072, max_cal
         result['targeted_review']['issues'].extend(residual['targeted_review']['issues'])
         for key in ('adapter_calls', 'prior_replay_calls', 'execution_modes', 'framework_changes', 'proposal_attempts'):
             result['targeted_review'][key].update(residual['targeted_review'].get(key, {}))
-        for key in ('retained_proposals', 'isolated_classification_reviews'):
+        for key in ('retained_proposals', 'isolated_classification_reviews', 'nonoperative_recovery_frameworks'):
             result['targeted_review'][key].extend(residual['targeted_review'].get(key, []))
         result['targeted_review']['rounds'] = 2
     scheduled = {i['original_issue_id'] for i in result['targeted_review']['issues']}

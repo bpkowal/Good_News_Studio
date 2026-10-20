@@ -1,0 +1,547 @@
+/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/.venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+Candidate blueprint attempts:
+  1. rescue_contrast: withheld; missing=first_saved, second_saved, rescue_exclusivity, first_rescue_action, second_rescue_action, first_harm, second_benefit, second_harm
+  2. omission_harm: withheld; missing=omitted, harm_done, done_hedge, omitted_hedge, group_counts, instrument, controllable_process, done_patient, done_quantity, omitted_quantity, instrument_entity
+  3. deontic_rule: graph selected; missing=target, sanction, second_bearer
+  2.9. deontic_rule: graph; missing=target, sanction, second_bearer
+  4. primitive_composition: graph; missing=none
+Candidate graph display: /Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_choice_composition_20261016/live_final/candidate_graphs.md
+Prepared and admitted blueprint world:
+{
+  "run_provenance": {
+    "schema_version": "parliament-run/1",
+    "run_id": "run_fb7c6c6543d04afd997f6db6879c2fb7",
+    "parent_run_id": null,
+    "execution_path": "world_preparation",
+    "mode": "LIVE",
+    "started_at": "2026-10-16T15:29:07.284478+00:00",
+    "configuration": {
+      "chooser_model": "gpt-4o-mini",
+      "openai_model": "o3",
+      "prepare_only": true,
+      "runtime_profile": "compact_frameworks",
+      "parliament_root": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/.runtime/parliament",
+      "parliament_python": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/.runtime/venv/bin/python",
+      "agents": null,
+      "max_cycles": null,
+      "use_rag": null,
+      "time_budget": null,
+      "agent_timeout": null,
+      "prototype_deliberation": false
+    },
+    "pipeline_lock_sha256": "eca29e35eedccad4605931d05081536bedb8176a7d2a9c69e44a59f239f28f02",
+    "inputs": {
+      "scenario-file": {
+        "sha256": "426b0bc79f59d76bebc89b7a35e6949545e28d5d698638973555ed65fc7267cd"
+      }
+    },
+    "manifest_file": "run_manifest.json",
+    "checkpoint_tags": [
+      "deontic-choice-composition-final"
+    ],
+    "checkpoints": [
+      {
+        "schema_version": "parliament-checkpoint/1",
+        "id": "run_fb7c6c6543d04afd997f6db6879c2fb7:cp:1",
+        "run_id": "run_fb7c6c6543d04afd997f6db6879c2fb7",
+        "stage": "execution_started",
+        "status": "recorded",
+        "at": "2026-10-16T15:29:07.344504+00:00",
+        "tags": [
+          "deontic-choice-composition-final"
+        ],
+        "artifacts": []
+      },
+      {
+        "schema_version": "parliament-checkpoint/1",
+        "id": "run_fb7c6c6543d04afd997f6db6879c2fb7:cp:2",
+        "run_id": "run_fb7c6c6543d04afd997f6db6879c2fb7",
+        "stage": "runtime_checked",
+        "status": "ready",
+        "at": "2026-10-16T15:29:08.679897+00:00",
+        "tags": [
+          "deontic-choice-composition-final"
+        ],
+        "artifacts": []
+      },
+      {
+        "schema_version": "parliament-checkpoint/1",
+        "id": "run_fb7c6c6543d04afd997f6db6879c2fb7:cp:3",
+        "run_id": "run_fb7c6c6543d04afd997f6db6879c2fb7",
+        "stage": "world_frozen",
+        "status": "recorded",
+        "at": "2026-10-16T15:29:25.295382+00:00",
+        "tags": [
+          "deontic-choice-composition-final"
+        ],
+        "artifacts": [
+          {
+            "name": "frozen_world_trace.json",
+            "sha256": "b7989329f23b974e257dcf2f4ff06f203ce88c759900be1ac72dafdbca508cb2",
+            "snapshot": "inputs/b7989329f23b974e257dcf2f4ff06f203ce88c759900be1ac72dafdbca508cb2_frozen_world_trace.json"
+          }
+        ]
+      }
+    ],
+    "application": {
+      "commit": "5230184a08ea66c7befb095e14e5e1b3a7d60ea5",
+      "branch": "Parliament_Frontend",
+      "dirty": true,
+      "source_sha256": "aa630364d8bb1f246113c9e126e23da00142b4059e898a89134dde691b85d5fa",
+      "archive_sha256": "05566ac94b0c539b29b2663b149470ccec68757d999887118ce3eb1d977a1bb0"
+    }
+  },
+  "scenario": "A laboratory safety rule requires Mira to keep a containment door closed while a hazardous experiment is running. The rule allows opening it only after the experiment has stopped. A technician is trapped inside and needs urgent medical help. Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes. Stopping the experiment first takes ten minutes; the technician may die during that delay.\n\nShould Mira open the door immediately or stop the experiment and wait?",
+  "semantic_coverage": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_choice_composition_20261016/live_final/semantic_coverage.json",
+  "question_assessment": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_choice_composition_20261016/live_final/question_assessment.json",
+  "chooser_model": "gpt-4o-mini",
+  "chosen_blueprint_id": "deontic_rule",
+  "blueprint_status": "FILLED",
+  "candidate_graphs_markdown": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_choice_composition_20261016/live_final/candidate_graphs.md",
+  "candidate_attempts_json": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_choice_composition_20261016/live_final/candidate_attempts.json",
+  "z10_blueprint_comparison": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_choice_composition_20261016/live_final/z10_blueprint_comparison.json",
+  "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_choice_composition_20261016/live_final/blueprint_candidate.json",
+  "scenario_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_choice_composition_20261016/live_final/scenario.json",
+  "actions": [
+    "open the door now",
+    "stop the experiment and wait"
+  ],
+  "deliberation": {
+    "status": "NOT_RUN"
+  },
+  "parliament_version": {
+    "root": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/.runtime/parliament",
+    "commit": "614af0c1601dd7169842f130f1c26a5dd0b30564",
+    "branch": "relent-framework",
+    "modified_files": [
+      "global_workspace/care_ledger.py",
+      "global_workspace/deontology_ledger.py",
+      "global_workspace/epistemic_ledger.py",
+      "global_workspace/expected_value.py",
+      "global_workspace/frozen_world_replay.py",
+      "global_workspace/local_specialists.py",
+      "global_workspace/models.py",
+      "global_workspace/scenario_semantics.py",
+      "global_workspace/semantic_graph.py",
+      "global_workspace/specialist_authority.py",
+      "global_workspace/utilitarian_ledger.py",
+      "global_workspace/world_state.py",
+      "global_workspace_pipeline.py"
+    ],
+    "integration_patch_sha256": "c878f1c6f463219f72bc4f42e5cd11fb177e5f33d62fa39b0334f44deb277d57",
+    "discourse_workspace_patch_sha256": "8741c60141b59062de79102eb0bebcaccadbba8a2111e9dcebebaf92ac4d193e",
+    "recognition_bridge_sha256": "7abcf97cacbef2ec7c176a5c2a355bcd29cd2e6cd14037b4a15d5718e1b245fe"
+  },
+  "runtime_check": {
+    "check_version": "parliament-runtime-check/1",
+    "ready": true,
+    "profile": "compact_frameworks",
+    "parliament_root": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/.runtime/parliament",
+    "python": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/.runtime/venv/bin/python",
+    "errors": [],
+    "lock_sha256": "eca29e35eedccad4605931d05081536bedb8176a7d2a9c69e44a59f239f28f02",
+    "capability": "compact_frameworks",
+    "commit": "614af0c1601dd7169842f130f1c26a5dd0b30564",
+    "source_tree_sha256": "41818314dc010587f8b6756b198743b6cfe4cad0ad0d592a9021f771b82636a1",
+    "source_status": "LOCKED_PATCH_SET",
+    "environment": {},
+    "python_version": "3.11.11",
+    "remediation": "Run: .venv/bin/python parliament_runtime.py setup --profile compact_frameworks --python python3.11"
+  },
+  "admission_attempts": [
+    {
+      "blueprint_id": "rescue_contrast",
+      "status": "NOT_RUN",
+      "reason": "construction_withheld"
+    },
+    {
+      "blueprint_id": "omission_harm",
+      "status": "NOT_RUN",
+      "reason": "construction_withheld"
+    },
+    {
+      "blueprint_id": "deontic_rule",
+      "rank": 1.9,
+      "variant": "amended",
+      "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_choice_composition_20261016/live_final/admission_attempts/02_deontic_rule/candidate.json",
+      "overlay_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_choice_composition_20261016/live_final/admission_attempts/02_deontic_rule/hypothesis_overlay.json",
+      "status": "ADMITTED",
+      "admission": {
+        "status": "COMMITTED",
+        "world_model_status": "COMMITTED",
+        "effects": 5,
+        "causal_links": 3,
+        "frozen_trace_valid": true,
+        "discourse_committed": false,
+        "relent_workspace": {
+          "established": [
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E1",
+              "outcome": "open the door now",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E2",
+              "outcome": "doing so may expose nearby staff to hazardous fumes",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E3",
+              "outcome": "Stopping the experiment",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E4",
+              "outcome": "Stopping the experiment first takes ten minutes",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E5",
+              "outcome": "the technician may die during that delay",
+              "predicate": null,
+              "status": "established"
+            }
+          ],
+          "not_established": [
+            {
+              "kind": "proposition",
+              "proposition_id": "PR1",
+              "predication": "keep a containment door closed while a hazardous experiment is running",
+              "status": "GOVERNED"
+            },
+            {
+              "kind": "proposition",
+              "proposition_id": "PR2",
+              "predication": "opening it only after the experiment has stopped",
+              "status": "GOVERNED"
+            },
+            {
+              "kind": "normative_proposition",
+              "norm_id": "N0",
+              "force": "obligation",
+              "governed_proposition_id": "PR1",
+              "status": "normative"
+            },
+            {
+              "kind": "normative_proposition",
+              "norm_id": "N1",
+              "force": "permission",
+              "governed_proposition_id": "PR2",
+              "status": "normative"
+            }
+          ],
+          "duty_ledger_citations": [
+            {
+              "kind": "norm",
+              "norm_id": "N0"
+            },
+            {
+              "kind": "norm",
+              "norm_id": "N1"
+            }
+          ],
+          "ev_forbidden_proposition_ids": [
+            "PR1",
+            "PR2"
+          ],
+          "factual_status_sources": [
+            "occurrence_effects"
+          ]
+        },
+        "fingerprint_sha256": "452484bbb585471401edffeac66a89a27bf87c96481cf12bb57c922787cff4e0"
+      },
+      "trace_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_choice_composition_20261016/live_final/admission_attempts/02_deontic_rule/frozen_world_trace.json"
+    },
+    {
+      "blueprint_id": "deontic_rule",
+      "rank": 2,
+      "variant": "baseline",
+      "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_choice_composition_20261016/live_final/admission_attempts/03_deontic_rule/candidate.json",
+      "overlay_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_choice_composition_20261016/live_final/admission_attempts/03_deontic_rule/hypothesis_overlay.json",
+      "status": "ADMITTED",
+      "admission": {
+        "status": "COMMITTED",
+        "world_model_status": "COMMITTED",
+        "effects": 0,
+        "causal_links": 0,
+        "frozen_trace_valid": false,
+        "discourse_committed": true,
+        "relent_workspace": {
+          "established": [],
+          "not_established": [
+            {
+              "kind": "proposition",
+              "proposition_id": "PR1",
+              "predication": "keep a containment door closed while a hazardous experiment is running",
+              "status": "GOVERNED"
+            },
+            {
+              "kind": "proposition",
+              "proposition_id": "PR2",
+              "predication": "opening it only after the experiment has stopped",
+              "status": "GOVERNED"
+            },
+            {
+              "kind": "normative_proposition",
+              "norm_id": "N0",
+              "force": "obligation",
+              "governed_proposition_id": "PR1",
+              "status": "normative"
+            },
+            {
+              "kind": "normative_proposition",
+              "norm_id": "N1",
+              "force": "permission",
+              "governed_proposition_id": "PR2",
+              "status": "normative"
+            }
+          ],
+          "duty_ledger_citations": [
+            {
+              "kind": "norm",
+              "norm_id": "N0"
+            },
+            {
+              "kind": "norm",
+              "norm_id": "N1"
+            }
+          ],
+          "ev_forbidden_proposition_ids": [
+            "PR1",
+            "PR2"
+          ],
+          "factual_status_sources": [
+            "occurrence_effects"
+          ]
+        },
+        "fingerprint_sha256": null
+      },
+      "trace_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_choice_composition_20261016/live_final/admission_attempts/03_deontic_rule/frozen_world_trace.json"
+    },
+    {
+      "blueprint_id": "primitive_composition",
+      "rank": 3,
+      "variant": "composition",
+      "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_choice_composition_20261016/live_final/admission_attempts/04_primitive_composition/candidate.json",
+      "overlay_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_choice_composition_20261016/live_final/admission_attempts/04_primitive_composition/hypothesis_overlay.json",
+      "status": "ADMITTED",
+      "admission": {
+        "status": "COMMITTED",
+        "world_model_status": "COMMITTED",
+        "effects": 5,
+        "causal_links": 3,
+        "frozen_trace_valid": true,
+        "discourse_committed": false,
+        "relent_workspace": {
+          "established": [
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E1",
+              "outcome": "open the door now",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E2",
+              "outcome": "doing so may expose nearby staff to hazardous fumes",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E3",
+              "outcome": "Stopping the experiment",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E4",
+              "outcome": "Stopping the experiment first takes ten minutes",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E5",
+              "outcome": "the technician may die during that delay",
+              "predicate": null,
+              "status": "established"
+            }
+          ],
+          "not_established": [
+            {
+              "kind": "proposition",
+              "proposition_id": "PR1",
+              "predication": "keep a containment door closed while a hazardous experiment is running",
+              "status": "GOVERNED"
+            },
+            {
+              "kind": "proposition",
+              "proposition_id": "PR2",
+              "predication": "opening it only after the experiment has stopped",
+              "status": "GOVERNED"
+            },
+            {
+              "kind": "normative_proposition",
+              "norm_id": "N0",
+              "force": "obligation",
+              "governed_proposition_id": "PR1",
+              "status": "normative"
+            },
+            {
+              "kind": "normative_proposition",
+              "norm_id": "N1",
+              "force": "permission",
+              "governed_proposition_id": "PR2",
+              "status": "normative"
+            }
+          ],
+          "duty_ledger_citations": [
+            {
+              "kind": "norm",
+              "norm_id": "N0"
+            },
+            {
+              "kind": "norm",
+              "norm_id": "N1"
+            }
+          ],
+          "ev_forbidden_proposition_ids": [
+            "PR1",
+            "PR2"
+          ],
+          "factual_status_sources": [
+            "occurrence_effects"
+          ]
+        },
+        "fingerprint_sha256": "452484bbb585471401edffeac66a89a27bf87c96481cf12bb57c922787cff4e0"
+      },
+      "trace_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_choice_composition_20261016/live_final/admission_attempts/04_primitive_composition/frozen_world_trace.json"
+    }
+  ],
+  "collapse_status": "SEPARATED",
+  "world_beam": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_choice_composition_20261016/live_final/world_beam.json",
+  "admitted_graph_comparison": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_choice_composition_20261016/live_final/admitted_graph_comparison.json",
+  "selection_review": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_choice_composition_20261016/live_final/selection_review.json",
+  "chooser_preferred_blueprint_id": "deontic_rule",
+  "hypothesis_overlay": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_choice_composition_20261016/live_final/admission_attempts/02_deontic_rule/hypothesis_overlay.json",
+  "selected_variant": "amended",
+  "source_construction_advisory": {
+    "path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_choice_composition_20261016/live_final/source_construction_advisory.json",
+    "construction_count": 0,
+    "branch_choice_count": 0,
+    "branch_context_world_sha256": null,
+    "authority": "NONE"
+  },
+  "pipeline_status": "ADMITTED",
+  "proposal_contract_valid": true,
+  "selection_contract_valid": true,
+  "parliament_admission": {
+    "status": "COMMITTED",
+    "world_model_status": "COMMITTED",
+    "effects": 5,
+    "causal_links": 3,
+    "frozen_trace_valid": true,
+    "discourse_committed": false,
+    "relent_workspace": {
+      "established": [
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E1",
+          "outcome": "open the door now",
+          "predicate": null,
+          "status": "established"
+        },
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E2",
+          "outcome": "doing so may expose nearby staff to hazardous fumes",
+          "predicate": null,
+          "status": "established"
+        },
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E3",
+          "outcome": "Stopping the experiment",
+          "predicate": null,
+          "status": "established"
+        },
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E4",
+          "outcome": "Stopping the experiment first takes ten minutes",
+          "predicate": null,
+          "status": "established"
+        },
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E5",
+          "outcome": "the technician may die during that delay",
+          "predicate": null,
+          "status": "established"
+        }
+      ],
+      "not_established": [
+        {
+          "kind": "proposition",
+          "proposition_id": "PR1",
+          "predication": "keep a containment door closed while a hazardous experiment is running",
+          "status": "GOVERNED"
+        },
+        {
+          "kind": "proposition",
+          "proposition_id": "PR2",
+          "predication": "opening it only after the experiment has stopped",
+          "status": "GOVERNED"
+        },
+        {
+          "kind": "normative_proposition",
+          "norm_id": "N0",
+          "force": "obligation",
+          "governed_proposition_id": "PR1",
+          "status": "normative"
+        },
+        {
+          "kind": "normative_proposition",
+          "norm_id": "N1",
+          "force": "permission",
+          "governed_proposition_id": "PR2",
+          "status": "normative"
+        }
+      ],
+      "duty_ledger_citations": [
+        {
+          "kind": "norm",
+          "norm_id": "N0"
+        },
+        {
+          "kind": "norm",
+          "norm_id": "N1"
+        }
+      ],
+      "ev_forbidden_proposition_ids": [
+        "PR1",
+        "PR2"
+      ],
+      "factual_status_sources": [
+        "occurrence_effects"
+      ]
+    },
+    "fingerprint_sha256": "452484bbb585471401edffeac66a89a27bf87c96481cf12bb57c922787cff4e0"
+  },
+  "frozen_world_trace": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_choice_composition_20261016/live_final/frozen_world_trace.json",
+  "world_state_topology_markdown": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_choice_composition_20261016/live_final/world_state_topology.md",
+  "world_state_topology_json": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_choice_composition_20261016/live_final/world_state_topology.json"
+}

@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import sys
 import time
+from deontology_rule_attention import source_rule_context
 
 FRAMEWORKS = ('utilitarian', 'deontological', 'care', 'virtue', 'rawlsian')
 
@@ -16,7 +17,7 @@ def fingerprint(value):
 
 class RecordedModel:
     """Bound native primary/repair calls and retain inspectable prompts/results."""
-    def __init__(self, backend, scenario, destination, max_calls=2, review_context=None, response_normalizer=None, independent=True):
+    def __init__(self, backend, scenario, destination, max_calls=2, review_context=None, response_normalizer=None, independent=True, source_rules=None):
         self.backend = backend
         self.scenario = scenario
         self.destination = Path(destination)
@@ -25,6 +26,7 @@ class RecordedModel:
         self.review_context = deepcopy(review_context)
         self.response_normalizer = response_normalizer
         self.independent = independent
+        self.source_rules = deepcopy(source_rules)
 
     def complete_json(self, prompt, **kwargs):
         if len(self.calls) >= self.max_calls:
@@ -40,7 +42,8 @@ class RecordedModel:
                 'are available. Use your assigned framework and preserve unresolved premises.\n'
                 if self.independent else
                 'NATIVE PARLIAMENT PASS: peer arguments remain attributed; preserve your framework and unresolved premises.\n')
-        prompt = (mode +
+        from deontology_rule_attention import rule_attention_instruction
+        prompt = (mode + rule_attention_instruction(self.source_rules) +
                   'Write explanation fields as complete readable prose, never serialized JSON fragments. '
                   'Keep the acting duty-bearer distinct from the people protected or harmed. '
                   'State an important interpretive assumption or commitment in your reasoning; do not invent an empirical fact to fill that slot. '
@@ -98,7 +101,7 @@ def write_outputs(aggregate, output_dir):
     (output_dir/'framework_generation.md').write_text('\n'.join(lines))
 
 
-def generate(trace_path, output_dir, frameworks, backend_factory, *, tokens=3072, core_root=None, core_quotes=None, response_normalizers=None, call_budget=2):
+def generate(trace_path, output_dir, frameworks, backend_factory, *, tokens=3072, core_root=None, core_quotes=None, response_normalizers=None, call_budget=2, rule_attention=True):
     from global_workspace.core_quote_pack import core_pack_for_specialists
     from global_workspace.engine import WorkspaceEngine, WorkspaceConfig
     from global_workspace.epistemic_ledger import seed_proposition_ledger, ledger_projection
@@ -148,6 +151,8 @@ def generate(trace_path, output_dir, frameworks, backend_factory, *, tokens=3072
         folder.mkdir(parents=True, exist_ok=True)
         recorded = RecordedModel(backend_factory(name), replay.scenario, folder/'model_calls.json',
                                  max_calls=call_budget,
+                                 source_rules=source_rule_context(before['world_model'])
+                                     if name == 'deontological' and rule_attention else None,
                                  response_normalizer=(response_normalizers or {}).get(name))
         specialist = CompactLocalSpecialist(
             name, recorded, max_tokens=tokens,
@@ -174,6 +179,12 @@ def generate(trace_path, output_dir, frameworks, backend_factory, *, tokens=3072
         # Preserve local hypotheses but never pass them to the next framework.
         aggregate['framework_proposition_ledgers'][name] = payload['proposition_ledger']
         candidates = payload['cycles'][-1]['candidates'] if payload['cycles'] else []
+        if name == 'deontological':
+            from deontology_rule_attention import authored_duty_proposal
+            for candidate in candidates:
+                candidate['authored_duty_proposal'] = authored_duty_proposal(recorded.calls)
+                candidate['source_rule_attention'] = {'context_supplied': bool(recorded.source_rules and recorded.source_rules['rules']),
+                    'assessment': 'NOT_INDEPENDENTLY_ASSESSED', 'world_state_authority': 'NONE'}
         from parliament_framework_presentation import preserve_model_arguments
         preserve_model_arguments(candidates, output_dir)
         aggregate['cycles'][0]['candidates'].extend(deepcopy(candidates))

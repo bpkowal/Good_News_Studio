@@ -56,7 +56,7 @@ from candidate_graph_blueprints import _clause_holding, match_exclusive_allocati
 from z10_world_model_adapter import segment_source_clauses
 
 
-CLOZE_VERSION = "blueprint-cloze-chooser/0.15"
+CLOZE_VERSION = "blueprint-cloze-chooser/0.17"
 DEFAULT_OPENAI_ENV = Path(
     "/Users/benjaminkowal/Documents/Python/Python Coding/RAGAIMODEL/.env"
 )
@@ -93,7 +93,8 @@ _HEDGE = re.compile(r"\b(?:if|unless|whether)\b", re.I)
 _MODAL_WORDS = re.compile(r"\b(?:can|could|may|might|able to|permitted to|allowed to)\b", re.I)
 _DEONTIC_WORDS = re.compile(
     r"\b(?:must|shall|should|required to|obligated to|permitted to|allowed to|"
-    r"forbidden to|prohibited from|may not|must not)\b", re.I)
+    r"forbidden to|prohibited from|may not|must not|require[sd]?|allow(?:s|ed)?|"
+    r"permit(?:s|ted)?|forbid(?:s|den)?|prohibit(?:s|ed)?|oblige[sd]?)\b", re.I)
 _OUTCOME_WORDS = re.compile(
     r"\b(?:live|lives|survive|survives|recover|recovers|die|dies|kill|kills|"
     r"harm|harms|lose|loses|gain|gains|sustain|sustains|drown|drowns|"
@@ -293,6 +294,10 @@ TEMPLATES: tuple[dict[str, Any], ...] = (
             {"id": "authority", "core": False, "check": "party", "sentence": "The stated source or authority for the rule is"},
             {"id": "exception", "core": False, "check": "exception_words", "sentence": "A stated exception to the rule is"},
             {"id": "sanction", "core": False, "check": "outcome_clause", "sentence": "A stated consequence of violating the rule is"},
+            {"id": "second_deontic_words", "core": False, "check": "deontic_words", "sentence": "The operator of a second distinct rule clause, if stated, is"},
+            {"id": "second_governed_action", "core": False, "check": "copy", "sentence": "The complete content of that second operator, including only after, while, if or unless restrictions, is"},
+            {"id": "second_bearer", "core": False, "check": "actor_nominal", "sentence": "The explicitly stated bearer of that second rule, or NONE when unstated, is"},
+            {"id": "second_authority", "core": False, "check": "party", "sentence": "The source or authority explicitly named in that second rule clause is"},
         ),
     },
     {
@@ -339,6 +344,33 @@ TEMPLATES: tuple[dict[str, Any], ...] = (
         ),
     },
 )
+# Reuse the omission template's small copied spans without changing slot IDs,
+# required fields, or the downstream world schema. Content propositions are
+# deliberately absent: a promise/report must retain its complete content.
+_COMPACT_SLOTS = {
+    "rescue_contrast": {
+        "rescuer": "actor", "first_rescue_action": "action",
+        "second_rescue_action": "action", "first_benefit": "outcome",
+        "first_harm": "outcome", "second_benefit": "outcome", "second_harm": "outcome",
+    },
+    "conditional_outcome": {"actor": "actor", "outcome": "outcome", "second_outcome": "outcome"},
+    "diversion_redirection": {"actor": "actor", "intervention": "action", "outcome": "outcome",
+                              "affected_party": "patient", "controllable_process": "process"},
+    "uncertain_risk": {"actor": "actor", "action": "action", "second_action": "action",
+                       "possible_outcome": "outcome", "second_outcome": "outcome",
+                       "affected_party": "patient", "second_affected_party": "patient"},
+    "ability_permission": {"actor": "actor"},
+    "deontic_rule": {"bearer": "actor"},
+    "promise_reliance": {"promisor": "actor"},
+    "disputed_report": {"source": "actor"},
+}
+for _template in TEMPLATES:
+    for _item in _template["items"]:
+        _shape = _COMPACT_SLOTS.get(_template["blueprint_id"], {}).get(_item["id"])
+        if _shape:
+            _item["span_shape"] = _shape
+            if _shape == "actor":
+                _item["check"] = "actor_nominal"
 _BY_ID = {row["blueprint_id"]: row for row in TEMPLATES}
 _META_BLUEPRINTS = {
     "none": "No listed blueprint is supported by the scenario.",
@@ -796,7 +828,14 @@ def _cloze_prompt(text: str, template: dict[str, Any]) -> str:
     answers = []
     asked = [item for item in template["items"] if item["check"] != "implied"]
     for index, item in enumerate(asked, 1):
-        lines.append(f"{index}. {item['sentence']} _______.")
+        shape_hint = {
+            "actor": " Copy only the actor's name or noun phrase, without a verb or outcome.",
+            "action": " Copy only the action phrase; exclude the if marker and consequence. Keep negation and modal words.",
+            "outcome": " Copy the outcome proposition, including its subject and modal/negation words; exclude the preceding if-condition.",
+            "patient": " Copy only the affected person's or group's noun phrase, including its stated count; exclude verbs and the harming process.",
+            "process": " Copy only the process entity's noun phrase, without its movement or victims.",
+        }.get(item.get("span_shape"), "")
+        lines.append(f"{index}. {item['sentence']} _______.{shape_hint}")
         answers.append(f'"{item["id"]}"')
     lines.append("")
     lines.append("Return a JSON object {\"answers\": {" + ", ".join(
@@ -839,7 +878,12 @@ def _template_instructions(blueprint_id: str) -> list[str]:
         ],
         "ability_permission": ["Do not choose between ability, permission, and possibility when the wording leaves them ambiguous."],
         "diversion_redirection": ["Do not invent a route, default process, or affected party."],
-        "deontic_rule": ["Copy the governed action separately from the deontic words."],
+        "deontic_rule": [
+            "Each operator and its content must come from the same rule clause. Put a distinct permission or prohibition in the second rule slots.",
+            "Do not join separate copies with commas. Use separate rule slots; lists are alternative readings, not multiple rules.",
+            "Keep while, only after, if and unless restrictions inside the governed content. A conditional permission is not permission to act now.",
+            "Do not turn the final ethical question into a stated rule. Do not infer that a rule was obeyed, breached, or morally overrides another claim.",
+        ],
         "promise_reliance": ["A promise does not establish reliance or breach unless the text says so."],
         "uncertain_risk": ["Copy the likelihood words from the same outcome branch."],
         "disputed_report": ["A reported proposition is attributed content, not an admitted fact."],
@@ -1176,6 +1220,28 @@ def _score_slot(text: str, item: dict[str, Any], values: Sequence[str],
 
 def _normalize_slot_span(text: str, item: dict[str, Any], candidate: str,
                          accepted: dict[str, str]) -> str:
+    shape = item.get("span_shape")
+    if shape in {"patient", "process"}:
+        compact = (_outcome_patient(candidate) if shape == "patient"
+                   else _role_nominal(candidate, "process_nominal"))
+        if compact and compact in candidate and _answers_sentence(text, item, compact, accepted):
+            return compact
+    if shape in {"actor", "action"}:
+        # A copied if/then sentence contains two predicates. Extract from the
+        # condition, never from the consequence's subject (often the victim).
+        local = candidate
+        if re.match(r"^if\b", local, re.I) and ',' in local:
+            local = local.split(',', 1)[0]
+        if shape == "actor":
+            compact = _role_nominal(local, "actor_nominal")
+        else:
+            compact = _minimal_action_copy(local)
+        if compact and compact in candidate and _answers_sentence(text, item, compact, accepted):
+            return compact
+    elif shape == "outcome" and re.match(r"^if\b", candidate, re.I) and ',' in candidate:
+        compact = candidate.split(',', 1)[1].strip()
+        if compact and _answers_sentence(text, item, compact, accepted):
+            return compact
     head = _party_head(text, candidate) if item["id"] in _PARTY_IDS else candidate
     if item['check'] in {'actor_nominal', 'branch_patient', 'instrument_nominal', 'process_nominal'}:
         head = _role_nominal(candidate, item['check']) or candidate
@@ -1698,6 +1764,36 @@ def _enrich_discourse_target(text: str, template: dict[str, Any],
     return _refresh_scored_row(row)
 
 
+def _enrich_deontic_rules(text: str, template: dict[str, Any],
+                          row: dict[str, Any]) -> dict[str, Any]:
+    from blueprint_deontic_rules import source_rule_bundles
+    bundles = source_rule_bundles(text)
+    row['deontic_rule_bindings'] = bundles
+    specs = {item['id']: item for item in template['items']}
+    items = {item['id']: item for item in row['items']}
+    for index, bundle in enumerate(bundles[:2]):
+        prefix = 'second_' if index else ''
+        for field, value in {
+            'deontic_words': bundle['operator'], 'governed_action': bundle['governed_action'],
+            'bearer': bundle['bearer'], 'authority': bundle['authority'],
+        }.items():
+            slot = prefix + field
+            if not value or row['slots'].get(slot):
+                continue
+            span, verdict, _, hyps, _ = _score_slot(text, specs[slot], [value], row['slots'])
+            if verdict != 'accepted':
+                continue
+            row['slots'][slot] = span
+            old = list(items[slot].get('hypotheses') or [])
+            for offset, hypothesis in enumerate(hyps, len(old)):
+                hypothesis['hypothesis_id'] = f'slot:{slot}:cloze_copy:{offset}'
+            combined = mark_competitors(old + hyps)
+            row['slot_hypotheses'][slot] = combined
+            items[slot].update(span=span, verdict='accepted',
+                               reason='recovered_from_source_rule_complement', hypotheses=combined)
+    return _refresh_scored_row(row)
+
+
 def _enrich_from_z10(text: str, template: dict[str, Any],
                      row: dict[str, Any]) -> dict[str, Any]:
     """Recover typed source spans that the cloze model omitted or paraphrased.
@@ -1711,7 +1807,9 @@ def _enrich_from_z10(text: str, template: dict[str, Any],
     """
     if template["blueprint_id"] in {"conditional_outcome", "omission_harm"}:
         return _enrich_conditional_from_z10(text, template, row)
-    if template["blueprint_id"] in {"ability_permission", "deontic_rule"}:
+    if template["blueprint_id"] == "deontic_rule":
+        return _enrich_deontic_rules(text, template, row)
+    if template["blueprint_id"] == "ability_permission":
         return _enrich_discourse_target(text, template, row)
     if template["blueprint_id"] != "exclusive_allocation":
         return row
@@ -2084,6 +2182,8 @@ def _graph(text: str, winner: dict[str, Any],
         "z10_recovered_slots": dict(winner.get("semantic_recoveries") or {}),
         "slot_hypotheses": dict(winner.get("slot_hypotheses") or {}),
     }
+    if winner['blueprint_id'] == 'deontic_rule':
+        slot_bindings['deontic_rule_bindings'] = list(winner.get('deontic_rule_bindings') or [])
     if winner["blueprint_id"] in {"omission_harm", "diversion_redirection", "conditional_outcome"}:
         from blueprint_spatial_projection import spatial_cells, branch_choice_cells
         slot_bindings["branch_choices"] = branch_choice_cells(world)
@@ -3330,7 +3430,7 @@ def _answers_sentence(text: str, item: dict[str, Any], span: str,
     if check == "diversion_action":
         return bool(re.search(r"\b(?:divert|diverts|redirect|redirects|switch|switches|turn|turns)\b", span, re.I))
     if check == "exception_words":
-        return bool(re.search(r"\b(?:except|unless|exception|only if)\b", span, re.I))
+        return bool(re.search(r"\b(?:except|unless|exception|only if|only after|while)\b", span, re.I))
     if check == "commitment_words":
         return bool(re.search(r"\b(?:promise|promises|promised|commit|commits|committed|pledge|pledges)\b", span, re.I))
     if check == "reliance_words":

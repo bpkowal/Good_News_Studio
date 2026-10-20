@@ -1,0 +1,94 @@
+{
+  "run_provenance": {
+    "schema_version": "parliament-run/1",
+    "run_id": "run_3d14ca10d6c74092bdf9d9cb9e8f1386",
+    "parent_run_id": null,
+    "execution_path": "world_preparation",
+    "mode": "LIVE",
+    "started_at": "2026-10-16T00:08:21.687960+00:00",
+    "configuration": {
+      "chooser_model": "gpt-4o-mini",
+      "openai_model": "o3",
+      "prepare_only": true,
+      "runtime_profile": "compact_frameworks",
+      "parliament_root": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/.runtime/parliament",
+      "parliament_python": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/.runtime/venv/bin/python",
+      "agents": null,
+      "max_cycles": null,
+      "use_rag": null,
+      "time_budget": null,
+      "agent_timeout": null,
+      "prototype_deliberation": false
+    },
+    "pipeline_lock_sha256": "eca29e35eedccad4605931d05081536bedb8176a7d2a9c69e44a59f239f28f02",
+    "inputs": {
+      "scenario-file": {
+        "sha256": "426b0bc79f59d76bebc89b7a35e6949545e28d5d698638973555ed65fc7267cd"
+      }
+    },
+    "manifest_file": "run_manifest.json",
+    "checkpoint_tags": [
+      "deontic-lab-template"
+    ],
+    "checkpoints": [
+      {
+        "schema_version": "parliament-checkpoint/1",
+        "id": "run_3d14ca10d6c74092bdf9d9cb9e8f1386:cp:1",
+        "run_id": "run_3d14ca10d6c74092bdf9d9cb9e8f1386",
+        "stage": "execution_started",
+        "status": "recorded",
+        "at": "2026-10-16T00:08:21.756590+00:00",
+        "tags": [
+          "deontic-lab-template"
+        ],
+        "artifacts": []
+      },
+      {
+        "schema_version": "parliament-checkpoint/1",
+        "id": "run_3d14ca10d6c74092bdf9d9cb9e8f1386:cp:2",
+        "run_id": "run_3d14ca10d6c74092bdf9d9cb9e8f1386",
+        "stage": "runtime_checked",
+        "status": "ready",
+        "at": "2026-10-16T00:08:23.119931+00:00",
+        "tags": [
+          "deontic-lab-template"
+        ],
+        "artifacts": []
+      }
+    ],
+    "application": {
+      "commit": "5230184a08ea66c7befb095e14e5e1b3a7d60ea5",
+      "branch": "Parliament_Frontend",
+      "dirty": true,
+      "source_sha256": "19632d81cb9631cbcc2fd6f1beaf97f7a026b008eddd068cbfe701e9920f4bc8",
+      "archive_sha256": "7a14f8a46ddf7ca9df980bce1c27d7fc6404af92b495168fca9bacbbe44c00e5"
+    }
+  },
+  "scenario": "A laboratory safety rule requires Mira to keep a containment door closed while a hazardous experiment is running. The rule allows opening it only after the experiment has stopped. A technician is trapped inside and needs urgent medical help. Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes. Stopping the experiment first takes ten minutes; the technician may die during that delay.\n\nShould Mira open the door immediately or stop the experiment and wait?",
+  "semantic_coverage": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_lab_template_live_20261015/run/semantic_coverage.json",
+  "question_assessment": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_lab_template_live_20261015/run/question_assessment.json",
+  "chooser_model": "gpt-4o-mini",
+  "chosen_blueprint_id": "omission_harm",
+  "blueprint_status": "PARTIAL",
+  "candidate_graphs_markdown": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_lab_template_live_20261015/run/candidate_graphs.md",
+  "candidate_attempts_json": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_lab_template_live_20261015/run/candidate_attempts.json",
+  "z10_blueprint_comparison": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_lab_template_live_20261015/run/z10_blueprint_comparison.json",
+  "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_lab_template_live_20261015/run/blueprint_candidate.json",
+  "scenario_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/deontic_lab_template_live_20261015/run/scenario.json",
+  "actions": [],
+  "deliberation": {
+    "status": "NOT_RUN"
+  },
+  "pipeline_status": "WITHHELD",
+  "parliament_admission": {
+    "status": "NOT_RUN"
+  },
+  "withholding_reason": "Blueprint proposal is withheld: [\"Required slots remain unfilled.\"]",
+  "missing_slots": [
+    "omitted",
+    "harm_done"
+  ],
+  "world_withheld": [
+    "Required slots remain unfilled."
+  ]
+}

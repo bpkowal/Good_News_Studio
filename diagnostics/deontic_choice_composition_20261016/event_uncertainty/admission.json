@@ -1,0 +1,104 @@
+[
+  {
+    "blueprint_id": "primitive_composition",
+    "rank": 0,
+    "variant": "composition",
+    "candidate_path": "diagnostics/deontic_choice_composition_20261016/event_uncertainty/admission_attempts/00_primitive_composition/candidate.json",
+    "overlay_path": "diagnostics/deontic_choice_composition_20261016/event_uncertainty/admission_attempts/00_primitive_composition/hypothesis_overlay.json",
+    "status": "ADMITTED",
+    "admission": {
+      "status": "COMMITTED",
+      "world_model_status": "COMMITTED",
+      "effects": 5,
+      "causal_links": 3,
+      "frozen_trace_valid": true,
+      "discourse_committed": false,
+      "relent_workspace": {
+        "established": [
+          {
+            "kind": "occurrence_effect",
+            "effect_id": "E1",
+            "outcome": "open the door now",
+            "predicate": null,
+            "status": "established"
+          },
+          {
+            "kind": "occurrence_effect",
+            "effect_id": "E2",
+            "outcome": "doing so may expose nearby staff to hazardous fumes",
+            "predicate": null,
+            "status": "established"
+          },
+          {
+            "kind": "occurrence_effect",
+            "effect_id": "E3",
+            "outcome": "Stopping the experiment",
+            "predicate": null,
+            "status": "established"
+          },
+          {
+            "kind": "occurrence_effect",
+            "effect_id": "E4",
+            "outcome": "Stopping the experiment first takes ten minutes",
+            "predicate": null,
+            "status": "established"
+          },
+          {
+            "kind": "occurrence_effect",
+            "effect_id": "E5",
+            "outcome": "the technician may die during that delay",
+            "predicate": null,
+            "status": "established"
+          }
+        ],
+        "not_established": [
+          {
+            "kind": "proposition",
+            "proposition_id": "PR1",
+            "predication": "keep a containment door closed while a hazardous experiment is running",
+            "status": "GOVERNED"
+          },
+          {
+            "kind": "proposition",
+            "proposition_id": "PR2",
+            "predication": "opening it only after the experiment has stopped",
+            "status": "GOVERNED"
+          },
+          {
+            "kind": "normative_proposition",
+            "norm_id": "N0",
+            "force": "obligation",
+            "governed_proposition_id": "PR1",
+            "status": "normative"
+          },
+          {
+            "kind": "normative_proposition",
+            "norm_id": "N1",
+            "force": "permission",
+            "governed_proposition_id": "PR2",
+            "status": "normative"
+          }
+        ],
+        "duty_ledger_citations": [
+          {
+            "kind": "norm",
+            "norm_id": "N0"
+          },
+          {
+            "kind": "norm",
+            "norm_id": "N1"
+          }
+        ],
+        "ev_forbidden_proposition_ids": [
+          "PR1",
+          "PR2"
+        ],
+        "factual_status_sources": [
+          "occurrence_effects"
+        ]
+      },
+      "fingerprint_sha256": "6cc85ac208c011aeefc32b9ff4f5c01ce3d02562a2d5c3b323278a1fd2985486"
+    },
+    "trace_path": "diagnostics/deontic_choice_composition_20261016/event_uncertainty/admission_attempts/00_primitive_composition/frozen_world_trace.json"
+  }
+]

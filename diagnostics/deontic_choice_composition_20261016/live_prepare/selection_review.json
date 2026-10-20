@@ -1,0 +1,669 @@
+{
+  "request": {
+    "scenario": "A laboratory safety rule requires Mira to keep a containment door closed while a hazardous experiment is running. The rule allows opening it only after the experiment has stopped. A technician is trapped inside and needs urgent medical help. Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes. Stopping the experiment first takes ten minutes; the technician may die during that delay.\n\nShould Mira open the door immediately or stop the experiment and wait?",
+    "source_clauses": [
+      {
+        "clause_id": "C0",
+        "text": "A laboratory safety rule requires Mira to keep a containment door closed while a hazardous experiment is running.",
+        "start": 0,
+        "end": 113
+      },
+      {
+        "clause_id": "C1",
+        "text": "The rule allows opening it only after the experiment has stopped.",
+        "start": 114,
+        "end": 179
+      },
+      {
+        "clause_id": "C2",
+        "text": "A technician is trapped inside and needs urgent medical help.",
+        "start": 180,
+        "end": 241
+      },
+      {
+        "clause_id": "C3",
+        "text": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes.",
+        "start": 242,
+        "end": 350
+      },
+      {
+        "clause_id": "C4",
+        "text": "Stopping the experiment first takes ten minutes; the technician may die during that delay.",
+        "start": 351,
+        "end": 441
+      },
+      {
+        "clause_id": "C5",
+        "text": "Should Mira open the door immediately or stop the experiment and wait?",
+        "start": 443,
+        "end": 513
+      }
+    ],
+    "comparison": {
+      "candidates": [
+        {
+          "id": "candidate_0",
+          "blueprint_id": "deontic_rule",
+          "variant": "amended",
+          "view": {
+            "parties": [
+              {
+                "kind": "other",
+                "label": "a laboratory safety rule",
+                "quantities": []
+              },
+              {
+                "kind": "other",
+                "label": "the rule",
+                "quantities": []
+              },
+              {
+                "kind": "person",
+                "label": "mira",
+                "quantities": []
+              },
+              {
+                "kind": "person",
+                "label": "nearby staff",
+                "quantities": []
+              },
+              {
+                "kind": "person",
+                "label": "the technician",
+                "quantities": []
+              },
+              {
+                "kind": "process",
+                "label": "the door",
+                "quantities": []
+              },
+              {
+                "kind": "process",
+                "label": "the experiment",
+                "quantities": []
+              }
+            ],
+            "actions": [
+              {
+                "actor_party_id": "parties:mira",
+                "effect_ids": [
+                  "effect:15f557db1cb4231f034eabc621edbeb3ed68a8119a2650ee468d32c3118195f4",
+                  "effect:697d925d894f08bebb89c8af65bf641ef0215da9d978d078aa44917904d7860e"
+                ],
+                "intervention": "open the door now",
+                "recipient_party_ids": [
+                  "parties:the door"
+                ]
+              },
+              {
+                "actor_party_id": "parties:mira",
+                "effect_ids": [
+                  "effect:6b51b5d3bfba70d755bba55cca247a318711d9462214f3840af57331668a132c",
+                  "effect:7fad10ef10a3c5a3ff760da96af06e9ab4ded9344c2c2242fe278b53d2e831df",
+                  "effect:a67e76663970937db4cf04215f77b938630685cef997099477a8594ad096a3d0"
+                ],
+                "intervention": "stop the experiment and wait",
+                "recipient_party_ids": [
+                  "parties:the experiment"
+                ]
+              }
+            ],
+            "conditions": [],
+            "propositions": [
+              {
+                "polarity": "positive",
+                "predication": "keep a containment door closed while a hazardous experiment is running",
+                "status": "governed"
+              },
+              {
+                "polarity": "positive",
+                "predication": "opening it only after the experiment has stopped",
+                "status": "governed"
+              }
+            ],
+            "modal_operators": [],
+            "effects": [
+              {
+                "action_id": "actions:open the door now",
+                "condition_ids": [],
+                "condition_join": "and",
+                "derivation_assumptions": [],
+                "derivation_operation": "direct_copy",
+                "directness": "direct",
+                "effect_kind": "intervention",
+                "likelihood_qualifiers": [],
+                "modality": "certain",
+                "outcome": "open the door now",
+                "outcome_type_transformation": "preserved",
+                "overall_likelihood_qualifiers": [],
+                "party_id": "parties:the door",
+                "polarity": "neutral",
+                "predicate": "open",
+                "quantities": [],
+                "scope_qualifiers": [],
+                "source_effect_ids": [],
+                "source_proposition": "open the door now",
+                "temporal_qualifiers": []
+              },
+              {
+                "action_id": "actions:open the door now",
+                "condition_ids": [],
+                "condition_join": "and",
+                "derivation_assumptions": [],
+                "derivation_operation": "source_stipulated_causal",
+                "directness": "downstream",
+                "effect_kind": "other",
+                "likelihood_qualifiers": [
+                  "may"
+                ],
+                "modality": "possible",
+                "outcome": "doing so may expose nearby staff to hazardous fumes",
+                "outcome_type_transformation": "preserved",
+                "overall_likelihood_qualifiers": [],
+                "party_id": "parties:nearby staff",
+                "polarity": "neutral",
+                "predicate": "expose",
+                "quantities": [],
+                "scope_qualifiers": [],
+                "source_effect_ids": [
+                  "effect:15f557db1cb4231f034eabc621edbeb3ed68a8119a2650ee468d32c3118195f4"
+                ],
+                "source_proposition": "doing so may expose nearby staff to hazardous fumes",
+                "temporal_qualifiers": []
+              },
+              {
+                "action_id": "actions:stop the experiment and wait",
+                "condition_ids": [],
+                "condition_join": "and",
+                "derivation_assumptions": [],
+                "derivation_operation": "direct_copy",
+                "directness": "direct",
+                "effect_kind": "intervention",
+                "likelihood_qualifiers": [],
+                "modality": "certain",
+                "outcome": "stopping the experiment",
+                "outcome_type_transformation": "preserved",
+                "overall_likelihood_qualifiers": [],
+                "party_id": "parties:the experiment",
+                "polarity": "neutral",
+                "predicate": "stop",
+                "quantities": [],
+                "scope_qualifiers": [],
+                "source_effect_ids": [],
+                "source_proposition": "stopping the experiment",
+                "temporal_qualifiers": []
+              },
+              {
+                "action_id": "actions:stop the experiment and wait",
+                "condition_ids": [],
+                "condition_join": "and",
+                "derivation_assumptions": [],
+                "derivation_operation": "source_stipulated_causal",
+                "directness": "downstream",
+                "effect_kind": "health_outcome",
+                "likelihood_qualifiers": [
+                  "may"
+                ],
+                "modality": "possible",
+                "outcome": "the technician may die during that delay",
+                "outcome_type_transformation": "preserved",
+                "overall_likelihood_qualifiers": [],
+                "party_id": "parties:the technician",
+                "polarity": "adverse",
+                "predicate": "die",
+                "quantities": [],
+                "scope_qualifiers": [],
+                "source_effect_ids": [
+                  "effect:6b51b5d3bfba70d755bba55cca247a318711d9462214f3840af57331668a132c"
+                ],
+                "source_proposition": "the technician may die during that delay",
+                "temporal_qualifiers": []
+              },
+              {
+                "action_id": "actions:stop the experiment and wait",
+                "condition_ids": [],
+                "condition_join": "and",
+                "derivation_assumptions": [],
+                "derivation_operation": "source_stipulated_causal",
+                "directness": "downstream",
+                "effect_kind": "other",
+                "likelihood_qualifiers": [],
+                "modality": "certain",
+                "outcome": "stopping the experiment first takes ten minutes",
+                "outcome_type_transformation": "preserved",
+                "overall_likelihood_qualifiers": [],
+                "party_id": "parties:the experiment",
+                "polarity": "neutral",
+                "predicate": "take",
+                "quantities": [
+                  "ten minutes"
+                ],
+                "scope_qualifiers": [],
+                "source_effect_ids": [
+                  "effect:a67e76663970937db4cf04215f77b938630685cef997099477a8594ad096a3d0"
+                ],
+                "source_proposition": "stopping the experiment first takes ten minutes",
+                "temporal_qualifiers": [
+                  "ten minutes"
+                ]
+              }
+            ],
+            "causal_links": [
+              {
+                "action_id": "actions:open the door now",
+                "condition_ids": [],
+                "link_relation": "enables",
+                "modality": "certain",
+                "source_id": "effect:15f557db1cb4231f034eabc621edbeb3ed68a8119a2650ee468d32c3118195f4",
+                "target_id": "effect:697d925d894f08bebb89c8af65bf641ef0215da9d978d078aa44917904d7860e"
+              },
+              {
+                "action_id": "actions:stop the experiment and wait",
+                "condition_ids": [],
+                "link_relation": "enables",
+                "modality": "certain",
+                "source_id": "effect:6b51b5d3bfba70d755bba55cca247a318711d9462214f3840af57331668a132c",
+                "target_id": "effect:7fad10ef10a3c5a3ff760da96af06e9ab4ded9344c2c2242fe278b53d2e831df"
+              },
+              {
+                "action_id": "actions:stop the experiment and wait",
+                "condition_ids": [],
+                "link_relation": "enables",
+                "modality": "certain",
+                "source_id": "effect:a67e76663970937db4cf04215f77b938630685cef997099477a8594ad096a3d0",
+                "target_id": "effect:6b51b5d3bfba70d755bba55cca247a318711d9462214f3840af57331668a132c"
+              }
+            ],
+            "temporal_relations": [],
+            "counterfactual_links": [],
+            "reports": [],
+            "commitments": [],
+            "normative_propositions": [
+              {
+                "authority_party_id": "parties:a laboratory safety rule",
+                "bearer_party_id": "parties:mira",
+                "force": "obligation",
+                "governed_proposition_id": "propositions:keep a containment door closed while a hazardous experiment is running",
+                "norm_id": "n0"
+              },
+              {
+                "authority_party_id": "parties:the rule",
+                "bearer_party_id": "",
+                "force": "permission",
+                "governed_proposition_id": "propositions:opening it only after the experiment has stopped",
+                "norm_id": "n1"
+              }
+            ]
+          }
+        },
+        {
+          "id": "candidate_1",
+          "blueprint_id": "deontic_rule",
+          "variant": "baseline",
+          "view": {
+            "parties": [
+              {
+                "kind": "other",
+                "label": "a laboratory safety rule",
+                "quantities": []
+              },
+              {
+                "kind": "other",
+                "label": "the rule",
+                "quantities": []
+              },
+              {
+                "kind": "person",
+                "label": "mira",
+                "quantities": []
+              }
+            ],
+            "actions": [],
+            "conditions": [],
+            "propositions": [
+              {
+                "polarity": "positive",
+                "predication": "keep a containment door closed while a hazardous experiment is running",
+                "status": "governed"
+              },
+              {
+                "polarity": "positive",
+                "predication": "opening it only after the experiment has stopped",
+                "status": "governed"
+              }
+            ],
+            "modal_operators": [],
+            "effects": [],
+            "causal_links": [],
+            "temporal_relations": [],
+            "counterfactual_links": [],
+            "reports": [],
+            "commitments": [],
+            "normative_propositions": [
+              {
+                "authority_party_id": "parties:a laboratory safety rule",
+                "bearer_party_id": "parties:mira",
+                "force": "obligation",
+                "governed_proposition_id": "propositions:keep a containment door closed while a hazardous experiment is running",
+                "norm_id": "n0"
+              },
+              {
+                "authority_party_id": "parties:the rule",
+                "bearer_party_id": "",
+                "force": "permission",
+                "governed_proposition_id": "propositions:opening it only after the experiment has stopped",
+                "norm_id": "n1"
+              }
+            ]
+          }
+        }
+      ],
+      "differences": [
+        {
+          "id": "difference_0",
+          "left_id": "candidate_0",
+          "right_id": "candidate_1",
+          "field": "actions",
+          "left": [
+            {
+              "actor_party_id": "parties:mira",
+              "effect_ids": [
+                "effect:15f557db1cb4231f034eabc621edbeb3ed68a8119a2650ee468d32c3118195f4",
+                "effect:697d925d894f08bebb89c8af65bf641ef0215da9d978d078aa44917904d7860e"
+              ],
+              "intervention": "open the door now",
+              "recipient_party_ids": [
+                "parties:the door"
+              ]
+            },
+            {
+              "actor_party_id": "parties:mira",
+              "effect_ids": [
+                "effect:6b51b5d3bfba70d755bba55cca247a318711d9462214f3840af57331668a132c",
+                "effect:7fad10ef10a3c5a3ff760da96af06e9ab4ded9344c2c2242fe278b53d2e831df",
+                "effect:a67e76663970937db4cf04215f77b938630685cef997099477a8594ad096a3d0"
+              ],
+              "intervention": "stop the experiment and wait",
+              "recipient_party_ids": [
+                "parties:the experiment"
+              ]
+            }
+          ],
+          "right": [],
+          "question": "Which actions reading is supported by the source?"
+        },
+        {
+          "id": "difference_1",
+          "left_id": "candidate_0",
+          "right_id": "candidate_1",
+          "field": "causal_links",
+          "left": [
+            {
+              "action_id": "actions:open the door now",
+              "condition_ids": [],
+              "link_relation": "enables",
+              "modality": "certain",
+              "source_id": "effect:15f557db1cb4231f034eabc621edbeb3ed68a8119a2650ee468d32c3118195f4",
+              "target_id": "effect:697d925d894f08bebb89c8af65bf641ef0215da9d978d078aa44917904d7860e"
+            },
+            {
+              "action_id": "actions:stop the experiment and wait",
+              "condition_ids": [],
+              "link_relation": "enables",
+              "modality": "certain",
+              "source_id": "effect:6b51b5d3bfba70d755bba55cca247a318711d9462214f3840af57331668a132c",
+              "target_id": "effect:7fad10ef10a3c5a3ff760da96af06e9ab4ded9344c2c2242fe278b53d2e831df"
+            },
+            {
+              "action_id": "actions:stop the experiment and wait",
+              "condition_ids": [],
+              "link_relation": "enables",
+              "modality": "certain",
+              "source_id": "effect:a67e76663970937db4cf04215f77b938630685cef997099477a8594ad096a3d0",
+              "target_id": "effect:6b51b5d3bfba70d755bba55cca247a318711d9462214f3840af57331668a132c"
+            }
+          ],
+          "right": [],
+          "question": "Which causal_links reading is supported by the source?"
+        },
+        {
+          "id": "difference_2",
+          "left_id": "candidate_0",
+          "right_id": "candidate_1",
+          "field": "effects",
+          "left": [
+            {
+              "action_id": "actions:open the door now",
+              "condition_ids": [],
+              "condition_join": "and",
+              "derivation_assumptions": [],
+              "derivation_operation": "direct_copy",
+              "directness": "direct",
+              "effect_kind": "intervention",
+              "likelihood_qualifiers": [],
+              "modality": "certain",
+              "outcome": "open the door now",
+              "outcome_type_transformation": "preserved",
+              "overall_likelihood_qualifiers": [],
+              "party_id": "parties:the door",
+              "polarity": "neutral",
+              "predicate": "open",
+              "quantities": [],
+              "scope_qualifiers": [],
+              "source_effect_ids": [],
+              "source_proposition": "open the door now",
+              "temporal_qualifiers": []
+            },
+            {
+              "action_id": "actions:open the door now",
+              "condition_ids": [],
+              "condition_join": "and",
+              "derivation_assumptions": [],
+              "derivation_operation": "source_stipulated_causal",
+              "directness": "downstream",
+              "effect_kind": "other",
+              "likelihood_qualifiers": [
+                "may"
+              ],
+              "modality": "possible",
+              "outcome": "doing so may expose nearby staff to hazardous fumes",
+              "outcome_type_transformation": "preserved",
+              "overall_likelihood_qualifiers": [],
+              "party_id": "parties:nearby staff",
+              "polarity": "neutral",
+              "predicate": "expose",
+              "quantities": [],
+              "scope_qualifiers": [],
+              "source_effect_ids": [
+                "effect:15f557db1cb4231f034eabc621edbeb3ed68a8119a2650ee468d32c3118195f4"
+              ],
+              "source_proposition": "doing so may expose nearby staff to hazardous fumes",
+              "temporal_qualifiers": []
+            },
+            {
+              "action_id": "actions:stop the experiment and wait",
+              "condition_ids": [],
+              "condition_join": "and",
+              "derivation_assumptions": [],
+              "derivation_operation": "direct_copy",
+              "directness": "direct",
+              "effect_kind": "intervention",
+              "likelihood_qualifiers": [],
+              "modality": "certain",
+              "outcome": "stopping the experiment",
+              "outcome_type_transformation": "preserved",
+              "overall_likelihood_qualifiers": [],
+              "party_id": "parties:the experiment",
+              "polarity": "neutral",
+              "predicate": "stop",
+              "quantities": [],
+              "scope_qualifiers": [],
+              "source_effect_ids": [],
+              "source_proposition": "stopping the experiment",
+              "temporal_qualifiers": []
+            },
+            {
+              "action_id": "actions:stop the experiment and wait",
+              "condition_ids": [],
+              "condition_join": "and",
+              "derivation_assumptions": [],
+              "derivation_operation": "source_stipulated_causal",
+              "directness": "downstream",
+              "effect_kind": "health_outcome",
+              "likelihood_qualifiers": [
+                "may"
+              ],
+              "modality": "possible",
+              "outcome": "the technician may die during that delay",
+              "outcome_type_transformation": "preserved",
+              "overall_likelihood_qualifiers": [],
+              "party_id": "parties:the technician",
+              "polarity": "adverse",
+              "predicate": "die",
+              "quantities": [],
+              "scope_qualifiers": [],
+              "source_effect_ids": [
+                "effect:6b51b5d3bfba70d755bba55cca247a318711d9462214f3840af57331668a132c"
+              ],
+              "source_proposition": "the technician may die during that delay",
+              "temporal_qualifiers": []
+            },
+            {
+              "action_id": "actions:stop the experiment and wait",
+              "condition_ids": [],
+              "condition_join": "and",
+              "derivation_assumptions": [],
+              "derivation_operation": "source_stipulated_causal",
+              "directness": "downstream",
+              "effect_kind": "other",
+              "likelihood_qualifiers": [],
+              "modality": "certain",
+              "outcome": "stopping the experiment first takes ten minutes",
+              "outcome_type_transformation": "preserved",
+              "overall_likelihood_qualifiers": [],
+              "party_id": "parties:the experiment",
+              "polarity": "neutral",
+              "predicate": "take",
+              "quantities": [
+                "ten minutes"
+              ],
+              "scope_qualifiers": [],
+              "source_effect_ids": [
+                "effect:a67e76663970937db4cf04215f77b938630685cef997099477a8594ad096a3d0"
+              ],
+              "source_proposition": "stopping the experiment first takes ten minutes",
+              "temporal_qualifiers": [
+                "ten minutes"
+              ]
+            }
+          ],
+          "right": [],
+          "question": "Which effects reading is supported by the source?"
+        },
+        {
+          "id": "difference_3",
+          "left_id": "candidate_0",
+          "right_id": "candidate_1",
+          "field": "parties",
+          "left": [
+            {
+              "kind": "person",
+              "label": "nearby staff",
+              "quantities": []
+            },
+            {
+              "kind": "person",
+              "label": "the technician",
+              "quantities": []
+            },
+            {
+              "kind": "process",
+              "label": "the door",
+              "quantities": []
+            },
+            {
+              "kind": "process",
+              "label": "the experiment",
+              "quantities": []
+            }
+          ],
+          "right": [],
+          "question": "Which parties reading is supported by the source?"
+        }
+      ],
+      "status": "SUBSTANTIVE_DIFFERENCES"
+    }
+  },
+  "status": "SELECTED",
+  "selected_candidate_id": "candidate_0",
+  "errors": [],
+  "origin": "MODEL_INTERPRETATION_REVIEW",
+  "semantic_support": "reviewer_assessed_not_proven",
+  "raw_response": "{\n  \"status\": \"SELECTED\",\n  \"selected_candidate_id\": \"candidate_0\",\n  \"resolutions\": [\n    {\n      \"difference_id\": \"difference_0\",\n      \"rationale\": \"Candidate 0 includes actions that are explicitly supported by the source, where Mira can either open the door now or stop the experiment and wait.\",\n      \"evidence\": [\n        {\n          \"clause_id\": \"C3\",\n          \"excerpt\": \"Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes.\"\n        },\n        {\n          \"clause_id\": \"C4\",\n          \"excerpt\": \"Stopping the experiment first takes ten minutes; the technician may die during that delay.\"\n        }\n      ]\n    },\n    {\n      \"difference_id\": \"difference_1\",\n      \"rationale\": \"The causal links in Candidate 0 are supported by the source, indicating that opening the door enables reaching the technician and stopping the experiment enables the technician's safety.\",\n      \"evidence\": [\n        {\n          \"clause_id\": \"C3\",\n          \"excerpt\": \"Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes.\"\n        },\n        {\n          \"clause_id\": \"C4\",\n          \"excerpt\": \"Stopping the experiment first takes ten minutes; the technician may die during that delay.\"\n        }\n      ]\n    },\n    {\n      \"difference_id\": \"difference_2\",\n      \"rationale\": \"The effects listed in Candidate 0 are directly supported by the source, detailing the outcomes of both actions.\",\n      \"evidence\": [\n        {\n          \"clause_id\": \"C3\",\n          \"excerpt\": \"Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes.\"\n        },\n        {\n          \"clause_id\": \"C4\",\n          \"excerpt\": \"Stopping the experiment first takes ten minutes; the technician may die during that delay.\"\n        }\n      ]\n    },\n    {\n      \"difference_id\": \"difference_3\",\n      \"rationale\": \"Candidate 0 includes parties that are explicitly mentioned in the source, such as nearby staff and the technician.\",\n      \"evidence\": [\n        {\n          \"clause_id\": \"C2\",\n          \"excerpt\": \"A technician is trapped inside and needs urgent medical help.\"\n        },\n        {\n          \"clause_id\": \"C3\",\n          \"excerpt\": \"Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes.\"\n        }\n      ]\n    }\n  ],\n  \"unresolved_question\": \"\",\n  \"missing_content\": []\n}",
+  "response": {
+    "status": "SELECTED",
+    "selected_candidate_id": "candidate_0",
+    "resolutions": [
+      {
+        "difference_id": "difference_0",
+        "rationale": "Candidate 0 includes actions that are explicitly supported by the source, where Mira can either open the door now or stop the experiment and wait.",
+        "evidence": [
+          {
+            "clause_id": "C3",
+            "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+          },
+          {
+            "clause_id": "C4",
+            "excerpt": "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+          }
+        ]
+      },
+      {
+        "difference_id": "difference_1",
+        "rationale": "The causal links in Candidate 0 are supported by the source, indicating that opening the door enables reaching the technician and stopping the experiment enables the technician's safety.",
+        "evidence": [
+          {
+            "clause_id": "C3",
+            "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+          },
+          {
+            "clause_id": "C4",
+            "excerpt": "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+          }
+        ]
+      },
+      {
+        "difference_id": "difference_2",
+        "rationale": "The effects listed in Candidate 0 are directly supported by the source, detailing the outcomes of both actions.",
+        "evidence": [
+          {
+            "clause_id": "C3",
+            "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+          },
+          {
+            "clause_id": "C4",
+            "excerpt": "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+          }
+        ]
+      },
+      {
+        "difference_id": "difference_3",
+        "rationale": "Candidate 0 includes parties that are explicitly mentioned in the source, such as nearby staff and the technician.",
+        "evidence": [
+          {
+            "clause_id": "C2",
+            "excerpt": "A technician is trapped inside and needs urgent medical help."
+          },
+          {
+            "clause_id": "C3",
+            "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+          }
+        ]
+      }
+    ],
+    "unresolved_question": "",
+    "missing_content": []
+  },
+  "scope": "top_three_distinct_admitted_interpretations",
+  "other_admitted_candidates_preserved": 1
+}

@@ -1,0 +1,58 @@
+{
+  "execution_mode": "SAVED_RESPONSE_REPLAY",
+  "new_api_calls": 0,
+  "checks": {
+    "same_source": true,
+    "same_saved_responses": true,
+    "all_worlds_unchanged": true,
+    "accepted_control_unchanged": true,
+    "accepted_review_unchanged": true,
+    "original_retained_as_contested": true,
+    "changed_classification_retained_unverified": true
+  },
+  "source_sha256": "b7989329f23b974e257dcf2f4ff06f203ce88c759900be1ac72dafdbca508cb2",
+  "native_before_sha256": "41818314dc010587f8b6756b198743b6cfe4cad0ad0d592a9021f771b82636a1",
+  "native_after_sha256": "4f8e024e4b5d6316b78e65cc61ee3d722f0fc8cce7d25b56f33d72a978456842",
+  "source_files": {
+    "pipeline.lock.json": "8ee061b1a7539e7dc338a39780f5a9d4b9984f3b2ae43fde7841ea69c9efcdcd",
+    "integrations/parliament_z10/duty_consistency.patch": "8215084b5147ce5ddaeeefdfd3b513cece0bef620b9fbf4ab748017418e195e5",
+    "replay_duty_consistency.py": "23501db1675b89db95f85957bb9c9173e5bf5577ef385c07b473fcbf2df6b919",
+    "test_duty_consistency.py": "12bdf7cb7927212c156277a6bdfbd2a37bb7ef2a4215396302ffe085eeff296b"
+  },
+  "cases": [
+    {
+      "case": "original",
+      "before": "NONE",
+      "after": "COMMITTED_WITH_UNCERTAINTY",
+      "after_vote_status": "ABSTAIN"
+    },
+    {
+      "case": "rule_context",
+      "before": "NONE",
+      "after": "NONE",
+      "after_vote_status": "ABSTAIN"
+    },
+    {
+      "case": "rule_context_display_closed",
+      "before": "NONE",
+      "after": "COMMITTED_WITH_UNCERTAINTY",
+      "after_vote_status": "ABSTAIN"
+    },
+    {
+      "case": "accepted_control",
+      "before": "COMMITTED_WITH_UNCERTAINTY",
+      "after": "COMMITTED_WITH_UNCERTAINTY",
+      "after_vote_status": "ABSTAIN"
+    },
+    {
+      "case": "accepted_review",
+      "before": "COMMITTED_WITH_UNCERTAINTY",
+      "after": "COMMITTED_WITH_UNCERTAINTY"
+    }
+  ],
+  "display_normalization": "Only the separately labelled display_closed case uses existing fm-from-dp closure. Raw replies remain in unmodified cases.",
+  "limits": "Structural consistency experiment only; no independent normative adjudication. Exact controls cover two saved accepted submissions, not all possible inputs.",
+  "final_replay_matches_initial_corrected_replay": true,
+  "before_complete_sha256": "213112190f182ae838c4f3ca9de302c2e8d179e640a312acccc921d5861eef6a",
+  "after_final_sha256": "4d2fcd4e39c0aa338ef999f294c4704532712c04e7b0eda1d6ff88e0d68ad5ba"
+}

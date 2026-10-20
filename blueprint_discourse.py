@@ -749,6 +749,66 @@ def build_ability_permission(text: str, slots: Mapping[str, Any],
 def build_deontic_rule(text: str, slots: Mapping[str, Any],
                        package: Mapping[str, Any] | None = None
                        ) -> tuple[dict[str, Any], list[str]]:
+    from blueprint_deontic_rules import source_rule_bundles
+    bundles = source_rule_bundles(text)
+    if not bundles:
+        world, notes = _build_single_deontic_rule(text, slots, package)
+        second = {key: _filled(slots.get('second_' + key))
+                  for key in ('deontic_words', 'governed_action', 'bearer', 'authority')}
+        if second['deontic_words'] or second['governed_action']:
+            hosts = [c for c in segment_source_clauses(text)
+                     if second['deontic_words'] and second['governed_action']
+                     and second['deontic_words'].casefold() in c['text'].casefold()
+                     and second['governed_action'].casefold() in c['text'].casefold()]
+            if hosts:
+                extra, extra_notes = _build_single_deontic_rule(text, second, None)
+                index = {'n': len(world['parties'])}
+                remap = {p['party_id']: _party(text, world['parties'], index, p['label'],
+                                             role='bearer' if p['party_id'] == extra['normative_propositions'][0]['bearer_party_id'] else 'authority',
+                                             construction='deontic_rule') for p in extra['parties']}
+                prop = dict(extra['propositions'][0], proposition_id='PR2')
+                norm = dict(extra['normative_propositions'][0], norm_id='N1',
+                            governed_proposition_id='PR2')
+                for field in ('bearer_party_id', 'authority_party_id'):
+                    norm[field] = remap.get(norm[field], '')
+                world['propositions'].append(prop)
+                world['normative_propositions'].append(norm)
+                notes.extend(extra_notes)
+            else:
+                notes.append('The partial second rule has no paired source clause and remains unconstructed.')
+        return world, notes
+    world = ensure_schema({})
+    notes = ['Each rule governs its own source-copied content; none establishes occurrence.',
+             'Temporal/conditional restrictions remain in governed proposition text; '
+             'this schema has no typed norm-condition link.']
+    index = {'n': 0}
+    for number, bundle in enumerate(bundles):
+        bearer = _party(text, world['parties'], index, bundle['bearer'],
+                        role='bearer', construction='deontic_rule')
+        authority = _party(text, world['parties'], index, bundle['authority'],
+                           role='norm_source', construction='deontic_rule')
+        proposition_id = f'PR{number + 1}'
+        world['propositions'].append({
+            'proposition_id': proposition_id, 'predication': bundle['governed_action'],
+            'polarity': bundle['content_polarity'], 'status': 'GOVERNED',
+            'clause_ids': bundle['clause_ids'],
+        })
+        world['normative_propositions'].append({
+            'norm_id': f'N{number}', 'force': bundle['force'],
+            'bearer_party_id': bearer, 'authority_party_id': authority,
+            'governed_proposition_id': proposition_id, 'clause_ids': bundle['clause_ids'],
+        })
+        if not bearer:
+            notes.append(f'N{number}: bearer is unstated; no preceding actor was silently inherited.')
+        if bundle['unresolved_references']:
+            notes.append(f'N{number}: content references remain unresolved: '
+                         + ', '.join(bundle['unresolved_references']))
+    return world, notes
+
+
+def _build_single_deontic_rule(text: str, slots: Mapping[str, Any],
+                              package: Mapping[str, Any] | None = None
+                              ) -> tuple[dict[str, Any], list[str]]:
     words = _filled(slots.get("deontic_words"))
     governed = _filled(slots.get("governed_action"))
     bearer = _filled(slots.get("bearer"))
@@ -772,9 +832,7 @@ def build_deontic_rule(text: str, slots: Mapping[str, Any],
     governed = _include_target(text, governed, target)
     clauses = _clauses(text, words, governed, bearer, target)
     clause_ids = [row["clause_id"] for row in clauses]
-    force = _z10_modal_force(package, {"obligation", "permission"})
-    if force == "unresolved":
-        force = _deontic_force_from_span(words)
+    force = _deontic_force_from_span(words)
     proposition = {
         "proposition_id": "PR1",
         "predication": governed,
@@ -887,14 +945,8 @@ def _z10_modal_force(package: Mapping[str, Any] | None,
 def _deontic_force_from_span(words: str) -> str:
     # Witness only. Regex may not invent a 1.3 kind; it may label a copied
     # deontic span when Z10 left the force unresolved.
-    folded = (words or "").casefold()
-    if re.search(r"\b(?:must not|may not|shall not|forbidden|prohibited)\b", folded):
-        return "prohibition"
-    if re.search(r"\b(?:must|shall|should|required|obligated)\b", folded):
-        return "obligation"
-    if re.search(r"\bmay\b", folded):
-        return "permission"
-    return "unresolved"
+    from blueprint_deontic_rules import rule_force
+    return rule_force(words or '')
 
 
 def _first_modal_span(slots: Mapping[str, Any]) -> str:

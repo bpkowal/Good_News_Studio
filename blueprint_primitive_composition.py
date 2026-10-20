@@ -11,6 +11,8 @@ from blueprint_proposal_contract import proposal, candidate, world_model
 
 def extract_inventory(text, package):
     branches, unresolved = conditional_inventory(text, package)
+    from blueprint_explicit_choices import extract_explicit_choices
+    explicit_choice = extract_explicit_choices(text) if not branches else None
     candidates = {c["id"]: c for c in package.get("candidates", [])}
     conditions = []
     for branch in branches:
@@ -53,13 +55,13 @@ def extract_inventory(text, package):
         for option in row["options"]:
             include(option["candidate_id"])
     from blueprint_semantic_coverage import extend_inventory
-    return extend_inventory({"version": "primitive-composition/0.2", "package_id": package["package_id"],
+    return extend_inventory({"version": "primitive-composition/0.3", "package_id": package["package_id"],
             "constructions": choices + conditions, "branches": branches,
             "supporting_candidates": [deepcopy(c) for c in package.get("candidates", [])
                                       if c["id"] in supporting_ids],
             "nodes": deepcopy(package.get("nodes", [])), "evidence": deepcopy(package.get("evidence", [])),
-            "unresolved": unresolved,
-            "limits": "Choice and conditional outcomes; at most two constructed actions. "
+            "unresolved": unresolved, "explicit_choice": explicit_choice,
+            "limits": "Choice and conditional outcomes, or binary questions with explicit action/delay anaphors; at most two constructed actions. "
                       "Other Z10 semantics remain in the original package."}, package)
 
 
@@ -74,6 +76,10 @@ def compose(text, inventory, question):
     clauses = [{"clause_id": r["clause_id"], "text": r["text"]}
                for r in segment_source_clauses(text)]
     world = world_model([], [], [], [])
+    explicit_choice = inventory.get('explicit_choice')
+    if not inventory['branches'] and explicit_choice and explicit_choice['complete']:
+        from blueprint_explicit_choices import build_explicit_choice_world
+        world = build_explicit_choice_world(text, explicit_choice)
     for branch in inventory["branches"]:
         addition, _ = branch_world(text, branch)
         world, _ = merge_world(world, addition)
@@ -81,15 +87,27 @@ def compose(text, inventory, question):
     from blueprint_spatial_projection import branch_choice_cells, spatial_cells
     scene_provenance = []
     world = attach_physical_scene(text, world, scene_provenance)
+    from blueprint_deontic_rules import source_rule_bundles
+    rule_bindings = source_rule_bundles(text)
+    if rule_bindings and world['actions']:
+        from blueprint_discourse import build_deontic_rule, attach_discourse_collections
+        rules, _ = build_deontic_rule(text, {})
+        world = attach_discourse_collections(world, rules)
     reasons = []
     if not world["actions"]:
-        reasons.append("No supported conditional branch was extracted.")
+        if explicit_choice:
+            reasons.extend('Choice outcome needs a unique source binding: ' + branch['action']
+                           for branch in explicit_choice['branches'] if len(branch['outcomes']) != 1)
+        else:
+            reasons.append("No supported conditional branch was extracted.")
     if len(world["actions"]) > 2:
         reasons.append("This composition pilot covers at most two actions.")
     common = dict(proposal_id="primitive_composition_0", blueprint_id="primitive_composition",
                   clauses=clauses, slot_bindings={"inventory_version": inventory["version"],
                       "branch_choices": branch_choice_cells(world),
-                      "physical_scene_cells": spatial_cells(text, world)},
+                      "physical_scene_cells": spatial_cells(text, world),
+                      **({'explicit_choice': explicit_choice} if explicit_choice else {}),
+                      **({'deontic_rule_bindings': rule_bindings} if rule_bindings else {})},
                   unresolved_readings=inventory["unresolved"], pre_world_assessment=question)
     if reasons:
         return retain_source(withheld_proposal(**common, assignment=[], unfilled_required_slots=[],
@@ -106,7 +124,10 @@ def compose(text, inventory, question):
         construction_provenance=_construction_provenance(world, clauses, {}) + scene_provenance,
         relation_alternatives=_relation_alternatives(world, clauses),
         notes=["Choice alternatives are retained in the inventory. Listing options does not "
-               "establish exclusivity or actual occurrence."],
+               "establish exclusivity or actual occurrence."] + ([
+                   'ENABLES links record branch associations; may/might/could remain on the possible outcome, without an invented stochastic gate.',
+                   'Exposure retains any explicit hazard wording as adverse risk, with no inferred injury, death rate, or successful rescue.',
+               ] if explicit_choice else []),
     )
     # Reuse the established projection: the legacy derivation helper can append
     # alternative-harm hypotheses while closing provenance. They are not sourced
@@ -119,6 +140,25 @@ def append_composition(text, inventory, blueprint):
     result = deepcopy(blueprint)
     composed = compose(text, inventory, result["question"])
     attempts = result.setdefault("candidate_attempts", [])
+    if (inventory.get('explicit_choice') or {}).get('complete'):
+        # Offer the same supported composition as an amendment to a rule-only
+        # macro. Keep its baseline; use existing admission/review competition.
+        for attempt in list(attempts):
+            base_world = (attempt['proposal'].get('candidate') or {}).get('world_model') or {}
+            if (attempt['blueprint_id'] != 'deontic_rule' or base_world.get('actions')
+                    or not base_world.get('normative_propositions') or not composed.get('candidate')):
+                continue
+            amended = deepcopy(composed)
+            amended['blueprint_id'] = attempt['blueprint_id']
+            amended['proposal_id'] = attempt['proposal']['proposal_id'] + '_choice_outcomes'
+            amended['slot_bindings'].update(attempt['proposal'].get('slot_bindings') or {})
+            amended['notes'].append('Rule layer plus explicit choice/outcome primitives; the rule-only baseline is retained.')
+            from blueprint_proposal_contract import validate_proposal
+            errors = validate_proposal(amended)
+            attempts.append({**deepcopy(attempt), 'rank': attempt['rank'] - 0.1,
+                             'selected': False, 'variant': 'amended', 'proposal': amended,
+                             'contract_valid': not errors,
+                             'amendment_record': {'added': ['explicit_choice_outcomes'], 'errors': errors}})
     attempts.append({"rank": max((a["rank"] for a in attempts), default=0) + 1,
                      "blueprint_id": "primitive_composition", "variant": "composition",
                      "selected": False, "template_status": composed["status"],

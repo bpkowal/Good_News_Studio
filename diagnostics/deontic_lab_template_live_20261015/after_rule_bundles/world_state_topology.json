@@ -1,0 +1,76 @@
+{
+  "schema_version": "1.4",
+  "admission": {
+    "status": "COMMITTED",
+    "admitted_effect_ids": []
+  },
+  "nodes": [
+    {
+      "id": "P1",
+      "kind": "party",
+      "label": "Mira"
+    },
+    {
+      "id": "P2",
+      "kind": "party",
+      "label": "A laboratory safety rule"
+    },
+    {
+      "id": "P3",
+      "kind": "party",
+      "label": "The rule"
+    },
+    {
+      "id": "PR1",
+      "kind": "proposition",
+      "label": "keep a containment door closed while a hazardous experiment is running",
+      "status": "GOVERNED"
+    },
+    {
+      "id": "PR2",
+      "kind": "proposition",
+      "label": "opening it only after the experiment has stopped",
+      "status": "GOVERNED"
+    },
+    {
+      "id": "N0",
+      "kind": "norm",
+      "label": "obligation"
+    },
+    {
+      "id": "N1",
+      "kind": "norm",
+      "label": "permission"
+    }
+  ],
+  "edges": [
+    {
+      "source": "P1",
+      "relation": "BEARER",
+      "target": "N0"
+    },
+    {
+      "source": "P2",
+      "relation": "AUTHORITY",
+      "target": "N0"
+    },
+    {
+      "source": "N0",
+      "relation": "GOVERNS",
+      "target": "PR1"
+    },
+    {
+      "source": "P3",
+      "relation": "AUTHORITY",
+      "target": "N1"
+    },
+    {
+      "source": "N1",
+      "relation": "GOVERNS",
+      "target": "PR2"
+    }
+  ],
+  "conditions": [],
+  "temporal_relations": [],
+  "counterfactual_links": []
+}

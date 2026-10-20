@@ -1,0 +1,1123 @@
+{
+  "version": "logic-puzzles-conflict-projection/0.1",
+  "mode": "READ_ONLY_PROJECTION",
+  "world_mutation": false,
+  "source_judgment_status": "NOT_ADJUDICATED",
+  "nodes": [
+    {
+      "id": "WORLD:E1",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E1",
+        "action_id": "A0",
+        "party_id": "P2",
+        "outcome": "open the door now",
+        "relation": "OPEN",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "INTERVENTION",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "open the door now",
+        "source_effect_ids": [],
+        "derivation_operation": "DIRECT_COPY",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "open the door now"
+    },
+    {
+      "id": "WORLD:E2",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E2",
+        "action_id": "A0",
+        "party_id": "P3",
+        "outcome": "doing so may expose nearby staff to hazardous fumes",
+        "relation": "EXPOSE",
+        "polarity": "ADVERSE",
+        "directness": "DOWNSTREAM",
+        "modality": "POSSIBLE",
+        "effect_kind": "OTHER",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+          }
+        ],
+        "likelihood_qualifiers": [
+          "may"
+        ],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "doing so may expose nearby staff to hazardous fumes",
+        "source_effect_ids": [
+          "E1"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "doing so may expose nearby staff to hazardous fumes"
+    },
+    {
+      "id": "WORLD:E3",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E3",
+        "action_id": "A1",
+        "party_id": "P4",
+        "outcome": "Stopping the experiment",
+        "relation": "STOP",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "INTERVENTION",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C4",
+            "excerpt": "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "Stopping the experiment",
+        "source_effect_ids": [],
+        "derivation_operation": "DIRECT_COPY",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "Stopping the experiment"
+    },
+    {
+      "id": "WORLD:E4",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E4",
+        "action_id": "A1",
+        "party_id": "P4",
+        "outcome": "Stopping the experiment first takes ten minutes",
+        "relation": "TAKE",
+        "polarity": "NEUTRAL",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "OTHER",
+        "condition_ids": [],
+        "quantities": [
+          "ten minutes"
+        ],
+        "provenance": [
+          {
+            "clause_id": "C4",
+            "excerpt": "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "Stopping the experiment first takes ten minutes",
+        "source_effect_ids": [
+          "E3"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "Stopping the experiment first takes ten minutes"
+    },
+    {
+      "id": "WORLD:E5",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E5",
+        "action_id": "A1",
+        "party_id": "P5",
+        "outcome": "the technician may die during that delay",
+        "relation": "DIE",
+        "polarity": "ADVERSE",
+        "directness": "DOWNSTREAM",
+        "modality": "POSSIBLE",
+        "effect_kind": "HEALTH_OUTCOME",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C4",
+            "excerpt": "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+          }
+        ],
+        "likelihood_qualifiers": [
+          "may"
+        ],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "the technician may die during that delay",
+        "source_effect_ids": [
+          "E4"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "the technician may die during that delay"
+    },
+    {
+      "id": "PROP:DISCOURSE:PR1",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:DISCOURSE:PR1",
+        "claim": "keep a containment door closed while a hazardous experiment is running",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "UNRESOLVED",
+        "support_ids": [
+          "PR1"
+        ],
+        "derived_from": [],
+        "introduced_by": "DISCOURSE",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "NOT_ESTABLISHED",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "UNRESOLVED",
+      "label": "keep a containment door closed while a hazardous experiment is running"
+    },
+    {
+      "id": "PROP:DISCOURSE:PR2",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:DISCOURSE:PR2",
+        "claim": "opening it only after the experiment has stopped",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "UNRESOLVED",
+        "support_ids": [
+          "PR2"
+        ],
+        "derived_from": [],
+        "introduced_by": "DISCOURSE",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "NOT_ESTABLISHED",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "UNRESOLVED",
+      "label": "opening it only after the experiment has stopped"
+    },
+    {
+      "id": "PROP:NORM:N0",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:NORM:N0",
+        "claim": "obligation",
+        "proposition_type": "NORMATIVE",
+        "epistemic_status": "UNRESOLVED",
+        "support_ids": [
+          "N0"
+        ],
+        "derived_from": [],
+        "introduced_by": "DISCOURSE",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "NORMATIVE",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "UNRESOLVED",
+      "label": "obligation"
+    },
+    {
+      "id": "PROP:NORM:N1",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:NORM:N1",
+        "claim": "permission",
+        "proposition_type": "NORMATIVE",
+        "epistemic_status": "UNRESOLVED",
+        "support_ids": [
+          "N1"
+        ],
+        "derived_from": [],
+        "introduced_by": "DISCOURSE",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "NORMATIVE",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "UNRESOLVED",
+      "label": "permission"
+    },
+    {
+      "id": "PROP:WORLD:E1",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E1",
+        "claim": "open the door now; affected subject: the door",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E1"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "open the door now"
+        ],
+        "action_id": "A0",
+        "outcome": "open the door now",
+        "polarity": "NEUTRAL",
+        "party_labels": [
+          "the door"
+        ],
+        "quantities": [],
+        "effect_kind": "INTERVENTION",
+        "context_terms": [
+          "open the door now"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DIRECT",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "open the door now; affected subject: the door"
+    },
+    {
+      "id": "PROP:WORLD:E2",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E2",
+        "claim": "doing so may expose nearby staff to hazardous fumes; affected subject: nearby staff; modality: POSSIBLE",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E2"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "doing so may expose nearby staff to hazardous fumes"
+        ],
+        "action_id": "A0",
+        "outcome": "doing so may expose nearby staff to hazardous fumes",
+        "polarity": "ADVERSE",
+        "party_labels": [
+          "nearby staff"
+        ],
+        "quantities": [],
+        "effect_kind": "OTHER",
+        "context_terms": [
+          "doing so may expose nearby staff to hazardous fumes",
+          "may \u2014 doing so may expose nearby staff to hazardous fumes",
+          "open the door now"
+        ],
+        "modality": "POSSIBLE",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "doing so may expose nearby staff to hazardous fumes; affected subject: nearby staff; modality: POSSIBLE"
+    },
+    {
+      "id": "PROP:WORLD:E2:LIKELIHOOD:0",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E2:LIKELIHOOD:0",
+        "claim": "may \u2014 doing so may expose nearby staff to hazardous fumes",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E2",
+          "may"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [],
+        "action_id": "A0",
+        "outcome": "doing so may expose nearby staff to hazardous fumes",
+        "polarity": "",
+        "party_labels": [
+          "nearby staff"
+        ],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [
+          "doing so may expose nearby staff to hazardous fumes",
+          "may \u2014 doing so may expose nearby staff to hazardous fumes",
+          "open the door now"
+        ],
+        "modality": "POSSIBLE",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "may \u2014 doing so may expose nearby staff to hazardous fumes"
+    },
+    {
+      "id": "PROP:WORLD:E3",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E3",
+        "claim": "Stopping the experiment; affected subject: the experiment",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E3"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "Stopping the experiment"
+        ],
+        "action_id": "A1",
+        "outcome": "Stopping the experiment",
+        "polarity": "NEUTRAL",
+        "party_labels": [
+          "the experiment"
+        ],
+        "quantities": [],
+        "effect_kind": "INTERVENTION",
+        "context_terms": [
+          "Stopping the experiment",
+          "stop the experiment and wait"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DIRECT",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "Stopping the experiment; affected subject: the experiment"
+    },
+    {
+      "id": "PROP:WORLD:E4",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E4",
+        "claim": "Stopping the experiment first takes ten minutes; affected subject: the experiment; magnitude or qualifier: ten minutes",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E4"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "Stopping the experiment first takes ten minutes"
+        ],
+        "action_id": "A1",
+        "outcome": "Stopping the experiment first takes ten minutes",
+        "polarity": "NEUTRAL",
+        "party_labels": [
+          "the experiment"
+        ],
+        "quantities": [
+          "ten minutes"
+        ],
+        "effect_kind": "OTHER",
+        "context_terms": [
+          "Stopping the experiment first takes ten minutes",
+          "stop the experiment and wait",
+          "Stopping the experiment"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "Stopping the experiment first takes ten minutes; affected subject: the experiment; magnitude or qualifier: ten minutes"
+    },
+    {
+      "id": "PROP:WORLD:E5",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E5",
+        "claim": "the technician may die during that delay; affected subject: the technician; modality: POSSIBLE",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E5"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "the technician may die during that delay"
+        ],
+        "action_id": "A1",
+        "outcome": "the technician may die during that delay",
+        "polarity": "ADVERSE",
+        "party_labels": [
+          "the technician"
+        ],
+        "quantities": [],
+        "effect_kind": "HEALTH_OUTCOME",
+        "context_terms": [
+          "the technician may die during that delay",
+          "may \u2014 the technician may die during that delay",
+          "stop the experiment and wait",
+          "Stopping the experiment first takes ten minutes",
+          "Stopping the experiment"
+        ],
+        "modality": "POSSIBLE",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "the technician may die during that delay; affected subject: the technician; modality: POSSIBLE"
+    },
+    {
+      "id": "PROP:WORLD:E5:LIKELIHOOD:0",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E5:LIKELIHOOD:0",
+        "claim": "may \u2014 the technician may die during that delay",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E5",
+          "may"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [],
+        "action_id": "A1",
+        "outcome": "the technician may die during that delay",
+        "polarity": "",
+        "party_labels": [
+          "the technician"
+        ],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [
+          "the technician may die during that delay",
+          "may \u2014 the technician may die during that delay",
+          "stop the experiment and wait",
+          "Stopping the experiment first takes ten minutes",
+          "Stopping the experiment"
+        ],
+        "modality": "POSSIBLE",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "may \u2014 the technician may die during that delay"
+    },
+    {
+      "id": "deontological::PROP:DISCOURSE:PR1",
+      "kind": "PROPOSITION",
+      "origin": "deontological",
+      "native_proposition_id": "PROP:DISCOURSE:PR1",
+      "record": {
+        "proposition_id": "PROP:DISCOURSE:PR1",
+        "claim": "keep a containment door closed while a hazardous experiment is running",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "UNRESOLVED",
+        "support_ids": [
+          "PR1"
+        ],
+        "derived_from": [],
+        "introduced_by": "DISCOURSE",
+        "mention_count": 2,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "NOT_ESTABLISHED",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "UNRESOLVED",
+      "label": "keep a containment door closed while a hazardous experiment is running"
+    },
+    {
+      "id": "deontological::PROP:WORLD:E2",
+      "kind": "PROPOSITION",
+      "origin": "deontological",
+      "native_proposition_id": "PROP:WORLD:E2",
+      "record": {
+        "proposition_id": "PROP:WORLD:E2",
+        "claim": "doing so may expose nearby staff to hazardous fumes; affected subject: nearby staff; modality: POSSIBLE",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E2"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 2,
+        "decision_critical_mentions": 1,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "doing so may expose nearby staff to hazardous fumes"
+        ],
+        "action_id": "A0",
+        "outcome": "doing so may expose nearby staff to hazardous fumes",
+        "polarity": "ADVERSE",
+        "party_labels": [
+          "nearby staff"
+        ],
+        "quantities": [],
+        "effect_kind": "OTHER",
+        "context_terms": [
+          "doing so may expose nearby staff to hazardous fumes",
+          "may \u2014 doing so may expose nearby staff to hazardous fumes",
+          "open the door now"
+        ],
+        "modality": "POSSIBLE",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "doing so may expose nearby staff to hazardous fumes; affected subject: nearby staff; modality: POSSIBLE"
+    },
+    {
+      "id": "deontological::PROP:WORLD:E5",
+      "kind": "PROPOSITION",
+      "origin": "deontological",
+      "native_proposition_id": "PROP:WORLD:E5",
+      "record": {
+        "proposition_id": "PROP:WORLD:E5",
+        "claim": "the technician may die during that delay; affected subject: the technician; modality: POSSIBLE",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E5"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 2,
+        "decision_critical_mentions": 1,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "the technician may die during that delay"
+        ],
+        "action_id": "A1",
+        "outcome": "the technician may die during that delay",
+        "polarity": "ADVERSE",
+        "party_labels": [
+          "the technician"
+        ],
+        "quantities": [],
+        "effect_kind": "HEALTH_OUTCOME",
+        "context_terms": [
+          "the technician may die during that delay",
+          "may \u2014 the technician may die during that delay",
+          "stop the experiment and wait",
+          "Stopping the experiment first takes ten minutes",
+          "Stopping the experiment"
+        ],
+        "modality": "POSSIBLE",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "the technician may die during that delay; affected subject: the technician; modality: POSSIBLE"
+    },
+    {
+      "id": "CLAIM:7b086c93cf5c8008",
+      "kind": "CLAIM",
+      "origin": "deontological",
+      "native_ledger_kind": "DEONTOLOGICAL_DUTY_LEDGER",
+      "native_record_id": "DEON_ASSESSMENT:deontological:A0",
+      "record": {
+        "assessment_node_id": "DEON_ASSESSMENT:deontological:A0",
+        "framework": "DEONTOLOGICAL",
+        "specialist": "deontological",
+        "assessment_role": "PRIMARY",
+        "cycle": 1,
+        "canonical_action_id": "A0",
+        "verdict": "CONFLICTED",
+        "proposed_verdict": "CONFLICTED",
+        "relation": "VIOLATES",
+        "proposed_relation": "VIOLATES",
+        "norm_kind": "DUTY",
+        "norm_node_id": "DEON_NORM:fc9e4b2caad7d591",
+        "party_node_id": "DEON_PARTY:0e52a2bb22e60d0f",
+        "bearer_node_id": "DEON_BEARER:3c38aafb0579dafe",
+        "competing_norm": "imperfect duty to rescue",
+        "competing_norm_kind": "DUTY",
+        "competing_relation": "CONFLICTS",
+        "competing_protected_party": "technician",
+        "competing_reason": "rescue duty conflicts with safety duty",
+        "duty_type": "PERFECT_NEGATIVE",
+        "harm_relation": "DOING_HARM",
+        "special_obligation_status": "NOT_REQUIRED",
+        "special_obligation_basis": "no special tie to staff beyond general humanity",
+        "means_relation": "FORESEEN_SIDE_EFFECT",
+        "candidate_maxim": {
+          "circumstance": "experiment running, tech trapped",
+          "policy": "open door during active hazard",
+          "end": "save technician quickly",
+          "means": "opening door",
+          "person_role": "FORESEEN_AFFECTED",
+          "consent_constraint": "NONE",
+          "universalization": "if everyone opened doors under hazard, lab safety collapses",
+          "action_permissibility": "IMPERMISSIBLE",
+          "maxim_assessment": "INDEFENSIBLE",
+          "instrumental_belief": "DOES_NOT_RELY",
+          "instrumental_use": "DOES_NOT_USE",
+          "practical_reasoning": "harm to staff is foreseen side-effect, still forbidden",
+          "means_effect_ids": [
+            "E1"
+          ],
+          "end_effect_ids": []
+        },
+        "maxim_origin": "CANDIDATE_INTERPRETATION",
+        "governing_norm": "UNRESOLVED",
+        "priority_basis": "UNRESOLVED",
+        "priority_rule": "perfect negative duties outweigh imperfect positives",
+        "protected_standing": "BODILY_INTEGRITY",
+        "competing_protected_standing": "SPECIAL_OBLIGATION",
+        "coercion_kind": "NONE",
+        "coercive_actor": "Mira",
+        "coerced_party": "NONE",
+        "public_justification": "Publicly defensible to avoid direct harm",
+        "reciprocity_status": "SATISFIED",
+        "necessity_status": "UNKNOWN",
+        "authorization_status": "NOT_APPLICABLE",
+        "derivation": "RESPECT_PERSONS",
+        "resolution_status": "CONTESTED",
+        "calibration_errors": [
+          "doing-harm classification lacks an agent-caused settled welfare harm on the protected party",
+          "resolved adjudication rests on unsupported decisive premises"
+        ],
+        "calibration_issues": [
+          {
+            "kind": "HARM_RELATION_GRAPH_MISALIGN",
+            "message": "doing-harm classification lacks an agent-caused settled welfare harm on the protected party",
+            "status": "ACTIVE"
+          },
+          {
+            "kind": "CALIBRATION",
+            "message": "resolved adjudication rests on unsupported decisive premises",
+            "status": "ACTIVE"
+          }
+        ],
+        "calibration_support_node_ids": [],
+        "evidence_basis": "FRAMEWORK_ONLY",
+        "epistemic_status": "FRAMEWORK_INTERPRETATION",
+        "reason": "Opening exposes others to harm, violating perfect duty",
+        "protected_party": "nearby staff",
+        "norm": "do not directly harm uninvolved persons",
+        "duty_bearer": "mira",
+        "provenance": [
+          "delegate:deontological",
+          "cycle:1"
+        ]
+      },
+      "action_id": "A0",
+      "epistemic_status": "FRAMEWORK_INTERPRETATION",
+      "label": "deontological: A0 CONFLICTED"
+    },
+    {
+      "id": "COMMITMENT:9474cebfc01f13c3",
+      "kind": "FRAMEWORK_COMMITMENT",
+      "origin": "deontological",
+      "field": "norm",
+      "value": "do not directly harm uninvolved persons",
+      "label": "do not directly harm uninvolved persons",
+      "authority": "FRAMEWORK_LOCAL"
+    },
+    {
+      "id": "COMMITMENT:0b54139abc6a8b55",
+      "kind": "FRAMEWORK_COMMITMENT",
+      "origin": "deontological",
+      "field": "priority_rule",
+      "value": "perfect negative duties outweigh imperfect positives",
+      "label": "perfect negative duties outweigh imperfect positives",
+      "authority": "FRAMEWORK_LOCAL"
+    },
+    {
+      "id": "CONFLICT:62504bee6056af0c",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "doing-harm classification lacks an agent-caused settled welfare harm on the protected party",
+      "conflict_type": "UNSUPPORTED_INFERENCE",
+      "status": "OPEN",
+      "source": "NATIVE_LEDGER_CALIBRATION",
+      "claim_ids": [
+        "CLAIM:7b086c93cf5c8008"
+      ]
+    },
+    {
+      "id": "CONFLICT:9fb6b51464bbc3cd",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "resolved adjudication rests on unsupported decisive premises",
+      "conflict_type": "UNSUPPORTED_INFERENCE",
+      "status": "OPEN",
+      "source": "NATIVE_LEDGER_CALIBRATION",
+      "claim_ids": [
+        "CLAIM:7b086c93cf5c8008"
+      ]
+    },
+    {
+      "id": "CLAIM:1172528968662b06",
+      "kind": "CLAIM",
+      "origin": "deontological",
+      "native_ledger_kind": "DEONTOLOGICAL_DUTY_LEDGER",
+      "native_record_id": "DEON_ASSESSMENT:deontological:A1",
+      "record": {
+        "assessment_node_id": "DEON_ASSESSMENT:deontological:A1",
+        "framework": "DEONTOLOGICAL",
+        "specialist": "deontological",
+        "assessment_role": "PRIMARY",
+        "cycle": 1,
+        "canonical_action_id": "A1",
+        "verdict": "PERMISSIBLE",
+        "proposed_verdict": "PERMISSIBLE",
+        "relation": "CONSISTENT",
+        "proposed_relation": "CONSISTENT",
+        "norm_kind": "DUTY",
+        "norm_node_id": "DEON_NORM:e05842962749b1f5",
+        "party_node_id": "DEON_PARTY:0e52a2bb22e60d0f",
+        "bearer_node_id": "DEON_BEARER:3c38aafb0579dafe",
+        "competing_norm": "imperfect duty to rescue",
+        "competing_norm_kind": "DUTY",
+        "competing_relation": "CONFLICTS",
+        "competing_protected_party": "technician",
+        "competing_reason": "rescue duty conflicts but is weaker",
+        "duty_type": "IMPERFECT",
+        "harm_relation": "ALLOWING_HARM",
+        "special_obligation_status": "NOT_REQUIRED",
+        "special_obligation_basis": "no special tie to technician beyond general duty",
+        "means_relation": "NO_INSTRUMENTALIZATION",
+        "candidate_maxim": {
+          "circumstance": "experiment running, tech trapped",
+          "policy": "wait until hazard removed",
+          "end": "rescue technician safely",
+          "means": "stopping experiment",
+          "person_role": "NOT_USED",
+          "consent_constraint": "NONE",
+          "universalization": "safe wait could be universal",
+          "action_permissibility": "PERMISSIBLE",
+          "maxim_assessment": "DEFENSIBLE",
+          "instrumental_belief": "DOES_NOT_RELY",
+          "instrumental_use": "DOES_NOT_USE",
+          "practical_reasoning": "does not use anyone as means",
+          "means_effect_ids": [
+            "E3"
+          ],
+          "end_effect_ids": []
+        },
+        "maxim_origin": "CANDIDATE_INTERPRETATION",
+        "governing_norm": "PRIMARY",
+        "priority_basis": "RESPECT_PERSONS",
+        "priority_rule": "avoiding direct harm overrides aiding",
+        "protected_standing": "BODILY_INTEGRITY",
+        "competing_protected_standing": "SPECIAL_OBLIGATION",
+        "coercion_kind": "NONE",
+        "coercive_actor": "Mira",
+        "coerced_party": "NONE",
+        "public_justification": "Publicly defensible to respect safety rule",
+        "reciprocity_status": "SATISFIED",
+        "necessity_status": "UNKNOWN",
+        "authorization_status": "NOT_APPLICABLE",
+        "derivation": "UNIVERSAL_LAW",
+        "resolution_status": "RESOLVED",
+        "calibration_errors": [],
+        "calibration_issues": [],
+        "calibration_support_node_ids": [],
+        "evidence_basis": "FRAMEWORK_ONLY",
+        "epistemic_status": "UNRESOLVED_PARTY",
+        "reason": "Waiting violates no perfect duty",
+        "protected_party": "nearby staff",
+        "norm": "avoid directly harming others",
+        "duty_bearer": "mira",
+        "provenance": [
+          "delegate:deontological",
+          "cycle:1"
+        ]
+      },
+      "action_id": "A1",
+      "epistemic_status": "UNRESOLVED_PARTY",
+      "label": "deontological: A1 PERMISSIBLE"
+    },
+    {
+      "id": "COMMITMENT:903f4301556fe771",
+      "kind": "FRAMEWORK_COMMITMENT",
+      "origin": "deontological",
+      "field": "norm",
+      "value": "avoid directly harming others",
+      "label": "avoid directly harming others",
+      "authority": "FRAMEWORK_LOCAL"
+    },
+    {
+      "id": "COMMITMENT:c2f0ce5191d2c331",
+      "kind": "FRAMEWORK_COMMITMENT",
+      "origin": "deontological",
+      "field": "priority_rule",
+      "value": "avoiding direct harm overrides aiding",
+      "label": "avoiding direct harm overrides aiding",
+      "authority": "FRAMEWORK_LOCAL"
+    },
+    {
+      "id": "CONFLICT:6f2d885e6521f4c8",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "mira's duty 'avoid directly harming others' protecting nearby staff \u2194 mira's competing duty 'imperfect duty to rescue' protecting technician",
+      "conflict_type": "REPORTED_INTERNAL_CONFLICT",
+      "status": "OPEN",
+      "source": "FRAMEWORK_REPORT",
+      "claim_ids": [
+        "CLAIM:7b086c93cf5c8008",
+        "CLAIM:1172528968662b06"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CONFLICT:9dbdd7cdcbd887b7",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "A0 prohibited by do not directly harm uninvolved persons \u2194 whether the harm-relation follows the admitted graph's causal topology rather than a relabel chosen to fit the verdict",
+      "conflict_type": "REPORTED_INTERNAL_CONFLICT",
+      "status": "OPEN",
+      "source": "FRAMEWORK_REPORT",
+      "claim_ids": [
+        "CLAIM:7b086c93cf5c8008",
+        "CLAIM:1172528968662b06"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CONFLICT:c7946309f2fd7abe",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "hypothetical reversal boundary parameter is unverified; graph update not committed",
+      "conflict_type": "NATIVE_FRAMEWORK_WARNING",
+      "status": "OPEN",
+      "source": "NATIVE_FRAMEWORK_VALIDATION",
+      "claim_ids": [
+        "CLAIM:7b086c93cf5c8008",
+        "CLAIM:1172528968662b06"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CONFLICT:ca49be511198b0c9",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "A0 ADJUDICATION_CALIBRATION: doing-harm classification lacks an agent-caused settled welfare harm on the protected party",
+      "conflict_type": "NATIVE_FRAMEWORK_WARNING",
+      "status": "OPEN",
+      "source": "NATIVE_FRAMEWORK_VALIDATION",
+      "claim_ids": [
+        "CLAIM:7b086c93cf5c8008",
+        "CLAIM:1172528968662b06"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CONFLICT:df661734d150a7b0",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "A0 ADJUDICATION_CALIBRATION: resolved adjudication rests on unsupported decisive premises",
+      "conflict_type": "NATIVE_FRAMEWORK_WARNING",
+      "status": "OPEN",
+      "source": "NATIVE_FRAMEWORK_VALIDATION",
+      "claim_ids": [
+        "CLAIM:7b086c93cf5c8008",
+        "CLAIM:1172528968662b06"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CONFLICT:3d8408718b215d47",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "A1 primary protected party lacks current-run action grounding",
+      "conflict_type": "NATIVE_FRAMEWORK_WARNING",
+      "status": "OPEN",
+      "source": "NATIVE_FRAMEWORK_VALIDATION",
+      "claim_ids": [
+        "CLAIM:7b086c93cf5c8008",
+        "CLAIM:1172528968662b06"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    }
+  ],
+  "edges": [
+    {
+      "source": "CLAIM:7b086c93cf5c8008",
+      "target": "deontological::PROP:WORLD:E2",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "ESTABLISHED"
+    },
+    {
+      "source": "CLAIM:7b086c93cf5c8008",
+      "target": "deontological::PROP:WORLD:E5",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "ESTABLISHED"
+    },
+    {
+      "source": "COMMITMENT:9474cebfc01f13c3",
+      "target": "CLAIM:7b086c93cf5c8008",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "COMMITMENT:0b54139abc6a8b55",
+      "target": "CLAIM:7b086c93cf5c8008",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "CONFLICT:62504bee6056af0c",
+      "target": "CLAIM:7b086c93cf5c8008",
+      "kind": "OBJECTION",
+      "target_kind": "INFERENCE"
+    },
+    {
+      "source": "CONFLICT:9fb6b51464bbc3cd",
+      "target": "CLAIM:7b086c93cf5c8008",
+      "kind": "OBJECTION",
+      "target_kind": "INFERENCE"
+    },
+    {
+      "source": "CLAIM:1172528968662b06",
+      "target": "deontological::PROP:WORLD:E2",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "ESTABLISHED"
+    },
+    {
+      "source": "CLAIM:1172528968662b06",
+      "target": "deontological::PROP:WORLD:E5",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "ESTABLISHED"
+    },
+    {
+      "source": "COMMITMENT:903f4301556fe771",
+      "target": "CLAIM:1172528968662b06",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "COMMITMENT:c2f0ce5191d2c331",
+      "target": "CLAIM:1172528968662b06",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    }
+  ],
+  "diagnostics": [],
+  "open_conflicts": [
+    "CONFLICT:62504bee6056af0c",
+    "CONFLICT:9fb6b51464bbc3cd",
+    "CONFLICT:6f2d885e6521f4c8",
+    "CONFLICT:9dbdd7cdcbd887b7",
+    "CONFLICT:c7946309f2fd7abe",
+    "CONFLICT:ca49be511198b0c9",
+    "CONFLICT:df661734d150a7b0",
+    "CONFLICT:3d8408718b215d47"
+  ],
+  "review_queue": [
+    "CONFLICT:62504bee6056af0c",
+    "CONFLICT:9fb6b51464bbc3cd"
+  ],
+  "limits": [
+    "Independent assessments are projected; no targeted review executed.",
+    "Different preferences do not establish a contradiction.",
+    "Native record commitment is not proof of every asserted premise."
+  ]
+}

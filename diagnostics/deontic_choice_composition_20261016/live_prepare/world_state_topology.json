@@ -1,0 +1,240 @@
+{
+  "schema_version": "1.4",
+  "admission": {
+    "status": "COMMITTED",
+    "admitted_effect_ids": [
+      "E1",
+      "E2",
+      "E3",
+      "E4",
+      "E5"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "P1",
+      "kind": "party",
+      "label": "Mira"
+    },
+    {
+      "id": "P2",
+      "kind": "party",
+      "label": "the door"
+    },
+    {
+      "id": "P3",
+      "kind": "party",
+      "label": "nearby staff"
+    },
+    {
+      "id": "P4",
+      "kind": "party",
+      "label": "the experiment"
+    },
+    {
+      "id": "P5",
+      "kind": "party",
+      "label": "the technician"
+    },
+    {
+      "id": "P6",
+      "kind": "party",
+      "label": "A laboratory safety rule"
+    },
+    {
+      "id": "P7",
+      "kind": "party",
+      "label": "The rule"
+    },
+    {
+      "id": "A0",
+      "kind": "action",
+      "label": "open the door now"
+    },
+    {
+      "id": "A1",
+      "kind": "action",
+      "label": "stop the experiment and wait"
+    },
+    {
+      "id": "E1",
+      "kind": "effect",
+      "label": "open the door now",
+      "polarity": "NEUTRAL",
+      "modality": "CERTAIN",
+      "directness": "DIRECT"
+    },
+    {
+      "id": "E2",
+      "kind": "effect",
+      "label": "doing so may expose nearby staff to hazardous fumes",
+      "polarity": "NEUTRAL",
+      "modality": "POSSIBLE",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "E3",
+      "kind": "effect",
+      "label": "Stopping the experiment",
+      "polarity": "NEUTRAL",
+      "modality": "CERTAIN",
+      "directness": "DIRECT"
+    },
+    {
+      "id": "E4",
+      "kind": "effect",
+      "label": "Stopping the experiment first takes ten minutes",
+      "polarity": "NEUTRAL",
+      "modality": "CERTAIN",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "E5",
+      "kind": "effect",
+      "label": "the technician may die during that delay",
+      "polarity": "ADVERSE",
+      "modality": "POSSIBLE",
+      "directness": "DOWNSTREAM"
+    },
+    {
+      "id": "PR1",
+      "kind": "proposition",
+      "label": "keep a containment door closed while a hazardous experiment is running",
+      "status": "GOVERNED"
+    },
+    {
+      "id": "PR2",
+      "kind": "proposition",
+      "label": "opening it only after the experiment has stopped",
+      "status": "GOVERNED"
+    },
+    {
+      "id": "N0",
+      "kind": "norm",
+      "label": "obligation"
+    },
+    {
+      "id": "N1",
+      "kind": "norm",
+      "label": "permission"
+    }
+  ],
+  "edges": [
+    {
+      "source": "P1",
+      "relation": "ACTOR",
+      "target": "A0"
+    },
+    {
+      "source": "A0",
+      "relation": "RECIPIENT",
+      "target": "P2"
+    },
+    {
+      "source": "A0",
+      "relation": "HAS_EFFECT",
+      "target": "E1"
+    },
+    {
+      "source": "A0",
+      "relation": "HAS_EFFECT",
+      "target": "E2"
+    },
+    {
+      "source": "P1",
+      "relation": "ACTOR",
+      "target": "A1"
+    },
+    {
+      "source": "A1",
+      "relation": "RECIPIENT",
+      "target": "P4"
+    },
+    {
+      "source": "A1",
+      "relation": "HAS_EFFECT",
+      "target": "E3"
+    },
+    {
+      "source": "A1",
+      "relation": "HAS_EFFECT",
+      "target": "E4"
+    },
+    {
+      "source": "A1",
+      "relation": "HAS_EFFECT",
+      "target": "E5"
+    },
+    {
+      "source": "E1",
+      "relation": "AFFECTS",
+      "target": "P2"
+    },
+    {
+      "source": "E2",
+      "relation": "AFFECTS",
+      "target": "P3"
+    },
+    {
+      "source": "E3",
+      "relation": "AFFECTS",
+      "target": "P4"
+    },
+    {
+      "source": "E4",
+      "relation": "AFFECTS",
+      "target": "P4"
+    },
+    {
+      "source": "E5",
+      "relation": "AFFECTS",
+      "target": "P5"
+    },
+    {
+      "source": "E1",
+      "relation": "ENABLES",
+      "target": "E2",
+      "modality": "CERTAIN"
+    },
+    {
+      "source": "E3",
+      "relation": "ENABLES",
+      "target": "E4",
+      "modality": "CERTAIN"
+    },
+    {
+      "source": "E4",
+      "relation": "ENABLES",
+      "target": "E5",
+      "modality": "CERTAIN"
+    },
+    {
+      "source": "P1",
+      "relation": "BEARER",
+      "target": "N0"
+    },
+    {
+      "source": "P6",
+      "relation": "AUTHORITY",
+      "target": "N0"
+    },
+    {
+      "source": "N0",
+      "relation": "GOVERNS",
+      "target": "PR1"
+    },
+    {
+      "source": "P7",
+      "relation": "AUTHORITY",
+      "target": "N1"
+    },
+    {
+      "source": "N1",
+      "relation": "GOVERNS",
+      "target": "PR2"
+    }
+  ],
+  "conditions": [],
+  "temporal_relations": [],
+  "counterfactual_links": []
+}

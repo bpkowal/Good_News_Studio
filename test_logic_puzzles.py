@@ -31,7 +31,11 @@ class ConflictProjectionTests(unittest.TestCase):
         candidate = trace['cycles'][-1]['candidates'][0]
         candidate['committed_native_ledger']['transaction_status']='REJECTED'
         graph = project_conflicts(trace)
-        self.assertFalse(any(n.get('origin')==candidate['specialist'] for n in graph['nodes']))
+        self.assertFalse(any(n.get('origin')==candidate['specialist'] and n['kind']=='CLAIM' for n in graph['nodes']))
+        proposed = [n for n in graph['nodes'] if n.get('origin')==candidate['specialist'] and n['kind']=='PROPOSED_ARGUMENT']
+        self.assertEqual(len(proposed), 1)
+        self.assertEqual(proposed[0]['world_state_authority'], 'NONE')
+        self.assertFalse(any(e['kind']=='SUPPORT' and e['target']==proposed[0]['id'] for e in graph['edges']))
         self.assertTrue(any(d.get('status')=='NO_COMMITTED_LEDGER' for d in graph['diagnostics']))
         trace = self.trace()
         trace['cycles'][-1]['candidates'][0]['committed_native_ledger']['records'][0]['grounded_effect_ids']=['NONEXISTENT']

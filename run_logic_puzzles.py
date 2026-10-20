@@ -51,6 +51,21 @@ def project_conflicts(trace):
         if not str(ledger.get('transaction_status', '')).startswith('COMMITTED'):
             diagnostics.append({'specialist': origin, 'status': 'NO_COMMITTED_LEDGER',
                                 'candidate': deepcopy(candidate)})
+            ident = _id('PROPOSED_ARGUMENT', [origin, candidate])
+            node(ident, 'PROPOSED_ARGUMENT', origin=origin, record=deepcopy(candidate),
+                 status='NONOPERATIVE', world_state_authority='NONE',
+                 label=origin + ': argument without committed ledger')
+            warnings = list(candidate.get('framework_validation_errors', []))
+            warnings += list(candidate.get('framework_internal_conflicts', []))
+            warnings += list(candidate.get('validation_errors', []))
+            warnings = ['No committed native ledger; assess the retained argument without treating it as operative.'] + warnings
+            for warning in dict.fromkeys(warnings):
+                conflict = _id('CONFLICT', [origin, 'nonoperative_argument', warning])
+                node(conflict, 'UNRESOLVED_CONFLICT', origin=origin, label=warning,
+                     conflict_type='UNADMITTED_ARGUMENT', status='OPEN',
+                     source='NATIVE_ADMISSION_DIAGNOSTIC', claim_ids=[ident])
+                edge(conflict, ident, 'OBJECTION', target_kind='NONOPERATIVE_ARGUMENT')
+                issues.append(conflict)
             continue
         claim_ids = []
         for index, record in enumerate(ledger.get('records', [])):

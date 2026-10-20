@@ -491,8 +491,11 @@ assert r["status"] == "COMMITTED", r.get("errors")
         self.assertEqual(len(world["causal_links"]), 4)
         self.assertEqual(
             [row["intervention"] for row in world["actions"]],
-            ["Maria saves the child", "Maria saves the dog"],
+            ["saves the child", "saves the dog"],
         )
+        party_by_id = {row["party_id"]: row["label"] for row in world["parties"]}
+        self.assertEqual([party_by_id[row["actor_party_id"]] for row in world["actions"]],
+                         ["Maria", "Maria"])
         self.assertEqual(len([row for row in world["effects"] if row["predicate"] == "live"]), 2)
         self.assertEqual(len([row for row in world["effects"] if row["predicate"] == "drown"]), 2)
         self.assertEqual(

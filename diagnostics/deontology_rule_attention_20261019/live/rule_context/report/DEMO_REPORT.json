@@ -1,0 +1,673 @@
+{
+  "version": "parliament-demo/1",
+  "scenario": "A laboratory safety rule requires Mira to keep a containment door closed while a hazardous experiment is running. The rule allows opening it only after the experiment has stopped. A technician is trapped inside and needs urgent medical help. Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes. Stopping the experiment first takes ten minutes; the technician may die during that delay.\n\nShould Mira open the door immediately or stop the experiment and wait?",
+  "source_sha256": "f6b4c752f7640ae0d0821a55181f31c8f7d0e733a1465ac973e183d354511604",
+  "status": "FRAMEWORK_PARTIAL",
+  "stop": {
+    "stage": "framework assessment",
+    "reason": "FRAMEWORK_PARTIAL",
+    "kind": "recorded_pipeline_outcome"
+  },
+  "world": {
+    "parties": [
+      {
+        "party_id": "P1",
+        "label": "Mira",
+        "kind": "PERSON",
+        "provenance": [
+          {
+            "clause_id": "C0",
+            "excerpt": "A laboratory safety rule requires Mira to keep a containment door closed while a hazardous experiment is running."
+          },
+          {
+            "clause_id": "C3",
+            "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+          },
+          {
+            "clause_id": "C5",
+            "excerpt": "Should Mira open the door immediately or stop the experiment and wait?"
+          }
+        ],
+        "quantities": []
+      },
+      {
+        "party_id": "P2",
+        "label": "the door",
+        "kind": "PROCESS",
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+          },
+          {
+            "clause_id": "C5",
+            "excerpt": "Should Mira open the door immediately or stop the experiment and wait?"
+          }
+        ],
+        "quantities": []
+      },
+      {
+        "party_id": "P3",
+        "label": "nearby staff",
+        "kind": "PERSON",
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+          }
+        ],
+        "quantities": []
+      },
+      {
+        "party_id": "P4",
+        "label": "the experiment",
+        "kind": "PROCESS",
+        "provenance": [
+          {
+            "clause_id": "C1",
+            "excerpt": "The rule allows opening it only after the experiment has stopped."
+          },
+          {
+            "clause_id": "C4",
+            "excerpt": "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+          },
+          {
+            "clause_id": "C5",
+            "excerpt": "Should Mira open the door immediately or stop the experiment and wait?"
+          }
+        ],
+        "quantities": []
+      },
+      {
+        "party_id": "P5",
+        "label": "the technician",
+        "kind": "PERSON",
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+          },
+          {
+            "clause_id": "C4",
+            "excerpt": "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+          }
+        ],
+        "quantities": []
+      },
+      {
+        "party_id": "P6",
+        "label": "A laboratory safety rule",
+        "kind": "OTHER",
+        "provenance": [
+          {
+            "clause_id": "C0",
+            "excerpt": "A laboratory safety rule requires Mira to keep a containment door closed while a hazardous experiment is running."
+          }
+        ],
+        "quantities": []
+      },
+      {
+        "party_id": "P7",
+        "label": "The rule",
+        "kind": "OTHER",
+        "provenance": [
+          {
+            "clause_id": "C1",
+            "excerpt": "The rule allows opening it only after the experiment has stopped."
+          }
+        ],
+        "quantities": []
+      }
+    ],
+    "actions": [
+      {
+        "action_id": "A0",
+        "intervention": "open the door now",
+        "actor_party_id": "P1",
+        "recipient_party_ids": [
+          "P2"
+        ],
+        "effect_ids": [
+          "E1",
+          "E2"
+        ],
+        "provenance": [
+          {
+            "clause_id": "C5",
+            "excerpt": "Should Mira open the door immediately or stop the experiment and wait?"
+          },
+          {
+            "clause_id": "C3",
+            "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+          }
+        ]
+      },
+      {
+        "action_id": "A1",
+        "intervention": "stop the experiment and wait",
+        "actor_party_id": "P1",
+        "recipient_party_ids": [
+          "P4"
+        ],
+        "effect_ids": [
+          "E3",
+          "E4",
+          "E5"
+        ],
+        "provenance": [
+          {
+            "clause_id": "C5",
+            "excerpt": "Should Mira open the door immediately or stop the experiment and wait?"
+          },
+          {
+            "clause_id": "C4",
+            "excerpt": "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+          }
+        ]
+      }
+    ],
+    "effects": [
+      {
+        "effect_id": "E1",
+        "action_id": "A0",
+        "party_id": "P2",
+        "outcome": "open the door now",
+        "relation": "OPEN",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "INTERVENTION",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "open the door now",
+        "source_effect_ids": [],
+        "derivation_operation": "DIRECT_COPY",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      {
+        "effect_id": "E2",
+        "action_id": "A0",
+        "party_id": "P3",
+        "outcome": "doing so may expose nearby staff to hazardous fumes",
+        "relation": "EXPOSE",
+        "polarity": "ADVERSE",
+        "directness": "DOWNSTREAM",
+        "modality": "POSSIBLE",
+        "effect_kind": "OTHER",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+          }
+        ],
+        "likelihood_qualifiers": [
+          "may"
+        ],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "doing so may expose nearby staff to hazardous fumes",
+        "source_effect_ids": [
+          "E1"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      {
+        "effect_id": "E3",
+        "action_id": "A1",
+        "party_id": "P4",
+        "outcome": "Stopping the experiment",
+        "relation": "STOP",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "INTERVENTION",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C4",
+            "excerpt": "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "Stopping the experiment",
+        "source_effect_ids": [],
+        "derivation_operation": "DIRECT_COPY",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      {
+        "effect_id": "E4",
+        "action_id": "A1",
+        "party_id": "P4",
+        "outcome": "Stopping the experiment first takes ten minutes",
+        "relation": "TAKE",
+        "polarity": "NEUTRAL",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "OTHER",
+        "condition_ids": [],
+        "quantities": [
+          "ten minutes"
+        ],
+        "provenance": [
+          {
+            "clause_id": "C4",
+            "excerpt": "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "Stopping the experiment first takes ten minutes",
+        "source_effect_ids": [
+          "E3"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      {
+        "effect_id": "E5",
+        "action_id": "A1",
+        "party_id": "P5",
+        "outcome": "the technician may die during that delay",
+        "relation": "DIE",
+        "polarity": "ADVERSE",
+        "directness": "DOWNSTREAM",
+        "modality": "POSSIBLE",
+        "effect_kind": "HEALTH_OUTCOME",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C4",
+            "excerpt": "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+          }
+        ],
+        "likelihood_qualifiers": [
+          "may"
+        ],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "the technician may die during that delay",
+        "source_effect_ids": [
+          "E4"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      }
+    ],
+    "conditions": [],
+    "causal_links": [
+      {
+        "source_id": "E1",
+        "relation": "ENABLES",
+        "target_id": "E2",
+        "modality": "CERTAIN",
+        "condition_ids": [],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+          }
+        ],
+        "action_id": "A0"
+      },
+      {
+        "source_id": "E3",
+        "relation": "ENABLES",
+        "target_id": "E4",
+        "modality": "CERTAIN",
+        "condition_ids": [],
+        "provenance": [
+          {
+            "clause_id": "C4",
+            "excerpt": "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+          }
+        ],
+        "action_id": "A1"
+      },
+      {
+        "source_id": "E4",
+        "relation": "ENABLES",
+        "target_id": "E5",
+        "modality": "CERTAIN",
+        "condition_ids": [],
+        "provenance": [
+          {
+            "clause_id": "C4",
+            "excerpt": "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+          }
+        ],
+        "action_id": "A1"
+      }
+    ],
+    "counterfactual_links": [],
+    "admission": {
+      "status": "COMMITTED",
+      "admitted_effect_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5"
+      ],
+      "quarantined_effects": [],
+      "user_override": false,
+      "override_reason": ""
+    },
+    "schema_version": "1.3",
+    "temporal_relations": [],
+    "propositions": [
+      {
+        "proposition_id": "PR1",
+        "predication": "keep a containment door closed while a hazardous experiment is running",
+        "polarity": "positive",
+        "status": "GOVERNED",
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      {
+        "proposition_id": "PR2",
+        "predication": "opening it only after the experiment has stopped",
+        "polarity": "positive",
+        "status": "GOVERNED",
+        "clause_ids": [
+          "C1"
+        ]
+      }
+    ],
+    "reports": [],
+    "commitments": [],
+    "modal_operators": [],
+    "normative_propositions": [
+      {
+        "norm_id": "N0",
+        "force": "obligation",
+        "bearer_party_id": "P1",
+        "authority_party_id": "P6",
+        "governed_proposition_id": "PR1",
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      {
+        "norm_id": "N1",
+        "force": "permission",
+        "bearer_party_id": "",
+        "authority_party_id": "P7",
+        "governed_proposition_id": "PR2",
+        "clause_ids": [
+          "C1"
+        ]
+      }
+    ]
+  },
+  "grounded_effects": [
+    {
+      "id": "E1",
+      "claim": "open the door now",
+      "operation": "DIRECT_COPY",
+      "source_excerpts": [
+        "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+      ],
+      "source_check": "EXACT_EXCERPT"
+    },
+    {
+      "id": "E2",
+      "claim": "doing so may expose nearby staff to hazardous fumes",
+      "operation": "SOURCE_STIPULATED_CAUSAL",
+      "source_excerpts": [
+        "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+      ],
+      "source_check": "EXACT_EXCERPT"
+    },
+    {
+      "id": "E3",
+      "claim": "Stopping the experiment",
+      "operation": "DIRECT_COPY",
+      "source_excerpts": [
+        "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+      ],
+      "source_check": "EXACT_EXCERPT"
+    },
+    {
+      "id": "E4",
+      "claim": "Stopping the experiment first takes ten minutes",
+      "operation": "SOURCE_STIPULATED_CAUSAL",
+      "source_excerpts": [
+        "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+      ],
+      "source_check": "EXACT_EXCERPT"
+    },
+    {
+      "id": "E5",
+      "claim": "the technician may die during that delay",
+      "operation": "SOURCE_STIPULATED_CAUSAL",
+      "source_excerpts": [
+        "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+      ],
+      "source_check": "EXACT_EXCERPT"
+    }
+  ],
+  "stipulated_claims": [],
+  "unknowns": [
+    "initial=DUTY_CONSISTENCY_REPAIR: {\"A1\": {\"dt\": \"IMPERFECT\", \"pb\": \"PERFECT_DUTY\", \"v\": \"PERMISSIBLE\", \"gv\": \"PRIMARY\", \"res\": \"RESOLVED\"}}; repair=Duty repair changed the original duty classification"
+  ],
+  "frameworks": [
+    {
+      "framework": "deontological",
+      "position": "ABSTAIN",
+      "preference": null,
+      "reason": "Specialist response is not schema-valid. UNRESOLVED FRAMEWORK CONFLICT: live competing derivations. No comparative leaning is yet grounded. avoid doing possible harm. Recorded comparison — “open the door now”: Permissible rescue attempt but risks direct harm and violates safety rule; “stop the experiment and wait”: Complies with standing rule and avoids direct harm to others",
+      "assumptions": [],
+      "live_objections": [
+        "initial=DUTY_CONSISTENCY_REPAIR: {\"A1\": {\"dt\": \"IMPERFECT\", \"pb\": \"PERFECT_DUTY\", \"v\": \"PERMISSIBLE\", \"gv\": \"PRIMARY\", \"res\": \"RESOLVED\"}}; repair=Duty repair changed the original duty classification"
+      ],
+      "dependencies": [],
+      "reversal_conditions": [],
+      "decision_boundaries": [],
+      "ledger_status": "NONE",
+      "recorded_argument": {
+        "rationale": "Unresolved contestation: Delegate output failed semantic validation.",
+        "framework_application": "",
+        "decision_rule": "",
+        "landscape_cases": {},
+        "proposed_framework_state": {},
+        "framework_vote_reason": "specialist response is not schema-valid",
+        "investigative_claim": "UNRESOLVED FRAMEWORK CONFLICT: live competing derivations. No comparative leaning is yet grounded.",
+        "committed_native_ledger": {},
+        "unsupported_assumption": "",
+        "normative_reversal_threshold": "NONE",
+        "factual_reversal_threshold": "NONE",
+        "model_argument_fields": {
+          "rationale": "avoid doing possible harm",
+          "framework_application": "",
+          "decision_rule": "Select the action that fulfills the higher-priority perfect negative duty even if an imperfect rescue duty remains unfulfilled",
+          "landscape_cases": {
+            "A0": "Permissible rescue attempt but risks direct harm and violates safety rule",
+            "A1": "Complies with standing rule and avoids direct harm to others"
+          },
+          "factual_reversal_threshold": "",
+          "normative_reversal_threshold": ""
+        }
+      },
+      "reason_authority": "RECORDED_ARGUMENT_FIELDS",
+      "assumption_records": [
+        {
+          "kind": "RECORDED_INTERPRETIVE_COMMITMENT",
+          "text": "Select the action that fulfills the higher-priority perfect negative duty even if an imperfect rescue duty remains unfulfilled",
+          "record": "decision_rule"
+        },
+        {
+          "kind": "RUN_ASSUMPTION",
+          "record": "source_scenario",
+          "text": "The stated scenario facts are accepted as givens for this analysis; their accuracy outside this scenario has not been verified."
+        }
+      ],
+      "source_basis": {
+        "status": "STIPULATED_FOR_THIS_RUN",
+        "how_known": "NOT_SEPARATELY_RECORDED",
+        "text": "The scenario’s stated facts are treated as givens for this run. No separate record says whether they were observed, reported by someone, or supplied as simulation facts. This is a provenance limitation, not a claim that the stated counts are missing."
+      },
+      "presentation_notices": [],
+      "reversal_explanations": [],
+      "argument_markdown_path": "arguments/deontological.md"
+    }
+  ],
+  "hinges": [],
+  "disagreements": [],
+  "agreement": "No operative preference recorded.",
+  "disagreement_types": "Framework-local normative arguments and empirical dependencies are shown above; no automatic causal classification is claimed.",
+  "missing_slots": [
+    "rescue_contrast: first_saved",
+    "rescue_contrast: second_saved",
+    "rescue_contrast: rescue_exclusivity",
+    "rescue_contrast: first_rescue_action",
+    "rescue_contrast: second_rescue_action",
+    "rescue_contrast: second_benefit",
+    "omission_harm: omitted",
+    "omission_harm: harm_done"
+  ],
+  "follow_up_offer": {},
+  "reasoning_followup": {},
+  "not_decided": [
+    "This report does not adjudicate a governing moral verdict.",
+    "Ledger admission does not prove the argument or supply missing welfare units.",
+    "Unresolved objections remain live; reported reversal thresholds are not source facts."
+  ],
+  "judgment_status": "NOT_ADJUDICATED",
+  "topography": {
+    "version": "parliament-topography/1",
+    "status": "UNAVAILABLE",
+    "unavailable_reason": "No committed care, welfare, or obligation records.",
+    "caption": "Survivor arithmetic does not settle total welfare. Coordinates are native ledger records, not a calibrated moral physics. Attractors are occupancy of recorded points, not interpolated terrain.",
+    "axes": {
+      "care": {
+        "available": false,
+        "encoding": "ordinal",
+        "omit_reason": "No committed care, welfare, or obligation records."
+      },
+      "welfare": {
+        "available": false,
+        "encoding": "numeric",
+        "omit_reason": "No committed care, welfare, or obligation records."
+      },
+      "obligation": {
+        "available": false,
+        "encoding": "ordinal",
+        "omit_reason": "No committed care, welfare, or obligation records."
+      }
+    },
+    "actions": [],
+    "framework_arrows": [],
+    "flags": {
+      "degenerate": [],
+      "attractors": [],
+      "conflicts": [],
+      "holes": [
+        "care",
+        "welfare",
+        "obligation"
+      ]
+    },
+    "notices": [
+      "No committed care, welfare, or obligation records."
+    ]
+  },
+  "execution": {
+    "mode": "SAVED_REPORT_RENDER_NO_API",
+    "scope": "Deontology only: rule_context",
+    "live_source": "diagnostics/deontology_rule_attention_20261019/live/rule_context/framework_generation.json",
+    "world_preparation": "Reused frozen world; no reconstruction."
+  },
+  "artifacts": [
+    "diagnostics/deontology_rule_attention_20261019/live/rule_context/framework_generation.json",
+    "diagnostics/deontology_rule_attention_20261019/live/rule_context/deontological/model_calls.json",
+    "diagnostics/deontology_rule_attention_20261019/live/run_manifest.json"
+  ],
+  "candidate_world_diagrams": [],
+  "diagram_notices": [],
+  "candidate_attempts": [
+    {
+      "blueprint_id": "rescue_contrast",
+      "construction_status": "PARTIAL",
+      "missing_slots": [
+        "first_saved",
+        "second_saved",
+        "rescue_exclusivity",
+        "first_rescue_action",
+        "second_rescue_action",
+        "second_benefit"
+      ],
+      "unfilled_optional_slots": [
+        "first_harm",
+        "second_harm"
+      ]
+    },
+    {
+      "blueprint_id": "omission_harm",
+      "construction_status": "PARTIAL",
+      "missing_slots": [
+        "omitted",
+        "harm_done"
+      ],
+      "unfilled_optional_slots": [
+        "done_hedge",
+        "omitted_hedge",
+        "group_counts",
+        "instrument",
+        "controllable_process",
+        "done_patient",
+        "done_quantity",
+        "omitted_quantity",
+        "instrument_entity"
+      ]
+    },
+    {
+      "blueprint_id": "deontic_rule",
+      "construction_status": "FILLED",
+      "missing_slots": [],
+      "unfilled_optional_slots": [
+        "target",
+        "sanction",
+        "second_bearer"
+      ]
+    }
+  ],
+  "failed_candidate_graphs_markdown": ""
+}

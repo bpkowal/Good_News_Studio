@@ -1,0 +1,1153 @@
+{
+  "version": "parliament-demo/1",
+  "scenario": "A laboratory safety rule requires Mira to keep a containment door closed while a hazardous experiment is running. The rule allows opening it only after the experiment has stopped. A technician is trapped inside and needs urgent medical help. Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes. Stopping the experiment first takes ten minutes; the technician may die during that delay.\n\nShould Mira open the door immediately or stop the experiment and wait?",
+  "source_sha256": "f6b4c752f7640ae0d0821a55181f31c8f7d0e733a1465ac973e183d354511604",
+  "status": "FRAMEWORK_PARTIAL",
+  "stop": {
+    "stage": "framework assessment",
+    "reason": "FRAMEWORK_PARTIAL",
+    "kind": "recorded_pipeline_outcome"
+  },
+  "world": {
+    "parties": [
+      {
+        "party_id": "P1",
+        "label": "Mira",
+        "kind": "PERSON",
+        "provenance": [
+          {
+            "clause_id": "C0",
+            "excerpt": "A laboratory safety rule requires Mira to keep a containment door closed while a hazardous experiment is running."
+          },
+          {
+            "clause_id": "C3",
+            "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+          },
+          {
+            "clause_id": "C5",
+            "excerpt": "Should Mira open the door immediately or stop the experiment and wait?"
+          }
+        ],
+        "quantities": []
+      },
+      {
+        "party_id": "P2",
+        "label": "the door",
+        "kind": "PROCESS",
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+          },
+          {
+            "clause_id": "C5",
+            "excerpt": "Should Mira open the door immediately or stop the experiment and wait?"
+          }
+        ],
+        "quantities": []
+      },
+      {
+        "party_id": "P3",
+        "label": "nearby staff",
+        "kind": "PERSON",
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+          }
+        ],
+        "quantities": []
+      },
+      {
+        "party_id": "P4",
+        "label": "the experiment",
+        "kind": "PROCESS",
+        "provenance": [
+          {
+            "clause_id": "C1",
+            "excerpt": "The rule allows opening it only after the experiment has stopped."
+          },
+          {
+            "clause_id": "C4",
+            "excerpt": "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+          },
+          {
+            "clause_id": "C5",
+            "excerpt": "Should Mira open the door immediately or stop the experiment and wait?"
+          }
+        ],
+        "quantities": []
+      },
+      {
+        "party_id": "P5",
+        "label": "the technician",
+        "kind": "PERSON",
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+          },
+          {
+            "clause_id": "C4",
+            "excerpt": "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+          }
+        ],
+        "quantities": []
+      },
+      {
+        "party_id": "P6",
+        "label": "A laboratory safety rule",
+        "kind": "OTHER",
+        "provenance": [
+          {
+            "clause_id": "C0",
+            "excerpt": "A laboratory safety rule requires Mira to keep a containment door closed while a hazardous experiment is running."
+          }
+        ],
+        "quantities": []
+      },
+      {
+        "party_id": "P7",
+        "label": "The rule",
+        "kind": "OTHER",
+        "provenance": [
+          {
+            "clause_id": "C1",
+            "excerpt": "The rule allows opening it only after the experiment has stopped."
+          }
+        ],
+        "quantities": []
+      }
+    ],
+    "actions": [
+      {
+        "action_id": "A0",
+        "intervention": "open the door now",
+        "actor_party_id": "P1",
+        "recipient_party_ids": [
+          "P2"
+        ],
+        "effect_ids": [
+          "E1",
+          "E2"
+        ],
+        "provenance": [
+          {
+            "clause_id": "C5",
+            "excerpt": "Should Mira open the door immediately or stop the experiment and wait?"
+          },
+          {
+            "clause_id": "C3",
+            "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+          }
+        ]
+      },
+      {
+        "action_id": "A1",
+        "intervention": "stop the experiment and wait",
+        "actor_party_id": "P1",
+        "recipient_party_ids": [
+          "P4"
+        ],
+        "effect_ids": [
+          "E3",
+          "E4",
+          "E5"
+        ],
+        "provenance": [
+          {
+            "clause_id": "C5",
+            "excerpt": "Should Mira open the door immediately or stop the experiment and wait?"
+          },
+          {
+            "clause_id": "C4",
+            "excerpt": "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+          }
+        ]
+      }
+    ],
+    "effects": [
+      {
+        "effect_id": "E1",
+        "action_id": "A0",
+        "party_id": "P2",
+        "outcome": "open the door now",
+        "relation": "OPEN",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "INTERVENTION",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "open the door now",
+        "source_effect_ids": [],
+        "derivation_operation": "DIRECT_COPY",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      {
+        "effect_id": "E2",
+        "action_id": "A0",
+        "party_id": "P3",
+        "outcome": "doing so may expose nearby staff to hazardous fumes",
+        "relation": "EXPOSE",
+        "polarity": "ADVERSE",
+        "directness": "DOWNSTREAM",
+        "modality": "POSSIBLE",
+        "effect_kind": "OTHER",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+          }
+        ],
+        "likelihood_qualifiers": [
+          "may"
+        ],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "doing so may expose nearby staff to hazardous fumes",
+        "source_effect_ids": [
+          "E1"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      {
+        "effect_id": "E3",
+        "action_id": "A1",
+        "party_id": "P4",
+        "outcome": "Stopping the experiment",
+        "relation": "STOP",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "INTERVENTION",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C4",
+            "excerpt": "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "Stopping the experiment",
+        "source_effect_ids": [],
+        "derivation_operation": "DIRECT_COPY",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      {
+        "effect_id": "E4",
+        "action_id": "A1",
+        "party_id": "P4",
+        "outcome": "Stopping the experiment first takes ten minutes",
+        "relation": "TAKE",
+        "polarity": "NEUTRAL",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "OTHER",
+        "condition_ids": [],
+        "quantities": [
+          "ten minutes"
+        ],
+        "provenance": [
+          {
+            "clause_id": "C4",
+            "excerpt": "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "Stopping the experiment first takes ten minutes",
+        "source_effect_ids": [
+          "E3"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      {
+        "effect_id": "E5",
+        "action_id": "A1",
+        "party_id": "P5",
+        "outcome": "the technician may die during that delay",
+        "relation": "DIE",
+        "polarity": "ADVERSE",
+        "directness": "DOWNSTREAM",
+        "modality": "POSSIBLE",
+        "effect_kind": "HEALTH_OUTCOME",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C4",
+            "excerpt": "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+          }
+        ],
+        "likelihood_qualifiers": [
+          "may"
+        ],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "the technician may die during that delay",
+        "source_effect_ids": [
+          "E4"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      }
+    ],
+    "conditions": [],
+    "causal_links": [
+      {
+        "source_id": "E1",
+        "relation": "ENABLES",
+        "target_id": "E2",
+        "modality": "CERTAIN",
+        "condition_ids": [],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+          }
+        ],
+        "action_id": "A0"
+      },
+      {
+        "source_id": "E3",
+        "relation": "ENABLES",
+        "target_id": "E4",
+        "modality": "CERTAIN",
+        "condition_ids": [],
+        "provenance": [
+          {
+            "clause_id": "C4",
+            "excerpt": "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+          }
+        ],
+        "action_id": "A1"
+      },
+      {
+        "source_id": "E4",
+        "relation": "ENABLES",
+        "target_id": "E5",
+        "modality": "CERTAIN",
+        "condition_ids": [],
+        "provenance": [
+          {
+            "clause_id": "C4",
+            "excerpt": "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+          }
+        ],
+        "action_id": "A1"
+      }
+    ],
+    "counterfactual_links": [],
+    "admission": {
+      "status": "COMMITTED",
+      "admitted_effect_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5"
+      ],
+      "quarantined_effects": [],
+      "user_override": false,
+      "override_reason": ""
+    },
+    "schema_version": "1.3",
+    "temporal_relations": [],
+    "propositions": [
+      {
+        "proposition_id": "PR1",
+        "predication": "keep a containment door closed while a hazardous experiment is running",
+        "polarity": "positive",
+        "status": "GOVERNED",
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      {
+        "proposition_id": "PR2",
+        "predication": "opening it only after the experiment has stopped",
+        "polarity": "positive",
+        "status": "GOVERNED",
+        "clause_ids": [
+          "C1"
+        ]
+      }
+    ],
+    "reports": [],
+    "commitments": [],
+    "modal_operators": [],
+    "normative_propositions": [
+      {
+        "norm_id": "N0",
+        "force": "obligation",
+        "bearer_party_id": "P1",
+        "authority_party_id": "P6",
+        "governed_proposition_id": "PR1",
+        "clause_ids": [
+          "C0"
+        ]
+      },
+      {
+        "norm_id": "N1",
+        "force": "permission",
+        "bearer_party_id": "",
+        "authority_party_id": "P7",
+        "governed_proposition_id": "PR2",
+        "clause_ids": [
+          "C1"
+        ]
+      }
+    ]
+  },
+  "grounded_effects": [
+    {
+      "id": "E1",
+      "claim": "open the door now",
+      "operation": "DIRECT_COPY",
+      "source_excerpts": [
+        "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+      ],
+      "source_check": "EXACT_EXCERPT"
+    },
+    {
+      "id": "E2",
+      "claim": "doing so may expose nearby staff to hazardous fumes",
+      "operation": "SOURCE_STIPULATED_CAUSAL",
+      "source_excerpts": [
+        "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+      ],
+      "source_check": "EXACT_EXCERPT"
+    },
+    {
+      "id": "E3",
+      "claim": "Stopping the experiment",
+      "operation": "DIRECT_COPY",
+      "source_excerpts": [
+        "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+      ],
+      "source_check": "EXACT_EXCERPT"
+    },
+    {
+      "id": "E4",
+      "claim": "Stopping the experiment first takes ten minutes",
+      "operation": "SOURCE_STIPULATED_CAUSAL",
+      "source_excerpts": [
+        "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+      ],
+      "source_check": "EXACT_EXCERPT"
+    },
+    {
+      "id": "E5",
+      "claim": "the technician may die during that delay",
+      "operation": "SOURCE_STIPULATED_CAUSAL",
+      "source_excerpts": [
+        "Stopping the experiment first takes ten minutes; the technician may die during that delay."
+      ],
+      "source_check": "EXACT_EXCERPT"
+    }
+  ],
+  "stipulated_claims": [],
+  "unknowns": [
+    "decision rule supplies no factual or normative reversal threshold",
+    "derived claim 1 omits source effect IDs",
+    "derived claim 1 omits a framework derivation operation",
+    "derived claim 1 omits its calculation or inference",
+    "A1 primary protected party lacks current-run action grounding",
+    "Is the laboratory rule itself morally authoritative or merely prudential?",
+    "Does the foreseen risk meet the threshold for a perfect-duty violation if no staff member is certain to be harmed?",
+    "which claim governs under a universal public rule",
+    "mira's duty 'do not impose grave foreseeable risk on uninvolved staff' protecting nearby staff ↔ mira's competing duty 'Aid those in peril' protecting technician",
+    "Optional deeper review is available for a decision-relevant question in the revised argument."
+  ],
+  "frameworks": [
+    {
+      "framework": "deontological",
+      "position": "ABSTAIN",
+      "preference": "stop the experiment and wait",
+      "reason": "The agent assesses Mira’s duty “do not impose grave foreseeable risk on uninvolved staff” toward nearby staff. Mira is the duty-bearer; nearby staff is the protected party. The competing obligation being assessed is Mira’s “Aid those in peril” toward technician. For “open the door now”, the agent proposes the maxim “Open door immediately”. This is an interpretation of possible practical reasoning, not an established intention. Its purpose is Rescue technician; its chosen means are Opening door. The proposed justification is: If everyone did likewise, predictable containment would fail. The agent assesses the maxim as indefensible, and the action as impermissible. Its proposed means–ends reasoning is: Saving one life is worth the risk. Physical means references: E1, E2; end references: none. For Mira’s option “open the door now”, the ledger records prohibited. The agent’s stated reason is: Opening knowingly endangers others.. For “stop the experiment and wait”, the agent proposes the maxim “Stop experiment first and wait”. This is an interpretation of possible practical reasoning, not an established intention. Its purpose is Avoid harming staff and comply with rule; its chosen means are Allow experiment to finish containment. The proposed justification is: Universal adherence sustains safety. The agent assesses the maxim as defensible, and the action as permissible. Its proposed means–ends reasoning is: One must not endanger others even to help. Physical means references: E3, E4; end references: none. For Mira’s option “stop the experiment and wait”, the ledger records permissible. The agent’s stated reason is: Waiting avoids active endangerment though it risks omission.. The ledger retains unresolved issues; this does not establish that one duty overrides the other.",
+      "assumptions": [],
+      "live_objections": [
+        "decision rule supplies no factual or normative reversal threshold",
+        "derived claim 1 omits source effect IDs",
+        "derived claim 1 omits a framework derivation operation",
+        "derived claim 1 omits its calculation or inference",
+        "A1 primary protected party lacks current-run action grounding",
+        "Is the laboratory rule itself morally authoritative or merely prudential?",
+        "Does the foreseen risk meet the threshold for a perfect-duty violation if no staff member is certain to be harmed?",
+        "which claim governs under a universal public rule",
+        "mira's duty 'do not impose grave foreseeable risk on uninvolved staff' protecting nearby staff ↔ mira's competing duty 'Aid those in peril' protecting technician"
+      ],
+      "dependencies": [
+        "obligation"
+      ],
+      "reversal_conditions": [],
+      "decision_boundaries": [],
+      "ledger_status": "COMMITTED_WITH_UNCERTAINTY",
+      "recorded_argument": {
+        "rationale": "Provisionally: Deontology identifies a conflict between mira's duty 'do not impose grave foreseeable risk on uninvolved staff' protecting nearby staff and mira's competing duty 'Aid those in peril' protecting technician. The priority between these duties is not yet established because which claim governs under a universal public rule. The Kantian judgment remains contested.",
+        "framework_application": "",
+        "decision_rule": "Provisionally: Keep the action contested until which claim governs under a universal public rule",
+        "landscape_cases": {
+          "open the door now": "Opening the door aims to save the technician but foreseeably risks exposing uninvolved staff to fumes; the risk is a foreseen side-effect, not a means, yet the action would violate the standing negative duty to refrain from imposing that risk.",
+          "stop the experiment and wait": "Stopping the experiment first delays rescue but respects the standing safety obligation and avoids imposing the same risk on staff; the imperfect rescue duty remains but does not override the negative duty."
+        },
+        "proposed_framework_state": {
+          "constraint": "DUTY",
+          "action_scores": {
+            "open the door now": 0.3375,
+            "stop the experiment and wait": 0.6625
+          },
+          "recommended_action": "stop the experiment and wait",
+          "rationale": "Deontology identifies a conflict between mira's duty 'do not impose grave foreseeable risk on uninvolved staff' protecting nearby staff and mira's competing duty 'Aid those in peril' protecting technician. The priority between these duties is not yet established because which claim governs under a universal public rule. The Kantian judgment remains contested.",
+          "decision_rule": "Keep the action contested until which claim governs under a universal public rule",
+          "framework_action_map": {
+            "open the door now": "PROHIBITED: duty PERFECT_NEGATIVE under Do not impose grave foreseeable risk on uninvolved staff; relation VIOLATES; Opening knowingly endangers others.",
+            "stop the experiment and wait": "PERMISSIBLE: duty IMPERFECT under Do not impose grave foreseeable risk on uninvolved staff; relation SATISFIES; Waiting avoids active endangerment though it risks omission."
+          },
+          "framework_numerical_role": "DECISIVE",
+          "framework_numerical_justification": "Negative-duty priority",
+          "action_admissibility": {
+            "open the door now": "REJECTED",
+            "stop the experiment and wait": "PERMISSIBLE"
+          },
+          "comparison_complete": false,
+          "evidence_sufficient_for_action": false,
+          "interim_action": "stop the experiment and wait",
+          "factual_reversal_threshold": "NONE",
+          "normative_reversal_threshold": "NONE",
+          "utilitarian_consequence_table": {},
+          "utilitarian_ledger_proposal": {},
+          "rawls_position_proposal": {},
+          "deontological_ledger_proposal": {
+            "assessments": [
+              {
+                "action_id": "A0",
+                "verdict": "PROHIBITED",
+                "norm_kind": "DUTY",
+                "norm": "Do not impose grave foreseeable risk on uninvolved staff",
+                "relation": "VIOLATES",
+                "duty_bearer": "Mira",
+                "protected_party": "nearby staff",
+                "competing_norm": "Aid those in peril",
+                "competing_norm_kind": "DUTY",
+                "competing_relation": "CONFLICTS",
+                "competing_protected_party": "technician",
+                "competing_reason": "Rescue obligation is imperfect and cannot override",
+                "duty_type": "PERFECT_NEGATIVE",
+                "harm_relation": "DOING_HARM",
+                "special_obligation_status": "NOT_REQUIRED",
+                "special_obligation_basis": "No special relation required",
+                "means_relation": "FORESEEN_SIDE_EFFECT",
+                "candidate_maxim": {
+                  "circumstance": "Experiment running; technician trapped; staff nearby",
+                  "policy": "Open door immediately",
+                  "end": "Rescue technician",
+                  "means": "Opening door",
+                  "person_role": "FORESEEN_AFFECTED",
+                  "consent_constraint": "NONE",
+                  "universalization": "If everyone did likewise, predictable containment would fail",
+                  "action_permissibility": "IMPERMISSIBLE",
+                  "maxim_assessment": "INDEFENSIBLE",
+                  "instrumental_belief": "DOES_NOT_RELY",
+                  "instrumental_use": "DOES_NOT_USE",
+                  "practical_reasoning": "Saving one life is worth the risk",
+                  "means_effect_ids": [
+                    "E1",
+                    "E2"
+                  ],
+                  "end_effect_ids": []
+                },
+                "governing_norm": "PRIMARY",
+                "priority_basis": "PERFECT_DUTY",
+                "priority_rule": "Perfect negative duty precedes imperfect positive duty",
+                "protected_standing": "BODILY_INTEGRITY",
+                "competing_protected_standing": "SPECIAL_OBLIGATION",
+                "coercion_kind": "NONE",
+                "coercive_actor": "Mira",
+                "coerced_party": "NONE",
+                "public_justification": "Universal permission to open doors during hazards would undermine lab safety",
+                "reciprocity_status": "FAILED",
+                "necessity_status": "UNKNOWN",
+                "authorization_status": "NOT_APPLICABLE",
+                "derivation": "RESPECT_PERSONS",
+                "resolution_status": "CONTESTED",
+                "evidence_basis": "SCENARIO",
+                "reason": "Opening knowingly endangers others."
+              },
+              {
+                "action_id": "A1",
+                "verdict": "PERMISSIBLE",
+                "norm_kind": "DUTY",
+                "norm": "Do not impose grave foreseeable risk on uninvolved staff",
+                "relation": "SATISFIES",
+                "duty_bearer": "Mira",
+                "protected_party": "nearby staff",
+                "competing_norm": "Aid those in peril",
+                "competing_norm_kind": "DUTY",
+                "competing_relation": "CONFLICTS",
+                "competing_protected_party": "technician",
+                "competing_reason": "Rescue duty remains but is secondary",
+                "duty_type": "IMPERFECT",
+                "harm_relation": "ALLOWING_HARM",
+                "special_obligation_status": "NOT_REQUIRED",
+                "special_obligation_basis": "No special relation established",
+                "means_relation": "NO_INSTRUMENTALIZATION",
+                "candidate_maxim": {
+                  "circumstance": "Experiment running; technician trapped; staff nearby",
+                  "policy": "Stop experiment first and wait",
+                  "end": "Avoid harming staff and comply with rule",
+                  "means": "Allow experiment to finish containment",
+                  "person_role": "NOT_USED",
+                  "consent_constraint": "NONE",
+                  "universalization": "Universal adherence sustains safety",
+                  "action_permissibility": "PERMISSIBLE",
+                  "maxim_assessment": "DEFENSIBLE",
+                  "instrumental_belief": "DOES_NOT_RELY",
+                  "instrumental_use": "DOES_NOT_USE",
+                  "practical_reasoning": "One must not endanger others even to help",
+                  "means_effect_ids": [
+                    "E3",
+                    "E4"
+                  ],
+                  "end_effect_ids": []
+                },
+                "governing_norm": "PRIMARY",
+                "priority_basis": "UNRESOLVED",
+                "priority_rule": "Negative-duty compliance outweighs imperfect rescue",
+                "protected_standing": "BODILY_INTEGRITY",
+                "competing_protected_standing": "SPECIAL_OBLIGATION",
+                "coercion_kind": "NONE",
+                "coercive_actor": "Mira",
+                "coerced_party": "NONE",
+                "public_justification": "Universal practice of waiting preserves safety procedures",
+                "reciprocity_status": "SATISFIED",
+                "necessity_status": "UNKNOWN",
+                "authorization_status": "NOT_APPLICABLE",
+                "derivation": "RESPECT_PERSONS",
+                "resolution_status": "CONTESTED",
+                "evidence_basis": "SCENARIO",
+                "reason": "Waiting avoids active endangerment though it risks omission."
+              }
+            ]
+          },
+          "virtue_character_proposal": {},
+          "care_ledger_proposal": {},
+          "care_relational_map": {},
+          "care_numerical_role": "NOT_APPLICABLE",
+          "care_numerical_justification": ""
+        },
+        "framework_vote_reason": "derived claim validation failed: derived claim 1 omits source effect IDs; derived claim 1 omits a framework derivation operation",
+        "investigative_claim": "UNRESOLVED DUTY CONFLICT: mira's duty 'do not impose grave foreseeable risk on uninvolved staff' protecting nearby staff ↔ mira's competing duty 'Aid those in peril' protecting technician. Current reasoning leans stop the experiment and wait, but the competing strict claim has not been vindicated or defeated.",
+        "committed_native_ledger": {
+          "ledger_kind": "DEONTOLOGICAL_DUTY_LEDGER",
+          "transaction_status": "COMMITTED_WITH_UNCERTAINTY",
+          "records": [
+            {
+              "assessment_node_id": "DEON_ASSESSMENT:deontological:A0",
+              "framework": "DEONTOLOGICAL",
+              "specialist": "deontological",
+              "assessment_role": "PRIMARY",
+              "cycle": 1,
+              "canonical_action_id": "A0",
+              "verdict": "PROHIBITED",
+              "proposed_verdict": "PROHIBITED",
+              "relation": "VIOLATES",
+              "proposed_relation": "VIOLATES",
+              "norm_kind": "DUTY",
+              "norm_node_id": "DEON_NORM:bb6bb29d206f21f4",
+              "party_node_id": "DEON_PARTY:0e52a2bb22e60d0f",
+              "bearer_node_id": "DEON_BEARER:3c38aafb0579dafe",
+              "competing_norm": "Aid those in peril",
+              "competing_norm_kind": "DUTY",
+              "competing_relation": "CONFLICTS",
+              "competing_protected_party": "technician",
+              "competing_reason": "Rescue obligation is imperfect and cannot override",
+              "duty_type": "PERFECT_NEGATIVE",
+              "harm_relation": "DOING_HARM",
+              "special_obligation_status": "NOT_REQUIRED",
+              "special_obligation_basis": "No special relation required",
+              "means_relation": "FORESEEN_SIDE_EFFECT",
+              "candidate_maxim": {
+                "circumstance": "Experiment running; technician trapped; staff nearby",
+                "policy": "Open door immediately",
+                "end": "Rescue technician",
+                "means": "Opening door",
+                "person_role": "FORESEEN_AFFECTED",
+                "consent_constraint": "NONE",
+                "universalization": "If everyone did likewise, predictable containment would fail",
+                "action_permissibility": "IMPERMISSIBLE",
+                "maxim_assessment": "INDEFENSIBLE",
+                "instrumental_belief": "DOES_NOT_RELY",
+                "instrumental_use": "DOES_NOT_USE",
+                "practical_reasoning": "Saving one life is worth the risk",
+                "means_effect_ids": [
+                  "E1",
+                  "E2"
+                ],
+                "end_effect_ids": []
+              },
+              "maxim_origin": "CANDIDATE_INTERPRETATION",
+              "governing_norm": "PRIMARY",
+              "priority_basis": "PERFECT_DUTY",
+              "priority_rule": "Perfect negative duty precedes imperfect positive duty",
+              "protected_standing": "BODILY_INTEGRITY",
+              "competing_protected_standing": "SPECIAL_OBLIGATION",
+              "coercion_kind": "NONE",
+              "coercive_actor": "Mira",
+              "coerced_party": "NONE",
+              "public_justification": "Universal permission to open doors during hazards would undermine lab safety",
+              "reciprocity_status": "FAILED",
+              "necessity_status": "UNKNOWN",
+              "authorization_status": "NOT_APPLICABLE",
+              "derivation": "RESPECT_PERSONS",
+              "resolution_status": "CONTESTED",
+              "calibration_errors": [],
+              "calibration_issues": [],
+              "calibration_support_node_ids": [],
+              "evidence_basis": "SCENARIO",
+              "epistemic_status": "GROUNDED_PARTY",
+              "reason": "Opening knowingly endangers others.",
+              "protected_party": "nearby staff",
+              "norm": "do not impose grave foreseeable risk on uninvolved staff",
+              "duty_bearer": "mira",
+              "provenance": [
+                "delegate:deontological",
+                "cycle:1"
+              ]
+            },
+            {
+              "assessment_node_id": "DEON_ASSESSMENT:deontological:A1",
+              "framework": "DEONTOLOGICAL",
+              "specialist": "deontological",
+              "assessment_role": "PRIMARY",
+              "cycle": 1,
+              "canonical_action_id": "A1",
+              "verdict": "PERMISSIBLE",
+              "proposed_verdict": "PERMISSIBLE",
+              "relation": "SATISFIES",
+              "proposed_relation": "SATISFIES",
+              "norm_kind": "DUTY",
+              "norm_node_id": "DEON_NORM:bb6bb29d206f21f4",
+              "party_node_id": "DEON_PARTY:0e52a2bb22e60d0f",
+              "bearer_node_id": "DEON_BEARER:3c38aafb0579dafe",
+              "competing_norm": "Aid those in peril",
+              "competing_norm_kind": "DUTY",
+              "competing_relation": "CONFLICTS",
+              "competing_protected_party": "technician",
+              "competing_reason": "Rescue duty remains but is secondary",
+              "duty_type": "IMPERFECT",
+              "harm_relation": "ALLOWING_HARM",
+              "special_obligation_status": "NOT_REQUIRED",
+              "special_obligation_basis": "No special relation established",
+              "means_relation": "NO_INSTRUMENTALIZATION",
+              "candidate_maxim": {
+                "circumstance": "Experiment running; technician trapped; staff nearby",
+                "policy": "Stop experiment first and wait",
+                "end": "Avoid harming staff and comply with rule",
+                "means": "Allow experiment to finish containment",
+                "person_role": "NOT_USED",
+                "consent_constraint": "NONE",
+                "universalization": "Universal adherence sustains safety",
+                "action_permissibility": "PERMISSIBLE",
+                "maxim_assessment": "DEFENSIBLE",
+                "instrumental_belief": "DOES_NOT_RELY",
+                "instrumental_use": "DOES_NOT_USE",
+                "practical_reasoning": "One must not endanger others even to help",
+                "means_effect_ids": [
+                  "E3",
+                  "E4"
+                ],
+                "end_effect_ids": []
+              },
+              "maxim_origin": "CANDIDATE_INTERPRETATION",
+              "governing_norm": "PRIMARY",
+              "priority_basis": "UNRESOLVED",
+              "priority_rule": "Negative-duty compliance outweighs imperfect rescue",
+              "protected_standing": "BODILY_INTEGRITY",
+              "competing_protected_standing": "SPECIAL_OBLIGATION",
+              "coercion_kind": "NONE",
+              "coercive_actor": "Mira",
+              "coerced_party": "NONE",
+              "public_justification": "Universal practice of waiting preserves safety procedures",
+              "reciprocity_status": "SATISFIED",
+              "necessity_status": "UNKNOWN",
+              "authorization_status": "NOT_APPLICABLE",
+              "derivation": "RESPECT_PERSONS",
+              "resolution_status": "CONTESTED",
+              "calibration_errors": [],
+              "calibration_issues": [],
+              "calibration_support_node_ids": [],
+              "evidence_basis": "SCENARIO",
+              "epistemic_status": "UNRESOLVED_PARTY",
+              "reason": "Waiting avoids active endangerment though it risks omission.",
+              "protected_party": "nearby staff",
+              "norm": "do not impose grave foreseeable risk on uninvolved staff",
+              "duty_bearer": "mira",
+              "provenance": [
+                "delegate:deontological",
+                "cycle:1"
+              ]
+            }
+          ]
+        },
+        "unsupported_assumption": "",
+        "normative_reversal_threshold": "NONE",
+        "factual_reversal_threshold": "NONE",
+        "model_argument_fields": null
+      },
+      "reason_authority": "READABLE_PROJECTION_OF_NATIVE_DUTY_LEDGER",
+      "assumption_records": [
+        {
+          "kind": "RECORDED_INTERPRETIVE_COMMITMENT",
+          "text": "Provisionally: Keep the action contested until which claim governs under a universal public rule",
+          "record": "decision_rule"
+        },
+        {
+          "kind": "RECORDED_INTERPRETIVE_COMMITMENT",
+          "text": "Negative-duty priority",
+          "record": "framework_numerical_justification"
+        },
+        {
+          "kind": "RUN_ASSUMPTION",
+          "record": "source_scenario",
+          "text": "The stated scenario facts are accepted as givens for this analysis; their accuracy outside this scenario has not been verified."
+        }
+      ],
+      "source_basis": {
+        "status": "STIPULATED_FOR_THIS_RUN",
+        "how_known": "NOT_SEPARATELY_RECORDED",
+        "text": "The scenario’s stated facts are treated as givens for this run. No separate record says whether they were observed, reported by someone, or supplied as simulation facts. This is a provenance limitation, not a claim that the stated counts are missing."
+      },
+      "presentation_notices": [],
+      "reversal_explanations": [],
+      "argument_markdown_path": "arguments/deontological.md"
+    }
+  ],
+  "hinges": [],
+  "disagreements": [],
+  "agreement": "Recorded preferences agree; this is not a collective verdict.",
+  "disagreement_types": "Framework-local normative arguments and empirical dependencies are shown above; no automatic causal classification is claimed.",
+  "missing_slots": [
+    "rescue_contrast: first_saved",
+    "rescue_contrast: second_saved",
+    "rescue_contrast: rescue_exclusivity",
+    "rescue_contrast: first_rescue_action",
+    "rescue_contrast: second_rescue_action",
+    "rescue_contrast: second_benefit",
+    "omission_harm: omitted",
+    "omission_harm: harm_done"
+  ],
+  "follow_up_offer": {
+    "version": "reasoning-followup/1",
+    "status": "AVAILABLE",
+    "requires_user_opt_in": true,
+    "maximum_additional_rounds": 2,
+    "maximum_model_calls_per_round": 1,
+    "questions": [
+      {
+        "id": "FOLLOWUP:fb8f8964f9ce3a14",
+        "framework": "deontological",
+        "action_id": "A0",
+        "kind": "NORM_APPLICATION",
+        "significance": "DECISION_RELEVANT",
+        "status": "OPEN",
+        "authority": "INVESTIGATIVE_ONLY",
+        "source": "SYSTEM_REVIEW_QUESTION",
+        "claim": {
+          "id": "CLAIM:c913ccdda8a9fecd",
+          "kind": "CLAIM",
+          "origin": "deontological",
+          "native_ledger_kind": "DEONTOLOGICAL_DUTY_LEDGER",
+          "native_record_id": "DEON_ASSESSMENT:deontological:A0",
+          "record": {
+            "assessment_node_id": "DEON_ASSESSMENT:deontological:A0",
+            "framework": "DEONTOLOGICAL",
+            "specialist": "deontological",
+            "assessment_role": "PRIMARY",
+            "cycle": 1,
+            "canonical_action_id": "A0",
+            "verdict": "PROHIBITED",
+            "proposed_verdict": "PROHIBITED",
+            "relation": "VIOLATES",
+            "proposed_relation": "VIOLATES",
+            "norm_kind": "DUTY",
+            "norm_node_id": "DEON_NORM:bb6bb29d206f21f4",
+            "party_node_id": "DEON_PARTY:0e52a2bb22e60d0f",
+            "bearer_node_id": "DEON_BEARER:3c38aafb0579dafe",
+            "competing_norm": "Aid those in peril",
+            "competing_norm_kind": "DUTY",
+            "competing_relation": "CONFLICTS",
+            "competing_protected_party": "technician",
+            "competing_reason": "Rescue obligation is imperfect and cannot override",
+            "duty_type": "PERFECT_NEGATIVE",
+            "harm_relation": "DOING_HARM",
+            "special_obligation_status": "NOT_REQUIRED",
+            "special_obligation_basis": "No special relation required",
+            "means_relation": "FORESEEN_SIDE_EFFECT",
+            "candidate_maxim": {
+              "circumstance": "Experiment running; technician trapped; staff nearby",
+              "policy": "Open door immediately",
+              "end": "Rescue technician",
+              "means": "Opening door",
+              "person_role": "FORESEEN_AFFECTED",
+              "consent_constraint": "NONE",
+              "universalization": "If everyone did likewise, predictable containment would fail",
+              "action_permissibility": "IMPERMISSIBLE",
+              "maxim_assessment": "INDEFENSIBLE",
+              "instrumental_belief": "DOES_NOT_RELY",
+              "instrumental_use": "DOES_NOT_USE",
+              "practical_reasoning": "Saving one life is worth the risk",
+              "means_effect_ids": [
+                "E1",
+                "E2"
+              ],
+              "end_effect_ids": []
+            },
+            "maxim_origin": "CANDIDATE_INTERPRETATION",
+            "governing_norm": "PRIMARY",
+            "priority_basis": "PERFECT_DUTY",
+            "priority_rule": "Perfect negative duty precedes imperfect positive duty",
+            "protected_standing": "BODILY_INTEGRITY",
+            "competing_protected_standing": "SPECIAL_OBLIGATION",
+            "coercion_kind": "NONE",
+            "coercive_actor": "Mira",
+            "coerced_party": "NONE",
+            "public_justification": "Universal permission to open doors during hazards would undermine lab safety",
+            "reciprocity_status": "FAILED",
+            "necessity_status": "UNKNOWN",
+            "authorization_status": "NOT_APPLICABLE",
+            "derivation": "RESPECT_PERSONS",
+            "resolution_status": "CONTESTED",
+            "calibration_errors": [],
+            "calibration_issues": [],
+            "calibration_support_node_ids": [],
+            "evidence_basis": "SCENARIO",
+            "epistemic_status": "GROUNDED_PARTY",
+            "reason": "Opening knowingly endangers others.",
+            "protected_party": "nearby staff",
+            "norm": "do not impose grave foreseeable risk on uninvolved staff",
+            "duty_bearer": "mira",
+            "provenance": [
+              "delegate:deontological",
+              "cycle:1"
+            ]
+          },
+          "action_id": "A0",
+          "epistemic_status": "GROUNDED_PARTY",
+          "label": "deontological: A0 PROHIBITED"
+        },
+        "question": "For A0, your revised interpretation classifies the death or harm as a foreseen side effect, not an intended means. Distinguish intending the intervention, intending harm as an end, intending harm as a means, and foreseeing harm. Not being a means does not establish that an outcome is unintended in every respect. Explain the independent prohibition that you believe covers this foreseen harm. If another prohibition governs foreseeable lethal or serious harm, identify and defend it explicitly rather than substituting its label. Test the particular rescue maxim and the omission maxim against universalization and the strongest rescue-duty objection. Explain what justifies the duty priority in this case. The physical world establishes causal relationships, not the actor's actual intentions or the truth of the normative rule. You may retain or revise your conclusion, or acknowledge an unresolved application. A RESOLVED label alone does not settle this philosophical question.",
+        "premise_fingerprint": "b692d5f6f393405c10cbc0b83533ae0f9f6cc0b5a621b86b7aaeb882b1ea77b6"
+      }
+    ],
+    "message": "A decision-relevant question remains in the revised argument. Review it more deeply? Up to two additional model calls; the conclusion may remain unresolved.",
+    "semantic_resolution": "NOT_INDEPENDENTLY_VERIFIED"
+  },
+  "reasoning_followup": {},
+  "not_decided": [
+    "This report does not adjudicate a governing moral verdict.",
+    "Ledger admission does not prove the argument or supply missing welfare units.",
+    "Unresolved objections remain live; reported reversal thresholds are not source facts."
+  ],
+  "judgment_status": "NOT_ADJUDICATED",
+  "topography": {
+    "version": "parliament-topography/1",
+    "status": "RECORDED",
+    "unavailable_reason": null,
+    "caption": "Survivor arithmetic does not settle total welfare. Coordinates are native ledger records, not a calibrated moral physics. Attractors are occupancy of recorded points, not interpolated terrain.",
+    "axes": {
+      "care": {
+        "available": false,
+        "encoding": "ordinal",
+        "levels": [
+          "NEGLECTFUL",
+          "MIXED",
+          "RESPONSIVE"
+        ],
+        "omit_reason": "No CARE_RELATIONSHIP_LEDGER commit."
+      },
+      "welfare": {
+        "available": false,
+        "encoding": "numeric",
+        "unit": null,
+        "scope": "RESTRICTED_SURVIVOR_ENDPOINT_NOT_TOTAL_WELFARE",
+        "omit_reason": "No arithmetic-verified utilitarian expected-value record."
+      },
+      "obligation": {
+        "available": true,
+        "encoding": "ordinal",
+        "levels": [
+          "PROHIBITED",
+          "CONFLICTED",
+          "PERMISSIBLE",
+          "REQUIRED"
+        ]
+      }
+    },
+    "actions": [
+      {
+        "id": "A0",
+        "label": "open the door now",
+        "care": {
+          "present": false,
+          "omit_reason": "No CARE_RELATIONSHIP_LEDGER commit."
+        },
+        "welfare": {
+          "present": false,
+          "omit_reason": "No arithmetic-verified utilitarian expected-value record."
+        },
+        "obligation": {
+          "present": true,
+          "ordinal": 0,
+          "verdict": "PROHIBITED",
+          "unresolved": false,
+          "reason": "Opening knowingly endangers others.",
+          "norm": "do not impose grave foreseeable risk on uninvolved staff"
+        }
+      },
+      {
+        "id": "A1",
+        "label": "stop the experiment and wait",
+        "care": {
+          "present": false,
+          "omit_reason": "No CARE_RELATIONSHIP_LEDGER commit."
+        },
+        "welfare": {
+          "present": false,
+          "omit_reason": "No arithmetic-verified utilitarian expected-value record."
+        },
+        "obligation": {
+          "present": true,
+          "ordinal": 2,
+          "verdict": "PERMISSIBLE",
+          "unresolved": false,
+          "reason": "Waiting avoids active endangerment though it risks omission.",
+          "norm": "do not impose grave foreseeable risk on uninvolved staff"
+        }
+      }
+    ],
+    "framework_arrows": [
+      {
+        "framework": "deontological",
+        "preference": "stop the experiment and wait",
+        "action_id": "A1",
+        "position": "ABSTAIN",
+        "ledger_status": "COMMITTED_WITH_UNCERTAINTY"
+      }
+    ],
+    "flags": {
+      "degenerate": [],
+      "attractors": [],
+      "conflicts": [],
+      "holes": [
+        "care",
+        "welfare"
+      ],
+      "maxima": {
+        "care": null,
+        "welfare": null,
+        "obligation": "A1"
+      }
+    },
+    "notices": []
+  },
+  "execution": {
+    "mode": "SAVED_REPORT_RENDER_NO_API",
+    "scope": "Deontology only: saved_argument_review",
+    "live_source": "diagnostics/deontology_rule_attention_20261019/live/saved_argument_review/targeted_review.json",
+    "world_preparation": "Reused frozen world; no reconstruction."
+  },
+  "artifacts": [
+    "diagnostics/deontology_rule_attention_20261019/live/saved_argument_review/targeted_review.json",
+    "diagnostics/deontology_rule_attention_20261019/live/saved_argument_review/deontological/model_calls.json",
+    "diagnostics/deontology_rule_attention_20261019/live/run_manifest.json"
+  ],
+  "candidate_world_diagrams": [],
+  "diagram_notices": [],
+  "candidate_attempts": [
+    {
+      "blueprint_id": "rescue_contrast",
+      "construction_status": "PARTIAL",
+      "missing_slots": [
+        "first_saved",
+        "second_saved",
+        "rescue_exclusivity",
+        "first_rescue_action",
+        "second_rescue_action",
+        "second_benefit"
+      ],
+      "unfilled_optional_slots": [
+        "first_harm",
+        "second_harm"
+      ]
+    },
+    {
+      "blueprint_id": "omission_harm",
+      "construction_status": "PARTIAL",
+      "missing_slots": [
+        "omitted",
+        "harm_done"
+      ],
+      "unfilled_optional_slots": [
+        "done_hedge",
+        "omitted_hedge",
+        "group_counts",
+        "instrument",
+        "controllable_process",
+        "done_patient",
+        "done_quantity",
+        "omitted_quantity",
+        "instrument_entity"
+      ]
+    },
+    {
+      "blueprint_id": "deontic_rule",
+      "construction_status": "FILLED",
+      "missing_slots": [],
+      "unfilled_optional_slots": [
+        "target",
+        "sanction",
+        "second_bearer"
+      ]
+    }
+  ],
+  "failed_candidate_graphs_markdown": ""
+}

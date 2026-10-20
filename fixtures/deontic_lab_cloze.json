@@ -1,0 +1,50 @@
+{
+  "source": "A laboratory safety rule requires Mira to keep a containment door closed while a hazardous experiment is running. The rule allows opening it only after the experiment has stopped. A technician is trapped inside and needs urgent medical help. Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes. Stopping the experiment first takes ten minutes; the technician may die during that delay.\n\nShould Mira open the door immediately or stop the experiment and wait?\n",
+  "ranking": [
+    "rescue_contrast",
+    "omission_harm",
+    "deontic_rule"
+  ],
+  "answers": {
+    "rescue_contrast": {
+      "rescuer": "Mira",
+      "first_saved": "the technician",
+      "second_saved": "NONE",
+      "rescue_exclusivity": "doing so may expose nearby staff to hazardous fumes",
+      "first_rescue_action": "open the door now to reach the technician",
+      "second_rescue_action": "stop the experiment first",
+      "first_benefit": "the technician may die during that delay",
+      "first_harm": "may expose nearby staff to hazardous fumes",
+      "second_benefit": "NONE",
+      "second_harm": "NONE",
+      "scene": "a containment door closed while a hazardous experiment is running"
+    },
+    "omission_harm": {
+      "actor": "Mira",
+      "done": "open the door now to reach the technician",
+      "omitted": "does not open the door now",
+      "harm_done": "may expose nearby staff to hazardous fumes",
+      "harm_omitted": "the technician may die during that delay",
+      "done_hedge": "but doing so",
+      "omitted_hedge": "if the action is not done",
+      "group_counts": "nearby staff",
+      "instrument": "containment door",
+      "controllable_process": "the experiment",
+      "done_patient": "the technician",
+      "omitted_patient": "the technician",
+      "done_quantity": "NONE",
+      "omitted_quantity": "NONE",
+      "instrument_entity": "NONE"
+    },
+    "deontic_rule": {
+      "deontic_words": "requires, allows",
+      "governed_action": "keep a containment door closed, open it",
+      "bearer": "Mira",
+      "target": "the technician",
+      "authority": "a laboratory safety rule",
+      "exception": "only after the experiment has stopped",
+      "sanction": "may expose nearby staff to hazardous fumes"
+    }
+  },
+  "provenance": "Exact saved live chooser completions before rule-bundle fix; gpt-4o-mini."
+}
