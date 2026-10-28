@@ -595,9 +595,19 @@ def query_grounded_action_effects(
 def segment_scenario_clauses(scenario: str) -> list[dict[str, str]]:
     """Create stable, auditable source spans for action-grounding proposals."""
     normalized = " ".join(normalize_action_labels(str(scenario)).split())
+    # Protect title abbreviations before the sentence-boundary split.  Losing
+    # ``Dr.`` is not merely cosmetic: it changes the exact evidence span used
+    # to license actions and effects later in world-model admission.
+    abbreviation_marker = "\ue000"
+    protected = re.sub(
+        r"\b(Dr|Mr|Mrs|Ms|Prof)\.",
+        lambda match: f"{match.group(1)}{abbreviation_marker}",
+        normalized,
+        flags=re.IGNORECASE,
+    )
     parts = [
-        part.strip(" ,;:")
-        for part in re.split(r"(?<=[.!?;])\s+", normalized)
+        part.replace(abbreviation_marker, ".").strip(" ,;:")
+        for part in re.split(r"(?<=[.!?;])\s+", protected)
         if part.strip(" ,;:")
     ]
     clauses: list[str] = []
@@ -1919,6 +1929,15 @@ def compile_scenario_graph(
                     "typed world projection mismatch: semantic graph effects differ "
                     "from the admitted world model"
                 )
+        from .recognition_bridge import supported_records
+        graph.discourse_collections = {
+            "recognition_records": supported_records(world_model, scenario) if typed is not None else [],
+            "propositions": list(world_model.get("propositions") or []),
+            "reports": list(world_model.get("reports") or []),
+            "commitments": list(world_model.get("commitments") or []),
+            "modal_operators": list(world_model.get("modal_operators") or []),
+            "normative_propositions": list(world_model.get("normative_propositions") or []),
+        }
     for fact in compile_observability_facts(scenario):
         graph.add_node(SemanticNode(
             fact.node_id, "TARGET", fact.target_label, (fact.evidence,),

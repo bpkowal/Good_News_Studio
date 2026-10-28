@@ -3,7 +3,7 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -42,9 +42,10 @@ class FrozenWorldReplay:
     presentation_action_mapping: tuple[dict[str, Any], ...]
     source_action_legend: dict[str, str]
     fingerprint: str
+    source_construction_advisory: dict[str, Any] = field(default_factory=dict)
 
     def metadata(self) -> dict[str, Any]:
-        return {
+        metadata = {
             "mode": "FROZEN_WORLD_TRACE",
             "source_path": str(self.source_path),
             "fingerprint_sha256": self.fingerprint,
@@ -53,6 +54,9 @@ class FrozenWorldReplay:
             "world_generation_calls": 0,
             "validated": True,
         }
+        if self.source_construction_advisory:
+            metadata["source_construction_advisory"] = copy.deepcopy(self.source_construction_advisory)
+        return metadata
 
 
 def load_frozen_world_trace(
@@ -98,7 +102,10 @@ def load_frozen_world_trace(
         raise FrozenWorldReplayError("frozen trace has no action-source grounding object")
     if str(grounding.get("status") or "").upper() != "COMMITTED":
         raise FrozenWorldReplayError("frozen action-source grounding is not COMMITTED")
-    if str(grounding.get("world_model_status") or "").upper() != "COMMITTED":
+    # An implied-process warning is still the admitted world. Uncertainty stays
+    # on the record. A user override or a quarantine is a different status.
+    replayable = {"COMMITTED", "COMMITTED_WITH_UNCERTAINTY"}
+    if str(grounding.get("world_model_status") or "").upper() not in replayable:
         raise FrozenWorldReplayError("frozen typed world model is not COMMITTED")
     if grounding.get("world_contradictions"):
         raise FrozenWorldReplayError("frozen trace contains unresolved world contradictions")
@@ -130,7 +137,7 @@ def load_frozen_world_trace(
     if world is None:
         raise FrozenWorldReplayError("frozen typed world could not be restored")
     admission = world.admission
-    if str(admission.status).upper() != "COMMITTED":
+    if str(admission.status).upper() not in {"COMMITTED", "COMMITTED_WITH_UNCERTAINTY"}:
         raise FrozenWorldReplayError("frozen typed world admission is not COMMITTED")
     if admission.user_override or admission.quarantined_effects:
         raise FrozenWorldReplayError(
@@ -193,6 +200,11 @@ def load_frozen_world_trace(
                 f"frozen {action_id} record does not preserve its typed-world effects"
             )
 
+    source_advisory = payload.get("source_construction_advisory") or {}
+    if source_advisory:
+        from .source_constructions import validate_packet
+        validate_packet(source_advisory, scenario, world=grounding["world_model"])
+
     fingerprint_payload = {
         "scenario": scenario,
         "presentation_actions": presentation_actions,
@@ -214,4 +226,5 @@ def load_frozen_world_trace(
         )),
         source_action_legend=copy.deepcopy(payload.get("source_action_legend") or {}),
         fingerprint=_canonical_fingerprint(fingerprint_payload),
+        source_construction_advisory=copy.deepcopy(source_advisory),
     )

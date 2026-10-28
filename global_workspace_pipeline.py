@@ -2139,6 +2139,7 @@ def run_pipeline(args: argparse.Namespace, recorder: PerformanceRecorder) -> int
             ),
             source_action_legend=source_action_legend,
             scenario_facts=scenario_facts,
+            source_construction_advisory=(dict(frozen_replay.source_construction_advisory) if frozen_replay else {}),
             max_tokens=max(48, args.delegate_tokens),
             memory_profile=specialist_profiles.get(name, {}),
             evidence_calibrator=calibrate_speculative_claim,

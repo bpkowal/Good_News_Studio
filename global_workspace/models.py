@@ -978,7 +978,7 @@ class CandidateChunk:
         if self.schema_valid:
             self.delegate_status = "VALID"
             self.error_type = "NONE"
-        self.rationale = " ".join(self.rationale.split())[:180]
+        self.rationale = " ".join(self.rationale.split())
         baseline_status = self.baseline_status.strip().upper()
         self.baseline_status = (
             baseline_status
@@ -1100,7 +1100,7 @@ class CandidateChunk:
             else "NOT_APPLICABLE"
         )
         self.landscape_cases = {
-            str(action): " ".join(str(reason).split())[:180]
+            str(action): " ".join(str(reason).split())
             for action, reason in self.landscape_cases.items()
             if str(action).strip() and " ".join(str(reason).split())
         }
@@ -1124,7 +1124,7 @@ class CandidateChunk:
             if " ".join(str(error).split())
         ][:8]
         self.independence_bonus = clamp(self.independence_bonus)
-        self.decision_rule = " ".join(self.decision_rule.split())[:180]
+        self.decision_rule = " ".join(self.decision_rule.split())
         adjudication = self.adjudication_status.strip().upper()
         from .specialist_authority import normalize_specialist_status
         if adjudication in {
@@ -1196,10 +1196,10 @@ class CandidateChunk:
         self.reopen_reason = " ".join(str(self.reopen_reason).split())[:240]
         self.reopen_question_key = " ".join(str(self.reopen_question_key).split())[:120]
         self.factual_reversal_threshold = (
-            " ".join(self.factual_reversal_threshold.split())[:180] or "NONE"
+            " ".join(self.factual_reversal_threshold.split()) or "NONE"
         )
         self.normative_reversal_threshold = (
-            " ".join(self.normative_reversal_threshold.split())[:180] or "NONE"
+            " ".join(self.normative_reversal_threshold.split()) or "NONE"
         )
         response = self.reversal_review_response.strip().upper()
         self.reversal_review_response = (
@@ -1274,7 +1274,7 @@ class CandidateChunk:
         self.workspace_reasoning_effect = (
             effect if effect in {"NONE", "FACTUAL", "NORMATIVE", "BOTH"} else "NONE"
         )
-        self.framework_application = " ".join(self.framework_application.split())[:180]
+        self.framework_application = " ".join(self.framework_application.split())
         dependence = self.self_reported_broadcast_dependence.strip().upper()
         self.self_reported_broadcast_dependence = (
             dependence if dependence in {"NONE", "LOW", "MEDIUM", "HIGH"} else "NONE"
@@ -1295,7 +1295,7 @@ class CandidateChunk:
             else "NOT_MEASURED"
         )
         self.framework_action_map = {
-            str(action): " ".join(str(reason).split())[:180]
+            str(action): " ".join(str(reason).split())
             for action, reason in self.framework_action_map.items()
             if str(action).strip() and " ".join(str(reason).split())
         }
